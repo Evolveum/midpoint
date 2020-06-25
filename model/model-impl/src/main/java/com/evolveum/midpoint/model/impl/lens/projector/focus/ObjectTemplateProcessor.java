@@ -87,7 +87,7 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
 
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
+    private RepositoryService cacheRepositoryService;
 
     @Autowired private MappingSetEvaluator mappingSetEvaluator;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;

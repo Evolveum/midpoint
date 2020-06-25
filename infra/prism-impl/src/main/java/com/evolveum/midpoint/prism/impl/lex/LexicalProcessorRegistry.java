@@ -7,7 +7,19 @@
 
 package com.evolveum.midpoint.prism.impl.lex;
 
-import com.evolveum.midpoint.prism.*;
+import static com.evolveum.midpoint.prism.PrismContext.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.ParserFileSource;
+import com.evolveum.midpoint.prism.ParserSource;
+import com.evolveum.midpoint.prism.ParserStringSource;
+import com.evolveum.midpoint.prism.ParserXNodeSource;
 import com.evolveum.midpoint.prism.impl.ParserElementSource;
 import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.impl.lex.json.JsonLexicalProcessor;
@@ -16,23 +28,13 @@ import com.evolveum.midpoint.prism.impl.lex.json.YamlLexicalProcessor;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.evolveum.midpoint.prism.PrismContext.LANG_JSON;
-import static com.evolveum.midpoint.prism.PrismContext.LANG_XML;
-import static com.evolveum.midpoint.prism.PrismContext.LANG_YAML;
 
 /**
  * @author mederly
  */
 public class LexicalProcessorRegistry {
 
-    private final Map<String, LexicalProcessor> parserMap;
+    private final Map<String, LexicalProcessor<?>> parserMap;
 
     private final DomLexicalProcessor domLexicalProcessor;
     private final NullLexicalProcessor nullLexicalProcessor;
@@ -49,35 +51,33 @@ public class LexicalProcessorRegistry {
 
     @NotNull
     public String detectLanguage(File file) throws IOException {
-        for (Map.Entry<String,LexicalProcessor> entry: parserMap.entrySet()) {
-            LexicalProcessor aLexicalProcessor = entry.getValue();
+        for (Map.Entry<String, LexicalProcessor<?>> entry : parserMap.entrySet()) {
+            LexicalProcessor<?> aLexicalProcessor = entry.getValue();
             if (aLexicalProcessor.canRead(file)) {
                 return entry.getKey();
             }
         }
-        throw new SystemException("Data language couldn't be auto-detected for file '"+file+"'");
+        throw new SystemException("Data language couldn't be auto-detected for file '" + file + "'");
     }
 
     @NotNull
-    private LexicalProcessor findProcessor(File file) throws IOException {
-        for (Map.Entry<String,LexicalProcessor> entry: parserMap.entrySet()) {
-            LexicalProcessor aLexicalProcessor = entry.getValue();
-            if (aLexicalProcessor.canRead(file)) {
-                return aLexicalProcessor;
+    private LexicalProcessor<?> findProcessor(File file) throws IOException {
+        for (LexicalProcessor<?> lexicalProcessor : parserMap.values()) {
+            if (lexicalProcessor.canRead(file)) {
+                return lexicalProcessor;
             }
         }
-        throw new SystemException("No lexical processor for file '"+file+"' (autodetect)");
+        throw new SystemException("No lexical processor for file '" + file + "' (autodetect)");
     }
 
     @NotNull
-    private LexicalProcessor findProcessor(@NotNull String data){
-        for (Map.Entry<String,LexicalProcessor> entry: parserMap.entrySet()) {
-            LexicalProcessor aLexicalProcessor = entry.getValue();
-            if (aLexicalProcessor.canRead(data)) {
-                return aLexicalProcessor;
+    private LexicalProcessor<?> findProcessor(@NotNull String data) {
+        for (LexicalProcessor<?> lexicalProcessor : parserMap.values()) {
+            if (lexicalProcessor.canRead(data)) {
+                return lexicalProcessor;
             }
         }
-        throw new SystemException("No lexical processor for data '"+ DebugUtil.excerpt(data,16)+"' (autodetect)");
+        throw new SystemException("No lexical processor for data '" + DebugUtil.excerpt(data, 16) + "' (autodetect)");
     }
 
     @NotNull
@@ -89,8 +89,9 @@ public class LexicalProcessorRegistry {
     public <T> LexicalProcessor<T> processorFor(String language) {
         LexicalProcessor<?> lexicalProcessor = parserMap.get(language);
         if (lexicalProcessor == null) {
-            throw new SystemException("No lexical processor for language '"+language+"'");
+            throw new SystemException("No lexical processor for language '" + language + "'");
         }
+        //noinspection unchecked
         return (LexicalProcessor<T>) lexicalProcessor;
     }
 

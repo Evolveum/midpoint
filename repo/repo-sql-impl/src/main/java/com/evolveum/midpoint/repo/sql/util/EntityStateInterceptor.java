@@ -6,13 +6,6 @@
  */
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.repo.sql.data.common.RFocusPhoto;
-import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAExtValue;
-import com.evolveum.midpoint.repo.sql.data.common.any.RAssignmentExtension;
-import com.evolveum.midpoint.repo.sql.data.common.any.ROExtValue;
-import com.evolveum.midpoint.repo.sql.data.common.container.RAssignmentReference;
-import com.evolveum.midpoint.repo.sql.data.common.container.RContainerReference;
 import org.hibernate.EmptyInterceptor;
 
 /**
@@ -24,27 +17,6 @@ public class EntityStateInterceptor extends EmptyInterceptor {
     public Boolean isTransient(Object entity) {
         if (entity instanceof EntityState) {
             return isTransient((EntityState) entity);
-        }
-
-        if (entity instanceof RObjectReference) {
-            RObjectReference ref = (RObjectReference) entity;
-            return isTransient(ref.getOwner());
-        } else if (entity instanceof RAssignmentReference) {
-            RContainerReference ref = (RContainerReference) entity;
-            return isTransient(ref.getOwner());
-        } else if (entity instanceof RAssignmentExtension) {
-            RAssignmentExtension ext = (RAssignmentExtension) entity;
-            return isTransient(ext.getOwner());
-        } else if (entity instanceof RAExtValue) {
-            RAExtValue val = (RAExtValue) entity;
-            RAssignmentExtension ext = val.getAnyContainer();
-            return ext != null ? isTransient(ext.getOwner()) : null;
-        } else if (entity instanceof ROExtValue) {
-            ROExtValue val = (ROExtValue) entity;
-            return isTransient(val.getOwner());
-        } else if (entity instanceof RFocusPhoto) {
-            RFocusPhoto photo = (RFocusPhoto) entity;
-            return isTransient(photo.getOwner());
         }
 
         return null;

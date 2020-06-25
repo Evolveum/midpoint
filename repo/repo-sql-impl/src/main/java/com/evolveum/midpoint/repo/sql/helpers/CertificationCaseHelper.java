@@ -1,11 +1,23 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.helpers;
+
+import java.util.*;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.hibernate.Session;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Query;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -23,9 +35,9 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertification
 import com.evolveum.midpoint.repo.sql.data.common.container.RAccessCertificationWorkItem;
 import com.evolveum.midpoint.repo.sql.data.common.container.RCertWorkItemReference;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
+import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
-import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -40,22 +52,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationC
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.commons.collections4.CollectionUtils;
-import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.hibernate.query.NativeQuery;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import java.util.*;
 
 /**
  * Contains methods specific to handle certification cases.
  * (As these cases are stored outside main certification campaign object.)
- *
+ * <p>
  * It is quite a temporary solution in order to ease SqlRepositoryServiceImpl
  * from tons of type-specific code. Serious solution would be to implement
  * subobject-level operations more generically.
@@ -92,8 +93,10 @@ public class CertificationCaseHelper {
         }
     }
 
-    private void addCertificationCampaignCases(Session session, String campaignOid, Collection<PrismContainerValue> values,
-            int currentId, List<Long> affectedIds) throws DtoTranslationException {
+    private void addCertificationCampaignCases(Session session, String campaignOid,
+            Collection<PrismContainerValue> values, int currentId, List<Long> affectedIds)
+            throws DtoTranslationException {
+
         for (PrismContainerValue value : values) {
             AccessCertificationCaseType caseType = new AccessCertificationCaseType();
             caseType.setupContainerValue(value);
@@ -251,7 +254,7 @@ public class CertificationCaseHelper {
                 if (fullObject == null) {
                     throw new ObjectNotFoundException("Couldn't update cert campaign " + campaignOid + " + by delta with path " + deltaPath + " - specified case does not exist");
                 }
-                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
+                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext);
 
                 delta = delta.clone();                                      // to avoid changing original modifications
                 delta.setParentPath(delta.getParentPath().rest(2));         // remove "case[id]" from the delta path
@@ -273,14 +276,14 @@ public class CertificationCaseHelper {
         if (RepoModifyOptions.isExecuteIfNoChanges(modifyOptions)) {
             Query query = session.getNamedQuery("get.campaignCases");
             query.setString("ownerOid", campaignOid);
-            @SuppressWarnings({"raw", "unchecked"})
+            @SuppressWarnings({ "raw", "unchecked" })
             List<Object> cases = query.list();
             for (Object o : cases) {
                 if (!(o instanceof byte[])) {
                     throw new IllegalStateException("Certification case: expected byte[], got " + o.getClass());
                 }
                 byte[] fullObject = (byte[]) o;
-                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
+                AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext);
                 Long id = aCase.getId();
                 if (id != null && casesAddedOrDeleted != null && !casesAddedOrDeleted.contains(id) && !casesModified.contains(id)) {
                     RAccessCertificationCase rCase = RAccessCertificationCase.toRepo(campaignOid, aCase, createRepositoryContext());
@@ -309,14 +312,13 @@ public class CertificationCaseHelper {
         return id;
     }
 
-
     // TODO find a better name
     public AccessCertificationCaseType updateLoadedCertificationCase(GetContainerableResult result, Map<String, PrismObject<AccessCertificationCampaignType>> ownersMap,
             Collection<SelectorOptions<GetOperationOptions>> options,
             Session session, OperationResult operationResult) throws SchemaException {
 
         byte[] fullObject = result.getFullObject();
-        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext, false);
+        AccessCertificationCaseType aCase = RAccessCertificationCase.createJaxb(fullObject, prismContext);
         generalHelper.validateContainerable(aCase, AccessCertificationCaseType.class);
 
         String ownerOid = result.getOwnerOid();
@@ -332,7 +334,7 @@ public class CertificationCaseHelper {
             Map<String, PrismContainerValue<AccessCertificationCaseType>> casesCache,        // key=OID:ID
             Map<String, PrismObject<AccessCertificationCampaignType>> campaignsCache,        // key=OID
             Collection<SelectorOptions<GetOperationOptions>> options,
-            QueryEngine2 engine, Session session, OperationResult operationResult) throws SchemaException, QueryException {
+            QueryEngine engine, Session session, OperationResult operationResult) throws SchemaException, QueryException {
 
         String campaignOid = result.getCampaignOid();
         Integer caseId = result.getCaseId();
@@ -345,7 +347,7 @@ public class CertificationCaseHelper {
                     .and().id(caseId)
                     .build();
             RQuery caseQuery = engine.interpret(query, AccessCertificationCaseType.class, null, false, session);
-            @SuppressWarnings({"raw", "unchecked"})
+            @SuppressWarnings({ "raw", "unchecked" })
             List<GetContainerableResult> cases = caseQuery.list();
             if (cases.size() > 1) {
                 throw new IllegalStateException(
@@ -359,7 +361,7 @@ public class CertificationCaseHelper {
             casePcv = acase.asPrismContainerValue();
             casesCache.put(caseKey, casePcv);
         }
-        @SuppressWarnings({"raw", "unchecked"})
+        @SuppressWarnings({ "raw", "unchecked" })
         PrismContainerValue<AccessCertificationWorkItemType> workItemPcv = (PrismContainerValue<AccessCertificationWorkItemType>)
                 casePcv.find(ItemPath.create(AccessCertificationCaseType.F_WORK_ITEM, workItemId));
         if (workItemPcv == null) {
@@ -376,8 +378,8 @@ public class CertificationCaseHelper {
             return campaign;
         }
         try {
-            campaign = objectRetriever.getObjectInternal(session, AccessCertificationCampaignType.class, campaignOid, null, false, operationResult);
-        } catch (ObjectNotFoundException|SchemaException|DtoTranslationException|RuntimeException e) {
+            campaign = objectRetriever.getObjectInternal(session, AccessCertificationCampaignType.class, campaignOid, null, false);
+        } catch (ObjectNotFoundException | SchemaException | DtoTranslationException | RuntimeException e) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get campaign with OID {}", e, campaignOid);
             return null;
         }
@@ -401,7 +403,7 @@ public class CertificationCaseHelper {
         Query query = session.createQuery(cq);
 
         // TODO fetch only XML representation
-        @SuppressWarnings({"raw", "unchecked"})
+        @SuppressWarnings({ "raw", "unchecked" })
         List<RAccessCertificationCase> cases = query.list();
         if (CollectionUtils.isNotEmpty(cases)) {
             AccessCertificationCampaignType campaign = (AccessCertificationCampaignType) object.asObjectable();

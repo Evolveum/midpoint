@@ -8,20 +8,18 @@
 package com.evolveum.midpoint.repo.api;
 
 /**
- *  Contains information about object deletion result; primarily needed by repository caching algorithms.
- *  Because it is bound to the current (SQL) implementation of the repository, avoid using this information
- *  for any other purposes.
- *
- *  EXPERIMENTAL.
+ * Contains information about object deletion result; primarily needed by repository caching algorithms.
+ * Because it is bound to the current (SQL) implementation of the repository, avoid using this information
+ * for any other purposes.
+ * <p>
+ * EXPERIMENTAL.
  */
 public class DeleteObjectResult {
 
     private final String objectTextRepresentation;
-    private final String language;
 
-    public DeleteObjectResult(String objectTextRepresentation, String language) {
+    public DeleteObjectResult(String objectTextRepresentation) {
         this.objectTextRepresentation = objectTextRepresentation;
-        this.language = language;
     }
 
     /**
@@ -31,12 +29,5 @@ public class DeleteObjectResult {
      */
     public String getObjectTextRepresentation() {
         return objectTextRepresentation;
-    }
-
-    /**
-     * Language in which the text representation is encoded.
-     */
-    public String getLanguage() {
-        return language;
     }
 }

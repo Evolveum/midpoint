@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.testing.schrodinger.page;
 
-import com.codeborne.selenide.Selenide;
-
 import com.evolveum.midpoint.schrodinger.component.common.FeedbackBox;
 import com.evolveum.midpoint.schrodinger.component.common.PrismForm;
 import com.evolveum.midpoint.schrodinger.component.configuration.InfrastructureTab;
@@ -40,6 +38,7 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
     protected static final File SYSTEM_CONFIG_WITH_NOTIFICATION = new File("src/test/resources/configuration/objects/systemconfig/system-configuration-notification.xml");
     protected static final File CREATE_NAME_OBJECT_TEMPLATE = new File("src/test/resources/configuration/objects/objecttemplate/create-name-after-self-reg.xml");
     protected static final File NOTIFICATION_FILE = new File("./target/notification.txt");
+    protected static final File ARCHETYPE_NODE_GUI = new File("src/test/resources/configuration/objects/archetypes/archetype-node-group-gui.xml");
 
     protected static final String NAME_OF_ENABLED_USER = "enabled_user";
     protected static final String MAIL_OF_ENABLED_USER = "enabled_user@evolveum.com";
@@ -56,6 +55,7 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
         importObject(DISABLED_USER, true);
         importObject(ENABLED_USER_WITHOUT_AUTHORIZATIONS, true);
         importObject(MAIL_NONCE_VALUE_POLICY, true);
+        importObject(ARCHETYPE_NODE_GUI, true);
         importObject(getSecurityPolicyMailNonceResetPass(), true);
         importObject(USER_WITHOUT_SUPERUSER, true);
         importObject(CREATE_NAME_OBJECT_TEMPLATE, true);
@@ -113,10 +113,10 @@ public abstract class AbstractLoginPageTest extends AbstractSchrodingerTest {
         basicPage.loggedUser().logoutIfUserIsLogin();
         FormLoginPage login = midPoint.formLogin();
         login.login("administrator", "5ecr3t");
-        auditingSuccesfulLogin("administrator");
+        auditingSuccessfulLogin("administrator");
     }
 
-    protected void auditingSuccesfulLogin(String username) {
+    protected void auditingSuccessfulLogin(String username) {
         AuditLogViewerPage auditLogViewer = basicPage.auditLogViewer();
         AuditRecordTable auditRecordsTable = auditLogViewer.table();
         auditRecordsTable.checkInitiator(1, username);

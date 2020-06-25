@@ -426,6 +426,25 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
+    @Override
+    @Experimental
+    public V findValue(V value, EquivalenceStrategy strategy, Comparator<V> comparator) {
+        if (comparator == null) {
+            if (strategy == null) {
+                return findValue(value, defaultEquivalenceStrategy);
+            } else {
+                return findValue(value, strategy);
+            }
+        } else {
+            for (V myValue : getValues()) {
+                if (comparator.compare(myValue, value) == 0) {
+                    return myValue;
+                }
+            }
+            return null;
+        }
+    }
+
     public boolean valuesEqual(Collection<V> matchValues, Comparator<V> comparator) {
         return MiscUtil.unorderedCollectionCompare(values, matchValues, comparator);
     }

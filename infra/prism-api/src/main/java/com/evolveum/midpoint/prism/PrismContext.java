@@ -7,19 +7,31 @@
 
 package com.evolveum.midpoint.prism;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.crypto.ProtectorCreator;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
-import com.evolveum.midpoint.prism.marshaller.JaxbDomHack;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
+import com.evolveum.midpoint.prism.metadata.ValueMetadataFactory;
+import com.evolveum.midpoint.prism.metadata.ValueMetadataMockUpFactory;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.QueryConverter;
+import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
 import com.evolveum.midpoint.prism.schema.SchemaFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -31,20 +43,8 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.w3c.dom.Element;
-import org.w3c.dom.ls.LSResourceResolver;
-import org.xml.sax.SAXException;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
 /**
- *
  * @author semancik
  * @author mederly
  */
@@ -74,7 +74,7 @@ public interface PrismContext extends ProtectorCreator {
     PolyStringNormalizer getDefaultPolyStringNormalizer();
 
     /**
-     * Returns the default protector. (TODO)
+     * Returns the default protector.
      */
     Protector getDefaultProtector();
 
@@ -85,6 +85,7 @@ public interface PrismContext extends ProtectorCreator {
 
     /**
      * Creates a parser ready to process the given file.
+     *
      * @param file File to be parsed.
      * @return Parser that can be invoked to retrieve the (parsed) content of the file.
      */
@@ -93,6 +94,7 @@ public interface PrismContext extends ProtectorCreator {
 
     /**
      * Creates a parser ready to process data from the given input stream.
+     *
      * @param stream Input stream to be parsed.
      * @return Parser that can be invoked to retrieve the (parsed) content of the input stream.
      */
@@ -101,8 +103,10 @@ public interface PrismContext extends ProtectorCreator {
 
     /**
      * Creates a parser ready to process data from the given string.
-     * @param data String with the data to be parsed. It has be in UTF-8 encoding.
-     *             (For other encodings please use InputStream or File source.)
+     * Format/language of the data will be auto-detected, so the typically following
+     * {@link PrismParser#language(String)} can be omitted.
+     *
+     * @param data String with the data to be parsed.
      * @return Parser that can be invoked to retrieve the (parsed) content.
      */
     @NotNull
@@ -110,6 +114,7 @@ public interface PrismContext extends ProtectorCreator {
 
     /**
      * Creates a parser ready to process data from the given XNode tree.
+     *
      * @param xnode XNode tree with the data to be parsed.
      * @return Parser that can be invoked to retrieve the (parsed) content.
      */
@@ -118,6 +123,7 @@ public interface PrismContext extends ProtectorCreator {
 
     /**
      * Creates a parser ready to process data from the given DOM element.
+     *
      * @param element Element with the data to be parsed.
      * @return Parser that can be invoked to retrieve the (parsed) content.
      */
@@ -166,6 +172,7 @@ public interface PrismContext extends ProtectorCreator {
     //region Serializing
     /**
      * Creates a serializer for the given language.
+     *
      * @param language Language (like xml, json, yaml).
      * @return The serializer.
      */
@@ -174,6 +181,7 @@ public interface PrismContext extends ProtectorCreator {
 
     /**
      * Creates a serializer for XML language.
+     *
      * @return The serializer.
      */
     @NotNull
@@ -181,6 +189,7 @@ public interface PrismContext extends ProtectorCreator {
 
     /**
      * Creates a serializer for JSON language.
+     *
      * @return The serializer.
      */
     @NotNull
@@ -188,6 +197,7 @@ public interface PrismContext extends ProtectorCreator {
 
     /**
      * Creates a serializer for YAML language.
+     *
      * @return The serializer.
      */
     @NotNull
@@ -196,6 +206,7 @@ public interface PrismContext extends ProtectorCreator {
     /**
      * Creates a serializer for DOM. The difference from XML serializer is that XML produces String output
      * whereas this one produces a DOM Element.
+     *
      * @return The serializer.
      */
     @NotNull
@@ -203,54 +214,49 @@ public interface PrismContext extends ProtectorCreator {
 
     /**
      * Creates a serializer for XNode. The output of this serializer is intermediate XNode representation.
+     *
      * @return The serializer.
      */
     @NotNull
     PrismSerializer<RootXNode> xnodeSerializer();
 
-    /**
-     * TODO
-     * @param value
-     * @return
-     */
-    boolean canSerialize(Object value);
     //endregion
 
     /**
      * Creates a new PrismObject of a given type.
+     *
      * @param clazz Static type of the object to be created.
      * @return New PrismObject.
      * @throws SchemaException If a definition for the given class couldn't be found.
      */
-    @NotNull
-    <O extends Objectable> PrismObject<O> createObject(@NotNull Class<O> clazz) throws SchemaException;
+    @NotNull <O extends Objectable> PrismObject<O> createObject(@NotNull Class<O> clazz) throws SchemaException;
 
     /**
      * Creates a new Objectable of a given type.
+     *
      * @param clazz Static type of the object to be created.
      * @return New PrismObject's objectable content.
      * @throws SchemaException If a definition for the given class couldn't be found.
      */
-    @NotNull
-    <O extends Objectable> O createObjectable(@NotNull Class<O> clazz) throws SchemaException;
+    @NotNull <O extends Objectable> O createObjectable(@NotNull Class<O> clazz) throws SchemaException;
 
     /**
      * Creates a new PrismObject of a given static type. It is expected that the type exists, so any SchemaExceptions
      * will be thrown as run-time exception.
+     *
      * @param clazz Static type of the object to be created.
      * @return New PrismObject.
      */
-    @NotNull
-    <O extends Objectable> PrismObject<O> createKnownObject(@NotNull Class<O> clazz);
+    @NotNull <O extends Objectable> PrismObject<O> createKnownObject(@NotNull Class<O> clazz);
 
     /**
      * Creates a new Objectable of a given static type. It is expected that the type exists, so any SchemaExceptions
      * will be thrown as run-time exception.
+     *
      * @param clazz Static type of the object to be created.
      * @return New PrismObject's objectable content.
      */
-    @NotNull
-    <O extends Objectable> O createKnownObjectable(@NotNull Class<O> clazz);
+    @NotNull <O extends Objectable> O createKnownObjectable(@NotNull Class<O> clazz);
 
     PrismMonitor getMonitor();
 
@@ -271,7 +277,7 @@ public interface PrismContext extends ProtectorCreator {
     /**
      * Type name for serialization of Referencable that's not of XML type (e.g. DefaultReferencableImpl).
      * In midPoint it's c:ObjectReferenceType.
-     *
+     * <p>
      * VERY EXPERIMENTAL. Maybe we should simply use t:ObjectReferenceType in such cases.
      */
     @Experimental
@@ -334,7 +340,7 @@ public interface PrismContext extends ProtectorCreator {
     /**
      * Access point to the "old" way of creating deltas. It is generally considered deprecated.
      * DeltaBuilder (accessed via deltaFor method) should be used instead.
-     *
+     * <p>
      * However, because there is some functionality (like creation of empty deltas) that is not covered by the delta
      * builder, we keep this method not marked as deprecated. Only particular parts of DeltaFactory are marked as deprecated.
      */
@@ -344,7 +350,7 @@ public interface PrismContext extends ProtectorCreator {
     /**
      * Access point to the "old" way of creating queries, filters and paging instructions.
      * It is generally considered deprecated. QueryBuilder (accessed via queryFor method) should be used instead.
-     *
+     * <p>
      * However, because there is some functionality (like creation of standalone paging instructions) that is not covered
      * by the query builder, we keep this method not marked as deprecated. Only particular parts of QueryFactory are marked
      * as deprecated.
@@ -367,4 +373,22 @@ public interface PrismContext extends ProtectorCreator {
 
     @NotNull
     SchemaFactory schemaFactory();
+
+    /**
+     * TEMPORARY. WILL BE REMOVED AFTER PROTOTYPING IS OVER.
+     */
+    @Experimental
+    void setValueMetadataMockUpFactory(ValueMetadataMockUpFactory factory);
+
+    /**
+     * TEMPORARY. WILL BE REMOVED AFTER PROTOTYPING IS OVER.
+     */
+    @Experimental
+    ValueMetadataMockUpFactory getValueMetadataMockUpFactory();
+
+    @Experimental
+    void setValueMetadataFactory(ValueMetadataFactory factory);
+
+    @Experimental
+    ValueMetadataFactory getValueMetadataFactory();
 }

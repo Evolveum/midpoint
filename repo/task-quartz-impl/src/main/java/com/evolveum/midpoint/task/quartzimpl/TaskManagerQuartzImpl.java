@@ -50,7 +50,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.quartz.JobKey;
@@ -120,6 +119,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private Tracer tracer;
     @Autowired private CacheDispatcher cacheDispatcher;
+    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CounterManager counterManager;
 
     private GlobalTracingOverride globalTracingOverride;
 
@@ -127,18 +128,19 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     private String webContextPath;
 
     // instances of all the helper classes (see their definitions for their description)
-    private ExecutionManager executionManager = new ExecutionManager(this);
-    private ClusterManager clusterManager = new ClusterManager(this);
-    private StalledTasksWatcher stalledTasksWatcher = new StalledTasksWatcher(this);
+    // TODO Convert these to regular spring beans!
+    private final ExecutionManager executionManager = new ExecutionManager(this);
+    private final ClusterManager clusterManager = new ClusterManager(this);
+    private final StalledTasksWatcher stalledTasksWatcher = new StalledTasksWatcher(this);
 
     // task handlers (mapped from their URIs)
-    private Map<String,TaskHandler> handlers = new HashMap<>();
+    private final Map<String,TaskHandler> handlers = new HashMap<>();
 
     // primary handlers URIs - these will be taken into account when searching for handler matching a given task category
-    private Map<String,TaskHandler> primaryHandlersUris = new HashMap<>();
+    private final Map<String,TaskHandler> primaryHandlersUris = new HashMap<>();
 
     // all non-deprecated handlers URIs
-    private Map<String,TaskHandler> nonDeprecatedHandlersUris = new HashMap<>();
+    private final Map<String,TaskHandler> nonDeprecatedHandlersUris = new HashMap<>();
 
     private final Set<TaskDeletionListener> taskDeletionListeners = new HashSet<>();
 
@@ -149,7 +151,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     private NodeErrorStatusType nodeErrorStatus = NodeErrorStatusType.OK;
 
     // task listeners
-    private Set<TaskListener> taskListeners = new HashSet<>();
+    private final Set<TaskListener> taskListeners = new HashSet<>();
 
     /**
      * Registered transient tasks. Here we put all transient tasks that are to be managed by the task manager.
@@ -166,7 +168,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     // Maps task id -> task
     private final Map<String,RunningTaskQuartzImpl> locallyRunningTaskInstancesMap = new ConcurrentHashMap<>();
 
-    private ExecutorService lightweightHandlersExecutor = Executors.newCachedThreadPool();
+    private final ExecutorService lightweightHandlersExecutor = Executors.newCachedThreadPool();
 
     private BeanFactory beanFactory;
 
@@ -226,7 +228,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
     @PostConstruct
     public void init() {
-
         OperationResult result = createOperationResult(DOT_IMPL_CLASS + "init");
 
         try {
@@ -242,11 +243,14 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         if (configuration.isTestMode()) {
             startSchedulerIfNeeded(result);
         }
+
+        clusterManager.postConstruct();
     }
 
     @PreDestroy
     public void destroy() {
         systemConfigurationChangeDispatcher.unregisterListener(this);
+        clusterManager.preDestroy();
     }
 
     @Override
@@ -2702,5 +2706,24 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Override
     public boolean isCheckingIn(NodeType node) {
         return clusterManager.isCheckingIn(node);
+    }
+
+    @Override
+    public Collection<ObjectReferenceType> getLocalNodeGroups() {
+        NodeType localNode = getLocalNode();
+        if (localNode == null) {
+            // should not occur during regular operation
+            return emptySet();
+        } else {
+            return Collections.unmodifiableCollection(localNode.getArchetypeRef());
+        }
+    }
+
+    public CacheRegistry getCacheRegistry() {
+        return cacheRegistry;
+    }
+
+    public CounterManager getCounterManager() {
+        return counterManager;
     }
 }

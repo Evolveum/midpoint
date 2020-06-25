@@ -33,6 +33,7 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-policy-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-security-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-metadata-3" />
 
     <!-- ################################## -->
     <!-- ##      Common Schema Layer     ## -->
@@ -83,9 +84,6 @@
                     white space may be skipped, multiple spaces can be collapsed to one and so on.
                 </p>
             </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.1</a:since>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -109,6 +107,9 @@
                     non-blank line of text is also skipped.
                 </p>
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -867,6 +868,7 @@
                         <a:displayName>MetadataType.requestTimestamp</a:displayName>
                         <a:operational>true</a:operational>
                         <a:since>3.5</a:since>
+                        <a:valueMetadata />
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -879,6 +881,7 @@
                         <a:displayName>MetadataType.requestorRef</a:displayName>
                         <a:operational>true</a:operational>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:valueMetadata />
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2105,7 +2108,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="nodeIdentifier" type="xsd:string">
                         <xsd:annotation>
@@ -4345,7 +4348,7 @@
                                 </p>
                                 <p>
                                 Assignments represent what the object SHOULD HAVE. The assignments represent a policy,
-                                a desired state of things (cf. linkRef).
+                                a desired state of things (cf. linkRef, roleMembershipRef).
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -4426,6 +4429,11 @@
                                   This is an operational property. It is set and managed by the system. It is used
                                   for efficient search of all current role members, e.g. for the purpose of displaying this
                                   information in the GUI.
+                                </p>
+                                <p>
+                                    Note: roleMembershipRef will be probably renamed to something like linkRef or
+                                    outboundLinkRef. We need to generalize it to contain information on generic links
+                                    between objects (e.g. between child and its parents).
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -4525,6 +4533,11 @@
                                 <p>
                                 Links define what the object HAS. The links reflect real state of things
                                 (cf. assignment).
+                                </p>
+                                <p>
+                                    Note: linkRef will be probably renamed to projectionRef or projectionLinkRef.
+                                    There are more kinds of links between objects than focus - projection links
+                                    (cf. roleMembershipRef).
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -4741,6 +4754,15 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:displayName>UserType.credentials</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="behavior" type="tns:BehaviorType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>FocusType.behavior</a:displayName>
+                                <a:since>4.2</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -5105,7 +5127,7 @@
             <xsd:documentation>
                 This is a container type for various credentials types: passwords, public keys, one-time password
                 scheme identifiers, etc. However, we expect that password will be the most widely used credential
-                type and that's actually also the only supported type.
+                type.
 
                 The reason to "formalize" this structure is the ability to synchronize credentials. If the password
                 would be just an ordinary attribute, we cannot automatically synchronize user and account passwords.
@@ -5113,10 +5135,6 @@
                 Note: marking password with a special attribute type will not be enough. There may be numerous passwords
                 with various meanings, we need to distinguish the "primary" one to synchronize. We also need to store
                 user password somewhere.
-
-                This is not perfect. It may change in the future.
-
-                TODO: support for "old password", e.g. some resource need it to change password.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
@@ -5144,35 +5162,46 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- More credential types may be here, such as OTP seeds, X.509 credentials,
-                etc. -->
+            <!-- More credential types may be here, such as OTP seeds, X.509 credentials, etc. -->
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
     <xsd:element name="credentials" type="tns:CredentialsType"/>
 
-    <xsd:complexType name="AbstractCredentialType" abstract="true">
+    <xsd:complexType name="BehaviorType">
         <xsd:annotation>
+            <xsd:documentation>
+                General-purpose behavioral data.
+                In a more specific meaning: behavioral data of an agent (user or system), usually represented in midPoint by focus.
+                This data structure records informational data about the agent's behavior, such as authentications, interaction with systems and so on.
+                Such data are inherently _observed_, e.g. they are not configured by the user.
+            </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:since>4.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Name of the credential. It is used as an identifier that
-                        specifies credential purpose. E.g. it may specify whether
-                        this is default user password or administration password,
-                        whether this is a nonce for registration or password reset
-                        and so on. Simply speaking the name is used to distinguish
-                        credentials that have the same type but different purpose.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:operational>true</a:operational>
-                    </xsd:appinfo>
-                </xsd:annotation>
+            <xsd:element name="authentication" type="tns:AuthenticationBehavioralDataType" minOccurs="0" maxOccurs="1">
             </xsd:element>
+            <!-- More data may be added here in the future, e.g. last self-service access, last role request, etc.
+                 Even compiled data may appear here, e.g. last access of user to any of his accounts.
+                 Maybe we should even make this extensible, so custom items may be added here. -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long" use="optional"/>
+    </xsd:complexType>
+
+    <xsd:complexType name="AuthenticationBehavioralDataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Behavioral data about past authentications.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
             <xsd:element name="failedLogins" type="xsd:int" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -5219,37 +5248,65 @@
                 </xsd:annotation>
             </xsd:element>
             <!-- TODO: lockoutTimestamp -->
-            <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Timestamps and general metadata describing the credential change.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:operational>true</a:operational>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" default="false">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        If it is required to change password. E.g. there are situation when you set first password
-                        for the user, but after the user fist log in to the system, he/she has to change his/her password.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:displayName>AbstractCredentialType.forceChange</a:displayName>
-                        <a:experimental>true</a:experimental>
-                        <a:since>3.6</a:since>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
+
+    <xsd:complexType name="AbstractCredentialType" abstract="true">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AuthenticationBehavioralDataType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Name of the credential. It is used as an identifier that
+                                specifies credential purpose. E.g. it may specify whether
+                                this is default user password or administration password,
+                                whether this is a nonce for registration or password reset
+                                and so on. Simply speaking the name is used to distinguish
+                                credentials that have the same type but different purpose.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Timestamps and general metadata describing the credential change.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:operational>true</a:operational>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="forceChange" type="xsd:boolean" minOccurs="0" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                If it is required to change password. E.g. there are situation when you set first password
+                                for the user, but after the user fist log in to the system, he/she has to change his/her password.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AbstractCredentialType.forceChange</a:displayName>
+                                <a:experimental>true</a:experimental>
+                                <a:since>3.6</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
 
     <xsd:complexType name="PasswordType">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:container/>
+                <!-- TODO: support for "old password", e.g. some resource need it to change password. -->
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
@@ -9525,8 +9582,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-
-    <xsd:complexType name="MappingType">
+    <xsd:complexType name="AbstractMappingType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines how a value of a property (or attribute) should be
@@ -9738,6 +9794,25 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MappingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specialization of abstract mapping for regular data mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:displayName>MappingType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractMappingType">
+                <xsd:sequence>
+                    <xsd:element name="metadataHandling" type="tns:MetadataHandlingType" minOccurs="0" />
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="mapping" type="tns:MappingType"/>
 
@@ -15107,6 +15182,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="metadataHandling" type="tns:MetadataHandlingType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies metadata handling for this archetype or object type.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ArchetypePolicyType.metadataHandling</a:displayName>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -16170,6 +16257,7 @@
                     </xsd:element>
 
                     <xsd:element name="modelHooks" type="tns:ModelHooksType" minOccurs="0"/>
+
                     <xsd:element name="logging" type="tns:LoggingConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -16376,13 +16464,23 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="metadataHandling" type="tns:MetadataHandlingType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Specifies metadata handling at the global level.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>SystemConfigurationType.metadataHandling</a:displayName>
+                                <a:since>4.2</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
-
-
 
     <xsd:complexType name="FullTextSearchConfigurationType">
         <xsd:annotation>
@@ -16522,6 +16620,21 @@
                     <xsd:appinfo>
                         <a:since>4.2</a:since>
                         <a:displayName>SystemConfigurationAuditEventRecordingType.escapeIllegalCharacters</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recordSessionlessAccess" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        There are services in midPoint that are not using concept of access session.
+                        No session is created for such services.
+                        Therefore there are no audit records about session creation or termination.
+                        Access to such services is not recorded in the audit log by default.
+                        Setting `recordSessionlessAccess` to `true` will force recording of session start/end events even for session-less services.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:displayName>SystemConfigurationAuditEventRecordingType.recordSessionlessAccess</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -20068,7 +20181,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="auditing" type="tns:AuditingConfigurationType" minOccurs="0">
+            <xsd:element name="auditing" type="tns:LoggingAuditingConfigurationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Persistent auditing configuration. It is placed in "logging" for practical reasons as the only
@@ -20094,11 +20207,13 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:complexType name="AuditingConfigurationType">
+    <xsd:complexType name="LoggingAuditingConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
-                Auditing configuration
-                UNSTABLE. THIS WILL CHANGE IN THE FUTURE.
+                Auditing configuration for auditing by using the logging subsystem.
+
+                This configuration applies only to auditing aspects that go through the logging subsystem.
+                The entire auditing subsystem is configured separately at several places.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container>true</a:container>
@@ -23973,6 +24088,20 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="showOnlyWidgetsTable" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Some export types show tables of objects from widgets.
+                                    These tables don't show if this element is true.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:displayName>DashboardReportEngineConfigurationType.showOnlyWidgetsTable</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- TODO: other elements to configure the report -->
                 </xsd:sequence>
             </xsd:extension>
@@ -26175,10 +26304,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                    TODO
-                </p>
-                <p>
-                    TODO
+                    Configuration Dasboard dashboard showing in GUI.
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
@@ -26193,6 +26319,19 @@
                     </xsd:element>
                     <!-- TODO: layout -->
                     <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded">
+                    </xsd:element>
+                    <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType"
+                                 minOccurs="0" maxOccurs="1" default="automatic">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Defines, whether this dashboard will be visible or it will be hidden.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>DashboardType.visibility</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>

@@ -467,4 +467,13 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
                 .map(o -> o.asObjectable())
                 .collect(Collectors.toList());
     }
+
+    // TEMPORARY
+    public void fixMockUpValueMetadata() {
+        accept(v -> {
+            if (v instanceof PrismValue) {
+                ((PrismValue) v).fixMockUpValueMetadata();
+            }
+        });
+    }
 }

@@ -78,7 +78,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 
     @Autowired
     @Qualifier("repositoryService")
-    private transient RepositoryService repositoryService;
+    private RepositoryService repositoryService;
 
     @Autowired private ProvisioningService provisioningService;
     @Autowired private SecurityEnforcer securityEnforcer;

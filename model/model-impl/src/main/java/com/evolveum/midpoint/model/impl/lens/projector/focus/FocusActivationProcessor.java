@@ -18,6 +18,8 @@ import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.model.impl.lens.projector.util.SkipWhenFocusDeleted;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -45,18 +47,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractCredentialType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TimeIntervalStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author katkav
@@ -270,6 +260,10 @@ public class FocusActivationProcessor implements ProjectorProcessor {
                 resetFailedLogins(focusContext, credentialsTypeNew.getNonce(), SchemaConstants.PATH_CREDENTIALS_NONCE_FAILED_LOGINS);
                 resetFailedLogins(focusContext, credentialsTypeNew.getSecurityQuestions(), SchemaConstants.PATH_CREDENTIALS_SECURITY_QUESTIONS_FAILED_LOGINS);
             }
+            BehaviorType behavior = focusNew.asObjectable().getBehavior();
+            if (behavior != null) {
+                resetFailedLogins(focusContext, behavior.getAuthentication(), SchemaConstants.PATH_AUTHENTICATION_BEHAVIOR_FAILED_LOGINS);
+            }
 
             if (activationNew.getLockoutExpirationTimestamp() != null) {
                 PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
@@ -282,7 +276,7 @@ public class FocusActivationProcessor implements ProjectorProcessor {
         }
     }
 
-    private <F extends FocusType> void resetFailedLogins(LensFocusContext<F> focusContext, AbstractCredentialType credentialTypeNew, ItemPath path)
+    private <F extends FocusType> void resetFailedLogins(LensFocusContext<F> focusContext, AuthenticationBehavioralDataType credentialTypeNew, ItemPath path)
             throws SchemaException {
         if (credentialTypeNew != null) {
             Integer failedLogins = credentialTypeNew.getFailedLogins();

@@ -635,7 +635,6 @@ public class MappingEvaluator {
                 .mappingKind(mappingKind)
                 .originType(OriginType.USER_POLICY)
                 .originObject(originObject)
-                .objectResolver(objectResolver)
                 .valuePolicySupplier(valuePolicySupplier)
                 .rootNode(focusOdo)
                 .mappingPreExpression(request.getMappingPreExpression()) // Used to populate autoassign assignments

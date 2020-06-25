@@ -11,16 +11,14 @@ import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.CO
 import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
 
 import java.sql.ResultSet;
+import java.util.Objects;
 import javax.persistence.*;
-
-import com.evolveum.midpoint.prism.SerializationOptions;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 
 import org.hibernate.annotations.ForeignKey;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
@@ -39,6 +37,7 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -229,42 +228,6 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         checksum = RUtil.computeChecksum(delta, fullResult);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        RObjectDeltaOperation that = (RObjectDeltaOperation) o;
-
-        if (getChecksum() != null ? !getChecksum().equals(that.getChecksum()) : that.getChecksum() != null)
-            return false;
-        if (delta != null ? !delta.equals(that.delta) : that.delta != null) return false;
-        if (fullResult != null ? !fullResult.equals(that.fullResult) : that.fullResult != null)
-            return false;
-        if (status != that.status) return false;
-        if (deltaType != null ? !deltaType.equals(that.deltaType) : that.deltaType != null) return false;
-        if (deltaOid != null ? !deltaOid.equals(that.deltaOid) : that.deltaOid != null) return false;
-        if (objectName != null ? !objectName.equals(that.objectName) : that.objectName != null) return false;
-        if (resourceOid != null ? !resourceOid.equals(that.resourceOid) : that.resourceOid != null) return false;
-        if (resourceName != null ? !resourceName.equals(that.resourceName) : that.resourceName != null) return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result1 = delta != null ? delta.hashCode() : 0;
-        result1 = 31 * result1 + (getChecksum() != null ? getChecksum().hashCode() : 0);
-        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
-        result1 = 31 * result1 + (fullResult != null ? fullResult.hashCode() : 0);
-        result1 = 31 * result1 + (deltaOid != null ? deltaOid.hashCode() : 0);
-        result1 = 31 * result1 + (deltaType != null ? deltaType.hashCode() : 0);
-        result1 = 31 * result1 + (objectName != null ? objectName.hashCode() : 0);
-        result1 = 31 * result1 + (resourceOid != null ? resourceOid.hashCode() : 0);
-        result1 = 31 * result1 + (resourceName != null ? resourceName.hashCode() : 0);
-        return result1;
-    }
-
     public static RObjectDeltaOperation toRepo(RAuditEventRecord record, ObjectDeltaOperation operation,
             PrismContext prismContext, SystemConfigurationAuditType auditConfiguration) throws DtoTranslationException {
         RObjectDeltaOperation auditDelta = new RObjectDeltaOperation();
@@ -277,7 +240,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                 DeltaConversionOptions options = DeltaConversionOptions.createSerializeReferenceNames();
                 options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
                 String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
-                byte[] data = RUtil.getByteArrayFromXml(xmlDelta, true);
+                byte[] data = RUtil.getBytesFromSerializedForm(xmlDelta, true);
                 auditDelta.setDelta(data);
 
                 auditDelta.setDeltaOid(delta.getOid());
@@ -314,7 +277,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                 DeltaConversionOptions options = DeltaConversionOptions.createSerializeReferenceNames();
                 options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
                 String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
-                deltaData = RUtil.getByteArrayFromXml(xmlDelta, true);
+                deltaData = RUtil.getBytesFromSerializedForm(xmlDelta, true);
                 queryBuilder.addParameter(DELTA_COLUMN_NAME, deltaData);
                 queryBuilder.addParameter(DELTA_OID_COLUMN_NAME, delta.getOid());
                 queryBuilder.addParameter(DELTA_TYPE_COLUMN_NAME, RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
@@ -335,7 +298,7 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
                         String full = prismContext.xmlSerializer()
                                 .options(SerializationOptions.createEscapeInvalidCharacters())
                                 .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
-                        fullResultData = RUtil.getByteArrayFromXml(full, true);
+                        fullResultData = RUtil.getBytesFromSerializedForm(full, true);
                         queryBuilder.addParameter(FULL_RESULT_COLUMN_NAME, fullResultData);
                     } catch (Exception ex) {
                         throw new DtoTranslationException(ex.getMessage(), ex);
@@ -376,16 +339,18 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         try {
             if (operation.getDelta() != null) {
                 byte[] data = operation.getDelta();
-                String xmlDelta = RUtil.getXmlFromByteArray(data, true, useUtf16);
+                String serializedDelta = RUtil.getSerializedFormFromBytes(data, useUtf16);
 
-                ObjectDeltaType delta = prismContext.parserFor(xmlDelta).parseRealValue(ObjectDeltaType.class);
+                ObjectDeltaType delta = prismContext.parserFor(serializedDelta)
+                        .parseRealValue(ObjectDeltaType.class);
                 odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
             }
             if (operation.getFullResult() != null) {
                 byte[] data = operation.getFullResult();
-                String xmlResult = RUtil.getXmlFromByteArray(data, true, useUtf16);
+                String serializedResult = RUtil.getSerializedFormFromBytes(data, useUtf16);
 
-                OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
+                OperationResultType resultType = prismContext.parserFor(serializedResult)
+                        .parseRealValue(OperationResultType.class);
                 odo.setExecutionResult(OperationResult.createOperationResult(resultType));
             }
             odo.setObjectName(RPolyString.fromRepo(operation.getObjectName(), prismContext));
@@ -406,24 +371,32 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         try {
             if (resultSet.getBytes(DELTA_COLUMN_NAME) != null) {
                 byte[] data = resultSet.getBytes(DELTA_COLUMN_NAME);
-                String xmlDelta = RUtil.getXmlFromByteArray(data, true, useUtf16);
+                String seralizedDelta = RUtil.getSerializedFormFromBytes(data, useUtf16);
 
-                ObjectDeltaType delta = prismContext.parserFor(xmlDelta).parseRealValue(ObjectDeltaType.class);
+                ObjectDeltaType delta = prismContext.parserFor(seralizedDelta)
+                        .parseRealValue(ObjectDeltaType.class);
                 odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
             }
             if (resultSet.getBytes(FULL_RESULT_COLUMN_NAME) != null) {
                 byte[] data = resultSet.getBytes(FULL_RESULT_COLUMN_NAME);
-                String xmlResult = RUtil.getXmlFromByteArray(data, true, useUtf16);
+                String serializedResult = RUtil.getSerializedFormFromBytes(data, useUtf16);
 
-                OperationResultType resultType = prismContext.parserFor(xmlResult).parseRealValue(OperationResultType.class);
+                OperationResultType resultType = prismContext.parserFor(serializedResult)
+                        .parseRealValue(OperationResultType.class);
                 odo.setExecutionResult(OperationResult.createOperationResult(resultType));
             }
-            if (resultSet.getString(OBJECT_NAME_ORIG_COLUMN_NAME) != null || resultSet.getString(OBJECT_NAME_NORM_COLUMN_NAME) != null) {
-                odo.setObjectName(new PolyString(resultSet.getString(OBJECT_NAME_ORIG_COLUMN_NAME), resultSet.getString(OBJECT_NAME_NORM_COLUMN_NAME)));
+            if (resultSet.getString(OBJECT_NAME_ORIG_COLUMN_NAME) != null
+                    || resultSet.getString(OBJECT_NAME_NORM_COLUMN_NAME) != null) {
+                odo.setObjectName(new PolyString(
+                        resultSet.getString(OBJECT_NAME_ORIG_COLUMN_NAME),
+                        resultSet.getString(OBJECT_NAME_NORM_COLUMN_NAME)));
             }
             odo.setResourceOid(resultSet.getString(RESOURCE_OID_COLUMN_NAME));
-            if (resultSet.getString(RESOURCE_NAME_ORIG_COLUMN_NAME) != null || resultSet.getString(RESOURCE_NAME_NORM_COLUMN_NAME) != null) {
-                odo.setResourceName(new PolyString(resultSet.getString(RESOURCE_NAME_ORIG_COLUMN_NAME), resultSet.getString(RESOURCE_NAME_NORM_COLUMN_NAME)));
+            if (resultSet.getString(RESOURCE_NAME_ORIG_COLUMN_NAME) != null
+                    || resultSet.getString(RESOURCE_NAME_NORM_COLUMN_NAME) != null) {
+                odo.setResourceName(new PolyString(
+                        resultSet.getString(RESOURCE_NAME_ORIG_COLUMN_NAME),
+                        resultSet.getString(RESOURCE_NAME_NORM_COLUMN_NAME)));
             }
         } catch (Exception ex) {
             throw new DtoTranslationException(ex.getMessage(), ex);
@@ -431,4 +404,56 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
         return odo;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+        if (!(o instanceof RObjectDeltaOperation)) { return false; }
+
+        RObjectDeltaOperation that = (RObjectDeltaOperation) o;
+        return Objects.equals(recordId, that.recordId)
+                && Objects.equals(checksum, that.checksum);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(recordId, checksum);
+    }
+
+    /*
+        @Override
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+
+        RObjectDeltaOperation that = (RObjectDeltaOperation) o;
+
+        if (getChecksum() != null ? !getChecksum().equals(that.getChecksum()) : that.getChecksum() != null) { return false; }
+        // TODO: likely a bug - question is whether entity-style id-only-based equals wouldn't be better (+hashCode)
+        if (delta != null ? !delta.equals(that.delta) : that.delta != null) { return false; }
+        if (fullResult != null ? !fullResult.equals(that.fullResult) : that.fullResult != null) { return false; }
+        if (status != that.status) { return false; }
+        if (deltaType != null ? !deltaType.equals(that.deltaType) : that.deltaType != null) { return false; }
+        if (deltaOid != null ? !deltaOid.equals(that.deltaOid) : that.deltaOid != null) { return false; }
+        if (objectName != null ? !objectName.equals(that.objectName) : that.objectName != null) { return false; }
+        if (resourceOid != null ? !resourceOid.equals(that.resourceOid) : that.resourceOid != null) { return false; }
+        if (resourceName != null ? !resourceName.equals(that.resourceName) : that.resourceName != null) { return false; }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result1 = delta != null ? delta.hashCode() : 0;
+        result1 = 31 * result1 + (getChecksum() != null ? getChecksum().hashCode() : 0);
+        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
+        result1 = 31 * result1 + (fullResult != null ? fullResult.hashCode() : 0);
+        result1 = 31 * result1 + (deltaOid != null ? deltaOid.hashCode() : 0);
+        result1 = 31 * result1 + (deltaType != null ? deltaType.hashCode() : 0);
+        result1 = 31 * result1 + (objectName != null ? objectName.hashCode() : 0);
+        result1 = 31 * result1 + (resourceOid != null ? resourceOid.hashCode() : 0);
+        result1 = 31 * result1 + (resourceName != null ? resourceName.hashCode() : 0);
+        return result1;
+    }
+     */
 }

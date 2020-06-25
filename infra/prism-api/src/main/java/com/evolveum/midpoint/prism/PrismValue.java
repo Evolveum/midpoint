@@ -25,6 +25,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * @author semancik
@@ -44,6 +45,35 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
     Itemable getParent();
 
     void setParent(Itemable parent);
+
+    @Experimental
+    Optional<ValueMetadata> valueMetadata() throws SchemaException;
+
+    /**
+     * Maybe it is better to expect empty value metadata if these are absent.
+     * Client code would be simpler. HIGHLY EXPERIMENTAL.
+     */
+    @Experimental
+    @NotNull
+    ValueMetadata getValueMetadata() throws SchemaException;
+
+    /**
+     * Sets metadata for this value.
+     */
+    @Experimental
+    void setValueMetadata(ValueMetadata valueMetadata);
+
+    @Experimental
+    default void createLiveMetadata() {
+    }
+
+    /**
+     * Converts mock-up metadata (if present) into materialized form.
+     * TEMPORARY. Remove after mocking up is gone.
+     */
+    @Experimental
+    default void fixMockUpValueMetadata() {
+    }
 
     @NotNull
     ItemPath getPath();

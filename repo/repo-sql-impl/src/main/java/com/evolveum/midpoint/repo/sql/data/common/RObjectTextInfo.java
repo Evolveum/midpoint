@@ -1,11 +1,21 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common;
+
+import static com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo.TABLE_NAME;
+
+import java.io.Serializable;
+import java.util.*;
+import javax.persistence.*;
+
+import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.ForeignKey;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -16,22 +26,13 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.id.RObjectTextInfoId;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.StringUtils;
-import org.hibernate.annotations.ForeignKey;
-import org.jetbrains.annotations.NotNull;
-
-import javax.persistence.*;
-import java.io.Serializable;
-import java.util.*;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.repo.sql.data.common.RObjectTextInfo.TABLE_NAME;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FullTextSearchConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author mederly
@@ -102,10 +103,8 @@ public class RObjectTextInfo implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RObjectTextInfo))
-            return false;
+        if (this == o) { return true; }
+        if (!(o instanceof RObjectTextInfo)) { return false; }
         RObjectTextInfo that = (RObjectTextInfo) o;
         return Objects.equals(getOwnerOid(), that.getOwnerOid()) &&
                 Objects.equals(getText(), that.getText());
@@ -216,7 +215,7 @@ public class RObjectTextInfo implements Serializable {
     @Override
     public String toString() {
         return "RObjectTextInfo{" +
-                "ownerOid='" + getOwnerOid()+ '\'' +
+                "ownerOid='" + getOwnerOid() + '\'' +
                 ", text='" + text + '\'' +
                 '}';
     }

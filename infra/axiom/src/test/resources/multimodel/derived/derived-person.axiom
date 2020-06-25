@@ -1,0 +1,32 @@
+model derived-person {
+
+    namespace "https://example.org/derived";
+    
+    import "https://example.org/base" {
+        prefix base;
+    }
+
+    root person {
+        type Person;
+    }
+
+    type Person {
+        supertype base:Person;
+        
+        item firstName {
+            type String;
+        }
+        item lastName {
+            type String;
+        }
+        substitution givenName {
+            type String;
+            target firstName;
+        }
+
+        substitution familyName {
+            type String;
+            target lastName;
+        }
+    }
+}

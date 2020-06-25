@@ -6,11 +6,14 @@
  */
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.application.Url;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -104,13 +107,24 @@ public class PageDashboardConfigurable extends PageDashboard {
         add(new ListView<DashboardWidgetType>(ID_WIDGETS, new PropertyModel(dashboardModel, "widget")) {
             @Override
             protected void populateItem(ListItem<DashboardWidgetType> item) {
-                item.add(new SmallInfoBoxPanel(ID_WIDGET, item.getModel(),
+                boolean visible = WebComponentUtil.getElementVisibility(item.getModelObject().getVisibility());
+                SmallInfoBoxPanel box = new SmallInfoBoxPanel(ID_WIDGET, item.getModel(),
                         PageDashboardConfigurable.this) {
                     @Override
                     public String getDashboardOid() {
                         return dashboardModel.getObject().getOid();
                     }
+                };
+                box.add(new VisibleEnableBehaviour(){
+                    @Override
+                    public boolean isVisible() {
+                        return visible;
+                    }
                 });
+                if (visible) {
+                    item.add(AttributeAppender.append("class", "col-lg-3 col-md-4 col-xs-6"));
+                }
+                item.add(box);
             }
         });
     }

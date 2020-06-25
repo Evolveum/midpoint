@@ -21,6 +21,7 @@
     <name>midPoint Infrastructure</name>
 
     <modules>
+        <module>axiom</module>
         <module>util</module>
         <module>schema</module>
         <module>schema-pure-jaxb</module>

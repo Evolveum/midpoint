@@ -27,7 +27,7 @@ public class OperationalContainerWrapperFactory extends PrismContainerWrapperFac
 
     @Override
     public boolean match(ItemDefinition<?> def) {
-        return QNameUtil.match(MetadataType.COMPLEX_TYPE, def.getTypeName()) || QNameUtil.match(TriggerType.COMPLEX_TYPE, def.getTypeName());
+        return QNameUtil.match(TriggerType.COMPLEX_TYPE, def.getTypeName()); //QNameUtil.match(MetadataType.COMPLEX_TYPE, def.getTypeName()) ||
     }
 
     @PostConstruct

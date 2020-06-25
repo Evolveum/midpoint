@@ -150,7 +150,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
 
         } catch (SchemaException e) {
             LOGGER.error("Cannot create panel, {}", e.getMessage(), e);
-            getSession().error("Unexected error occured. Please contact system administrator.");
+            getSession().error("Unexpected error occurred. Please contact system administrator.");
             throw new RestartResponseException(PageLogin.class);
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,33 +7,33 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.container;
 
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.data.common.id.RCaseWorkItemReferenceId;
-import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOwner;
-import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
-import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import javax.persistence.*;
+
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Persister;
 
-import javax.persistence.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.id.RCaseWorkItemReferenceId;
+import com.evolveum.midpoint.repo.sql.data.common.other.RCaseWorkItemReferenceOwner;
+import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.RelationRegistry;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author lazyman
  * @author mederly
- *
+ * <p>
  * Reference contained in a case work item.
- *
  */
 @JaxbType(type = ObjectReferenceType.class)
 @Entity
@@ -94,10 +94,9 @@ public class RCaseWorkItemReference extends RReference {
         this.ownerId = ownerId;
     }
 
-    //@MapsId("target")
-    @ForeignKey(name="none")
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false, nullable = true)
+    @ForeignKey(name = "none")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(referencedColumnName = "oid", updatable = false, insertable = false)
     @NotFound(action = NotFoundAction.IGNORE)
     @NotQueryable
     // only for HQL use
@@ -112,7 +111,7 @@ public class RCaseWorkItemReference extends RReference {
     }
 
     @Id
-    @Column(name="relation", length = RUtil.COLUMN_LENGTH_QNAME)
+    @Column(name = "relation", length = RUtil.COLUMN_LENGTH_QNAME)
     public String getRelation() {
         return super.getRelation();
     }
@@ -130,8 +129,8 @@ public class RCaseWorkItemReference extends RReference {
     @Column(name = "targetType")
     @Enumerated(EnumType.ORDINAL)
     @Override
-    public RObjectType getType() {
-        return super.getType();
+    public RObjectType getTargetType() {
+        return super.getTargetType();
     }
 
     public static Set<RCaseWorkItemReference> safeListReferenceToSet(List<ObjectReferenceType> list,

@@ -87,7 +87,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
         return realValueModel;
     }
 
-    public <VW extends PrismValueWrapper<T,?>> void setRealValueModel(IModel<VW> valueWrapper) {
+    public <VW extends PrismValueWrapper<T>> void setRealValueModel(IModel<VW> valueWrapper) {
         this.realValueModel = new ItemRealValueModel<>(valueWrapper);
     }
 

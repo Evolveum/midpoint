@@ -13,6 +13,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.ValueMetadata;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -321,9 +323,29 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
     @NotNull
     private List<V> evaluateTransformation(ExpressionVariables staticVariables) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        return combinatorialEvaluation.evaluator.transformSingleValue(staticVariables, outputSet,
+        List<V> transformationOutput = combinatorialEvaluation.evaluator.transformSingleValue(staticVariables, outputSet,
                 inputVariableState == InputVariableState.NEW, context,
                 context.getContextDescription(), context.getTask(), result);
+        computeAndApplyOutputValueMetadata(transformationOutput);
+        return transformationOutput;
+    }
+
+    private void computeAndApplyOutputValueMetadata(List<V> output) throws CommunicationException, ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        ValueMetadataComputer valueMetadataComputer = context.getValueMetadataComputer();
+        if (valueMetadataComputer != null) {
+            ValueMetadata outputValueMetadata = valueMetadataComputer.compute(valuesTuple, result);
+            if (outputValueMetadata != null) {
+                for (int i = 0; i < output.size(); i++) {
+                    V oVal = output.get(i);
+                    if (i < output.size()-1) {
+                        oVal.setValueMetadata(outputValueMetadata.clone());
+                    } else {
+                        oVal.setValueMetadata(outputValueMetadata);
+                    }
+                }
+            }
+        }
     }
 
     private void setTraceComment(String comment) {

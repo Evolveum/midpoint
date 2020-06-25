@@ -96,5 +96,6 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-policy-3"/>
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3"/>
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-security-3"/>
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-metadata-3"/>
 
 </xsd:schema>

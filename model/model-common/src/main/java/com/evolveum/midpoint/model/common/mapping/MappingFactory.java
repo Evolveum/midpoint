@@ -14,6 +14,7 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
 
 /**
  * @author Radovan Semancik
@@ -25,7 +26,8 @@ public class MappingFactory {
 
     private ExpressionFactory expressionFactory;
     private ObjectResolver objectResolver;
-    private Protector protector;                        // not used for now
+    private MetadataMappingEvaluator metadataMappingEvaluator;
+    private Protector protector; // not used for now
     private PrismContext prismContext;
     private SecurityContextManager securityContextManager;
     private boolean profiling = false;
@@ -50,6 +52,10 @@ public class MappingFactory {
         this.objectResolver = objectResolver;
     }
 
+    public void setMetadataMappingEvaluator(MetadataMappingEvaluator metadataMappingEvaluator) {
+        this.metadataMappingEvaluator = metadataMappingEvaluator;
+    }
+
     public void setPrismContext(PrismContext prismContext) {
         this.prismContext = prismContext;
     }
@@ -71,18 +77,30 @@ public class MappingFactory {
     }
 
     public <V extends PrismValue, D extends ItemDefinition> MappingBuilder<V, D> createMappingBuilder() {
-        return new MappingBuilder<V, D>()
+        return initializeMappingBuilder(new MappingBuilder<>());
+    }
+
+    private <V extends PrismValue, D extends ItemDefinition> MetadataMappingBuilder<V, D> createMetadataMappingBuilder() {
+        return initializeMappingBuilder(new MetadataMappingBuilder<>());
+    }
+
+    private <AMB extends AbstractMappingBuilder<?, ?, ?, AMB>> AMB initializeMappingBuilder(AMB abstractMappingBuilder) {
+        return abstractMappingBuilder
                 .prismContext(prismContext)
                 .expressionFactory(expressionFactory)
                 .securityContextManager(securityContextManager)
                 .objectResolver(objectResolver)
+                .metadataMappingEvaluator(metadataMappingEvaluator)
                 .profiling(profiling);
     }
 
-    public <V extends PrismValue, D extends ItemDefinition> MappingBuilder<V, D> createMappingBuilder(MappingType mappingType, String shortDesc) {
-        return this.<V,D>createMappingBuilder().mappingBean(mappingType)
-                .contextDescription(shortDesc)
-                .objectResolver(objectResolver);
+    public <V extends PrismValue, D extends ItemDefinition> MappingBuilder<V, D> createMappingBuilder(MappingType mappingBean, String shortDesc) {
+        return this.<V,D>createMappingBuilder().mappingBean(mappingBean)
+                .contextDescription(shortDesc);
     }
 
+    public <V extends PrismValue, D extends ItemDefinition> MetadataMappingBuilder<V, D> createMappingBuilder(MetadataMappingType mappingBean, String shortDesc) {
+        return this.<V,D>createMetadataMappingBuilder().mappingBean(mappingBean)
+                .contextDescription(shortDesc);
+    }
 }

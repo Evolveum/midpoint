@@ -89,8 +89,8 @@ public class Clockwork {
     @Autowired private ChangeExecutor changeExecutor;
     @Autowired private Clock clock;
     @Autowired private SystemObjectCache systemObjectCache;
-    @Autowired private transient ProvisioningService provisioningService;
-    @Autowired private transient ChangeNotificationDispatcher changeNotificationDispatcher;
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
     @Autowired private PersonaProcessor personaProcessor;
     @Autowired private PrismContext prismContext;
     @Autowired private TaskManager taskManager;
@@ -111,7 +111,7 @@ public class Clockwork {
 
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private transient RepositoryService repositoryService;
+    private RepositoryService repositoryService;
 
     private static final int DEFAULT_MAX_CLICKS = 200;
 

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/extension-metadata-3"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/extension-metadata-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
+            elementFormDefault="qualified">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            Sample metadata extension schema.
+
+            FOR TESTING PURPOSES ONLY. WILL BE REMOVED SOON.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"/>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3"/>
+
+    <xsd:complexType name="ValueMetadataExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:ValueMetadataType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="assurance" type="tns:AssuranceMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Assurance metadata: an example of deployment-specific metadata.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AssuranceMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+                <a:displayName>Assurance metadata</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="levelOfAssurance" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Level of assurance.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="levelOfAssuranceSource" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Source(s) of LoA.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="verificationData" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Verification data, e.g. signature(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="assurance" type="tns:AssuranceMetadataType" />
+
+</xsd:schema>

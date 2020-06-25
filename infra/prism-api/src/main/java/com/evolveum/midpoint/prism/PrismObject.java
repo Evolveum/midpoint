@@ -1,11 +1,19 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.prism;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -14,47 +22,28 @@ import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 /**
  * Common supertype for all identity objects. Defines basic properties that each
  * object must have to live in our system (identifier, name).
- *
+ * <p>
  * Objects consists of identifier and name (see definition below) and a set of
  * properties represented as XML elements in the object's body. The attributes
  * are represented as first-level XML elements (tags) of the object XML
  * representation and may be also contained in other tags (e.g. extension,
  * attributes). The QName (namespace and local name) of the element holding the
  * property is considered to be a property name.
- *
+ * <p>
  * This class is named PrismObject instead of Object to avoid confusion with
  * java.lang.Object.
  *
  * @author Radovan Semancik
- *
+ * <p>
  * Class invariant: has at most one value (potentially empty).
  * When making this object immutable and there's no value, we create one; in order
  * to prevent exceptions on later getValue calls.
  */
 public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
-
-//    public PrismObject(QName name, Class<O> compileTimeClass) {
-//        super(name, compileTimeClass);
-//    }
-//
-//    public PrismObject(QName name, Class<O> compileTimeClass, PrismContext prismContext) {
-//        super(name, compileTimeClass, prismContext);
-//    }
-//
-//    public PrismObject(QName name, PrismObjectDefinition<O> definition, PrismContext prismContext) {
-//        super(name, definition, prismContext);
-//    }
 
     PrismObjectValue<O> createNewValue();
 
@@ -66,7 +55,7 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 
     /**
      * Returns Object ID (OID).
-     *
+     * <p>
      * May return null if the object does not have an OID.
      *
      * @return Object ID (OID)
@@ -105,7 +94,7 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
     void applyDefinition(PrismContainerDefinition<O> definition) throws SchemaException;
 
     @Override
-    <IV extends PrismValue,ID extends ItemDefinition,I extends Item<IV,ID>> void removeItem(ItemPath path, Class<I> itemType);
+    <IV extends PrismValue, ID extends ItemDefinition, I extends Item<IV, ID>> void removeItem(ItemPath path, Class<I> itemType);
 
     void addReplaceExisting(Item<?, ?> item) throws SchemaException;
 
@@ -123,8 +112,7 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
     @NotNull
     ObjectDelta<O> diff(PrismObject<O> other, ParameterizedEquivalenceStrategy strategy);
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications,
+    Collection<? extends ItemDelta<?, ?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications,
             boolean assumeMissingItems);
 
     ObjectDelta<O> createDelta(ChangeType changeType);
@@ -185,5 +173,8 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
 
     static <T extends Objectable> T asObjectable(PrismObject<T> object) {
         return object != null ? object.asObjectable() : null;
+    }
+
+    default void fixMockUpValueMetadata() {
     }
 }

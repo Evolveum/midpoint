@@ -535,4 +535,22 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
             throw new IllegalArgumentException("Attempt to set delta without definition");
         }
     }
+
+    // TEMPORARY
+    public void fixMockUpValueMetadata() {
+        fixMockUpValueMetadata(itemOld);
+        fixMockUpValueMetadata(itemNew);
+        fixMockUpValueMetadata(delta);
+    }
+
+    // TEMPORARY
+    private void fixMockUpValueMetadata(Visitable<?> visitable) {
+        if (visitable != null) {
+            visitable.accept(v -> {
+                if (v instanceof PrismValue) {
+                    ((PrismValue) v).fixMockUpValueMetadata();
+                }
+            });
+        }
+    }
 }

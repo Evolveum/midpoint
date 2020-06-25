@@ -10,7 +10,7 @@ package com.evolveum.midpoint.repo.common;
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
-import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;

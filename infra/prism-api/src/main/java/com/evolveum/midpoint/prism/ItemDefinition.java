@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,16 +7,17 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 import java.util.Map;
 import java.util.function.Consumer;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author mederly
@@ -73,7 +74,7 @@ public interface ItemDefinition<I extends Item> extends Definition {
      * This does NOT mean that also all the container items can be displayed. The sub-item permissions
      * are controlled by similar properties on the items. This property only applies to the container
      * itself: the "shell" of the container.
-     *
+     * <p>
      * Note: It was considered to use a different meaning for this flag - a meaning that would allow
      * canRead()=false containers to have readable items. However, this was found not to be very useful.
      * Therefore the "something readable inside" meaning was confirmed instead.
@@ -126,6 +127,7 @@ public interface ItemDefinition<I extends Item> extends Definition {
     /**
      * Create an item instance. Definition name or default name will
      * used as an element name for the instance. The instance will otherwise be empty.
+     *
      * @return created item instance
      */
     @NotNull
@@ -134,6 +136,7 @@ public interface ItemDefinition<I extends Item> extends Definition {
     /**
      * Create an item instance. Definition name will use provided name.
      * for the instance. The instance will otherwise be empty.
+     *
      * @return created item instance
      */
     @NotNull

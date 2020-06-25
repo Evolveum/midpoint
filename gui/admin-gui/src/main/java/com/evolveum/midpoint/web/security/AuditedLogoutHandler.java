@@ -14,16 +14,21 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.gui.api.GuiConstants;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -42,8 +47,12 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
 
     @Autowired
     private TaskManager taskManager;
+
     @Autowired
     private AuditService auditService;
+
+    @Autowired
+    private SystemObjectCache systemObjectCache;
 
     boolean useDefaultUrl = false;
 
@@ -89,9 +98,22 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
         PrismObject<? extends FocusType> user = principal != null ? principal.getFocus().asPrismObject() : null;
 
         String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
+        String sessionId = request.getRequestedSessionId();
         if (authentication instanceof MidpointAuthentication
                 && ((MidpointAuthentication) authentication).getAuthenticationChannel() != null) {
             channel = ((MidpointAuthentication) authentication).getAuthenticationChannel().getChannelId();
+            if (((MidpointAuthentication) authentication).getSessionId() != null) {
+                sessionId = ((MidpointAuthentication) authentication).getSessionId();
+            }
+        }
+        SystemConfigurationType system = null;
+        try {
+            system = systemObjectCache.getSystemConfiguration(new OperationResult("LOAD SYSTEM CONFIGURATION")).asObjectable();
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't get system configuration from cache", e);
+        }
+        if (!SecurityUtil.isAuditedLoginAndLogout(system, channel)) {
+            return;
         }
 
         Task task = taskManager.createTaskInstance();
@@ -110,7 +132,7 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
         record.setHostIdentifier(request.getLocalName());
         record.setRemoteHostAddress(request.getLocalAddr());
         record.setNodeIdentifier(taskManager.getNodeId());
-        record.setSessionIdentifier(request.getRequestedSessionId());
+        record.setSessionIdentifier(sessionId);
 
         auditService.audit(record, task);
     }

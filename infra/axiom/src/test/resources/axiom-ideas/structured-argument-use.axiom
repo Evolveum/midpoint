@@ -1,0 +1,33 @@
+model structured-argument-use {
+
+
+  type PrefixedName {
+    argument {
+
+    }
+    item prefix {
+
+    }
+    item
+
+  }
+
+  type SemanticVersion {
+    argument {
+      structured "major '.' minor [ '.' patch ] ['-' specifier] [ '+'  build ]";
+    }
+    item major { type Integer}
+    item minor { type Integer}
+    item patch { type Integer}
+
+  }
+
+  type ItemPath {
+    argument {
+      structured " [?absolute '/'] (component)* "
+    }
+    item component { type QName };
+    namespaceSensitive true;
+  }
+
+}

@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.api.DeleteObjectResult;
 import com.evolveum.midpoint.repo.cache.invalidation.RepositoryCacheInvalidationDetails;
-import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInformationType;
@@ -38,14 +38,14 @@ public class TriggerCreatorGlobalState implements Cacheable {
     private static final Trace LOGGER = TraceManager.getTrace(TriggerCreatorGlobalState.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(TriggerCreatorGlobalState.class.getName() + ".content");
 
-    private AtomicLong lastExpirationCleanup = new AtomicLong(0L);
+    private final AtomicLong lastExpirationCleanup = new AtomicLong(0L);
 
     private static final long EXPIRATION_INTERVAL = 10000L;
 
     @Autowired private CacheRegistry cacheRegistry;
     @Autowired private PrismContext prismContext;
 
-    private Map<TriggerHolderSpecification, CreatedTrigger> state = new ConcurrentHashMap<>();
+    private final Map<TriggerHolderSpecification, CreatedTrigger> state = new ConcurrentHashMap<>();
 
     synchronized CreatedTrigger getLastCreatedTrigger(TriggerHolderSpecification key) {
         return state.get(key);

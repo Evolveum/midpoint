@@ -34,7 +34,7 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
  * @author katka
  *
  */
-public class PrismContainerValueWrapperImpl<C extends Containerable> extends PrismValueWrapperImpl<C, PrismContainerValue<C>> implements PrismContainerValueWrapper<C> {
+public class PrismContainerValueWrapperImpl<C extends Containerable> extends PrismValueWrapperImpl<C> implements PrismContainerValueWrapper<C> {
 
     private static final long serialVersionUID = 1L;
 
@@ -135,17 +135,17 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
         this.expanded = expanded;
     }
 
-    @Override
-    public boolean hasMetadata() {
-        for (ItemWrapper<?,?> container : items) {
-            if (container.getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
+//    @Override
+//    public boolean hasMetadata() {
+//        for (ItemWrapper<?,?> container : items) {
+//            if (container.getTypeName().equals(MetadataType.COMPLEX_TYPE)) {
+//                return true;
+//            }
+//        }
+//
+//        return false;
+//    }
+//
 
     @Override
     public List<ItemWrapper<?, ?>> getItems() {
@@ -275,7 +275,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
                     ((List)nonContainers).add(itemWrapper);
                 }
             } catch (SchemaException e) {
-                LOGGER.error("Cannot find wrapper with path {}, error occured {}", virtualItem, e.getMessage(), e);
+                LOGGER.error("Cannot find wrapper with path {}, error occurred {}", virtualItem, e.getMessage(), e);
             }
         }
         return nonContainers;
@@ -482,6 +482,16 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
         }
 
         return ((PrismContainerWrapper) parent).isExpanded() || isHeterogenous();
+    }
+
+    @Override
+    public PrismContainerValue<C> getNewValue() {
+        return super.getNewValue();
+    }
+
+    @Override
+    public PrismContainerValue<C> getOldValue() {
+        return super.getOldValue();
     }
 
     public PrismContainerDefinition<C> getDefinition() {

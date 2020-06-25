@@ -7,6 +7,23 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
+
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import java.io.File;
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.hibernate.Session;
+import org.hibernate.query.Query;
+import org.hibernate.stat.Statistics;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -20,7 +37,8 @@ import com.evolveum.midpoint.repo.sql.data.common.RTask;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -30,25 +48,11 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.hibernate.stat.Statistics;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.util.*;
-
-import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author lazyman
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AddGetObjectTest extends BaseSQLRepoTest {
 
@@ -64,8 +68,8 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         long time = System.currentTimeMillis();
         for (int i = 0; i < elements.size(); i++) {
             if (i % 500 == 0) {
-                logger.info("Previous cycle time {}. Next cycle: {}", new Object[]{
-                        (System.currentTimeMillis() - time - previousCycle), i});
+                logger.info("Previous cycle time {}. Next cycle: {}", new Object[] {
+                        (System.currentTimeMillis() - time - previousCycle), i });
                 previousCycle = System.currentTimeMillis() - time;
             }
 
@@ -73,7 +77,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             repositoryService.addObject(object, null, new OperationResult("add performance test"));
         }
         logger.info("Time to add objects ({}): {}",
-                new Object[]{elements.size(), (System.currentTimeMillis() - time)});
+                new Object[] { elements.size(), (System.currentTimeMillis() - time) });
 
         stats.logSummary();
     }
@@ -97,7 +101,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         final File OBJECTS_FILE = new File("./../../samples/dsee/odsee-localhost-advanced-sync.xml");
         if (!OBJECTS_FILE.exists()) {
             logger.warn("skipping addGetDSEESyncDoubleTest, file {} not found.",
-                    new Object[]{OBJECTS_FILE.getPath()});
+                    new Object[] { OBJECTS_FILE.getPath() });
             return;
         }
         addGetCompare(OBJECTS_FILE);
@@ -121,7 +125,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             // adhoc check whether reference.targetName is preserved
             if ("atestuserX00003".equals(PolyString.getOrig(object.getName()))) {
                 String personaName = PolyString.getOrig(((UserType) object.asObjectable()).getPersonaRef().get(0).getTargetName());
-                assertEquals("Wrong personaRef.targetName on atestuserX00003", null, personaName);
+                assertNull("Wrong personaRef.targetName on atestuserX00003", personaName);
                 foundAtestuserX00003 = true;
                 break;
             }
@@ -192,7 +196,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                 }
             } catch (Throwable ex) {
                 logger.error("Exception occurred for {}", object, ex);
-                throw new RuntimeException("Exception during processing of "+object+": "+ex.getMessage(), ex);
+                throw new RuntimeException("Exception during processing of " + object + ": " + ex.getMessage(), ex);
             }
         }
         AssertJUnit.assertEquals("Found changes during add/get test " + count, 0, count);
@@ -209,7 +213,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
     private void checkContainerValuesSize(QName parentName, PrismContainerValue<?> newValue, PrismContainerValue<?> oldValue) {
         logger.info("Checking: " + parentName);
-        AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "' id="+newValue.getId(), size(oldValue), size(newValue));
+        AssertJUnit.assertEquals("Count doesn't match for '" + parentName + "' id=" + newValue.getId(), size(oldValue), size(newValue));
 
         List<QName> checked = new ArrayList<>();
 
@@ -309,7 +313,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         ObjectDelta<ShadowType> delta = fileAccount.diff(repoAccount);
         AssertJUnit.assertNotNull(delta);
-        logger.info("delta\n{}", new Object[]{delta.debugDump(3)});
+        logger.info("delta\n{}", new Object[] { delta.debugDump(3) });
         if (!delta.isEmpty()) {
             fail("delta is not empty: " + delta.debugDump());
         }
@@ -385,7 +389,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void addGetRoleWithResourceRefFilter() throws Exception{
+    public void addGetRoleWithResourceRefFilter() throws Exception {
         PrismObject<RoleType> role = prismContext.parseObject(new File("src/test/resources/basic/role-resource-filter.xml"));
 
         System.out.println("role: " + role.debugDump());
@@ -398,18 +402,16 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         RoleType roleType = role.asObjectable();
         System.out.println("role: " + role.debugDump());
         System.out.println("role: " + role.asObjectable().getInducement().get(0).getConstruction().getResourceRef().getFilter());
-//        desc = roleType.getSynchronizationSituationDescription().get(0);
-//        AssertJUnit.assertEquals("Times don't match", TIME, XMLGregorianCalendarType.asDate(desc.getTimestamp()));
     }
 
     /**
      * creates <iterationToken/> element in shadow
      */
     @Test
-    public void emtpyIterationToken() throws Exception {
+    public void emptyIterationToken() throws Exception {
         String token = testIterationToken("");
         AssertJUnit.assertNotNull(token);
-        assertTrue(token.equals(""));
+        assertEquals(token, "");
     }
 
     /**
@@ -452,56 +454,21 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         return token;
     }
 
-//    @Test(enabled = false)
-//    public void deltaOperationSerializationPerformanceTest() throws Exception {
-//        List<PrismObject<? extends Objectable>> elements =
-//                prismContext.processorFor(new File(FOLDER_BASIC, "objects.xml")).parseObjects();
-//
-//        //get user from objects.xml
-//        ObjectDelta delta = ObjectDelta.createAddDelta(elements.get(0));
-//
-//        final int COUNT = 10000;
-//        //first conversion option
-//        System.out.println(DeltaConvertor.toObjectDeltaTypeXml(delta));
-//        //second conversion option
-//        //System.out.println("\n" + toRepo(DeltaConvertor.toObjectDeltaType(delta), prismContext));
-//
-//        long time = System.currentTimeMillis();
-//        for (int i = 0; i < COUNT; i++) {
-//            String xml = DeltaConvertor.toObjectDeltaTypeXml(delta);
-//        }
-//        time = System.currentTimeMillis() - time;
-//        System.out.println(">>> " + time);
-//
-//        time = System.currentTimeMillis();
-//        for (int i = 0; i < COUNT; i++) {
-//            ObjectDeltaType type = DeltaConvertor.toObjectDeltaType(delta);
-//            String xml = toRepo(type, prismContext);
-//        }
-//        time = System.currentTimeMillis() - time;
-//        System.out.println(">>> " + time);
-//    }
-
-
     @Test
-    public void test() throws Exception {
-        OperationResult result = new OperationResult("asdf");
-        final List<PrismObject> objects = new ArrayList<>();
-        ResultHandler<ObjectType> handler = new ResultHandler<ObjectType>() {
-
-            @Override
-            public boolean handle(PrismObject<ObjectType> object, OperationResult parentResult) {
-                objects.add(object);
-                return true;
-            }
+    public void testSearchObjectsIterative() throws Exception {
+        final List<PrismObject<?>> objects = new ArrayList<>();
+        ResultHandler<ObjectType> handler = (object, parentResult) -> {
+            objects.add(object);
+            return true;
         };
 
-        repositoryService.searchObjectsIterative(ObjectType.class, null, handler, null, true, result);
-        assertTrue(!objects.isEmpty());
+        repositoryService.searchObjectsIterative(
+                ObjectType.class, null, handler, null, true, createOperationResult());
+        assertThat(objects).isNotEmpty();
     }
 
     @Test
-    private void addGetFullAccountShadow() throws Exception {
+    public void addGetFullAccountShadow() throws Exception {
         OperationResult result = new OperationResult("testAddAccountShadow");
         File file = new File(FOLDER_BASIC, "account-accountTypeShadow.xml");
         try {
@@ -737,10 +704,10 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         UserType user = new UserType(prismContext)
                 .name("t300")
                 .beginAssignment()
-                    .description("a1")
+                .description("a1")
                 .<UserType>end()
                 .beginAssignment()
-                    .description("a2")
+                .description("a2")
                 .end();
 
         // WHEN
@@ -797,17 +764,16 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         OperationResult result = createOperationResult();
         String oid = repositoryService.addObject(task, null, result);
 
-        Session session = null;
+        Session session = open();
         try {
-            session = open();
-
             RTask rTask = session.createQuery("from RTask t where t.oid=:oid", RTask.class)
                     .setParameter("oid", oid).getSingleResult();
             AssertJUnit.assertNotNull(rTask.getFullResult());
             AssertJUnit.assertEquals(ROperationResultStatus.IN_PROGRESS, rTask.getStatus());
 
-            String xml = RUtil.getXmlFromByteArray(rTask.getFullObject(), true);
-            PrismObject<TaskType> obj = getPrismContext().parserFor(xml).language(SqlRepositoryServiceImpl.DATA_LANGUAGE).parse();
+            String serializedForm = RUtil.getSerializedFormFromBytes(rTask.getFullObject());
+            PrismObject<TaskType> obj = getPrismContext().parserFor(serializedForm)
+                    .parse();
             TaskType objType = obj.asObjectable();
             AssertJUnit.assertNull(objType.getResult());
         } finally {

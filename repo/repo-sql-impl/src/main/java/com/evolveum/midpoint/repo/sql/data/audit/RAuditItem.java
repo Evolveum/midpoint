@@ -7,22 +7,24 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import static com.evolveum.midpoint.repo.sql.data.audit.RAuditItem.COLUMN_RECORD_ID;
+
+import java.util.Objects;
 import javax.persistence.*;
+
+import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
 import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
-import org.hibernate.annotations.ForeignKey;
-
-import static com.evolveum.midpoint.repo.sql.data.audit.RAuditItem.COLUMN_RECORD_ID;
 
 @Ignore
 @Entity
 @IdClass(RAuditItemId.class)
 @Table(name = RAuditItem.TABLE_NAME, indexes = {
         @Index(name = "iChangedItemPath", columnList = "changedItemPath"),
-        @Index(name = "iAuditItemRecordId", columnList = COLUMN_RECORD_ID)})
+        @Index(name = "iAuditItemRecordId", columnList = COLUMN_RECORD_ID) })
 public class RAuditItem implements EntityState {
 
     public static final String TABLE_NAME = "m_audit_item";
@@ -34,7 +36,7 @@ public class RAuditItem implements EntityState {
 
     private RAuditEventRecord record;
     private Long recordId;
-        private String changedItemPath;
+    private String changedItemPath;
 
     @Transient
     @Override
@@ -79,7 +81,6 @@ public class RAuditItem implements EntityState {
         this.record = record;
     }
 
-
     public void setRecordId(Long recordId) {
         this.recordId = recordId;
     }
@@ -106,22 +107,17 @@ public class RAuditItem implements EntityState {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         RAuditItem that = (RAuditItem) o;
 
-        if (changedItemPath != null ? !changedItemPath.equals(that.changedItemPath) : that.changedItemPath != null) return false;
-//        if (record != null ? !record.equals(that.record) : that.record != null) return false;
-        return true;
+        return Objects.equals(recordId, that.recordId)
+                && Objects.equals(changedItemPath, that.changedItemPath);
     }
 
     @Override
     public int hashCode() {
-        int result1 = changedItemPath != null ? changedItemPath.hashCode() : 0;
-//        result1 = 31 * result1 + (record != null ? record.hashCode() : 0);
-        return result1;
+        return Objects.hash(recordId, changedItemPath);
     }
-
-
 }

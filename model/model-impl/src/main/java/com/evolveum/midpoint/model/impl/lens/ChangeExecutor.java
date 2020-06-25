@@ -104,7 +104,7 @@ public class ChangeExecutor {
 
     @Autowired private TaskManager taskManager;
     @Autowired(required = false) private WorkflowManager workflowManager; // not available e.g. during tests
-    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
     @Autowired private ProvisioningService provisioning;
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
@@ -1496,7 +1496,7 @@ public class ChangeExecutor {
             if (TaskType.class.isAssignableFrom(objectTypeClass)) {
                 taskManager.modifyTask(delta.getOid(), delta.getModifications(), result);
             } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
-                throw new UnsupportedOperationException("NodeType is not modifiable using model interface");
+                cacheRepositoryService.modifyObject(NodeType.class, delta.getOid(), delta.getModifications(), result);
             } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
                 ProvisioningOperationOptions provisioningOptions = getProvisioningOptions(context, options,
                         (PrismObject<ShadowType>) objectContext.getObjectCurrent(), (ObjectDelta<ShadowType>) delta);

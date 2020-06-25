@@ -81,15 +81,16 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
     private static final List<ItemPath> BASIC_USER_CONTAINERS_PATHS = Arrays.asList(
             UserType.F_EXTENSION,
-            UserType.F_METADATA,
+            //UserType.F_METADATA, // Temporary - see MID-6335
             UserType.F_ASSIGNMENT,
             UserType.F_ACTIVATION,
             UserType.F_TRIGGER,
             UserType.F_CREDENTIALS,
-            UserType.F_ADMIN_GUI_CONFIGURATION);
+            UserType.F_ADMIN_GUI_CONFIGURATION,
+            UserType.F_BEHAVIOR);
     private static final List<ItemPath> BASIC_SHADOW_CONTAINERS_PATHS = Arrays.asList(
             ShadowType.F_EXTENSION,
-            ShadowType.F_METADATA,
+            //ShadowType.F_METADATA, // Temporary - see MID-6335
             ShadowType.F_PENDING_OPERATION,
             ShadowType.F_ATTRIBUTES,
             ShadowType.F_TRIGGER,
@@ -98,7 +99,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             ShadowType.F_CREDENTIALS);
     private static final List<ItemPath> BASIC_ORG_CONTAINERS_PATHS = Arrays.asList(
             OrgType.F_EXTENSION,
-            OrgType.F_METADATA,
+            //OrgType.F_METADATA, // Temporary - see MID-6335
             OrgType.F_ASSIGNMENT,
             OrgType.F_ACTIVATION,
             OrgType.F_INDUCEMENT,
@@ -109,7 +110,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             OrgType.F_DATA_PROTECTION,
             OrgType.F_TRIGGER,
             OrgType.F_AUTOASSIGN,
-            ShadowType.F_CREDENTIALS);
+            OrgType.F_CREDENTIALS,
+            OrgType.F_BEHAVIOR);
     private String userWallyOid;
     private String accountWallyOid;
 
