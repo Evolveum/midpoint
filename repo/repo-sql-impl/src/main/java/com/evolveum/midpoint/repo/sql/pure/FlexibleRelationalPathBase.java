@@ -1,6 +1,13 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
+import com.querydsl.core.types.dsl.SimplePath;
+import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.RelationalPathBase;
 
 /**
@@ -20,17 +27,46 @@ import com.querydsl.sql.RelationalPathBase;
  *
  * @param <T> entity type - typically a pure DTO bean for the table mapped by Q-type
  */
-public class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
+public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
 
     private static final long serialVersionUID = -3374516272567011096L;
 
-    public FlexibleRelationalPathBase(
-            Class<? extends T> type, String variable, String schema, String table) {
-        super(type, variable, schema, table);
-    }
+    // tracking statically registered columns, will be nullified at the end of the constructor
+    private Set<String> knownColumns = new HashSet<>();
 
     public FlexibleRelationalPathBase(
             Class<? extends T> type, PathMetadata metadata, String schema, String table) {
         super(type, metadata, schema, table);
     }
+
+    protected void applyExtensions(ExtensionColumns extensionColumns) {
+        for (Map.Entry<String, ColumnMetadata> entry : extensionColumns.extensionColumnsMetadata()) {
+            SimplePath<?> path = createSimple(entry.getKey(), Object.class);
+            // no need to add to knownColumns anymore
+            super.addMetadata(path, entry.getValue());
+        }
+    }
+
+    /**
+     * Adds extension columns to the internal metadata of {@link RelationalPathBase} superclass.
+     * Must be called from the subclass constructor, otherwise path fields are not registered yet.
+     */
+    protected void fixMetadata() {
+        for (Map.Entry<String, ColumnMetadata> entry : getTableMetamodel().columnMetadataEntries()) {
+            String columnName = entry.getKey();
+            if (!knownColumns.contains(columnName)) {
+                System.out.println("Adding extension column: " + columnName);
+                SimplePath<?> simple = createSimple(columnName, Object.class);
+                // no need to add to knownColumns anymore
+                super.addMetadata(simple, entry.getValue());
+            }
+        }
+        knownColumns = null;
+    }
+
+    public void addMetadataForExtension(Path<?> path, ColumnMetadata metadata) {
+        addMetadata(path, metadata);
+    }
+
+    protected abstract SqlTableMetamodel<?> getTableMetamodel();
 }

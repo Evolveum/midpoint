@@ -2,15 +2,14 @@ package com.evolveum.midpoint.repo.sql.pure;
 
 import static com.querydsl.core.group.GroupBy.groupBy;
 
-import static com.evolveum.midpoint.repo.sql.metamodel.QAuditDelta.M_AUDIT_DELTA;
-import static com.evolveum.midpoint.repo.sql.metamodel.QAuditEventRecord.M_AUDIT_EVENT;
+import static com.evolveum.midpoint.repo.sql.pure.metamodel.QAuditDelta.M_AUDIT_DELTA;
+import static com.evolveum.midpoint.repo.sql.pure.metamodel.QAuditEventRecord.M_AUDIT_EVENT;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-import com.google.common.base.Joiner;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.group.GroupBy;
 import com.querydsl.core.types.Expression;
@@ -22,6 +21,8 @@ import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.SQLQueryFactory;
 import com.querydsl.sql.SQLTemplates;
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.repo.sql.pure.metamodel.QAuditEventRecord;
 
 // TODO MID-6319 must go after done
 @Deprecated
@@ -41,23 +42,51 @@ public class SqlGeneration {
         SQLQueryFactory queryFactory = new SQLQueryFactory(
                 SQLTemplates.DEFAULT, () -> getConnection());
 
+        QAuditEventRecord.EXTENSION_COLUMNS.registerExtensionColumn(QAuditEventRecord.EVENT_TYPE);
+
+        QAuditEventRecord aer = new QAuditEventRecord("aer");
+        SQLQuery<?> query = queryFactory.select(aer.all())
+                .from(aer)
+                ;
+
+        System.out.println(query);
+
+        List<?> result = query.limit(3).fetch();
+        System.out.println("\nresult = " + result);
+        Object o = ((Tuple) result.get(0)).get(2, Object.class);
+        System.out.println("o = " + o);
+        System.out.println("class = " + o.getClass());
+    }
+
+    private static void extensionExperiments1() {
+        SQLQueryFactory queryFactory = new SQLQueryFactory(
+                SQLTemplates.DEFAULT, () -> getConnection());
+
+        QAuditEventRecord aer = new QAuditEventRecord("aer");
+        System.out.println("M_AUDIT_EVENT.meta.size = " + M_AUDIT_EVENT.all().length);
+        System.out.println("M_AUDIT_DELTA.meta.size = " + M_AUDIT_DELTA.all().length);
+
         QMap auditDelta = Projections.map(M_AUDIT_DELTA.all());
-        List<Tuple> result = queryFactory
+        QMap auditEvent = Projections.map(M_AUDIT_EVENT.all());
+//        List<Tuple> result = queryFactory
+        List<?> result = queryFactory
                 // this way we don't use M-beans, which is more flexible, and still get close to "select whole entity A+B"
 //                .select(expand(M_AUDIT_EVENT.id, M_AUDIT_DELTA))
 
                 // This is also interesting, we instruct to create map for auditDelta paths.
                 // .all() above is necessary, otherwise the map contains only one M-bean, which we want to avoid
                 // Also, we want to extract this expression as variable, so we can use it later, e.g. to get from a tuple, or mapOneToMany processing, etc.
-                .select(M_AUDIT_EVENT.id, auditDelta)
+//                .select(M_AUDIT_EVENT.id, auditDelta)
+                .select(M_AUDIT_EVENT)
                 .from(M_AUDIT_EVENT)
-                .leftJoin(M_AUDIT_EVENT._auditDeltaFk, M_AUDIT_DELTA)
+//                .leftJoin(M_AUDIT_EVENT._auditDeltaFk, M_AUDIT_DELTA)
                 .fetch();
-        Map<Long, Collection<Map<Expression<?>, ?>>> mapResult =
-                mapOneToMany(result, M_AUDIT_EVENT.id, auditDelta);
+//        Map<Long, Collection<Map<Expression<?>, ?>>> mapResult =
+//                mapOneToMany(result, M_AUDIT_EVENT.id, auditDelta);
+//        System.out.println("result = " + Joiner.on("\n").withKeyValueSeparator(" = ").join(mapResult));
+//        System.out.println(mapResult.size());
 
-        System.out.println("result = " + Joiner.on("\n").withKeyValueSeparator(" = ").join(mapResult));
-        System.out.println(mapResult.size());
+        System.out.println(result);
     }
 
     /**
@@ -65,7 +94,7 @@ public class SqlGeneration {
      * is represented by all its columns.
      * This generates expression array that results in the query of tuples which does not
      * require any backing beans.
-     *
+     * <p>
      * TODO: maybe we want to convert them to QMap or a tuple?
      */
     private static Expression<?>[] expand(Path<?>... paths) {

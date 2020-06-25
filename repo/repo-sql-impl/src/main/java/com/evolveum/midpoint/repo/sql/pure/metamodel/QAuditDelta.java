@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql.metamodel;
+package com.evolveum.midpoint.repo.sql.pure.metamodel;
 
 import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
@@ -21,39 +21,35 @@ import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.pure.MAuditDelta;
+import com.evolveum.midpoint.repo.sql.pure.SqlTableMetamodel;
 
 public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
 
     private static final long serialVersionUID = -231012375;
 
+    public static final SqlTableMetamodel<QAuditDelta> METAMODEL =
+            new SqlTableMetamodel<>("M_AUDIT_DELTA", QAuditDelta.class);
+
     public static final QAuditDelta M_AUDIT_DELTA = new QAuditDelta("M_AUDIT_DELTA");
 
+    public static final ColumnMetadata CHECKSUM = ColumnMetadata.named("CHECKSUM")
+            .withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull();
+
+    // columns and relations
     public final StringPath checksum = createString("checksum");
-
     public final SimplePath<java.sql.Blob> delta = createSimple("delta", java.sql.Blob.class);
-
     public final StringPath deltaoid = createString("deltaoid");
-
     public final NumberPath<Integer> deltatype = createNumber("deltatype", Integer.class);
-
     public final SimplePath<java.sql.Blob> fullresult = createSimple("fullresult", java.sql.Blob.class);
-
     public final StringPath objectnameNorm = createString("objectnameNorm");
-
     public final StringPath objectnameOrig = createString("objectnameOrig");
-
     public final NumberPath<Long> recordId = createNumber("recordId", Long.class);
-
     public final StringPath resourcenameNorm = createString("resourcenameNorm");
-
     public final StringPath resourcenameOrig = createString("resourcenameOrig");
-
     public final StringPath resourceoid = createString("resourceoid");
-
     public final NumberPath<Integer> status = createNumber("status", Integer.class);
 
     public final PrimaryKey<MAuditDelta> constraint85 = createPrimaryKey(checksum, recordId);
-
     public final ForeignKey<QAuditEventRecord> auditDeltaFk = createForeignKey(recordId, "ID");
 
     public QAuditDelta(String variable) {
@@ -82,7 +78,7 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
     }
 
     public void addMetadata() {
-        addMetadata(checksum, ColumnMetadata.named("CHECKSUM").withIndex(1).ofType(Types.VARCHAR).withSize(32).notNull());
+        addMetadata(checksum, CHECKSUM);
         addMetadata(delta, ColumnMetadata.named("DELTA").withIndex(3).ofType(Types.BLOB).withSize(2147483647));
         addMetadata(deltaoid, ColumnMetadata.named("DELTAOID").withIndex(4).ofType(Types.VARCHAR).withSize(36));
         addMetadata(deltatype, ColumnMetadata.named("DELTATYPE").withIndex(5).ofType(Types.INTEGER).withSize(10));
@@ -96,5 +92,8 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
         addMetadata(status, ColumnMetadata.named("STATUS").withIndex(12).ofType(Types.INTEGER).withSize(10));
     }
 
+    @Override
+    protected SqlTableMetamodel<?> getTableMetamodel() {
+        return METAMODEL;
+    }
 }
-
