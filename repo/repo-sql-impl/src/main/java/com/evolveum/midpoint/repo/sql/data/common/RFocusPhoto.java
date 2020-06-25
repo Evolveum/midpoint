@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,16 +7,16 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.repo.sql.data.common.id.RFocusPhotoId;
-import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
-import com.evolveum.midpoint.repo.sql.util.EntityState;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
+import java.io.Serializable;
+import javax.persistence.*;
+
 import org.hibernate.annotations.ForeignKey;
 
-import javax.persistence.*;
-import java.io.Serializable;
-import java.util.Arrays;
+import com.evolveum.midpoint.repo.sql.data.common.id.RFocusPhotoId;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.EntityState;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 
 /**
  * @author lazyman
@@ -81,8 +81,8 @@ public class RFocusPhoto implements Serializable, EntityState {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         RFocusPhoto photo = (RFocusPhoto) o;
 

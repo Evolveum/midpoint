@@ -30,7 +30,7 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv,
             SecurityQuestionsAuthenticationContext authCtx) {
         if (MapUtils.isEmpty(authCtx.getQuestionAnswerMap())) {
-            recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
+            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
             throw new BadCredentialsException("web.security.provider.password.encoding");
         }
 
@@ -43,7 +43,7 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
         }
 
         if (allBlank) {
-            recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
+            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
             throw new BadCredentialsException("web.security.provider.password.encoding");
         }
     }
@@ -64,7 +64,7 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
         List<SecurityQuestionAnswerType> securityQuestionsAnswers = credential.getQuestionAnswer();
 
         if (securityQuestionsAnswers == null || securityQuestionsAnswers.isEmpty()) {
-            recordAuthenticationBehavior(principal, connEnv, "no stored security questions", false);
+            recordAuthenticationBehavior(principal.getUsername(),principal, connEnv, "no stored security questions", principal.getFocus().getClass(),false);
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
         }
 

@@ -120,6 +120,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Autowired private Tracer tracer;
     @Autowired private CacheDispatcher cacheDispatcher;
     @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private CounterManager counterManager;
 
     private GlobalTracingOverride globalTracingOverride;
 
@@ -2720,5 +2721,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
     public CacheRegistry getCacheRegistry() {
         return cacheRegistry;
+    }
+
+    public CounterManager getCounterManager() {
+        return counterManager;
     }
 }

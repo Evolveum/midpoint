@@ -11,6 +11,7 @@ import static com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation.CO
 import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
 
 import java.sql.ResultSet;
+import java.util.Objects;
 import javax.persistence.*;
 
 import org.hibernate.annotations.ForeignKey;
@@ -227,41 +228,6 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         checksum = RUtil.computeChecksum(delta, fullResult);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-
-        RObjectDeltaOperation that = (RObjectDeltaOperation) o;
-
-        if (getChecksum() != null ? !getChecksum().equals(that.getChecksum()) : that.getChecksum() != null) { return false; }
-        // TODO: likely a bug - question is whether entity-style id-only-based equals wouldn't be better (+hashCode)
-        if (delta != null ? !delta.equals(that.delta) : that.delta != null) { return false; }
-        if (fullResult != null ? !fullResult.equals(that.fullResult) : that.fullResult != null) { return false; }
-        if (status != that.status) { return false; }
-        if (deltaType != null ? !deltaType.equals(that.deltaType) : that.deltaType != null) { return false; }
-        if (deltaOid != null ? !deltaOid.equals(that.deltaOid) : that.deltaOid != null) { return false; }
-        if (objectName != null ? !objectName.equals(that.objectName) : that.objectName != null) { return false; }
-        if (resourceOid != null ? !resourceOid.equals(that.resourceOid) : that.resourceOid != null) { return false; }
-        if (resourceName != null ? !resourceName.equals(that.resourceName) : that.resourceName != null) { return false; }
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result1 = delta != null ? delta.hashCode() : 0;
-        result1 = 31 * result1 + (getChecksum() != null ? getChecksum().hashCode() : 0);
-        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
-        result1 = 31 * result1 + (fullResult != null ? fullResult.hashCode() : 0);
-        result1 = 31 * result1 + (deltaOid != null ? deltaOid.hashCode() : 0);
-        result1 = 31 * result1 + (deltaType != null ? deltaType.hashCode() : 0);
-        result1 = 31 * result1 + (objectName != null ? objectName.hashCode() : 0);
-        result1 = 31 * result1 + (resourceOid != null ? resourceOid.hashCode() : 0);
-        result1 = 31 * result1 + (resourceName != null ? resourceName.hashCode() : 0);
-        return result1;
-    }
-
     public static RObjectDeltaOperation toRepo(RAuditEventRecord record, ObjectDeltaOperation operation,
             PrismContext prismContext, SystemConfigurationAuditType auditConfiguration) throws DtoTranslationException {
         RObjectDeltaOperation auditDelta = new RObjectDeltaOperation();
@@ -438,4 +404,56 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
 
         return odo;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+        if (!(o instanceof RObjectDeltaOperation)) { return false; }
+
+        RObjectDeltaOperation that = (RObjectDeltaOperation) o;
+        return Objects.equals(recordId, that.recordId)
+                && Objects.equals(checksum, that.checksum);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(recordId, checksum);
+    }
+
+    /*
+        @Override
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+
+        RObjectDeltaOperation that = (RObjectDeltaOperation) o;
+
+        if (getChecksum() != null ? !getChecksum().equals(that.getChecksum()) : that.getChecksum() != null) { return false; }
+        // TODO: likely a bug - question is whether entity-style id-only-based equals wouldn't be better (+hashCode)
+        if (delta != null ? !delta.equals(that.delta) : that.delta != null) { return false; }
+        if (fullResult != null ? !fullResult.equals(that.fullResult) : that.fullResult != null) { return false; }
+        if (status != that.status) { return false; }
+        if (deltaType != null ? !deltaType.equals(that.deltaType) : that.deltaType != null) { return false; }
+        if (deltaOid != null ? !deltaOid.equals(that.deltaOid) : that.deltaOid != null) { return false; }
+        if (objectName != null ? !objectName.equals(that.objectName) : that.objectName != null) { return false; }
+        if (resourceOid != null ? !resourceOid.equals(that.resourceOid) : that.resourceOid != null) { return false; }
+        if (resourceName != null ? !resourceName.equals(that.resourceName) : that.resourceName != null) { return false; }
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result1 = delta != null ? delta.hashCode() : 0;
+        result1 = 31 * result1 + (getChecksum() != null ? getChecksum().hashCode() : 0);
+        result1 = 31 * result1 + (status != null ? status.hashCode() : 0);
+        result1 = 31 * result1 + (fullResult != null ? fullResult.hashCode() : 0);
+        result1 = 31 * result1 + (deltaOid != null ? deltaOid.hashCode() : 0);
+        result1 = 31 * result1 + (deltaType != null ? deltaType.hashCode() : 0);
+        result1 = 31 * result1 + (objectName != null ? objectName.hashCode() : 0);
+        result1 = 31 * result1 + (resourceOid != null ? resourceOid.hashCode() : 0);
+        result1 = 31 * result1 + (resourceName != null ? resourceName.hashCode() : 0);
+        return result1;
+    }
+     */
 }

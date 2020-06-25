@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,16 +12,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-
 import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
-
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.repo.api.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.repo.sql.RestartOperationRequestedException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
@@ -32,24 +25,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.repo.api.*;
+import com.evolveum.midpoint.repo.sql.RestartOperationRequestedException;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
-import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
-import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.schema.SchemaHelper;
@@ -62,6 +55,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman, mederly
@@ -119,7 +113,7 @@ public class ObjectUpdater {
             closureContext = closureManager.onBeginTransactionAdd(session, object, options.isOverwrite());
 
             if (options.isOverwrite()) {
-                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext, noFetchExtensionValueInsertionForbidden, result);
+                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext, noFetchExtensionValueInsertionForbidden);
             } else {
                 oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
             }
@@ -168,9 +162,9 @@ public class ObjectUpdater {
         return ExceptionUtil.findException(ex, ConstraintViolationException.class);
     }
 
-    private <T extends ObjectType> String overwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
-            String originalOid, Session session, OrgClosureManager.Context closureContext,
-            boolean noFetchExtensionValueInsertionForbidden, OperationResult result)
+    private <T extends ObjectType> String overwriteAddObjectAttempt(
+            PrismObject<T> object, RObject rObject, String originalOid, Session session,
+            OrgClosureManager.Context closureContext, boolean noFetchExtensionValueInsertionForbidden)
             throws SchemaException, DtoTranslationException {
 
         PrismObject<T> oldObject = null;
@@ -179,7 +173,7 @@ public class ObjectUpdater {
         Collection<? extends ItemDelta> modifications = null;
         if (originalOid != null) {
             try {
-                oldObject = objectRetriever.getObjectInternal(session, object.getCompileTimeClass(), originalOid, null, true, result);
+                oldObject = objectRetriever.getObjectInternal(session, object.getCompileTimeClass(), originalOid, null, true);
                 object.setUserData(RepositoryService.KEY_ORIGINAL_OBJECT, oldObject);
                 ObjectDelta<T> delta = oldObject.diff(object, EquivalenceStrategy.LITERAL);
                 modifications = delta.getModifications();
@@ -366,7 +360,7 @@ public class ObjectUpdater {
         // clone - because some certification and lookup table related methods manipulate this collection and even their constituent deltas
         // TODO clone elements only if necessary
         //noinspection unchecked
-        Collection<? extends ItemDelta<?,?>> modifications = (Collection<? extends ItemDelta<?, ?>>)
+        Collection<? extends ItemDelta<?, ?>> modifications = (Collection<? extends ItemDelta<?, ?>>)
                 CloneUtil.cloneCollectionMembers(originalModifications);
         //modifications = new ArrayList<>(modifications);
 
@@ -427,7 +421,7 @@ public class ObjectUpdater {
                 }
 
                 // get object
-                PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, optionsBuilder.build(), true, result);
+                PrismObject<T> prismObject = objectRetriever.getObjectInternal(session, type, oid, optionsBuilder.build(), true);
                 if (precondition != null && !precondition.holds(prismObject)) {
                     throw new PreconditionViolationException("Modification precondition does not hold for " + prismObject);
                 }
