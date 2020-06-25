@@ -9,23 +9,23 @@ package com.evolveum.midpoint.web.component.search.filter;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author honchar
  */
-public class BasicSearchFilter<O extends ObjectType> extends SearchFilter<O> {
+public class BasicSearchFilter<C extends Containerable> extends SearchFilter<C> {
 
     private static final long serialVersionUID = 1L;
     private static final Trace LOGGER = TraceManager.getTrace(BasicSearchFilter.class);
 
     private LogicalFilterValue logicalFilterValue = LogicalFilterValue.AND;
 
-    public BasicSearchFilter(PrismContext prismContext, ObjectFilter baseFilter, Class<O> type) {
+    public BasicSearchFilter(PrismContext prismContext, ObjectFilter baseFilter, Class<C> type) {
         super(prismContext, baseFilter, type);
     }
 
