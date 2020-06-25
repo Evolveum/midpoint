@@ -271,7 +271,7 @@ public class PageSelfDashboard extends PageSelf {
         initAssignments();
     }
 
-    private PrismObject<UserType> loadUser() {
+    private PrismObject<? extends FocusType> loadFocus() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         Validate.notNull(principal, "No principal");
         if (principal.getOid() == null) {
