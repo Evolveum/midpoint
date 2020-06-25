@@ -11,12 +11,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.util.QNameUtil;
-
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -41,6 +35,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -48,8 +43,10 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
 import com.evolveum.midpoint.web.component.search.filter.ValueSearchFilterItem;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
@@ -84,7 +81,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         configPanel.add(propertyConfigContainer);
 
         DropDownChoicePanel<Property> propertyChoicePanel = new DropDownChoicePanel<Property>(ID_PROPERTY_CHOICE,
-                getDefaultPropertyChoiceModel(), getAvailablePropertiesListModel(), new IChoiceRenderer<Property>() {
+                Model.of(getDefaultPropertyChoice()), getAvailablePropertiesListModel(), new IChoiceRenderer<Property>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -128,19 +125,12 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         initTable(configPanel);
     }
 
-    private LoadableModel<Property> getDefaultPropertyChoiceModel(){
-        return new LoadableModel<Property>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected Property load() {
-                List<Property> availablePropertiesList = getAvailablePropertiesListModel().getObject();
-                if (CollectionUtils.isNotEmpty(availablePropertiesList)){
-                    return availablePropertiesList.get(0);
-                }
-                return null;
-            }
-        };
+    private Property getDefaultPropertyChoice() {
+        List<Property> availablePropertiesList = getAvailablePropertiesListModel().getObject();
+        if (CollectionUtils.isNotEmpty(availablePropertiesList)) {
+            return availablePropertiesList.get(0);
+        }
+        return null;
     }
 
     private void initTable(WebMarkupContainer configPanel) {
@@ -321,12 +311,6 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
             return null;
         }
         return new ValueSearchFilterItem(property, false);
-    }
-
-    private Property getSelectedProperty() {
-        DropDownChoicePanel<Property> propertyChoicePanel = (DropDownChoicePanel<Property>) get(getPageBase()
-                .createComponentPath(ID_CONFIGURATION_PANEL, ID_PROPERTY_CONFIG_CONTAINER, ID_PROPERTY_CHOICE));
-        return propertyChoicePanel.getModel().getObject();
     }
 
     private Component getPropertyValueField(String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {

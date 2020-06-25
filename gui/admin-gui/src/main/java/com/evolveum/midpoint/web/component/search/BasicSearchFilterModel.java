@@ -56,10 +56,10 @@ public class BasicSearchFilterModel<O extends ObjectType> implements IModel<Basi
 
     private BasicSearchFilter<O> loadBasicSearchFilter(){
         try {
-            SearchFilterType value = baseModel.getObject();
-            if (value == null) {
-                return null;
-            }
+//            SearchFilterType value = baseModel.getObject();
+//            if (value == null) {
+//                return new BasicSearchFilter<O>(pageBase.getPrismContext(), null, type);
+//            }
 
             ObjectFilter objectFilter = pageBase.getPrismContext().getQueryConverter().createObjectFilter(type, baseModel.getObject());
             return new BasicSearchFilter<O>(pageBase.getPrismContext(), objectFilter, type);
