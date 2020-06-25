@@ -280,8 +280,13 @@ class JsonObjectTokenReader {
             }
         }
 
-        if (declaredNamespace != null && rv instanceof MapXNodeImpl) {
-            ctx.defaultNamespaces.put((MapXNodeImpl) rv, declaredNamespace);
+        if (declaredNamespace != null) {
+            if (rv instanceof MapXNodeImpl) {
+                ctx.defaultNamespaces.put((MapXNodeImpl) rv, declaredNamespace);
+            }
+            if (metadata != null) {
+                ctx.defaultNamespaces.put((MapXNodeImpl) metadata, declaredNamespace);
+            }
         }
 
         if (metadata != null) {
@@ -291,7 +296,7 @@ class JsonObjectTokenReader {
                 warnOrThrow("Couldn't apply metadata to non-metadata-aware node: " + rv.getClass());
             }
         }
-        
+
         return rv;
     }
 

@@ -11,6 +11,8 @@ import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -98,17 +100,25 @@ class SchemaDescriptionParser {
         return desc;
     }
 
-    public static SchemaDescriptionImpl parseFile(File file) throws SchemaException {
+    public static SchemaDescriptionImpl parseFile(File file) throws SchemaException, IOException {
         SchemaDescriptionImpl desc = new SchemaDescriptionImpl("file " + file.getPath(), file.getPath());
-        desc.setStreamable(() -> {
-            InputStream inputStream;
-            try {
-                inputStream = new FileInputStream(file);
-            } catch (FileNotFoundException e) {
-                throw new IllegalStateException("Cannot fetch file for schema " + file, e);
+        try {
+            desc.setStreamable(() -> {
+                InputStream inputStream;
+                try {
+                    inputStream = new FileInputStream(file);
+                } catch (FileNotFoundException e) {
+                    throw new TunnelException("Cannot fetch file for schema " + file, e);
+                }
+                return inputStream;
+            });
+        } catch (TunnelException e) {
+            if (e.getCause() instanceof IOException) {
+                throw (IOException) e.getCause();
+            } else {
+                throw new SystemException(e.getCause());
             }
-            return inputStream;
-        });
+        }
         parseFromInputStream(desc);
         return desc;
     }

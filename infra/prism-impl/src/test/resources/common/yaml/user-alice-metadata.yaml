@@ -8,7 +8,7 @@ user:
     "@value": alice
     "@metadata":
       loa: high
-  additionalName:
+  additionalNames:
     -
       "@value": Jane
       "@metadata":

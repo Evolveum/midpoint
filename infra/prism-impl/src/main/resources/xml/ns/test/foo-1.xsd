@@ -417,6 +417,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="loa" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="test" type="xsd:string" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="fooValueMetadataType" type="tns:FooValueMetadataType" />

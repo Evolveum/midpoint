@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.schema;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collections;
 
@@ -19,6 +18,7 @@ import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
 import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
@@ -43,7 +43,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
     public static final MidPointPrismContextFactory FACTORY = new MidPointPrismContextFactory(TEST_EXTRA_SCHEMA_DIR);
 
-    private File extraSchemaDir;
+    private final File extraSchemaDir;
 
     public MidPointPrismContextFactory() {
         this.extraSchemaDir = null;
@@ -54,7 +54,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
     }
 
     @Override
-    public PrismContext createPrismContext() throws SchemaException, FileNotFoundException {
+    public PrismContext createPrismContext() throws SchemaException, IOException {
         SchemaRegistryImpl schemaRegistry = createSchemaRegistry();
         PrismContextImpl context = PrismContextImpl.create(schemaRegistry);
         context.setDefinitionFactory(createDefinitionFactory());
@@ -69,7 +69,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         return context;
     }
 
-    public PrismContext createEmptyPrismContext() throws SchemaException, FileNotFoundException {
+    public PrismContext createEmptyPrismContext() throws SchemaException, IOException {
         SchemaRegistryImpl schemaRegistry = createSchemaRegistry();
         PrismContextImpl context = PrismContextImpl.createEmptyContext(schemaRegistry);
         context.setDefinitionFactory(createDefinitionFactory());
@@ -90,16 +90,17 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
     }
 
     @NotNull
-    private SchemaRegistryImpl createSchemaRegistry() throws SchemaException, FileNotFoundException {
+    private SchemaRegistryImpl createSchemaRegistry() throws SchemaException, IOException {
         SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
         schemaRegistry.setDefaultNamespace(SchemaConstantsGenerated.NS_COMMON);
         schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
         registerBuiltinSchemas(schemaRegistry);
         registerExtensionSchemas(schemaRegistry);
+        schemaRegistry.setValueMetadataTypeName(ValueMetadataType.COMPLEX_TYPE);
         return schemaRegistry;
     }
 
-    protected void registerExtensionSchemas(SchemaRegistryImpl schemaRegistry) throws SchemaException, FileNotFoundException {
+    protected void registerExtensionSchemas(SchemaRegistryImpl schemaRegistry) throws SchemaException, IOException {
         if (extraSchemaDir != null && extraSchemaDir.exists()) {
             schemaRegistry.registerPrismSchemasFromDirectory(extraSchemaDir);
         }

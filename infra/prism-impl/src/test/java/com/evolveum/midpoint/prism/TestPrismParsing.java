@@ -389,7 +389,7 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
     }
 
     @Test
-    public void test700UserAliceMetadata() throws Exception {
+    public void test700UserAliceMetadataOnXNodeLevel() throws Exception {
         given();
         PrismContext prismContext = getPrismContext();
 
@@ -404,15 +404,31 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         assertAliceMetadata(testSerializeMetadata(root, PrismContext.LANG_YAML));
     }
 
+    @Test
+    public void test710UserAliceMetadataOnPrismValueLevel() throws Exception {
+        given();
+        PrismContext prismContext = getPrismContext();
+
+        when();
+        PrismObject<UserType> alice = prismContext.parserFor(getFile(USER_ALICE_METADATA_BASENAME)).parse();
+        displayValue("alice", alice);
+
+        assertAliceMetadata(alice);
+
+        assertAliceMetadata(testSerializeMetadata(alice, PrismContext.LANG_XML));
+        assertAliceMetadata(testSerializeMetadata(alice, PrismContext.LANG_JSON));
+        assertAliceMetadata(testSerializeMetadata(alice, PrismContext.LANG_YAML));
+    }
+
     private void assertAliceMetadata(RootXNode alice) throws SchemaException {
         MapXNode user = (MapXNode) alice.getSubnode();
         assertSingleMetadata(user, "test", "abc");
 
-        XNode name = user.get(new QName("name"));
+        XNode name = user.get(UserType.F_NAME);
         assertSingleMetadata(name, "loa", "high");
-        ListXNode additionalName = (ListXNode) user.get(new QName("additionalName"));
-        assertSingleMetadata(additionalName.get(0), "loa", "medium");
-        assertSingleMetadata(additionalName.get(1), "loa", "low");
+        ListXNode additionalNames = (ListXNode) user.get(UserType.F_ADDITIONAL_NAMES);
+        assertSingleMetadata(additionalNames.get(0), "loa", "medium");
+        assertSingleMetadata(additionalNames.get(1), "loa", "low");
 
         XNode extension = user.get(new QName("extension"));
         XNode singleStringType = ((MapXNode) extension).get(new QName("singleStringType"));
@@ -425,11 +441,34 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         assertThat(metadataNode).isNotNull();
         assertThat(metadataNode.size()).isEqualTo(1);
 
+        QName key = metadataNode.getSingleSubEntry("").getKey();
+        assertThat(key.getNamespaceURI()).isEqualTo(NS_FOO);
+        assertThat(key.getLocalPart()).isEqualTo(name);
+
         //noinspection unchecked
         PrimitiveXNode<String> value = (PrimitiveXNode<String>) metadataNode.get(new QName(name));
         assertThat(value).isNotNull();
         String parsedValue = value.getParsedValue(DOMUtil.XSD_STRING, String.class);
         assertThat(parsedValue).isEqualTo(expected);
+    }
+
+    private void assertAliceMetadata(PrismObject<UserType> alice) throws SchemaException {
+        assertSingleMetadata(alice.getValue(), "test", "abc");
+        assertSingleMetadata(alice.findItem(UserType.F_NAME).getValue(), "loa", "high");
+        assertSingleMetadata(alice.findItem(UserType.F_ADDITIONAL_NAMES).getValues().get(0), "loa", "medium");
+        assertSingleMetadata(alice.findItem(UserType.F_ADDITIONAL_NAMES).getValues().get(1), "loa", "low");
+        assertSingleMetadata(alice.findItem(ItemPath.create(UserType.F_EXTENSION, "singleStringType")).getValue(), "loa", "low");
+    }
+
+    private void assertSingleMetadata(PrismValue value, String name, String expected) {
+        ValueMetadata valueMetadata = value.getValueMetadata();
+        assertThat(valueMetadata).isNotNull();
+        assertThat(valueMetadata.size()).isEqualTo(1);
+
+        Item<?, ?> item = valueMetadata.findItem(ItemPath.create(name));
+        assertThat(item).isNotNull();
+        assertThat(item.size()).isEqualTo(1);
+        assertThat((Object) item.getValue().getRealValue()).isEqualTo(expected);
     }
 
     private RootXNode testSerializeMetadata(RootXNode original, String language) throws SchemaException {
@@ -438,6 +477,16 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         displayValue("serialized", serialized);
 
         RootXNode reparsed = prismContext.parserFor(serialized).parseToXNode();
+        displayValue("reparsed", reparsed);
+        return reparsed;
+    }
+
+    private <T extends Objectable> PrismObject<T> testSerializeMetadata(PrismObject<T> object, String language) throws SchemaException {
+        PrismContext prismContext = getPrismContext();
+        String serialized = prismContext.serializerFor(language).serialize(object);
+        displayValue("serialized", serialized);
+
+        PrismObject<T> reparsed = prismContext.parserFor(serialized).parse();
         displayValue("reparsed", reparsed);
         return reparsed;
     }

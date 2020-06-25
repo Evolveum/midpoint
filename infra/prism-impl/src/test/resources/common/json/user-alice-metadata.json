@@ -12,7 +12,7 @@
         "loa" : "high"
       }
     },
-    "additionalName" : [ {
+    "additionalNames" : [ {
       "@value" : "Jane",
       "@metadata" : {
         "loa" : "medium"

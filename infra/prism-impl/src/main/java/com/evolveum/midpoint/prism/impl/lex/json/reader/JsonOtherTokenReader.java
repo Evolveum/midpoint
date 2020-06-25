@@ -34,8 +34,8 @@ class JsonOtherTokenReader {
 
     private static final Trace LOGGER = TraceManager.getTrace(JsonOtherTokenReader.class);
 
-    @NotNull final JsonReadingContext ctx;
-    @NotNull final JsonParser parser;
+    @NotNull private final JsonReadingContext ctx;
+    @NotNull private final JsonParser parser;
 
     JsonOtherTokenReader(JsonReadingContext ctx) {
         this.ctx = ctx;

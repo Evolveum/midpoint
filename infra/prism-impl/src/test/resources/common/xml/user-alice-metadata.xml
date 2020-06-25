@@ -25,18 +25,18 @@
             <loa>high</loa>
         </_metadata>
     </name>
-    <additionalName>
+    <additionalNames>
         <_value>Jane</_value>
         <_metadata>
             <loa>medium</loa>
         </_metadata>
-    </additionalName>
-    <additionalName>
+    </additionalNames>
+    <additionalNames>
         <_value>Catherine</_value>
         <_metadata>
             <loa>low</loa>
         </_metadata>
-    </additionalName>
+    </additionalNames>
     <extension>
         <ext:singleStringType>
             <_value>foobar</_value>
