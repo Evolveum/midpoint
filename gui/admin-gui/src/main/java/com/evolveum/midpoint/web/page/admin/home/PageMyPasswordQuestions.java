@@ -84,19 +84,13 @@ public class PageMyPasswordQuestions extends PageAdminHome {
     private static final String ID_SAVE = "save";
     private LoadableModel<PrismObjectWrapper<UserType>> userModel;
 
-
     private List<MyPasswordQuestionsPanel> pqPanels;
     private IModel<PasswordQuestionsDto> model;
     private List<SecurityQuestionDefinitionType> policyQuestionList;
-    private MyPasswordQuestionsPanel pwPanel;
     int questionNumber;
 
-
     public PageMyPasswordQuestions() {
-
-
         model = new LoadableModel<PasswordQuestionsDto>(false) {
-
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -125,16 +119,12 @@ public class PageMyPasswordQuestions extends PageAdminHome {
         initLayout();
     }
 
-
-
     private PasswordQuestionsDto loadPageModel() {
         LOGGER.debug("Loading user for Security Question Page.");
 
         PasswordQuestionsDto dto =new PasswordQuestionsDto();
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         try{
-
-
             String userOid = SecurityUtils.getPrincipalUser().getOid();
             Task task = createSimpleTask(OPERATION_LOAD_USER);
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_USER);
@@ -142,13 +132,10 @@ public class PageMyPasswordQuestions extends PageAdminHome {
             PrismObject<UserType> user = getModelService().getObject(UserType.class, userOid, null, task, subResult);
 
             dto.setSecurityAnswers(createUsersSecurityQuestionsList(user));
-
             subResult.recordSuccessIfUnknown();
-
         }
         catch (Exception ex) {
             LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't get user Questions, Probably not set yet", ex);
-
         } finally {
             result.recomputeStatus();
         }
@@ -201,71 +188,26 @@ public class PageMyPasswordQuestions extends PageAdminHome {
         OperationResult result = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);
         try{
 
-
             Task task = getPageBase().createSimpleTask(OPERATION_LOAD_QUESTION_POLICY);
             OperationResult subResult = result.createSubresult(OPERATION_LOAD_QUESTION_POLICY);
             try{
-            //PrismObject<SystemConfigurationType> config = getPageBase().getModelService().getObject(
-                //    SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
-                    //task, result);
 
             CredentialsPolicyType credPolicy=getModelInteractionService().getCredentialsPolicy(null, null, result);
 
-        //    PrismObject<SecurityPolicyType> securityPolicy = getModelService().getObject(SecurityPolicyType.class,config.asObjectable().getGlobalSecurityPolicyRef().getOid(), null, task, subResult);
             //Global Policy set question numbers
                 if (credPolicy != null && credPolicy.getSecurityQuestions() != null) {
-                    questionNumber = credPolicy.getSecurityQuestions().getQuestionNumber();
 
                     // Actual Policy Question List
-                    policyQuestionList = credPolicy.getSecurityQuestions().getQuestion();
+                    policyQuestionList = getEnabledSecurityQuestions(credPolicy);
+
+                    questionNumber = policyQuestionList.size();
                 } else {
                     questionNumber = 0;
                     policyQuestionList = new ArrayList<>();
                 }
             }catch(Exception ex){
-                ex.printStackTrace();
-
-            /*    List<SecurityQuestionAnswerDTO> userQuestionList= model.getObject().getSecurityAnswers();
-                int panelNumber=0;
-                PrismObject<UserType> user = null;
-
-
-
-                Collection options = SelectorOptions.createCollection(UserType.F_CREDENTIALS,
-                        GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE));
-                Task taskTwo = createSimpleTask("LOAD USER WRAPPER");
-                user = getModelService().getObject(UserType.class, SecurityUtils.getPrincipalUser().getOid(), options, taskTwo, result);
-
-                OperationResult parentResult = new OperationResult(OPERATION_LOAD_QUESTION_POLICY);
-                questionNumber = getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestionNumber();
-
-                policyQuestionList=getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestion();
-                if(userQuestionList==null){
-
-                    executeAddingQuestions(questionNumber, 0, policyQuestionList);
-
-                    LOGGER.info(getModelInteractionService().getCredentialsPolicy(user, parentResult).getSecurityQuestions().getQuestionNumber().toString());
-
-                }else{
-                    for(int userQuestint=0;userQuestint<userQuestionList.size();userQuestint++){
-                        SecurityQuestionAnswerDTO answerDTO=  checkIfQuestionisValid(userQuestionList.get(userQuestint), policyQuestionList);
-                        if (userQuestionList.get(userQuestint)!=null){
-                            LOGGER.debug("Questitself"+userQuestionList.get(userQuestint).getQuestionItself());
-                            MyPasswordQuestionsPanel panel=new MyPasswordQuestionsPanel(ID_PASSWORD_QUESTIONS_PANEL+ panelNumber,userQuestionList.get(userQuestint));
-                            pqPanels.add(panel);
-                            panelNumber++;
-                        }
-
-                    }
-                    //TODO same questions check should be implemented
-
-                }
-                add(mainForm);
-                mainForm.add(getPanels(pqPanels));
-
-                initButtons(mainForm);
-                return;
-            */
+                LoggingUtils.logExceptionOnDebugLevel(LOGGER, "Couldn't load credentials for security questions", ex);
+                showResult(result);
             }
 
             /*User's Pre-Set Question List*/
@@ -275,49 +217,28 @@ public class PageMyPasswordQuestions extends PageAdminHome {
              * questions matches the policy or not*/
 
             //Case that policy have more than users's number of numbers
-            if((userQuestionList==null) || (questionNumber>userQuestionList.size())){
-                if(userQuestionList==null){
+            if ((userQuestionList==null) || (questionNumber>userQuestionList.size())){
+                if (userQuestionList==null){
                     executeAddingQuestions(questionNumber, 0, policyQuestionList);
                     //TODO same questions check should be implemented
 
-                }else{
+                } else{
                     executePasswordQuestionsAndAnswers(userQuestionList, policyQuestionList, userQuestionList.size());
                     //QUESTION NUMBER BIGGER THAN QUESTION LIST
                     //rest of the questions
-                    int difference=questionNumber-userQuestionList.size();
+                    int difference = questionNumber - userQuestionList.size();
                     executeAddingQuestions(difference, userQuestionList.size(), policyQuestionList);
 
                 }
 
 
-            }else if(questionNumber==userQuestionList.size()){
+            } else if (questionNumber == userQuestionList.size()){
                 //QUESTION NUMBER EQUALS TO QUESTION LIST
                 executePasswordQuestionsAndAnswers(userQuestionList, policyQuestionList, 0);
-
                 //TODO PART2: Case that policy have smaller than users's number of numbers
-            }else if(questionNumber < userQuestionList.size()){
-
+            } else if (questionNumber < userQuestionList.size()){
                 //QUESTION NUMBER SMALLER THAN QUESTION LIST
                 executePasswordQuestionsAndAnswers(userQuestionList, policyQuestionList, 0);
-
-
-                //this part will be using at remove operation in the future
-            /*    int diff = userQuestionList.size()-questionNumber;
-                for(Iterator iterator = userQuestionList.iterator(); iterator.hasNext();){
-
-                    SecurityQuestionAnswerDTO element = (SecurityQuestionAnswerDTO)iterator.next();
-                    for(int i=0; i<diff;i++){
-                        if(element == userQuestionList.get(questionNumber+i)){
-
-                            try{
-                                //LOGGER.info("REMOVE");
-                                iterator.remove();
-                            } catch (UnsupportedOperationException uoe) {
-                                LOGGER.info(uoe.getStackTrace().toString());
-                            }
-                         }
-                    }
-                }*/
             }
 
         } catch (Exception ex) {
@@ -331,6 +252,18 @@ public class PageMyPasswordQuestions extends PageAdminHome {
         mainForm.add(getPanels(pqPanels));
         initButtons(mainForm);
 
+    }
+
+    private List<SecurityQuestionDefinitionType> getEnabledSecurityQuestions(CredentialsPolicyType credPolicy) {
+        List<SecurityQuestionDefinitionType> actualQuestions = credPolicy.getSecurityQuestions().getQuestion();
+        List<SecurityQuestionDefinitionType> enabledQuestions = new ArrayList<>();
+
+        for (SecurityQuestionDefinitionType actualQuestion : actualQuestions) {
+            if (!Boolean.FALSE.equals(actualQuestion.isEnabled())) {
+                enabledQuestions.add(actualQuestion);
+            }
+        }
+        return enabledQuestions;
     }
 
     /**
@@ -571,9 +504,6 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
 
             }
 
-            //if(answerTypeList.length !=)
-
-
             // fill in answerType data here
             ItemPath path = ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
             ObjectDelta<UserType> objectDelta = getPrismContext().deltaFactory().object()
@@ -583,32 +513,6 @@ private SecurityQuestionAnswerDTO checkIfQuestionisValidSingle(SecurityQuestionA
             Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
             getModelService().executeChanges(deltas, null, task, result);
 
-            /*
-            System.out.println("getModel");
-             Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-            PasswordQuestionsDto dto = new PasswordQuestionsDto();
-             PrismObjectDefinition objDef =registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-             Class<? extends ObjectType> type =  UserType.class;
-
-             final ItemPath valuePath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
-                      CredentialsType.F_SECURITY_QUESTIONS, SecurityQuestionsCredentialsType.F_QUESTION_ANSWER);
-             SecurityQuestionAnswerType secQuesAnsType= new SecurityQuestionAnswerType();
-             ProtectedStringType protStrType= new ProtectedStringType();
-             protStrType.setClearValue("deneme");
-             secQuesAnsType.setQuestionAnswer(protStrType);
-             dto.setSecurityAnswers(new ArrayList<SecurityQuestionAnswerType>());
-             dto.getSecurityAnswers().add(secQuesAnsType);
-
-            PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(valuePath, objDef, dto.getSecurityAnswers().get(0).getQuestionAnswer());
-        //    PropertyDelta delta= PropertyDelta.createModifica
-
-             System.out.println("Update Questions3");
-            deltas.add(ObjectDelta.createModifyDelta(useroid, delta, type, getPrismContext()));
-            System.out.println("Update Questions4");
-            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_QUESTIONS), result);
-            System.out.println("Update Questions5");
-
-             */
             success(getString("message.success"));
             target.add(getFeedbackPanel());
         } catch(Exception ex){
