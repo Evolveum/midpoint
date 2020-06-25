@@ -1,21 +1,21 @@
 -- remove iAncestor and iDescendant index, they are the same as FK for that fields
 
 CREATE TABLE m_acc_cert_campaign (
-  definitionRef_relation  VARCHAR(157),
-  definitionRef_targetOid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
-  definitionRef_type      INTEGER,
-  endTimestamp            DATETIME(6),
-  handlerUri              VARCHAR(255),
-  iteration               INTEGER     NOT NULL,
-  name_norm               VARCHAR(191),
-  name_orig               VARCHAR(191),
-  ownerRef_relation       VARCHAR(157),
-  ownerRef_targetOid      VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
-  ownerRef_type           INTEGER,
-  stageNumber             INTEGER,
-  startTimestamp          DATETIME(6),
-  state                   INTEGER,
-  oid                     VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
+  definitionRef_relation    VARCHAR(157),
+  definitionRef_targetOid   VARCHAR(36) CHARSET utf8 COLLATE utf8_bin,
+  definitionRef_targetType  INTEGER,
+  endTimestamp              DATETIME(6),
+  handlerUri                VARCHAR(255),
+  iteration                 INTEGER     NOT NULL,
+  name_norm                 VARCHAR(191),
+  name_orig                 VARCHAR(191),
+  ownerRef_relation         VARCHAR(157),
+  ownerRef_targetOid        VARCHAR(36) CHARSET utf8 COLLATE utf8_bin ,
+  ownerRef_type             INTEGER,
+  stageNumber               INTEGER,
+  startTimestamp            DATETIME(6),
+  state                     INTEGER,
+  oid                       VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8mb4
