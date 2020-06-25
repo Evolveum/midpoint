@@ -33,7 +33,7 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_REFERENCE_VALUE_TEXT_FIELD = "referenceValueTextField";
-    private static final String ID_EDIT_BUTTON = "editButton";
+    private static final String ID_EDIT_BUTTON = "editReferenceButton";
     private static final String ID_REF_POPOVER_PANEL = "refPopoverPanel";
     private static final String ID_REF_POPOVER_BODY = "refPopoverBody";
     private static final String ID_REF_POPOVER = "refPopover";
@@ -55,6 +55,7 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
 
         TextPanel<String> referenceTextValueField = new TextPanel<String>(ID_REFERENCE_VALUE_TEXT_FIELD, Model.of(getReferenceTextModel()));
         referenceTextValueField.setOutputMarkupId(true);
+        referenceTextValueField.setEnabled(false);
         add(referenceTextValueField);
 
         AjaxButton editButton = new AjaxButton(ID_EDIT_BUTTON) {
