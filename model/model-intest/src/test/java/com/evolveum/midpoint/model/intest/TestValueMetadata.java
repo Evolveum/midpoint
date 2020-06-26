@@ -72,7 +72,9 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         PrismPropertyValue<PolyString> nameValue = mark.asPrismObject()
                 .findProperty(UserType.F_NAME)
                 .getValue(PolyString.class);
-        nameValue.createLiveMetadata();
+
+        // Creates empty value metadata
+        nameValue.getValueMetadata();
 
         when();
         Optional<ValueMetadata> metadata = nameValue.valueMetadata();

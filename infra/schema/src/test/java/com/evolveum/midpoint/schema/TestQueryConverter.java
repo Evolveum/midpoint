@@ -111,22 +111,22 @@ public class TestQueryConverter extends AbstractUnitTest {
         ListXNode xequalsList = (ListXNode) xandmap.get(EqualFilter.ELEMENT_NAME);
         PrismAsserts.assertSize(xequalsList, 2);
 
-        Element filterClauseElement = convertedFilterType.getFilterClauseAsElement(getPrismContext());
-        System.out.println("Serialized filter (JAXB->DOM)");
-        System.out.println(DOMUtil.serializeDOMToString(filterClauseElement));
-
-        DomAsserts.assertElementQName(filterClauseElement, AndFilter.ELEMENT_NAME);
-        DomAsserts.assertSubElements(filterClauseElement, 2);
-
-        Element firstSubelement = DOMUtil.getChildElement(filterClauseElement, 0);
-        DomAsserts.assertElementQName(firstSubelement, EqualFilter.ELEMENT_NAME);
-        Element firstValueElement = DOMUtil.getChildElement(firstSubelement, PrismConstants.Q_VALUE);
-        DomAsserts.assertTextContent(firstValueElement, "abc");
-
-        Element secondSubelement = DOMUtil.getChildElement(filterClauseElement, 1);
-        DomAsserts.assertElementQName(secondSubelement, EqualFilter.ELEMENT_NAME);
-        Element secondValueElement = DOMUtil.getChildElement(secondSubelement, PrismConstants.Q_VALUE);
-        DomAsserts.assertTextContent(secondValueElement, "someName");
+//        Element filterClauseElement = convertedFilterType.getFilterClauseAsElement(getPrismContext());
+//        System.out.println("Serialized filter (JAXB->DOM)");
+//        System.out.println(DOMUtil.serializeDOMToString(filterClauseElement));
+//
+//        DomAsserts.assertElementQName(filterClauseElement, AndFilter.ELEMENT_NAME);
+//        DomAsserts.assertSubElements(filterClauseElement, 2);
+//
+//        Element firstSubelement = DOMUtil.getChildElement(filterClauseElement, 0);
+//        DomAsserts.assertElementQName(firstSubelement, EqualFilter.ELEMENT_NAME);
+//        Element firstValueElement = DOMUtil.getChildElement(firstSubelement, PrismConstants.Q_VALUE);
+//        DomAsserts.assertTextContent(firstValueElement, "abc");
+//
+//        Element secondSubelement = DOMUtil.getChildElement(filterClauseElement, 1);
+//        DomAsserts.assertElementQName(secondSubelement, EqualFilter.ELEMENT_NAME);
+//        Element secondValueElement = DOMUtil.getChildElement(secondSubelement, PrismConstants.Q_VALUE);
+//        DomAsserts.assertTextContent(secondValueElement, "someName");
     }
 
     @Test
@@ -150,7 +150,7 @@ public class TestQueryConverter extends AbstractUnitTest {
         PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
         QueryType convertedQueryType = toQueryType(query);
-        logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
+//        logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
     }
 
     @Test
@@ -174,7 +174,7 @@ public class TestQueryConverter extends AbstractUnitTest {
         //PrismAsserts.assertEqualsFilterValue((EqualFilter) second, "uid=jbond,ou=People,dc=example,dc=com");
 
         QueryType convertedQueryType = toQueryType(query);
-        System.out.println(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
+//        System.out.println(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
     }
 
     @Test
@@ -208,7 +208,7 @@ public class TestQueryConverter extends AbstractUnitTest {
         assertRefFilterValue((RefFilter) forth, "d0db5be9-cb93-401f-b6c1-86ffffe4cd5e");
 
         QueryType convertedQueryType = toQueryType(query);
-        logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
+//        logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
     }
 
     @Test
@@ -385,7 +385,7 @@ public class TestQueryConverter extends AbstractUnitTest {
                 System.out.println("QUERY Pretty print: " + query.toString());
 
                 QueryType convertedQueryType = getQueryConverter().createQueryType(query);
-                logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
+//                logger.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter().getFilterClauseAsElement(getPrismContext())));
             } catch (Exception ex) {
                 logger.error("Error while converting query: {}", ex.getMessage(), ex);
                 throw ex;

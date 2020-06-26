@@ -23,7 +23,6 @@ import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
@@ -74,7 +73,7 @@ public class PrismTestUtil {
         prismContext = createInitializedPrismContext();
     }
 
-    public static PrismContext createPrismContext() throws SchemaException, FileNotFoundException {
+    public static PrismContext createPrismContext() throws SchemaException, IOException {
         if (prismContextFactory == null) {
             throw new IllegalStateException("Cannot create prism context, no prism factory is set");
         }

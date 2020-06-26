@@ -7,19 +7,10 @@
 package com.evolveum.midpoint.prism.impl.schema;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -79,14 +70,11 @@ import static java.util.Collections.emptyList;
  */
 public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
-    private static final QName DEFAULT_XSD_TYPE = DOMUtil.XSD_STRING;
-
     private static final String DEFAULT_RUNTIME_CATALOG_RESOURCE = "META-INF/catalog-runtime.xml";
 
     private File[] catalogFiles;                                                        // overrides catalog resource name
     private String catalogResourceName = DEFAULT_RUNTIME_CATALOG_RESOURCE;
 
-    private javax.xml.validation.SchemaFactory schemaFactory;
     private javax.xml.validation.Schema javaxSchema;
     private EntityResolver builtinSchemaResolver;
     final private List<SchemaDescriptionImpl> schemaDescriptions = new ArrayList<>();
@@ -98,17 +86,17 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     private DynamicNamespacePrefixMapper namespacePrefixMapper;
     private String defaultNamespace;
 
-    private ConcurrentHashMap<QName, IsList> isListByXsiType = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<QName, IsList> isListByElementName = new ConcurrentHashMap<>();
-    private ConcurrentHashMap<QName, Class<?>> classForTypeIncludingXsd = new ConcurrentHashMap<>();    // TODO better name, probably unify with the latter
-    private ConcurrentHashMap<QName, Class<?>> classForTypeExcludingXsd = new ConcurrentHashMap<>();    // TODO better name, probably unify with the former
-    private ConcurrentHashMap<Class<?>, PrismObjectDefinition<?>> objectDefinitionForClass = new ConcurrentHashMap<>();     // experimental
-    private ConcurrentHashMap<QName, PrismObjectDefinition<?>> objectDefinitionForType = new ConcurrentHashMap<>();     // experimental
+    private final ConcurrentHashMap<QName, IsList> isListByXsiType = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<QName, IsList> isListByElementName = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<QName, Class<?>> classForTypeIncludingXsd = new ConcurrentHashMap<>();    // TODO better name, probably unify with the latter
+    private final ConcurrentHashMap<QName, Class<?>> classForTypeExcludingXsd = new ConcurrentHashMap<>();    // TODO better name, probably unify with the former
+    private final ConcurrentHashMap<Class<?>, PrismObjectDefinition<?>> objectDefinitionForClass = new ConcurrentHashMap<>();     // experimental
+    private final ConcurrentHashMap<QName, PrismObjectDefinition<?>> objectDefinitionForType = new ConcurrentHashMap<>();     // experimental
 
     private static final Class<?> NO_CLASS = Void.class;
     private static final PrismObjectDefinition<?> NO_OBJECT_DEFINITION = new DummyPrismObjectDefinition();
 
-    private XmlEntityResolver entityResolver = new XmlEntityResolverImpl(this);
+    private final XmlEntityResolver entityResolver = new XmlEntityResolverImpl(this);
 
     @Autowired        // TODO does this work?
     private PrismContext prismContext;
@@ -116,6 +104,13 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     private static final Trace LOGGER = TraceManager.getTrace(SchemaRegistryImpl.class);
 
     private final Collection<InvalidationListener> invalidationListeners = new ArrayList<>();
+
+    private QName valueMetadataTypeName;
+
+    // lazily evaluated (because we need be initialized to resolve value metadata type to the definition)
+    private PrismContainerDefinition<?> valueMetadataDefinition;
+
+    private static final QName DEFAULT_VALUE_METADATA_NAME = new QName("valueMetadata");
 
     @Override
     public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
@@ -152,6 +147,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         return builtinSchemaResolver;
     }
 
+    @SuppressWarnings("unused") // consider removal
     public File[] getCatalogFiles() {
         return catalogFiles;
     }
@@ -160,6 +156,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         this.catalogFiles = catalogFiles;
     }
 
+    @SuppressWarnings("unused") // consider removal
     public String getCatalogResourceName() {
         return catalogResourceName;
     }
@@ -181,6 +178,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     /**
      * Must be called before call to initialize()
      */
+    @SuppressWarnings("unused") // consider removal
     public void registerSchemaResource(String resourcePath, String usualPrefix) throws SchemaException {
         SchemaDescriptionImpl desc = SchemaDescriptionParser.parseResource(resourcePath);
         desc.setUsualPrefix(usualPrefix);
@@ -260,7 +258,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         registerSchemaDescription(SchemaDescriptionParser.parseNode(node, sourceDescription));
     }
 
-    public void registerPrismSchemaFile(File file) throws FileNotFoundException, SchemaException {
+    public void registerPrismSchemaFile(File file) throws IOException, SchemaException {
         loadPrismSchemaFileDescription(file);
     }
 
@@ -268,16 +266,15 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         loadPrismSchemaDescription(input, sourceDescription);
     }
 
-    private SchemaDescriptionImpl loadPrismSchemaFileDescription(File file) throws SchemaException {
+    private void loadPrismSchemaFileDescription(File file) throws SchemaException, IOException {
         if (!(file.getName().matches(".*\\.xsd$"))){
             LOGGER.trace("Skipping registering {}, because it is not schema definition.", file.getAbsolutePath());
-            return null;
+        } else {
+            LOGGER.debug("Loading schema from file {}", file);
+            SchemaDescriptionImpl desc = SchemaDescriptionParser.parseFile(file);
+            desc.setPrismSchema(true);
+            registerSchemaDescription(desc);
         }
-        LOGGER.debug("Loading schema from file {}", file);
-        SchemaDescriptionImpl desc = SchemaDescriptionParser.parseFile(file);
-        desc.setPrismSchema(true);
-        registerSchemaDescription(desc);
-        return desc;
     }
 
     private void loadPrismSchemaDescription(InputStream input, String sourceDescription)
@@ -303,12 +300,12 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         invalidateCaches();
     }
 
-    public void registerPrismSchemasFromDirectory(File directory) throws FileNotFoundException, SchemaException {
+    public void registerPrismSchemasFromDirectory(File directory) throws IOException, SchemaException {
         registerPrismSchemasFromDirectory(directory, emptyList());
     }
 
     public void registerPrismSchemasFromDirectory(File directory, @NotNull Collection<String> extensionFilesToIgnore)
-            throws FileNotFoundException, SchemaException {
+            throws IOException, SchemaException {
         File[] fileArray = directory.listFiles();
         if (fileArray != null) {
             List<File> files = Arrays.asList(fileArray);
@@ -390,7 +387,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     }
 
     private void parseJavaxSchema() throws SAXException {
-        schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        SchemaFactory schemaFactory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
         Source[] sources = new Source[schemaDescriptions.size()];
         int i = 0;
         for (SchemaDescription schemaDescription : schemaDescriptions) {
@@ -826,8 +823,10 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         if (objectDefinition == null) {
             throw new SchemaException("No object definition for " + objectClass);
         }
+        //noinspection RedundantCast
+        ItemPath path = ItemPath.create((Object[]) itemNames);
         //noinspection unchecked
-        return (T) ((ItemDefinition) objectDefinition).findItemDefinition(ItemPath.create(itemNames), defClass);
+        return (T) ((ItemDefinition) objectDefinition).findItemDefinition(path, defClass);
     }
 
     @Override
@@ -848,6 +847,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             if (td == null) {
                 return null;
             }
+            //noinspection unchecked
             return (Class<T>) td.getCompileTimeClass();
         }
         SchemaDescription desc = findSchemaDescriptionByNamespace(typeName.getNamespaceURI());
@@ -889,6 +889,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     @Override
     public PrismObjectDefinition determineDefinitionFromClass(Class compileTimeClass) {
+        //noinspection unchecked
         PrismObjectDefinition def = findObjectDefinitionByCompileTimeClass(compileTimeClass);
         if (def != null) {
             return def;
@@ -1281,6 +1282,38 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
                 return IsList.NO;    // sorry, there's a possibility of failure
             }
         }
+    }
+
+    public synchronized void setValueMetadataTypeName(QName typeName) {
+        valueMetadataTypeName = typeName;
+        valueMetadataDefinition = null;
+    }
+
+    @Override
+    @NotNull
+    public synchronized PrismContainerDefinition<?> getValueMetadataDefinition() {
+        if (valueMetadataDefinition == null) {
+            valueMetadataDefinition = resolveValueMetadataDefinition();
+        }
+        return valueMetadataDefinition;
+    }
+
+    private PrismContainerDefinition<?> resolveValueMetadataDefinition() {
+        if (!initialized) {
+            throw new IllegalStateException("Schema registry is not yet initialized");
+        }
+
+        if (valueMetadataTypeName != null) {
+            return Objects.requireNonNull(
+                    findContainerDefinitionByType(valueMetadataTypeName),
+                    () -> "no definition for value metadata type " + valueMetadataTypeName);
+        } else {
+            return createDefaultValueMetadataDefinition();
+        }
+    }
+
+    private PrismContainerDefinition<?> createDefaultValueMetadataDefinition() {
+        return createAdHocContainerDefinition(DEFAULT_VALUE_METADATA_NAME, null, 0, 1);
     }
 
     //endregion

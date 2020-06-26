@@ -14,6 +14,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.ninja.util.BasicAuthenticationInterceptor;
 import com.evolveum.midpoint.ninja.util.LoggingInterceptor;
@@ -29,6 +30,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.xml.namespace.QName;
 import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -69,14 +71,17 @@ public class RestService {
                     @Override
                     protected void registerExtensionSchemas(SchemaRegistryImpl schemaRegistry)
                             throws SchemaException, FileNotFoundException {
-                        super.registerExtensionSchemas(schemaRegistry);
-
+                        try {
+                            super.registerExtensionSchemas(schemaRegistry);
+                        } catch (IOException e) {
+                            throw new SystemException(e);
+                        }
                         RestService.this.registerExtensionSchemas(schemaRegistry);
                     }
                 };
 
                 return factory.createPrismContext();
-            } catch (SchemaException | FileNotFoundException ex) {
+            } catch (SchemaException | IOException ex) {
                 throw new NinjaException("Couldn't load prism context", ex);
             }
         });

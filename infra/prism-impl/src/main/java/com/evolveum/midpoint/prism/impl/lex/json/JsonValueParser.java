@@ -30,9 +30,9 @@ import org.w3c.dom.Element;
 public class JsonValueParser<T> implements ValueParser<T> {
 
     @NotNull private final JsonParser parser;
-    private JsonNode node;
+    private final JsonNode node;
 
-    JsonValueParser(@NotNull JsonParser parser, JsonNode node) {
+    public JsonValueParser(@NotNull JsonParser parser, JsonNode node) {
         this.parser = parser;
         this.node = node;
     }
@@ -89,7 +89,7 @@ public class JsonValueParser<T> implements ValueParser<T> {
         return this;        // TODO implement
     }
 
-    Element asDomElement() throws IOException {
+    public Element asDomElement() throws IOException {
         ObjectMapper mapper = (ObjectMapper) parser.getCodec();
         ObjectReader r = mapper.readerFor(Document.class);
         return ((Document) r.readValue(node)).getDocumentElement();

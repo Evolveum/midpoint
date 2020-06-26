@@ -57,15 +57,6 @@ class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> {
         parseSources(result);
         parseTarget();
         assertOutputDefinition();
-
-        fixMockUpSourceValueMetadata();
-    }
-
-    /**
-     * Temporary. "Fixes" mock-up source value metadata i.e. transforms them into materialized form.
-     */
-    private void fixMockUpSourceValueMetadata() {
-        m.sources.forEach(ItemDeltaItem::fixMockUpValueMetadata);
     }
 
     private void assertOutputDefinition() {

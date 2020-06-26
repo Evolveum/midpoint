@@ -6,10 +6,13 @@
  */
 package com.evolveum.midpoint.prism.lex;
 
-import com.evolveum.midpoint.prism.impl.lex.json.JsonLexicalProcessor;
+import com.evolveum.midpoint.prism.impl.lex.LexicalProcessor;
+import com.evolveum.midpoint.prism.impl.lex.json.DelegatingLexicalProcessor;
+import com.evolveum.midpoint.prism.impl.lex.json.reader.JsonReader;
+import com.evolveum.midpoint.prism.impl.lex.json.writer.JsonWriter;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
-public class TestJsonParser extends AbstractJsonLexicalProcessorTest {
+public class TestJsonParser extends DelegatingLexicalProcessorTest {
 
     @Override
     protected String getSubdirName() {
@@ -22,8 +25,10 @@ public class TestJsonParser extends AbstractJsonLexicalProcessorTest {
     }
 
     @Override
-    protected JsonLexicalProcessor createParser() {
-        return new JsonLexicalProcessor(PrismTestUtil.getSchemaRegistry());
+    protected LexicalProcessor<String> createLexicalProcessor() {
+        return new DelegatingLexicalProcessor(
+                new JsonReader(PrismTestUtil.getSchemaRegistry()),
+                new JsonWriter());
     }
 
     @Override
