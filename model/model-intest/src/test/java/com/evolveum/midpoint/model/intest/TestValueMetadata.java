@@ -50,6 +50,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<ObjectTemplateType> TEMPLATE_REGULAR_USER = new TestResource<>(TEST_DIR, "template-regular-user.xml", "b1005d3d-6ef4-4347-b235-313666824ed8");
     private static final TestResource<UserType> USER_ALICE = new TestResource<>(TEST_DIR, "user-alice.xml", "9fc389be-5b47-4e9d-90b5-33fffd87b3ca");
     private static final TestResource<UserType> USER_BOB = new TestResource<>(TEST_DIR, "user-bob.xml", "cab2344d-06c0-4881-98ee-7075bf5d1309");
+    private static final TestResource<UserType> USER_CHUCK = new TestResource<>(TEST_DIR, "user-chuck.xml", "3eb9ca6b-49b8-4602-943a-992d8eb9adad");
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -95,7 +96,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test020GettingMockUpMetadata() throws Exception {
+    public void test020ParsingMetadata() throws Exception {
         given();
 
         when();
@@ -161,10 +162,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         displayDumpable("assignment[111] admin status metadata", assignmentAdminStatusMetadata.get());
     }
 
-    /**
-     * Metadata is currently not stored into repository, so it cannot be asserted later.
-     */
-    @Test(enabled = false)
+    @Test
     public void test100SimpleMetadataMapping() throws Exception {
         given();
         Task task = getTestTask();
@@ -187,7 +185,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .assertFullName("Bob Green")
                 .valueMetadata(UserType.F_FULL_NAME)
                     .display()
-                    //.assertPropertyValuesEqual(LOA_PATH, "low")
+                    .assertPropertyValuesEqual(LOA_PATH, "low")
                     .end();
     }
 
@@ -198,18 +196,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
 
         when();
-        addObject(USER_BOB, task, result);
+        repoAdd(USER_CHUCK, result); // Full name is not present because this is raw addition.
         ModelContext<UserType> modelContext =
-                previewChanges(prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, USER_BOB.oid),
+                previewChanges(prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, USER_CHUCK.oid),
                         ModelExecuteOptions.create(prismContext)
                                 .reconcile(),
                         task, result);
 
         then();
-        PrismObject<UserType> bobAfter = modelContext.getFocusContext().getObjectNew();
-        assertUser(bobAfter, "after")
+        PrismObject<UserType> userAfter = modelContext.getFocusContext().getObjectNew();
+        assertUser(userAfter, "after")
                 .display()
-                .assertFullName("Bob Green")
+                .assertFullName("Chuck White")
                 .valueMetadata(UserType.F_FULL_NAME)
                     .display()
                     .assertPropertyValuesEqual(LOA_PATH, "low")
