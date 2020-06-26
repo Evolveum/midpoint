@@ -16,10 +16,11 @@ import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.QMap;
+import com.querydsl.sql.Configuration;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQuery;
-import com.querydsl.sql.SQLQueryFactory;
 import com.querydsl.sql.SQLTemplates;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.pure.metamodel.QAuditEventRecord;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.repo.sql.pure.metamodel.QAuditEventRecord;
 // TODO MID-6319 must go after done
 @Deprecated
 public class SqlGeneration {
+
 
     public static void main(String[] args) throws Exception {
         org.h2.Driver.load();
@@ -39,54 +41,52 @@ public class SqlGeneration {
         exporter.export(conn.getMetaData());
          */
 
-        SQLQueryFactory queryFactory = new SQLQueryFactory(
-                SQLTemplates.DEFAULT, () -> getConnection());
+        try (Connection connection = getConnection()) {
+            QAuditEventRecord.EXTENSION_COLUMNS.registerExtensionColumn(QAuditEventRecord.EVENT_TYPE);
 
-        QAuditEventRecord.EXTENSION_COLUMNS.registerExtensionColumn(QAuditEventRecord.EVENT_TYPE);
+            QAuditEventRecord aer = new QAuditEventRecord("aer");
+            SQLQuery<?> query = newQuery(connection)
+                    .select(aer.all())
+                    .from(aer);
 
-        QAuditEventRecord aer = new QAuditEventRecord("aer");
-        SQLQuery<?> query = queryFactory.select(aer.all())
-                .from(aer)
-                ;
+            System.out.println(query);
 
-        System.out.println(query);
-
-        List<?> result = query.limit(3).fetch();
-        System.out.println("\nresult = " + result);
-        Object o = ((Tuple) result.get(0)).get(2, Object.class);
-        System.out.println("o = " + o);
-        System.out.println("class = " + o.getClass());
+            List<?> result = query.limit(3).fetch();
+            System.out.println("\nresult = " + result);
+            Object o = ((Tuple) result.get(0)).get(2, Object.class);
+            System.out.println("o = " + o);
+            System.out.println("class = " + o.getClass());
+        }
     }
 
-    private static void extensionExperiments1() {
-        SQLQueryFactory queryFactory = new SQLQueryFactory(
-                SQLTemplates.DEFAULT, () -> getConnection());
+    private static void extensionExperiments1() throws SQLException {
+        try (Connection conn = getConnection()) {
+            QAuditEventRecord aer = new QAuditEventRecord("aer");
+            System.out.println("M_AUDIT_EVENT.meta.size = " + M_AUDIT_EVENT.all().length);
+            System.out.println("M_AUDIT_DELTA.meta.size = " + M_AUDIT_DELTA.all().length);
 
-        QAuditEventRecord aer = new QAuditEventRecord("aer");
-        System.out.println("M_AUDIT_EVENT.meta.size = " + M_AUDIT_EVENT.all().length);
-        System.out.println("M_AUDIT_DELTA.meta.size = " + M_AUDIT_DELTA.all().length);
-
-        QMap auditDelta = Projections.map(M_AUDIT_DELTA.all());
-        QMap auditEvent = Projections.map(M_AUDIT_EVENT.all());
+            QMap auditDelta = Projections.map(M_AUDIT_DELTA.all());
+            QMap auditEvent = Projections.map(M_AUDIT_EVENT.all());
 //        List<Tuple> result = queryFactory
-        List<?> result = queryFactory
-                // this way we don't use M-beans, which is more flexible, and still get close to "select whole entity A+B"
+            List<?> result = newQuery(conn)
+                    // this way we don't use M-beans, which is more flexible, and still get close to "select whole entity A+B"
 //                .select(expand(M_AUDIT_EVENT.id, M_AUDIT_DELTA))
 
-                // This is also interesting, we instruct to create map for auditDelta paths.
-                // .all() above is necessary, otherwise the map contains only one M-bean, which we want to avoid
-                // Also, we want to extract this expression as variable, so we can use it later, e.g. to get from a tuple, or mapOneToMany processing, etc.
+                    // This is also interesting, we instruct to create map for auditDelta paths.
+                    // .all() above is necessary, otherwise the map contains only one M-bean, which we want to avoid
+                    // Also, we want to extract this expression as variable, so we can use it later, e.g. to get from a tuple, or mapOneToMany processing, etc.
 //                .select(M_AUDIT_EVENT.id, auditDelta)
-                .select(M_AUDIT_EVENT)
-                .from(M_AUDIT_EVENT)
+                    .select(M_AUDIT_EVENT)
+                    .from(M_AUDIT_EVENT)
 //                .leftJoin(M_AUDIT_EVENT._auditDeltaFk, M_AUDIT_DELTA)
-                .fetch();
+                    .fetch();
 //        Map<Long, Collection<Map<Expression<?>, ?>>> mapResult =
 //                mapOneToMany(result, M_AUDIT_EVENT.id, auditDelta);
 //        System.out.println("result = " + Joiner.on("\n").withKeyValueSeparator(" = ").join(mapResult));
 //        System.out.println(mapResult.size());
 
-        System.out.println(result);
+            System.out.println(result);
+        }
     }
 
     /**
@@ -109,55 +109,57 @@ public class SqlGeneration {
         return pathsCombined.toArray(new Expression<?>[0]);
     }
 
-    private static void examples() {
-        System.out.println(M_AUDIT_EVENT);
-        System.out.println("\nColumns: " + M_AUDIT_EVENT.getColumns());
-        System.out.println("\nAnnotated element: " + M_AUDIT_EVENT.getAnnotatedElement());
-        System.out.println("\nFKs: " + M_AUDIT_EVENT.getForeignKeys());
-        System.out.println("\nInverse FKs: " + M_AUDIT_EVENT.getInverseForeignKeys());
-        System.out.println();
+    private static void examples() throws SQLException {
+        try (Connection conn = getConnection()) {
+            System.out.println(M_AUDIT_EVENT);
+            System.out.println("\nColumns: " + M_AUDIT_EVENT.getColumns());
+            System.out.println("\nAnnotated element: " + M_AUDIT_EVENT.getAnnotatedElement());
+            System.out.println("\nFKs: " + M_AUDIT_EVENT.getForeignKeys());
+            System.out.println("\nInverse FKs: " + M_AUDIT_EVENT.getInverseForeignKeys());
+            System.out.println();
 
-        SQLQueryFactory queryFactory = new SQLQueryFactory(
-                SQLTemplates.DEFAULT, () -> getConnection());
+            System.out.println("audit size = " + newQuery(conn)
+                    .select(M_AUDIT_EVENT)
+                    .from(M_AUDIT_EVENT)
+                    .fetchCount());
 
-        System.out.println("audit size = " + queryFactory.selectFrom(M_AUDIT_EVENT).fetchCount());
-
-        SQLQuery<Tuple> query = queryFactory
-                .select(M_AUDIT_EVENT, M_AUDIT_DELTA)
+            SQLQuery<Tuple> query = newQuery(conn)
+                    .select(M_AUDIT_EVENT, M_AUDIT_DELTA)
 //                .select(M_AUDIT_EVENT.id, M_AUDIT_DELTA.checksum)
 //                .from(M_AUDIT_EVENT)
-                // leftJoin if we want also events without deltas
+                    // leftJoin if we want also events without deltas
 //                .join(M_AUDIT_EVENT._auditDeltaFk, M_AUDIT_DELTA)
-                // alternatively:
-                // .join(M_AUDIT_DELTA).on(M_AUDIT_DELTA.recordId.eq(M_AUDIT_EVENT.id))
+                    // alternatively:
+                    // .join(M_AUDIT_DELTA).on(M_AUDIT_DELTA.recordId.eq(M_AUDIT_EVENT.id))
 //                .orderBy(M_AUDIT_EVENT.id.asc())
-                .from(M_AUDIT_EVENT, M_AUDIT_DELTA)
-                .where(M_AUDIT_EVENT.id.eq(M_AUDIT_DELTA.recordId)) // this replaces "join-on", but only inner
-                .where(M_AUDIT_EVENT.id.eq(452L)); // "Works on my computer! :-)"
+                    .from(M_AUDIT_EVENT, M_AUDIT_DELTA)
+                    .where(M_AUDIT_EVENT.id.eq(M_AUDIT_DELTA.recordId)) // this replaces "join-on", but only inner
+                    .where(M_AUDIT_EVENT.id.eq(452L)); // "Works on my computer! :-)"
 
-        List<Tuple> result = query.fetch();
-        System.out.println("result = " + result);
-        System.out.println("\nsize: " + result.size());
+            List<Tuple> result = query.fetch();
+            System.out.println("result = " + result);
+            System.out.println("\nsize: " + result.size());
 
-        System.out.println("\ncount: " + query.transform(groupBy(M_AUDIT_EVENT.id).as(M_AUDIT_DELTA.count())));
-        Map<?, ?> transform = query.transform(GroupBy.groupBy(M_AUDIT_EVENT.id).as(GroupBy.list(M_AUDIT_DELTA)));
-        System.out.println("transform = " + transform);
+            System.out.println("\ncount: " + query.transform(groupBy(M_AUDIT_EVENT.id).as(M_AUDIT_DELTA.count())));
+            Map<?, ?> transform = query.transform(GroupBy.groupBy(M_AUDIT_EVENT.id).as(GroupBy.list(M_AUDIT_DELTA)));
+            System.out.println("transform = " + transform);
 
-        // "manual" transformation of one-to-many to proper graph
-        List<Tuple> plainResult = queryFactory
-                .select(M_AUDIT_EVENT, M_AUDIT_DELTA)
-                .from(M_AUDIT_EVENT)
-                .leftJoin(M_AUDIT_EVENT._auditDeltaFk, M_AUDIT_DELTA)
-                // alternatively:
-                // .leftJoin(M_AUDIT_DELTA).on(M_AUDIT_DELTA.recordId.eq(M_AUDIT_EVENT.id))
+            // "manual" transformation of one-to-many to proper graph
+            List<Tuple> plainResult = newQuery(conn)
+                    .select(M_AUDIT_EVENT, M_AUDIT_DELTA)
+                    .from(M_AUDIT_EVENT)
+                    .leftJoin(M_AUDIT_EVENT._auditDeltaFk, M_AUDIT_DELTA)
+                    // alternatively:
+                    // .leftJoin(M_AUDIT_DELTA).on(M_AUDIT_DELTA.recordId.eq(M_AUDIT_EVENT.id))
 //                .orderBy(M_AUDIT_EVENT.id.asc())
-                .where(M_AUDIT_EVENT.id.eq(452L))
-                .fetch();
-        Map<MAuditEventRecord, Collection<MAuditDelta>> resultMap =
-                mapOneToMany(plainResult, M_AUDIT_EVENT, M_AUDIT_DELTA, (o, m) -> o.addDelta(m));
-        System.out.println("\nFinal result" + resultMap);
+                    .where(M_AUDIT_EVENT.id.eq(452L))
+                    .fetch();
+            Map<MAuditEventRecord, Collection<MAuditDelta>> resultMap =
+                    mapOneToMany(plainResult, M_AUDIT_EVENT, M_AUDIT_DELTA, (o, m) -> o.addDelta(m));
+            System.out.println("\nFinal result" + resultMap);
 
-        System.out.println("deltas for 1st item: " + resultMap.keySet().iterator().next().deltas);
+            System.out.println("deltas for 1st item: " + resultMap.keySet().iterator().next().deltas);
+        }
     }
 
     /**
@@ -223,5 +225,10 @@ public class SqlGeneration {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @NotNull
+    public static SQLQuery<Object> newQuery(Connection connection) {
+        return new SQLQuery<>(connection, SqlQueryExecutor.QUERYDSL_CONFIGURATION);
     }
 }

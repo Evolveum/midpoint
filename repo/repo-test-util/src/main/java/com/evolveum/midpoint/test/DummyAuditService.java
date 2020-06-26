@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -545,7 +546,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
     @Override
     @NotNull
-    public SearchResultList<AuditEventRecord> searchObjects(ObjectQuery query,
+    public SearchResultList<AuditEventRecordType> searchObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         throw new UnsupportedOperationException("searchObjects not supported");
     }

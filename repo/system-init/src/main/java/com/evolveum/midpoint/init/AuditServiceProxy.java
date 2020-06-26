@@ -39,6 +39,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
@@ -276,14 +277,14 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
 
     @Override
     @NotNull
-    public SearchResultList<AuditEventRecord> searchObjects(ObjectQuery query,
+    public SearchResultList<AuditEventRecordType> searchObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
         // TODO: MID-6319 - does it even make sense to merge multiple results for audit?
-        SearchResultList<AuditEventRecord> result = new SearchResultList<>();
+        SearchResultList<AuditEventRecordType> result = new SearchResultList<>();
         for (AuditService service : services) {
             if (service.supportsRetrieval()) {
-                SearchResultList<AuditEventRecord> oneResult =
+                SearchResultList<AuditEventRecordType> oneResult =
                         service.searchObjects(query, options, parentResult);
                 if (!oneResult.isEmpty()) {
                     result.addAll(oneResult);

@@ -10,8 +10,6 @@ import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
 import java.sql.Types;
 
-import com.querydsl.core.types.Path;
-import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
@@ -144,28 +142,20 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public final com.querydsl.sql.ForeignKey<QMAuditRefValue> _auditRefValueFk = createInvForeignKey(id, "RECORD_ID");
     public final com.querydsl.sql.ForeignKey<QMAuditResource> _auditResourceFk = createInvForeignKey(id, "RECORD_ID");
 
+    /**
+     * Creates default alias, don't use multiple times in a single query.
+     * Use {@link #QAuditEventRecord(String)} to distinguish between multiple aliases in one query.
+     */
+    public QAuditEventRecord() {
+        this("aer");
+    }
+
     public QAuditEventRecord(String variable) {
-        super(MAuditEventRecord.class, forVariable(variable), "PUBLIC", "M_AUDIT_EVENT");
-        applyExtensions(EXTENSION_COLUMNS);
+        this(variable, "PUBLIC", "M_AUDIT_EVENT");
     }
 
     public QAuditEventRecord(String variable, String schema, String table) {
         super(MAuditEventRecord.class, forVariable(variable), schema, table);
-        applyExtensions(EXTENSION_COLUMNS);
-    }
-
-    public QAuditEventRecord(String variable, String schema) {
-        super(MAuditEventRecord.class, forVariable(variable), schema, "M_AUDIT_EVENT");
-        applyExtensions(EXTENSION_COLUMNS);
-    }
-
-    public QAuditEventRecord(Path<? extends MAuditEventRecord> path) {
-        super(path.getType(), path.getMetadata(), "PUBLIC", "M_AUDIT_EVENT");
-        applyExtensions(EXTENSION_COLUMNS);
-    }
-
-    public QAuditEventRecord(PathMetadata metadata) {
-        super(MAuditEventRecord.class, metadata, "PUBLIC", "M_AUDIT_EVENT");
         applyExtensions(EXTENSION_COLUMNS);
     }
 

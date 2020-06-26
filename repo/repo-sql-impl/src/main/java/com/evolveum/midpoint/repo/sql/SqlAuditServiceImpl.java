@@ -53,7 +53,10 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -913,16 +916,20 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     @Override
     @NotNull
-    public SearchResultList<AuditEventRecord> searchObjects(
+    public SearchResultList<AuditEventRecordType> searchObjects(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         // TODO MID-6319
         // support for options, skipped for now
         // do something with the OperationResult... skipped for now
         // TODO why the duality of AuditEventRecordType and AuditEventRecord?
-        SearchResultList<AuditEventRecord> result =
-                sqlQueryExecutor.list(AuditEventRecordType.class, query);
-
-        return result;
+        SearchResultList<AuditEventRecordType> result =
+                null;
+        try {
+            return sqlQueryExecutor.list(AuditEventRecordType.class, query);
+        } catch (SQLException e) {
+            // TODO
+            throw new RuntimeException(e);
+        }
     }
 }

@@ -11,7 +11,6 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
@@ -34,7 +33,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     public void test100SearchAllAuditEvents() throws SchemaException {
         when("Searching audit with query without any conditions");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class).build();
-        SearchResultList<AuditEventRecord> prismObjects =
+        SearchResultList<AuditEventRecordType> prismObjects =
                 auditService.searchObjects(query, null, null);
 
         then("All audit events are returned");
@@ -48,7 +47,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_EVENT_TYPE).eq(AuditEventTypeType.ADD_OBJECT)
                 .build();
-        SearchResultList<AuditEventRecord> prismObjects =
+        SearchResultList<AuditEventRecordType> prismObjects =
                 auditService.searchObjects(query, null, null);
 
         then("only audit events of a particular type are returned");

@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -193,7 +194,7 @@ public class LoggerAuditServiceImpl implements AuditService {
 
     @Override
     @NotNull
-    public SearchResultList<AuditEventRecord> searchObjects(ObjectQuery query,
+    public SearchResultList<AuditEventRecordType> searchObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         throw new UnsupportedOperationException("searchObjects not supported");
     }
