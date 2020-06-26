@@ -166,6 +166,18 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     }
 
     @Override
+    public UserAsserter<RA> displayXml() throws SchemaException {
+        super.displayXml();
+        return this;
+    }
+
+    @Override
+    public UserAsserter<RA> displayXml(String message) throws SchemaException {
+        super.displayXml(message);
+        return this;
+    }
+
+    @Override
     public ActivationAsserter<UserAsserter<RA>> activation() {
         ActivationAsserter<UserAsserter<RA>> asserter = new ActivationAsserter<>(getObject().asObjectable().getActivation(), this, getDetails());
         copySetupTo(asserter);
@@ -364,10 +376,10 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     }
 
     @Override
-    public ValueMetadataAsserter<UserType, ? extends UserAsserter<RA>, RA> valueMetadata(
+    public ValueMetadataAsserter<? extends UserAsserter<RA>, RA> valueMetadata(
             ItemPath path) throws SchemaException {
         //noinspection unchecked
-        return (ValueMetadataAsserter<UserType, ? extends UserAsserter<RA>, RA>) super.valueMetadata(path);
+        return (ValueMetadataAsserter<? extends UserAsserter<RA>, RA>) super.valueMetadata(path);
     }
 
     @Override

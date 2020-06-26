@@ -15,11 +15,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
@@ -94,6 +90,20 @@ public class AssignmentsAsserter<F extends FocusType, FA extends FocusAsserter<F
         return by()
             .targetOid(roleOid)
             .targetType(RoleType.COMPLEX_TYPE)
+            .find();
+    }
+
+    public AssignmentAsserter<AssignmentsAsserter<F,FA,RA>> forOrg(String orgOid) throws ObjectNotFoundException, SchemaException {
+        return by()
+            .targetOid(orgOid)
+            .targetType(OrgType.COMPLEX_TYPE)
+            .find();
+    }
+
+    public AssignmentAsserter<AssignmentsAsserter<F,FA,RA>> forService(String serviceOid) throws ObjectNotFoundException, SchemaException {
+        return by()
+            .targetOid(serviceOid)
+            .targetType(ServiceType.COMPLEX_TYPE)
             .find();
     }
 
