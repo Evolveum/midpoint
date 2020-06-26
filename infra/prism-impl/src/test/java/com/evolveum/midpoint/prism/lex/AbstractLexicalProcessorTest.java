@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.prism.lex;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
@@ -52,19 +53,19 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     private static final QName XSD_COMPLEX_TYPE_ELEMENT_NAME
             = new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "complexType");
 
-    public static final String EVENT_HANDLER_FILE_BASENAME = "event-handler";
-    private static final String OBJECTS_1 = "objects-1";
-    private static final String OBJECTS_3_NS = "objects-3-ns";
-    private static final String OBJECTS_4_NO_ROOT_NS = "objects-4-no-root-ns";
-    private static final String OBJECTS_5_ERROR = "objects-5-error";
-    private static final String OBJECTS_6_SINGLE = "objects-6-single";
-    private static final String OBJECTS_7_SINGLE = "objects-7-single";
+    private static final String EVENT_HANDLER_FILE_BASENAME = "event-handler";
+    private static final String OBJECTS_0_EMPTY = "objects-0-empty";
+    private static final String OBJECTS_1_LIST = "objects-1-list";
+    private static final String OBJECTS_2_SINGLE_NON_LIST = "objects-2-single-non-list";
+    private static final String OBJECTS_3_SINGLE_LIST = "objects-3-single-list";
+
+    private static final String OBJECTS_4_ERROR = "objects-4-error";
 
     protected abstract String getSubdirName();
 
     protected abstract String getFilenameSuffix();
 
-    protected File getCommonSubdir() {
+    private File getCommonSubdir() {
         return new File(COMMON_DIR_PATH, getSubdirName());
     }
 
@@ -72,12 +73,16 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         return new File(getCommonSubdir(), baseName + "." + getFilenameSuffix());
     }
 
-    protected abstract LexicalProcessor<String> createParser();
+    protected abstract LexicalProcessor<String> createLexicalProcessor();
+
+    ParserSource getFileSource(String basename) {
+        return new ParserFileSource(getFile(basename));
+    }
 
     @Test
     public void testParseUserToPrism() throws Exception {
         // GIVEN
-        LexicalProcessor<?> lexicalProcessor = createParser();
+        LexicalProcessor<?> lexicalProcessor = createLexicalProcessor();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse to xnode)
@@ -95,17 +100,12 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         assertUserJackXNodeOrdering("serialized xnode", xnode);
 
         assertUserJack(user, true, true);
-
-    }
-
-    ParserSource getFileSource(String basename) {
-        return new ParserFileSource(getFile(basename));
     }
 
     @Test
     public void testParseUserRoundTrip() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse)
@@ -158,8 +158,10 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         PrismObject accountRefObjOrig = findObjectFromAccountRef(user);
         PrismObject accountRefObjRe = findObjectFromAccountRef(reparsedUser);
 
-        ObjectDelta<UserType> accountRefObjDiff = DiffUtil.diff(accountRefObjOrig, accountRefObjRe);
+        //noinspection unchecked
+        ObjectDelta accountRefObjDiff = DiffUtil.diff(accountRefObjOrig, accountRefObjRe);
         System.out.println("\naccountRef object diff:");
+        assert accountRefObjDiff != null;
         System.out.println(accountRefObjDiff.debugDump());
 
         assertTrue("Re-parsed object in accountRef does not match: " + accountRefObjDiff, accountRefObjDiff.isEmpty());
@@ -173,7 +175,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test
     public void testParseResourceRumToPrism() throws Exception {
         // GIVEN
-        LexicalProcessor<?> lexicalProcessor = createParser();
+        LexicalProcessor<?> lexicalProcessor = createLexicalProcessor();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse to xnode)
@@ -189,13 +191,12 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         System.out.println(resource.debugDump());
 
         assertResourceRum(resource);
-
     }
 
     @Test
     public void testParseResourceRoundTrip() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse)
@@ -269,28 +270,31 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     }
 
     private PrismObject findObjectFromAccountRef(PrismObject<UserType> user) {
-        for (PrismReferenceValue rval : user.findReference(UserType.F_ACCOUNT_REF).getValues()) {
-            if (rval.getObject() != null) {
-                return rval.getObject();
+        for (PrismReferenceValue refVal : user.findReference(UserType.F_ACCOUNT_REF).getValues()) {
+            if (refVal.getObject() != null) {
+                return refVal.getObject();
             }
         }
         return null;
     }
 
-    protected <X extends XNodeImpl> X getAssertXNode(String message, XNode xnode, Class<X> expectedClass) {
+    <X extends XNodeImpl> X getAssertXNode(String message, XNode xnode, Class<X> expectedClass) {
         assertNotNull(message + " is null", xnode);
         assertTrue(message + ", expected " + expectedClass.getSimpleName() + ", was " + xnode.getClass().getSimpleName(),
                 expectedClass.isAssignableFrom(xnode.getClass()));
+        //noinspection unchecked
         return (X) xnode;
     }
 
-    protected <X extends XNodeImpl> X getAssertXMapSubnode(String message, MapXNodeImpl xmap, QName key, Class<X> expectedClass) {
+    @SuppressWarnings("SameParameterValue")
+    <X extends XNodeImpl> X getAssertXMapSubnode(String message, MapXNodeImpl xmap, QName key, Class<X> expectedClass) {
         XNodeImpl xsubnode = xmap.get(key);
         assertNotNull(message + " no key " + key, xsubnode);
         return getAssertXNode(message + " key " + key, xsubnode, expectedClass);
     }
 
-    protected void assertUserJackXNodeOrdering(String message, XNode xnode) {
+    @SuppressWarnings("SameParameterValue")
+    private void assertUserJackXNodeOrdering(String message, XNode xnode) {
         if (xnode instanceof RootXNodeImpl) {
             xnode = ((RootXNodeImpl) xnode).getSubnode();
         }
@@ -321,7 +325,7 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     @Test(enabled = false)
     public void testParseEventHandler() throws Exception {
         // GIVEN
-        LexicalProcessor<?> lexicalProcessor = createParser();
+        LexicalProcessor<?> lexicalProcessor = createLexicalProcessor();
         PrismContext prismContext = PrismTestUtil.getPrismContext();
 
         // WHEN (parse to xnode)
@@ -341,12 +345,38 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
 
         System.out.println("XNode after unmarshalling and marshalling back:");
         System.out.println(marshalled.debugDump());
-
     }
 
     @Test
-    public void testParseObjectsIteratively_1() throws Exception {
-        List<RootXNodeImpl> nodes = standardTest(OBJECTS_1, 3);
+    public void testParseObjects_0_Empty() throws Exception {
+        given();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
+
+        when();
+        List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_0_EMPTY), createDefaultParsingContext());
+
+        then();
+        System.out.println("Parsed objects (standard way):");
+        System.out.println(DebugUtil.debugDump(nodesStandard));
+
+        assertThat(nodesStandard).isEmpty();
+
+        testSerializeAndParseAgain(lexicalProcessor, nodesStandard);
+    }
+
+    private void testSerializeAndParseAgain(LexicalProcessor<String> lexicalProcessor, List<RootXNodeImpl> nodes)
+            throws SchemaException, IOException {
+        String serialized = lexicalProcessor.write(nodes, null);
+        displayValue("Serialized", serialized);
+
+        List<RootXNodeImpl> reparsed = lexicalProcessor.readObjects(new ParserStringSource(serialized), createDefaultParsingContext());
+        displayValue("Re-parsed", reparsed);
+        assertThat(reparsed).isEqualTo(nodes);
+    }
+
+    @Test
+    public void testParseObjects_1_ListOfThree() throws Exception {
+        List<RootXNodeImpl> nodes = executeReadObjectsTest(OBJECTS_1_LIST, 3);
 
         final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
         nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
@@ -355,11 +385,10 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         assertEquals("Wrong namespace for node 3", NS_C, getFirstElementNS(nodes, 2));
     }
 
-    protected List<RootXNodeImpl> standardTest(String fileName, int expectedCount)
-            throws SchemaException, IOException {
+    List<RootXNodeImpl> executeReadObjectsTest(String fileName, int expectedCount) throws SchemaException, IOException {
 
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
@@ -382,17 +411,19 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         System.out.println(DebugUtil.debugDump(nodesStandard));
 
         assertEquals("Nodes are different", nodesStandard, nodes);
+
+        testSerializeAndParseAgain(lexicalProcessor, nodes);
         return nodes;
     }
 
     @Test
-    public void testParseObjectsIteratively_1_FirstTwo() throws Exception {
+    public void testParseObjects_1_ListOfThree_ReadFirstTwo() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
-        lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_1), createDefaultParsingContext(),
+        lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_1_LIST), createDefaultParsingContext(),
                 node -> {
                     nodes.add(node);
                     return nodes.size() != 2;
@@ -408,6 +439,8 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
         assertEquals("Wrong namespace for node 1", NS_C, getFirstElementNS(nodes, 0));
         assertEquals("Wrong namespace for node 2", NS_C, getFirstElementNS(nodes, 1));
+
+        testSerializeAndParseAgain(lexicalProcessor, nodes);
     }
 
     String getFirstElementNS(List<RootXNodeImpl> nodes, int index) {
@@ -416,111 +449,13 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
     }
 
     @Test
-    public void testParseObjectsIteratively_3_NS() throws Exception {
+    public void testParseObjects_2_SingleNonList() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
-        lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_3_NS), createDefaultParsingContext(),
-                node -> {
-                    nodes.add(node);
-                    return true;
-                });
-
-        // THEN
-        System.out.println("Parsed objects (iteratively):");
-        System.out.println(DebugUtil.debugDump(nodes));
-
-        assertEquals("Wrong # of nodes read", 3, nodes.size());
-
-        nodes.forEach(n -> assertEquals("Wrong namespace",
-                "http://a/", n.getRootElementName().getNamespaceURI()));
-        assertEquals("Wrong namespace for node 1", "http://b/", getFirstElementNS(nodes, 0));
-        assertEquals("Wrong namespace for node 2", "http://c/", getFirstElementNS(nodes, 1));
-        assertEquals("Wrong namespace for node 3", "http://d/", getFirstElementNS(nodes, 2));
-
-        // WHEN+THEN (parse in standard way)
-        List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_3_NS), createDefaultParsingContext());
-
-        System.out.println("Parsed objects (standard way):");
-        System.out.println(DebugUtil.debugDump(nodesStandard));
-
-        assertEquals("Nodes are different", nodesStandard, nodes);
-    }
-
-    @Test
-    public void testParseObjectsIteratively_4_noRootNs() throws Exception {
-        // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
-
-        // WHEN (parse to xnode)
-        List<RootXNodeImpl> nodes = new ArrayList<>();
-        lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_4_NO_ROOT_NS), createDefaultParsingContext(),
-                node -> {
-                    nodes.add(node);
-                    return true;
-                });
-
-        // THEN
-        System.out.println("Parsed objects (iteratively):");
-        System.out.println(DebugUtil.debugDump(nodes));
-
-        assertEquals("Wrong # of nodes read", 3, nodes.size());
-
-        nodes.forEach(n -> assertEquals("Wrong namespace",
-                "", n.getRootElementName().getNamespaceURI()));
-        assertEquals("Wrong namespace for node 1", "http://b/", getFirstElementNS(nodes, 0));
-        assertEquals("Wrong namespace for node 2", "http://c/", getFirstElementNS(nodes, 1));
-        assertEquals("Wrong namespace for node 3", "http://d/", getFirstElementNS(nodes, 2));
-
-        // WHEN+THEN (parse in standard way)
-        List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_4_NO_ROOT_NS), createDefaultParsingContext());
-
-        System.out.println("Parsed objects (standard way):");
-        System.out.println(DebugUtil.debugDump(nodesStandard));
-
-        assertEquals("Nodes are different", nodesStandard, nodes);
-    }
-
-    @Test
-    public void testParseObjectsIteratively_5_error() throws Exception {
-        // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
-
-        // WHEN (parse to xnode)
-        List<RootXNodeImpl> nodes = new ArrayList<>();
-        try {
-            lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_5_ERROR), createDefaultParsingContext(),
-                    node -> {
-                        nodes.add(node);
-                        return true;
-                    });
-        } catch (SchemaException e) {
-            System.out.println("Got expected exception: " + e);
-        }
-        // THEN
-        System.out.println("Parsed objects (iteratively):");
-        System.out.println(DebugUtil.debugDump(nodes));
-
-        assertEquals("Wrong # of nodes read", 1, nodes.size());
-
-        // WHEN+THEN (parse in standard way)
-        try {
-            lexicalProcessor.readObjects(getFileSource(OBJECTS_5_ERROR), createDefaultParsingContext());
-        } catch (Exception e) {     // SchemaException for JSON/YAML, IllegalStateException for XML (do something about this)
-            System.out.println("Got expected exception: " + e);
-        }
-    }
-
-    @Test
-    public void testParseObjectsIteratively_6_single() throws Exception {
-        // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
-
-        // WHEN (parse to xnode)
-        List<RootXNodeImpl> nodes = new ArrayList<>();
-        lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_6_SINGLE), createDefaultParsingContext(),
+        lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_2_SINGLE_NON_LIST), createDefaultParsingContext(),
                 node -> {
                     nodes.add(node);
                     return true;
@@ -537,22 +472,24 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
         assertEquals("Wrong namespace for node 1", NS_C, getFirstElementNS(nodes, 0));
 
         // WHEN+THEN (parse in standard way)
-        List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_6_SINGLE), createDefaultParsingContext());
+        List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_2_SINGLE_NON_LIST), createDefaultParsingContext());
 
         System.out.println("Parsed objects (standard way):");
         System.out.println(DebugUtil.debugDump(nodesStandard));
 
         assertEquals("Nodes are different", nodesStandard, nodes);
+
+        testSerializeAndParseAgain(lexicalProcessor, nodes);
     }
 
     @Test
-    public void testParseObjectsIteratively_7_single() throws Exception {
+    public void testParseObjects_3_SingleList() throws Exception {
         // GIVEN
-        LexicalProcessor<String> lexicalProcessor = createParser();
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
 
         // WHEN (parse to xnode)
         List<RootXNodeImpl> nodes = new ArrayList<>();
-        lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_7_SINGLE), createDefaultParsingContext(),
+        lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_3_SINGLE_LIST), createDefaultParsingContext(),
                 node -> {
                     nodes.add(node);
                     return true;
@@ -566,14 +503,46 @@ public abstract class AbstractLexicalProcessorTest extends AbstractPrismTest {
 
         final String NS_C = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
         nodes.forEach(n -> assertEquals("Wrong namespace", NS_C, n.getRootElementName().getNamespaceURI()));
+        assertEquals("Wrong namespace for node 1", NS_C, getFirstElementNS(nodes, 0));
 
         // WHEN+THEN (parse in standard way)
-        List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_7_SINGLE), createDefaultParsingContext());
+        List<RootXNodeImpl> nodesStandard = lexicalProcessor.readObjects(getFileSource(OBJECTS_3_SINGLE_LIST), createDefaultParsingContext());
 
         System.out.println("Parsed objects (standard way):");
         System.out.println(DebugUtil.debugDump(nodesStandard));
 
         assertEquals("Nodes are different", nodesStandard, nodes);
+
+        testSerializeAndParseAgain(lexicalProcessor, nodes);
     }
 
+    @Test
+    public void testParseObjects_4_ErrorInSecondObject() throws Exception {
+        // GIVEN
+        LexicalProcessor<String> lexicalProcessor = createLexicalProcessor();
+
+        // WHEN (parse to xnode)
+        List<RootXNodeImpl> nodes = new ArrayList<>();
+        try {
+            lexicalProcessor.readObjectsIteratively(getFileSource(OBJECTS_4_ERROR), createDefaultParsingContext(),
+                    node -> {
+                        nodes.add(node);
+                        return true;
+                    });
+        } catch (SchemaException e) {
+            System.out.println("Got expected exception: " + e);
+        }
+        // THEN
+        System.out.println("Parsed objects (iteratively):");
+        System.out.println(DebugUtil.debugDump(nodes));
+
+        assertEquals("Wrong # of nodes read", 1, nodes.size());
+
+        // WHEN+THEN (parse in standard way)
+        try {
+            lexicalProcessor.readObjects(getFileSource(OBJECTS_4_ERROR), createDefaultParsingContext());
+        } catch (Exception e) {     // SchemaException for JSON/YAML, IllegalStateException for XML (do something about this)
+            System.out.println("Got expected exception: " + e);
+        }
+    }
 }

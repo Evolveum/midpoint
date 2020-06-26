@@ -1,12 +1,15 @@
 ---
-objects:
-- user:
+-
+  user:
     name: "u1"
-- user:
+-
+  user:
     name: "u2"
-- role:
+-
+  role:
     name: "r1"
-- objectCollection:
+-
+  objectCollection:
     name: "oc"
     type: "UserType"
     filter:

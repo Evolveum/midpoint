@@ -158,15 +158,15 @@ public class Visualizer {
 
     @NotNull
     public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
-        return visualizeDelta(objectDelta, objectRef, false, task, parentResult);
+        return visualizeDelta(objectDelta, objectRef, false, true, task, parentResult);
     }
 
     @NotNull
     public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef,
-            boolean includeOperationalItems, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+            boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDelta");
         try {
-            resolver.resolve(objectDelta, task, result);
+            resolver.resolve(objectDelta, includeOriginalObject, task, result);
             VisualizationContext visualizationContext = new VisualizationContext();
             if (includeOperationalItems){
                 visualizationContext.setIncludeOperationalItems(includeOperationalItems);

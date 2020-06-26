@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,7 +31,6 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.impl.polystring.AlphanumericPolyStringNormalizer;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -242,7 +242,8 @@ public class ObjectQueryUtil {
         StringBuilder sb = new StringBuilder("Query(");
         sb.append(query.getDescription()).append("):\n");
         if (query.getFilter() != null && query.getFilter().containsFilterClause()) {
-            sb.append(DOMUtil.serializeDOMToString(query.getFilter().getFilterClauseAsElement(prismContext)));
+            RootXNode clause = query.getFilter().getFilterClauseAsRootXNode();
+            sb.append(prismContext.xmlSerializer().serialize(clause));
         } else {
             sb.append("(no filter)");
         }

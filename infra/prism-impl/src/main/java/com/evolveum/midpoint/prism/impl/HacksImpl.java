@@ -10,12 +10,10 @@ package com.evolveum.midpoint.prism.impl;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Hacks;
 import com.evolveum.midpoint.prism.ParsingContext;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.impl.lex.dom.DomLexicalProcessor;
 import com.evolveum.midpoint.prism.impl.marshaller.XNodeProcessorUtil;
 import com.evolveum.midpoint.prism.impl.xnode.ListXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
@@ -56,16 +54,6 @@ public class HacksImpl implements Hacks, XNodeMutator {
     @Override
     public <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap, PrismContext prismContext, ParsingContext pc) throws SchemaException {
         XNodeProcessorUtil.parseProtectedType(protectedType, (MapXNodeImpl) xmap, prismContext, pc);
-    }
-
-    @Override
-    public Element serializeSingleElementMapToElement(MapXNode filterClauseXNode) throws SchemaException {
-        DomLexicalProcessor domParser = getDomParser(prismContext);
-        return domParser.serializeSingleElementMapToElement(filterClauseXNode);
-    }
-
-    private static DomLexicalProcessor getDomParser(@NotNull PrismContext prismContext) {
-        return ((PrismContextImpl) prismContext).getParserDom();
     }
 
     @Override

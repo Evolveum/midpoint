@@ -127,6 +127,8 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
 
 //    boolean hasImplicitTypeDefinitionOld(QName elementName, QName typeName);
 
+    @NotNull PrismContainerDefinition<?> getValueMetadataDefinition();
+
     boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName);
 
     ItemDefinition resolveGlobalItemDefinition(QName itemName, @Nullable ComplexTypeDefinition complexTypeDefinition);

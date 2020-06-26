@@ -47,7 +47,7 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
     void setParent(Itemable parent);
 
     @Experimental
-    Optional<ValueMetadata> valueMetadata() throws SchemaException;
+    Optional<ValueMetadata> valueMetadata();
 
     /**
      * Maybe it is better to expect empty value metadata if these are absent.
@@ -55,25 +55,13 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
      */
     @Experimental
     @NotNull
-    ValueMetadata getValueMetadata() throws SchemaException;
+    ValueMetadata getValueMetadata();
 
     /**
      * Sets metadata for this value.
      */
     @Experimental
     void setValueMetadata(ValueMetadata valueMetadata);
-
-    @Experimental
-    default void createLiveMetadata() {
-    }
-
-    /**
-     * Converts mock-up metadata (if present) into materialized form.
-     * TEMPORARY. Remove after mocking up is gone.
-     */
-    @Experimental
-    default void fixMockUpValueMetadata() {
-    }
 
     @NotNull
     ItemPath getPath();

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.search.filter;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -17,21 +18,21 @@ import java.util.List;
 /**
  * @author honchar
  */
-public abstract class SearchFilter<O extends ObjectType> implements Serializable {
+public abstract class SearchFilter<C extends Containerable> implements Serializable {
 
     private static final long serialVersionUID = 1L;
     private List<ValueSearchFilterItem> valueSearchFilterItems = new ArrayList<>();
 //    private LogicalSearchFilterItem logicalSearchFilterItem;
     private PrismContext prismContext;
     private ObjectFilter baseFilter;
-    Class<O> type;
+    Class<C> type;
 
     public enum LogicalFilterValue{
         AND,
         OR;
     }
 
-    public SearchFilter(PrismContext prismContext, ObjectFilter baseFilter, Class<O> type){
+    public SearchFilter(PrismContext prismContext, ObjectFilter baseFilter, Class<C> type){
         this.prismContext = prismContext;
         this.baseFilter = baseFilter;
         this.type = type;
@@ -55,7 +56,7 @@ public abstract class SearchFilter<O extends ObjectType> implements Serializable
 
     public abstract ObjectFilter buildObjectFilter();
 
-    public Class<O> getType(){
+    public Class<C> getType(){
         return type;
     }
 

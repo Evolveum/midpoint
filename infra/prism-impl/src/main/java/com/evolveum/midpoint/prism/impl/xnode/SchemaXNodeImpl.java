@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.prism.impl.xnode;
 
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import org.w3c.dom.Element;
 
@@ -20,6 +21,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
 
     private Element schemaElement;
+
+    private MapXNode metadata;
 
     public Element getSchemaElement() {
         return schemaElement;
@@ -52,6 +55,7 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
         if (dumpSuffix != null) {
             sb.append(dumpSuffix);
         }
+        appendMetadata(sb, indent, metadata);
         return sb.toString();
     }
 
@@ -67,6 +71,10 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
 
         SchemaXNodeImpl that = (SchemaXNodeImpl) o;
 
+        if (!metadataEquals(metadata, that.metadata)) {
+            return false;
+        }
+
         if (schemaElement == null) {
             return that.schemaElement == null;
         }
@@ -79,5 +87,15 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
     @Override
     public int hashCode() {
         return 1;               // the same as in DomAwareHashCodeStrategy
+    }
+
+    @Override
+    public MapXNode getMetadataNode() {
+        return metadata;
+    }
+
+    @Override
+    public void setMetadataNode(MapXNode metadata) {
+        this.metadata = metadata;
     }
 }

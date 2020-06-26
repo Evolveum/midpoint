@@ -7,19 +7,18 @@
 
 package com.evolveum.midpoint.prism.xnode;
 
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  *  Note we cannot use "extends Map" here, because in that case we would have to declare XNodeImpl as map value parameter.
  */
-public interface MapXNode extends XNode, Serializable, DebugDumpable {
+public interface MapXNode extends XNode, MetadataAware {
 
     boolean containsKey(QName key);
 

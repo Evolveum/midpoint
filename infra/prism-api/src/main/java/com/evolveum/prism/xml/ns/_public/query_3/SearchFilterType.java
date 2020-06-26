@@ -119,13 +119,6 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
         return clause != null ? clause.getSingleSubEntryAsRoot("getFilterClauseAsRootXNode") : null;
     }
 
-    public Element getFilterClauseAsElement(@NotNull PrismContext prismContext) throws SchemaException {
-        if (filterClauseXNode == null) {
-            return null;
-        }
-        return prismContext.hacks().serializeSingleElementMapToElement(filterClauseXNode);
-    }
-
     public static SearchFilterType createFromParsedXNode(XNode xnode, ParsingContext pc, PrismContext prismContext) throws SchemaException {
         SearchFilterType filter = new SearchFilterType();
         filter.parseFromXNode(xnode, pc, prismContext);

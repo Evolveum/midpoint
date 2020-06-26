@@ -1,35 +1,37 @@
-{
-  "@ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
-  "objects" : [ {
-    "resource" : {
-      "name" : "Sample Resource",
-      "connectorRef" : {
-        "type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType",
-        "filter" : {
-          "@ns" : "http://prism.evolveum.com/xml/ns/public/query-3",
-          "equal" : {
-            "path" : "connectorType",
-            "value" : "com.evolveum.polygon.connector.ldap.LdapConnector"
+[
+  {
+    "@ns": "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+    "resource": {
+      "name": "Sample Resource",
+      "connectorRef": {
+        "type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorType",
+        "filter": {
+          "@ns": "http://prism.evolveum.com/xml/ns/public/query-3",
+          "equal": {
+            "path": "connectorType",
+            "value": "com.evolveum.polygon.connector.ldap.LdapConnector"
           }
         }
       },
-      "connectorConfiguration" : {
-        "@type" : "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorConfigurationType"
+      "connectorConfiguration": {
+        "@type": "http://midpoint.evolveum.com/xml/ns/public/common/common-3#ConnectorConfigurationType"
       },
-      "namespace" : "http://foo.bar.com/",
-      "schema" : { }
+      "namespace": "http://foo.bar.com/",
+      "schema": {}
     }
-  }, {
-    "user" : {
-      "name" : "jack2",
-      "extension" : {
-        "@ns" : "http://midpoint.evolveum.com/xml/ns/samples/piracy",
-        "ship" : "Black Pearl"
+  },
+  {
+    "@ns": "http://midpoint.evolveum.com/xml/ns/public/common/common-3",
+    "user": {
+      "name": "jack2",
+      "extension": {
+        "@ns": "http://midpoint.evolveum.com/xml/ns/samples/piracy",
+        "ship": "Black Pearl"
       },
-      "fullName" : "Cpt. Jack Sparrow",
-      "givenName" : "Jack",
-      "familyName" : "Sparrow",
-      "honorificPrefix" : "Cpt."
+      "fullName": "Cpt. Jack Sparrow",
+      "givenName": "Jack",
+      "familyName": "Sparrow",
+      "honorificPrefix": "Cpt."
     }
-  } ]
-}
+  }
+]
