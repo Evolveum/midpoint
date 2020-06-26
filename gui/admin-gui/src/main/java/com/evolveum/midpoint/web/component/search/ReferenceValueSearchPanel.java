@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -18,6 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -53,7 +55,10 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
     private void initLayout(){
         setOutputMarkupId(true);
 
-        TextPanel<String> referenceTextValueField = new TextPanel<String>(ID_REFERENCE_VALUE_TEXT_FIELD, Model.of(getReferenceTextModel()));
+        TextPanel<String> referenceTextValueField = new TextPanel<String>(ID_REFERENCE_VALUE_TEXT_FIELD,
+                Model.of(WebComponentUtil.getReferenceObjectTextValue(getModelObject(), getPageBase())));
+        referenceTextValueField.add(AttributeAppender.append("title",
+                Model.of(WebComponentUtil.getReferenceObjectTextValue(getModelObject(), getPageBase()))));
         referenceTextValueField.setOutputMarkupId(true);
         referenceTextValueField.setEnabled(false);
         add(referenceTextValueField);
@@ -101,32 +106,6 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
         value.setRenderBodyOnly(true);
         popoverBody.add(value);
 
-    }
-
-    private String getReferenceTextModel(){
-        ObjectReferenceType ref = getModelObject();
-        if (ref == null){
-            return null;
-        }
-        StringBuilder sb = new StringBuilder();
-        if (StringUtils.isNotEmpty(ref.getOid())){
-            sb.append(createStringResource("ReferencePopupPanel.oid").getString());
-            sb.append(ref.getOid());
-        }
-        if (ref.getRelation() != null){
-            if (sb.length() > 0){
-                sb.append("; ");
-            }
-            sb.append(createStringResource("ReferencePopupPanel.relation").getString());
-            sb.append(ref.getRelation().getLocalPart());
-        }
-        if (ref.getType() != null){
-            if (sb.length() > 0){
-                sb.append("; ");
-            }
-            sb.append(ref.getType().getLocalPart());
-        }
-        return sb.toString();
     }
 
     public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {

@@ -9,12 +9,9 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -32,15 +29,13 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -63,14 +58,8 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
     private static final Trace LOG = TraceManager.getTrace(SearchItemPanel.class);
 
-//    private static final String ID_MAIN_BUTTON = "mainButton";
-//    private static final String ID_LABEL = "label";
-//    private static final String ID_DELETE_BUTTON = "deleteButton";
     private static final String ID_POPOVER = "popover";
     private static final String ID_POPOVER_BODY = "popoverBody";
-//    private static final String ID_UPDATE = "update";
-//    private static final String ID_CLOSE = "close";
-//    private static final String ID_VALUES = "values";
     private static final String ID_VALUE = "value";
     private static final String ID_SEARCH_ITEM_CONTAINER = "searchItemContainer";
     private static final String ID_SEARCH_ITEM_LABEL = "searchItemLabel";
@@ -113,42 +102,6 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
                 return loadPopoverItems();
             }
         };
-//
-//        AjaxLink<Void> mainButton = new AjaxLink<Void>(ID_MAIN_BUTTON) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                editPerformed(target);
-//            }
-//        };
-//        add(mainButton);
-//
-//        Label label = new Label(ID_LABEL, createLabelModel());
-//        label.setRenderBodyOnly(true);
-//        mainButton.add(label);
-//
-//        AjaxLink<Void> deleteButton = new AjaxLink<Void>(ID_DELETE_BUTTON) {
-//
-//           private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                deletePerformed(target);
-//            }
-//        };
-//        mainButton.add(deleteButton);
-//        deleteButton.add(new VisibleEnableBehaviour() {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return !getModelObject().isFixed();
-//            }
-//        });
-//
         setOutputMarkupId(true);
         initPopover();
 
@@ -195,41 +148,38 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition(), getPageBase());
         switch (item.getType()) {
             case REFERENCE:
-                searchItemField  = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value.value"){
+                searchItemField  =
+
+
+
+
+
+                        new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value.value"){
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public String getObject(){
                         SearchItem searchItem = getModelObject();
                         if (searchItem == null || searchItem.getValue() == null){
-                            return null;
+                            return "";
                         }
-                        ObjectReferenceType ref = (ObjectReferenceType) searchItem.getValue().getValue();
-                        if (ref == null){
-                            return null;
-                        }
-                        StringBuilder sb = new StringBuilder();
-                        if (StringUtils.isNotEmpty(ref.getOid())){
-                            sb.append(createStringResource("ReferencePopupPanel.oid").getString());
-                            sb.append(ref.getOid());
-                        }
-                        if (ref.getRelation() != null){
-                            if (sb.length() > 0){
-                                sb.append("; ");
-                            }
-                            sb.append(createStringResource("ReferencePopupPanel.relation").getString());
-                            sb.append(ref.getRelation().getLocalPart());
-                        }
-                        if (ref.getType() != null){
-                            if (sb.length() > 0){
-                                sb.append("; ");
-                            }
-                            sb.append(ref.getType().getLocalPart());
-                        }
-                        return sb.toString();
+                        return WebComponentUtil.getReferenceObjectTextValue((ObjectReferenceType) searchItem.getValue().getValue(), getPageBase());
                     }
                 });
                 ((TextPanel<String>)searchItemField).getBaseFormComponent().add(new EnableBehaviour(() -> false));
+                ((TextPanel<String>)searchItemField).add(AttributeAppender.append("title",
+                        new LoadableModel<String>(true) {
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            protected String load() {
+                                SearchItem searchItem = getModelObject();
+                                if (searchItem == null || searchItem.getValue() == null) {
+                                    return "";
+                                }
+                                return WebComponentUtil.getReferenceObjectTextValue((ObjectReferenceType) searchItem.getValue().getValue(), getPageBase());
+                            }
+                        }));
                 ((TextPanel<String>)searchItemField).getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("focus") {
                     private static final long serialVersionUID = 1L;
 
