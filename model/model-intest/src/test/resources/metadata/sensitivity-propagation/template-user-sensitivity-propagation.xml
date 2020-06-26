@@ -40,18 +40,16 @@
                 </condition>
             </set>
         </target>
-        <metadataHandling>
-            <mapping>
-                <source>
-                    <path>extension/sensitivity</path>
-                </source>
-                <expression>
-                    <asIs/>
-                </expression>
-                <target>
-                    <path>extension/sensitivity</path>
-                </target>
-            </mapping>
-        </metadataHandling>
+        <metadataMapping>
+            <source>
+                <path>extension/sensitivity</path>
+            </source>
+            <expression>
+                <asIs/>
+            </expression>
+            <target>
+                <path>extension/sensitivity</path>
+            </target>
+        </metadataMapping>
     </mapping>
 </objectTemplate>

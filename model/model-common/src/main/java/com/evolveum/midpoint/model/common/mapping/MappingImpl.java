@@ -26,7 +26,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
     }
 
     ValueMetadataComputer createValueMetadataComputer() {
-        if (mappingBean.getMetadataHandling() == null || mappingBean.getMetadataHandling().getMapping().isEmpty()) {
+        if (mappingBean.getMetadataMapping().isEmpty()) {
             return null; // temporary (metadata handling can be inherited - later)
         } else {
             return new SimpleValueMetadataComputer(this);

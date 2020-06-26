@@ -25,7 +25,7 @@ class SimpleValueMetadataComputer implements ValueMetadataComputer {
     @NotNull final MetadataMappingEvaluator metadataMappingEvaluator;
 
     SimpleValueMetadataComputer(MappingImpl<?, ?> dataMapping) {
-        assert !dataMapping.getMetadataHandling().getMapping().isEmpty(); // for now
+        assert !dataMapping.getMetadataMappings().isEmpty(); // for now
 
         this.dataMapping = dataMapping;
         this.metadataMappingEvaluator = dataMapping.metadataMappingEvaluator;

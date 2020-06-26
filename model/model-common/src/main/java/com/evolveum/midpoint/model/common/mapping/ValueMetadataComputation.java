@@ -58,7 +58,7 @@ class ValueMetadataComputation {
 
     public ValueMetadata execute() throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        List<MetadataMappingType> mappingBeans = computer.dataMapping.getMetadataHandling().getMapping();
+        List<MetadataMappingType> mappingBeans = computer.dataMapping.getMetadataMappings();
         for (MetadataMappingType mappingBean : mappingBeans) {
             processMapping(mappingBean);
         }

@@ -1295,8 +1295,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
     }
 
-    MetadataHandlingType getMetadataHandling() {
+    // TEMPORARY
+    List<MetadataMappingType> getMetadataMappings() {
         return mappingBean instanceof MappingType ?
-                ((MappingType) mappingBean).getMetadataHandling() : null;
+                ((MappingType) mappingBean).getMetadataMapping() : null;
     }
 }
