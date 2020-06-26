@@ -11,10 +11,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.metadata.ValueMetadataAdapter;
-import com.evolveum.midpoint.prism.metadata.ValueMetadataMockUpFactory;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -386,65 +384,30 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     }
 
     @Override
-    public Optional<ValueMetadata> valueMetadata() throws SchemaException {
+    public Optional<ValueMetadata> valueMetadata() {
         if (valueMetadata != null) {
             return Optional.of(valueMetadata);
         } else {
-            return createMockUpValueMetadata();
+            return Optional.empty();
         }
     }
 
     @Override
     @NotNull
-    public ValueMetadata getValueMetadata() throws SchemaException {
-        if (valueMetadata != null) {
-            return valueMetadata;
-        } else {
-            Optional<ValueMetadata> mockup = createMockUpValueMetadata();
-            if (mockup.isPresent()) {
-                return mockup.get();
-            } else if (prismContext != null && prismContext.getValueMetadataFactory() != null) {
-                return prismContext.getValueMetadataFactory().createEmpty();
+    public ValueMetadata getValueMetadata() {
+        if (valueMetadata == null) {
+            if (prismContext != null && prismContext.getValueMetadataFactory() != null) {
+                valueMetadata = prismContext.getValueMetadataFactory().createEmpty();
             } else {
-                return ValueMetadataAdapter.holding(new PrismContainerValueImpl<>());
+                valueMetadata = ValueMetadataAdapter.holding(new PrismContainerValueImpl<>());
             }
         }
+        return valueMetadata;
     }
 
     @Override
     public void setValueMetadata(ValueMetadata valueMetadata) {
         this.valueMetadata = valueMetadata;
-    }
-
-    @Override
-    @Experimental
-    public void createLiveMetadata() {
-        valueMetadata = Objects.requireNonNull(prismContext, "no prism context")
-                .getValueMetadataFactory()
-                .createEmpty();
-    }
-
-    private Optional<ValueMetadata> createMockUpValueMetadata() throws SchemaException {
-        PrismContext prismContext = getPrismContext();
-        if (prismContext != null) {
-            ValueMetadataMockUpFactory factory = prismContext.getValueMetadataMockUpFactory();
-            if (factory != null) {
-                return factory.createValueMetadata(this);
-            }
-        }
-        return Optional.empty();
-    }
-
-    // TEMPORARY
-    @Override
-    public void fixMockUpValueMetadata() {
-        if (valueMetadata == null) {
-            try {
-                createMockUpValueMetadata().ifPresent(metadata -> valueMetadata = metadata.clone());
-            } catch (SchemaException e) {
-                throw new IllegalStateException(e);
-            }
-        }
     }
 
     @Override

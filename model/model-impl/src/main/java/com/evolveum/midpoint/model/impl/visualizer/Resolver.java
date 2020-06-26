@@ -84,7 +84,7 @@ public class Resolver {
         }
     }
 
-    public <O extends ObjectType> void resolve(ObjectDelta<O> objectDelta, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
+    public <O extends ObjectType> void resolve(ObjectDelta<O> objectDelta, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         if (objectDelta.isAdd()) {
             resolve(objectDelta.getObjectToAdd(), task, result);
         } else if (objectDelta.isDelete()) {
@@ -115,7 +115,7 @@ public class Resolver {
                 }
                 if (itemDelta.getEstimatedOldValues() == null) {
                     final String oid = objectDelta.getOid();
-                    if (!originalObjectFetched && oid != null) {
+                    if (!originalObjectFetched && oid != null && includeOriginalObject) {
                         try {
                             originalObject = modelService.getObject(clazz, oid, createCollection(createNoFetch()), task, result);
                         } catch (ObjectNotFoundException e) {
@@ -149,7 +149,7 @@ public class Resolver {
     // TODO caching retrieved objects
     public void resolve(List<ObjectDelta<? extends ObjectType>> deltas, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException {
         for (ObjectDelta<? extends ObjectType> delta : deltas) {
-            resolve(delta, task, result);
+            resolve(delta, true, task, result);
         }
     }
 }

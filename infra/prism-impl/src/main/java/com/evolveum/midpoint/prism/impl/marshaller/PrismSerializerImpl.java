@@ -16,7 +16,6 @@ import com.evolveum.midpoint.prism.impl.xnode.RootXNodeImpl;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
@@ -138,7 +137,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
 
     @NotNull
     @Override
-    public T serializeObjects(@NotNull List<PrismObject<?>> objects, @Nullable QName aggregateElementName) throws SchemaException {
+    public T serializeObjects(@NotNull List<PrismObject<?>> objects) throws SchemaException {
         List<RootXNodeImpl> roots = new ArrayList<>();
         for (PrismObject<?> object : objects) {
             // itemName and itemDefinition might be set only if they apply to all the objects
@@ -146,7 +145,7 @@ public class PrismSerializerImpl<T> implements PrismSerializer<T> {
             checkPostconditions(xroot);            // TODO find better way
             roots.add(xroot);
         }
-        return target.write(roots, aggregateElementName, context);
+        return target.write(roots, context);
     }
 
     @Override

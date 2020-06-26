@@ -119,6 +119,11 @@
             <!-- <class name="com.evolveum.midpoint.model.intest.password.TestPasswordNone"/>  -->
         </classes>
     </test>
+    <test name="Metadata" parallel="false" verbose="10" enabled="true">
+        <classes>
+            <class name="com.evolveum.midpoint.model.intest.TestValueMetadata"/>
+        </classes>
+    </test>
     <!--
         Some tests moved to the end of suite, because they change logging configuration.
         TODO: Logging configuration should be refreshed from file during spring context reloading.

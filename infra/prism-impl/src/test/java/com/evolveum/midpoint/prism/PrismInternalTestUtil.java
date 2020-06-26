@@ -105,6 +105,8 @@ public class PrismInternalTestUtil implements PrismContextFactory {
     public static final String REF_WITH_FILTER_NO_OID_BASENAME = "ref-with-filter-no-oid";
     public static final String REF_WITHOUT_FILTER_BASENAME = "ref-without-filter";
 
+    public static final String USER_ALICE_METADATA_BASENAME = "user-alice-metadata";
+
     // Namespaces
     public static final String DEFAULT_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns";
     public static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
@@ -148,6 +150,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
     public static final ItemPath USER_ASSIGNMENT_DESCRIPTION_PATH = ItemPath.create(USER_ASSIGNMENT_QNAME, USER_DESCRIPTION_QNAME);
     public static final ItemName ASSIGNMENT_TYPE_QNAME = new ItemName(NS_FOO,"AssignmentType");
     public static final ItemName USER_ACCOUNT_CONSTRUCTION_QNAME = new ItemName(NS_FOO,"accountConstruction");
+
+    private static final ItemName FOO_VALUE_METADATA_TYPE_QNAME = new ItemName(NS_FOO, "FooValueMetadataType");
+
     public static final Long USER_ASSIGNMENT_1_ID = 1111L;
     public static final Long USER_ASSIGNMENT_2_ID = 1112L;
     public static final Long USER_ASSIGNMENT_3_ID = 1113L;
@@ -226,13 +231,14 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         return context;
     }
 
-    public static PrismContextImpl constructPrismContext() throws SchemaException, FileNotFoundException {
+    public static PrismContextImpl constructPrismContext() throws SchemaException, IOException {
         return constructPrismContext(null);
     }
 
-    public static PrismContextImpl constructPrismContext(File extraSchema) throws SchemaException, FileNotFoundException {
+    public static PrismContextImpl constructPrismContext(File extraSchema) throws SchemaException, IOException {
         SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
         schemaRegistry.setCatalogResourceName(TEST_CATALOG_RESOURCE_NAME);
+        schemaRegistry.setDefaultNamespace(NS_FOO);
         DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
         // Set default namespace?
         schemaRegistry.setNamespacePrefixMapper(prefixMapper);
@@ -241,12 +247,13 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/types-3.xsd", "t", com.evolveum.prism.xml.ns._public.types_3.ObjectFactory.class.getPackage());
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/query-3.xsd", "q", com.evolveum.prism.xml.ns._public.query_3.ObjectFactory.class.getPackage());
         schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
-        if (extraSchema != null){
+        if (extraSchema != null) {
             schemaRegistry.registerPrismSchemaFile(extraSchema);
         }
         prefixMapper.registerPrefix(XMLConstants.W3C_XML_SCHEMA_NS_URI, DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, false);
         prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
         prefixMapper.registerPrefix(PrismInternalTestUtil.NS_WEAPONS, PrismInternalTestUtil.NS_WEAPONS_PREFIX, false);
+        schemaRegistry.setValueMetadataTypeName(FOO_VALUE_METADATA_TYPE_QNAME);
         PrismContextImpl prismContext = PrismContextImpl.create(schemaRegistry);
         prismContext.setObjectsElementName(new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "objects"));
         return prismContext;
@@ -256,7 +263,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
      * @see com.evolveum.midpoint.prism.PrismContextFactory#createPrismContext()
      */
     @Override
-    public PrismContext createPrismContext() throws SchemaException, FileNotFoundException {
+    public PrismContext createPrismContext() throws SchemaException, IOException {
         return constructPrismContext();
     }
 

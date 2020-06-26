@@ -11,7 +11,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismParser;
 import com.evolveum.midpoint.prism.PrismSerializer;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
@@ -50,24 +49,14 @@ public class TestParseObjects extends AbstractParserTest {
         assertEquals("Wrong class of object 4", ObjectCollectionType.class, objects.get(3).asObjectable().getClass());
 
         PrismSerializer<String> serializer = prismContext.serializerFor(language);
-        String serializedAsObjects = serializer.serializeObjects(objects, SchemaConstants.C_OBJECTS);
-        System.out.println("Objects as re-serialized (c:objects):\n" + serializedAsObjects);
-
-        System.out.println("Re-serialized to XML:\n" + prismContext.xmlSerializer().serializeObjects(objects, SchemaConstants.C_OBJECTS));
-        System.out.println("Re-serialized to JSON:\n" + prismContext.jsonSerializer().serializeObjects(objects, SchemaConstants.C_OBJECTS));
-        System.out.println("Re-serialized to YAML:\n" + prismContext.yamlSerializer().serializeObjects(objects, SchemaConstants.C_OBJECTS));
-
-        List<PrismObject<?>> objectsReparsed = prismContext.parserFor(serializedAsObjects).parseObjects();
-        assertEquals("Reparsed objects are different from original ones", objects, objectsReparsed);
-
-        String serializedByDefault = serializer.serializeObjects(objects, null);
+        String serializedByDefault = serializer.serializeObjects(objects);
         System.out.println("Objects as re-serialized (default method):\n" + serializedByDefault);
 
-        System.out.println("Re-serialized to XML (default):\n" + prismContext.xmlSerializer().serializeObjects(objects, null));
-        System.out.println("Re-serialized to JSON (default):\n" + prismContext.jsonSerializer().serializeObjects(objects, null));
-        System.out.println("Re-serialized to YAML (default):\n" + prismContext.yamlSerializer().serializeObjects(objects, null));
+        System.out.println("Re-serialized to XML (default):\n" + prismContext.xmlSerializer().serializeObjects(objects));
+        System.out.println("Re-serialized to JSON (default):\n" + prismContext.jsonSerializer().serializeObjects(objects));
+        System.out.println("Re-serialized to YAML (default):\n" + prismContext.yamlSerializer().serializeObjects(objects));
 
-        List<PrismObject<?>> objectsReparsedDefault = prismContext.parserFor(serializedAsObjects).parseObjects();
+        List<PrismObject<?>> objectsReparsedDefault = prismContext.parserFor(serializedByDefault).parseObjects();
         assertEquals("Reparsed objects are different from original ones", objects, objectsReparsedDefault);
     }
 

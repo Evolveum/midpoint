@@ -251,7 +251,7 @@ public class TestParseUser extends AbstractObjectParserTest<UserType> {
         assertEquals("Wrong ref3 type (jaxb)", ShadowType.COMPLEX_TYPE, ref3.getType());
         SearchFilterType ref3Filter = ref3.getFilter();
         assertNotNull("No ref3 filter (jaxb,class)", ref3Filter);
-        assertFilterElement("ref filter (jaxb)", ref3Filter.getFilterClauseAsElement(getPrismContext()));
+//        assertFilterElement("ref filter (jaxb)", ref3Filter.getFilterClauseAsElement(getPrismContext()));
     }
 
     @Test

@@ -108,7 +108,7 @@ public interface PrismSerializer<T> {
     T serialize(@NotNull RootXNode xnode) throws SchemaException;
 
     @NotNull
-    T serializeObjects(@NotNull List<PrismObject<?>> objects, QName aggregateElementName) throws SchemaException;
+    T serializeObjects(@NotNull List<PrismObject<?>> objects) throws SchemaException;
 
     T serialize(JAXBElement<?> value) throws SchemaException;
     T serializeRealValue(Object value) throws SchemaException;

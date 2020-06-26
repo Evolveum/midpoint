@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.marshaller.ParsingMigrator;
 import com.evolveum.midpoint.prism.metadata.ValueMetadataFactory;
-import com.evolveum.midpoint.prism.metadata.ValueMetadataMockUpFactory;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
@@ -373,18 +372,6 @@ public interface PrismContext extends ProtectorCreator {
 
     @NotNull
     SchemaFactory schemaFactory();
-
-    /**
-     * TEMPORARY. WILL BE REMOVED AFTER PROTOTYPING IS OVER.
-     */
-    @Experimental
-    void setValueMetadataMockUpFactory(ValueMetadataMockUpFactory factory);
-
-    /**
-     * TEMPORARY. WILL BE REMOVED AFTER PROTOTYPING IS OVER.
-     */
-    @Experimental
-    ValueMetadataMockUpFactory getValueMetadataMockUpFactory();
 
     @Experimental
     void setValueMetadataFactory(ValueMetadataFactory factory);

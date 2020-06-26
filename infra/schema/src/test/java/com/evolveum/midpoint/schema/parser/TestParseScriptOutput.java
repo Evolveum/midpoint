@@ -72,8 +72,8 @@ public class TestParseScriptOutput extends AbstractPropertyValueParserTest<Pipel
         final String common_3 = "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
 
         int count = StringUtils.countMatches(serialized, common_3);
-        // temporarily set from 2 to 4 (some XML weirdness in Xerces 2.12/Xalan 2.7.2); see MID-5661
-        assertEquals("Wrong # of occurrences of '" + common_3 + "' in serialized form", 4, count);
+        // temporarily set from 2 to 3 (some XML weirdness in Xerces 2.12/Xalan 2.7.2); see MID-5661
+        assertEquals("Wrong # of occurrences of '" + common_3 + "' in serialized form", 3, count);
     }
 
 //    private void assertNamespaceDeclarations(String context, Element element, String... prefixes) {

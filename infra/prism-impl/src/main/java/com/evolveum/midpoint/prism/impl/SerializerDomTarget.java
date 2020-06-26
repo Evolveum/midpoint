@@ -14,15 +14,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
 
-import javax.xml.namespace.QName;
 import java.util.List;
 
-/**
- * @author mederly
- */
 public class SerializerDomTarget extends SerializerTarget<Element> {
 
-    public SerializerDomTarget(@NotNull PrismContextImpl prismContext) {
+    SerializerDomTarget(@NotNull PrismContextImpl prismContext) {
         super(prismContext);
     }
 
@@ -34,8 +30,8 @@ public class SerializerDomTarget extends SerializerTarget<Element> {
 
     @NotNull
     @Override
-    public Element write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context)
+    public Element write(@NotNull List<RootXNodeImpl> roots, @Nullable SerializationContext context)
             throws SchemaException {
-        return prismContext.getLexicalProcessorRegistry().domProcessor().writeXRootListToElement(roots, aggregateElementName);
+        return prismContext.getLexicalProcessorRegistry().domProcessor().writeXRootListToElement(roots);
     }
 }
