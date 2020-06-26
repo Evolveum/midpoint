@@ -1,0 +1,27 @@
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+    <div>
+        <div class="col-md-10" wicket:id="referenceValueTextField"/>
+        <div class="col-sm-1">
+            <a wicket:id="editReferenceButton" class="btn btn-xs btn-default dropdown-toggle" data-toggle="dropdown">
+                <i class="fa fa-edit fa-lg"/>
+            </a>
+        </div>
+    </div>
+
+    <div wicket:id="refPopover" class="popover bottom">
+        <div class="popover-content" wicket:id="refPopoverBody">
+            <div wicket:id="refPopoverPanel" class="input-group input-group-sm">
+            </div>
+        </div>
+    </div>
+</wicket:panel>
+</html>

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.commons.collections.iterators.ArrayIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
@@ -49,7 +50,7 @@ public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<Object
         FormComponent<ObjectReferenceType> inputField = getBaseFormComponent();
         String realInput = StringUtils.isEmpty(input) ? inputField.getRawInput() : input;
         if (StringUtils.isEmpty(realInput)){
-            return null;
+            return new ArrayIterator();
         }
         ObjectQuery query = pageBase.getPrismContext().queryFor(AbstractRoleType.class)
                 .item(ObjectType.F_NAME)
