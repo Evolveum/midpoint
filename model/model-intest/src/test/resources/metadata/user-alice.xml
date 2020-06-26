@@ -12,6 +12,11 @@
       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
       xmlns:m="http://midpoint.evolveum.com/xml/ns/public/common/extension-metadata-3"
       oid="9fc389be-5b47-4e9d-90b5-33fffd87b3ca">
+    <_metadata>
+        <process>
+            <requestTimestamp>2020-03-20T15:11:40.936+01:00</requestTimestamp>
+        </process>
+    </_metadata>
     <name>
         <_value>alice</_value>
         <_metadata>

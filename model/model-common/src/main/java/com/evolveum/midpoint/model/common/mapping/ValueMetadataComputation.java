@@ -85,7 +85,8 @@ class ValueMetadataComputation {
                 "metadata mapping in " + computer.dataMapping.getMappingContextDescription());
         createSources(builder, mappingBean);
         builder.targetContext(metadataDefinition)
-                .now(computer.dataMapping.now);
+                .now(computer.dataMapping.now)
+                .conditionMaskOld(false); // We are not interested in old values (deltas are irrelevant in metadata mappings).
         return builder.build();
     }
 
@@ -99,7 +100,9 @@ class ValueMetadataComputation {
             //noinspection unchecked
             sourceItem.addAll(getSourceValues(sourcePath));
             //noinspection unchecked
-            builder.additionalSource(new Source<>(sourceItem, null, null, sourceName, sourceDefinition));
+            Source<?, ?> source = new Source<>(sourceItem, null, null, sourceName, sourceDefinition);
+            source.recompute();
+            builder.additionalSource(source);
         }
     }
 
