@@ -55,10 +55,8 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
     private void initLayout(){
         setOutputMarkupId(true);
 
-        TextPanel<String> referenceTextValueField = new TextPanel<String>(ID_REFERENCE_VALUE_TEXT_FIELD,
-                Model.of(WebComponentUtil.getReferenceObjectTextValue(getModelObject(), getPageBase())));
-        referenceTextValueField.add(AttributeAppender.append("title",
-                Model.of(WebComponentUtil.getReferenceObjectTextValue(getModelObject(), getPageBase()))));
+        TextPanel<String> referenceTextValueField = new TextPanel<String>(ID_REFERENCE_VALUE_TEXT_FIELD, getReferenceTextValueModel());
+        referenceTextValueField.add(AttributeAppender.append("title", getReferenceTextValueModel()));
         referenceTextValueField.setOutputMarkupId(true);
         referenceTextValueField.setEnabled(false);
         add(referenceTextValueField);
@@ -106,6 +104,15 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
         value.setRenderBodyOnly(true);
         popoverBody.add(value);
 
+    }
+
+    private LoadableModel<String> getReferenceTextValueModel(){
+        return new LoadableModel<String>() {
+            @Override
+            protected String load() {
+                return WebComponentUtil.getReferenceObjectTextValue(getModelObject(), getPageBase());
+            }
+        };
     }
 
     public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
