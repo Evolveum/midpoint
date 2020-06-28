@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           oid="4231f36d-4e57-4597-8b6d-a7ce3c709616">
+    <name>user-sensitivity-propagation</name>
+    <archetypePolicy>
+        <objectTemplateRef oid="60b83ded-57ea-4987-9d88-af13d2862649"/> <!-- template-user-sensitivity-propagation -->
+    </archetypePolicy>
+</archetype>
