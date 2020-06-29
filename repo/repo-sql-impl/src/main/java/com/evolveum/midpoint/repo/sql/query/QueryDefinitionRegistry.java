@@ -152,7 +152,7 @@ public final class QueryDefinitionRegistry implements DebugDumpable {
     public JpaEntityDefinition findEntityDefinition(QName typeName) {
         Objects.requireNonNull(typeName, "Type name must not be null.");
 
-        JpaEntityDefinition def = QNameUtil.getKey(DEFINITIONS, typeName);
+        JpaEntityDefinition def = QNameUtil.getByQName(DEFINITIONS, typeName);
         if (def == null) {
             throw new IllegalStateException("Type " + typeName + " couldn't be found in type registry");
         }

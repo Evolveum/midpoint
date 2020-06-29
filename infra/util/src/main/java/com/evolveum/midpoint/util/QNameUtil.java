@@ -94,9 +94,15 @@ public class QNameUtil {
         return hasNamespace(name)
                 ? name
                 : new QName(defaultNamespace, name.getLocalPart());
+
     }
 
-    public static <V> V getKey(@NotNull Map<QName, V> map, @NotNull QName key) {
+    /**
+     * Finds value in the map by QName key using {@link #match(QName, QName)}.
+     * Fails if multiple matches are found.
+     * Returns {@code null} if no match is found.
+     */
+    public static <V> V getByQName(@NotNull Map<QName, V> map, @NotNull QName key) {
         if (hasNamespace(key)) {
             return map.get(key);
         }
