@@ -589,6 +589,44 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="MetadataHandlingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines handling of a metadata items. (TODO choose better name for this type.)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="item" type="tns:MetadataItemDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines handling of a metadata item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mapping" type="tns:MetadataMappingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of metadata mappings. Should be used only when really needed:
+                        Metadata item definition is the preferred way how to express metadata handling.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="applicability" type="tns:MetadataProcessingApplicabilitySpecificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Where to apply metadata definitions from this template.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="metadataHandling" type="tns:MetadataHandlingType"/>
+
     <xsd:complexType name="MetadataItemDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -715,5 +753,4 @@
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
     <xsd:element name="mappingItemApplicabilitySpecification" type="tns:MetadataProcessingItemApplicabilitySpecificationType"/>
-
 </xsd:schema>

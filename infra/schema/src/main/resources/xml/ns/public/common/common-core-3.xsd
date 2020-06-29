@@ -9882,28 +9882,6 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractMappingType">
                 <xsd:sequence>
-                    <xsd:element name="metadataTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Metadata template to be used for handling metadata for this mapping.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="metadataItem" type="tns:MetadataItemDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Explicit definition of handling of a metadata item.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
                     <xsd:element name="metadataMapping" type="tns:MetadataMappingType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -14767,33 +14745,10 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="metadataItem" type="tns:MetadataItemDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="meta" type="tns:MetadataHandlingType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Definition of handling of a metadata item.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="metadataMapping" type="tns:MetadataMappingType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Definition of metadata mappings. Should be used only when really needed:
-                                Metadata item definition is the preferred way how to express metadata handling.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="metadataApplicability" type="tns:MetadataProcessingApplicabilitySpecificationType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Where to apply metadata definitions from this template.
+                                Definition of handling of a metadata items.
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:experimental>true</a:experimental>
@@ -14838,40 +14793,6 @@
                                 $user - The user object being created.
                                 $account - (optional) the account from which was the user created (if present)
                             </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="metadataTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Metadata template to be used for handling metadata for this mapping.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="metadataItem" type="tns:MetadataItemDefinitionType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Explicit definition of handling of a metadata item.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="metadataMapping" type="tns:MetadataMappingType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Explicit definition of metadata mappings. Should be used only when really needed:
-                                Metadata item definition is the preferred way how to express metadata handling.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -15213,19 +15134,6 @@
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
                         <a:displayName>ArchetypePolicyType.objectTemplateRef</a:displayName>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="metadataTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Specifies metadata processing.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
-                        <a:displayName>ArchetypePolicyType.metadataTemplateRef</a:displayName>
-                        <a:since>4.2</a:since>
-                        <a:experimental>true</a:experimental>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -16634,20 +16542,6 @@
                             <xsd:appinfo>
                                 <a:displayName>SystemConfigurationType.audit</a:displayName>
                                 <a:since>4.0</a:since>
-                                <a:experimental>true</a:experimental>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                    <xsd:element name="metadataTemplateRef" type="c:ObjectReferenceType" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Specifies metadata template at the global level.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
-                                <a:displayName>SystemConfigurationType.metadataTemplateRef</a:displayName>
-                                <a:since>4.2</a:since>
                                 <a:experimental>true</a:experimental>
                             </xsd:appinfo>
                         </xsd:annotation>
