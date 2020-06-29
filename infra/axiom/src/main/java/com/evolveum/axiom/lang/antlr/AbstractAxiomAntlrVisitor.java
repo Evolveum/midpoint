@@ -6,51 +6,62 @@
  */
 package com.evolveum.axiom.lang.antlr;
 
-import java.util.Optional;
-import java.util.Set;
-
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomPrefixedName;
-import com.evolveum.axiom.api.stream.AxiomItemStream;
+
 import com.evolveum.axiom.api.stream.AxiomStreamTarget;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
-import com.evolveum.axiom.lang.antlr.AxiomParser.IdentifierContext;
-import com.evolveum.axiom.lang.antlr.AxiomParser.ItemBodyContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.InfraNameContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
-import com.evolveum.axiom.lang.antlr.AxiomParser.MetadataContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.ItemNameContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.ItemValueContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixedNameContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.StringContext;
-import com.evolveum.axiom.lang.spi.AxiomSemanticException;
+
 
 public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
     private final String sourceName;
 
-    private interface StartDelegate {
-        void start(AxiomPrefixedName identifier, SourceLocation location);
-    }
-    private interface EndDelegate {
+    private interface Itemable {
+
+        void start(AxiomPrefixedName name, SourceLocation location);
+
         void end(SourceLocation location);
     }
+
+    private final Itemable item = new Itemable() {
+
+        @Override
+        public void start(AxiomPrefixedName name, SourceLocation location) {
+            delegate().startItem(name, location);
+        }
+
+        @Override
+        public void end(SourceLocation location) {
+            delegate().endItem(location);
+        }
+    };
+
+    private final Itemable infra = new Itemable() {
+
+        @Override
+        public void start(AxiomPrefixedName name, SourceLocation location) {
+            delegate().startInfra(name, location);
+        }
+
+        @Override
+        public void end(SourceLocation location) {
+            delegate().endInfra(location);
+        }
+    };
 
 
     public AbstractAxiomAntlrVisitor(String name) {
         this.sourceName = name;
     }
-
-    private AxiomPrefixedName statementIdentifier(IdentifierContext identifier) {
-        String prefix = nullableText(identifier.prefix());
-        String localName = identifier.localIdentifier().getText();
-        return AxiomPrefixedName.from(prefix, localName);
-
-
-        //AxiomName ret = resolveItemName(prefix, localName);
-        //AxiomSemanticException.check(ret != null, sourceLocation(identifier.start), "Item %s not allowed at this place.", identifier.getText());
-        //return ret;
-    }
-
 
     protected abstract AxiomStreamTarget<AxiomPrefixedName> delegate();
 
@@ -58,18 +69,35 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
         return prefix != null ? prefix.getText() : "";
     }
 
+    private Itemable startItem(ItemNameContext itemName, SourceLocation loc) {
+        InfraNameContext infraName = itemName.infraName();
+        AxiomPrefixedName name;
+        Itemable processor;
+        if(infraName != null) {
+            name = convert(infraName.prefixedName());
+            processor = infra;
+        } else {
+            name = convert(itemName.dataName().prefixedName());
+            processor = item;
+        }
+        processor.start(name, loc);
+        return processor;
+    }
+
+
 
     @Override
     public T visitItem(ItemContext ctx) {
-        AxiomPrefixedName identifier = statementIdentifier(ctx.itemBody().identifier());
-        return processItemBody(identifier, ctx.itemBody(), delegate()::startItem, delegate()::endItem);
+        SourceLocation startLoc = sourceLocation(ctx.itemName().start);
+        Itemable processor = startItem(ctx.itemName(), startLoc);
+        T ret = super.visitItem(ctx);
+        processor.end(sourceLocation(ctx.stop));
+        return ret;
     }
 
-    public T processItemBody(AxiomPrefixedName identifier, ItemBodyContext ctx, StartDelegate start, EndDelegate end) {
-        SourceLocation startLoc = sourceLocation(ctx.identifier().start);
-        start.start(identifier, startLoc);
-
-        ArgumentContext argument = ctx.value().argument();
+    @Override
+    public T visitItemValue(ItemValueContext ctx) {
+        ArgumentContext argument = ctx.argument();
         final Object value;
         final SourceLocation valueStart;
 
@@ -78,26 +106,18 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
             valueStart = sourceLocation(argument.start);
         } else {
             value = null;
-            valueStart = startLoc;
+            valueStart = sourceLocation(ctx.start);
         }
 
         delegate().startValue(value, valueStart);
-        T ret = visitItemBody(ctx);
+        T ret = super.visitItemValue(ctx);
         delegate().endValue(sourceLocation(ctx.stop));
-        end.end(sourceLocation(ctx.stop));
         return ret;
     }
 
-
-    @Override
-    public T visitMetadata(MetadataContext ctx) {
-        AxiomPrefixedName identifier = statementIdentifier(ctx.itemBody().identifier());
-        return processItemBody(identifier, ctx.itemBody(), delegate()::startInfra, delegate()::endInfra);
-    }
-
     private Object convert(ArgumentContext ctx) {
-        if (ctx.identifier() != null) {
-            return (convert(ctx.identifier()));
+        if (ctx.prefixedName() != null) {
+            return (convert(ctx.prefixedName()));
         } else {
             return (convert(ctx.string()));
         }
@@ -105,17 +125,12 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
     @Override
     public final T visitArgument(ArgumentContext ctx) {
-
         return defaultResult();
     }
 
-    private AxiomPrefixedName convert(IdentifierContext argument) {
-        return argumentIdentifier(argument);
-    }
-
-    private AxiomPrefixedName argumentIdentifier(IdentifierContext identifier) {
-        String prefix = nullableText(identifier.prefix());
-        String localName = identifier.localIdentifier().getText();
+    private AxiomPrefixedName convert(PrefixedNameContext value) {
+        String prefix = nullableText(value.prefix());
+        String localName = value.localName().getText();
         return AxiomPrefixedName.from(prefix, localName);
     }
 
@@ -125,8 +140,8 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     }
 
     static String convertToString(ArgumentContext context) {
-       if(context.identifier() != null) {
-           return context.identifier().getText();
+       if(context.prefixedName() != null) {
+           return context.prefixedName().getText();
        }
        return convert(context.string());
     }

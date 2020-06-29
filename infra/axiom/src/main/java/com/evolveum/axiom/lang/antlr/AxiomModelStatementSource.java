@@ -46,8 +46,8 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
     public static AxiomModelStatementSource from(String sourceName, CharStream stream) throws AxiomSyntaxException {
         try {
         ItemContext root = AxiomAntlrStatementSource.contextFrom(sourceName, stream);
-        String name = root.itemBody().value().argument().identifier().localIdentifier().getText();
-        return new AxiomModelStatementSource(sourceName, root, name, namespace(root.itemBody().value()), imports(root.itemBody().value()));
+        String name = root.itemValue().argument().prefixedName().localName().getText();
+        return new AxiomModelStatementSource(sourceName, root, name, namespace(root.itemValue()), imports(root.itemValue()));
         } catch (AxiomSyntaxException e) {
             throw e;
         } catch (Exception e) {
@@ -81,11 +81,11 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
     }
 
     // FIXME: Use schema & AxiomItemTarget to get base model data?
-    public static Map<String,String> imports(AxiomParser.ValueContext root) {
+    public static Map<String,String> imports(AxiomParser.ItemValueContext root) {
         Map<String,String> prefixMap = new HashMap<>();
-        root.item().stream().filter(s -> IMPORT.equals(s.itemBody().identifier().getText())).forEach(c -> {
-            String namespace = AxiomAntlrVisitor2.convert(c.itemBody().value().argument().string());
-            String prefix = prefix(c.itemBody().value());
+        root.item().stream().filter(s -> IMPORT.equals(s.itemName().getText())).forEach(c -> {
+            String namespace = AxiomAntlrVisitor2.convert(c.itemValue().argument().string());
+            String prefix = prefix(c.itemValue());
             prefixMap.put(prefix, namespace);
         });
         prefixMap.put("",namespace(root));
@@ -93,16 +93,16 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
     }
 
 
-    private static String namespace(AxiomParser.ValueContext c) {
+    private static String namespace(AxiomParser.ItemValueContext c) {
         return AxiomAntlrVisitor2.convert(c.item()
-                .stream().filter(s -> NAMESPACE.equals(s.itemBody().identifier().getText()))
-                .findFirst().get().itemBody().value().argument().string());
+                .stream().filter(s -> NAMESPACE.equals(s.itemName().getText()))
+                .findFirst().get().itemValue().argument().string());
     }
 
-    private static String prefix(AxiomParser.ValueContext c) {
+    private static String prefix(AxiomParser.ItemValueContext c) {
         return AbstractAxiomAntlrVisitor.convertToString(c.item()
-                .stream().filter(s -> PREFIX.equals(s.itemBody().identifier().getText()))
-                .findFirst().get().itemBody().value().argument());
+                .stream().filter(s -> PREFIX.equals(s.itemName().getText()))
+                .findFirst().get().itemValue().argument());
     }
 
     @Override
