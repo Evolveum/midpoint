@@ -8,7 +8,7 @@ import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
-public class AxiomValueIdentifier {
+public class AxiomValueIdentifier implements AxiomPath.Value {
 
     private final Map<AxiomName, Object> components;
 
@@ -71,4 +71,8 @@ public class AxiomValueIdentifier {
         return from(components.build());
     }
 
+    @Override
+    public AxiomValueIdentifier identifier() {
+        return this;
+    }
 }

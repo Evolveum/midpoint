@@ -16,6 +16,7 @@ import com.google.common.collect.Iterables;
 public interface AxiomItem<V> {
 
     AxiomName name();
+
     Optional<AxiomItemDefinition> definition();
 
     Collection<? extends AxiomValue<V>> values();
@@ -41,6 +42,5 @@ public interface AxiomItem<V> {
     static <V> AxiomItem<V> from(AxiomItemDefinition def, AxiomValue<V> value) {
         return AxiomItemImpl.from(def, Collections.singleton(value));
     }
-
 
 }
