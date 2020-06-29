@@ -46,7 +46,7 @@ public class SelectQueryBuilder {
     private void addPaging(int firstResult, int maxResult) {
         Objects.requireNonNull(database, "Database is null");
         StringBuilder sb = new StringBuilder();
-        String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
+        String queryWithoutStringValue = query.replaceAll("\".*?\"|'.*?'|`.*`", "");
         if (Database.SQLSERVER.equals(database)) {
             if (queryWithoutStringValue.toLowerCase().contains(" offset ") || queryWithoutStringValue.contains(" fetch ")) {
                 throw new IllegalArgumentException("query already contains offset or fetch");
@@ -79,7 +79,7 @@ public class SelectQueryBuilder {
         Objects.requireNonNull(database, "Database is null");
 
         StringBuilder sb = new StringBuilder();
-        String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
+        String queryWithoutStringValue = query.replaceAll("\".*?\"|'.*?'|`.*`", "");
         if (Database.H2.equals(database) || Database.MARIADB.equals(database)
                 || Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
             if (queryWithoutStringValue.contains(" offset ")) {
@@ -105,7 +105,7 @@ public class SelectQueryBuilder {
     private void addMaxResult(int maxResult) {
         Objects.requireNonNull(database, "Database is null");
         StringBuilder sb = new StringBuilder();
-        String queryWithoutStringValue = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
+        String queryWithoutStringValue = query.replaceAll("\".*?\"|'.*?'|`.*`", "");
         if (Database.H2.equals(database) || Database.MARIADB.equals(database)
                 || Database.MYSQL.equals(database) || Database.POSTGRESQL.equals(database)) {
             if (queryWithoutStringValue.toLowerCase().contains(" limit ")) {
@@ -131,7 +131,7 @@ public class SelectQueryBuilder {
     }
 
     public void addParameter(String name, Object value) {
-        String workQuery = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
+        String workQuery = query.replaceAll("\".*?\"|'.*?'|`.*`", "");
         addParameter(workQuery, name, value);
     }
 
@@ -170,7 +170,7 @@ public class SelectQueryBuilder {
 
     public void addParameters(Map<String, Object> parameters) {
         for (String name : parameters.keySet()) {
-            String workQuery = query.replaceAll("\".*?\"|\'.*?\'|`.*`", "");
+            String workQuery = query.replaceAll("\".*?\"|'.*?'|`.*`", "");
             addParameter(workQuery, name, parameters.get(name));
         }
     }
