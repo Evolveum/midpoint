@@ -17,8 +17,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.datatype.Duration;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
@@ -104,8 +103,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     @Override
     public void audit(AuditEventRecord record, Task task) {
-        Validate.notNull(record, "Audit event record must not be null.");
-        Validate.notNull(task, "Task must not be null.");
+        Objects.requireNonNull(record, "Audit event record must not be null.");
+        Objects.requireNonNull(task, "Task must not be null.");
 
         final String operation = "audit";
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
@@ -360,6 +359,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                             // TODO what if original name (in audit log) differs from the current one (in repo) ?
                             audit.setInitiator(resolve(session, resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
+                                    // TODO: when JDK-8 is gone use Objects.requireNonNullElse
                                     defaultIfNull(RObjectType.values()[resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)], RObjectType.FOCUS)));
                             audit.setAttorney(resolve(session, resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.FOCUS));
@@ -545,8 +545,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     // Hibernate-based
     @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
-        Validate.notNull(policy, "Cleanup policy must not be null.");
-        Validate.notNull(parentResult, "Operation result must not be null.");
+        Objects.requireNonNull(policy, "Cleanup policy must not be null.");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         // TODO review monitoring performance of these cleanup operations
         //  It looks like the attempts (and wasted time) are not counted correctly

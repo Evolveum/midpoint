@@ -7,11 +7,12 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author mederly

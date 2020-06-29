@@ -15,7 +15,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import javax.persistence.*;
 
-import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
@@ -441,8 +440,8 @@ public class RAuditEventRecord implements Serializable {
             SystemConfigurationAuditType auditConfiguration)
             throws DtoTranslationException {
 
-        Validate.notNull(record, "Audit event record must not be null.");
-        Validate.notNull(prismContext, "Prism context must not be null.");
+        Objects.requireNonNull(record, "Audit event record must not be null.");
+        Objects.requireNonNull(prismContext, "Prism context must not be null.");
 
         RAuditEventRecord repo = new RAuditEventRecord();
 
@@ -512,13 +511,11 @@ public class RAuditEventRecord implements Serializable {
                 ObjectDelta<?> objectDelta = delta.getObjectDelta();
                 for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
                     ItemPath path = itemDelta.getPath();
-                    if (path != null) {        // TODO what if empty?
-                        CanonicalItemPath canonical = prismContext.createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
-                        for (int i = 0; i < canonical.size(); i++) {
-                            RAuditItem changedItem = RAuditItem.toRepo(repo, canonical.allUpToIncluding(i).asString());
-                            changedItem.setTransient(isTransient);
-                            repo.getChangedItems().add(changedItem);
-                        }
+                    CanonicalItemPath canonical = prismContext.createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
+                    for (int i = 0; i < canonical.size(); i++) {
+                        RAuditItem changedItem = RAuditItem.toRepo(repo, canonical.allUpToIncluding(i).asString());
+                        changedItem.setTransient(isTransient);
+                        repo.getChangedItems().add(changedItem);
                     }
                 }
 
@@ -587,9 +584,7 @@ public class RAuditEventRecord implements Serializable {
         for (RObjectDeltaOperation rodo : repo.getDeltas()) {
             try {
                 ObjectDeltaOperation odo = RObjectDeltaOperation.fromRepo(rodo, prismContext, useUtf16);
-                if (odo != null) {
-                    odos.add(odo);
-                }
+                odos.add(odo);
             } catch (Exception ex) {
 
                 // TODO: for now thi is OK, if we cannot parse detla, just skipp
@@ -616,7 +611,7 @@ public class RAuditEventRecord implements Serializable {
     public static SingleSqlQuery toRepo(AuditEventRecord record, Map<String, String> customColumn)
             throws DtoTranslationException {
 
-        Validate.notNull(record, "Audit event record must not be null.");
+        Objects.requireNonNull(record, "Audit event record must not be null.");
         InsertQueryBuilder queryBulder = new InsertQueryBuilder(TABLE_NAME);
         if (record.getRepoId() != null) {
             queryBulder.addParameter(ID_COLUMN_NAME, record.getRepoId());

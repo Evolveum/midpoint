@@ -19,8 +19,7 @@ import javax.persistence.Table;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.NamedQueries;
 import org.hibernate.annotations.NamedQuery;
 import org.hibernate.annotations.*;
@@ -651,8 +650,8 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     static void copyObjectInformationFromJAXB(ObjectType jaxb, RObject repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
 
         repo.setTransient(generatorResult.isGeneratedOid());
         repo.setOid(jaxb.getOid());
@@ -664,8 +663,8 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         repo.setSubtype(RUtil.listToSet(jaxb.getSubtype()));
 
         String strVersion = jaxb.getVersion();
-        int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb
-                .getVersion()) : 0;
+        int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*")
+                ? Integer.parseInt(jaxb.getVersion()) : 0;
         repo.setVersion(version);
 
         repo.getParentOrgRef().addAll(RUtil.toRObjectReferenceSet(jaxb.getParentOrgRef(),
