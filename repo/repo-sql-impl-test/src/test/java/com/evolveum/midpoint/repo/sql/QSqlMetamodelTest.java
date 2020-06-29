@@ -36,6 +36,7 @@ import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
  * on the matching bean, but for dynamic extension attributes column name is used as property name.
  * This is fine for SQLs not selecting the entity via single entity path but using the column paths.
  */
+// TODO MID-6319 reconsider
 public class QSqlMetamodelTest extends AbstractUnitTest {
 
     // Demo entity, implemented without backing bean (has itself as type parameter)

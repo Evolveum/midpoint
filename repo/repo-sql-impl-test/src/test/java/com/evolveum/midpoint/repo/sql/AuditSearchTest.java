@@ -11,8 +11,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -26,6 +28,10 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
     @Override
     public void initSystem() throws Exception {
+        AuditEventRecord record = new AuditEventRecord();
+        record.addPropertyValue("prop", "val");
+        auditService.audit(record, NullTaskImpl.INSTANCE);
+
         // TODO add some sample audits here
     }
 

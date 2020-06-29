@@ -922,9 +922,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         // TODO MID-6319
         // support for options, skipped for now
         // do something with the OperationResult... skipped for now
-        // TODO why the duality of AuditEventRecordType and AuditEventRecord?
-        SearchResultList<AuditEventRecordType> result =
-                null;
+
         try {
             return sqlQueryExecutor.list(AuditEventRecordType.class, query);
         } catch (SQLException e) {
