@@ -2,8 +2,8 @@ package com.evolveum.midpoint.repo.sql.pure;
 
 import static com.querydsl.core.group.GroupBy.groupBy;
 
-import static com.evolveum.midpoint.repo.sql.pure.metamodel.QAuditDelta.M_AUDIT_DELTA;
-import static com.evolveum.midpoint.repo.sql.pure.metamodel.QAuditEventRecord.M_AUDIT_EVENT;
+import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditDelta.M_AUDIT_DELTA;
+import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.M_AUDIT_EVENT;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -16,14 +16,12 @@ import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.QMap;
-import com.querydsl.sql.Configuration;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQuery;
-import com.querydsl.sql.SQLTemplates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.repo.sql.pure.metamodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 
 // TODO MID-6319 must go after done
 @Deprecated

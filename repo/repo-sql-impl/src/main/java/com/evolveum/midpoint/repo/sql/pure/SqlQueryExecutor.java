@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.DataSourceFactory;
-import com.evolveum.midpoint.repo.sql.pure.metamodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 

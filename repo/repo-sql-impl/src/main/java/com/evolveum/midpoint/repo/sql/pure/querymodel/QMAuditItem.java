@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql.pure.metamodel;
+package com.evolveum.midpoint.repo.sql.pure.querymodel;
 
 import static com.querydsl.core.types.PathMetadataFactory.*;
 
