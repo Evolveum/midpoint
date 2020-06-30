@@ -78,8 +78,10 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
                     LOGGER.warn("Unable to find search filter type");
                 }
             }
-            return new SearchFilterConfigurationPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-                    WebComponentUtil.qnameToClass(panelCtx.getPageBase().getPrismContext(), filterType));
+            if (filterType != null) {
+                return new SearchFilterConfigurationPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
+                        WebComponentUtil.qnameToClass(panelCtx.getPageBase().getPrismContext(), filterType == null ? ObjectType.COMPLEX_TYPE : filterType));
+            }
         }
         return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 10);
     }

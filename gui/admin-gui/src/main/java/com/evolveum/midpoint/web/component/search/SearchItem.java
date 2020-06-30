@@ -8,12 +8,16 @@
 package com.evolveum.midpoint.web.component.search;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -33,7 +37,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
     public static final String F_VALUES = "values";
 
     public enum Type {
-        TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE
+        TEXT, BOOLEAN, ENUM, BROWSER, REFERENCE, FILTER
     }
 
     private Search search;
@@ -41,6 +45,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
     private ItemPath path;
     private ItemDefinition definition;
     private DisplayableValue<T> value;
+    private SearchItemType predefinedFilter;
 
     //TODO: think about dividing searchItem to searchProperty, searchReference?
     private List<QName> allowedRelations;
@@ -63,6 +68,11 @@ public class SearchItem<T extends Serializable> implements Serializable {
         this.allowedRelations = allowedRelations;
     }
 
+    public SearchItem(Search search, SearchItemType predefinedFilter) {
+        this.search = search;
+        this.predefinedFilter = predefinedFilter;
+    }
+
     public ItemPath getPath() {
         return path;
     }
@@ -72,6 +82,9 @@ public class SearchItem<T extends Serializable> implements Serializable {
     }
 
     public String getName() {
+        if (predefinedFilter != null){
+            return WebComponentUtil.getTranslatedPolyString(predefinedFilter.getDisplayName());
+        }
         String key = definition.getDisplayName();
         if (StringUtils.isEmpty(key)) {
             StringBuilder sb = new StringBuilder();
@@ -94,6 +107,9 @@ public class SearchItem<T extends Serializable> implements Serializable {
     }
 
     public Type getType() {
+        if (predefinedFilter != null){
+            return Type.FILTER;
+        }
         if (definition instanceof PrismReferenceDefinition) {
             return Type.REFERENCE;
         }
@@ -142,6 +158,14 @@ public class SearchItem<T extends Serializable> implements Serializable {
         this.fixed = fixed;
     }
 
+    public SearchItemType getPredefinedFilter() {
+        return predefinedFilter;
+    }
+
+    public void setPredefinedFilter(SearchItemType predefinedFilter) {
+        this.predefinedFilter = predefinedFilter;
+    }
+
     public boolean isEditWhenVisible() {
         return editWhenVisible;
     }
@@ -161,6 +185,7 @@ public class SearchItem<T extends Serializable> implements Serializable {
                 .append("search", search)
                 .append("path", path)
                 .append("value", value)
+                .append("predefinedFilter", predefinedFilter)
                 .toString();
     }
 }

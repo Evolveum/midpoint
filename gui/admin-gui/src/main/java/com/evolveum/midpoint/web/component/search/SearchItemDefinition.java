@@ -11,18 +11,23 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 public class SearchItemDefinition implements Serializable {
 
     private ItemPath path;
     private ItemDefinition def;
-
+    private SearchItemType predefinedFilter;
     private List<?> allowedValues;
 
     public SearchItemDefinition(ItemPath path, ItemDefinition def, List<?> allowedValues) {
         this.path = path;
         this.def = def;
         this.allowedValues = allowedValues;
+    }
+
+    public SearchItemDefinition(SearchItemType predefinedFilter) {
+        this.predefinedFilter = predefinedFilter;
     }
 
     public ItemPath getPath() {
@@ -37,5 +42,11 @@ public class SearchItemDefinition implements Serializable {
         return allowedValues;
     }
 
+    public SearchItemType getPredefinedFilter() {
+        return predefinedFilter;
+    }
 
+    public void setPredefinedFilter(SearchItemType predefinedFilter) {
+        this.predefinedFilter = predefinedFilter;
+    }
 }

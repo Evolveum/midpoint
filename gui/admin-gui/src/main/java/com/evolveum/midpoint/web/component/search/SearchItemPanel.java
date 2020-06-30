@@ -109,7 +109,6 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         Component searchItemField = null;
         SearchItem<T> item = getModelObject();
         IModel<List<DisplayableValue<T>>> choices = null;
-        PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition(), getPageBase());
         switch (item.getType()) {
             case REFERENCE:
                 searchItemField  = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value.value"),
@@ -117,6 +116,9 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
                 break;
             case BOOLEAN:
                 choices = (IModel) createBooleanChoices();
+            case FILTER:
+                searchItemField = new FilterSearchItemPanel(ID_SEARCH_ITEM_FIELD, getModel());
+                break;
             case ENUM:
                 if (choices == null) {
                     choices = new ListModel<>(item.getAllowedValues());
@@ -143,6 +145,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
                 }, true);
                 break;
             case TEXT:
+                PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition(), getPageBase());
                 if (lookupTable != null){
                     searchItemField = new AutoCompleteTextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"), String.class,
                             true, lookupTable.asObjectable()) {

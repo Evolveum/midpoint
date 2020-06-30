@@ -15,6 +15,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
@@ -153,6 +155,12 @@ public class Search implements Serializable, DebugDumpable {
             availableDefinitions.remove(itemToRemove);
         }
 
+        return item;
+    }
+
+    public SearchItem addItem(SearchItemType predefinedFilter) {
+        SearchItem item = new SearchItem(this, predefinedFilter);
+        items.add(item);
         return item;
     }
 
