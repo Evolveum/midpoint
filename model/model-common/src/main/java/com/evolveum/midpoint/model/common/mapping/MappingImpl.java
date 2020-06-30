@@ -7,10 +7,15 @@
 
 package com.evolveum.midpoint.model.common.mapping;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
 
 /**
  * (Traditional) data mapping.
@@ -25,12 +30,31 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
         super(prototype);
     }
 
-    ValueMetadataComputer createValueMetadataComputer() {
-        if (mappingBean.getMetadataMapping().isEmpty()) {
-            return null; // temporary (metadata handling can be inherited - later)
+    ValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException {
+        ValueMetadataProcessingSpec processingSpec = createProcessingSpec(result);
+        if (processingSpec.isEmpty()) {
+            return null;
         } else {
-            return new SimpleValueMetadataComputer(this);
+            return new MappingValueMetadataComputerImpl(processingSpec, this);
         }
+    }
+
+    private ValueMetadataProcessingSpec createProcessingSpec(OperationResult result) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException {
+        ValueMetadataProcessingSpec processingSpec = new ValueMetadataProcessingSpec();
+        ModelContext<?> lensContext = ModelExpressionThreadLocalHolder.getLensContext();
+        if (lensContext != null) {
+            ObjectTemplateType focusTemplate = lensContext.getFocusTemplate();
+            if (focusTemplate != null) {
+                // TODO process applicability to specific data item
+                processingSpec.addFromObjectTemplate(focusTemplate, objectResolver, getMappingContextDescription(), task, result);
+            }
+        }
+        processingSpec.addMappings(mappingBean.getMetadataMapping());
+        return processingSpec;
     }
 
     @Override

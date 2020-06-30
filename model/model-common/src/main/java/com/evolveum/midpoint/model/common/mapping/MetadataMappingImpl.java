@@ -10,6 +10,7 @@ package com.evolveum.midpoint.model.common.mapping;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
 
 /**
@@ -25,7 +26,7 @@ public class MetadataMappingImpl<V extends PrismValue, D extends ItemDefinition>
         super(prototype);
     }
 
-    ValueMetadataComputer createValueMetadataComputer() {
+    ValueMetadataComputer createValueMetadataComputer(OperationResult result) {
         return null;
     }
 

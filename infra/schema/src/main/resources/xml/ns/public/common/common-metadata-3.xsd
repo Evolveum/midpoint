@@ -679,21 +679,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractMappingType">
-                <xsd:sequence>
-                    <xsd:element name="applicability" type="tns:MetadataProcessingApplicabilitySpecificationType">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Where to apply this metadata item definition.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:experimental>true</a:experimental>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                </xsd:sequence>
-            </xsd:extension>
+            <xsd:extension base="tns:AbstractMappingType"/>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="metadataMapping" type="tns:MappingType"/>

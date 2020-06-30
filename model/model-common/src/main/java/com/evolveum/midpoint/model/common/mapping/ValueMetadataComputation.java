@@ -38,13 +38,13 @@ import java.util.Objects;
 class ValueMetadataComputation {
 
     @NotNull private final List<PrismValue> valuesTuple;
-    @NotNull private final SimpleValueMetadataComputer computer;
+    @NotNull private final MappingValueMetadataComputerImpl computer;
     @NotNull private final OperationResult result;
     @NotNull private final PrismContext prismContext;
     @NotNull private final PrismContainerValue<ValueMetadataType> outputMetadata;
     @NotNull private final PrismContainerDefinition<ValueMetadataType> metadataDefinition;
 
-    ValueMetadataComputation(@NotNull List<PrismValue> valuesTuple, SimpleValueMetadataComputer computer, @NotNull OperationResult result) {
+    ValueMetadataComputation(@NotNull List<PrismValue> valuesTuple, MappingValueMetadataComputerImpl computer, @NotNull OperationResult result) {
         this.valuesTuple = valuesTuple;
         this.computer = computer;
         this.result = result;
@@ -58,8 +58,7 @@ class ValueMetadataComputation {
 
     public ValueMetadata execute() throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        List<MetadataMappingType> mappingBeans = computer.dataMapping.getMetadataMappings();
-        for (MetadataMappingType mappingBean : mappingBeans) {
+        for (MetadataMappingType mappingBean : computer.processingSpec.getMappings()) {
             processMapping(mappingBean);
         }
         return MidpointValueMetadataFactory.createFrom(outputMetadata);
@@ -117,7 +116,7 @@ class ValueMetadataComputation {
         return sourceDefinitionMultivalued;
     }
 
-    private Collection<?> getSourceValues(ItemPath sourcePath) throws SchemaException {
+    private Collection<?> getSourceValues(ItemPath sourcePath) {
         Collection<PrismValue> values = new HashSet<>();
         for (PrismValue dataValue : valuesTuple) {
             if (dataValue != null) {
