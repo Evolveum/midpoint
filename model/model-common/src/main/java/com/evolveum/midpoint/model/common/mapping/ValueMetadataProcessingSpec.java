@@ -7,19 +7,17 @@
 
 package com.evolveum.midpoint.model.common.mapping;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 import com.evolveum.midpoint.model.common.util.ObjectTemplateIncludeProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataItemDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -35,6 +33,11 @@ public class ValueMetadataProcessingSpec {
 
     @NotNull private final Collection<MetadataMappingType> mappings = new ArrayList<>();
     @NotNull private final Collection<MetadataItemDefinitionType> itemDefinitions = new ArrayList<>();
+
+    /**
+     * Item processing for given metadata items. Lazily evaluated.
+     */
+    private Map<ItemPath, ItemProcessingType> itemProcessingMap;
 
     public boolean isEmpty() {
         return false;
@@ -89,5 +92,59 @@ public class ValueMetadataProcessingSpec {
 
     public Collection<MetadataItemDefinitionType> getItemDefinitions() {
         return itemDefinitions;
+    }
+
+    private void computeItemProcessingMapIfNeeded() throws SchemaException {
+        if (itemProcessingMap == null) {
+            computeItemProcessingMap();
+        }
+    }
+
+    private void computeItemProcessingMap() throws SchemaException {
+        itemProcessingMap = new HashMap<>();
+        for (MetadataItemDefinitionType item : itemDefinitions) {
+            if (item.getRef() == null) {
+                throw new SchemaException("No 'ref' in item definition: " + item);
+            }
+            ItemProcessingType processing = getProcessingOfItem(item);
+            if (processing != null) {
+                itemProcessingMap.put(item.getRef().getItemPath(), processing);
+            }
+        }
+    }
+
+    /**
+     * Extracts processing information from specified item definition.
+     */
+    private ItemProcessingType getProcessingOfItem(MetadataItemDefinitionType item) throws SchemaException {
+        Set<ItemProcessingType> processing = new HashSet<>();
+        for (PropertyLimitationsType limitation : item.getLimitations()) {
+            if (limitation.getLayer().isEmpty() || limitation.getLayer().contains(LayerType.MODEL)) {
+                if (limitation.getProcessing() != null) {
+                    processing.add(limitation.getProcessing());
+                }
+            }
+        }
+        return MiscUtil.extractSingleton(processing,
+                () -> new SchemaException("Contradicting 'processing' values for " + item + ": " + processing));
+    }
+
+    /**
+     * Looks up processing information for given path. Proceeds from the most specific to most abstract (empty) path.
+     */
+    private ItemProcessingType getProcessing(ItemPath itemPath) throws SchemaException {
+        computeItemProcessingMapIfNeeded();
+        while (!itemPath.isEmpty()) {
+            ItemProcessingType processing = ItemPathCollectionsUtil.getFromMap(itemProcessingMap, itemPath);
+            if (processing != null) {
+                return processing;
+            }
+            itemPath = itemPath.allExceptLast();
+        }
+        return null;
+    }
+
+    boolean isFullProcessing(ItemPath itemPath) throws SchemaException {
+        return getProcessing(itemPath) == ItemProcessingType.FULL;
     }
 }

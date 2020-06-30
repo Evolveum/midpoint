@@ -1,0 +1,42 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                oid="00301846-fe73-476a-83be-6bfe13251b4a">
+    <name>template-creation-metadata-recording</name>
+
+    <mapping>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>givenName + ' ' + familyName</code>
+            </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+    </mapping>
+
+    <meta>
+        <item>
+            <ref>storage/createTimestamp</ref>
+            <limitations>
+                <processing>full</processing>
+            </limitations>
+        </item>
+        <applicability>
+            <include>
+                <path>fullName</path>
+            </include>
+        </applicability>
+    </meta>
+</objectTemplate>

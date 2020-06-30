@@ -8370,11 +8370,22 @@
             <xsd:enumeration value="auto">
                 <xsd:annotation>
                     <xsd:documentation>
-                        All usual processing of the item is applied. Or automated presentation,
-                        transformation or any other processing will take place.
+                        All usual processing of the item is applied.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="AUTO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Full processing of the item is applied. For GUI this means that
+                        automated presentation takes place. For metadata the meaning is that
+                        built-in mappings are applied.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
