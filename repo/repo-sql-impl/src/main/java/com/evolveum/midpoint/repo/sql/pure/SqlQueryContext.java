@@ -1,0 +1,42 @@
+package com.evolveum.midpoint.repo.sql.pure;
+
+import static com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor.QUERYDSL_CONFIGURATION;
+
+import java.sql.Connection;
+
+import com.querydsl.core.types.Predicate;
+import com.querydsl.sql.SQLQuery;
+
+import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
+
+/**
+ * Context information about SQL query.
+ * Works as a kind of accumulator where information are added as the object query is interpreted.
+ */
+public class SqlQueryContext extends SqlPathContext {
+
+    private final SQLQuery<?> query;
+
+    public SqlQueryContext(
+            FlexibleRelationalPathBase<?> root,
+            QueryModelMapping<?, ?> rootMapping) {
+        super(root, rootMapping);
+        query = new SQLQuery<>(QUERYDSL_CONFIGURATION).from(root);
+    }
+
+    public FlexibleRelationalPathBase<?> root() {
+        return path();
+    }
+
+    public <T extends FlexibleRelationalPathBase<?>> T root(Class<T> rootType) {
+        return path(rootType);
+    }
+
+    public SQLQuery<?> query(Connection connection) {
+        return query.clone(connection);
+    }
+
+    public void addPredicate(Predicate predicate) {
+        query.where(predicate);
+    }
+}

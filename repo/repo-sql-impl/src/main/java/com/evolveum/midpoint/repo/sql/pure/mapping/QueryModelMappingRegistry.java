@@ -11,10 +11,21 @@ import javax.xml.namespace.QName;
 public class QueryModelMappingRegistry {
 
     private final Map<QName, QueryModelMapping<?, ?>> mappingByQName = new HashMap<>();
+    private final Map<Class<?>, QueryModelMapping<?, ?>> mappingByModelType = new HashMap<>();
 
     public QueryModelMappingRegistry register(
             QName modelTypeQName, QueryModelMapping<?, ?> mapping) {
+
+        // TODO check overrides, throw exception
         mappingByQName.put(modelTypeQName, mapping);
+        mappingByModelType.put(mapping.modelType(), mapping);
+
+        // TODO check defaultAliasName uniqueness
         return this;
+    }
+
+    public <M> QueryModelMapping<M, ?> getByModelType(Class<M> modelType) {
+        //noinspection unchecked
+        return (QueryModelMapping<M, ?>) mappingByModelType.get(modelType);
     }
 }

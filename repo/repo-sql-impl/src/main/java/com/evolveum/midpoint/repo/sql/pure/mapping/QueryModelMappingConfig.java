@@ -10,5 +10,9 @@ public class QueryModelMappingConfig {
     private static final QueryModelMappingRegistry REGISTRY = new QueryModelMappingRegistry()
             .register(AuditEventRecordType.COMPLEX_TYPE, QAuditEventRecordMapping.INSTANCE);
 
+    public static <M> QueryModelMapping<?, ?> getByModelType(Class<M> modelType) {
+        return REGISTRY.getByModelType(modelType);
+    }
+
     // TODO obtain by qname
 }

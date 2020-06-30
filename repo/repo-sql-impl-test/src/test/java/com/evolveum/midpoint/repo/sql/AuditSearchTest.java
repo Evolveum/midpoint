@@ -7,11 +7,14 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
@@ -26,11 +29,31 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AuditSearchTest extends BaseSQLRepoTest {
 
+    public static final long TIMESTAMP_1 = 1577836800000L; // 2020-01-01
+    public static final long TIMESTAMP_2 = 1580515200000L; // 2020-02-01
+    public static final long TIMESTAMP_3 = 1583020800000L; // 2020-03-01
+
     @Override
     public void initSystem() throws Exception {
-        AuditEventRecord record = new AuditEventRecord();
-        record.addPropertyValue("prop", "val");
-        auditService.audit(record, NullTaskImpl.INSTANCE);
+        AuditEventRecord record1 = new AuditEventRecord();
+        record1.addPropertyValue("prop", "val1");
+        record1.setTimestamp(TIMESTAMP_1);
+        record1.setEventType(AuditEventType.ADD_OBJECT);
+        auditService.audit(record1, NullTaskImpl.INSTANCE);
+
+        AuditEventRecord record2 = new AuditEventRecord();
+        record2.addPropertyValue("prop", "val2");
+        record2.setTimestamp(TIMESTAMP_2);
+        record2.setEventType(AuditEventType.MODIFY_OBJECT);
+        auditService.audit(record2, NullTaskImpl.INSTANCE);
+
+        AuditEventRecord record3 = new AuditEventRecord();
+        record3.addPropertyValue("prop", "val3-1");
+        record3.addPropertyValue("prop", "val3-2");
+        record3.addPropertyValue("prop", "val3-3");
+        record3.setTimestamp(TIMESTAMP_3);
+        record3.setEventType(AuditEventType.MODIFY_OBJECT);
+        auditService.audit(record3, NullTaskImpl.INSTANCE);
 
         // TODO add some sample audits here
     }
@@ -39,11 +62,12 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     public void test100SearchAllAuditEvents() throws SchemaException {
         when("Searching audit with query without any conditions");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class).build();
-        SearchResultList<AuditEventRecordType> prismObjects =
+        SearchResultList<AuditEventRecordType> result =
                 auditService.searchObjects(query, null, null);
 
         then("All audit events are returned");
-        System.out.println("prismObjects = " + prismObjects);
+        assertThat(result).hasSize(3);
+        System.out.println("result = " + result);
         // TODO
     }
 
@@ -53,11 +77,12 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_EVENT_TYPE).eq(AuditEventTypeType.ADD_OBJECT)
                 .build();
-        SearchResultList<AuditEventRecordType> prismObjects =
+        SearchResultList<AuditEventRecordType> result =
                 auditService.searchObjects(query, null, null);
 
         then("only audit events of a particular type are returned");
-        System.out.println("prismObjects = " + prismObjects);
+        assertThat(result).hasSize(1);
+        System.out.println("result = " + result);
         // TODO
     }
 }

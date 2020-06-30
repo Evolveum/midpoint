@@ -48,6 +48,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -918,14 +919,14 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @NotNull
     public SearchResultList<AuditEventRecordType> searchObjects(
             ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult parentResult) {
         // TODO MID-6319
         // support for options, skipped for now
         // do something with the OperationResult... skipped for now
-
         try {
-            return sqlQueryExecutor.list(AuditEventRecordType.class, query);
-        } catch (SQLException e) {
+            return sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
+        } catch (QueryException e) {
             // TODO
             throw new RuntimeException(e);
         }
