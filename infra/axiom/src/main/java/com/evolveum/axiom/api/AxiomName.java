@@ -115,4 +115,12 @@ public class AxiomName {
         return from(nsLocalName.next(), nsLocalName.next());
     }
 
+    public static AxiomName builtIn(String localName) {
+        return from(TYPE_NAMESPACE, localName);
+    }
+
+    public static AxiomName data(String localName) {
+        return from(DATA_NAMESPACE, localName);
+    }
+
 }

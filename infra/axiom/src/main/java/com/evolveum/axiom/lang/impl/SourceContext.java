@@ -20,6 +20,7 @@ import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ValueBuilder;
+import com.evolveum.axiom.api.stream.VirtualRootType;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
 
@@ -103,24 +104,7 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     }
 
     @Override
-    public AxiomNameResolver itemResolver() {
-        return axiomAsConditionalDefault().or((prefix, localName) -> {
-            String namespace = imports.get(prefix);
-            if(namespace != null) {
-                return AxiomName.from(namespace, localName);
-            }
-            return null;
-        });
-    }
-
-    @Override
-    public AxiomNameResolver valueResolver() {
-        return AxiomNameResolver.BUILTIN_TYPES.or((prefix, localName) -> {
-            String namespace = imports.get(prefix);
-            if(namespace != null) {
-                return AxiomName.from(namespace, localName);
-            }
-            return null;
-        });
+    public AxiomTypeDefinition currentType() {
+        return VirtualRootType.from(context.bootstrapContext());
     }
 }

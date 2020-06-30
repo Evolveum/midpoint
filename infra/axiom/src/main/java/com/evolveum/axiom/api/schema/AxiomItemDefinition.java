@@ -10,12 +10,17 @@ import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomValue;
+import com.evolveum.axiom.api.AxiomInfraName;
+import com.evolveum.axiom.api.AxiomItemName;
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomPath;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
+import com.evolveum.axiom.api.AxiomPath.Component;
+import com.evolveum.axiom.concepts.Navigable;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomItemDefinition extends AxiomNamedDefinition {
+public interface AxiomItemDefinition extends AxiomNamedDefinition, Navigable<AxiomPath.Component<?>, AxiomItemDefinition> {
 
     AxiomName ROOT_SPACE = AxiomName.axiom("AxiomRootDefinition");
     AxiomName SPACE = AxiomName.axiom("AxiomItemDefinition");
@@ -117,6 +122,17 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition {
 
     default boolean isStructured() {
         return typeDefinition().isComplex();
+    }
+
+    @Override
+    default Optional<? extends AxiomItemDefinition> resolve(Component<?> key) {
+        if(key instanceof AxiomValueIdentifier) {
+            return Optional.of(this);
+        }
+        if(key instanceof AxiomItemName) {
+            return typeDefinition().itemDefinition((AxiomItemName) key);
+        }
+        return Optional.empty();
     }
 
 }

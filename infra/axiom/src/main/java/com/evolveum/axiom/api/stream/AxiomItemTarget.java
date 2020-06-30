@@ -24,22 +24,15 @@ import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.google.common.base.Preconditions;
 
-public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplier<AxiomItem<?>>, AxiomItemStream.TargetWithResolver {
+public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplier<AxiomItem<?>>, AxiomItemStream.TargetWithContext {
 
     private final AxiomSchemaContext context;
-    private final AxiomNameResolver resolver;
     private final AxiomTypeDefinition infraType;
     private Item<?> result;
 
     public AxiomItemTarget(AxiomSchemaContext context) {
-        this(context, AxiomNameResolver.nullResolver());
-
-    }
-
-    public AxiomItemTarget(AxiomSchemaContext context, AxiomNameResolver rootResolver) {
         offer(new Root());
         this.context = context;
-        this.resolver = Preconditions.checkNotNull(rootResolver, "rootResolver");
         infraType = context.valueInfraType();
     }
 
@@ -53,16 +46,6 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         @Override
         public AxiomName name() {
             return AxiomName.axiom("AbstractRoot");
-        }
-
-        @Override
-        public AxiomNameResolver itemResolver() {
-            return axiomAsConditionalDefault().or(resolver);
-        }
-
-        @Override
-        public AxiomNameResolver valueResolver() {
-            return resolver;
         }
 
         @Override
@@ -82,14 +65,20 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomNameResolver infraResolver() {
-            return AxiomNameResolver.defaultNamespaceFromType(infraType);
-        }
-
-        @Override
         public void endValue(SourceLocation loc) {
 
         }
+
+        @Override
+        public AxiomTypeDefinition currentInfra() {
+            return infraType;
+        }
+
+        @Override
+        public AxiomTypeDefinition currentType() {
+            return VirtualRootType.from(context);
+        }
+
 
         @Override
         public ItemBuilder startInfra(AxiomName name, SourceLocation loc) {
@@ -110,21 +99,6 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         @Override
         public AxiomName name() {
             return builder.definition().name();
-        }
-
-        @Override
-        public AxiomNameResolver itemResolver() {
-            return resolver;
-        }
-
-        @Override
-        public AxiomNameResolver valueResolver() {
-            return resolver;
-        }
-
-        @Override
-        public AxiomNameResolver infraResolver() {
-            return AxiomNameResolver.defaultNamespaceFromType(infraType).or(itemResolver());
         }
 
         protected Value<V> onlyValue() {
@@ -151,6 +125,17 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         public AxiomItem<V> get() {
             return builder.get();
         }
+
+        @Override
+        public AxiomTypeDefinition currentInfra() {
+            return infraType;
+        }
+
+        @Override
+        public AxiomTypeDefinition currentType() {
+            return builder.definition().typeDefinition();
+        }
+
     }
 
     private final class SubstitutionItem<V> extends Item<V> {
@@ -187,16 +172,6 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomNameResolver itemResolver() {
-            return resolver;
-        }
-
-        @Override
-        public AxiomNameResolver valueResolver() {
-            return resolver;
-        }
-
-        @Override
         public ValueBuilder startValue(Object value, SourceLocation loc) {
             this.value.setValue((V) value);
             return this.value;
@@ -209,8 +184,13 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomNameResolver infraResolver() {
-            return AxiomNameResolver.defaultNamespaceFromType(infraType);
+        public AxiomTypeDefinition currentInfra() {
+            return infraType;
+        }
+
+        @Override
+        public AxiomTypeDefinition currentType() {
+            return value.currentType();
         }
 
         @Override
@@ -278,28 +258,23 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
         @Override
-        public AxiomNameResolver itemResolver() {
-            return AxiomNameResolver.defaultNamespaceFromType(builder.type()).or(resolver);
-        }
-
-        @Override
-        public AxiomNameResolver valueResolver() {
-            return resolver;
-        }
-
-        @Override
         public Optional<AxiomItemDefinition> childItemDef(AxiomName statement) {
             return builder.type().itemDefinition(statement);
         }
 
         @Override
-        public AxiomNameResolver infraResolver() {
-            return AxiomNameResolver.defaultNamespaceFromType(infraType);
+        public Optional<AxiomItemDefinition> infraItemDef(AxiomName item) {
+            return infraType.itemDefinition(item);
         }
 
         @Override
-        public Optional<AxiomItemDefinition> infraItemDef(AxiomName item) {
-            return infraType.itemDefinition(item);
+        public AxiomTypeDefinition currentInfra() {
+            return infraType;
+        }
+
+        @Override
+        public AxiomTypeDefinition currentType() {
+            return type;
         }
 
         @Override
@@ -341,4 +316,5 @@ public class AxiomItemTarget extends AxiomBuilderStreamTarget implements Supplie
         }
 
     }
+
 }

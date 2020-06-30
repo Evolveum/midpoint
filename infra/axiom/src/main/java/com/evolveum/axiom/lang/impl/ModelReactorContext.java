@@ -25,6 +25,7 @@ import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
+import com.evolveum.axiom.lang.antlr.AntlrDecoderContext;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
@@ -162,7 +163,7 @@ public class ModelReactorContext extends
 
     public ModelReactorContext loadModelFromSource(AxiomModelStatementSource source) {
         SourceContext sourceCtx = new SourceContext(this, source, source.imports(), new CompositeIdentifierSpace());
-        source.stream(new AxiomBuilderStreamTarget(sourceCtx), Optional.empty());
+        source.stream(new AxiomBuilderStreamTarget(sourceCtx), AntlrDecoderContext.BUILTIN_DECODERS);
         return this;
     }
 
@@ -224,6 +225,10 @@ public class ModelReactorContext extends
 
     public void register(AxiomName space, Scope scope, AxiomValueIdentifier key, ValueContext<?> context) {
         globalSpace.register(space, scope, key, context);
+    }
+
+    AxiomSchemaContext bootstrapContext() {
+        return boostrapContext;
     }
 
 }

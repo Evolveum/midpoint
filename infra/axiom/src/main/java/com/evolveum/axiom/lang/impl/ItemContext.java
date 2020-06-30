@@ -21,6 +21,7 @@ import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ItemBuilder;
+import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
@@ -110,16 +111,6 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
         return values.iterator().next().get().value();
     }
 
-    @Override
-    public AxiomNameResolver itemResolver() {
-        return rootImpl().itemResolver();
-    }
-
-    @Override
-    public AxiomNameResolver valueResolver() {
-        return rootImpl().valueResolver();
-    }
-
     public Dependency<AxiomValue<V>> onlyValue0() {
         if(values.size() == 1) {
             return values.iterator().next();
@@ -150,9 +141,13 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
     }
 
     @Override
-    public AxiomNameResolver infraResolver() {
-        // TODO Auto-generated method stub
-        return null;
+    public AxiomTypeDefinition currentType() {
+        return definition.typeDefinition();
+    }
+
+    @Override
+    public AxiomTypeDefinition currentInfra() {
+        return AxiomBuiltIn.Type.AXIOM_VALUE;
     }
 
 }

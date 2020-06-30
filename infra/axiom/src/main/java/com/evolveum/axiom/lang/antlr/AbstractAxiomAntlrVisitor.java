@@ -27,7 +27,7 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
     private interface Itemable {
 
-        void start(AxiomPrefixedName name, SourceLocation location);
+        void start(AxiomParser.PrefixedNameContext name, SourceLocation location);
 
         void end(SourceLocation location);
     }
@@ -35,7 +35,7 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     private final Itemable item = new Itemable() {
 
         @Override
-        public void start(AxiomPrefixedName name, SourceLocation location) {
+        public void start(AxiomParser.PrefixedNameContext name, SourceLocation location) {
             delegate().startItem(name, location);
         }
 
@@ -48,7 +48,7 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     private final Itemable infra = new Itemable() {
 
         @Override
-        public void start(AxiomPrefixedName name, SourceLocation location) {
+        public void start(AxiomParser.PrefixedNameContext name, SourceLocation location) {
             delegate().startInfra(name, location);
         }
 
@@ -63,7 +63,7 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
         this.sourceName = name;
     }
 
-    protected abstract AxiomStreamTarget<AxiomPrefixedName, Object> delegate();
+    protected abstract AxiomStreamTarget<AxiomParser.PrefixedNameContext, AxiomParser.ArgumentContext> delegate();
 
     private String nullableText(ParserRuleContext prefix) {
         return prefix != null ? prefix.getText() : "";
@@ -71,13 +71,13 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
 
     private Itemable startItem(ItemNameContext itemName, SourceLocation loc) {
         InfraNameContext infraName = itemName.infraName();
-        AxiomPrefixedName name;
+        PrefixedNameContext name;
         Itemable processor;
         if(infraName != null) {
-            name = convert(infraName.prefixedName());
+            name = infraName.prefixedName();
             processor = infra;
         } else {
-            name = convert(itemName.dataName().prefixedName());
+            name = (itemName.dataName().prefixedName());
             processor = item;
         }
         processor.start(name, loc);
@@ -98,18 +98,14 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
     @Override
     public T visitItemValue(ItemValueContext ctx) {
         ArgumentContext argument = ctx.argument();
-        final Object value;
         final SourceLocation valueStart;
 
         if(argument != null) {
-            value = convert(argument);
             valueStart = sourceLocation(argument.start);
         } else {
-            value = null;
             valueStart = sourceLocation(ctx.start);
         }
-
-        delegate().startValue(value, valueStart);
+        delegate().startValue(argument, valueStart);
         T ret = super.visitItemValue(ctx);
         delegate().endValue(sourceLocation(ctx.stop));
         return ret;

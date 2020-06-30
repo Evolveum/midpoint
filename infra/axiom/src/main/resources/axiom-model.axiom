@@ -174,7 +174,9 @@ model axiom-model {
         }
 
         item default {
-          type data:DynamicType; // This should somehow be same type as value of type
+          type data:DynamicType { // This should somehow be same type as value of type
+            //path ../type;
+          }
           documentation """
             Declares default value for item.
           """;

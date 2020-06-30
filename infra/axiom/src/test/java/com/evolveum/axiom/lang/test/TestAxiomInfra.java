@@ -15,6 +15,7 @@ import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.stream.AxiomItemTarget;
 import com.evolveum.axiom.concepts.SourceLocation;
+import com.evolveum.axiom.lang.antlr.AntlrDecoderContext;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
@@ -91,7 +92,7 @@ public class TestAxiomInfra extends AbstractReactorTest {
                 .loadModelFromSource(source(PRISM))
                 .computeSchemaContext();
         AxiomItemTarget t = new AxiomItemTarget(context);
-        source(PRISM_TEST).stream(t);
+        source(PRISM_TEST).stream(t, AntlrDecoderContext.BUILTIN_DECODERS);
 
         AxiomItem<?> result = t.get();
         AxiomTypeDefinition typeDef = t.get().onlyValue().type().get();

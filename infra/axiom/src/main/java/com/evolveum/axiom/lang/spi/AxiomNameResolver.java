@@ -27,7 +27,7 @@ public interface AxiomNameResolver {
     final Set<String> BUILTINS = ImmutableSet.of("String","Boolean","Uri", "Integer", "Binary", "DateTime", "QName");
     final AxiomNameResolver BUILTIN_TYPES = (prefix, localName) -> {
         if((prefix == null || prefix.isEmpty()) && BUILTINS.contains(localName)) {
-            return AxiomName.axiom(localName);
+            return AxiomName.builtIn(localName);
         }
         return null;
     };

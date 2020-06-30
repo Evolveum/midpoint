@@ -8,19 +8,15 @@ package com.evolveum.axiom.lang.antlr;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Optional;
-import java.util.Set;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 
-import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.AxiomPrefixedName;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
-import com.evolveum.axiom.api.stream.AxiomItemStream.TargetWithResolver;
-import com.evolveum.axiom.api.stream.AxiomStreamTarget;
+import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
+import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixedNameContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
@@ -63,21 +59,9 @@ public class AxiomAntlrStatementSource {
         return root;
     }
 
-    public final void stream(AxiomItemStream.TargetWithResolver target) {
-        stream(target, Optional.empty());
-    }
-
-    public void stream(AxiomItemStream.TargetWithResolver target, Optional<Set<AxiomName>> emitOnly) {
-        stream(target, emitOnly, AxiomNameResolver.nullResolver());
-    }
-
-    public final void stream(TargetWithResolver target, Optional<Set<AxiomName>> emitOnly,
-            AxiomNameResolver resolver) {
-        stream(target.asPrefixed(resolver));
-    }
-
-    public final void stream(AxiomStreamTarget<AxiomPrefixedName, Object> target) {
-        AxiomAntlrVisitor2<?> visitor = new AxiomAntlrVisitor2<>(sourceName, target);
+    public final void stream(AxiomItemStream.TargetWithContext target, AxiomDecoderContext<PrefixedNameContext, ArgumentContext> codecs, AxiomNameResolver documentLocal) {
+        AntlrStreamToItemStream adapter = new AntlrStreamToItemStream(target, codecs, documentLocal);
+        AxiomAntlrVisitor2<?> visitor = new AxiomAntlrVisitor2<>(sourceName, adapter);
         visitor.visit(root);
     }
 

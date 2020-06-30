@@ -7,6 +7,7 @@
 package com.evolveum.axiom.lang.impl;
 
 import com.evolveum.axiom.api.AxiomValueIdentifier;
+import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.impl.AxiomStatementRule.ActionBuilder;
 import com.evolveum.axiom.lang.impl.AxiomStatementRule.Lookup;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ItemBuilder;
@@ -110,6 +111,11 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
     public AxiomItemDefinition itemDefinition() {
         return parent().definition();
+    }
+
+    @Override
+    public AxiomTypeDefinition currentType() {
+        return itemDefinition().typeDefinition();
     }
 
     public ValueActionImpl<V> addAction(String name) {
@@ -400,35 +406,9 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         }
     }
 
-    @Override
-    public AxiomNameResolver itemResolver() {
-        return (prefix, localName) -> {
-            if(Strings.isNullOrEmpty(prefix)) {
-                AxiomName localNs = AxiomName.local(localName);
-                Optional<AxiomItemDefinition> childDef = childItemDef(localNs);
-                if(childDef.isPresent()) {
-                    return Inheritance.adapt(parent().name(), childDef.get());
-                }
-                ItemContext<?> parent = parent();
-                while(parent != null) {
-                    AxiomName parentNs = AxiomName.from(parent.name().namespace(), localName);
-                    if(childItemDef(parentNs).isPresent()) {
-                        return parentNs;
-                    }
-                    parent = parent.parent().parent();
-                }
-            }
-            return rootImpl().itemResolver().resolveIdentifier(prefix, localName);
-        };
-    }
 
     public AxiomValue<?> lazyValue() {
         return lazyValue;
-    }
-
-    @Override
-    public AxiomNameResolver valueResolver() {
-        return rootImpl().valueResolver();
     }
 
     final class Reference implements AxiomValueReference<V> {
@@ -486,8 +466,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     @Override
-    public AxiomNameResolver infraResolver() {
-        // TODO Auto-generated method stub
-        return null;
+    public AxiomTypeDefinition currentInfra() {
+        return AxiomBuiltIn.Type.AXIOM_VALUE;
     }
 }

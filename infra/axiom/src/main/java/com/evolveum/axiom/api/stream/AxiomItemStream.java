@@ -17,17 +17,6 @@ public interface AxiomItemStream {
 
     }
 
-    interface TargetWithResolver extends Target {
-
-        AxiomNameResolver itemResolver();
-        AxiomNameResolver valueResolver();
-        AxiomNameResolver infraResolver();
-
-        default AxiomStreamTarget<AxiomPrefixedName, Object> asPrefixed(AxiomNameResolver sourceLocal) {
-            return new PrefixedToQNameTarget(this, () -> itemResolver().or(sourceLocal), () -> valueResolver().or(sourceLocal), this::infraResolver);
-        }
-    }
-
     interface TargetWithContext extends Target, AxiomStreamTarget.WithContext<AxiomName, Object> {
 
     }

@@ -3,6 +3,8 @@ package com.evolveum.axiom.lang.antlr;
 import java.util.Map;
 import java.util.Optional;
 
+import org.omg.IOP.Codec;
+
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -15,6 +17,7 @@ import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixedNameContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
+import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.axiom.spi.codec.ValueDecoder;
 
@@ -26,7 +29,7 @@ public class AntlrStreamToItemStream extends AbstractStreamAdapter<AxiomParser.P
 
     private final AxiomNameResolver documentLocal;
 
-    private AntlrStreamToItemStream(TargetWithContext target, AxiomDecoderContext<PrefixedNameContext, ArgumentContext> codecs,
+    AntlrStreamToItemStream(TargetWithContext target, AxiomDecoderContext<PrefixedNameContext, ArgumentContext> codecs,
             AxiomNameResolver documentLocal) {
         this.target = target;
         this.codecs = codecs;
@@ -46,7 +49,7 @@ public class AntlrStreamToItemStream extends AbstractStreamAdapter<AxiomParser.P
 
     @Override
     public void startItem(PrefixedNameContext item, SourceLocation loc) {
-        AxiomName name = lookupName(target.currentItem().typeDefinition(), item, loc);
+        AxiomName name = lookupName(target.currentType(), item, loc);
         target.startItem(name, loc);
     }
 
@@ -56,32 +59,31 @@ public class AntlrStreamToItemStream extends AbstractStreamAdapter<AxiomParser.P
 
     @Override
     public void startValue(ArgumentContext value, SourceLocation loc) {
-        Object finalValue = decodeArgument(currentItem(), value, loc);
+        Object finalValue;
+        if(value != null) {
+            finalValue = decodeArgument(target.currentType(), value, loc);
+        } else {
+            finalValue = null;
+        }
         target.startValue(finalValue, loc);
     }
 
-
-    private Object decodeValue(AxiomItemDefinition itemDef, ArgumentContext value, SourceLocation loc) {
-        // FIXME: Codec should somehow obtain stream local context?
-        return codec(itemDef).decode(value, documentLocal, loc);
-    }
-
-    private ValueDecoder<ArgumentContext, Object> codec(AxiomItemDefinition itemDefinition) {
-        return codecs.get(itemDefinition.typeDefinition());
-    }
-
-    private Object decodeArgument(AxiomItemDefinition item, ArgumentContext value, SourceLocation loc) {
-        if(item.isStructured()) {
-            AxiomTypeDefinition type = item.typeDefinition();
-            AxiomSyntaxException.check(type.argument().isPresent(), loc, "Item %s does not accept simple value", item.name());
-            decodeArgument(type.argument().get(),value,loc);
+    private Object decodeArgument(AxiomTypeDefinition type, ArgumentContext value, SourceLocation loc) {
+        if(type.isComplex()) {
+            AxiomSyntaxException.check(type.argument().isPresent(), loc, "Type %s does not accept simple value", type.name());
+            Optional<? extends ValueDecoder<ArgumentContext, ?>> maybeCodec = codecs.get(type);
+            if(maybeCodec.isPresent()) {
+                return decodeValue(maybeCodec.get(),value, loc);
+            }
+            return decodeArgument(type.argument().get().typeDefinition(),value,loc);
         }
-        return decodeValue(item, value, loc);
+        return decodeValue(codecs.get(type).orElseThrow(() -> new IllegalStateException("Codec not found for " + type.name())),
+                value, loc);
     }
 
-
-    private AxiomItemDefinition currentItem() {
-        return target.currentItem();
+    private Object decodeValue(ValueDecoder<ArgumentContext, ?> valueDecoder, ArgumentContext value,
+            SourceLocation loc) {
+        return valueDecoder.decode(value, documentLocal, loc);
     }
 
 }

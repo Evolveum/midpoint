@@ -26,7 +26,10 @@ import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.stream.AxiomItemTarget;
+import com.evolveum.axiom.lang.antlr.AntlrDecoder;
+import com.evolveum.axiom.lang.antlr.AntlrDecoderContext;
 import com.evolveum.axiom.lang.antlr.AxiomAntlrStatementSource;
+import com.evolveum.axiom.lang.antlr.AxiomDecoderContext;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
@@ -129,11 +132,9 @@ public class TestAxiomExtension extends AbstractReactorTest {
 
 
         AxiomAntlrStatementSource stream = dataSource(JOHN_DOE_SUBSTITUTION_FILE);
-        AxiomItemTarget target = new AxiomItemTarget(schemaContext,
-                AxiomNameResolver.defaultNamespace(DERIVED_PERSON_TYPE.namespace())
-                    .orPrefix("mymeta", METADATA_MODIFIED.namespace())
-                );
-        stream.stream(target);
+        AxiomItemTarget target = new AxiomItemTarget(schemaContext);
+        stream.stream(target, AntlrDecoderContext.BUILTIN_DECODERS, AxiomNameResolver.defaultNamespace(DERIVED_PERSON_TYPE.namespace())
+                .orPrefix("mymeta", METADATA_MODIFIED.namespace()));
         AxiomItem<?> root = target.get();
         assertEquals(root.name(), DERIVED_PERSON_TYPE.localName("person"));
         AxiomStructuredValue person = root.onlyValue().asComplex().get();

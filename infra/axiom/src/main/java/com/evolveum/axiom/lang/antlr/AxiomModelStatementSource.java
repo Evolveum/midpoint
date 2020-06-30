@@ -10,16 +10,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.stream.AxiomItemStream.TargetWithResolver;
+import com.evolveum.axiom.api.stream.AxiomItemStream.TargetWithContext;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ItemContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
@@ -71,11 +68,6 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
         return namespace;
     }
 
-    @Override
-    public void stream(TargetWithResolver target, Optional<Set<AxiomName>> emitOnly) {
-        stream(target, emitOnly, this);
-    }
-
     public Map<String, String> imports() {
         return imports;
     }
@@ -115,5 +107,9 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
             return AxiomName.from(maybeNs, localName);
         }
         return null;
+    }
+
+    public void stream(TargetWithContext target, AntlrDecoderContext antlrDecoderContext) {
+        stream(target, antlrDecoderContext,this);
     }
 }

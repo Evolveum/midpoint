@@ -6,20 +6,17 @@
  */
 package com.evolveum.axiom.lang.antlr;
 
-import com.evolveum.axiom.api.AxiomPrefixedName;
-import com.evolveum.axiom.api.stream.AxiomStreamTarget;
-
 public class AxiomAntlrVisitor2<T> extends AbstractAxiomAntlrVisitor<T> {
 
-    private final AxiomStreamTarget<AxiomPrefixedName, Object> delegate;
+    private final AntlrStreamToItemStream adapter;
 
-    public AxiomAntlrVisitor2(String name, AxiomStreamTarget<AxiomPrefixedName, Object> delegate) {
-        super(name);
-        this.delegate = delegate;
+    public AxiomAntlrVisitor2(String sourceName, AntlrStreamToItemStream adapter) {
+        super(sourceName);
+        this.adapter = adapter;
     }
 
     @Override
-    protected AxiomStreamTarget<AxiomPrefixedName, Object> delegate() {
-        return delegate;
+    protected AntlrStreamToItemStream delegate() {
+        return adapter;
     }
 }

@@ -17,9 +17,9 @@ public interface AxiomStreamTarget<N, V> {
 
     interface WithContext<N,V> extends AxiomStreamTarget<N, V> {
 
-        AxiomItemDefinition currentItem();
-
         AxiomTypeDefinition currentInfra();
+
+        AxiomTypeDefinition currentType();
 
     }
 }
