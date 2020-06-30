@@ -11,15 +11,15 @@ import com.evolveum.axiom.api.stream.AxiomStreamTarget;
 
 public class AxiomAntlrVisitor2<T> extends AbstractAxiomAntlrVisitor<T> {
 
-    private final AxiomStreamTarget<AxiomPrefixedName> delegate;
+    private final AxiomStreamTarget<AxiomPrefixedName, Object> delegate;
 
-    public AxiomAntlrVisitor2(String name, AxiomStreamTarget<AxiomPrefixedName> delegate) {
+    public AxiomAntlrVisitor2(String name, AxiomStreamTarget<AxiomPrefixedName, Object> delegate) {
         super(name);
         this.delegate = delegate;
     }
 
     @Override
-    protected AxiomStreamTarget<AxiomPrefixedName> delegate() {
+    protected AxiomStreamTarget<AxiomPrefixedName, Object> delegate() {
         return delegate;
     }
 }

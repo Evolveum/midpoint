@@ -22,15 +22,6 @@ abstract class DelegatedItemDefinition implements AxiomItemDefinition {
         return false;
     }
 
-    @Override
-    public Optional<AxiomTypeDefinition> type() {
-        return delegate().type();
-    }
-
-    @Override
-    public Map<AxiomName, AxiomItem<?>> itemMap() {
-        return delegate().itemMap();
-    }
 
     @Override
     public AxiomName name() {
@@ -40,16 +31,6 @@ abstract class DelegatedItemDefinition implements AxiomItemDefinition {
     @Override
     public String documentation() {
         return delegate().documentation();
-    }
-
-    @Override
-    public Optional<AxiomItem<?>> item(AxiomItemDefinition def) {
-        return delegate().asComplex().get().item(def);
-    }
-
-    @Override
-    public Optional<? extends AxiomItem<?>> item(AxiomName name) {
-        return delegate().asComplex().get().item(name);
     }
 
     @Override
@@ -85,11 +66,6 @@ abstract class DelegatedItemDefinition implements AxiomItemDefinition {
     @Override
     public Optional<AxiomIdentifierDefinition> identifierDefinition() {
         return delegate().identifierDefinition();
-    }
-
-    @Override
-    public Map<AxiomName, AxiomItem<?>> infraItems() {
-        return delegate().infraItems();
     }
 
     @Override

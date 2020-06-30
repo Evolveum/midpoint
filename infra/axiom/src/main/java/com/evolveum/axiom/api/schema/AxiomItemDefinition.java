@@ -15,7 +15,7 @@ import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomStructuredValue {
+public interface AxiomItemDefinition extends AxiomNamedDefinition {
 
     AxiomName ROOT_SPACE = AxiomName.axiom("AxiomRootDefinition");
     AxiomName SPACE = AxiomName.axiom("AxiomItemDefinition");
@@ -28,6 +28,9 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomStructur
     AxiomTypeDefinition typeDefinition();
 
     boolean operational();
+
+
+
 
     default boolean inherited() {
         return true;
@@ -45,7 +48,7 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomStructur
     static String toString(AxiomItemDefinition def) {
         return MoreObjects.toStringHelper(AxiomItemDefinition.class)
                 .add("name", def.name())
-                .add("type", def.type())
+                .add("type", def.typeDefinition())
                 .toString();
     }
 
@@ -111,5 +114,9 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomStructur
     Optional<AxiomValue<?>> constantValue();
 
     Optional<AxiomValue<?>> defaultValue();
+
+    default boolean isStructured() {
+        return typeDefinition().isComplex();
+    }
 
 }

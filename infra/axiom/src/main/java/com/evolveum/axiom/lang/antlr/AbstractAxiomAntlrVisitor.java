@@ -63,7 +63,7 @@ public abstract class AbstractAxiomAntlrVisitor<T> extends AxiomBaseVisitor<T> {
         this.sourceName = name;
     }
 
-    protected abstract AxiomStreamTarget<AxiomPrefixedName> delegate();
+    protected abstract AxiomStreamTarget<AxiomPrefixedName, Object> delegate();
 
     private String nullableText(ParserRuleContext prefix) {
         return prefix != null ? prefix.getText() : "";

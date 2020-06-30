@@ -13,7 +13,7 @@ import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 
 public interface AxiomItemStream {
 
-    interface Target extends AxiomStreamTarget<AxiomName> {
+    interface Target extends AxiomStreamTarget<AxiomName, Object> {
 
     }
 
@@ -23,9 +23,13 @@ public interface AxiomItemStream {
         AxiomNameResolver valueResolver();
         AxiomNameResolver infraResolver();
 
-        default AxiomStreamTarget<AxiomPrefixedName> asPrefixed(AxiomNameResolver sourceLocal) {
+        default AxiomStreamTarget<AxiomPrefixedName, Object> asPrefixed(AxiomNameResolver sourceLocal) {
             return new PrefixedToQNameTarget(this, () -> itemResolver().or(sourceLocal), () -> valueResolver().or(sourceLocal), this::infraResolver);
         }
+    }
+
+    interface TargetWithContext extends Target, AxiomStreamTarget.WithContext<AxiomName, Object> {
+
     }
 
 }

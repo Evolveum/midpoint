@@ -10,7 +10,7 @@ import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.google.common.base.Preconditions;
 
-public class StringToQNameTarget implements AxiomStreamTarget<String> {
+public class StringToQNameTarget implements AxiomStreamTarget<String, Object> {
 
     private PrefixedToQNameTarget target;
 

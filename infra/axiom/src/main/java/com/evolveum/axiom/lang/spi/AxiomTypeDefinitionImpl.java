@@ -43,11 +43,18 @@ public class AxiomTypeDefinitionImpl extends AbstractBaseDefinition implements A
                  AxiomIdentifierDefinitionImpl::from);
     }
 
+    public static AxiomTypeDefinition from(AxiomValue<?> value) {
+        if(value instanceof AxiomTypeDefinition) {
+            return (AxiomTypeDefinition) value;
+        }
+        return from(value.asComplex().get());
+    }
+
     public static AxiomTypeDefinition from(AxiomStructuredValue value) {
         if(value instanceof AxiomTypeDefinition) {
             return (AxiomTypeDefinition) value;
         }
-        return new AxiomTypeDefinitionImpl(value.type().get(), null, value.asComplex().get().itemMap());
+        return new AxiomTypeDefinitionImpl(value.type().get(), null, value.itemMap());
     }
 
     @Override
