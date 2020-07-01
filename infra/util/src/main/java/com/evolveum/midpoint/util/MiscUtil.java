@@ -54,11 +54,11 @@ public class MiscUtil {
 
     private static final int BUFFER_SIZE = 2048;
 
-    private static final DatatypeFactory df;
+    private static final DatatypeFactory DATATYPE_FACTORY;
 
     static {
         try {
-            df = DatatypeFactory.newInstance();
+            DATATYPE_FACTORY = DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException dce) {
             throw new IllegalStateException("Exception while obtaining Datatype Factory instance", dce);
         }
@@ -284,7 +284,7 @@ public class MiscUtil {
         } else {
             GregorianCalendar gc = new GregorianCalendar();
             gc.setTimeInMillis(date.getTime());
-            return df.newXMLGregorianCalendar(gc);
+            return DATATYPE_FACTORY.newXMLGregorianCalendar(gc);
         }
     }
 
@@ -294,7 +294,7 @@ public class MiscUtil {
         } else {
             GregorianCalendar gc = new GregorianCalendar();
             gc.setTimeInMillis(timeInMilis);
-            return df.newXMLGregorianCalendar(gc);
+            return DATATYPE_FACTORY.newXMLGregorianCalendar(gc);
         }
     }
 
