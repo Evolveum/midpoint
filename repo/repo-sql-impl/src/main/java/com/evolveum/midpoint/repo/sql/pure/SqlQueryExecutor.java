@@ -6,7 +6,6 @@ import java.util.Collection;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
-import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.SQLTemplates;
@@ -15,21 +14,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.query.EqualFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sql.DataSourceFactory;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 
 /**
  * Component just under the service that orchestrates query transformation and execution.
@@ -45,7 +40,7 @@ public class SqlQueryExecutor {
     private DataSourceFactory dataSourceFactory;
 
     public <T extends Containerable> SearchResultList<T> list(
-            @NotNull Class<T> prismType, // ignored for the moment
+            @NotNull Class<T> prismType,
             ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) throws QueryException {
 
         // TODO use?
@@ -58,7 +53,7 @@ public class SqlQueryExecutor {
         // add conditions (with exists clauses as necessary)
         ObjectFilter filter = query != null ? query.getFilter() : null;
         if (filter != null) {
-            processFilter(context, filter);
+            context.process(filter);
         }
 
         // TODO: what if we declare AuditEventRecordType, but we want transformed result?
@@ -72,43 +67,6 @@ public class SqlQueryExecutor {
                 .map(AuditEventRecordSqlTransformer::toAuditEventRecordType);
         //noinspection unchecked
         return (SearchResultList<T>) createSearchResultList(map);
-    }
-
-    private void processFilter(SqlQueryContext context, ObjectFilter filter) throws QueryException {
-        if (filter instanceof PropertyValueFilter) {
-            PropertyValueFilter<?> propertyValueFilter = (PropertyValueFilter<?>) filter;
-            System.out.println("filter = " + propertyValueFilter);
-            Object path = propertyValueFilter.getFullPath().first();
-            System.out.println("path = " + path);
-            FlexibleRelationalPathBase<?> pathWithCondition = context.path();
-            if (propertyValueFilter instanceof EqualFilter<?>) {
-                // hardcoded condition from test110SearchAllAuditEventsOfSomeType - TODO: now just do it magically
-                QAuditEventRecord root = context.root(QAuditEventRecord.class);
-                BooleanExpression predicate = root.eventtype.eq(AuditEventTypeType.ADD_OBJECT.ordinal());
-                context.addPredicate(predicate);
-//                ExpressionUtils.eq(context.mapping().)
-//                context.mapping()
-            } else {
-                throw new QueryException("Unsupported filter " + filter);
-            }
-            /*
-            EQUAL: eventType,PPV(AuditEventTypeType:ADD_OBJECT)
-            how to resolve eventType to actual PathName?
-
-            PropertyValueFilter valFilter = (PropertyValueFilter) filter;
-            ItemPath path = valFilter.getFullPath();
-            ItemDefinition definition = valFilter.getDefinition();
-
-            ProperDataSearchResult propDefRes = resolver.findProperDataDefinition(baseEntityDefinition, path, definition, JpaPropertyDefinition.class,
-                    context.getPrismContext());
-            if (propDefRes == null) {
-                throw new QueryException("Couldn't find a proper data item to query, given base entity " + baseEntityDefinition + " and this filter: " + valFilter.debugDump());
-            }
-                return new PropertyRestriction(context, valFilter, propDefRes.getEntityDefinition(), parent, propDefRes.getLinkDefinition());
-             */
-        } else {
-            throw new QueryException("Unsupported filter " + filter);
-        }
     }
 
     public PageOf<Tuple> executeQuery(SqlQueryContext context) throws QueryException {

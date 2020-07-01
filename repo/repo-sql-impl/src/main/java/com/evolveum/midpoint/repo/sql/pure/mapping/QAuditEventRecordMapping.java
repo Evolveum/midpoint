@@ -2,10 +2,6 @@ package com.evolveum.midpoint.repo.sql.pure.mapping;
 
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.*;
 
-import java.util.function.Function;
-
-import com.querydsl.core.types.Expression;
-
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
@@ -32,9 +28,8 @@ public class QAuditEventRecordMapping
                 TARGET_OWNER_NAME, TARGET_OWNER_OID, TARGET_OWNER_TYPE,
                 TASK_IDENTIFIER, TASK_OID, TIMESTAMP_VALUE);
 
-        Function<QAuditEventRecord, Expression> x = q -> q.eventtype;
-        // TODO how to represent this? for what kind of filters?
-//        addPathProcessor(AuditEventRecordType.F_EVENT_TYPE, EVENT_TYPE, x);
+        // TODO how to do this better with generics?
+        addProcessorForItem(AuditEventRecordType.F_EVENT_TYPE,
+                EnumOrdinalItemMapper.factory(q -> ((QAuditEventRecord) q).eventtype));
     }
-
 }
