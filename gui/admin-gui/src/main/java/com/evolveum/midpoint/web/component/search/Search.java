@@ -11,24 +11,19 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -40,6 +35,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
@@ -97,6 +93,26 @@ public class Search implements Serializable, DebugDumpable {
         return Collections.unmodifiableList(items);
     }
 
+    public List<PropertySearchItem> getPropertyItems() {
+        List<PropertySearchItem> propertyItems = new ArrayList<>();
+        items.forEach(item -> {
+            if (item instanceof PropertySearchItem){
+                propertyItems.add((PropertySearchItem)item);
+            }
+        });
+        return Collections.unmodifiableList(propertyItems);
+    }
+
+    public List<FilterSearchItem> getFilterItems() {
+        List<FilterSearchItem> filterItems = new ArrayList<>();
+        items.forEach(item -> {
+            if (item instanceof FilterSearchItem){
+                filterItems.add((FilterSearchItem)item);
+            }
+        });
+        return Collections.unmodifiableList(filterItems);
+    }
+
     public List<ItemDefinition> getAvailableDefinitions() {
         return Collections.unmodifiableList(availableDefinitions);
     }
@@ -132,7 +148,7 @@ public class Search implements Serializable, DebugDumpable {
             return null;
         }
 
-        SearchItem item = new SearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues());
+        PropertySearchItem item = new PropertySearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues());
         if (def instanceof PrismReferenceDefinition) {
             ObjectReferenceType ref = new ObjectReferenceType();
             List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());
@@ -159,14 +175,18 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     public SearchItem addItem(SearchItemType predefinedFilter) {
-        SearchItem item = new SearchItem(this, predefinedFilter);
+        FilterSearchItem item = new FilterSearchItem(this, predefinedFilter);
         items.add(item);
         return item;
     }
 
     public void delete(SearchItem item) {
         if (items.remove(item)) {
-            availableDefinitions.add(item.getDefinition());
+            if (item instanceof PropertySearchItem) {
+                availableDefinitions.add(((PropertySearchItem) item).getDefinition());
+            } else if (item instanceof FilterSearchItem){
+                //todo remove filter search item
+            }
         }
     }
 
@@ -192,11 +212,25 @@ public class Search implements Serializable, DebugDumpable {
         }
 
         List<ObjectFilter> conditions = new ArrayList<>();
-        for (SearchItem item : searchItems) {
-            ObjectFilter filter = createFilterForSearchItem(item, ctx);
-            if (filter != null) {
-                conditions.add(filter);
-            }
+        for (PropertySearchItem item : getPropertyItems()) {
+                ObjectFilter filter = createFilterForSearchItem((PropertySearchItem) item, ctx);
+                if (filter != null) {
+                    conditions.add(filter);
+                }
+        }
+
+       for (FilterSearchItem item : getFilterItems()) {
+           if (item.isApplyFilter()) {
+               SearchFilterType filter = item.getPredefinedFilter().getFilter();
+               try {
+                   ObjectFilter convertedFilter = ctx.getQueryConverter().parseFilter(filter, getType());
+                   if (convertedFilter != null) {
+                       conditions.add(convertedFilter);
+                   }
+               } catch (SchemaException e) {
+                   LOGGER.warn("Unable to parse filter {}, {} ", filter, e);
+               }
+           }
         }
 
         QueryFactory queryFactory = ctx.queryFactory();
@@ -210,7 +244,7 @@ public class Search implements Serializable, DebugDumpable {
         }
     }
 
-    private ObjectFilter createFilterForSearchItem(SearchItem item, PrismContext ctx) {
+    private ObjectFilter createFilterForSearchItem(PropertySearchItem item, PrismContext ctx) {
         if (item.getValue() == null || item.getValue().getValue() == null) {
             return null;
         }
@@ -232,7 +266,7 @@ public class Search implements Serializable, DebugDumpable {
         }
     }
 
-    private ObjectFilter createFilterForSearchValue(SearchItem item, DisplayableValue searchValue,
+    private ObjectFilter createFilterForSearchValue(PropertySearchItem item, DisplayableValue searchValue,
                                                     PrismContext ctx) {
 
         ItemDefinition definition = item.getDefinition();

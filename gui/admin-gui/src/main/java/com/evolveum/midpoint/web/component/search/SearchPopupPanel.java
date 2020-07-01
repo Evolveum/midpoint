@@ -62,7 +62,7 @@ abstract class SearchPopupPanel<T extends Serializable> extends BasePanel<Displa
     }
 
     private void addOrRemovePerformed(AjaxRequestTarget target, boolean add) {
-        SearchItemPanel<T> panel = findParent(SearchItemPanel.class);
+//        SearchItemPanel<T> panel = findParent(SearchItemPanel.class);
 
 //        SearchItemPopoverDto<T> dto = panel.getPopoverModel().getObject();
 //        List<DisplayableValue<T>> values = dto.getValues();

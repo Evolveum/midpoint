@@ -28,7 +28,6 @@ import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -37,6 +36,7 @@ import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.input.CheckPanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 /**
  * @author Viliam Repan (lazyman)
  */
-public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchItem<T>> {
+public class SearchItemPanel<S extends SearchItem, T extends Serializable> extends BasePanel<S> {
 
     private static final long serialVersionUID = 1L;
 
@@ -58,7 +58,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     private static final String ID_SEARCH_ITEM_FIELD = "searchItemField";
     private static final String ID_REMOVE_BUTTON = "removeButton";
 
-    public SearchItemPanel(String id, IModel<SearchItem<T>> model) {
+    public SearchItemPanel(String id, IModel<S> model) {
         super(id, model);
     }
 
@@ -66,11 +66,13 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     protected void onConfigure() {
         super.onConfigure();
 
-        SearchItem<T> item = getModelObject();
-        if (!item.isEditWhenVisible()) {
-            return;
+        if (getModelObject() instanceof PropertySearchItem) {
+            PropertySearchItem<T> item = (PropertySearchItem<T>) getModelObject();
+            if (!item.isEditWhenVisible()) {
+                return;
+            }
+            item.setEditWhenVisible(false);
         }
-        item.setEditWhenVisible(false);
     }
 
     @Override
@@ -86,8 +88,15 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         searchItemContainer.setOutputMarkupId(true);
         add(searchItemContainer);
 
-        Label searchItemLabel = new Label(ID_SEARCH_ITEM_LABEL, createLabelModel());
+        IModel<String> labelModel = createLabelModel();
+        Label searchItemLabel = new Label(ID_SEARCH_ITEM_LABEL, labelModel);
         searchItemLabel.setOutputMarkupId(true);
+        searchItemLabel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(labelModel.getObject())));
+
+        IModel<String> titleModel = createTitleModel();
+        if (StringUtils.isNotEmpty(titleModel.getObject())) {
+            searchItemLabel.add(AttributeAppender.append("title", titleModel));
+        }
         searchItemContainer.add(searchItemLabel);
 
         initSearchItemField(searchItemContainer);
@@ -107,114 +116,95 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
     private void initSearchItemField(WebMarkupContainer searchItemContainer) {
         Component searchItemField = null;
-        SearchItem<T> item = getModelObject();
-        IModel<List<DisplayableValue<T>>> choices = null;
-        switch (item.getType()) {
-            case REFERENCE:
-                searchItemField  = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value.value"),
-                        (PrismReferenceDefinition) item.getDefinition());
-                break;
-            case BOOLEAN:
-                choices = (IModel) createBooleanChoices();
-            case FILTER:
-                searchItemField = new FilterSearchItemPanel(ID_SEARCH_ITEM_FIELD, getModel());
-                break;
-            case ENUM:
-                if (choices == null) {
-                    choices = new ListModel<>(item.getAllowedValues());
-                }
-                DisplayableValue<T> val = item.getValue();
-                searchItemField = new DropDownChoicePanel<DisplayableValue>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"),
-                        choices, new IChoiceRenderer<DisplayableValue>() {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public Object getDisplayValue(DisplayableValue val) {
-                        return val.getLabel();
+        if (getModelObject() instanceof FilterSearchItem){
+            searchItemField = new CheckPanel(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_APPLY_FILTER));
+            searchItemField.add(AttributeModifier.append("class", "col-sm-2"));
+            searchItemField.add(AttributeAppender.append("style", "margin-top: 5px;"));
+            ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        } else {
+            PropertySearchItem<T> item = (PropertySearchItem<T>) getModelObject();
+            IModel<List<DisplayableValue<T>>> choices = null;
+            switch (item.getType()) {
+                case REFERENCE:
+                    searchItemField = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value.value"),
+                            (PrismReferenceDefinition) item.getDefinition());
+                    break;
+                case BOOLEAN:
+                    choices = (IModel) createBooleanChoices();
+                case ENUM:
+                    if (choices == null) {
+                        choices = new ListModel<>(item.getAllowedValues());
                     }
-
-                    @Override
-                    public String getIdValue(DisplayableValue val, int index) {
-                        return Integer.toString(index);
-                    }
-
-                    @Override
-                    public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
-                        return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
-                    }
-                }, true);
-                break;
-            case TEXT:
-                PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition(), getPageBase());
-                if (lookupTable != null){
-                    searchItemField = new AutoCompleteTextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"), String.class,
-                            true, lookupTable.asObjectable()) {
-
+                    DisplayableValue<T> val = item.getValue();
+                    searchItemField = new DropDownChoicePanel<DisplayableValue>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"),
+                            choices, new IChoiceRenderer<DisplayableValue>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        public Iterator<String> getIterator(String input) {
-                            return  WebComponentUtil.prepareAutoCompleteList(lookupTable.asObjectable(), input,
-                                    ((PageBase)getPage()).getLocalizationService()).iterator();
+                        public Object getDisplayValue(DisplayableValue val) {
+                            return val.getLabel();
                         }
-                    };
-
-                    ((AutoCompleteTextPanel) searchItemField).getBaseFormComponent().add(new Behavior() {
-
-                        private static final long serialVersionUID = 1L;
 
                         @Override
-                        public void bind(Component component) {
-                            super.bind( component );
-
-                            component.add( AttributeModifier.replace( "onkeydown",
-                                    Model.of(
-                                            "if (event.keyCode == 13){"
-                                            + "var autocompletePopup = document.getElementsByClassName(\"wicket-aa-container\");"
-                                            + "if(autocompletePopup != null && autocompletePopup[0].style.display == \"none\"){"
-                                            + "$('[about=\"searchSimple\"]').click();}}"
-                                    )));
+                        public String getIdValue(DisplayableValue val, int index) {
+                            return Integer.toString(index);
                         }
-                    });
-                } else {
-                    searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"));
-                }
-                break;
-            default:
-                searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"));
+
+                        @Override
+                        public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
+                            return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
+                        }
+                    }, true);
+                    break;
+                case TEXT:
+                    PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition(), getPageBase());
+                    if (lookupTable != null) {
+                        searchItemField = new AutoCompleteTextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"), String.class,
+                                true, lookupTable.asObjectable()) {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public Iterator<String> getIterator(String input) {
+                                return WebComponentUtil.prepareAutoCompleteList(lookupTable.asObjectable(), input,
+                                        ((PageBase) getPage()).getLocalizationService()).iterator();
+                            }
+                        };
+
+                        ((AutoCompleteTextPanel) searchItemField).getBaseFormComponent().add(new Behavior() {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public void bind(Component component) {
+                                super.bind(component);
+
+                                component.add(AttributeModifier.replace("onkeydown",
+                                        Model.of(
+                                                "if (event.keyCode == 13){"
+                                                        + "var autocompletePopup = document.getElementsByClassName(\"wicket-aa-container\");"
+                                                        + "if(autocompletePopup != null && autocompletePopup[0].style.display == \"none\"){"
+                                                        + "$('[about=\"searchSimple\"]').click();}}"
+                                        )));
+                            }
+                        });
+                    } else {
+                        searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value.value"));
+                    }
+                    break;
+                default:
+                    searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"));
+            }
+            searchItemField.add(AttributeModifier.append("class", "col-sm-7"));
+            if (searchItemField instanceof InputPanel && !(searchItemField instanceof AutoCompleteTextPanel)){
+                ((InputPanel) searchItemField).getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
+                ((InputPanel) searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 200px; max-width: 400px !important;"));
+                ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+            }
         }
-        if (searchItemField == null){
-            searchItemField = new WebMarkupContainer(ID_SEARCH_ITEM_FIELD);
-        }
+
         searchItemField.setOutputMarkupId(true);
-        if (searchItemField instanceof InputPanel && !(searchItemField instanceof AutoCompleteTextPanel)){
-            ((InputPanel)searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-            ((InputPanel)searchItemField).getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-            ((InputPanel)searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 200px; max-width: 400px !important;"));
-
-        }
         searchItemContainer.add(searchItemField);
-    }
-
-    private IModel<String> getSearchItemValueModel(){
-        SearchItem<T> item = getModelObject();
-        if (item == null || item.getValue() == null || item.getValue().getValue() == null){
-            return Model.of();
-        }
-        return Model.of(item.getValue().getValue().toString());
-    }
-    private SearchItemPopoverDto<T> loadPopoverItems() {
-        SearchItemPopoverDto<T> dto = new SearchItemPopoverDto<>();
-
-        SearchItem<T> item = getModelObject();
-            DisplayableValue<T> itemValue = new SearchValue<T>(item.getValue().getValue(), item.getValue().getLabel());
-            dto.getValues().add(itemValue);
-
-        if (dto.getValues().isEmpty()) {
-            dto.getValues().add(new SearchValue<>());
-        }
-
-        return dto;
     }
 
     protected boolean canRemoveSearchItem(){
@@ -229,15 +219,23 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     }
 
     private IModel<String> createLabelModel() {
-        SearchItem<T> item = getModelObject();
+        SearchItem item = getModelObject();
         if (item == null){
             return Model.of();
         }
         return Model.of(item.getName());
     }
 
+    private IModel<String> createTitleModel() {
+        SearchItem item = getModelObject();
+        if (item == null){
+            return Model.of();
+        }
+        return Model.of(item.getTitle());
+    }
+
     private void deletePerformed(AjaxRequestTarget target) {
-        SearchItem<T> item = getModelObject();
+        SearchItem item = getModelObject();
         Search search = item.getSearch();
         search.delete(item);
 
@@ -246,12 +244,4 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         panel.searchPerformed(target);
     }
 
-    public boolean isReferenceDefinition() {
-        SearchItem<T> searchItem = getModelObject();
-        if (searchItem == null) {
-            return false;
-        }
-
-        return searchItem.getDefinition() instanceof PrismReferenceDefinition;
-    }
 }
