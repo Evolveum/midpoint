@@ -54,6 +54,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 /**
  * @author semancik
  *
+ * TODO decide on transient autowired fields
  */
 @Component
 public class ModelObjectResolver implements ObjectResolver {

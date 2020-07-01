@@ -47,7 +47,21 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
     void setParent(Itemable parent);
 
     @Experimental
-    Optional<ValueMetadata> valueMetadata() throws SchemaException;
+    Optional<ValueMetadata> valueMetadata();
+
+    /**
+     * Maybe it is better to expect empty value metadata if these are absent.
+     * Client code would be simpler. HIGHLY EXPERIMENTAL.
+     */
+    @Experimental
+    @NotNull
+    ValueMetadata getValueMetadata();
+
+    /**
+     * Sets metadata for this value.
+     */
+    @Experimental
+    void setValueMetadata(ValueMetadata valueMetadata);
 
     @NotNull
     ItemPath getPath();

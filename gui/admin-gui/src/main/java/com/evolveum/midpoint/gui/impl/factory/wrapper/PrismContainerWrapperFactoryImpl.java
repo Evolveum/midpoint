@@ -81,6 +81,9 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     }
 
     protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
+        if (parent == null){
+            return new ArrayList<>();
+        }
         return parent.getDefinitions();
     }
 

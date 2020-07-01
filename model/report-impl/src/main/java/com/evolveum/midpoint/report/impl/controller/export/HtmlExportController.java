@@ -85,54 +85,56 @@ public class HtmlExportController extends ExportController {
         task.setExpectedTotal((long) dashboard.getWidget().size());
         recordProgress(task, i, result, LOGGER);
         for (DashboardWidgetType widget : dashboard.getWidget()) {
-            DashboardWidget widgetData = getReportService().getDashboardService().createWidgetData(widget, task, result);
-            widgetTBody.with(createTBodyRow(widgetData));
             if (widget == null) {
                 throw new IllegalArgumentException("Widget in DashboardWidget is null");
             }
-            DashboardWidgetPresentationType presentation = widget.getPresentation();
-            if (!DashboardUtils.isDataFieldsOfPresentationNullOrEmpty(presentation)) {
-                ContainerTag tableBox = null;
-                DashboardWidgetSourceTypeType sourceType = DashboardUtils.getSourceType(widget);
-                if (sourceType == null) {
-                    throw new IllegalStateException("No source type specified in " + widget);
-                }
-                CollectionRefSpecificationType collectionRefSpecification = getReportService().getDashboardService().getCollectionRefSpecificationType(widget, task, result);
-                ObjectCollectionType collection = getReportService().getDashboardService().getObjectCollectionType(widget, task, result);
+            DashboardWidget widgetData = getReportService().getDashboardService().createWidgetData(widget, task, result);
+            widgetTBody.with(createTBodyRow(widgetData));
+            if (!Boolean.TRUE.equals(dashboardConfig.isShowOnlyWidgetsTable())) {
+                DashboardWidgetPresentationType presentation = widget.getPresentation();
+                if (!DashboardUtils.isDataFieldsOfPresentationNullOrEmpty(presentation)) {
+                    ContainerTag tableBox = null;
+                    DashboardWidgetSourceTypeType sourceType = DashboardUtils.getSourceType(widget);
+                    if (sourceType == null) {
+                        throw new IllegalStateException("No source type specified in " + widget);
+                    }
+                    CollectionRefSpecificationType collectionRefSpecification = getReportService().getDashboardService().getCollectionRefSpecificationType(widget, task, result);
+                    ObjectCollectionType collection = getReportService().getDashboardService().getObjectCollectionType(widget, task, result);
 
-                CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
-                if (collection != null) {
-                    getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
-                } else if (collectionRefSpecification.getBaseCollectionRef() != null
-                        && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null) {
-                    ObjectCollectionType baseCollection = (ObjectCollectionType) getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
-                    getReportService().getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
-                }
+                    CompiledObjectCollectionView compiledCollection = new CompiledObjectCollectionView();
+                    if (collection != null) {
+                        getReportService().getModelInteractionService().applyView(compiledCollection, collection.getDefaultView());
+                    } else if (collectionRefSpecification.getBaseCollectionRef() != null
+                            && collectionRefSpecification.getBaseCollectionRef().getCollectionRef() != null) {
+                        ObjectCollectionType baseCollection = (ObjectCollectionType) getObjectFromReference(collectionRefSpecification.getBaseCollectionRef().getCollectionRef()).asObjectable();
+                        getReportService().getModelInteractionService().applyView(compiledCollection, baseCollection.getDefaultView());
+                    }
 
-                if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
-                    getReportService().getModelInteractionService().applyView(compiledCollection, widget.getPresentation().getView());
-                }
+                    if (widget.getPresentation() != null && widget.getPresentation().getView() != null) {
+                        getReportService().getModelInteractionService().applyView(compiledCollection, widget.getPresentation().getView());
+                    }
 
-                QName collectionType = resolveTypeQname(collectionRefSpecification, compiledCollection);
-                GuiObjectListViewType reportView = getReportViewByType(dashboardConfig, collectionType);
-                if (reportView != null) {
-                    getReportService().getModelInteractionService().applyView(compiledCollection, reportView);
-                }
+                    QName collectionType = resolveTypeQname(collectionRefSpecification, compiledCollection);
+                    GuiObjectListViewType reportView = getReportViewByType(dashboardConfig, collectionType);
+                    if (reportView != null) {
+                        getReportService().getModelInteractionService().applyView(compiledCollection, reportView);
+                    }
 
-                switch (sourceType) {
-                    case OBJECT_COLLECTION:
-                        tableBox = createTableBoxForObjectView(widgetData.getLabel(), collectionRefSpecification, compiledCollection, null, task, result, false);
-                        break;
-                    case AUDIT_SEARCH:
-                        if (collection == null) {
-                            LOGGER.error("CollectionRef is null for report of audit records");
-                            throw new IllegalArgumentException("CollectionRef is null for report of audit records");
-                        }
-                        tableBox = createTableBoxForAuditView(widgetData.getLabel(), collectionRefSpecification, compiledCollection, null, task, result, false);
-                        break;
-                }
-                if (tableBox != null) {
-                    tableboxesFromWidgets.add(tableBox);
+                    switch (sourceType) {
+                        case OBJECT_COLLECTION:
+                            tableBox = createTableBoxForObjectView(widgetData.getLabel(), collectionRefSpecification, compiledCollection, null, task, result, false);
+                            break;
+                        case AUDIT_SEARCH:
+                            if (collection == null) {
+                                LOGGER.error("CollectionRef is null for report of audit records");
+                                throw new IllegalArgumentException("CollectionRef is null for report of audit records");
+                            }
+                            tableBox = createTableBoxForAuditView(widgetData.getLabel(), collectionRefSpecification, compiledCollection, null, task, result, false);
+                            break;
+                    }
+                    if (tableBox != null) {
+                        tableboxesFromWidgets.add(tableBox);
+                    }
                 }
             }
             i++;

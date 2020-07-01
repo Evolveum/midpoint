@@ -52,7 +52,7 @@ public class OperationExecutionRecorder {
     @Autowired private Clock clock;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private PrismContext prismContext;
-    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService repositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     private static final int DEFAULT_NUMBER_OF_RESULTS_TO_KEEP = 5;
 

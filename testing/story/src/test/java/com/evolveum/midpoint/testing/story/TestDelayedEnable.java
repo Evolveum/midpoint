@@ -10,6 +10,8 @@ import java.io.File;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -45,10 +47,10 @@ public class TestDelayedEnable extends AbstractStoryTest {
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "delayed-enable");
 
     protected static final String NS_EXTENSION = "http://midpoint.evolveum.com/xml/ns/story/delayedEnable/ext";
-    protected static final QName EXT_HR_STATUS_QNAME = new QName(NS_EXTENSION, "hrStatus");
+    protected static final ItemName EXT_HR_STATUS_QNAME = new ItemName(NS_EXTENSION, "hrStatus");
     protected static final String EXT_HR_STATUS_ENABLED = "enabled";
     protected static final String EXT_HR_STATUS_DISABLED = "disabled";
-    protected static final QName EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME = new QName(NS_EXTENSION, "hrStatusChangeTimestamp");
+    protected static final ItemName EXT_HR_STATUS_CHANGE_TIMESTAMP_QNAME = new ItemName(NS_EXTENSION, "hrStatusChangeTimestamp");
 
     protected static final String SUBTYPE_EMPLOYEE = "employee";
 

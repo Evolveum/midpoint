@@ -9,23 +9,15 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -35,15 +27,12 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.util.ListModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -51,11 +40,9 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -66,22 +53,10 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
 
     private static final Trace LOG = TraceManager.getTrace(SearchItemPanel.class);
 
-//    private static final String ID_MAIN_BUTTON = "mainButton";
-//    private static final String ID_LABEL = "label";
-//    private static final String ID_DELETE_BUTTON = "deleteButton";
-    private static final String ID_POPOVER = "popover";
-    private static final String ID_POPOVER_BODY = "popoverBody";
-//    private static final String ID_UPDATE = "update";
-//    private static final String ID_CLOSE = "close";
-//    private static final String ID_VALUES = "values";
-    private static final String ID_VALUE = "value";
     private static final String ID_SEARCH_ITEM_CONTAINER = "searchItemContainer";
     private static final String ID_SEARCH_ITEM_LABEL = "searchItemLabel";
     private static final String ID_SEARCH_ITEM_FIELD = "searchItemField";
     private static final String ID_REMOVE_BUTTON = "removeButton";
-    private static final String ID_EDIT_BUTTON = "editButton";
-
-    private LoadableModel<SearchItemPopoverDto<T>> popoverModel;
 
     public SearchItemPanel(String id, IModel<SearchItem<T>> model) {
         super(id, model);
@@ -95,9 +70,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         if (!item.isEditWhenVisible()) {
             return;
         }
-
         item.setEditWhenVisible(false);
-
     }
 
     @Override
@@ -107,54 +80,7 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
     }
 
     private void initLayout() {
-        popoverModel = new LoadableModel<SearchItemPopoverDto<T>>(false) {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected SearchItemPopoverDto<T> load() {
-                return loadPopoverItems();
-            }
-        };
-//
-//        AjaxLink<Void> mainButton = new AjaxLink<Void>(ID_MAIN_BUTTON) {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                editPerformed(target);
-//            }
-//        };
-//        add(mainButton);
-//
-//        Label label = new Label(ID_LABEL, createLabelModel());
-//        label.setRenderBodyOnly(true);
-//        mainButton.add(label);
-//
-//        AjaxLink<Void> deleteButton = new AjaxLink<Void>(ID_DELETE_BUTTON) {
-//
-//           private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public void onClick(AjaxRequestTarget target) {
-//                deletePerformed(target);
-//            }
-//        };
-//        mainButton.add(deleteButton);
-//        deleteButton.add(new VisibleEnableBehaviour() {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public boolean isVisible() {
-//                return !getModelObject().isFixed();
-//            }
-//        });
-//
         setOutputMarkupId(true);
-        initPopover();
-
 
         WebMarkupContainer searchItemContainer = new WebMarkupContainer(ID_SEARCH_ITEM_CONTAINER);
         searchItemContainer.setOutputMarkupId(true);
@@ -165,18 +91,6 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         searchItemContainer.add(searchItemLabel);
 
         initSearchItemField(searchItemContainer);
-
-        AjaxSubmitButton editButton = new AjaxSubmitButton(ID_EDIT_BUTTON) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public void onSubmit(AjaxRequestTarget target) {
-                togglePopover(target);
-            }
-        };
-        editButton.setOutputMarkupId(true);
-        editButton.add(new VisibleBehaviour(() -> SearchItem.Type.REFERENCE.equals(getModelObject().getType())));
-        searchItemContainer.add(editButton);
 
         AjaxSubmitButton removeButton = new AjaxSubmitButton(ID_REMOVE_BUTTON) {
             private static final long serialVersionUID = 1L;
@@ -195,53 +109,11 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         Component searchItemField = null;
         SearchItem<T> item = getModelObject();
         IModel<List<DisplayableValue<T>>> choices = null;
-        PrismObject<LookupTableType> lookupTable = findLookupTable(item.getDefinition());
+        PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition(), getPageBase());
         switch (item.getType()) {
             case REFERENCE:
-                //TODO change probably to another component
-                searchItemField  = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value.value"){
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public String getObject(){
-                        SearchItem searchItem = getModelObject();
-                        if (searchItem == null || searchItem.getValue() == null){
-                            return null;
-                        }
-                        ObjectReferenceType ref = (ObjectReferenceType) searchItem.getValue().getValue();
-                        if (ref == null){
-                            return null;
-                        }
-                        StringBuilder sb = new StringBuilder();
-                        if (StringUtils.isNotEmpty(ref.getOid())){
-                            sb.append(createStringResource("ReferencePopupPanel.oid").getString());
-                            sb.append(ref.getOid());
-                        }
-                        if (ref.getRelation() != null){
-                            if (sb.length() > 0){
-                                sb.append("; ");
-                            }
-                            sb.append(createStringResource("ReferencePopupPanel.relation").getString());
-                            sb.append(ref.getRelation().getLocalPart());
-                        }
-                        if (ref.getType() != null){
-                            if (sb.length() > 0){
-                                sb.append("; ");
-                            }
-                            sb.append(ref.getType().getLocalPart());
-                        }
-                        return sb.toString();
-                    }
-                });
-                ((TextPanel<String>)searchItemField).getBaseFormComponent().add(new EnableBehaviour(() -> false));
-                ((TextPanel<String>)searchItemField).getBaseFormComponent().add(new AjaxFormComponentUpdatingBehavior("focus") {
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
-                        editPerformed(ajaxRequestTarget);
-                    }
-                });
+                searchItemField  = new ReferenceValueSearchPanel(ID_SEARCH_ITEM_FIELD, new PropertyModel(getModel(), "value.value"),
+                        (PrismReferenceDefinition) item.getDefinition());
                 break;
             case BOOLEAN:
                 choices = (IModel) createBooleanChoices();
@@ -346,79 +218,6 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         return false;
     }
 
-    private void initPopover() {
-        WebMarkupContainer popover = new WebMarkupContainer(ID_POPOVER);
-        popover.setOutputMarkupId(true);
-        add(popover);
-
-        WebMarkupContainer popoverBody = new WebMarkupContainer(ID_POPOVER_BODY);
-        popoverBody.setOutputMarkupId(true);
-        popover.add(popoverBody);
-
-
-        DisplayableValue val = SearchItemPanel.this.getModelObject().getValue();
-        IModel<DisplayableValue<ObjectReferenceType>> refModel = new IModel<DisplayableValue<ObjectReferenceType>>() {
-            @Override
-            public DisplayableValue<ObjectReferenceType> getObject() {
-                if (val.getValue() instanceof ObjectReferenceType){
-                    return val;
-                } else {
-                    return null;
-                }
-            }
-        };
-        if (getModelObject() != null && SearchItem.Type.REFERENCE.equals(getModelObject().getType())) {
-            SearchPopupPanel<T> value =
-                    (SearchPopupPanel<T>) new ReferencePopupPanel(ID_VALUE, new PropertyModel<>(getModel(), "value")) {
-
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        protected List<QName> getAllowedRelations() {
-                            if (SearchItemPanel.this.getModelObject().getAllowedRelations() != null) {
-                                return SearchItemPanel.this.getModelObject().getAllowedRelations();
-                            }
-                            return super.getAllowedRelations();
-                        }
-
-                        @Override
-                        protected List<QName> getSupportedTargetList() {
-                            ItemDefinition itemDef = SearchItemPanel.this.getModelObject().getDefinition();
-                            if (itemDef instanceof PrismReferenceDefinition) {
-                                return WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) SearchItemPanel.this.getModelObject().getDefinition()).getTargetTypeName());
-                            }
-                            return new ArrayList<>();
-                        }
-
-                        @Override
-                        protected void confirmPerformed(AjaxRequestTarget target) {
-                            closeEditPopoverPerformed(target);
-                        }
-                    };
-            value.setRenderBodyOnly(true);
-            popoverBody.add(value);
-        } else {
-            WebMarkupContainer value = new WebMarkupContainer(ID_VALUE);
-            popoverBody.add(value);
-        }
-    }
-
-    private <I extends Item> PrismObject<LookupTableType> findLookupTable(ItemDefinition<I> definition) {
-        PrismReferenceValue valueEnumerationRef = definition.getValueEnumerationRef();
-        if (valueEnumerationRef == null) {
-            return null;
-        }
-
-        PageBase page = getPageBase();
-
-        String lookupTableUid = valueEnumerationRef.getOid();
-        Task task = page.createSimpleTask("loadLookupTable");
-        OperationResult result = task.getResult();
-
-        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createLookupTableRetrieveOptions(getSchemaHelper());
-        return WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableUid, options, page, task, result);
-    }
-
     private IModel<List<DisplayableValue<Boolean>>> createBooleanChoices() {
         List<DisplayableValue<Boolean>> list = new ArrayList<>();
         list.add(new SearchValue<>(Boolean.TRUE, getString("Boolean.TRUE")));
@@ -432,77 +231,6 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
             return Model.of();
         }
         return Model.of(item.getName());
-
-//        return new IModel<String>() {
-//
-//            private static final long serialVersionUID = 1L;
-//
-//            @Override
-//            public String getObject() {
-//                SearchItem<T> item = getModelObject();
-//
-//                StringBuilder sb = new StringBuilder();
-//                sb.append(item.getName());
-//                sb.append(": ");
-//
-//                List<String> values = new ArrayList<>();
-//                for (DisplayableValue<T> value : item.getValues()) {
-//                    if (StringUtils.isNotEmpty(value.getLabel())) {
-//                        values.add(value.getLabel());
-//                    }
-//                }
-//
-////                if (!values.isEmpty()) {
-////                    String or = createStringResource("SearchItemPanel.or").getString();
-////
-////                    sb.append('"');
-////                    sb.append(StringUtils.join(values, "\" " + or + " \""));
-////                    sb.append('"');
-////                } else {
-////                    String all = createStringResource("SearchItemPanel.all").getString();
-////                    sb.append(all);
-////                }
-//
-//                return sb.toString();
-//            }
-//        };
-    }
-//
-//    private void updateItemPerformed(AjaxRequestTarget target) {
-//        SearchItem<T> item = getModelObject();
-//        item.getValues().clear();
-//
-//        SearchItemPopoverDto<T> dto = popoverModel.getObject();
-//        for (DisplayableValue<T> value : dto.getValues()) {
-//            item.getValues().add(value);
-//        }
-//
-//        LOG.debug("Update item performed, item {} value is {}", item.getName(), item.getValues());
-//
-//        SearchPanel panel = findParent(SearchPanel.class);
-//        panel.refreshSearchForm(target);
-//        panel.searchPerformed(target);
-//    }
-//
-//    public LoadableModel<SearchItemPopoverDto<T>> getPopoverModel() {
-//        return popoverModel;
-//    }
-//
-    private void closeEditPopoverPerformed(AjaxRequestTarget target) {
-        target.add(SearchItemPanel.this);
-    }
-
-    private void editPerformed(AjaxRequestTarget target) {
-        LOG.debug("Edit performed");
-
-        popoverModel.reset();
-        target.add(get(createComponentPath(ID_POPOVER, ID_POPOVER_BODY)));
-        togglePopover(target);
-    }
-
-    public void togglePopover(AjaxRequestTarget target) {
-        SearchPanel panel = findParent(SearchPanel.class);
-        panel.togglePopover(target, get(createComponentPath(ID_SEARCH_ITEM_CONTAINER, ID_SEARCH_ITEM_FIELD)), get(ID_POPOVER), 0);
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
@@ -514,10 +242,6 @@ public class SearchItemPanel<T extends Serializable> extends BasePanel<SearchIte
         panel.refreshSearchForm(target);
         panel.searchPerformed(target);
     }
-
-//    void updatePopupBody(AjaxRequestTarget target) {
-//        target.add(get(createComponentPath(ID_POPOVER, ID_POPOVER_BODY)));
-//    }
 
     public boolean isReferenceDefinition() {
         SearchItem<T> searchItem = getModelObject();

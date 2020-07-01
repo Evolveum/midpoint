@@ -220,7 +220,7 @@ public enum OpType {
         MappingEvaluationTraceType trace = getTrace(result, MappingEvaluationTraceType.class);
         String context = getContext(result, "context");
         if (trace != null) {
-            MappingType mapping = trace.getMapping();
+            AbstractMappingType mapping = trace.getMapping();
             if (mapping != null) {
                 if (mapping.getName() != null) {
                     return mapping.getName();

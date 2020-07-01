@@ -51,7 +51,7 @@ public class Search<T> extends Component<T> {
     }
 
     public Search<T> updateSearch(){
-        SelenideElement simpleSearchButton = getParentElement().$(Schrodinger.byDataId("searchSimple"))
+        SelenideElement simpleSearchButton = getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='searchSimple']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         Actions builder = new Actions(WebDriverRunner.getWebDriver());
         builder.moveToElement(simpleSearchButton, 5, 5).click().build().perform();

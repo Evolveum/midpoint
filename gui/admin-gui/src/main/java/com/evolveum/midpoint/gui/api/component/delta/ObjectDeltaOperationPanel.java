@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.api.component.delta;
 
 import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -179,7 +180,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
             throw e;
         }
         try {
-            scene = parentPage.getModelInteractionService().visualizeDelta(delta, true,
+            scene = parentPage.getModelInteractionService().visualizeDelta(delta, true, getIncludeOriginalObject(),
                     parentPage.createSimpleTask(ID_PARAMETERS_DELTA),
                     new OperationResult(ID_PARAMETERS_DELTA));
         } catch (SchemaException | ExpressionEvaluationException e) {
@@ -191,6 +192,10 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
         deltaSceneDto.setMinimized(true);
         return deltaSceneDto;
 
+    }
+
+    public boolean getIncludeOriginalObject() {
+        return true;
     }
 
     private void showFullResultsPerformed(AjaxRequestTarget target){

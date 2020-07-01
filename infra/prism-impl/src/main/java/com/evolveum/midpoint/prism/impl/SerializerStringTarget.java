@@ -14,7 +14,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
 import java.util.List;
 
 /**
@@ -24,7 +23,7 @@ public class SerializerStringTarget extends SerializerTarget<String> {
 
     @NotNull private final String language;
 
-    public SerializerStringTarget(@NotNull PrismContextImpl prismContext, @NotNull String language) {
+    SerializerStringTarget(@NotNull PrismContextImpl prismContext, @NotNull String language) {
         super(prismContext);
         this.language = language;
     }
@@ -38,9 +37,9 @@ public class SerializerStringTarget extends SerializerTarget<String> {
 
     @NotNull
     @Override
-    public String write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context)
+    public String write(@NotNull List<RootXNodeImpl> roots, @Nullable SerializationContext context)
             throws SchemaException {
         LexicalProcessor<String> lexicalProcessor = prismContext.getLexicalProcessorRegistry().processorFor(language);
-        return lexicalProcessor.write(roots, aggregateElementName, context);
+        return lexicalProcessor.write(roots, context);
     }
 }

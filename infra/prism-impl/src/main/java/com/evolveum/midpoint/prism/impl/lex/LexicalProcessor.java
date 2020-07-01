@@ -85,5 +85,5 @@ public interface LexicalProcessor<T> {
      * Not supported for NullLexicalProcessor, though.
      */
     @NotNull
-    T write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName, @Nullable SerializationContext context) throws SchemaException;
+    T write(@NotNull List<RootXNodeImpl> roots, @Nullable SerializationContext context) throws SchemaException;
 }

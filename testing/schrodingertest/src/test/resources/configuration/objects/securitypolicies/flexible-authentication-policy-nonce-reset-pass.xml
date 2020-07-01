@@ -17,15 +17,15 @@
     <name>Default Security Policy</name>
     <authentication>
         <modules>
-            <loginForm id="1">
+            <loginForm>
                 <name>internalLoginForm</name>
                 <description>Internal username/password authentication, default user password, login form</description>
             </loginForm>
-            <loginForm id="2">
+            <loginForm>
                 <name>internalLoginForm2</name>
                 <description>Internal username/password authentication, default user password, login form</description>
             </loginForm>
-            <securityQuestionsForm id="6">
+            <securityQuestionsForm>
                 <name>SecQ</name>
                 <description>
                     This is interactive, form-based authentication by using security questions.
@@ -38,31 +38,26 @@
                 <credentialName>mailNonce</credentialName>
             </mailNonce>
         </modules>
-        <sequence id="8">
+        <sequence>
             <name>admin-gui-default</name>
             <channel>
                 <channelId>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user</channelId>
                 <default>true</default>
                 <urlSuffix>defaultGui</urlSuffix>
             </channel>
-            <module id="12">
+            <module>
                 <name>internalLoginForm</name>
                 <order>10</order>
                 <necessity>sufficient</necessity>
             </module>
-            <module id="13">
+            <module>
                 <name>internalLoginForm2</name>
                 <order>20</order>
                 <necessity>sufficient</necessity>
             </module>
         </sequence>
-        <sequence id="9">
+        <sequence>
             <name>admin-gui-emergency</name>
-            <description>
-                Special GUI authentication sequence that is using just the internal user password.
-                It is used only in emergency. It allows to skip SAML authentication cycles, e.g. in case
-                that the SAML authentication is redirecting the browser incorrectly.
-            </description>
             <channel>
                 <channelId>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user</channelId>
                 <default>false</default>
@@ -71,13 +66,28 @@
             <requireAssignmentTarget oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType">
                 <!-- Superuser -->
             </requireAssignmentTarget>
-            <module id="14">
+            <module>
                 <name>internalLoginForm</name>
                 <order>30</order>
                 <necessity>sufficient</necessity>
             </module>
         </sequence>
-        <sequence id="31">
+        <sequence>
+            <name>admin-gui-default-node</name>
+            <channel>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user</channelId>
+                <default>true</default>
+                <urlSuffix>defaultNode</urlSuffix>
+            </channel>
+            <requireAssignmentTarget oid="00000000-0000-0000-0000-000000000004" relation="org:default" type="c:RoleType"/>
+            <nodeGroup oid="05b6933a-b7fc-4543-b8fa-fd8b278ff9ee"  type="ArchetypeType"/>
+            <module>
+                <name>internalLoginForm</name>
+                <order>30</order>
+                <necessity>sufficient</necessity>
+            </module>
+        </sequence>
+        <sequence>
             <name>userPasswordResetAuth</name>
             <description>
                 Just a nonce mail to validate e-mail address.
@@ -86,7 +96,7 @@
                 <channelId>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#resetPassword</channelId>
                 <urlSuffix>resetPassword</urlSuffix>
             </channel>
-            <module id="32">
+            <module>
                 <name>MailNonce</name>
                 <order>10</order>
                 <necessity>sufficient</necessity>
@@ -126,7 +136,7 @@
             <lockoutDuration>PT15M</lockoutDuration>
             <valuePolicyRef oid="00000000-0000-0000-0000-000000000003" relation="org:default" type="c:ValuePolicyType"/>
             <questionNumber>1</questionNumber>
-            <question id="21">
+            <question>
                 <identifier>http://midpoint.evolveum.com/xml/ns/public/security/question-2#q001</identifier>
                 <enabled>true</enabled>
                 <questionText>How much wood would a woodchuck chuck if woodchuck could chuck wood?</questionText>

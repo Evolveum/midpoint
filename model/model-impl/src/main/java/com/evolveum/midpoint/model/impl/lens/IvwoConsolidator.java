@@ -234,6 +234,14 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             if (!zeroIvwos.isEmpty() && !addUnchangedValues) {
                 // Value unchanged, nothing to do
                 LOGGER.trace("Value {} unchanged, doing nothing", value);
+                if (!value.getValueMetadata().isEmpty()) {
+                    V existingValue = findValue(itemExisting, value);
+                    if (existingValue != null) {
+                        applyValueMetadata(existingValue, value);
+                    }
+                } else {
+                    LOGGER.info("Huh? Value is not there: {}", value); // FIXME
+                }
                 continue;
             }
 
@@ -296,10 +304,14 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                             "skipping adding in {}", value, itemPath, contextDescription);
                     continue;
                 }
-                if (filterExistingValues && hasValue(itemExisting, value)) {
-                    LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value in {}",
-                            value, itemPath, contextDescription);
-                    continue;
+                if (filterExistingValues) {
+                    V existingValue = findValue(itemExisting, value);
+                    if (existingValue != null) {
+                        LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value in {}",
+                                value, itemPath, contextDescription);
+                        applyValueMetadata(existingValue, value);
+                        continue;
+                    }
                 }
                 LOGGER.trace("Value {} added to delta as ADD for item {} in {}", value, itemPath, contextDescription);
                 itemDelta.addValueToAdd(LensUtil.cloneAndApplyMetadata(value, isAssignment, pvwosToAdd));
@@ -405,6 +417,14 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         }
 
         return itemDelta;
+    }
+
+    private void applyValueMetadata(V existingValue, V value) throws SchemaException {
+        if (!value.getValueMetadata().isEmpty()) {
+            LOGGER.info("Copying value metadata to value {} for item {} in {}",
+                    existingValue, itemPath, contextDescription);
+            existingValue.setValueMetadata(value.getValueMetadata().clone()); // TODO merge instead
+        }
     }
 
     private Collection<V> collectAllValues() throws SchemaException {
@@ -515,6 +535,17 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             return valueMatcher.hasRealValue((PrismProperty)existingUserItem, (PrismPropertyValue)newValue);
         } else {
             return existingUserItem.contains(newValue, EquivalenceStrategy.IGNORE_METADATA, comparator);
+        }
+    }
+
+    private V findValue(Item<V,D> existingUserItem, V newValue) {
+        if (existingUserItem == null) {
+            return null;
+        }
+        if (valueMatcher != null && newValue instanceof PrismPropertyValue) {
+            return (V) valueMatcher.findValue((PrismProperty)existingUserItem, (PrismPropertyValue)newValue);
+        } else {
+            return existingUserItem.findValue(newValue, EquivalenceStrategy.IGNORE_METADATA, comparator);
         }
     }
 

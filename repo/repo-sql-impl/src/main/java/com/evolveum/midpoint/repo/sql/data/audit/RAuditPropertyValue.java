@@ -7,26 +7,22 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.COLUMN_RECORD_ID;
+import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.TABLE_NAME;
+
+import java.util.Objects;
+import javax.persistence.*;
+
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
 import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 
-import javax.persistence.*;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-
-import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.COLUMN_RECORD_ID;
-import static com.evolveum.midpoint.repo.sql.data.audit.RAuditPropertyValue.TABLE_NAME;
-
 @Ignore
 @Entity
 @Table(name = TABLE_NAME, indexes = {
-        @Index(name = "iAuditPropValRecordId", columnList = COLUMN_RECORD_ID)})
+        @Index(name = "iAuditPropValRecordId", columnList = COLUMN_RECORD_ID) })
 public class RAuditPropertyValue implements EntityState {
 
     public static final String TABLE_NAME = "m_audit_prop_value";
@@ -128,10 +124,9 @@ public class RAuditPropertyValue implements EntityState {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof RAuditPropertyValue))
-            return false;
+        if (this == o) { return true; }
+        if (!(o instanceof RAuditPropertyValue)) { return false; }
+
         RAuditPropertyValue that = (RAuditPropertyValue) o;
         return id == that.id &&
                 Objects.equals(recordId, that.recordId) &&
@@ -141,7 +136,7 @@ public class RAuditPropertyValue implements EntityState {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, recordId, name);
+        return Objects.hash(id, recordId, name, value);
     }
 
     @Override
@@ -153,5 +148,4 @@ public class RAuditPropertyValue implements EntityState {
                 ", value='" + value + '\'' +
                 '}';
     }
-
 }

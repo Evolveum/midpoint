@@ -1,11 +1,18 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.helpers;
+
+import java.util.Collection;
+import java.util.Iterator;
+
+import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.sql.SerializationRelatedException;
@@ -20,12 +27,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SequenceType;
-import org.hibernate.Session;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Iterator;
 
 /**
  * @author mederly
@@ -57,7 +58,7 @@ public class SequenceHelper {
         try {
             session = baseHelper.beginTransaction();
 
-            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true, result);
+            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", prismObject.debugDump());
             }
@@ -110,10 +111,7 @@ public class SequenceHelper {
             LOGGER.trace("Committed!");
 
             return returnValue;
-        } catch (ObjectNotFoundException ex) {
-            baseHelper.rollbackTransaction(session, ex, result, true);
-            throw ex;
-        } catch (SchemaException ex) {
+        } catch (ObjectNotFoundException | SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {
@@ -135,7 +133,7 @@ public class SequenceHelper {
         try {
             session = baseHelper.beginTransaction();
 
-            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true, result);
+            PrismObject<SequenceType> prismObject = objectRetriever.getObjectInternal(session, SequenceType.class, oid, null, true);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("OBJECT before:\n{}", prismObject.debugDump());
             }
@@ -170,10 +168,7 @@ public class SequenceHelper {
             LOGGER.trace("Before commit...");
             session.getTransaction().commit();
             LOGGER.trace("Committed!");
-        } catch (ObjectNotFoundException ex) {
-            baseHelper.rollbackTransaction(session, ex, result, true);
-            throw ex;
-        } catch (SchemaException ex) {
+        } catch (ObjectNotFoundException | SchemaException ex) {
             baseHelper.rollbackTransaction(session, ex, result, true);
             throw ex;
         } catch (DtoTranslationException | RuntimeException ex) {

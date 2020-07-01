@@ -63,7 +63,7 @@ public abstract class ItemPanel<VW extends PrismValueWrapper<?>, IW extends Item
 
     private void initLayout() {
 
-        //ugly hack TODO FIME - prism context is lost during srialization/deserialization.. find better way how to do it.
+        //ugly hack TODO FIME - prism context is lost during serialization/deserialization.. find better way how to do it.
         if (getModelObject() != null) {
             getModelObject().revive(getPrismContext());
         }

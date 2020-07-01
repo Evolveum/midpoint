@@ -32,4 +32,8 @@ public interface XNode extends DebugDumpable, Visitable<XNode>, Cloneable, Seria
     XNode clone();
 
     Integer getMaxOccurs();
+
+    default boolean hasMetadata() {
+        return this instanceof MetadataAware && ((MetadataAware) this).getMetadataNode() != null;
+    }
 }

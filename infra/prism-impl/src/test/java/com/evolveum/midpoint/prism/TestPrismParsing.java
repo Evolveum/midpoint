@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
@@ -22,8 +23,9 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.xnode.*;
+
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -135,7 +137,7 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
         roundTrip(getFile(USER_JACK_OBJECT_BASENAME), false, false);
     }
 
-    private void roundTrip(File file, boolean expectFullPolyName, boolean withIncomplete) throws SchemaException, SAXException, IOException {
+    private void roundTrip(File file, boolean expectFullPolyName, boolean withIncomplete) throws SchemaException, IOException {
 
         // GIVEN
         PrismContext prismContext = getPrismContext();
@@ -384,6 +386,109 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
                 new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "uid"),
                 new ItemName("http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3", "name")
         )), names);
+    }
+
+    @Test
+    public void test700UserAliceMetadataOnXNodeLevel() throws Exception {
+        given();
+        PrismContext prismContext = getPrismContext();
+
+        when();
+        RootXNode root = prismContext.parserFor(getFile(USER_ALICE_METADATA_BASENAME)).parseToXNode();
+        displayValue("alice xnode", root);
+
+        assertAliceMetadata(root);
+
+        assertAliceMetadata(testSerializeMetadata(root, PrismContext.LANG_XML));
+        assertAliceMetadata(testSerializeMetadata(root, PrismContext.LANG_JSON));
+        assertAliceMetadata(testSerializeMetadata(root, PrismContext.LANG_YAML));
+    }
+
+    @Test
+    public void test710UserAliceMetadataOnPrismValueLevel() throws Exception {
+        given();
+        PrismContext prismContext = getPrismContext();
+
+        when();
+        PrismObject<UserType> alice = prismContext.parserFor(getFile(USER_ALICE_METADATA_BASENAME)).parse();
+        displayValue("alice", alice);
+
+        assertAliceMetadata(alice);
+
+        assertAliceMetadata(testSerializeMetadata(alice, PrismContext.LANG_XML));
+        assertAliceMetadata(testSerializeMetadata(alice, PrismContext.LANG_JSON));
+        assertAliceMetadata(testSerializeMetadata(alice, PrismContext.LANG_YAML));
+    }
+
+    private void assertAliceMetadata(RootXNode alice) throws SchemaException {
+        MapXNode user = (MapXNode) alice.getSubnode();
+        assertSingleMetadata(user, "test", "abc");
+
+        XNode name = user.get(UserType.F_NAME);
+        assertSingleMetadata(name, "loa", "high");
+        ListXNode additionalNames = (ListXNode) user.get(UserType.F_ADDITIONAL_NAMES);
+        assertSingleMetadata(additionalNames.get(0), "loa", "medium");
+        assertSingleMetadata(additionalNames.get(1), "loa", "low");
+
+        XNode extension = user.get(new QName("extension"));
+        XNode singleStringType = ((MapXNode) extension).get(new QName("singleStringType"));
+        assertSingleMetadata(singleStringType, "loa", "low");
+    }
+
+    private void assertSingleMetadata(XNode node, String name, String expected) throws SchemaException {
+        assertThat(node).isInstanceOf(MetadataAware.class);
+        MapXNode metadataNode = ((MetadataAware) node).getMetadataNode();
+        assertThat(metadataNode).isNotNull();
+        assertThat(metadataNode.size()).isEqualTo(1);
+
+        QName key = metadataNode.getSingleSubEntry("").getKey();
+        assertThat(key.getNamespaceURI()).isEqualTo(NS_FOO);
+        assertThat(key.getLocalPart()).isEqualTo(name);
+
+        //noinspection unchecked
+        PrimitiveXNode<String> value = (PrimitiveXNode<String>) metadataNode.get(new QName(name));
+        assertThat(value).isNotNull();
+        String parsedValue = value.getParsedValue(DOMUtil.XSD_STRING, String.class);
+        assertThat(parsedValue).isEqualTo(expected);
+    }
+
+    private void assertAliceMetadata(PrismObject<UserType> alice) throws SchemaException {
+        assertSingleMetadata(alice.getValue(), "test", "abc");
+        assertSingleMetadata(alice.findItem(UserType.F_NAME).getValue(), "loa", "high");
+        assertSingleMetadata(alice.findItem(UserType.F_ADDITIONAL_NAMES).getValues().get(0), "loa", "medium");
+        assertSingleMetadata(alice.findItem(UserType.F_ADDITIONAL_NAMES).getValues().get(1), "loa", "low");
+        assertSingleMetadata(alice.findItem(ItemPath.create(UserType.F_EXTENSION, "singleStringType")).getValue(), "loa", "low");
+    }
+
+    private void assertSingleMetadata(PrismValue value, String name, String expected) {
+        ValueMetadata valueMetadata = value.getValueMetadata();
+        assertThat(valueMetadata).isNotNull();
+        assertThat(valueMetadata.size()).isEqualTo(1);
+
+        Item<?, ?> item = valueMetadata.findItem(ItemPath.create(name));
+        assertThat(item).isNotNull();
+        assertThat(item.size()).isEqualTo(1);
+        assertThat((Object) item.getValue().getRealValue()).isEqualTo(expected);
+    }
+
+    private RootXNode testSerializeMetadata(RootXNode original, String language) throws SchemaException {
+        PrismContext prismContext = getPrismContext();
+        String serialized = prismContext.serializerFor(language).serialize(original);
+        displayValue("serialized", serialized);
+
+        RootXNode reparsed = prismContext.parserFor(serialized).parseToXNode();
+        displayValue("reparsed", reparsed);
+        return reparsed;
+    }
+
+    private <T extends Objectable> PrismObject<T> testSerializeMetadata(PrismObject<T> object, String language) throws SchemaException {
+        PrismContext prismContext = getPrismContext();
+        String serialized = prismContext.serializerFor(language).serialize(object);
+        displayValue("serialized", serialized);
+
+        PrismObject<T> reparsed = prismContext.parserFor(serialized).parse();
+        displayValue("reparsed", reparsed);
+        return reparsed;
     }
 
     protected void assertUserAdhoc(PrismObject<UserType> user, boolean expectRawInConstructions, boolean withIncomplete) throws SchemaException {

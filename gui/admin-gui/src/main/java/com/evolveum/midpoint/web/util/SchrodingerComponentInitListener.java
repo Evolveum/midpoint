@@ -24,6 +24,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.application.IComponentInitializationListener;
 import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.Response;
 
@@ -113,6 +114,10 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
 
         try {
             String key = (String) FieldUtils.readField(model, "resourceKey", true);
+            if (key.startsWith("${")) {
+                String expression = key.substring(2, key.length()-1);
+                key = new PropertyModel<String>(FieldUtils.readField(model, "model", true), expression).getObject();
+            }
             if (key != null) {
                 writeDataAttribute(component, ATTR_RESOURCE_KEY, key);
             }

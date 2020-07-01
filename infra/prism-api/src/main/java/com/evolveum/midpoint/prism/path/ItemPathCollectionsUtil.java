@@ -172,4 +172,15 @@ public class ItemPathCollectionsUtil {
         }
         return null;
     }
+
+    // The code is the same as for UniformItemPath. We should perhaps unify these two.
+    // (Defeating the purpose of UniformItemPath...)
+    public static <T> T getFromMap(Map<ItemPath, T> map, ItemPath itemPath) {
+        for (Map.Entry<ItemPath, T> entry : map.entrySet()) {
+            if (entry.getKey().equivalent(itemPath)) {
+                return entry.getValue();
+            }
+        }
+        return null;
+    }
 }

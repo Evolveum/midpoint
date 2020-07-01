@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,13 +9,12 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -51,7 +50,7 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
     }
 
     @Override
-    public PrismReferenceDefinition clone() {
+    public @NotNull PrismReferenceDefinition clone() {
         return getItemDefinition().clone();
     }
 
@@ -84,7 +83,7 @@ public class PrismReferenceWrapperImpl<R extends Referencable>
 
     @Override
     public boolean isEmpty() {
-        if (super.isEmpty()) return true;
+        if (super.isEmpty()) { return true; }
 
         List<PrismReferenceValue> pVals = getItem().getValues();
         boolean allEmpty = true;

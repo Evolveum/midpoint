@@ -74,7 +74,7 @@ public class PersonaProcessor {
     private ObjectResolver objectResolver;
 
     @Autowired @Qualifier("cacheRepositoryService")
-    private transient RepositoryService repositoryService;
+    private RepositoryService repositoryService;
 
     @Autowired private ContextFactory contextFactory;
     @Autowired private Clockwork clockwork;

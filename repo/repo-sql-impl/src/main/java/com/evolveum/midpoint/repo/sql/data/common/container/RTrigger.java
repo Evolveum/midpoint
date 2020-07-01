@@ -16,10 +16,10 @@ import org.hibernate.annotations.GenericGenerator;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.query.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
-import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 @Entity
 @IdClass(RContainerId.class)
 @Table(indexes = { @Index(name = "iTriggerTimestamp", columnList = RTrigger.C_TIMESTAMP) })
-public class RTrigger implements Container {
+public class RTrigger implements Container<RObject> {
 
     public static final String F_OWNER = "owner";
     public static final String C_TIMESTAMP = "timestampValue";
@@ -161,8 +161,9 @@ public class RTrigger implements Container {
         fromJaxb(jaxb, repo, repositoryContext, generatorResult);
     }
 
-    private static void fromJaxb(TriggerType jaxb, RTrigger repo, RepositoryContext repositoryContext,
-            IdGeneratorResult generatorResult) {
+    private static void fromJaxb(TriggerType jaxb, RTrigger repo,
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult) {
+
         Validate.notNull(repo, "Repo object must not be null.");
         Validate.notNull(jaxb, "JAXB object must not be null.");
 

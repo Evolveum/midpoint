@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;

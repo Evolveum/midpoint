@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,23 +48,13 @@ public class MidpointAuthFilter extends GenericFilterBean {
     private static final Trace LOGGER = TraceManager.getTrace(MidpointAuthFilter.class);
     private final Map<Class<?>, Object> sharedObjects;
 
-    @Autowired
-    private ObjectPostProcessor<Object> objectObjectPostProcessor;
-
-    @Autowired
-    private SystemObjectCache systemObjectCache;
-
-    @Autowired
-    private AuthModuleRegistryImpl authModuleRegistry;
-
-    @Autowired
-    private AuthChannelRegistryImpl authChannelRegistry;
-
-    @Autowired
-    private MidpointAuthenticationManager authenticationManager;
-
-    @Autowired
-    private PrismContext prismContext;
+    @Autowired private ObjectPostProcessor<Object> objectObjectPostProcessor;
+    @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private AuthModuleRegistryImpl authModuleRegistry;
+    @Autowired private AuthChannelRegistryImpl authChannelRegistry;
+    @Autowired private MidpointAuthenticationManager authenticationManager;
+    @Autowired private PrismContext prismContext;
+    @Autowired private TaskManager taskManager;
 
     private AuthenticationsPolicyType authenticationPolicy;
     private PreLogoutFilter preLogoutFilter = new PreLogoutFilter();
@@ -239,7 +230,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         if (mpAuthentication != null && SecurityUtils.isLoginPage(httpRequest)) {
             sequence = mpAuthentication.getSequence();
         } else {
-            sequence = SecurityUtils.getSequenceByPath(httpRequest, authenticationsPolicy);
+            sequence = SecurityUtils.getSequenceByPath(httpRequest, authenticationsPolicy, taskManager.getLocalNodeGroups());
         }
 
         // use same sequence if focus is authenticated and channel id of new sequence is same

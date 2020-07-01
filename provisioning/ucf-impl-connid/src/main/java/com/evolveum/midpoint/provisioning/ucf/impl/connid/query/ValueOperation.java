@@ -16,6 +16,9 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.OperationalAttributes;
@@ -58,8 +61,8 @@ public class ValueOperation extends Operation {
 
                     Collection<Object> convertedValues = convertValues(propName, eq.getValues());
                     if (convertedValues == null || convertedValues.isEmpty()) {
-                        // See MID-1460
-                        throw new UnsupportedOperationException("Equals filter with a null value is NOT supported by ICF");
+                        Attribute attr = AttributeBuilder.build(icfName);
+                        return FilterBuilder.equalTo(attr);
                     } else {
                         Attribute attr = AttributeBuilder.build(icfName, convertedValues);
                         if (valueFilter.getDefinition().isSingleValue()) {

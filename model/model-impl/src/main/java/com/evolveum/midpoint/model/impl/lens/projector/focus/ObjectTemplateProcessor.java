@@ -16,6 +16,7 @@ import java.util.Map.Entry;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.util.ObjectTemplateIncludeProcessor;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
@@ -24,8 +25,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
-import com.evolveum.midpoint.schema.ObjectSelector;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -87,7 +86,7 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
 
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
+    private RepositoryService cacheRepositoryService;
 
     @Autowired private MappingSetEvaluator mappingSetEvaluator;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
@@ -201,47 +200,14 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
     }
 
     @NotNull
-    private Map<UniformItemPath, ObjectTemplateItemDefinitionType> collectItemDefinitionsFromTemplate(ObjectTemplateType objectTemplateType, String contextDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private Map<UniformItemPath, ObjectTemplateItemDefinitionType> collectItemDefinitionsFromTemplate(ObjectTemplateType objectTemplate, String contextDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         Map<UniformItemPath, ObjectTemplateItemDefinitionType> definitions = new HashMap<>();
-        if (objectTemplateType == null) {
-            return definitions;
+        if (objectTemplate != null) {
+            new ObjectTemplateIncludeProcessor(modelObjectResolver)
+                    .processThisAndIncludedTemplates(objectTemplate, contextDesc, task, result,
+                            (includedTemplate) -> collectLocalItemDefinitions(includedTemplate, contextDesc, definitions));
         }
-        processIncludedTemplates(objectTemplateType, contextDesc, task, result,
-                (includedTemplate) -> collectLocalItemDefinitions(includedTemplate, contextDesc, definitions));
-        collectLocalItemDefinitions(objectTemplateType, contextDesc, definitions);
         return definitions;
-    }
-
-    private void processIncludedTemplates(ObjectTemplateType objectTemplate, String contextDesc, Task task,
-            OperationResult result, TemplateProcessor processor)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-        for (ObjectReferenceType includeRef: objectTemplate.getIncludeRef()) {
-            PrismObject<ObjectTemplateType> includedObject;
-            if (includeRef.asReferenceValue().getObject() != null) {
-                //noinspection unchecked
-                includedObject = includeRef.asReferenceValue().getObject();
-            } else {
-                ObjectTemplateType includeObjectType = modelObjectResolver.resolve(includeRef, ObjectTemplateType.class,
-                        null, "include reference in "+objectTemplate + " in " + contextDesc, task, result);
-                includedObject = includeObjectType.asPrismObject();
-                // Store resolved object for future use (e.g. next waves).
-                includeRef.asReferenceValue().setObject(includedObject);
-            }
-            LOGGER.trace("Including template {}", includedObject);
-            processor.process(includedObject.asObjectable());
-            processIncludedTemplates(includedObject.asObjectable(), includedObject.toString() + " in " + contextDesc,
-                    task, result, processor);
-        }
-    }
-
-    /**
-     * Internal interface used for handling includeRef references.
-     * If needed, exceptions and operation result can be added to the process() method in the future.
-     */
-    @FunctionalInterface
-    private interface TemplateProcessor {
-        void process(ObjectTemplateType includedTemplate);
     }
 
     private void collectLocalItemDefinitions(ObjectTemplateType objectTemplate, String contextDesc,
@@ -397,10 +363,9 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
         }
         LOGGER.trace("Collecting mappings from {}", objectTemplate);
 
-        processIncludedTemplates(objectTemplate, contextDesc, task, result,
-                (includedTemplate -> collectMappings(mappings, includedTemplate)));
-
-        collectMappings(mappings, objectTemplate);
+        new ObjectTemplateIncludeProcessor(modelObjectResolver)
+                .processThisAndIncludedTemplates(objectTemplate, contextDesc, task, result,
+                        (includedTemplate -> collectMappings(mappings, includedTemplate)));
     }
 
     private void collectMappings(List<FocalMappingEvaluationRequest<?, ?>> mappings, ObjectTemplateType objectTemplateType) {

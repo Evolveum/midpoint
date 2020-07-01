@@ -725,7 +725,13 @@ mainCycle:
             task.setResultTransient(task.createUnnamedTaskResult());
         }
 
-        TaskRunResult runResult = taskManagerImpl.getHandlerExecutor().executeHandler(task, null, handler, executionResult);
+        TaskRunResult runResult;
+        try {
+            runResult = taskManagerImpl.getHandlerExecutor().executeHandler(task, null, handler, executionResult);
+        } finally {
+            // TEMPORARY see MID-6343; TODO implement correctly!
+            taskManagerImpl.getCounterManager().cleanupCounters(task.getOid());
+        }
 
         // It is dangerous to start waiting for transient children if they were not told to finish! Make sure you signal them
         // to stop at appropriate place.

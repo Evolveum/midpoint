@@ -121,7 +121,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Autowired private ModelObjectResolver modelObjectResolver;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private SecurityContextManager securityContextManager;
-    @Autowired private transient Protector protector;
+    @Autowired private Protector protector;
     @Autowired private OrgStructFunctionsImpl orgStructFunctions;
     @Autowired private LinkedObjectsFunctions linkedObjectsFunctions;
     @Autowired private WorkflowService workflowService;

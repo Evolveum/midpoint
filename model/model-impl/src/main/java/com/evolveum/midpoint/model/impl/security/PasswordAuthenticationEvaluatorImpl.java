@@ -28,7 +28,7 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv, PasswordAuthenticationContext authCtx) {
         if (StringUtils.isBlank(authCtx.getPassword())) {
-            recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
+            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
             throw new BadCredentialsException("web.security.provider.password.encoding");
         }
     }
@@ -50,7 +50,7 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
         ProtectedStringType protectedString = credential.getValue();
 
         if (protectedString == null) {
-            recordAuthenticationBehavior(principal, connEnv, "no stored password value", false);
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no stored password value", principal.getFocus().getClass(), false);
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
         }
 

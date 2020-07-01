@@ -9,7 +9,7 @@ package com.evolveum.midpoint.repo.sql;
 
 import java.util.Properties;
 
-import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +17,7 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
 import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
@@ -36,9 +37,10 @@ public class SqlRepositoryBeanConfig {
     }
 
     @Bean
-    public DataSourceFactory dataSourceFactory() {
+    public DataSourceFactory dataSourceFactory() throws RepositoryServiceFactoryException {
         DataSourceFactory df = new DataSourceFactory();
         df.setConfiguration(sqlRepositoryFactory.getSqlConfiguration());
+        df.createDataSource();
 
         return df;
     }
@@ -59,13 +61,16 @@ public class SqlRepositoryBeanConfig {
     }
 
     @Bean
-    public LocalSessionFactoryBean sessionFactory() throws RepositoryServiceFactoryException {
+    public LocalSessionFactoryBean sessionFactory(
+            DataSourceFactory dataSourceFactory,
+            MidPointImplicitNamingStrategy midPointImplicitNamingStrategy,
+            MidPointPhysicalNamingStrategy midPointPhysicalNamingStrategy,
+            EntityStateInterceptor entityStateInterceptor) {
         LocalSessionFactoryBean bean = new LocalSessionFactoryBean();
 
-        DataSourceFactory dataSourceFactory = dataSourceFactory();
         SqlRepositoryConfiguration configuration = sqlRepositoryFactory.getSqlConfiguration();
 
-        bean.setDataSource(dataSourceFactory.createDataSource());
+        bean.setDataSource(dataSourceFactory.getDataSource());
 
         Properties hibernateProperties = new Properties();
         hibernateProperties.setProperty("hibernate.dialect", configuration.getHibernateDialect());
@@ -77,8 +82,8 @@ public class SqlRepositoryBeanConfig {
         hibernateProperties.setProperty("hibernate.hql.bulk_id_strategy", "org.hibernate.hql.spi.id.inline.InlineIdsOrClauseBulkIdStrategy");
 
         bean.setHibernateProperties(hibernateProperties);
-        bean.setImplicitNamingStrategy(midPointImplicitNamingStrategy());
-        bean.setPhysicalNamingStrategy(midPointPhysicalNamingStrategy());
+        bean.setImplicitNamingStrategy(midPointImplicitNamingStrategy);
+        bean.setPhysicalNamingStrategy(midPointPhysicalNamingStrategy);
         bean.setAnnotatedPackages("com.evolveum.midpoint.repo.sql.type");
         bean.setPackagesToScan(
                 "com.evolveum.midpoint.repo.sql.data.common",
@@ -90,15 +95,15 @@ public class SqlRepositoryBeanConfig {
                 "com.evolveum.midpoint.repo.sql.data.common.other",
                 "com.evolveum.midpoint.repo.sql.data.common.type",
                 "com.evolveum.midpoint.repo.sql.data.audit");
-        bean.setEntityInterceptor(entityStateInterceptor());
+        bean.setEntityInterceptor(entityStateInterceptor);
 
         return bean;
     }
 
     @Bean
-    public HibernateTransactionManager transactionManager() throws RepositoryServiceFactoryException {
+    public HibernateTransactionManager transactionManager(SessionFactory sessionFactory) {
         HibernateTransactionManager htm = new HibernateTransactionManager();
-        htm.setSessionFactory(sessionFactory().getObject());
+        htm.setSessionFactory(sessionFactory);
 
         return htm;
     }

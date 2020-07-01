@@ -20,11 +20,10 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.query.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
-import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
-import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
@@ -34,7 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationExecutionTy
 
 @JaxbType(type = OperationExecutionType.class)
 @Entity
-@QueryEntity
 @IdClass(RContainerId.class)
 @Table(name = "m_operation_execution", indexes = {
         @Index(name = "iOpExecTaskOid", columnList = "taskRef_targetOid"),

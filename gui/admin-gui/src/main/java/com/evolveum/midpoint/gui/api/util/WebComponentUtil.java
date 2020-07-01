@@ -6,29 +6,86 @@
  */
 package com.evolveum.midpoint.gui.api.util;
 
+import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
+import org.apache.wicket.*;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.authroles.authorization.strategies.role.Roles;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
+import org.apache.wicket.datetime.PatternDateConverter;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.feedback.IFeedback;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.cycle.RequestCycle;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.joda.time.format.DateTimeFormat;
+
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyValueModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.component.icon.LayeredIconCssStyle;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.util.ResourceUtils;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.*;
@@ -95,8 +152,8 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
@@ -105,7 +162,10 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.PageValuePolicy;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDto;
-import com.evolveum.midpoint.web.page.self.*;
+import com.evolveum.midpoint.web.page.self.PageOrgSelfProfile;
+import com.evolveum.midpoint.web.page.self.PageRoleSelfProfile;
+import com.evolveum.midpoint.web.page.self.PageServiceSelfProfile;
+import com.evolveum.midpoint.web.page.self.PageUserSelfProfile;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
@@ -123,62 +183,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringTranslationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.math.NumberUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
-import org.apache.wicket.*;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
-import org.apache.wicket.authroles.authorization.strategies.role.Roles;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
-import org.apache.wicket.datetime.PatternDateConverter;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.feedback.IFeedback;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.repeater.data.IDataProvider;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
-import org.apache.wicket.request.IRequestHandler;
-import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
-import org.apache.wicket.util.visit.IVisit;
-import org.apache.wicket.util.visit.IVisitor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.joda.time.format.DateTimeFormat;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.net.URI;
-import java.text.SimpleDateFormat;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static com.evolveum.midpoint.gui.api.page.PageBase.createStringResourceStatic;
 
 /**
  * Utility class containing miscellaneous methods used mostly in Wicket
@@ -3155,6 +3159,37 @@ public final class WebComponentUtil {
         return relationsList;
     }
 
+    public static String getReferenceObjectTextValue(ObjectReferenceType ref, PageBase pageBase){
+        if (ref == null) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (ref.getObject() != null) {
+            sb.append(WebComponentUtil.getTranslatedPolyString(ref.getObject().getName()));
+        }
+        if (StringUtils.isNotEmpty(ref.getOid())) {
+            if (sb.length() > 0) {
+                sb.append("; ");
+            }
+            sb.append(pageBase.createStringResource("ReferencePopupPanel.oid").getString());
+            sb.append(ref.getOid());
+        }
+        if (ref.getRelation() != null) {
+            if (sb.length() > 0) {
+                sb.append("; ");
+            }
+            sb.append(pageBase.createStringResource("ReferencePopupPanel.relation").getString());
+            sb.append(ref.getRelation().getLocalPart());
+        }
+        if (ref.getType() != null) {
+            if (sb.length() > 0) {
+                sb.append("; ");
+            }
+            sb.append(ref.getType().getLocalPart());
+        }
+        return sb.toString();
+    }
+
     public static String formatDurationWordsForLocal(long durationMillis, boolean suppressLeadingZeroElements,
             boolean suppressTrailingZeroElements, PageBase pageBase){
 
@@ -4394,6 +4429,20 @@ public final class WebComponentUtil {
             return PageServiceSelfProfile.class;
         }
         return null;
+    }
+
+    public static <I extends Item> PrismObject<LookupTableType> findLookupTable(ItemDefinition<I> definition, PageBase page) {
+        PrismReferenceValue valueEnumerationRef = definition.getValueEnumerationRef();
+        if (valueEnumerationRef == null) {
+            return null;
+        }
+
+        String lookupTableUid = valueEnumerationRef.getOid();
+        Task task = page.createSimpleTask("loadLookupTable");
+        OperationResult result = task.getResult();
+
+        Collection<SelectorOptions<GetOperationOptions>> options = WebModelServiceUtils.createLookupTableRetrieveOptions(page.getSchemaHelper());
+        return WebModelServiceUtils.loadObject(LookupTableType.class, lookupTableUid, options, page, task, result);
     }
 
     public static <AH extends AssignmentHolderType> boolean hasAnyArchetypeAssignemnt(AH assignmentHolder) {

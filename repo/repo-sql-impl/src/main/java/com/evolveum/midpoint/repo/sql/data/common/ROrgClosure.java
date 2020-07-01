@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,14 +7,15 @@
 
 package com.evolveum.midpoint.repo.sql.data.common;
 
-import com.evolveum.midpoint.repo.sql.data.common.id.ROrgClosureId;
-import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
+import java.io.Serializable;
+import javax.persistence.*;
+
 import org.hibernate.annotations.ForeignKey;
 
-import javax.persistence.*;
-import java.io.Serializable;
+import com.evolveum.midpoint.repo.sql.data.common.id.ROrgClosureId;
+import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 
 /**
  * @author lazyman
@@ -60,7 +61,7 @@ public class ROrgClosure implements Serializable {
 
     @MapsId("ancestorOid")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({@JoinColumn(name = "ancestor_oid", referencedColumnName = "oid")})
+    @JoinColumns({ @JoinColumn(name = "ancestor_oid", referencedColumnName = "oid") })
     @ForeignKey(name = "fk_ancestor")
     @NotQueryable
     public RObject getAncestor() {
@@ -83,7 +84,7 @@ public class ROrgClosure implements Serializable {
 
     @MapsId("descendantOid")
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumns({@JoinColumn(name = "descendant_oid", referencedColumnName = "oid")})
+    @JoinColumns({ @JoinColumn(name = "descendant_oid", referencedColumnName = "oid") })
     @ForeignKey(name = "fk_descendant")
     @NotQueryable
     public RObject getDescendant() {
@@ -129,17 +130,13 @@ public class ROrgClosure implements Serializable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null || getClass() != obj.getClass())
-            return false;
+        if (this == obj) { return true; }
+        if (obj == null || getClass() != obj.getClass()) { return false; }
 
         ROrgClosure that = (ROrgClosure) obj;
 
-        if (ancestor != null ? !ancestor.equals(that.ancestor) : that.ancestor != null)
-            return false;
-        if (descendant != null ? !descendant.equals(that.descendant) : that.descendant != null)
-            return false;
+        if (ancestor != null ? !ancestor.equals(that.ancestor) : that.ancestor != null) { return false; }
+        if (descendant != null ? !descendant.equals(that.descendant) : that.descendant != null) { return false; }
 
         return true;
     }

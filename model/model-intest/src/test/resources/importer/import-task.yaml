@@ -1,7 +1,6 @@
 ---
 '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-objects:
-- task:
+task:
     oid: "00000000-0000-0000-0000-123450000001"
     name: "Task1: basic single-run task (takes 180x1 sec)"
     extension: !<http://midpoint.evolveum.com/xml/ns/public/common/common-3/ExtensionType>

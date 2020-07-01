@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/samples/metadata"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/samples/metadata"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
+            elementFormDefault="qualified"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            For testing value metadata processing.
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
+                schemaLocation="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"/>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/query-3"/>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3"/>
+
+    <xsd:complexType name="ValueMetadataExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:ValueMetadataType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="loa" type="tns:LevelOfAssuranceType" minOccurs="0"/>
+            <xsd:element name="sensitivity" type="tns:SensitivityType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="LevelOfAssuranceType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="low">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="normal">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NORMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="high">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HIGH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:element name="loa" type="tns:LevelOfAssuranceType" />
+
+    <xsd:simpleType name="SensitivityType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="low">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LOW"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="normal">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="NORMAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="high">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HIGH"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    <xsd:element name="sensitivity" type="tns:SensitivityType" />
+
+    <xsd:complexType name="UserTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="impairmentCategory" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+</xsd:schema>

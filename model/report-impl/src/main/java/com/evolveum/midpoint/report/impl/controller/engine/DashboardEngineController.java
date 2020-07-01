@@ -6,22 +6,15 @@
  */
 package com.evolveum.midpoint.report.impl.controller.engine;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.export.ExportController;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.io.FileUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.io.File;
 

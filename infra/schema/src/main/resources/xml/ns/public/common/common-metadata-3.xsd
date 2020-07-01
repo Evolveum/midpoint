@@ -15,11 +15,16 @@
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting/extension-3"
-            elementFormDefault="qualified">
+            elementFormDefault="qualified"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
 
     <xsd:annotation>
         <xsd:documentation>
-            Standard value metadata that is part of the static common-3 schema.
+            Standard value metadata that is part of the static common-3 schema
+            and data structures that support metadata handling.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -38,6 +43,8 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -81,6 +88,7 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+    <xsd:element name="valueMetadata" type="tns:ValueMetadataType" />
 
     <xsd:complexType name="StorageMetadataType">
         <xsd:annotation>
@@ -126,7 +134,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="createChannel" type="xsd:anyURI" minOccurs="0" maxOccurs="1">
+            <xsd:element name="createChannel" type="xsd:anyURI" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Channel in which the object was created.
@@ -580,4 +588,155 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="MetadataHandlingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Defines handling of a metadata items. (TODO choose better name for this type.)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="item" type="tns:MetadataItemDefinitionType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines handling of a metadata item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="mapping" type="tns:MetadataMappingType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of metadata mappings. Should be used only when really needed:
+                        Metadata item definition is the preferred way how to express metadata handling.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="applicability" type="tns:MetadataProcessingApplicabilitySpecificationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Where to apply metadata definitions from this template.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="metadataHandling" type="tns:MetadataHandlingType"/>
+
+    <xsd:complexType name="MetadataItemDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Description of the metadata item handling details, such as  (TODO)
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+                <a:displayName>MetadataItemDefinitionType.details</a:displayName> <!-- TODO -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ItemRefinedDefinitionType">
+                <xsd:sequence>
+                    <xsd:element name="mapping" type="tns:MetadataMappingType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                TODO
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="applicability" type="tns:MetadataProcessingApplicabilitySpecificationType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Where to apply this metadata item definition.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="metadataItem" type="tns:MetadataItemDefinitionType"/>
+
+    <xsd:complexType name="MetadataMappingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specialization of abstract mapping for metadata mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+                <a:displayName>MappingType.details</a:displayName> <!-- TODO -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractMappingType"/>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="metadataMapping" type="tns:MappingType"/>
+
+    <xsd:complexType name="MetadataProcessingApplicabilitySpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                In what situations should be this mapping template applied?
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="include" type="tns:MetadataProcessingItemApplicabilitySpecificationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Metadata processing (template / item / mapping) will be applied to specified item(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="exclude" type="tns:MetadataProcessingItemApplicabilitySpecificationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Metadata processing (template / item / mapping) will not be applied to specified item(s).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="metadataProcessingApplicabilitySpecification" type="tns:MetadataProcessingApplicabilitySpecificationType"/>
+
+    <xsd:complexType name="MetadataProcessingItemApplicabilitySpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Selection of items to include/exclude when applying given metadata processing.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Path of the item.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- TODO subpath flag, object type specification, object selector (?), etc -->
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+    <xsd:element name="mappingItemApplicabilitySpecification" type="tns:MetadataProcessingItemApplicabilitySpecificationType"/>
 </xsd:schema>

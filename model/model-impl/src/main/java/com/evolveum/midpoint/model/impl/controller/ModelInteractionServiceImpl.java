@@ -169,7 +169,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private ObjectMerger objectMerger;
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
+    private RepositoryService cacheRepositoryService;
     @Autowired private ReferenceResolver referenceResolver;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ArchetypeManager archetypeManager;
@@ -804,7 +804,13 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Override
     @NotNull
     public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException{
-        return visualizer.visualizeDelta(delta, null, includeOperationalItems,  task, result);
+        return visualizer.visualizeDelta(delta, null, includeOperationalItems, true,  task, result);
+    }
+
+    @Override
+    @NotNull
+    public Scene visualizeDelta(ObjectDelta<? extends ObjectType> delta, boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException{
+        return visualizer.visualizeDelta(delta, null, includeOperationalItems, includeOriginalObject,  task, result);
     }
 
     @Override

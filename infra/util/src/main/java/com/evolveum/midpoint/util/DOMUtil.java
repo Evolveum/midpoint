@@ -764,11 +764,10 @@ public class DOMUtil {
     }
 
     public static void setNamespaceDeclarations(Element element, Map<String, String> rootNamespaceDeclarations) {
-        if (rootNamespaceDeclarations == null) {
-            return;
-        }
-        for (Entry<String, String> entry : rootNamespaceDeclarations.entrySet()) {
-            setNamespaceDeclaration(element, entry.getKey(), entry.getValue());
+        if (rootNamespaceDeclarations != null) {
+            for (Entry<String, String> entry : rootNamespaceDeclarations.entrySet()) {
+                setNamespaceDeclaration(element, entry.getKey(), entry.getValue());
+            }
         }
     }
 
@@ -947,6 +946,15 @@ public class DOMUtil {
     public static Element getChildElement(Element element, QName qname) {
         for (Element subelement: listChildElements(element)) {
             if (qname.equals(getQName(subelement))) {
+                return subelement;
+            }
+        }
+        return null;
+    }
+
+    public static Element getMatchingChildElement(Element element, QName qname) {
+        for (Element subelement: listChildElements(element)) {
+            if (QNameUtil.match(qname, getQName(subelement))) {
                 return subelement;
             }
         }

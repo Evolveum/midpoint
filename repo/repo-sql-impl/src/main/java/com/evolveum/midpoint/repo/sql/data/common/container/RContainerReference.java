@@ -15,7 +15,7 @@ import org.apache.commons.lang.Validate;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.other.RCReferenceType;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;

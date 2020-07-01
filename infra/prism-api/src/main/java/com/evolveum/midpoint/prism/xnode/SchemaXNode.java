@@ -10,5 +10,5 @@ package com.evolveum.midpoint.prism.xnode;
 /**
  *
  */
-public interface SchemaXNode {
+public interface SchemaXNode extends MetadataAware {
 }
