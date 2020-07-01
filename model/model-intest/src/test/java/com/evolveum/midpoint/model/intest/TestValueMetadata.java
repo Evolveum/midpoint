@@ -270,7 +270,13 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .assertFullName("Paul Morphy")
                 .valueMetadata(UserType.F_FULL_NAME)
                     .display()
-                    .assertSize(1);
+                    .assertSize(1)
+                    .end()
+                .assertDescription("Paul")
+                .valueMetadata(UserType.F_DESCRIPTION)
+                    .display()
+                    .assertSize(0);
+
     }
     //endregion
 

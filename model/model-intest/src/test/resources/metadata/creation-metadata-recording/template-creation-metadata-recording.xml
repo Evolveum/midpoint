@@ -10,6 +10,7 @@
     <name>template-creation-metadata-recording</name>
 
     <mapping>
+        <strength>strong</strength>
         <source>
             <path>givenName</path>
         </source>
@@ -26,6 +27,32 @@
         </target>
     </mapping>
 
+    <mapping>
+        <strength>strong</strength>
+        <expression>
+            <value>Bratislava</value>
+        </expression>
+        <target>
+            <path>locality</path>
+        </target>
+    </mapping>
+
+    <!-- metadata should not be provided here -->
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>givenName</path>
+        </source>
+        <expression>
+            <script>
+                <code>givenName</code>
+            </script>
+        </expression>
+        <target>
+            <path>description</path>
+        </target>
+    </mapping>
+
     <meta>
         <item>
             <ref>storage/createTimestamp</ref>
@@ -36,6 +63,9 @@
         <applicability>
             <include>
                 <path>fullName</path>
+            </include>
+            <include>
+                <path>locality</path>
             </include>
         </applicability>
     </meta>

@@ -40,28 +40,78 @@ public class ValueMetadataProcessingSpec {
     private Map<ItemPath, ItemProcessingType> itemProcessingMap;
 
     public boolean isEmpty() {
-        return false;
+        return mappings.isEmpty() && itemDefinitions.isEmpty();
     }
 
-    void addFromObjectTemplate(ObjectTemplateType template, ObjectResolver objectResolver, String contextDesc,
+    void addFromObjectTemplate(ObjectTemplateType rootTemplate, ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         // TODO resolve conflicts in included templates
-        new ObjectTemplateIncludeProcessor(objectResolver)
-                .processThisAndIncludedTemplates(template, contextDesc, task, result, this::addFromObjectTemplate);
-    }
-
-    private void addFromObjectTemplate(ObjectTemplateType template) {
-        if (template.getMeta() != null) {
-            mappings.addAll(template.getMeta().getMapping());
-            for (MetadataItemDefinitionType item : template.getMeta().getItem()) {
-                itemDefinitions.add(item);
-                for (MetadataMappingType itemMapping : item.getMapping()) {
-                    mappings.add(provideDefaultTarget(itemMapping, item));
-                }
+        try {
+            new ObjectTemplateIncludeProcessor(objectResolver)
+                    .processThisAndIncludedTemplates(rootTemplate, contextDesc, task, result,
+                            template -> addFromObjectTemplate(template, dataPath));
+        } catch (TunnelException e) {
+            if (e.getCause() instanceof SchemaException) {
+                throw (SchemaException) e.getCause();
+            } else {
+                MiscUtil.unwrapTunnelledExceptionToRuntime(e);
             }
         }
+    }
+
+    private void addFromObjectTemplate(ObjectTemplateType template, ItemPath dataPath) {
+        try {
+            if (isApplicable(dataPath, template.getMeta())) {
+                mappings.addAll(template.getMeta().getMapping());
+                for (MetadataItemDefinitionType item : template.getMeta().getItem()) {
+                    itemDefinitions.add(item);
+                    for (MetadataMappingType itemMapping : item.getMapping()) {
+                        mappings.add(provideDefaultTarget(itemMapping, item));
+                    }
+                }
+            }
+        } catch (SchemaException e) {
+            throw new TunnelException(e);
+        }
+    }
+
+    private boolean isApplicable(ItemPath dataPath, MetadataHandlingType handling) throws SchemaException {
+        if (handling == null) {
+            return false;
+        } else if (handling.getApplicability() == null) {
+            return true;
+        } else {
+            List<ItemPath> includes = getPaths(handling.getApplicability().getInclude());
+            List<ItemPath> excludes = getPaths(handling.getApplicability().getExclude());
+            while (!dataPath.isEmpty()) {
+                boolean yes = ItemPathCollectionsUtil.containsEquivalent(includes, dataPath);
+                boolean no = ItemPathCollectionsUtil.containsEquivalent(excludes, dataPath);
+                if (yes && no) {
+                    throw new SchemaException("Item path " + dataPath + " is both included and excluded from applicability in metadata processing");
+                } else if (yes) {
+                    return true;
+                } else if (no) {
+                    return false;
+                }
+                dataPath = dataPath.allExceptLast();
+            }
+            // Default value is true ... but only if there are no explicit includes.
+            return includes.isEmpty();
+        }
+    }
+
+    private List<ItemPath> getPaths(List<MetadataProcessingItemApplicabilitySpecificationType> specs) throws SchemaException {
+        List<ItemPath> paths = new ArrayList<>();
+        for (MetadataProcessingItemApplicabilitySpecificationType spec : specs) {
+            if (spec.getPath() == null) {
+                throw new SchemaException("No path in applicability specification: " + spec);
+            } else {
+                paths.add(spec.getPath().getItemPath());
+            }
+        }
+        return paths;
     }
 
     private MetadataMappingType provideDefaultTarget(MetadataMappingType itemMapping, MetadataItemDefinitionType item) {

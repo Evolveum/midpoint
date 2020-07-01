@@ -49,8 +49,8 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
         if (lensContext != null) {
             ObjectTemplateType focusTemplate = lensContext.getFocusTemplate();
             if (focusTemplate != null) {
-                // TODO process applicability to specific data item
-                processingSpec.addFromObjectTemplate(focusTemplate, objectResolver, getMappingContextDescription(), task, result);
+                processingSpec.addFromObjectTemplate(focusTemplate, parser.getOutputPath(),
+                        objectResolver, getMappingContextDescription(), task, result);
             }
         }
         processingSpec.addMappings(mappingBean.getMetadataMapping());
