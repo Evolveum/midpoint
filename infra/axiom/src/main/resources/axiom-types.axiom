@@ -12,12 +12,10 @@ model axiom-base-types {
     version "0.1.0";
 
 
-    type Simple; // FIXME: Should we define this?
-    type Structured;
-
     type String;
     type Boolean;
     type Uri;
+    type Number;
     type Integer;
     type Binary;
     type DateTime;

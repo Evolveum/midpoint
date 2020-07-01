@@ -24,7 +24,9 @@ model axiom-model {
     }
 
 
-    // Axiom Schema
+    // Axiom Schema Basic structural concepts
+    // Definition, TypeDefinition, ItemDefinition, SubstitutionDefinition
+    // MixinDefinition and AugmentationDefinition
 
     type BaseDefinition {
         argument name;
@@ -84,19 +86,6 @@ model axiom-model {
             maxOccurs 1;
         }
 
-        // FIXME: should be use
-        item include {
-            type TypeReference;
-            documentation """
-                Reference to mixin, from which this type definition reuses item definitions.
-            """;
-            minOccurs 0;
-        }
-
-        // TODO reconsider this - strictly speaking this is part of "global type+item definition combo"
-        item itemName {
-            type QName;
-        }
 
         item namespaceSensitive {
             type Boolean;
@@ -118,6 +107,14 @@ model axiom-model {
             identifier name;
             documentation """
                 Definition of Substitution;
+            """;
+            minOccurs 0;
+        }
+
+        item include {
+            type TypeReference;
+            documentation """
+                Reference to mixin, from which this type definition reuses item definitions.
             """;
             minOccurs 0;
         }
@@ -213,16 +210,19 @@ model axiom-model {
         }
     }
 
-    type RootDefinition {
-        supertype ItemDefinition;
-        documentation """
-            Root item definition.
-
-            Root item is item which can be root of the serialized / deserialized document.
-        """;
+    type MixinDefinition {
+        supertype TypeDefinition;
     }
 
-    // Axiom Model?
+    type AugmentationDefinition {
+        supertype MixinDefinition;
+        item target {
+            type TypeReference;
+        }
+    }
+
+    // Axiom Model
+    // model introduces imports, roots, metadata
 
     type Model {
         supertype BaseDefinition;
@@ -304,6 +304,16 @@ model axiom-model {
         }
     }
 
+    type RootDefinition {
+        supertype ItemDefinition;
+        documentation """
+            Root item definition.
+
+            Root item is item which can be root of the serialized / deserialized document.
+        """;
+    }
+
+
     type InfraSpecification {
       item value {
         type TypeReference;
@@ -347,22 +357,42 @@ model axiom-model {
         }
     }
 
-    type MixinDefinition {
-        supertype TypeDefinition;
-    }
-
-    type AugmentationDefinition {
-        supertype MixinDefinition;
-        item target {
-            type TypeReference;
-        }
-    }
-
     type MetadataDefinition {
       supertype AugmentationDefinition;
       item target {
         const data:ValueMetadata;
       }
+    }
+
+
+    // Item specializations
+
+
+    // Type Specializations & restrictions
+
+    mixin StringRestriction {
+
+      item pattern {
+        type String; // FIXME: Should be REGEX?
+      }
+      item minLength {
+        type Integer;
+      }
+      item maxLength {
+        type Integer;
+      }
+    }
+
+    mixin NumberRestriction {
+
+      item minValue {
+        type Number;
+      }
+
+      item maxValue {
+        type Number;
+      }
+
     }
 
 }

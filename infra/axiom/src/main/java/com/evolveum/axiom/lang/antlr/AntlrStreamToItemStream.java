@@ -1,23 +1,17 @@
 package com.evolveum.axiom.lang.antlr;
 
-import java.util.Map;
 import java.util.Optional;
 
-import org.omg.IOP.Codec;
-
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.stream.AbstractStreamAdapter;
 import com.evolveum.axiom.api.stream.AxiomItemStream;
 import com.evolveum.axiom.api.stream.AxiomItemStream.TargetWithContext;
 import com.evolveum.axiom.api.stream.AxiomStreamTarget;
-import com.evolveum.axiom.api.stream.StreamContext;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixedNameContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
-import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.axiom.spi.codec.ValueDecoder;
 

@@ -9,6 +9,8 @@ package com.evolveum.axiom.lang.spi;
 import java.util.Optional;
 import java.util.Set;
 
+import javax.swing.plaf.basic.BasicOptionPaneUI;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.axiom.api.AxiomName;
@@ -16,6 +18,7 @@ import com.evolveum.axiom.api.AxiomPrefixedName;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
+import com.evolveum.axiom.lang.antlr.Bootstrap;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 
@@ -24,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 public interface AxiomNameResolver {
 
     final AxiomNameResolver AXIOM_DEFAULT_NAMESPACE =  defaultNamespace(AxiomName.AXIOM_NAMESPACE);
-    final Set<String> BUILTINS = ImmutableSet.of("String","Boolean","Uri", "Integer", "Binary", "DateTime", "QName");
+    final Set<String> BUILTINS = Bootstrap.builtInTypes();
     final AxiomNameResolver BUILTIN_TYPES = (prefix, localName) -> {
         if((prefix == null || prefix.isEmpty()) && BUILTINS.contains(localName)) {
             return AxiomName.builtIn(localName);
