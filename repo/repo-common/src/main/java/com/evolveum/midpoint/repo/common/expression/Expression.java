@@ -93,7 +93,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
             throw new SchemaException("No evaluator was specified in "+contextDescription);
         }
         if (expressionType.getExpressionEvaluator() != null) {
-            ExpressionEvaluator evaluator = createEvaluator(expressionType.getExpressionEvaluator(), factory,
+            ExpressionEvaluator<V> evaluator = createEvaluator(expressionType.getExpressionEvaluator(), factory,
                     contextDescription, task, result);
             evaluators.add(evaluator);
         }
@@ -161,7 +161,6 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
                 LOGGER.trace("Running {} as {} ({})", context.getContextDescription(), userType, runAsRef);
 
                 try {
-
                     outputTriple = securityContextManager.runAs(() -> {
                         try {
                             return evaluateExpressionEvaluators(contextWithProcessedVariables, result);
@@ -169,36 +168,9 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
                             throw new TunnelException(e);
                         }
                     }, userType.asPrismObject());
-
                 } catch (TunnelException te) {
-                    Throwable e = te.getCause();
-                    if (e instanceof RuntimeException) {
-                        throw (RuntimeException)e;
-                    }
-                    if (e instanceof Error) {
-                        throw (Error)e;
-                    }
-                    if (e instanceof SchemaException) {
-                        throw (SchemaException)e;
-                    }
-                    if (e instanceof ExpressionEvaluationException) {
-                        throw (ExpressionEvaluationException)e;
-                    }
-                    if (e instanceof ObjectNotFoundException) {
-                        throw (ObjectNotFoundException)e;
-                    }
-                    if (e instanceof CommunicationException) {
-                        throw (CommunicationException)e;
-                    }
-                    if (e instanceof ConfigurationException) {
-                        throw (ConfigurationException)e;
-                    }
-                    if (e instanceof SecurityViolationException) {
-                        throw (SecurityViolationException)e;
-                    }
-                    throw te;
+                    return unwrapTunnelException(te);
                 }
-
             }
 
             traceSuccess(context, processedVariables, outputTriple);
@@ -210,6 +182,36 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
         }
     }
 
+    private PrismValueDeltaSetTriple<V> unwrapTunnelException(TunnelException te)
+            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
+            ConfigurationException, SecurityViolationException {
+        Throwable e = te.getCause();
+        if (e instanceof RuntimeException) {
+            throw (RuntimeException)e;
+        }
+        if (e instanceof Error) {
+            throw (Error)e;
+        }
+        if (e instanceof SchemaException) {
+            throw (SchemaException)e;
+        }
+        if (e instanceof ExpressionEvaluationException) {
+            throw (ExpressionEvaluationException)e;
+        }
+        if (e instanceof ObjectNotFoundException) {
+            throw (ObjectNotFoundException)e;
+        }
+        if (e instanceof CommunicationException) {
+            throw (CommunicationException)e;
+        }
+        if (e instanceof ConfigurationException) {
+            throw (ConfigurationException)e;
+        }
+        if (e instanceof SecurityViolationException) {
+            throw (SecurityViolationException)e;
+        }
+        throw te;
+    }
 
     private PrismValueDeltaSetTriple<V> evaluateExpressionEvaluators(ExpressionEvaluationContext contextWithProcessedVariables,
             OperationResult result)
@@ -279,7 +281,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
     }
 
     private void traceFailure(ExpressionEvaluationContext context, ExpressionVariables processedVariables, Throwable e) {
-        LOGGER.error("Error evaluating expression in {}: {}-{}", new Object[]{context.getContextDescription(), e.getMessage(), e});
+        LOGGER.error("Error evaluating expression in {}: {}-{}", context.getContextDescription(), e.getMessage(), e);
         if (!isTrace()) {
             return;
         }
@@ -291,6 +293,7 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
         trace(sb.toString());
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private boolean isTrace() {
         return LOGGER.isTraceEnabled() || (expressionType != null && expressionType.isTrace() == Boolean.TRUE);
     }
@@ -308,14 +311,9 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
         sb.append(context.getContextDescription());
         sb.append("]---------------------------");
         sb.append("\nSources:");
-        Collection<Source<?,?>> sources = context.getSources();
-        if (sources == null) {
-            sb.append(" null");
-        } else {
-            for (Source<?,?> source: sources) {
-                sb.append("\n");
-                sb.append(source.debugDump(1));
-            }
+        for (Source<?,?> source: context.getSources()) {
+            sb.append("\n");
+            sb.append(source.debugDump(1));
         }
         sb.append("\nVariables:");
         if (processedVariables == null) {
