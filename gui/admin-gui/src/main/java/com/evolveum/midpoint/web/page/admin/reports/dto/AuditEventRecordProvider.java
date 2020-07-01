@@ -253,6 +253,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         } else {
             parameters.remove(PARAMETER_TO);
         }
+        // MID-6319 done
         if (parameters.get(PARAMETER_EVENT_TYPE) != null) {
             conditions.add("aer.eventType = :eventType");
         } else {

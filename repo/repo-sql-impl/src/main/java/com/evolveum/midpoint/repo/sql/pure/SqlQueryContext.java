@@ -4,6 +4,7 @@ import static com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor.QUERYDSL_CONF
 
 import java.sql.Connection;
 
+import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.SQLQuery;
 
@@ -20,13 +21,13 @@ public class SqlQueryContext extends SqlPathContext implements FilterProcessor<O
     private final SQLQuery<?> query;
 
     public SqlQueryContext(
-            FlexibleRelationalPathBase<?> root,
+            EntityPath<?> root,
             QueryModelMapping<?, ?> rootMapping) {
         super(root, rootMapping);
         query = new SQLQuery<>(QUERYDSL_CONFIGURATION).from(root);
     }
 
-    public FlexibleRelationalPathBase<?> root() {
+    public EntityPath<?> root() {
         return path();
     }
 

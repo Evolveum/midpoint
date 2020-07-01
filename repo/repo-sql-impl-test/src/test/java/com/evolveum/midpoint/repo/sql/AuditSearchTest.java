@@ -14,6 +14,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
+import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -21,6 +22,7 @@ import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 
 // TODO MID-6319 - finish and add to test suite
@@ -45,6 +47,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.addPropertyValue("prop", "val2");
         record2.setTimestamp(TIMESTAMP_2);
         record2.setEventType(AuditEventType.MODIFY_OBJECT);
+        record2.setEventStage(AuditEventStage.EXECUTION);
         auditService.audit(record2, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record3 = new AuditEventRecord();
@@ -53,6 +56,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record3.addPropertyValue("prop", "val3-3");
         record3.setTimestamp(TIMESTAMP_3);
         record3.setEventType(AuditEventType.MODIFY_OBJECT);
+        record3.setEventStage(AuditEventStage.EXECUTION);
         auditService.audit(record3, NullTaskImpl.INSTANCE);
 
         // TODO add some sample audits here
@@ -67,8 +71,6 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("All audit events are returned");
         assertThat(result).hasSize(3);
-        System.out.println("result = " + result);
-        // TODO
     }
 
     @Test
@@ -82,8 +84,21 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only audit events of a particular type are returned");
         assertThat(result).hasSize(1);
-        System.out.println("result = " + result);
-        // TODO
+        assertThat(result).allMatch(aer -> aer.getEventType() == AuditEventTypeType.ADD_OBJECT);
+    }
+
+    @Test
+    public void test112SearchAllAuditEventsWithSomeStage() throws SchemaException {
+        when("searching audit filtered by event type");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_EVENT_STAGE).eq(AuditEventStageType.EXECUTION)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events of a particular type are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(aer -> aer.getEventStage() == AuditEventStageType.EXECUTION);
     }
 }
 

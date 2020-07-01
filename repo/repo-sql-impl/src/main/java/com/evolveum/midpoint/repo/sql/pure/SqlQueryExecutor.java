@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.Collection;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Projections;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.SQLQuery;
@@ -47,7 +48,7 @@ public class SqlQueryExecutor {
         boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
 
         QueryModelMapping<?, ?> rootMapping = QueryModelMappingConfig.getByModelType(prismType);
-        FlexibleRelationalPathBase<?> root = rootMapping.defaultAlias();
+        EntityPath<?> root = rootMapping.defaultAlias();
         SqlQueryContext context = new SqlQueryContext(root, rootMapping);
 
         // add conditions (with exists clauses as necessary)
@@ -71,13 +72,14 @@ public class SqlQueryExecutor {
 
     public PageOf<Tuple> executeQuery(SqlQueryContext context) throws QueryException {
         try (Connection connection = getConnection()) {
-            FlexibleRelationalPathBase<?> root = context.root();
+            EntityPath<?> root = context.root();
             SQLQuery<Tuple> query = context.query(connection)
                     .select(Projections.tuple(root))
                     // TODO add paging
 //                    .offset(2)
 //                    .limit(2)
                     ;
+            System.out.println("query = " + query);
             long count = query.fetchCount();
 
             return new PageOf<>(query.fetch(), PageOf.PAGE_NO_PAGINATION, 0, count);

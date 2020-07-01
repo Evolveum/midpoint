@@ -28,8 +28,6 @@ public class PropertyValueFilterProcessor implements FilterProcessor<PropertyVal
         // TODO: needed only for Any filter?
 //        ItemDefinition definition = filter.getDefinition();
 
-        System.out.println("itemName = " + itemName);
-        System.out.println("values = " + filter.getValues());
         // TODO: later with polystring attributes this may relate to two different SQL paths, see existing PolyStringMatcher
         // instead of mapping returning things to deal with, it should accept information and return predicate
 

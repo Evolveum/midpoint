@@ -3,7 +3,6 @@ package com.evolveum.midpoint.repo.sql.pure;
 import static com.querydsl.core.group.GroupBy.groupBy;
 
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditDelta.M_AUDIT_DELTA;
-import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.M_AUDIT_EVENT;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -21,12 +20,15 @@ import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import com.evolveum.midpoint.repo.sql.pure.mapping.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 
 // TODO MID-6319 must go after done
 @Deprecated
 public class SqlGeneration {
 
+    public static final QAuditEventRecord M_AUDIT_EVENT =
+            QAuditEventRecordMapping.INSTANCE.defaultAlias();
 
     public static void main(String[] args) throws Exception {
         org.h2.Driver.load();
@@ -38,23 +40,6 @@ public class SqlGeneration {
         exporter.setBeanSerializer(new com.querydsl.codegen.BeanSerializer());
         exporter.export(conn.getMetaData());
          */
-
-        try (Connection connection = getConnection()) {
-            QAuditEventRecord.EXTENSION_COLUMNS.registerExtensionColumn(QAuditEventRecord.EVENT_TYPE);
-
-            QAuditEventRecord aer = new QAuditEventRecord("aer");
-            SQLQuery<?> query = newQuery(connection)
-                    .select(aer.all())
-                    .from(aer);
-
-            System.out.println(query);
-
-            List<?> result = query.limit(3).fetch();
-            System.out.println("\nresult = " + result);
-            Object o = ((Tuple) result.get(0)).get(2, Object.class);
-            System.out.println("o = " + o);
-            System.out.println("class = " + o.getClass());
-        }
     }
 
     private static void extensionExperiments1() throws SQLException {

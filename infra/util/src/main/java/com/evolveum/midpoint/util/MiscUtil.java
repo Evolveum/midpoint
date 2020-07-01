@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.util;
+
+import static java.util.Collections.*;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -33,20 +35,17 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.TunnelException;
-
 import org.springframework.util.ClassUtils;
 
-import static java.util.Collections.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 
 /**
  * @author semancik
@@ -55,7 +54,7 @@ public class MiscUtil {
 
     private static final int BUFFER_SIZE = 2048;
 
-    private static DatatypeFactory df;
+    private static final DatatypeFactory df;
 
     static {
         try {
@@ -332,7 +331,7 @@ public class MiscUtil {
 
     /**
      * We have n dimensions (D1...Dn), each containing a number of values.
-     *
+     * <p>
      * This method sequentially creates all n-tuples of these values (one value from each dimension)
      * and invokes tupleProcessor on them.
      */
@@ -845,5 +844,21 @@ public class MiscUtil {
             // to preserve the stack trace.
             return original;
         }
+    }
+
+    /**
+     * Converts integer ordinal number to enum value of the defined enum type.
+     *
+     * @param enumType type of enum (class object)
+     * @param ordinal ordinal value
+     * @return enum value or null if ordinal is null
+     * @throws IndexOutOfBoundsException If the ordinal value is out of enum value range
+     */
+    public static <T extends Enum<T>> T enumFromOrdinal(Class<T> enumType, Integer ordinal) {
+        if (ordinal == null) {
+            return null;
+        }
+
+        return enumType.getEnumConstants()[ordinal];
     }
 }

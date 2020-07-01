@@ -91,9 +91,4 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
         addMetadata(resourceoid, ColumnMetadata.named("RESOURCEOID").withIndex(11).ofType(Types.VARCHAR).withSize(36));
         addMetadata(status, ColumnMetadata.named("STATUS").withIndex(12).ofType(Types.INTEGER).withSize(10));
     }
-
-    @Override
-    protected SqlTableMetamodel<?> getTableMetamodel() {
-        return METAMODEL;
-    }
 }

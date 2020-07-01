@@ -36,7 +36,7 @@ import com.evolveum.midpoint.tools.testng.AbstractUnitTest;
  * on the matching bean, but for dynamic extension attributes column name is used as property name.
  * This is fine for SQLs not selecting the entity via single entity path but using the column paths.
  */
-// TODO MID-6319 reconsider
+// TODO MID-6319 reconsider metamodel (now mapping) test related to extension columns
 public class QSqlMetamodelTest extends AbstractUnitTest {
 
     // Demo entity, implemented without backing bean (has itself as type parameter)
@@ -59,11 +59,6 @@ public class QSqlMetamodelTest extends AbstractUnitTest {
         public QTestEntity(String variable) {
             super(QTestEntity.class, forVariable(variable), "SCHEMA", "TEST_TABLE");
         }
-
-        @Override
-        protected SqlTableMetamodel<?> getTableMetamodel() {
-            return METAMODEL;
-        }
     }
 
     @Test
@@ -72,7 +67,7 @@ public class QSqlMetamodelTest extends AbstractUnitTest {
         QTestEntity te = new QTestEntity("te");
 
         then("only predefined fields are in metamodels");
-        assertThat(te.getTableMetamodel().columnNames()).hasSize(2);
+//        assertThat(te.getTableMetamodel().columnNames()).hasSize(2);
         // internal metamodel mapping paths -> columns
         assertThat(te.getColumns()).hasSize(2);
     }
@@ -84,7 +79,7 @@ public class QSqlMetamodelTest extends AbstractUnitTest {
         QTestEntity te = new QTestEntity("te");
 
         then("metamodels contain extension column in addition to the predefined ones");
-        assertThat(te.getTableMetamodel().columnNames()).hasSize(3);
+//        assertThat(te.getTableMetamodel().columnNames()).hasSize(3);
         assertThat(te.getColumns()).hasSize(3);
     }
 

@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
+import com.querydsl.core.types.EntityPath;
+
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 
 /**
@@ -7,15 +9,15 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
  */
 public class SqlPathContext {
 
-    private final FlexibleRelationalPathBase<?> path;
+    private final EntityPath<?> path;
     private final QueryModelMapping<?, ?> mapping;
 
-    public SqlPathContext(FlexibleRelationalPathBase<?> path, QueryModelMapping<?, ?> mapping) {
+    public SqlPathContext(EntityPath<?> path, QueryModelMapping<?, ?> mapping) {
         this.path = path;
         this.mapping = mapping;
     }
 
-    public FlexibleRelationalPathBase<?> path() {
+    public EntityPath<?> path() {
         return path;
     }
 

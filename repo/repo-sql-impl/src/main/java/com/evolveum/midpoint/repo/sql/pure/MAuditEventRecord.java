@@ -11,19 +11,20 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * MAuditEvent is a Querydsl bean type
+ * MAuditEvent is a Querydsl bean type related to 
+ * Usable only for built-in low-level queries without extension columns.
  */
 @SuppressWarnings("unused")
 public class MAuditEventRecord {
 
+    public Long id;
     public String attorneyName;
     public String attorneyOid;
     public String channel;
     public String eventidentifier;
-    public Integer eventstage;
-    public Integer eventtype;
+    public Integer eventStage;
+    public Integer eventType;
     public String hostidentifier;
-    public Long id;
     public String initiatorname;
     public String initiatoroid;
     public Integer initiatortype;

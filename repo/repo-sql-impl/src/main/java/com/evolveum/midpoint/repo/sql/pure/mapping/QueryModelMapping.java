@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
@@ -12,7 +13,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
-import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.QNameUtil;
  *     This is done by code, possibly static method from a DTO "assembler" class.</li>
  * </ul>
  */
-public abstract class QueryModelMapping<M, Q extends FlexibleRelationalPathBase<?>> {
+public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
 
     private final String tableName;
     private final String defaultAliasName;
@@ -42,8 +42,26 @@ public abstract class QueryModelMapping<M, Q extends FlexibleRelationalPathBase<
     // Is one column enough? For polystring we will have to map two anyway...
 //    private final Map<QName, ColumnMetadata> itemToColumn = new LinkedHashMap<>();
 
-    private final Map<QName, Function<Path, FilterProcessor>>
-            itemFilterProcessorFactory = new LinkedHashMap<>();
+    private final Map<QName, ItemMapping> itemFilterProcessorMapping = new LinkedHashMap<>();
+
+    // E=entity, A=attribute
+    private static class ItemMapping<E extends EntityPath<?>, A> {
+        public final Function<E, Path<A>> rootToItem;
+        public final Function<Path<A>, FilterProcessor<?>> processorFactory;
+
+        private ItemMapping(
+                Function<E, Path<A>> rootToItem,
+                Function<Path<A>, FilterProcessor<?>> processorFactory) {
+            this.rootToItem = rootToItem;
+            this.processorFactory = processorFactory;
+        }
+
+        public FilterProcessor<?> createFilterProcessor(Path<?> entityPath) {
+            //noinspection unchecked
+            Path<A> itemPath = rootToItem.apply((E) entityPath);
+            return processorFactory.apply(itemPath);
+        }
+    }
 
     private Q defaultAlias;
 
@@ -76,25 +94,25 @@ public abstract class QueryModelMapping<M, Q extends FlexibleRelationalPathBase<
         return this;
     }
 
-    public void addProcessorForItem(
+    public <A> void addProcessorForItem(
             ItemName itemName,
-            Function<Path, FilterProcessor> filterProcessorFactory) {
-        itemFilterProcessorFactory.put(itemName, filterProcessorFactory);
+            Function<Q, Path<A>> rootToQueryItem,
+            Function<Path<A>, FilterProcessor<?>> processorFactory) {
+        itemFilterProcessorMapping.put(itemName, new ItemMapping<>(rootToQueryItem, processorFactory));
     }
 
     // we want loose typing for client's sake, there is no other chance to get the right type here
     public <T extends ObjectFilter> @NotNull FilterProcessor<T> getFilterProcessor(
             ItemName itemName, Path<?> entityPath)
             throws QueryException {
-        Function<Path, FilterProcessor> factory =
-                QNameUtil.getByQName(itemFilterProcessorFactory, itemName);
-        if (factory == null) {
+        ItemMapping<?, ?> itemMapping = QNameUtil.getByQName(itemFilterProcessorMapping, itemName);
+        if (itemMapping == null) {
             throw new QueryException("Missing mapping for " + itemName
                     + " in mapping " + getClass().getSimpleName());
         }
 
         //noinspection unchecked
-        return (FilterProcessor<T>) factory.apply(entityPath);
+        return (FilterProcessor<T>) itemMapping.createFilterProcessor(entityPath);
     }
 
     public String tableName() {

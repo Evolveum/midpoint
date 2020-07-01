@@ -1,8 +1,9 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
+import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 /**
@@ -17,4 +18,28 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 public interface FilterProcessor<O extends ObjectFilter> {
 
     Predicate process(O filter) throws QueryException;
+
+    default Ops operation(ValueFilter<?, ?> filter) throws QueryException {
+        if (filter instanceof EqualFilter) {
+            // TODO possibly EQ_IGNORE_CASE based on matching? or rather we control it?
+            return Ops.EQ;
+        } else if (filter instanceof GreaterFilter) {
+            GreaterFilter<?> gf = (GreaterFilter<?>) filter;
+            return gf.isEquals() ? Ops.GOE : Ops.GT;
+        } else if (filter instanceof LessFilter) {
+            LessFilter<?> lf = (LessFilter<?>) filter;
+            return lf.isEquals() ? Ops.LOE : Ops.LT;
+        } else if (filter instanceof SubstringFilter) {
+            SubstringFilter<?> substring = (SubstringFilter<?>) filter;
+            if (substring.isAnchorEnd()) {
+                return Ops.ENDS_WITH;
+            } else if (substring.isAnchorStart()) {
+                return Ops.STARTS_WITH;
+            } else {
+                return Ops.STRING_CONTAINS;
+            }
+        }
+
+        throw new QueryException("Can't translate filter '" + filter + "' to operation.");
+    }
 }

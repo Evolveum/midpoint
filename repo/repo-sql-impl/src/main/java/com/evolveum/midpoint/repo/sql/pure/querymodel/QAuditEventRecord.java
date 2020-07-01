@@ -15,7 +15,9 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
-import com.evolveum.midpoint.repo.sql.pure.*;
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sql.pure.MAuditDelta;
+import com.evolveum.midpoint.repo.sql.pure.MAuditEventRecord;
 
 /**
  * Querydsl query type for M_AUDIT_EVENT table.
@@ -82,37 +84,16 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public static final ColumnMetadata TIMESTAMP_VALUE =
             ColumnMetadata.named("TIMESTAMPVALUE").ofType(Types.TIMESTAMP).withSize(23).withDigits(10);
 
-    public static final SqlTableMetamodel<QAuditEventRecord> METAMODEL =
-            new SqlTableMetamodel<>("M_AUDIT_EVENT", QAuditEventRecord.class,
-                    ID, CHANNEL, ATTORNEY_NAME, ATTORNEY_OID,
-                    EVENT_IDENTIFIER, EVENT_STAGE, EVENT_TYPE,
-                    HOST_IDENTIFIER, INITIATOR_NAME, INITIATOR_OID, INITIATOR_TYPE,
-                    MESSAGE, NODE_IDENTIFIER, OUTCOME, PARAMETER,
-                    REMOTE_HOST_ADDRESS, REQUEST_IDENTIFIER, RESULT, SESSION_IDENTIFIER,
-                    TARGET_NAME, TARGET_OID, TARGET_TYPE,
-                    TARGET_OWNER_NAME, TARGET_OWNER_OID, TARGET_OWNER_TYPE,
-                    TASK_IDENTIFIER, TASK_OID, TIMESTAMP_VALUE);
-
-    public static final ExtensionColumns EXTENSION_COLUMNS = new ExtensionColumns();
-
-    /**
-     * Default base-path variable for this table.
-     */
-    public static final QAuditEventRecord M_AUDIT_EVENT = new QAuditEventRecord("M_AUDIT_EVENT");
-
-    /**
-     * Alias for {@link #M_AUDIT_EVENT} which may be handy to use without static imports.
-     */
-    public static final QAuditEventRecord $ = M_AUDIT_EVENT;
-
     // columns and relations
     public final NumberPath<Long> id = addMetadata(createNumber("id", Long.class), ID);
     public final StringPath attorneyName = createString("attorneyname");
     public final StringPath attorneyOid = createString("attorneyoid");
     public final StringPath channel = addMetadata(createString("channel"), CHANNEL);
     public final StringPath eventidentifier = createString("eventidentifier");
-    public final NumberPath<Integer> eventstage = createNumber("eventstage", Integer.class);
-    public final NumberPath<Integer> eventtype = createNumber("eventtype", Integer.class);
+    public final NumberPath<Integer> eventStage =
+            addMetadata(createNumber("eventStage", Integer.class), EVENT_STAGE);
+    public final NumberPath<Integer> eventType =
+            addMetadata(createNumber("eventType", Integer.class), EVENT_TYPE);
     public final StringPath hostidentifier = createString("hostidentifier");
     public final StringPath initiatorname = createString("initiatorname");
     public final StringPath initiatoroid = createString("initiatoroid");
@@ -142,25 +123,11 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public final com.querydsl.sql.ForeignKey<QMAuditRefValue> _auditRefValueFk = createInvForeignKey(id, "RECORD_ID");
     public final com.querydsl.sql.ForeignKey<QMAuditResource> _auditResourceFk = createInvForeignKey(id, "RECORD_ID");
 
-    /**
-     * Creates default alias, don't use multiple times in a single query.
-     * Use {@link #QAuditEventRecord(String)} to distinguish between multiple aliases in one query.
-     */
-    public QAuditEventRecord() {
-        this("aer");
-    }
-
     public QAuditEventRecord(String variable) {
         this(variable, "PUBLIC", "M_AUDIT_EVENT");
     }
 
     public QAuditEventRecord(String variable, String schema, String table) {
         super(MAuditEventRecord.class, forVariable(variable), schema, table);
-        applyExtensions(EXTENSION_COLUMNS);
-    }
-
-    @Override
-    protected SqlTableMetamodel<?> getTableMetamodel() {
-        return METAMODEL;
     }
 }

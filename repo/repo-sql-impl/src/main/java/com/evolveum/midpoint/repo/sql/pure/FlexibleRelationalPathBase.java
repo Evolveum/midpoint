@@ -45,29 +45,4 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
             super.addMetadata(path, entry.getValue());
         }
     }
-
-    /**
-     * Adds extension columns to the internal metadata of {@link RelationalPathBase} superclass.
-     * Must be called from the subclass constructor, otherwise path fields are not registered yet.
-     */
-    protected void fixMetadata() {
-        for (Map.Entry<String, ColumnMetadata> entry : getTableMetamodel().columnMetadataEntries()) {
-            String columnName = entry.getKey();
-            if (!knownColumns.contains(columnName)) {
-                System.out.println("Adding extension column: " + columnName);
-                SimplePath<?> simple = createSimple(columnName, Object.class);
-                // no need to add to knownColumns anymore
-                super.addMetadata(simple, entry.getValue());
-            }
-        }
-        knownColumns = null;
-    }
-
-    @Override
-    protected <P extends Path<?>> P addMetadata(P path, ColumnMetadata metadata) {
-
-        return super.addMetadata(path, metadata);
-    }
-
-    protected abstract SqlTableMetamodel<?> getTableMetamodel();
 }
