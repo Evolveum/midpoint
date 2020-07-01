@@ -17,7 +17,6 @@ import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.exception.*;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -42,9 +41,37 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/metadata");
 
+    //region Constants for sensitivity propagation scenario
+    private static final File SENSITIVITY_PROPAGATION_DIR = new File(TEST_DIR, "sensitivity-propagation");
+
+    private static final TestResource<ArchetypeType> ARCHETYPE_USER_SENSITIVITY_PROPAGATION = new TestResource<>(
+            SENSITIVITY_PROPAGATION_DIR, "archetype-user-sensitivity-propagation.xml", "4231f36d-4e57-4597-8b6d-a7ce3c709616");
+    private static final TestResource<ObjectTemplateType> TEMPLATE_USER_SENSITIVITY_PROPAGATION = new TestResource<>(
+            SENSITIVITY_PROPAGATION_DIR, "template-user-sensitivity-propagation.xml", "60b83ded-57ea-4987-9d88-af13d2862649");
+    private static final TestResource<OrgType> ORG_EMPLOYEES = new TestResource<>(
+            SENSITIVITY_PROPAGATION_DIR, "org-employees.xml", "e1d97086-d1a1-4541-bd0b-fe694ecf767e");
+    private static final TestResource<OrgType> ORG_SPECIAL_MEDICAL_SERVICES = new TestResource<>(
+            SENSITIVITY_PROPAGATION_DIR, "org-special-medical-services.xml", "29963fc9-f494-4911-af3c-9e73fd64617f");
+    private static final TestResource<UserType> USER_JIM = new TestResource<>(
+            SENSITIVITY_PROPAGATION_DIR, "user-jim.xml", "8d162a31-00a8-48dc-b96f-08d3a85ada1d");
+    //endregion
+
+    //region Constants for creation metadata recording scenario
+    private static final File CREATION_METADATA_RECORDING_DIR = new File(TEST_DIR, "creation-metadata-recording");
+
+    private static final TestResource<ArchetypeType> ARCHETYPE_CREATION_METADATA_RECORDING = new TestResource<>(
+            CREATION_METADATA_RECORDING_DIR, "archetype-creation-metadata-recording.xml", "5fb59a01-e5b9-4531-931d-923c94f341aa");
+    private static final TestResource<ObjectTemplateType> TEMPLATE_CREATION_METADATA_RECORDING = new TestResource<>(
+            CREATION_METADATA_RECORDING_DIR, "template-creation-metadata-recording.xml", "00301846-fe73-476a-83be-6bfe13251b4a");
+    private static final TestResource<UserType> USER_PAUL = new TestResource<>(
+            CREATION_METADATA_RECORDING_DIR, "user-paul.xml", "7c8e736b-b195-4ca1-bce4-12f86ff1bc71");
+    //endregion
+
     private static final String NS_EXT_METADATA = "http://midpoint.evolveum.com/xml/ns/samples/metadata";
     private static final ItemName LOA_NAME = new ItemName(NS_EXT_METADATA, "loa");
     private static final ItemPath LOA_PATH = ItemPath.create(ObjectType.F_EXTENSION, LOA_NAME);
+    private static final ItemName SENSITIVITY_NAME = new ItemName(NS_EXT_METADATA, "sensitivity");
+    private static final ItemPath SENSITIVITY_PATH = ItemPath.create(ObjectType.F_EXTENSION, SENSITIVITY_NAME);
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
     private static final TestResource<ObjectTemplateType> TEMPLATE_REGULAR_USER = new TestResource<>(TEST_DIR, "template-regular-user.xml", "b1005d3d-6ef4-4347-b235-313666824ed8");
@@ -56,6 +83,14 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        addObject(ARCHETYPE_USER_SENSITIVITY_PROPAGATION, initTask, initResult);
+        addObject(TEMPLATE_USER_SENSITIVITY_PROPAGATION, initTask, initResult);
+        addObject(ORG_EMPLOYEES, initTask, initResult);
+        addObject(ORG_SPECIAL_MEDICAL_SERVICES, initTask, initResult);
+
+        addObject(ARCHETYPE_CREATION_METADATA_RECORDING, initTask, initResult);
+        addObject(TEMPLATE_CREATION_METADATA_RECORDING, initTask, initResult);
+
         addObject(TEMPLATE_REGULAR_USER, initTask, initResult);
         addObject(USER_ALICE, initTask, initResult);
     }
@@ -65,8 +100,9 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         return SYSTEM_CONFIGURATION_FILE;
     }
 
+    //region Basic tests
     @Test
-    public void test010KeepingLiveMetadata() throws SchemaException {
+    public void test010KeepingLiveMetadata() {
         given();
         UserType mark = new UserType(prismContext)
                 .name("mark");
@@ -163,7 +199,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test100SimpleMetadataMapping() throws Exception {
+    public void test050SimpleMetadataMapping() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -174,6 +210,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         then();
         assertUserAfter(USER_BOB.oid)
                 .display()
+                .displayXml()
                 .valueMetadata(UserType.F_GIVEN_NAME)
                     .display()
                     .assertPropertyValuesEqual(LOA_PATH, "low")
@@ -190,7 +227,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test110SimpleMetadataMappingPreview() throws Exception {
+    public void test060SimpleMetadataMappingPreview() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -207,12 +244,72 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         PrismObject<UserType> userAfter = modelContext.getFocusContext().getObjectNew();
         assertUser(userAfter, "after")
                 .display()
+                .displayXml()
                 .assertFullName("Chuck White")
                 .valueMetadata(UserType.F_FULL_NAME)
                     .display()
                     .assertPropertyValuesEqual(LOA_PATH, "low")
                     .end();
     }
+    //endregion
+
+    //region Scenario 0: Creation metadata recording
+    @Test
+    public void test080AddPaul() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        addObject(USER_PAUL, task, result);
+
+        then();
+        assertUserAfter(USER_PAUL.oid)
+                .display()
+                .displayXml()
+                .assertFullName("Paul Morphy")
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .display()
+                    .assertSize(1)
+                    .end()
+                .assertDescription("Paul")
+                .valueMetadata(UserType.F_DESCRIPTION)
+                    .display()
+                    .assertSize(0);
+
+    }
+    //endregion
+
+    //region Scenario 1: Sensitivity propagation
+    @Test
+    public void test100AddJim() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        addObject(USER_JIM, task, result);
+
+        then();
+        assertUserAfter(USER_JIM.oid)
+                .display()
+                .displayXml()
+                .assignments()
+                    .forOrg(ORG_SPECIAL_MEDICAL_SERVICES.oid)
+                    .valueMetadata()
+                        .display()
+                        .assertPropertyValuesEqual(SENSITIVITY_PATH, "high")
+                        .end()
+                    .end()
+                    .forOrg(ORG_EMPLOYEES.oid)
+                    .valueMetadata()
+                        .display()
+                        .assertPropertyValuesEqual(SENSITIVITY_PATH, "low")
+                        .end()
+                    .end();
+        // TODO for roleMembershipRef (when implemented)
+    }
+    //endregion
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
     private ValueMetadataType cast(Optional<ValueMetadata> metadata) {

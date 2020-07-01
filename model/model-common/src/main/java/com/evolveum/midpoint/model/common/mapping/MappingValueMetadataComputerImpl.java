@@ -18,15 +18,16 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 
 /**
- * TODO
+ * Value metadata computer implementation that works in the context of a data mapping.
+ * It obtains metadata mappings from the current mapping as well as from current object template.
  */
-class SimpleValueMetadataComputer implements ValueMetadataComputer {
+class MappingValueMetadataComputerImpl implements ValueMetadataComputer {
+    @NotNull final ValueMetadataProcessingSpec processingSpec;
     @NotNull final MappingImpl<?, ?> dataMapping;
     @NotNull final MetadataMappingEvaluator metadataMappingEvaluator;
 
-    SimpleValueMetadataComputer(MappingImpl<?, ?> dataMapping) {
-        assert !dataMapping.getMetadataHandling().getMapping().isEmpty(); // for now
-
+    MappingValueMetadataComputerImpl(@NotNull ValueMetadataProcessingSpec processingSpec, @NotNull MappingImpl<?, ?> dataMapping) {
+        this.processingSpec = processingSpec;
         this.dataMapping = dataMapping;
         this.metadataMappingEvaluator = dataMapping.metadataMappingEvaluator;
         if (metadataMappingEvaluator == null) {

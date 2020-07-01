@@ -24,5 +24,7 @@ import java.util.List;
 @Experimental
 public interface ValueMetadataComputer {
 
-    ValueMetadata compute(@NotNull List<PrismValue> valuesTuple, @NotNull OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException;
+    ValueMetadata compute(@NotNull List<PrismValue> valuesTuple, @NotNull OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException;
 }

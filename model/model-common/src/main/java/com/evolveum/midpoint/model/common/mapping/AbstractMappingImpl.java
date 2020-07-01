@@ -318,7 +318,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /**
      * Task stored during the evaluation, removed afterwards.
      */
-    private Task task;
+    Task task;
     //endregion
 
     //region Constructors and (relatively) simple getters
@@ -1075,7 +1075,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         context.setExpressionFactory(expressionFactory);
         context.setMappingQName(mappingQName);
         context.setVariableProducer(variableProducer);
-        context.setValueMetadataComputer(createValueMetadataComputer());
+        context.setValueMetadataComputer(createValueMetadataComputer(result));
 
         if (mappingPreExpression != null) {
             mappingPreExpression.mappingPreExpression(context, result);
@@ -1112,7 +1112,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
     }
 
-    abstract ValueMetadataComputer createValueMetadataComputer();
+    abstract ValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException;
 
     @Override
     public PrismValueDeltaSetTriple<V> getOutputTriple() {
@@ -1295,8 +1297,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
     }
 
-    MetadataHandlingType getMetadataHandling() {
+    // TEMPORARY
+    List<MetadataMappingType> getMetadataMappings() {
         return mappingBean instanceof MappingType ?
-                ((MappingType) mappingBean).getMetadataHandling() : null;
+                ((MappingType) mappingBean).getMetadataMapping() : null;
     }
 }

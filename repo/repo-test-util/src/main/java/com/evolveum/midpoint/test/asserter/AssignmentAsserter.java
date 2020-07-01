@@ -11,14 +11,15 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 /**
  * @author semancik
@@ -129,5 +130,15 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
     public AssignmentAsserter<R> display(String message) {
         IntegrationTestTools.display(message, assignment);
         return this;
+    }
+
+    public ValueMetadataAsserter<AssignmentAsserter<R>, R> valueMetadata() {
+        //noinspection unchecked
+        PrismContainerValue<ValueMetadataType> valueMetadata = (PrismContainerValue<ValueMetadataType>)
+                (PrismContainerValue<?>) assignment.asPrismContainerValue().getValueMetadata();
+        ValueMetadataAsserter<AssignmentAsserter<R>, R> asserter =
+                new ValueMetadataAsserter<>(this, valueMetadata, "."); // TODO details
+        copySetupTo(asserter);
+        return asserter;
     }
 }

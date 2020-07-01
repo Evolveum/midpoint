@@ -338,10 +338,12 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
             if (outputValueMetadata != null) {
                 for (int i = 0; i < output.size(); i++) {
                     V oVal = output.get(i);
-                    if (i < output.size()-1) {
-                        oVal.setValueMetadata(outputValueMetadata.clone());
-                    } else {
-                        oVal.setValueMetadata(outputValueMetadata);
+                    if (oVal != null) {
+                        if (i < output.size() - 1) {
+                            oVal.setValueMetadata(outputValueMetadata.clone());
+                        } else {
+                            oVal.setValueMetadata(outputValueMetadata);
+                        }
                     }
                 }
             }

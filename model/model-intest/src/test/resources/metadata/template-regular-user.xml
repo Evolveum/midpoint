@@ -27,37 +27,35 @@
         <target>
             <path>fullName</path>
         </target>
-        <metadataHandling>
-            <mapping>
-                <source>
-                    <path>extension/loa</path>
-                </source>
-                <expression>
-                    <script>
-                        <relativityMode>absolute</relativityMode>
-                        <code>
-                            if (loa == null || loa.isEmpty()) {
-                                rv = null
-                            } else if (loa.contains(null)) {
-                                rv = null
-                            } else if (loa.contains('low')) {
-                                rv = 'low'
-                            } else if (loa.contains('normal')) {
-                                rv = 'normal'
-                            } else if (loa.contains('high')) {
-                                rv = 'high'
-                            } else {
-                                throw new IllegalArgumentException('Unsupported LoA value(s): ' + loa)
-                            }
-                            log.info("### loa = $loa -> $rv")
-                            rv
-                        </code>
-                    </script>
-                </expression>
-                <target>
-                    <path>extension/loa</path>
-                </target>
-            </mapping>
-        </metadataHandling>
+        <metadataMapping>
+            <source>
+                <path>extension/loa</path>
+            </source>
+            <expression>
+                <script>
+                    <relativityMode>absolute</relativityMode>
+                    <code>
+                        if (loa == null || loa.isEmpty()) {
+                            rv = null
+                        } else if (loa.contains(null)) {
+                            rv = null
+                        } else if (loa.contains('low')) {
+                            rv = 'low'
+                        } else if (loa.contains('normal')) {
+                            rv = 'normal'
+                        } else if (loa.contains('high')) {
+                            rv = 'high'
+                        } else {
+                            throw new IllegalArgumentException('Unsupported LoA value(s): ' + loa)
+                        }
+                        log.info("### loa = $loa -> $rv")
+                        rv
+                    </code>
+                </script>
+            </expression>
+            <target>
+                <path>extension/loa</path>
+            </target>
+        </metadataMapping>
     </mapping>
 </objectTemplate>
