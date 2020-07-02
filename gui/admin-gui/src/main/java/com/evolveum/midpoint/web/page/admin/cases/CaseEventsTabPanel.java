@@ -78,7 +78,7 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     }
 
                     @Override
-                    protected boolean enableActionNewObject() {
+                    protected boolean isCreateNewObjectVisible() {
                         return false;
                     }
 
@@ -88,12 +88,12 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                     }
 
                     @Override
-                    protected List<IColumn<PrismContainerValueWrapper<CaseEventType>, String>> createColumns() {
-                        return createCaseEventsColumns();
+                    protected List<IColumn> createColumns() {
+                        return (List) createCaseEventsColumns();
                     }
 
                     @Override
-                    protected void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseEventType>> rowModel,
+                    protected void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<CaseEventType>> rowModel,
                                                                  List<PrismContainerValueWrapper<CaseEventType>> listItems) {
 
                     }

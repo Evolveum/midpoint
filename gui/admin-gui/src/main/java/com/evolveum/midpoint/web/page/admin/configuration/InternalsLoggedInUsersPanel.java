@@ -63,7 +63,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             }
 
             @Override
-            protected List<IColumn<SelectableBean<F>, String>> createColumns() {
+            protected List<IColumn<SelectableBean<F>, String>> createDefaultColumns() {
                 return InternalsLoggedInUsersPanel.this.initColumns();
             }
 
@@ -73,7 +73,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             }
 
             @Override
-            protected BaseSortableDataProvider<SelectableBean<F>> initProvider() {
+            protected BaseSortableDataProvider<SelectableBean<F>> createProvider() {
                 LoadableModel<List<UserSessionManagementType>> principals = new LoadableModel<List<UserSessionManagementType>>(true) {
 
                     @Override

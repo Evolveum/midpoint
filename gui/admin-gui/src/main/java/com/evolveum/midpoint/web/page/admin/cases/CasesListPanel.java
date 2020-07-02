@@ -73,8 +73,8 @@ public class CasesListPanel extends BasePanel<CaseType> {
 
 
             @Override
-            protected List<IColumn<SelectableBean<CaseType>, String>> createColumns() {
-                return ColumnUtils.getDefaultCaseColumns(CasesListPanel.this.getPageBase(), isDashboard());
+            protected List<IColumn> createDefaultColumns() {
+                return (List) ColumnUtils.getDefaultCaseColumns(CasesListPanel.this.getPageBase(), isDashboard());
             }
 
             @Override
@@ -96,7 +96,7 @@ public class CasesListPanel extends BasePanel<CaseType> {
             }
 
             @Override
-            protected WebMarkupContainer createTableButtonToolbar(String id) {
+            protected WebMarkupContainer initButtonToolbar(String id) {
                 return null;
             }
 
@@ -127,7 +127,7 @@ public class CasesListPanel extends BasePanel<CaseType> {
             }
 
             @Override
-            protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<CaseType>> provider){
+            protected void setDefaultSorting(BaseSortableDataProvider provider){
                 provider.setSort(MetadataType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
             }
         };

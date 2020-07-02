@@ -124,7 +124,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     }
 
                     @Override
-                    protected boolean enableActionNewObject() {
+                    protected boolean isCreateNewObjectVisible() {
                         return isNewObjectButtonVisible(getFocusObject());
                     }
 
@@ -139,11 +139,11 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                     }
 
                     @Override
-                    protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> createColumns() {
+                    protected List<IColumn> createColumns() {
                         if (AssignmentPanel.this.getModelObject() == null) {
                             return new ArrayList<>();
                         }
-                        return initBasicColumns();
+                        return (List) initBasicColumns();
                     }
 
                     @Override
@@ -388,7 +388,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     protected void cancelAssignmentDetailsPerformed(AjaxRequestTarget target){
     }
 
-    private <AH extends AssignmentHolderType> List<AssignmentObjectRelation> loadAssignmentTargetRelationsList(){
+    private <AH extends FocusType> List<AssignmentObjectRelation> loadAssignmentTargetRelationsList(){
         OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_RELATIONS);
         List<AssignmentObjectRelation> assignmentTargetRelations = new ArrayList<>();
         PrismObject<AH> obj = getMultivalueContainerListPanel().getFocusObject();
@@ -851,7 +851,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
         };
     }
 
-    private <AH extends AssignmentHolderType> List<InlineMenuItem> getAssignmentMenuActions() {
+    private <AH extends FocusType> List<InlineMenuItem> getAssignmentMenuActions() {
         List<InlineMenuItem> menuItems = new ArrayList<>();
         PrismObject<AH> obj = getMultivalueContainerListPanel().getFocusObject();
         try {

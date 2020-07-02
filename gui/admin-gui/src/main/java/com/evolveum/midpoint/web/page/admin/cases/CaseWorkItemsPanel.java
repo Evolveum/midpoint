@@ -8,24 +8,25 @@ package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.ContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.util.ContainerListDataProvider;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -85,10 +86,10 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private void initLayout(){
-        ContainerableListPanel workItemsPanel = new ContainerableListPanel(ID_WORKITEMS_TABLE,
-                UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL) {
+        ContainerListPanel workItemsPanel = new ContainerListPanel(ID_WORKITEMS_TABLE, CaseWorkItemType.class,
+                UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL, true) {
             @Override
-            protected Class getType() {
+            public Class getType() {
                 return CaseWorkItemType.class;
             }
 
@@ -98,17 +99,29 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> initColumns() {
-                return CaseWorkItemsPanel.this.initColumns();
+            protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns() {
+                return CaseWorkItemsPanel.this.createDefaultColumns();
             }
 
             @Override
-            protected ObjectFilter getCustomFilter(){
-                return getCaseWorkItemsFilter();
+            protected List<InlineMenuItem> createInlineMenu() {
+                return null;
             }
 
             @Override
-            protected Collection<SelectorOptions<GetOperationOptions>> getQueryOptions() {
+            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+                ObjectFilter customFilter = getCaseWorkItemsFilter();
+                if (customFilter != null){
+                    if (query == null){
+                        query = getPrismContext().queryFor(getType()).build();
+                    }
+                    query.addFilter(customFilter);
+                }
+                return query;
+            }
+
+            @Override
+            protected Collection<SelectorOptions<GetOperationOptions>> createOptions() {
                 return CaseWorkItemsPanel.this.getPageBase().getOperationOptionsBuilder()
                         .item(AbstractWorkItemType.F_ASSIGNEE_REF).resolve()
                         .item(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF).resolve()
@@ -122,13 +135,28 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            protected boolean isSearchVisible(){
+            protected boolean isHeaderVisible() {
                 return !View.DASHBOARD.equals(view);
             }
 
             @Override
-            protected void setDefaultSorting(ContainerListDataProvider provider){
+            protected void setDefaultSorting(BaseSortableDataProvider provider){
                 provider.setSort(CaseWorkItemType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
+            }
+
+            @Override
+            protected IColumn createCheckboxColumn() {
+                return CaseWorkItemsPanel.this.createCheckboxColumn();
+            }
+
+            @Override
+            protected IColumn createIconColumn() {
+                return CaseWorkItemsPanel.this.createIconColumn();
+            }
+
+            @Override
+            protected IColumn createNameColumn(IModel columnNameModel, String itemPath, ExpressionType expression) {
+                return CaseWorkItemsPanel.this.createNameColumn();
             }
 
         };
@@ -136,13 +164,15 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         add(workItemsPanel);
     }
 
-    private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> initColumns(){
-        List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
-
+    private IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createCheckboxColumn(){
         if (View.FULL_LIST.equals(view)) {
-            columns.add(new CheckBoxHeaderColumn<>());
+            return  new CheckBoxHeaderColumn<>();
         }
-        columns.add(new IconColumn<PrismContainerValueWrapper<CaseWorkItemType>>(Model.of("")) {
+        return null;
+    }
+
+    private IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createIconColumn(){
+        return new IconColumn<PrismContainerValueWrapper<CaseWorkItemType>>(Model.of("")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -151,8 +181,11 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                 return WebComponentUtil.createDisplayType(WebComponentUtil.createDefaultBlackIcon(CaseWorkItemType.COMPLEX_TYPE));
             }
 
-        });
-        columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("PolicyRulesPanel.nameColumn")){
+        };
+    }
+
+    private IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String> createNameColumn(){
+        return new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("PolicyRulesPanel.nameColumn")){
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -174,8 +207,11 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                 PageCaseWorkItem pageCaseWorkItem = new PageCaseWorkItem(rowModel.getObject() != null ? rowModel.getObject().getRealValue() : null, pageParameters);
                 CaseWorkItemsPanel.this.getPageBase().navigateToNext(pageCaseWorkItem);
             }
-        });
+        };
+    }
 
+    private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns(){
+        List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
         columns.addAll(ColumnUtils.getDefaultWorkItemColumns(getPageBase(), View.FULL_LIST.equals(view)));
         if (View.FULL_LIST.equals(view)) {
             columns.add(new InlineMenuButtonColumn<>(createRowActions(), getPageBase()));
@@ -264,8 +300,8 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                                          AjaxRequestTarget target){
         List<PrismContainerValueWrapper<CaseWorkItemType>> selectedWorkItems = new ArrayList<>();
         if (rowModel == null) {
-            ContainerableListPanel<CaseWorkItemType> tablePanel = getContainerableListPanel();
-            selectedWorkItems.addAll(tablePanel.getProvider().getSelectedData());
+            ContainerListPanel<CaseWorkItemType> tablePanel = getContainerListPanel();
+            selectedWorkItems.addAll(tablePanel.getSelectedObjects());
         } else {
             selectedWorkItems.addAll(Arrays.asList(rowModel.getObject()));
         }
@@ -287,16 +323,16 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
                     null, powerDonor, approved,  completeWorkItemResult, CaseWorkItemsPanel.this.getPageBase());
         });
 
-        WebComponentUtil.clearProviderCache(getContainerableListPanel().getProvider());
+        WebComponentUtil.clearProviderCache(getContainerListPanel().getTable().getDataTable().getDataProvider());
 
         getPageBase().showResult(completeWorkItemResult, true);
         target.add(getPageBase().getFeedbackPanel());
-        target.add(getContainerableListPanel());
+        target.add(getContainerListPanel());
 
     }
 
-    public ContainerableListPanel<CaseWorkItemType> getContainerableListPanel(){
-        return (ContainerableListPanel<CaseWorkItemType>) get(ID_WORKITEMS_TABLE);
+    public ContainerListPanel<CaseWorkItemType> getContainerListPanel(){
+        return (ContainerListPanel<CaseWorkItemType>) get(ID_WORKITEMS_TABLE);
     }
 
     protected ObjectFilter getCaseWorkItemsFilter(){

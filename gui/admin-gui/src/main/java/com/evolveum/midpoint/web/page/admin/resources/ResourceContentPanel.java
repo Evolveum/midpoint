@@ -247,8 +247,10 @@ public abstract class ResourceContentPanel extends Panel {
             }
 
             @Override
-            protected List<IColumn<SelectableBean<ShadowType>, String>> createColumns() {
-                return ResourceContentPanel.this.initColumns();
+            protected List<IColumn> createDefaultColumns() {
+                List<IColumn> columns = new ArrayList<>();
+                columns.addAll(ResourceContentPanel.this.initColumns());
+                return columns;
             }
 
             @Override
@@ -263,8 +265,8 @@ public abstract class ResourceContentPanel extends Panel {
             }
 
             @Override
-            protected BaseSortableDataProvider<SelectableBean<ShadowType>> initProvider() {
-                provider = (SelectableBeanObjectDataProvider<ShadowType>) super.initProvider();
+            protected BaseSortableDataProvider<SelectableBean<ShadowType>> createProvider() {
+                provider = (SelectableBeanObjectDataProvider<ShadowType>) super.createProvider();
                 provider.setEmptyListOnNullQuery(true);
                 provider.setSort(null);
                 provider.setUseObjectCounting(isUseObjectCounting());
@@ -273,8 +275,8 @@ public abstract class ResourceContentPanel extends Panel {
             }
 
             @Override
-            protected ObjectQuery createContentQuery() {
-                ObjectQuery parentQuery = super.createContentQuery();
+            protected ObjectQuery createQuery() {
+                ObjectQuery parentQuery = super.createQuery();
                 QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
 
                 List<ObjectFilter> filters = new ArrayList<>();
@@ -296,7 +298,7 @@ public abstract class ResourceContentPanel extends Panel {
             }
 
             @Override
-            protected LoadableModel<Search> initSearchModel() {
+            protected LoadableModel<Search> createSearchModel() {
                 return new LoadableModel<Search>(false) {
 
                     private static final long serialVersionUID = 1L;

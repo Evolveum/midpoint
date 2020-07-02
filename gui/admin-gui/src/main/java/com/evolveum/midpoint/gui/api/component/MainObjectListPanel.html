@@ -5,15 +5,31 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <wicket:child/>
-    <form class="clearfix" wicket:id="mainForm">
-        <div wicket:id="table"/>
-    </form>
+<!--<wicket:panel xmlns:wicket="http://wicket.apache.org">-->
+<!--    <wicket:child/>-->
+<!--    <form class="clearfix" wicket:id="mainForm">-->
+<!--        <div wicket:id="table"/>-->
+<!--    </form>-->
 
-    <wicket:fragment wicket:id="buttonBar">
-            <div class="btn-group" wicket:id="buttonsRepeater">
-                <a wicket:id="button"></a>
+<!--    <wicket:fragment wicket:id="buttonBar">-->
+<!--            <div class="btn-group" wicket:id="buttonsRepeater">-->
+<!--                <a wicket:id="button"></a>-->
+<!--            </div>-->
+<!--    </wicket:fragment>-->
+<!--</wicket:panel>-->
+
+
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div wicket:id="items" class="main-form-panel">
+        <div class="row" >
+            <div class="col-md-12" wicket:id="itemsTable"  style="margin: 5px 0;">
             </div>
+        </div>
+    </div>
+    <wicket:fragment wicket:id="buttonBar">
+        <div class="btn-group" wicket:id="buttonsRepeater">
+            <a wicket:id="button"></a>
+        </div>
     </wicket:fragment>
+    <wicket:child />
 </wicket:panel>

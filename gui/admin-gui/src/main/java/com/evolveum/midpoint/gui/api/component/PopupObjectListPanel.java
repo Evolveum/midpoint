@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.Supplier;
@@ -181,8 +182,10 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     }
 
     @Override
-    protected List<IColumn<SelectableBean<O>, String>> createColumns() {
-        return ColumnUtils.getDefaultColumns(getType());
+    protected List<IColumn> createDefaultColumns() {
+        List<IColumn> columns = new ArrayList<>();
+        columns.addAll(ColumnUtils.getDefaultColumns(getType()));
+        return columns;
     }
 
     protected void onSelectPerformed(AjaxRequestTarget target, O object){
@@ -195,7 +198,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
     }
 
     @Override
-    protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends ObjectType>> objectsSupplier) {
+    protected void addCustomActions(@NotNull List<InlineMenuItem> actionsList, SerializableSupplier<Collection<? extends O>> objectsSupplier) {
     }
 
 

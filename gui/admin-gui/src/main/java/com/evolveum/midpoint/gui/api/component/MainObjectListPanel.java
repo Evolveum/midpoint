@@ -154,7 +154,7 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
     }
 
     @Override
-    protected WebMarkupContainer createTableButtonToolbar(String id) {
+    protected WebMarkupContainer initButtonToolbar(String id) {
         return new ButtonBar(id, ID_BUTTON_BAR, this, createToolbarButtonsList(ID_BUTTON));
     }
 

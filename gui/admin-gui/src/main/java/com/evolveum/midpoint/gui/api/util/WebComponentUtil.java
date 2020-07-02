@@ -611,6 +611,10 @@ public final class WebComponentUtil {
         return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz).getTypeName();
     }
 
+    public static <T extends Containerable> QName containerClassToQName(PrismContext prismContext, Class<T> clazz) {
+        return prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(clazz).getTypeName();
+    }
+
     public static TaskType createSingleRecurrenceTask(String taskName, QName applicableType, ObjectQuery query,
             ObjectDelta delta, ModelExecuteOptions options, String category, PageBase pageBase) throws SchemaException {
 

@@ -145,11 +145,11 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     protected abstract MultivalueContainerDetailsPanel<C> getMultivalueContainerDetailsPanel(ListItem<PrismContainerValueWrapper<C>> item);
 
     public void itemDetailsPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel) {
-        itemPerformedForDefaultAction(target, rowModel, null);
+        editItemPerformed(target, rowModel, null);
     }
 
     public void itemDetailsPerformed(AjaxRequestTarget target, List<PrismContainerValueWrapper<C>> listItems) {
-        itemPerformedForDefaultAction(target, null, listItems);
+        editItemPerformed(target, null, listItems);
     }
 
     protected void cancelItemDetailsPerformed(AjaxRequestTarget target){
@@ -160,7 +160,7 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     }
 
     @Override
-    public void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
+    public void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
             List<PrismContainerValueWrapper<C>> listItems) {
 
         if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {

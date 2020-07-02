@@ -136,7 +136,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     protected abstract ObjectQuery createQuery();
 
     @Override
-    protected boolean enableActionNewObject() {
+    protected boolean isCreateNewObjectVisible() {
         return false;
     }
 
@@ -146,8 +146,8 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     }
 
     @Override
-    protected List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createColumns() {
-        return getWorkItemColumns();
+    protected List<IColumn> createColumns() {
+        return (List) getWorkItemColumns();
     }
 
     @Override

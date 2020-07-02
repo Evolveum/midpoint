@@ -124,8 +124,8 @@ public class PageAttorneySelection extends PageBase {
             }
 
             @Override
-            protected List<IColumn<SelectableBean<UserType>, String>> createColumns() {
-                return PageAttorneySelection.this.initColumns();
+            protected List<IColumn> createDefaultColumns() {
+                return (List) PageAttorneySelection.this.initColumns();
             }
 
             @Override

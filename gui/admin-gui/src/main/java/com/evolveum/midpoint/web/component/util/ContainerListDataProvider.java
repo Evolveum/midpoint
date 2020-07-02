@@ -151,4 +151,7 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
         return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
     }
 
+    public void setType(Class<C> type) {
+        this.type = type;
+    }
 }

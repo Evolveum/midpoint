@@ -113,8 +113,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     @Override
-    protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
-        return initTaskColumns();
+    protected List<IColumn> createDefaultColumns() {
+        return (List) initTaskColumns();
     }
 
     @Override

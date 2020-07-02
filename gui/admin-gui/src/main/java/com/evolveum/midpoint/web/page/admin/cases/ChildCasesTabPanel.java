@@ -73,7 +73,7 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
             }
 
             @Override
-            protected List<IColumn<SelectableBean<CaseType>, String>> createColumns() {
+            protected List<IColumn> createDefaultColumns() {
                 List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseType>, String>>();
 
                 IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
@@ -112,7 +112,7 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
                     }
                 };
                 columns.add(column);
-                return columns;
+                return (List) columns;
             }
 
             @Override
@@ -134,7 +134,7 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
             }
 
             @Override
-            protected WebMarkupContainer createTableButtonToolbar(String id) {
+            protected WebMarkupContainer initButtonToolbar(String id) {
                 return null;
             }
 

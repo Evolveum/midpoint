@@ -107,7 +107,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected BaseSortableDataProvider<SelectableBean<TaskType>> initProvider() {
+                    protected BaseSortableDataProvider<SelectableBean<TaskType>> createProvider() {
                         return new SelectableListDataProvider<>(pageBase, tasks);
                     }
 
@@ -149,8 +149,8 @@ public class ResourceTasksPanel extends Panel implements Popupable{
                     }
 
                     @Override
-                    protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
-                        return ColumnUtils.getDefaultTaskColumns();
+                    protected List<IColumn> createDefaultColumns() {
+                        return (List) ColumnUtils.getDefaultTaskColumns();
                     }
 
                     @Override

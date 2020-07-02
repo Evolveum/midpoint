@@ -150,7 +150,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             }
 
             @Override
-            protected boolean enableActionNewObject() {
+            protected boolean isCreateNewObjectVisible() {
                 return true;
             }
 
@@ -160,12 +160,12 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String>> createColumns() {
-                return initLoggersBasicColumns(loggerModel);
+            protected List<IColumn> createColumns() {
+                return (List) initLoggersBasicColumns(loggerModel);
             }
 
             @Override
-            protected void itemPerformedForDefaultAction(AjaxRequestTarget target,
+            protected void editItemPerformed(AjaxRequestTarget target,
                     IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> rowModel,
                     List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> listItems) {
                 loggerEditPerformed(target, rowModel, listItems);
@@ -210,7 +210,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             }
 
             @Override
-            protected boolean enableActionNewObject() {
+            protected boolean isCreateNewObjectVisible() {
                 return true;
             }
 
@@ -220,8 +220,8 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<AppenderConfigurationType>, String>> createColumns() {
-                return initAppendersBasicColumns(appenderModel);
+            protected List<IColumn> createColumns() {
+                return (List) initAppendersBasicColumns(appenderModel);
             }
 
             @Override
@@ -260,7 +260,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 
                     @Override
                     public boolean isVisible() {
-                        return enableActionNewObject();
+                        return isCreateNewObjectVisible();
                     }
 
                     @Override
@@ -371,7 +371,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     protected void newAppendersClickPerformed(AjaxRequestTarget target) {
         MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appenders
                 = (MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>) get(ID_APPENDERS);
-        DropDownChoicePanel<QName> appendersChoice = (DropDownChoicePanel<QName>) getAppendersMultivalueContainerListPanel().getItemTable().getFooterButtonToolbar().get(createComponentPath(ID_CHOICE_APPENDER_TYPE_FORM ,ID_APPENDERS_CHOICE));
+        DropDownChoicePanel<QName> appendersChoice = (DropDownChoicePanel<QName>) getAppendersMultivalueContainerListPanel().getTable().getFooterButtonToolbar().get(createComponentPath(ID_CHOICE_APPENDER_TYPE_FORM ,ID_APPENDERS_CHOICE));
         PrismContainerValue<AppenderConfigurationType> newObjectPolicy = null;
         if(QNameUtil.match(appendersChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)){
             newObjectPolicy = new FileAppenderConfigurationType().asPrismContainerValue();

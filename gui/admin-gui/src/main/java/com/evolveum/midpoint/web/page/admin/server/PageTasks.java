@@ -103,16 +103,16 @@ public class PageTasks extends PageAdmin {
             }
 
             @Override
-            protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
-                List<IColumn<SelectableBean<TaskType>, String>> columns = super.createColumns();
+            protected List<IColumn> createDefaultColumns() {
+                List<IColumn> columns = super.createDefaultColumns();
                 addCustomColumns(columns);
-                return columns;
+                return (List) columns;
             }
         };
         add(tablePanel);
     }
 
-    private void addCustomColumns(List<IColumn<SelectableBean<TaskType>, String>> columns) {
+    private void addCustomColumns(List<IColumn> columns) {
         columns.add(2, new ObjectReferenceColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.objectRef"), SelectableBeanImpl.F_VALUE+"."+TaskType.F_OBJECT_REF.getLocalPart()){
             private static final long serialVersionUID = 1L;
             @Override

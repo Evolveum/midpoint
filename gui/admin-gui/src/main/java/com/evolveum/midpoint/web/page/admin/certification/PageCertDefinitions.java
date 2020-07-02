@@ -106,8 +106,8 @@ public class PageCertDefinitions extends PageAdminWorkItems {
             }
 
             @Override
-            protected List<IColumn<SelectableBean<AccessCertificationDefinitionType>, String>> createColumns() {
-                return PageCertDefinitions.this.initColumns();
+            protected List<IColumn> createDefaultColumns() {
+                return (List) PageCertDefinitions.this.initColumns();
             }
 
             @Override

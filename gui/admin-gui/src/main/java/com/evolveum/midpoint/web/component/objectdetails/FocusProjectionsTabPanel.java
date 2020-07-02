@@ -184,7 +184,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
             }
 
             @Override
-            protected boolean enableActionNewObject() {
+            protected boolean isCreateNewObjectVisible() {
                 PrismObjectDefinition<F> def = getObjectWrapper().getObject().getDefinition();
                 PrismReferenceDefinition ref = def.findReferenceDefinition(UserType.F_LINK_REF);
                 return (ref.canRead() && ref.canAdd());
@@ -196,12 +196,12 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
             }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<ShadowType>, String>> createColumns() {
-                return initBasicColumns();
+            protected List<IColumn> createColumns() {
+                return (List) initBasicColumns();
             }
 
             @Override
-            public void itemPerformedForDefaultAction(AjaxRequestTarget target,
+            public void editItemPerformed(AjaxRequestTarget target,
                     IModel<PrismContainerValueWrapper<ShadowType>> rowModel,
                     List<PrismContainerValueWrapper<ShadowType>> listItems) {
 
@@ -217,7 +217,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                         }
                     });
                 }
-                super.itemPerformedForDefaultAction(target, rowModel, listItems);
+                super.editItemPerformed(target, rowModel, listItems);
             }
 
             @Override
@@ -598,7 +598,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        getMultivalueContainerListPanel().itemPerformedForDefaultAction(target,
+                        getMultivalueContainerListPanel().editItemPerformed(target,
                                 getRowModel(), getMultivalueContainerListPanel().getSelectedItems());
                         target.add(getFeedbackPanel());
                     }

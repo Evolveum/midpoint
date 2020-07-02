@@ -98,8 +98,8 @@ public class PageNodes extends PageAdmin {
             }
 
             @Override
-            protected List<IColumn<SelectableBean<NodeType>, String>> createColumns() {
-                return initNodeColumns();
+            protected List<IColumn> createDefaultColumns() {
+                return (List) initNodeColumns();
             }
 
             @Override

@@ -66,7 +66,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             }
 
             @Override
-            protected List<IColumn<SelectableBean<F>, String>> createColumns() {
+            protected List<IColumn> createDefaultColumns() {
                 return new ArrayList<>();
             }
 
@@ -115,7 +115,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
                     }
 
                     @Override
-            protected ObjectQuery createContentQuery() {
+            protected ObjectQuery createQuery() {
                 List<String> personaOidsList = getPersonasOidsList();
                 QueryFactory factory = FocusPersonasTabPanel.this.getPageBase().getPrismContext().queryFactory();
                 ObjectQuery query = factory.createQuery(factory.createInOid(personaOidsList));

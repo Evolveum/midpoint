@@ -254,8 +254,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected List<IColumn<SelectableBean<ObjectType>, String>> createColumns() {
-                return createMembersColumns();
+            protected List<IColumn> createDefaultColumns() {
+                return (List) createMembersColumns();
             }
 
             @Override
@@ -270,8 +270,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             }
 
             @Override
-            protected ObjectQuery createContentQuery() {
-                ObjectQuery q = super.createContentQuery();
+            protected ObjectQuery createQuery() {
+                ObjectQuery q = super.createQuery();
 
                 ObjectQuery members = AbstractRoleMemberPanel.this.createContentQuery();
 

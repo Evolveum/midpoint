@@ -6,14 +6,15 @@
  */
 package com.evolveum.midpoint.gui.api.component;
 
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
@@ -67,13 +68,13 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn<SelectableBean<O>, String>> createColumns() {
+            protected List<IColumn> createDefaultColumns() {
                 if (AbstractRoleType.class.isAssignableFrom(getType())){
-                    List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
+                    List<IColumn> columns = new ArrayList<>();
                     columns.addAll((Collection)ColumnUtils.getDefaultAbstractRoleColumns(false));
                     return columns;
                 } else {
-                    return super.createColumns();
+                    return super.createDefaultColumns();
                 }
             }
 

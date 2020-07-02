@@ -85,8 +85,8 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             }
 
             @Override
-            protected List<IColumn<SelectableBean<TaskType>, String>> createColumns() {
-                List<IColumn<SelectableBean<TaskType>, String>> columns = super.createColumns();
+            protected List<IColumn> createDefaultColumns() {
+                List<IColumn> columns = super.createDefaultColumns();
                 columns.add(2, new EnumPropertyColumn<SelectableBean<TaskType>>(createStringResource("SubtasksPanel.label.kind"), createTaskKindExpression()) {
 
                     @Override
@@ -98,7 +98,7 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
             }
 
             @Override
-            protected WebMarkupContainer createTableButtonToolbar(String id) {
+            protected WebMarkupContainer initButtonToolbar(String id) {
                 return null;
             }
         };
@@ -111,12 +111,12 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
         TaskTablePanel workerThreadsTable = new TaskTablePanel(ID_WORKER_THREADS_TABLE, UserProfileStorage.TableId.TABLE_WORKERS, null) {
 
             @Override
-            protected BaseSortableDataProvider<SelectableBean<TaskType>> initProvider() {
+            protected BaseSortableDataProvider<SelectableBean<TaskType>> createProvider() {
                 return new SelectableListDataProvider<>(TaskSubtasksAndThreadsTabPanel.this, createWorkersModel());
             }
 
             @Override
-            protected WebMarkupContainer createTableButtonToolbar(String id) {
+            protected WebMarkupContainer initButtonToolbar(String id) {
                 return null;
             }
 

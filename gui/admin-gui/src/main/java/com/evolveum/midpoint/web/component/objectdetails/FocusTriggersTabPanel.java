@@ -72,7 +72,7 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
                     }
 
                     @Override
-                    protected boolean enableActionNewObject() {
+                    protected boolean isCreateNewObjectVisible() {
                         return false;
                     }
 
@@ -86,7 +86,7 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
                     }
 
                     @Override
-                    protected List<IColumn<PrismContainerValueWrapper<TriggerType>, String>> createColumns() {
+                    protected List<IColumn> createColumns() {
                         return createTriggersColumns();
                     }
 
@@ -97,7 +97,7 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
                     }
 
                     @Override
-                    protected void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<TriggerType>> rowModel,
+                    protected void editItemPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<TriggerType>> rowModel,
                                                                  List<PrismContainerValueWrapper<TriggerType>> listItems) {
 
                     }
@@ -108,8 +108,8 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
         setOutputMarkupId(true);
     }
 
-    private List<IColumn<PrismContainerValueWrapper<TriggerType>, String>> createTriggersColumns(){
-        List<IColumn<PrismContainerValueWrapper<TriggerType>, String>> columns = new ArrayList<>();
+    private List<IColumn> createTriggersColumns(){
+        List<IColumn> columns = new ArrayList<>();
         columns.add(new AbstractColumn<PrismContainerValueWrapper<TriggerType>, String>(createStringResource("FocusTriggersTabPanel.timestampColumn")){
             private static final long serialVersionUID = 1L;
 

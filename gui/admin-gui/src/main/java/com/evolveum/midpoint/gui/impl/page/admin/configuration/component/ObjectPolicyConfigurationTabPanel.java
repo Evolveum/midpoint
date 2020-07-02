@@ -110,7 +110,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
             }
 
             @Override
-            protected boolean enableActionNewObject() {
+            protected boolean isCreateNewObjectVisible() {
                 return true;
             }
 
@@ -120,8 +120,8 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
             }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<ObjectPolicyConfigurationType>, String>> createColumns() {
-                return initBasicColumns();
+            protected List<IColumn> createColumns() {
+                return (List) initBasicColumns();
             }
 
             @Override

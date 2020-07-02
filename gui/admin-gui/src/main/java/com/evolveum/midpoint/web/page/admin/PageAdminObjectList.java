@@ -66,8 +66,8 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn<SelectableBean<O>, String>> createColumns() {
-                return PageAdminObjectList.this.initColumns();
+            protected List<IColumn> createDefaultColumns() {
+                return (List) PageAdminObjectList.this.initColumns();
             }
 
             @Override
@@ -102,16 +102,16 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
 
-            protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
+            protected void setDefaultSorting(BaseSortableDataProvider provider){
                 PageAdminObjectList.this.setDefaultSorting(provider);
             }
 
             @Override
-            protected BaseSortableDataProvider<SelectableBean<O>> initProvider() {
+            protected BaseSortableDataProvider<SelectableBean<O>> createProvider() {
                 if (getCustomProvider() != null) {
                     return getCustomProvider();
                 }
-                return super.initProvider();
+                return super.createProvider();
             }
 
             @Override

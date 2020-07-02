@@ -8,9 +8,9 @@
 package com.evolveum.midpoint.web.page.admin.cases;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.ContainerableListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.ContainerListPanel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -116,8 +116,8 @@ public class PageWorkItemsClaimable extends PageCaseWorkItems {
     private void claimWorkItemPerformed(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel, AjaxRequestTarget target){
         List<PrismContainerValueWrapper<CaseWorkItemType>> selectedWorkItems = new ArrayList<>();
         if (rowModel == null) {
-            ContainerableListPanel<CaseWorkItemType> tablePanel = getCaseWorkItemsTable().getContainerableListPanel();
-            selectedWorkItems.addAll(tablePanel.getProvider().getSelectedData());
+            ContainerListPanel<CaseWorkItemType> tablePanel = getCaseWorkItemsTable().getContainerListPanel();
+            selectedWorkItems.addAll(tablePanel.getSelectedObjects());
         } else {
             selectedWorkItems.addAll(Arrays.asList(rowModel.getObject()));
         }

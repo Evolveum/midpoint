@@ -105,7 +105,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
             }
 
             @Override
-            protected boolean enableActionNewObject() {
+            protected boolean isCreateNewObjectVisible() {
                 return true;
             }
 
@@ -115,7 +115,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
             }
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<GlobalPolicyRuleType>, String>> createColumns() {
+            protected List<IColumn> createColumns() {
                 return (List) initBasicColumns();
             }
 
