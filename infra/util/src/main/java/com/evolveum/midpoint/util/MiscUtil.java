@@ -20,6 +20,7 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -288,14 +289,20 @@ public class MiscUtil {
         }
     }
 
-    public static XMLGregorianCalendar asXMLGregorianCalendar(Long timeInMilis) {
-        if (timeInMilis == null || timeInMilis == 0) {
+    public static XMLGregorianCalendar asXMLGregorianCalendar(Long timeInMillis) {
+        if (timeInMillis == null || timeInMillis == 0) {
             return null;
         } else {
             GregorianCalendar gc = new GregorianCalendar();
-            gc.setTimeInMillis(timeInMilis);
+            gc.setTimeInMillis(timeInMillis);
             return DATATYPE_FACTORY.newXMLGregorianCalendar(gc);
         }
+    }
+
+    public static XMLGregorianCalendar asXMLGregorianCalendar(Instant instant) {
+        return instant != null
+                ? asXMLGregorianCalendar(instant.toEpochMilli())
+                : null;
     }
 
     /**
@@ -532,8 +539,8 @@ public class MiscUtil {
     public static String getObjectName(Object o) {
         return o != null ? "an instance of " + o.getClass().getName() : "null value";
     }
-
     // @pre: at least of o1, o2 is null
+
     public static Integer compareNullLast(Object o1, Object o2) {
         if (o1 == null && o2 == null) {
             return 0;
@@ -574,8 +581,8 @@ public class MiscUtil {
             throw exceptionSupplier.get();
         }
     }
-
     // similar to the above ... todo deduplicate
+
     public static <T> T getSingleValue(Collection<T> values, T defaultValue, String contextDescription) {
         if (values.size() == 0) {
             return defaultValue;
@@ -598,9 +605,9 @@ public class MiscUtil {
                 ? Stream.of(cls.cast(o))
                 : Stream.empty();
     }
-
     // CollectionUtils does not provide this
     // @pre: !list.isEmpty()
+
     public static <T> T last(List<T> list) {
         return list.get(list.size() - 1);
     }
@@ -783,9 +790,9 @@ public class MiscUtil {
             zipOut.write(content.getBytes(charset));
         }
     }
-
     // More serious would be to read XML directly from the input stream -- fixme some day
     // We should probably implement reading from ZIP file directly in PrismContext
+
     @SuppressWarnings("unused")     // used externally
     public static String readZipFile(File file, Charset charset) throws IOException {
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
