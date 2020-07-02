@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.component.search;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import org.apache.cxf.common.util.CollectionUtils;
+
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -23,11 +25,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
-import org.apache.cxf.common.util.CollectionUtils;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -38,6 +39,8 @@ public class SearchFactory {
     private static final String LOAD_OBJECT_DEFINITION = DOT_CLASS + "loadObjectDefinition";
     private static final String LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
     private static final String LOAD_ADMIN_GUI_CONFIGURATION = DOT_CLASS + "loadAdminGuiConfiguration";
+
+    private static final Trace LOGGER = TraceManager.getTrace(SearchFactory.class);
 
     private static final Map<Class, List<ItemPath>> SEARCHABLE_OBJECTS = new HashMap<>();
 
@@ -198,8 +201,13 @@ public class SearchFactory {
         List<SearchItemDefinition> configuredSearchItemDefs = getConfiguredSearchItemDefinitions(objectDef, useDefsFromSuperclass, searchItemsConfig);
         if (!CollectionUtils.isEmpty(configuredSearchItemDefs)){
             configuredSearchItemDefs.forEach(searchItemDef -> {
-                PrismPropertyDefinition def = objDef.findPropertyDefinition(searchItemDef.getPath());
-                SearchItem item = search.addItem(def);
+                SearchItem item = null;
+                if (searchItemDef.getPath() != null) {
+                    ItemDefinition def = objDef.findItemDefinition(searchItemDef.getPath());
+                    item = search.addItem(def);
+                } else if (searchItemDef.getPredefinedFilter() != null) {
+                    item = search.addItem(searchItemDef.getPredefinedFilter());
+                }
                 if (item != null) {
                     item.setFixed(true);
                 }
@@ -249,13 +257,19 @@ public class SearchFactory {
         }
         List<SearchItemDefinition> configuredSearchItemList = new ArrayList<>();
         configuredSearchItems.getSearchItem().forEach(searchItem -> {
-            availableDefinitions.forEach(def -> {
+            for (SearchItemDefinition def : availableDefinitions) {
                 ItemPathType searchItemPath = new ItemPathType(def.getPath());
-                if (searchItem.getPath().equivalent(searchItemPath)){
+                if (searchItem.getPath() != null && searchItem.getPath().equivalent(searchItemPath)) {
                     configuredSearchItemList.add(def);
                     return;
                 }
-            });
+            }
+        });
+        configuredSearchItems.getSearchItem().forEach(searchItem -> {
+            if (searchItem.getFilter() != null) {
+                configuredSearchItemList.add(new SearchItemDefinition(searchItem));
+                return;
+            }
         });
         return configuredSearchItemList;
     }
