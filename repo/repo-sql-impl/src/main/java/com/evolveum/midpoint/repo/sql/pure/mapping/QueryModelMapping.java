@@ -94,7 +94,7 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
         return this;
     }
 
-    public <A> void addProcessorForItem(
+    public <A> void addItemMapping(
             ItemName itemName,
             Function<Q, Path<A>> rootToQueryItem,
             Function<Path<A>, FilterProcessor<?>> processorFactory) {

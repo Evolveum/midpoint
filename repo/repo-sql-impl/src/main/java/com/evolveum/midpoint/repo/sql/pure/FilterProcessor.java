@@ -1,5 +1,7 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
+import static com.evolveum.midpoint.prism.PrismConstants.STRING_IGNORE_CASE_MATCHING_RULE_NAME;
+
 import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
 
@@ -22,7 +24,7 @@ public interface FilterProcessor<O extends ObjectFilter> {
     default Ops operation(ValueFilter<?, ?> filter) throws QueryException {
         if (filter instanceof EqualFilter) {
             // TODO possibly EQ_IGNORE_CASE based on matching? or rather we control it?
-            return Ops.EQ;
+            return isIgnoreCaseFilter(filter) ? Ops.EQ_IGNORE_CASE : Ops.EQ;
         } else if (filter instanceof GreaterFilter) {
             GreaterFilter<?> gf = (GreaterFilter<?>) filter;
             return gf.isEquals() ? Ops.GOE : Ops.GT;
@@ -32,14 +34,19 @@ public interface FilterProcessor<O extends ObjectFilter> {
         } else if (filter instanceof SubstringFilter) {
             SubstringFilter<?> substring = (SubstringFilter<?>) filter;
             if (substring.isAnchorEnd()) {
-                return Ops.ENDS_WITH;
+                return isIgnoreCaseFilter(filter) ? Ops.ENDS_WITH_IC : Ops.ENDS_WITH;
             } else if (substring.isAnchorStart()) {
-                return Ops.STARTS_WITH;
+                return isIgnoreCaseFilter(filter) ? Ops.STARTS_WITH_IC : Ops.STARTS_WITH;
             } else {
-                return Ops.STRING_CONTAINS;
+                return isIgnoreCaseFilter(filter) ? Ops.STRING_CONTAINS_IC : Ops.STRING_CONTAINS;
             }
         }
 
         throw new QueryException("Can't translate filter '" + filter + "' to operation.");
+    }
+
+    default boolean isIgnoreCaseFilter(ValueFilter<?, ?> filter) {
+        return filter.getMatchingRule() != null
+                && filter.getMatchingRule().equals(STRING_IGNORE_CASE_MATCHING_RULE_NAME);
     }
 }

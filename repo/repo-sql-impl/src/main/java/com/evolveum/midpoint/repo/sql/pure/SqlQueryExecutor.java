@@ -79,6 +79,7 @@ public class SqlQueryExecutor {
 //                    .offset(2)
 //                    .limit(2)
                     ;
+            // TODO logging
             System.out.println("query = " + query);
             long count = query.fetchCount();
 

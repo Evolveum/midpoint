@@ -1,8 +1,7 @@
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.*;
-import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_EVENT_STAGE;
-import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.F_EVENT_TYPE;
+import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -30,8 +29,8 @@ public class QAuditEventRecordMapping
                 TARGET_OWNER_NAME, TARGET_OWNER_OID, TARGET_OWNER_TYPE,
                 TASK_IDENTIFIER, TASK_OID, TIMESTAMP_VALUE);
 
-        // TODO how to do this better with generics?
-        this.addProcessorForItem(F_EVENT_TYPE, q -> q.eventType, EnumOrdinalItemMapper::new);
-        this.addProcessorForItem(F_EVENT_STAGE, q -> q.eventStage, EnumOrdinalItemMapper::new);
+        addItemMapping(F_EVENT_TYPE, q -> q.eventType, EnumOrdinalItemMapper::new);
+        addItemMapping(F_EVENT_STAGE, q -> q.eventStage, EnumOrdinalItemMapper::new);
+        addItemMapping(F_MESSAGE, q -> q.message, StringItemMapper::new);
     }
 }

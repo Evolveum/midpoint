@@ -8,7 +8,6 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 /**
  * Mapping for a an attribute path (Prism item) of enum type that is mapped to SQL as ordinal value.
- * Actual query-path is determined by the function from a parent path (entity).
  */
 public class EnumOrdinalItemMapper implements FilterProcessor<PropertyValueFilter<Enum<?>>> {
 

@@ -18,6 +18,7 @@ public class AuditEventRecordSqlTransformer {
         AuditEventRecordType rv = new AuditEventRecordType()
                 .eventType(auditEventTypeTypeFromRepo(row.eventType))
                 .eventStage(auditEventStageTypeFromRepo(row.eventStage))
+                .message(row.message)
                 //
                 ;
         // todo transformation from whatever input

@@ -86,35 +86,51 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
 
     // columns and relations
     public final NumberPath<Long> id = addMetadata(createNumber("id", Long.class), ID);
-    public final StringPath attorneyName = createString("attorneyname");
-    public final StringPath attorneyOid = createString("attorneyoid");
+    public final StringPath attorneyName = addMetadata(createString("attorneyname"), ATTORNEY_NAME);
+    public final StringPath attorneyOid = addMetadata(createString("attorneyoid"), ATTORNEY_OID);
     public final StringPath channel = addMetadata(createString("channel"), CHANNEL);
-    public final StringPath eventidentifier = createString("eventidentifier");
+    public final StringPath eventidentifier =
+            addMetadata(createString("eventidentifier"), EVENT_IDENTIFIER);
     public final NumberPath<Integer> eventStage =
             addMetadata(createNumber("eventStage", Integer.class), EVENT_STAGE);
     public final NumberPath<Integer> eventType =
             addMetadata(createNumber("eventType", Integer.class), EVENT_TYPE);
-    public final StringPath hostidentifier = createString("hostidentifier");
-    public final StringPath initiatorname = createString("initiatorname");
-    public final StringPath initiatoroid = createString("initiatoroid");
-    public final NumberPath<Integer> initiatortype = createNumber("initiatortype", Integer.class);
-    public final StringPath message = createString("message");
-    public final StringPath nodeidentifier = createString("nodeidentifier");
-    public final NumberPath<Integer> outcome = createNumber("outcome", Integer.class);
-    public final StringPath parameter = createString("parameter");
-    public final StringPath remotehostaddress = createString("remotehostaddress");
-    public final StringPath requestidentifier = createString("requestidentifier");
-    public final StringPath result = createString("result");
-    public final StringPath sessionidentifier = createString("sessionidentifier");
-    public final StringPath targetname = createString("targetname");
-    public final StringPath targetoid = createString("targetoid");
-    public final StringPath targetownername = createString("targetownername");
-    public final StringPath targetowneroid = createString("targetowneroid");
-    public final NumberPath<Integer> targetownertype = createNumber("targetownertype", Integer.class);
-    public final NumberPath<Integer> targettype = createNumber("targettype", Integer.class);
-    public final StringPath taskidentifier = createString("taskidentifier");
-    public final StringPath taskoid = createString("taskoid");
-    public final DateTimePath<java.sql.Timestamp> timestampvalue = createDateTime("timestampvalue", java.sql.Timestamp.class);
+    public final StringPath hostidentifier =
+            addMetadata(createString("hostidentifier"), HOST_IDENTIFIER);
+    public final StringPath initiatorname =
+            addMetadata(createString("initiatorname"), INITIATOR_NAME);
+    public final StringPath initiatoroid =
+            addMetadata(createString("initiatoroid"), INITIATOR_OID);
+    public final NumberPath<Integer> initiatortype =
+            addMetadata(createNumber("initiatortype", Integer.class), INITIATOR_TYPE);
+    public final StringPath message = addMetadata(createString("message"), MESSAGE);
+    public final StringPath nodeidentifier =
+            addMetadata(createString("nodeidentifier"), NODE_IDENTIFIER);
+    public final NumberPath<Integer> outcome =
+            addMetadata(createNumber("outcome", Integer.class), OUTCOME);
+    public final StringPath parameter = addMetadata(createString("parameter"), PARAMETER);
+    public final StringPath remotehostaddress =
+            addMetadata(createString("remotehostaddress"), REMOTE_HOST_ADDRESS);
+    public final StringPath requestidentifier =
+            addMetadata(createString("requestidentifier"), REQUEST_IDENTIFIER);
+    public final StringPath result = addMetadata(createString("result"), RESULT);
+    public final StringPath sessionidentifier =
+            addMetadata(createString("sessionidentifier"), SESSION_IDENTIFIER);
+    public final StringPath targetname = addMetadata(createString("targetname"), TARGET_NAME);
+    public final StringPath targetoid = addMetadata(createString("targetoid"), TARGET_OID);
+    public final StringPath targetownername =
+            addMetadata(createString("targetownername"), TARGET_OWNER_NAME);
+    public final StringPath targetowneroid =
+            addMetadata(createString("targetowneroid"), TARGET_OWNER_OID);
+    public final NumberPath<Integer> targetownertype =
+            addMetadata(createNumber("targetownertype", Integer.class), TARGET_OWNER_TYPE);
+    public final NumberPath<Integer> targettype =
+            addMetadata(createNumber("targettype", Integer.class), TARGET_TYPE);
+    public final StringPath taskidentifier =
+            addMetadata(createString("taskidentifier"), TASK_IDENTIFIER);
+    public final StringPath taskoid = addMetadata(createString("taskoid"), TASK_OID);
+    public final DateTimePath<java.sql.Timestamp> timestampvalue =
+            addMetadata(createDateTime("timestampvalue", java.sql.Timestamp.class), TIMESTAMP_VALUE);
 
     public final com.querydsl.sql.PrimaryKey<MAuditEventRecord> constraint85c = createPrimaryKey(id);
     public final com.querydsl.sql.ForeignKey<QMAuditItem> _auditItemFk = createInvForeignKey(id, "RECORD_ID");
