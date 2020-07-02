@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 
@@ -1172,5 +1173,18 @@ public class LensUtil {
             }
         }
         return explicitArchetypeOid;
+    }
+
+    public static void setMappingTarget(MappingType mapping, ItemPathType path) {
+        VariableBindingDefinitionType target = mapping.getTarget();
+        if (target == null) {
+            target = new VariableBindingDefinitionType();
+            target.setPath(path);
+            mapping.setTarget(target);
+        } else if (target.getPath() == null) {
+            target = target.clone();
+            target.setPath(path);
+            mapping.setTarget(target);
+        }
     }
 }

@@ -15,6 +15,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
@@ -112,6 +113,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     @Autowired private ObjectTemplateProcessor objectTemplateProcessor;
     @Autowired private PolicyRuleProcessor policyRuleProcessor;
     @Autowired private ContextLoader contextLoader;
+    @Autowired private ModelBeans beans;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -360,9 +362,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 }
             }
 
-            Collection<ItemDelta<?, ?>> focusDeltas = objectTemplateProcessor.computeItemDeltas(focusOutputTripleMap, null,
-                    focusOdo.getObjectDelta(), focusOdo.getNewObject(), focusContext.getObjectDefinition(),
-                    "focus mappings in assignments of " + focusContext.getHumanReadableName());
+            DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(
+                    focusOutputTripleMap, null,
+                    focusOdo.getNewObject(), focusOdo.getObjectDelta(), focusContext.getObjectDefinition(),
+                    "focus mappings in assignments of " + focusContext.getHumanReadableName(), beans);
+            consolidation.computeItemDeltas();
+            Collection<ItemDelta<?, ?>> focusDeltas = consolidation.getItemDeltas();
             LOGGER.trace("Computed focus deltas: {}", focusDeltas);
             focusContext.applyProjectionWaveSecondaryDeltas(focusDeltas);
             focusContext.recompute();
