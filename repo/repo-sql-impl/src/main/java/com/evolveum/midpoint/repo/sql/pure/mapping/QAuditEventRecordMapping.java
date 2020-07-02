@@ -27,10 +27,12 @@ public class QAuditEventRecordMapping
                 REMOTE_HOST_ADDRESS, REQUEST_IDENTIFIER, RESULT, SESSION_IDENTIFIER,
                 TARGET_NAME, TARGET_OID, TARGET_TYPE,
                 TARGET_OWNER_NAME, TARGET_OWNER_OID, TARGET_OWNER_TYPE,
-                TASK_IDENTIFIER, TASK_OID, TIMESTAMP_VALUE);
+                TASK_IDENTIFIER, TASK_OID, TIMESTAMP);
 
         addItemMapping(F_EVENT_TYPE, q -> q.eventType, EnumOrdinalItemMapper::new);
         addItemMapping(F_EVENT_STAGE, q -> q.eventStage, EnumOrdinalItemMapper::new);
         addItemMapping(F_MESSAGE, q -> q.message, StringItemMapper::new);
+        addItemMapping(F_CHANNEL, q -> q.channel, StringItemMapper::new);
+        addItemMapping(F_TIMESTAMP, q -> q.timestamp, TimestampItemMapper::new);
     }
 }

@@ -20,6 +20,8 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.DataSourceFactory;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.support.InstantType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -33,9 +35,15 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 @Component
 public class SqlQueryExecutor {
 
-    // TODO configuration should reflect the used DB of course
+    // TODO configuration should reflect the used DB of course (if necessary)
     public static final Configuration QUERYDSL_CONFIGURATION =
             new Configuration(SQLTemplates.DEFAULT);
+
+    static {
+        // See InstantType javadoc for the reasons why we need this to support Instant.
+        QUERYDSL_CONFIGURATION.register(new InstantType());
+        // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
+    }
 
     @Autowired
     private DataSourceFactory dataSourceFactory;

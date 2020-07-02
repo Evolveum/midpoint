@@ -4,26 +4,28 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.repo.sql.pure;
+package com.evolveum.midpoint.repo.sql.pure.querymodel.beans;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * MAuditEvent is a Querydsl bean type related to 
+ * MAuditEvent is a Querydsl bean type related to
  * Usable only for built-in low-level queries without extension columns.
  */
 @SuppressWarnings("unused")
 public class MAuditEventRecord {
 
     public Long id;
-    public String attorneyName;
-    public String attorneyOid;
+    public String eventIdentifier;
+    public Instant timestamp;
     public String channel;
-    public String eventidentifier;
     public Integer eventStage;
     public Integer eventType;
+    public String attorneyName;
+    public String attorneyOid;
     public String hostidentifier;
     public String initiatorname;
     public String initiatoroid;
@@ -44,7 +46,6 @@ public class MAuditEventRecord {
     public Integer targettype;
     public String taskidentifier;
     public String taskoid;
-    public java.sql.Timestamp timestampvalue;
 
     // "transient" fields not used by Querydsl
     public List<MAuditDelta> deltas;
@@ -53,12 +54,13 @@ public class MAuditEventRecord {
     public String toString() {
         return "MAuditEventRecord{" +
                 "id=" + id +
+                ", eventIdentifier='" + eventIdentifier + '\'' +
+                ", timestamp=" + timestamp +
+                ", channel='" + channel + '\'' +
+                ", eventType=" + eventType +
+                ", eventStage=" + eventStage +
 //                ", attorneyName='" + attorneyName + '\'' +
 //                ", attorneyOid='" + attorneyOid + '\'' +
-//                ", channel='" + channel + '\'' +
-//                ", eventidentifier='" + eventidentifier + '\'' +
-//                ", eventstage=" + eventstage +
-//                ", eventtype=" + eventtype +
 //                ", hostidentifier='" + hostidentifier + '\'' +
 //                ", initiatorname='" + initiatorname + '\'' +
 //                ", initiatoroid='" + initiatoroid + '\'' +
@@ -79,7 +81,6 @@ public class MAuditEventRecord {
 //                ", targettype=" + targettype +
 //                ", taskidentifier='" + taskidentifier + '\'' +
 //                ", taskoid='" + taskoid + '\'' +
-                ", timestampvalue=" + timestampvalue +
                 '}';
     }
 
@@ -94,6 +95,7 @@ public class MAuditEventRecord {
     public boolean equals(Object o) {
         if (this == o) { return true; }
         if (o == null || getClass() != o.getClass()) { return false; }
+
         MAuditEventRecord that = (MAuditEventRecord) o;
         return Objects.equals(id, that.id);
     }

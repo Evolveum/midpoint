@@ -4,6 +4,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
@@ -19,6 +20,7 @@ public class AuditEventRecordSqlTransformer {
                 .eventType(auditEventTypeTypeFromRepo(row.eventType))
                 .eventStage(auditEventStageTypeFromRepo(row.eventStage))
                 .message(row.message)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(row.timestamp))
                 //
                 ;
         // todo transformation from whatever input

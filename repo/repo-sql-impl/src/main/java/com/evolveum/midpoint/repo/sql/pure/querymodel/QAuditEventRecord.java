@@ -9,6 +9,7 @@ package com.evolveum.midpoint.repo.sql.pure.querymodel;
 import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
 import java.sql.Types;
+import java.time.Instant;
 
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
@@ -16,8 +17,8 @@ import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 
 import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sql.pure.MAuditDelta;
-import com.evolveum.midpoint.repo.sql.pure.MAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 
 /**
  * Querydsl query type for M_AUDIT_EVENT table.
@@ -81,7 +82,7 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
             ColumnMetadata.named("TASKIDENTIFIER").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TASK_OID =
             ColumnMetadata.named("TASKOID").ofType(Types.VARCHAR).withSize(255);
-    public static final ColumnMetadata TIMESTAMP_VALUE =
+    public static final ColumnMetadata TIMESTAMP =
             ColumnMetadata.named("TIMESTAMPVALUE").ofType(Types.TIMESTAMP).withSize(23).withDigits(10);
 
     // columns and relations
@@ -89,8 +90,8 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public final StringPath attorneyName = addMetadata(createString("attorneyname"), ATTORNEY_NAME);
     public final StringPath attorneyOid = addMetadata(createString("attorneyoid"), ATTORNEY_OID);
     public final StringPath channel = addMetadata(createString("channel"), CHANNEL);
-    public final StringPath eventidentifier =
-            addMetadata(createString("eventidentifier"), EVENT_IDENTIFIER);
+    public final StringPath eventIdentifier =
+            addMetadata(createString("eventIdentifier"), EVENT_IDENTIFIER);
     public final NumberPath<Integer> eventStage =
             addMetadata(createNumber("eventStage", Integer.class), EVENT_STAGE);
     public final NumberPath<Integer> eventType =
@@ -129,8 +130,8 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public final StringPath taskidentifier =
             addMetadata(createString("taskidentifier"), TASK_IDENTIFIER);
     public final StringPath taskoid = addMetadata(createString("taskoid"), TASK_OID);
-    public final DateTimePath<java.sql.Timestamp> timestampvalue =
-            addMetadata(createDateTime("timestampvalue", java.sql.Timestamp.class), TIMESTAMP_VALUE);
+    public final DateTimePath<Instant> timestamp =
+            addMetadata(createDateTime("timestamp", Instant.class), TIMESTAMP);
 
     public final com.querydsl.sql.PrimaryKey<MAuditEventRecord> constraint85c = createPrimaryKey(id);
     public final com.querydsl.sql.ForeignKey<QMAuditItem> _auditItemFk = createInvForeignKey(id, "RECORD_ID");

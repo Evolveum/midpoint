@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.repo.sql.pure;
+package com.evolveum.midpoint.repo.sql.pure.querymodel.beans;
 
 import java.sql.Blob;
 

@@ -20,7 +20,7 @@ import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
-import com.evolveum.midpoint.repo.sql.pure.MAuditDelta;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.pure.SqlTableMetamodel;
 
 public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {

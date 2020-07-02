@@ -22,6 +22,8 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.pure.mapping.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 
 // TODO MID-6319 must go after done
 @Deprecated

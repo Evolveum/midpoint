@@ -9,6 +9,14 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.time.Instant;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -20,12 +28,12 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 
-// TODO MID-6319 - finish and add to test suite
 @UnusedTestElement
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -34,6 +42,9 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     public static final long TIMESTAMP_1 = 1577836800000L; // 2020-01-01
     public static final long TIMESTAMP_2 = 1580515200000L; // 2020-02-01
     public static final long TIMESTAMP_3 = 1583020800000L; // 2020-03-01
+
+    @Autowired
+    private DataSourceFactory dataSourceFactory;
 
     @Override
     public void initSystem() throws Exception {
@@ -62,7 +73,20 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record3.setMessage("RECORD THREE");
         auditService.audit(record3, NullTaskImpl.INSTANCE);
 
-        // TODO add some sample audits here
+        // TODO remove after done
+        try (Connection conn = dataSourceFactory.getDataSource().getConnection();
+                PreparedStatement stmt = conn.prepareStatement(
+                        "select id, message, timestampValue from M_AUDIT_EVENT"
+                                + " WHERE timestampValue <= ?")) {
+            stmt.setTimestamp(1, new Timestamp(TIMESTAMP_2));
+
+            ResultSet res = stmt.executeQuery();
+            while (res.next()) {
+                Timestamp timestampValue = res.getTimestamp("timestampValue");
+                System.out.println(res.getLong("id") + " - " + timestampValue + ": " + res.getString("message"));
+                System.out.println("timestampValue = " + timestampValue.getTime());
+            }
+        }
     }
 
     @Test
@@ -133,7 +157,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test123SearchAuditEventsWithMessageContains() throws SchemaException {
+    public void test125SearchAuditEventsWithMessageContains() throws SchemaException {
         when("searching audit filtered by message containing a string");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_MESSAGE).contains("ord")
@@ -147,7 +171,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test124SearchAuditEventsWithMessageContainsIgnoreCase() throws SchemaException {
+    public void test126SearchAuditEventsWithMessageContainsIgnoreCase() throws SchemaException {
         when("searching audit filtered by message containing a string with ignore-case matcher");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_MESSAGE).contains("ord").matchingCaseIgnore()
@@ -160,7 +184,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test125SearchAuditEventsWithMessageStartsWith() throws SchemaException {
+    public void test130SearchAuditEventsWithMessageStartsWith() throws SchemaException {
         when("searching audit filtered by message starting with a string");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_MESSAGE).startsWith("rec")
@@ -174,7 +198,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test126SearchAuditEventsWithMessageStartsWithIgnoreCase() throws SchemaException {
+    public void test131SearchAuditEventsWithMessageStartsWithIgnoreCase() throws SchemaException {
         when("searching audit filtered by message starting with a string with ignore-case matcher");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_MESSAGE).startsWith("rec").matchingCaseIgnore()
@@ -187,7 +211,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test127SearchAuditEventsWithMessageEndsWith() throws SchemaException {
+    public void test135SearchAuditEventsWithMessageEndsWith() throws SchemaException {
         when("searching audit filtered by message ending with a string");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_MESSAGE).endsWith("THREE")
@@ -201,7 +225,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test128SearchAuditEventsWithMessageEndsWithIgnoreCase() throws SchemaException {
+    public void test136SearchAuditEventsWithMessageEndsWithIgnoreCase() throws SchemaException {
         when("searching audit filtered by message ending with a string with ignore-case matcher");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_MESSAGE).endsWith("three").matchingCaseIgnore()
@@ -211,5 +235,21 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only audit events with the message ending with the specified value ignoring case are returned");
         assertThat(result).hasSize(1);
+    }
+
+    @Test
+    public void test140SearchAuditEventsCreatedBefore() throws SchemaException {
+        when("searching audit filtered by timestamp up to specified time");
+        System.out.println("Instant = " + Instant.ofEpochMilli(TIMESTAMP_2));
+        XMLGregorianCalendar xmlGregorianCalendar = MiscUtil.asXMLGregorianCalendar(TIMESTAMP_2);
+        System.out.println("xmlGregorianCalendar = " + xmlGregorianCalendar);
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TIMESTAMP).le(xmlGregorianCalendar)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with the timestamp less or equal are returned");
+        assertThat(result).hasSize(2);
     }
 }
