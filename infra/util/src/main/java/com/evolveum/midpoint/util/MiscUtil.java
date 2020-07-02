@@ -698,6 +698,15 @@ public class MiscUtil {
         }
     }
 
+    public static <T> T unwrapTunnelledExceptionToRuntime(TunnelException te) {
+        Throwable cause = te.getCause();
+        if (cause instanceof RuntimeException) {
+            throw (RuntimeException) cause;
+        } else {
+            throw new SystemException(te);
+        }
+    }
+
     public static <T> Collection<T> filter(Collection<T> input, Predicate<? super T> predicate) {
         return input.stream().filter(predicate).collect(Collectors.toList());
     }

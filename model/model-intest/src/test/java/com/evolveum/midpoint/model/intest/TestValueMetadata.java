@@ -56,6 +56,17 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
             SENSITIVITY_PROPAGATION_DIR, "user-jim.xml", "8d162a31-00a8-48dc-b96f-08d3a85ada1d");
     //endregion
 
+    //region Constants for creation metadata recording scenario
+    private static final File CREATION_METADATA_RECORDING_DIR = new File(TEST_DIR, "creation-metadata-recording");
+
+    private static final TestResource<ArchetypeType> ARCHETYPE_CREATION_METADATA_RECORDING = new TestResource<>(
+            CREATION_METADATA_RECORDING_DIR, "archetype-creation-metadata-recording.xml", "5fb59a01-e5b9-4531-931d-923c94f341aa");
+    private static final TestResource<ObjectTemplateType> TEMPLATE_CREATION_METADATA_RECORDING = new TestResource<>(
+            CREATION_METADATA_RECORDING_DIR, "template-creation-metadata-recording.xml", "00301846-fe73-476a-83be-6bfe13251b4a");
+    private static final TestResource<UserType> USER_PAUL = new TestResource<>(
+            CREATION_METADATA_RECORDING_DIR, "user-paul.xml", "7c8e736b-b195-4ca1-bce4-12f86ff1bc71");
+    //endregion
+
     private static final String NS_EXT_METADATA = "http://midpoint.evolveum.com/xml/ns/samples/metadata";
     private static final ItemName LOA_NAME = new ItemName(NS_EXT_METADATA, "loa");
     private static final ItemPath LOA_PATH = ItemPath.create(ObjectType.F_EXTENSION, LOA_NAME);
@@ -76,6 +87,9 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         addObject(TEMPLATE_USER_SENSITIVITY_PROPAGATION, initTask, initResult);
         addObject(ORG_EMPLOYEES, initTask, initResult);
         addObject(ORG_SPECIAL_MEDICAL_SERVICES, initTask, initResult);
+
+        addObject(ARCHETYPE_CREATION_METADATA_RECORDING, initTask, initResult);
+        addObject(TEMPLATE_CREATION_METADATA_RECORDING, initTask, initResult);
 
         addObject(TEMPLATE_REGULAR_USER, initTask, initResult);
         addObject(USER_ALICE, initTask, initResult);
@@ -239,6 +253,33 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
     //endregion
 
+    //region Scenario 0: Creation metadata recording
+    @Test
+    public void test080AddPaul() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        when();
+        addObject(USER_PAUL, task, result);
+
+        then();
+        assertUserAfter(USER_PAUL.oid)
+                .display()
+                .displayXml()
+                .assertFullName("Paul Morphy")
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .display()
+                    .assertSize(1)
+                    .end()
+                .assertDescription("Paul")
+                .valueMetadata(UserType.F_DESCRIPTION)
+                    .display()
+                    .assertSize(0);
+
+    }
+    //endregion
+
     //region Scenario 1: Sensitivity propagation
     @Test
     public void test100AddJim() throws Exception {
@@ -268,7 +309,6 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .end();
         // TODO for roleMembershipRef (when implemented)
     }
-
     //endregion
 
     @SuppressWarnings("OptionalUsedAsFieldOrParameterType")

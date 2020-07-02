@@ -353,6 +353,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return projectionContext;
     }
 
+    @Override
     public ObjectTemplateType getFocusTemplate() {
         return focusTemplate;
     }

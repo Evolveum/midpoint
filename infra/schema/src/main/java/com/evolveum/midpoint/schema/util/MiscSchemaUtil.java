@@ -467,6 +467,8 @@ public class MiscSchemaUtil {
                 return ItemProcessing.MINIMAL;
             case AUTO:
                 return ItemProcessing.AUTO;
+            case FULL:
+                return ItemProcessing.FULL;
             default:
                 throw new IllegalArgumentException("Unknown processing "+type);
         }
