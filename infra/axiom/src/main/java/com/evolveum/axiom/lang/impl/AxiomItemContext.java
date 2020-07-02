@@ -8,6 +8,7 @@ package com.evolveum.axiom.lang.impl;
 
 import java.util.Optional;
 
+import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
 
@@ -24,5 +25,9 @@ public interface AxiomItemContext<T> {
     Optional<? extends AxiomValueContext<T>> value(AxiomValueIdentifier id);
 
     void addCompletedValue(AxiomValue<?> itemDef);
+
+    AxiomValueContext<T> only();
+
+    void addOperationalValue(AxiomValueContext<?> value);
 
 }

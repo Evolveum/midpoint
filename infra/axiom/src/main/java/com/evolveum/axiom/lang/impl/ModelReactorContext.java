@@ -17,6 +17,7 @@ import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
@@ -113,6 +114,7 @@ public class ModelReactorContext extends
 
     Map<AxiomName, AxiomValueFactory<?>> typeFactories = new HashMap<>();
     List<AxiomValueContext<?>> roots = new ArrayList<>();
+    private Collection<LazyValue<?>> lazies = new ArrayList<>();
 
     public ModelReactorContext(AxiomSchemaContext boostrapContext) {
         this.boostrapContext = boostrapContext;
@@ -120,6 +122,7 @@ public class ModelReactorContext extends
 
     public AxiomSchemaContext computeSchemaContext() throws AxiomSemanticException {
         compute();
+        lazies.forEach(LazyValue::materialize);
         return createSchemaContext();
     }
 
@@ -229,6 +232,12 @@ public class ModelReactorContext extends
 
     AxiomSchemaContext bootstrapContext() {
         return boostrapContext;
+    }
+
+    public <V> AxiomValue<V> lazyValue(ValueContext<V> valueContext) {
+        LazyValue<V> lazy = new LazyValue<>(valueContext.currentType(), () -> valueContext.get());
+        lazies.add(lazy);
+        return lazy;
     }
 
 }

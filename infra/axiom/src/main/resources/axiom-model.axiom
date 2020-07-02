@@ -92,6 +92,10 @@ model axiom-model {
             // default false;
         }
 
+        item augmentable {
+          type Boolean;
+        }
+
         item item {
             type ItemDefinition;
             identifier name;

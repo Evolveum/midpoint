@@ -46,4 +46,8 @@ class LazyValue<V> extends LazyDelegate<AxiomValue<V>> implements AxiomValue<V> 
         return delegate().infraItems();
     }
 
+    public void materialize() {
+        delegate();
+    }
+
 }

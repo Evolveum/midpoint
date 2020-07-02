@@ -16,12 +16,10 @@ import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
-import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
-import com.evolveum.axiom.lang.api.AxiomModel;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.reactor.Dependency;
@@ -70,16 +68,14 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
         }
     },
 
-    ITEM_SUBTYPING(all(),types(Type.TYPE_DEFINITION)) {
+    ITEM_LOCALNAME(items(Item.ITEM_DEFINITION), types(Type.ITEM_DEFINITION)) {
 
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
-
-            Dependency<AxiomStructuredValue> typeDef =
-                    action.require(
-                            context.onlyItemValue(Item.REF_TARGET, AxiomTypeDefinition.class)
-                            .map(v -> v.asComplex().get()));
-
+            Dependency<AxiomName> itemName = action.require(context.child(Item.NAME, AxiomName.class).map(v -> v.onlyValue().value()));
+            action.apply(item -> {
+                item.valueIdentifier(AxiomValueIdentifier.of(Item.NAME.name(), itemName.get().defaultNamespace()));
+            });
         }
     },
 
@@ -175,11 +171,11 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
                             .map(v -> v.asComplex().get()));
             typeDef.unsatisfied(() -> action.error("Supertype %s, is not complete.", context.onlyItemValue(Item.NAME, AxiomName.class).get().value()));
             action.apply(superTypeValue -> {
-                addFromType(typeDef.get(), superTypeValue.parentValue());
+                addFromType(typeDef.get(), superTypeValue.parentValue(), true);
             });
         }
     },
-    ITEMS_FROM_MIXIN(items(Item.USES),types(Type.TYPE_REFERENCE)) {
+    ITEMS_FROM_MIXIN(items(Item.INCLUDE),types(Type.TYPE_REFERENCE)) {
 
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
@@ -188,8 +184,8 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
                             context.onlyItemValue(Item.REF_TARGET, AxiomTypeDefinition.class)
                             .map(v -> v.asComplex().get()));
             typeDef.unsatisfied(() -> action.error("Supertype is not complete."));
-            action.apply(superTypeValue -> {
-                addFromType(typeDef.get(), superTypeValue.parentValue());
+            action.apply(includeItem -> {
+                addFromType(typeDef.get(), includeItem.parentValue(), true);
             });
         }
     },
@@ -203,7 +199,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
             }));*/
             Dependency<AxiomValueContext<?>> parent = action.require(context.parentValue().modify());
             action.apply(value -> {
-                parent.get().childItem(Item.ITEM_DEFINITION).addOperationalValue(value.asReference());
+                parent.get().childItem(Item.ITEM_DEFINITION).addOperationalValue(value);
             });
         }
 
@@ -329,7 +325,7 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
         return AxiomValueIdentifier.of(Item.NAMESPACE.name(), uri);
     }
 
-    public static void addFromType(AxiomStructuredValue source, AxiomValueContext<?> target) {
+    public static void addFromType(AxiomStructuredValue source, AxiomValueContext<?> target, boolean inheritance) {
         Optional<AxiomItem<?>> identifiers = source.item(Item.IDENTIFIER_DEFINITION);
 
         if(identifiers.isPresent()) {
@@ -338,19 +334,37 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
 
         Optional<AxiomItem<?>> itemDefs = source.item(Item.ITEM_DEFINITION);
         if(itemDefs.isPresent()) {
-            AxiomItemContext<?> item = target.childItem(Item.ITEM_DEFINITION);
+            AxiomItemContext<?> targetItemDef = target.childItem(Item.ITEM_DEFINITION);
             for(AxiomValue<?> itemDef : itemDefs.get().values()) {
-                Optional<? extends AxiomValueContext<?>> localDef = item.value(idFrom(Item.ITEM_DEFINITION, itemDef));
+                // FIXME: This should be checked
+                AxiomName name= (AxiomName) itemDef.asComplex().get().item(Item.NAME.name()).get().onlyValue().value();
+                AxiomValueIdentifier key;
+                if(inheritance) {
+                     // Exact match (same module)
+                    key = itemKey(name.defaultNamespace());
+                } else {
+                    key = itemKey(name);
+                }
+                Optional<? extends AxiomValueContext<?>> localDef = targetItemDef.value(key);
                 if(localDef.isPresent()) {
-                    localDef.get().mergeCompletedIfEmpty(itemDef.asComplex().get().item(Item.TYPE_REFERENCE));
+                    //
+                    specializeItem(itemDef.asComplex().get(),localDef.get());
+
+
                     //localDef.get().mergeIfEmpty(itemDef.asComplex().get().item(Item.DEFAULT));
                 } else {
-                    item.addCompletedValue(itemDef);
+                    targetItemDef.addCompletedValue(itemDef);
                 }
             }
 
             //target.mergeItem(itemDefs.get());
         }
+    }
+
+    static void specializeItem(AxiomStructuredValue itemDef, AxiomValueContext<?> targetDef) {
+        targetDef.childItem(Item.NAME).only().replace(itemDef.item(Item.NAME).get().onlyValue());
+        targetDef.mergeCompletedIfEmpty(itemDef.item(Item.TYPE_REFERENCE));
+
     }
 
     void mergeIfMissing(AxiomValueContext<?> target, AxiomValue<?> source,
@@ -361,5 +375,9 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
 
     public static AxiomValueIdentifier idFrom(AxiomItemDefinition definition, AxiomValue<?> value) {
         return AxiomValueIdentifier.from(definition.identifierDefinition().get(), value);
+    }
+
+    public static AxiomValueIdentifier itemKey(AxiomName name) {
+        return AxiomValueIdentifier.of(Item.NAME.name(), name);
     }
 }

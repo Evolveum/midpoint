@@ -27,7 +27,7 @@ public class MapItemContext<V> extends ItemContext<V> {
     void addIdentifier(AxiomValueIdentifier key, ValueContext<V> valueContext) {
         ValueContext<V> previous = values.putIfAbsent(key, valueContext);
         if(previous != null) {
-            throw AxiomSemanticException.create(valueContext.startLocation(), "Value %s is already defined at %s", valueContext, previous.startLocation());
+            throw AxiomSemanticException.create(valueContext.startLocation(), "Value %s is already defined at %s", key, previous.startLocation());
         }
     }
 

@@ -12,6 +12,7 @@ import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.antlr.AxiomParser.ArgumentContext;
 import com.evolveum.axiom.lang.antlr.AxiomParser.PrefixedNameContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
+import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.axiom.spi.codec.ValueDecoder;
 
@@ -48,7 +49,9 @@ public class AntlrStreamToItemStream extends AbstractStreamAdapter<AxiomParser.P
     }
 
     private AxiomName lookupName(AxiomTypeDefinition type, PrefixedNameContext item, SourceLocation loc) {
-        return codecs.itemName().decode(item, AxiomNameResolver.defaultNamespaceFromType(type).or(documentLocal), loc);
+        AxiomName name = codecs.itemName().decode(item, AxiomNameResolver.defaultNamespaceFromType(type).or(documentLocal), loc);
+        AxiomSemanticException.check(name != null && type.itemDefinition(name).isPresent(), loc, "item %s not present in type %s", item.getText(), type.name());
+        return name;
     }
 
     @Override

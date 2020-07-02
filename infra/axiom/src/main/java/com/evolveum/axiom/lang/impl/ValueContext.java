@@ -40,9 +40,9 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     private final LookupImpl lookup = new LookupImpl();
     private final V originalValue;
     private final Collection<Dependency<?>> dependencies = new HashSet<>();
-    private AxiomValue<V> lazyValue;
     public ReferenceDependency referenceDependency = new ReferenceDependency();
     public Reference reference = new Reference();
+    private AxiomValue<V> lazyValue;
 
     public ValueContext(SourceLocation loc, IdentifierSpaceHolder space) {
         super(null, loc, space);
@@ -54,7 +54,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
         super(itemContext, loc, AxiomIdentifierDefinition.Scope.LOCAL);
         originalValue = value;
         result = new Result(parent().type(), value);
-        lazyValue = new LazyValue<>(itemDefinition().typeDefinition(),() -> get());
+        lazyValue = root().lazyValue(this);
     }
 
     @Override
@@ -93,6 +93,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
     @Override
     public AxiomValue<V> get() {
+
         if(isMutable()) {
             result = Dependency.immediate(result.get());
         }
@@ -168,6 +169,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
         @Override
         public AxiomValue<V> get() {
+            Preconditions.checkState(isSatisfied(), "Result was not satisfied.");
             builder.setValue(value);
             builder.setFactory(rootImpl().factoryFor(type));
             return builder.get();
@@ -227,7 +229,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
     @Override
-    public AxiomRootContext root() {
+    public SourceContext root() {
         return parent().rootImpl();
     }
 
@@ -407,7 +409,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
     }
 
 
-    public AxiomValue<?> lazyValue() {
+    public AxiomValue<V> lazyValue() {
         return lazyValue;
     }
 
@@ -428,7 +430,7 @@ public class ValueContext<V> extends AbstractContext<ItemContext<V>> implements 
 
         @Override
         public AxiomValue<V> get() {
-            return lazyValue;
+            return lazyValue();
         }
 
         @Override

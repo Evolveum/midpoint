@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -106,5 +107,9 @@ class SourceContext extends ValueContext<Void> implements AxiomRootContext, Valu
     @Override
     public AxiomTypeDefinition currentType() {
         return VirtualRootType.from(context.bootstrapContext());
+    }
+
+    public <V> AxiomValue<V> lazyValue(ValueContext<V> valueContext) {
+        return context.lazyValue(valueContext);
     }
 }

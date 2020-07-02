@@ -77,7 +77,7 @@ public class AxiomBuiltIn {
         public static final Item TARGET = new Item("target", Type.TYPE_REFERENCE, true);
         public static final Item REF_TARGET = new Item("target", Type.TYPE_DEFINITION, true);
         public static final Item SUBSTITUTION_OF = new Item("target", Type.IDENTIFIER, true);
-        public static final Item USES = new Item("include", Type.TYPE_REFERENCE, true);
+        public static final Item INCLUDE = new Item("include", Type.TYPE_REFERENCE, true);
         public static final Item VALUE = new Item("value", Type.STRING, true);
         public static final Item IMPORT = new Item("import", Type.IMPORT, true);
         public static final Item IMPORT_PREFIX = new Item("prefix", Type.STRING, true);

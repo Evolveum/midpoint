@@ -1,0 +1,64 @@
+prism:model common-metadata {
+
+    namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+    version "3.0.0";
+
+    import "http://midpoint.evolveum.com/xml/ns/public/common/prism" {
+        prefix prism;
+    }
+
+    valueMetadata CommonMetadata {
+      item storage {
+        type StorageMetadata;
+        operational true;
+      }
+      // item process {
+      //   type ProcessMetadata;
+      // }
+      // item provisioning {
+      //   type ProvisioningMetadata;
+      // }
+      // item transformation {
+      //   type TransformationMetadata;
+      // }
+    }
+
+    container StorageMetadata {
+      // container: true? should not be this implied
+
+      displayName "Storage Metadata";
+
+      item createTimestamp {
+        type DateTime; // FIXME: Should be xsd:dateTime or xsd:dateTimeStamp (which contains TZ info)
+        documentation """
+          The timestamp of data creation. It is set once and should never be changed.
+
+          In case of "background" processes to create object (e.g. create with approval)
+          this should be the timestamp when the process ended. I.e. the timestamp when
+          the operation was executed.
+        """;
+        displayName "MetadataType.createTimestamp";
+        operational true;
+        indexed true;
+        // since 3.5
+      }
+
+      reference creatorRef {
+        targetType midpoint:UserType;
+      }
+
+      item createChannel {
+        type Uri;
+        documentation "Channel in whih the object was created.";
+        displayName "MetadataType.createChannel";
+        operational true;
+        indexed true;
+      }
+
+      reference createTaskRef {
+        targetType midpoint:TaskType;
+      }
+    }
+
+    // FIXME: Convert additional metadata
+}
