@@ -64,8 +64,8 @@ public class TestAssignedMappings extends AbstractLensTest {
     private static final TestResource ROLE_R5 = new TestResource(TEST_DIR, "role-r5.xml", "beb37147-f75a-4c44-a9ec-bc482c1e2a85");
     private static final TestResource ROLE_R6 = new TestResource(TEST_DIR, "role-r6.xml", "5c58ec3c-bb67-423c-ac4b-bb276c2e8c92");
 
-    private static final TestResource USER_ADAM = new TestResource(TEST_DIR, "user-adam.xml", "cf10f112-a731-45cd-8dfb-1b3fe9375c14");
-    private static final TestResource USER_BENJAMIN = new TestResource(TEST_DIR, "user-benjamin.xml", "2e1a427c-d6a7-4783-90ec-9dc0ebc98630");
+    private static final TestResource<UserType> USER_ADAM = new TestResource<>(TEST_DIR, "user-adam.xml", "cf10f112-a731-45cd-8dfb-1b3fe9375c14");
+    private static final TestResource<UserType> USER_BENJAMIN = new TestResource<>(TEST_DIR, "user-benjamin.xml", "2e1a427c-d6a7-4783-90ec-9dc0ebc98630");
 
     private static final TestResource USER_FRODO = new TestResource(TEST_DIR, "user-frodo.xml", "786919b7-23c9-4a38-90e7-5a1efd0ab853");
     private static final TestResource ROLE_BEARABLE = new TestResource(TEST_DIR, "metarole-bearable.xml", "2421b2c5-8563-4ba7-9a87-f9ef4b169620");

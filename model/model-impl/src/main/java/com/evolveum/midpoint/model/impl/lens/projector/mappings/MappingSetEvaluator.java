@@ -9,10 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
-import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
-import com.evolveum.midpoint.model.impl.lens.IvwoConsolidator;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.StrengthSelector;
+import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTripleUtil;
@@ -201,19 +198,21 @@ public class MappingSetEvaluator {
         ItemDefinition<?> itemDefinition = getObjectDefinition(focusClass).findItemDefinition(path);
 
         // TODO not much sure about the parameters
-        IvwoConsolidator consolidator = new IvwoConsolidator<>();
-        consolidator.setItemPath(path);
-        consolidator.setIvwoTriple(triple);
-        consolidator.setItemDefinition(itemDefinition);
-        consolidator.setAprioriItemDelta(getAprioriItemDelta(focusOdo.getObjectDelta(), path));
-        consolidator.setItemContainer(focusOdo.getNewObject());
-        consolidator.setValueMatcher(null);
-        consolidator.setComparator(null);
-        consolidator.setAddUnchangedValues(true);
-        consolidator.setFilterExistingValues(true);
-        consolidator.setExclusiveStrong(false);
-        consolidator.setContextDescription(" updating chained source (" + path + ") in " + contextDesc);
-        consolidator.setStrengthSelector(StrengthSelector.ALL);
+        //noinspection unchecked
+        IvwoConsolidator consolidator = new IvwoConsolidatorBuilder()
+                .itemPath(path)
+                .ivwoTriple(triple)
+                .itemDefinition(itemDefinition)
+                .aprioriItemDelta(getAprioriItemDelta(focusOdo.getObjectDelta(), path))
+                .itemContainer(focusOdo.getNewObject())
+                .valueMatcher(null)
+                .comparator(null)
+                .addUnchangedValues(true)
+                .filterExistingValues(true)
+                .isExclusiveStrong(false)
+                .contextDescription(" updating chained source (" + path + ") in " + contextDesc)
+                .strengthSelector(StrengthSelector.ALL)
+                .build();
 
         ItemDelta itemDelta = consolidator.consolidateToDelta();
         itemDelta.simplify();

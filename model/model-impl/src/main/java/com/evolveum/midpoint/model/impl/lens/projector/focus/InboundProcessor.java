@@ -790,10 +790,8 @@ public class InboundProcessor implements ProjectorProcessor {
 
                 DeltaSetTriple<ItemValueWithOrigin<V, D>> iwwoTriple = ItemValueWithOrigin.createOutputTriple(mapping,
                         prismContext);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}", mapping.getDefaultSource().shortDump(),
-                            iwwoTriple == null ? "  null" : iwwoTriple.debugDump(1));
-                }
+                LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}",
+                        DebugUtil.shortDumpLazily(mapping.getDefaultSource()), DebugUtil.debugDumpLazily(iwwoTriple, 1));
                 if (iwwoTriple == null) {
                     continue;
                 }

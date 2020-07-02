@@ -315,7 +315,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     @Override
-    public boolean isExlusiveStrong() {
+    public boolean isExclusiveStrong() {
         return isExclusiveStrong;
     }
 

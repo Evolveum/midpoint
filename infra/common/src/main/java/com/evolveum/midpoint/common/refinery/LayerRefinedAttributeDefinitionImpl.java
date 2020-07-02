@@ -390,8 +390,8 @@ public final class LayerRefinedAttributeDefinitionImpl<T> implements LayerRefine
     }
 
     @Override
-    public boolean isExlusiveStrong() {
-        return refinedAttributeDefinition.isExlusiveStrong();
+    public boolean isExclusiveStrong() {
+        return refinedAttributeDefinition.isExclusiveStrong();
     }
 
     @Override

@@ -207,19 +207,22 @@ public class ConsolidationProcessor {
                 auxOcDefs.add(auxOcDef);
             }
 
-            IvwoConsolidator<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>, ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> consolidator = new IvwoConsolidator<>();
-            consolidator.setItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
-            consolidator.setIvwoTriple(ivwoTriple);
-            consolidator.setItemDefinition(auxiliaryObjectClassPropertyDef);
-            consolidator.setAprioriItemDelta(auxiliaryObjectClassAPrioriDelta);
-            consolidator.setItemContainer(projCtx.getObjectNew());
-            consolidator.setValueMatcher(null);
-            consolidator.setComparator(null);
-            consolidator.setAddUnchangedValues(addUnchangedValues);
-            consolidator.setFilterExistingValues(projCtx.hasFullShadow());
-            consolidator.setExclusiveStrong(false);
-            consolidator.setContextDescription(discr.toHumanReadableDescription());
-            consolidator.setStrengthSelector(StrengthSelector.ALL_EXCEPT_WEAK);
+            //noinspection unchecked
+            IvwoConsolidator<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>, ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>
+                    consolidator = new IvwoConsolidatorBuilder()
+                    .itemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS)
+                    .ivwoTriple(ivwoTriple)
+                    .itemDefinition(auxiliaryObjectClassPropertyDef)
+                    .aprioriItemDelta(auxiliaryObjectClassAPrioriDelta)
+                    .itemContainer(projCtx.getObjectNew())
+                    .valueMatcher(null)
+                    .comparator(null)
+                    .addUnchangedValues(addUnchangedValues)
+                    .filterExistingValues(projCtx.hasFullShadow())
+                    .isExclusiveStrong(false)
+                    .contextDescription(discr.toHumanReadableDescription())
+                    .strengthSelector(StrengthSelector.ALL_EXCEPT_WEAK)
+                    .build();
 
             PropertyDelta<QName> propDelta = (PropertyDelta) consolidator.consolidateToDelta();
 
@@ -286,7 +289,7 @@ public class ConsolidationProcessor {
         ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry);
 
         return (PropertyDelta<T>) consolidateItem(rOcDef, discr, existingDelta, projCtx, addUnchangedValues,
-                attributeDefinition.isExlusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, null, strengthSelector, "attribute "+itemName, result);
+                attributeDefinition.isExclusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, null, strengthSelector, "attribute "+itemName, result);
     }
 
 
@@ -399,23 +402,20 @@ public class ConsolidationProcessor {
                     itemDesc, discr, projCtx.hasFullShadow(), addUnchangedValues, forceAddUnchangedValues);
 
             // Use the consolidator to do the computation. It does most of the work.
-            IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidator<>();
-            consolidator.setItemPath(itemPath);
-            consolidator.setIvwoTriple(triple);
-            consolidator.setItemDefinition(itemDefinition);
-            consolidator.setAprioriItemDelta(existingItemDelta);
-            consolidator.setItemContainer(projCtx.getObjectNew());
-            consolidator.setValueMatcher(valueMatcher);
-            consolidator.setComparator(comparator);
-            consolidator.setAddUnchangedValues(addUnchangedValues || forceAddUnchangedValues);
-            consolidator.setFilterExistingValues(projCtx.hasFullShadow());
-            consolidator.setExclusiveStrong(isExclusiveStrong);
-            consolidator.setContextDescription(discr.toHumanReadableDescription());
-            if (projCtx.hasFullShadow()) {
-                consolidator.setStrengthSelector(strengthSelector);
-            } else {
-                consolidator.setStrengthSelector(strengthSelector.notWeak());
-            }
+            IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidatorBuilder<V,D,ItemValueWithOrigin<V, D>>()
+                    .itemPath(itemPath)
+                    .ivwoTriple(triple)
+                    .itemDefinition(itemDefinition)
+                    .aprioriItemDelta(existingItemDelta)
+                    .itemContainer(projCtx.getObjectNew())
+                    .valueMatcher(valueMatcher)
+                    .comparator(comparator)
+                    .addUnchangedValues(addUnchangedValues || forceAddUnchangedValues)
+                    .filterExistingValues(projCtx.hasFullShadow())
+                    .isExclusiveStrong(isExclusiveStrong)
+                    .contextDescription(discr.toHumanReadableDescription())
+                    .strengthSelector(projCtx.hasFullShadow() ? strengthSelector : strengthSelector.notWeak())
+                    .build();
 
             ItemDelta<V, D> itemDelta = consolidator.consolidateToDelta();
 
