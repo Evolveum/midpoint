@@ -5,9 +5,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.Instant;
-import javax.annotation.Nullable;
 
 import com.querydsl.sql.types.JSR310InstantType;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Instant converter for Querydsl.
