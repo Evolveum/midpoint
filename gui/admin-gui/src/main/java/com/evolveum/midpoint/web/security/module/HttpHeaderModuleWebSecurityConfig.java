@@ -44,6 +44,7 @@ public class HttpHeaderModuleWebSecurityConfig<C extends HttpHeaderModuleWebSecu
         filter.setAuthenticationFailureHandler(new MidpointAuthenticationFauileHandler());
         filter.setAuthenticationSuccessHandler(getObjectPostProcessor().postProcess(
                 new MidPointAuthenticationSuccessHandler().setPrefix(getConfiguration().getPrefix())));
+        filter.setSessionRegistry(getSessionRegistry());
 
         return filter;
     }
