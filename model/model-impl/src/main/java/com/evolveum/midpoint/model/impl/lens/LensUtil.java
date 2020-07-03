@@ -1187,4 +1187,8 @@ public class LensUtil {
             mapping.setTarget(target);
         }
     }
+
+    public static boolean isNonTolerant(ObjectTemplateItemDefinitionType templateItemDefinition) {
+        return templateItemDefinition != null && Boolean.FALSE.equals(templateItemDefinition.isTolerant());
+    }
 }

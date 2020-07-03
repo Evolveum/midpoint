@@ -194,8 +194,8 @@ public class ResourceAttributeWrapperImpl<T> extends PrismPropertyWrapperImpl<T>
     }
 
     @Override
-    public boolean isExlusiveStrong() {
-        return getRefinedAttributeDefinition().isExlusiveStrong();
+    public boolean isExclusiveStrong() {
+        return getRefinedAttributeDefinition().isExclusiveStrong();
     }
 
     @Override
