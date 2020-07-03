@@ -23,6 +23,8 @@ public class AuditEventRecordSqlTransformer {
                 .timestamp(MiscUtil.asXMLGregorianCalendar(row.timestamp))
                 .outcome(operationResultStatusTypeFromRepo(row.outcome))
                 .result(row.result)
+                .channel(row.channel)
+//                .initiatorRef() // TODO MID-6319 how to map refs?
                 //
                 ;
         // todo transformation from whatever input

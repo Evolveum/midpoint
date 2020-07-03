@@ -42,5 +42,6 @@ public class QAuditEventRecordMapping
         addItemMapping(F_OUTCOME, q -> q.outcome,
                 EnumOrdinalItemFilterProcessor.withValueFunction(ROperationResultStatus::fromSchemaValue));
         addItemMapping(F_RESULT, q -> q.result, StringItemFilterProcessor::new);
+        addItemMapping(F_INITIATOR_REF, q -> q.initiatoroid);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
+import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_REST_URI;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,6 +24,7 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -33,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 @UnusedTestElement
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
@@ -46,8 +50,15 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     @Autowired
     private DataSourceFactory dataSourceFactory;
 
+    private String initiatorOid;
+
     @Override
     public void initSystem() throws Exception {
+        PrismObject<UserType> initiator = new UserType(prismContext)
+                .name("initiator")
+                .asPrismObject();
+        initiatorOid = repositoryService.addObject(initiator, null, createOperationResult());
+
         AuditEventRecord record1 = new AuditEventRecord();
         record1.addPropertyValue("prop", "val1");
         record1.setTimestamp(TIMESTAMP_1);
@@ -64,6 +75,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.setEventStage(AuditEventStage.EXECUTION);
         record2.setMessage("record2");
         record2.setOutcome(OperationResultStatus.UNKNOWN);
+        record2.setInitiator(initiator);
         auditService.audit(record2, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record3 = new AuditEventRecord();
@@ -74,6 +86,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record3.setEventType(AuditEventType.MODIFY_OBJECT);
         record3.setEventStage(AuditEventStage.EXECUTION);
         record3.setMessage("RECORD THREE");
+        record3.setChannel(CHANNEL_REST_URI);
         // null outcome is kinda like "unknown", but not quite, filter must handle it
         auditService.audit(record3, NullTaskImpl.INSTANCE);
 
@@ -173,6 +186,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result).hasSize(2);
         assertThat(result).allMatch(aer -> aer.getResult() == null);
     }
+
     @Test
     public void test120SearchByMessageEquals() throws SchemaException {
         when("searching audit filtered by message equal to value");
@@ -324,6 +338,37 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("only audit events with the timestamp less or equal are returned");
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getMessage()).isEqualTo("RECORD THREE");
+    }
+
+    @Test
+    public void test150SearchByInitiator() throws SchemaException {
+        when("searching audit filtered by initiator (reference by OID)");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_INITIATOR_REF)
+                .ref(initiatorOid)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with the specific initiator are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+        // TODO check mapping of initiator, see TODO in AuditEventRecordSqlTransformer#toAuditEventRecordType
+    }
+
+    // if this works, all other operations work too based on message related tests
+    @Test
+    public void test160SearchByChannel() throws SchemaException {
+        when("searching audit filtered by channel equal to value");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_CHANNEL).eq(CHANNEL_REST_URI)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with exactly the same channel are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result).allMatch(aer -> aer.getChannel().equals(CHANNEL_REST_URI));
     }
 
     // complex filters with AND and/or OR

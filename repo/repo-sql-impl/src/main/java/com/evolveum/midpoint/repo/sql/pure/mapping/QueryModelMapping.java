@@ -100,6 +100,18 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
                 new ItemMapping<>(rootToQueryItem, processorFactory));
     }
 
+    /**
+     * Version of item mapping when item filter processor is not necessary.
+     * This is used for instance for reference filter which already knows exactly what to do
+     * and doesn't need additional (typically type related) information about the query item.
+     */
+    public <A> void addItemMapping(
+            ItemName itemName,
+            Function<Q, Path<A>> rootToQueryItem) {
+        itemFilterProcessorMapping.put(itemName,
+                new ItemMapping<>(rootToQueryItem, null));
+    }
+
     // we want loose typing for client's sake, there is no other chance to get the right type here
     public <T extends ObjectFilter> @NotNull FilterProcessor<T> getFilterProcessor(
             ItemName itemName, Path<?> entityPath)
