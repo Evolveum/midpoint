@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.util.ObjectTemplateIncludeProcessor;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
@@ -80,17 +81,18 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     private final ObjectTemplateType template;
 
     /**
-     * Context description: reference to the current template plus parent context description.
+     * Evaluation environment (context description, now, task).
      */
-    private final String contextDescription;
+    private final MappingEvaluationEnvironment env;
 
     /**
      * Evaluation phase. For persona mappings it is BEFORE_ASSIGNMENTS.
      */
     private final ObjectTemplateMappingEvaluationPhaseType phase;
 
-    private final XMLGregorianCalendar now;
-    private final Task task;
+    /**
+     * Current operation result.
+     */
     private final OperationResult result;
 
     /**
@@ -170,9 +172,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         this.targetObject = targetObject;
         this.targetAPrioriDelta = targetAPrioriDelta;
         this.targetDefinition = targetObject.getDefinition();
-        this.contextDescription = getContextDescription(parentContextDesc);
-        this.now = now;
-        this.task = task;
+        this.env = new MappingEvaluationEnvironment(getContextDescription(parentContextDesc), now, task);
         this.result = result;
     }
 
@@ -221,13 +221,13 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         TargetObjectSpecification<? extends AssignmentHolderType> targetSpecification = new FixedTargetSpecification<>(targetObject);
         nextRecompute = beans.mappingSetEvaluator.evaluateMappingsToTriples(context, mappings, phase, focusOdo,
-                targetSpecification, outputTripleMap, null, null, iteration, iterationToken, now, task, result);
+                targetSpecification, outputTripleMap, null, null, iteration, iterationToken, env.now, env.task, result);
     }
 
     private void consolidateToItemDeltas() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
         LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLineLazily(outputTripleMap));
         consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap, itemDefinitionsMap,
-                targetObject, targetAPrioriDelta, targetDefinition, contextDescription, beans);
+                targetObject, targetAPrioriDelta, targetDefinition, env, beans);
         consolidation.computeItemDeltas();
     }
 
@@ -243,7 +243,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             ExpressionEvaluationException {
         if (template != null) {
             new ObjectTemplateIncludeProcessor(beans.modelObjectResolver)
-                    .processThisAndIncludedTemplates(template, contextDescription, task, result,
+                    .processThisAndIncludedTemplates(template, env.contextDescription, env.task, result,
                             this::collectLocalItemDefinitions);
         }
     }
@@ -251,7 +251,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     private void collectLocalItemDefinitions(ObjectTemplateType objectTemplate) {
         for (ObjectTemplateItemDefinitionType def : objectTemplate.getItem()) {
             if (def.getRef() == null) {
-                throw new IllegalStateException("Item definition with null ref in " + contextDescription);
+                throw new IllegalStateException("Item definition with null ref in " + env.contextDescription);
             }
             // TODO check for incompatible overrides
             ItemPathCollectionsUtil.putToMap(itemDefinitionsMap, beans.prismContext.toUniformPath(def.getRef()), def);
@@ -262,7 +262,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         if (template != null) {
             new ObjectTemplateIncludeProcessor(beans.modelObjectResolver)
-                    .processThisAndIncludedTemplates(template, contextDescription, task, result,
+                    .processThisAndIncludedTemplates(template, env.contextDescription, env.task, result,
                             this::collectLocalMappings);
         }
     }

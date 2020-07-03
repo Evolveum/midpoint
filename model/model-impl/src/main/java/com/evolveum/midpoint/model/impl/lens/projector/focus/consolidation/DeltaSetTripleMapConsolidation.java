@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 
@@ -73,20 +74,20 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
     private final PrismObjectDefinition<T> targetDefinition;
 
     /**
-     * Context description.
+     * Mapping evaluation environment (context description, now, task).
      */
-    final String contextDescription;
+    private final MappingEvaluationEnvironment env;
 
     /**
      * Useful beans.
      */
-    final ModelBeans beans;
+    private final ModelBeans beans;
 
     /**
      * Should the values from zero set be transformed to delta ADD section?
      * This is the case when the whole object is being added.
      */
-    final boolean addUnchangedValues;
+    private final boolean addUnchangedValues;
 
     /**
      * Result of the computation: the item deltas.
@@ -95,21 +96,21 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
 
     public DeltaSetTripleMapConsolidation(Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
             Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap, PrismObject<T> targetObject,
-            ObjectDelta<T> targetAPrioriDelta, PrismObjectDefinition<T> targetDefinition, String contextDescription,
+            ObjectDelta<T> targetAPrioriDelta, PrismObjectDefinition<T> targetDefinition, MappingEvaluationEnvironment env,
             ModelBeans beans) {
         this.outputTripleMap = outputTripleMap;
         this.itemDefinitionsMap = itemDefinitionsMap;
         this.targetObject = targetObject;
         this.targetAPrioriDelta = targetAPrioriDelta;
         this.targetDefinition = targetDefinition;
-        this.contextDescription = contextDescription;
+        this.env = env;
         this.beans = beans;
 
         this.addUnchangedValues = targetAPrioriDelta != null && targetAPrioriDelta.isAdd();
     }
 
     public void computeItemDeltas() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
-        LOGGER.trace("Computing deltas in {}, a priori delta:\n{}", contextDescription, debugDumpLazily(targetAPrioriDelta));
+        LOGGER.trace("Computing deltas in {}, a priori delta:\n{}", env.contextDescription, debugDumpLazily(targetAPrioriDelta));
 
         for (Map.Entry<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> entry: outputTripleMap.entrySet()) {
             UniformItemPath itemPath = entry.getKey();
@@ -117,9 +118,11 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
             DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> deltaSetTriple = entry.getValue();
 
             DeltaSetTripleConsolidation<T> itemConsolidation =
-                    new DeltaSetTripleConsolidation<>(this, itemPath,
+                    new DeltaSetTripleConsolidation<>(itemPath,
                             targetDefinition.findItemDefinition(itemPath),
-                            getTemplateItemDefinition(itemPath), aprioriItemDelta, deltaSetTriple);
+                            getTemplateItemDefinition(itemPath), aprioriItemDelta, deltaSetTriple,
+                            targetObject, addUnchangedValues,
+                            env);
             CollectionUtils.addIgnoreNull(itemDeltas, itemConsolidation.consolidateItem());
         }
     }

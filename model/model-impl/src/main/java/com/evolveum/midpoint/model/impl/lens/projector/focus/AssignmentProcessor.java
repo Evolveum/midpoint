@@ -15,6 +15,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
@@ -358,10 +359,14 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
             logOutputTripleMap(focusOutputTripleMap);
 
+            MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
+                    "focus mappings in assignments of " + focusContext.getHumanReadableName(),
+                    now, task);
+
             DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(
                     focusOutputTripleMap, null,
                     focusOdo.getNewObject(), focusOdo.getObjectDelta(), focusContext.getObjectDefinition(),
-                    "focus mappings in assignments of " + focusContext.getHumanReadableName(), beans);
+                    env, beans);
             consolidation.computeItemDeltas();
             Collection<ItemDelta<?, ?>> focusDeltas = consolidation.getItemDeltas();
             LOGGER.trace("Computed focus deltas: {}", focusDeltas);
