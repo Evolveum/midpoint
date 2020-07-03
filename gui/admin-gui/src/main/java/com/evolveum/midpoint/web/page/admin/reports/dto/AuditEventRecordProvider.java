@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -84,7 +84,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     public static final String TARGET_OWNER_OID_PARAMETER = "targetOwnerOid";
     public static final String CHANNEL_PARAMETER = "channel";
     public static final String OUTCOME_PARAMETER = "outcome";
-    public static final SortOrder DEFAULT_SORT_ORDER= SortOrder.DESCENDING;
+    public static final SortOrder DEFAULT_SORT_ORDER = SortOrder.DESCENDING;
 
     private static final String DOT_CLASS = AuditEventRecordProvider.class.getName() + ".";
     private static final String OPERATION_COUNT_OBJECTS = DOT_CLASS + "countObjects";
@@ -97,7 +97,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         initSorting();
     }
 
-    private void initSorting(){
+    private void initSorting() {
         ObjectPaging paging = getPaging();
         String sortParameter = getSortParameter(paging);
         SortOrder sortOrder = getOrder(paging);
@@ -143,7 +143,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
     }
 
-
     @Override
     public Iterator<AuditEventRecordType> internalIterator(long first, long count) {
         saveCurrentPage(first, count);
@@ -151,7 +150,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         OperationResult result = task.getResult();
         List<AuditEventRecordType> recordsList = null;
         try {
-             recordsList = listRecords(first, count, task, result);
+            recordsList = listRecords(first, count, task, result);
         } catch (Exception e) {
             result.recordFatalError(getPage().createStringResource("AuditEventProvider.message.internalIterator.fatalError", e.getMessage()).getString(), e);
             LoggingUtils.logException(LOGGER, "Cannot list audit records: " + e.getMessage(), e);
@@ -170,7 +169,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         String origQuery;
         Map<String, Object> parameters = new HashMap<>();
         origQuery = DashboardUtils.createQuery(getCollectionForQuery(), parameters, false, getPage().getClock());
-        if(StringUtils.isNotBlank(origQuery)) {
+        if (StringUtils.isNotBlank(origQuery)) {
             query = generateFullQuery(origQuery, false, true);
         } else {
             parameters = parametersSupplier.get();
@@ -190,14 +189,14 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         result.computeStatusIfUnknown();
         getPage().showResult(result, false);
         return count;
-     }
+    }
 
     private List<AuditEventRecordType> listRecords(long first, long count, Task task, OperationResult result) {
         String query;
         String origQuery;
         Map<String, Object> parameters = new HashMap<>();
         origQuery = DashboardUtils.createQuery(getCollectionForQuery(), parameters, false, getPage().getClock());
-        if(StringUtils.isNotBlank(origQuery)) {
+        if (StringUtils.isNotBlank(origQuery)) {
             query = generateFullQuery(origQuery, true, false);
         } else {
             parameters = parametersSupplier.get();
@@ -220,7 +219,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
             auditRecords = new ArrayList<>();
         }
         List<AuditEventRecordType> auditRecordList = new ArrayList<>();
-        for (AuditEventRecord record : auditRecords){
+        for (AuditEventRecord record : auditRecords) {
             auditRecordList.add(record.createAuditEventRecordType());
         }
 
@@ -232,7 +231,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     @SuppressWarnings("unused")
     @Nullable
     public ObjectCollectionType getCollectionForQuery() {
-        if(objectCollectionModel == null) {
+        if (objectCollectionModel == null) {
             return null;
         }
         return objectCollectionModel.getObject();
@@ -263,7 +262,6 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         } else {
             parameters.remove(PARAMETER_EVENT_STAGE);
         }
-        // MID-6319 done up to here
         Object outcomeValue = parameters.get(PARAMETER_OUTCOME);
         if (outcomeValue != null) {
             if (outcomeValue != OperationResultStatusType.UNKNOWN) {
@@ -376,9 +374,9 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
     private boolean valueRefTargetIsNotEmpty(Object valueRefTargetNamesParam) {
         if (valueRefTargetNamesParam instanceof String) {
-            return StringUtils.isNotBlank((String)valueRefTargetNamesParam);
+            return StringUtils.isNotBlank((String) valueRefTargetNamesParam);
         } else if (valueRefTargetNamesParam instanceof Collection) {
-            return CollectionUtils.isNotEmpty((Collection)valueRefTargetNamesParam);
+            return CollectionUtils.isNotEmpty((Collection) valueRefTargetNamesParam);
         } else {
             return valueRefTargetNamesParam != null;
         }
@@ -386,7 +384,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
 
     @Override
     protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-        if (getPageStorage() != null){
+        if (getPageStorage() != null) {
             getPageStorage().setPaging(paging);
         }
     }
@@ -407,7 +405,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     protected void saveCurrentPage(long from, long count) {
     }
 
-    protected PageStorage getPageStorage(){
+    protected PageStorage getPageStorage() {
         return null;
     }
 
