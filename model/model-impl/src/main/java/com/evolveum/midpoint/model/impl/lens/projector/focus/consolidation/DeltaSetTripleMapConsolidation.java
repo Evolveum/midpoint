@@ -45,12 +45,41 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
     // The logger name is intentionally different because of the backward compatibility.
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTemplateProcessor.class);
 
+    /**
+     * Item path-keyed map of output delta set triples.
+     */
     private final Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap;
+
+    /**
+     * Item path-keyed map of item definitions (taken from object template).
+     */
     private final Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap;
+
+    /**
+     * Target object, for which deltas are to be produced.
+     * It contains the _current_ (latest) state of the object (in the light of previous computations),
+     * i.e. object with targetAPrioriDelta already applied.
+     */
     final PrismObject<T> targetObject;
+
+    /**
+     * Delta that lead to the current state of the target object.
+     */
     private final ObjectDelta<T> targetAPrioriDelta;
+
+    /**
+     * Definition of the target object.
+     */
     private final PrismObjectDefinition<T> targetDefinition;
+
+    /**
+     * Context description.
+     */
     final String contextDescription;
+
+    /**
+     * Useful beans.
+     */
     final ModelBeans beans;
 
     /**
@@ -59,6 +88,9 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
      */
     final boolean addUnchangedValues;
 
+    /**
+     * Result of the computation: the item deltas.
+     */
     private final Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
 
     public DeltaSetTripleMapConsolidation(Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
@@ -93,13 +125,11 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
     }
 
     private ObjectTemplateItemDefinitionType getTemplateItemDefinition(UniformItemPath itemPath) {
-        ObjectTemplateItemDefinitionType templateItemDefinition;
         if (itemDefinitionsMap != null) {
-            templateItemDefinition = ItemPathCollectionsUtil.getFromMap(itemDefinitionsMap, itemPath);
+            return ItemPathCollectionsUtil.getFromMap(itemDefinitionsMap, itemPath);
         } else {
-            templateItemDefinition = null;
+            return null;
         }
-        return templateItemDefinition;
     }
 
     public Collection<ItemDelta<?, ?>> getItemDeltas() {

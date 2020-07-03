@@ -38,7 +38,7 @@ import java.util.stream.Stream;
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.getAprioriItemDelta;
 
 /**
- *  Evaluates a set of mappings. This includes considering their dependencies (chaining).
+ * Evaluates a set of mappings. This includes considering their dependencies (chaining).
  */
 @Component
 public class MappingSetEvaluator {

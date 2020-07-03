@@ -356,12 +356,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     focusOutputTripleMap, customizer, mappingConsumer, focusContext.getIteration(),
                     focusContext.getIterationToken(), now, task, result);
 
-            if (LOGGER.isTraceEnabled()) {
-                for (Entry<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> entry : focusOutputTripleMap
-                        .entrySet()) {
-                    LOGGER.trace("Resulting output triple for {}:\n{}", entry.getKey(), entry.getValue().debugDump(1));
-                }
-            }
+            logOutputTripleMap(focusOutputTripleMap);
 
             DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(
                     focusOutputTripleMap, null,
@@ -377,6 +372,16 @@ public class AssignmentProcessor implements ProjectorProcessor {
             throw t;
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    private void logOutputTripleMap(
+            Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> focusOutputTripleMap) {
+        if (LOGGER.isTraceEnabled()) {
+            for (Entry<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> entry : focusOutputTripleMap
+                    .entrySet()) {
+                LOGGER.trace("Resulting output triple for {}:\n{}", entry.getKey(), entry.getValue().debugDump(1));
+            }
         }
     }
 
