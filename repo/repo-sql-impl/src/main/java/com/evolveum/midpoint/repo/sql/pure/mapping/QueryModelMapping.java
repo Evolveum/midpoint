@@ -114,6 +114,15 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
         return (FilterProcessor<T>) itemMapping.createFilterProcessor(entityPath);
     }
 
+    public Path<?> entityToItemPath(ItemName itemName, Path<?> entityPath) throws QueryException {
+        ItemMapping<?, ?> itemMapping = QNameUtil.getByQName(itemFilterProcessorMapping, itemName);
+        if (itemMapping == null) {
+            throw new QueryException("Missing mapping for " + itemName
+                    + " in mapping " + getClass().getSimpleName());
+        }
+        return itemMapping.entityToItemPath(entityPath);
+    }
+
     public String tableName() {
         return tableName;
     }
@@ -161,9 +170,13 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
         }
 
         public FilterProcessor<?> createFilterProcessor(Path<?> entityPath) {
-            //noinspection unchecked
-            Path<A> itemPath = rootToItem.apply((E) entityPath);
+            Path<A> itemPath = entityToItemPath(entityPath);
             return processorFactory.apply(itemPath);
+        }
+
+        public Path<A> entityToItemPath(Path<?> entityPath) {
+            //noinspection unchecked
+            return rootToItem.apply((E) entityPath);
         }
     }
 }

@@ -133,16 +133,30 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
     @Test
     public void test114SearchByOutcome() throws SchemaException {
-        when("searching audit filtered by event stage");
+        when("searching audit filtered by outcome");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_OUTCOME).eq(OperationResultStatusType.UNKNOWN)
                 .build();
         SearchResultList<AuditEventRecordType> result =
                 auditService.searchObjects(query, null, null);
 
-        then("only audit events with the specified stage are returned");
+        then("only audit events with the specified outcome are returned");
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getOutcome()).isEqualTo(OperationResultStatusType.UNKNOWN);
+    }
+
+    @Test
+    public void test115SearchByOutcomeIsNull() throws SchemaException {
+        when("searching audit filtered by null outcome");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_OUTCOME).isNull()
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events without any outcome are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getOutcome()).isNull();
     }
 
     @Test
