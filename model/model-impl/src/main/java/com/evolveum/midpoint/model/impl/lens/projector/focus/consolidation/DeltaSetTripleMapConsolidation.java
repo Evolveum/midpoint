@@ -15,7 +15,6 @@ import java.util.Map;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -35,7 +34,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
 
 /**
  * Responsible for consolidation of delta set triple map (plus, minus, zero sets for individual items) to item deltas.
@@ -52,16 +50,11 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
     private final Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap;
 
     /**
-     * Item path-keyed map of item definitions (taken from object template).
-     */
-    private final Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap;
-
-    /**
      * Target object, for which deltas are to be produced.
      * It contains the _current_ (latest) state of the object (in the light of previous computations),
      * i.e. object with targetAPrioriDelta already applied.
      */
-    final PrismObject<T> targetObject;
+    private final PrismObject<T> targetObject;
 
     /**
      * Delta that lead to the current state of the target object.
@@ -74,6 +67,12 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
     private final PrismObjectDefinition<T> targetDefinition;
 
     /**
+     * Should the values from zero set be transformed to delta ADD section?
+     * This is the case when the whole object is being added.
+     */
+    private final boolean addUnchangedValues;
+
+    /**
      * Mapping evaluation environment (context description, now, task).
      */
     private final MappingEvaluationEnvironment env;
@@ -84,22 +83,14 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
     private final ModelBeans beans;
 
     /**
-     * Should the values from zero set be transformed to delta ADD section?
-     * This is the case when the whole object is being added.
-     */
-    private final boolean addUnchangedValues;
-
-    /**
      * Result of the computation: the item deltas.
      */
     private final Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
 
     public DeltaSetTripleMapConsolidation(Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
-            Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap, PrismObject<T> targetObject,
-            ObjectDelta<T> targetAPrioriDelta, PrismObjectDefinition<T> targetDefinition, MappingEvaluationEnvironment env,
-            ModelBeans beans) {
+            PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta, PrismObjectDefinition<T> targetDefinition,
+            MappingEvaluationEnvironment env, ModelBeans beans) {
         this.outputTripleMap = outputTripleMap;
-        this.itemDefinitionsMap = itemDefinitionsMap;
         this.targetObject = targetObject;
         this.targetAPrioriDelta = targetAPrioriDelta;
         this.targetDefinition = targetDefinition;
@@ -117,21 +108,12 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
             ItemDelta aprioriItemDelta = LensUtil.getAprioriItemDelta(targetAPrioriDelta, itemPath);
             DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> deltaSetTriple = entry.getValue();
 
-            DeltaSetTripleConsolidation<T> itemConsolidation =
-                    new DeltaSetTripleConsolidation<>(itemPath,
-                            targetDefinition.findItemDefinition(itemPath),
-                            getTemplateItemDefinition(itemPath), aprioriItemDelta, deltaSetTriple,
-                            targetObject, addUnchangedValues,
-                            env);
+            //noinspection unchecked
+            DeltaSetTripleConsolidation itemConsolidation =
+                    new DeltaSetTripleConsolidation(itemPath,
+                            deltaSetTriple, aprioriItemDelta, targetObject, targetDefinition.findItemDefinition(itemPath),
+                            addUnchangedValues, env);
             CollectionUtils.addIgnoreNull(itemDeltas, itemConsolidation.consolidateItem());
-        }
-    }
-
-    private ObjectTemplateItemDefinitionType getTemplateItemDefinition(UniformItemPath itemPath) {
-        if (itemDefinitionsMap != null) {
-            return ItemPathCollectionsUtil.getFromMap(itemDefinitionsMap, itemPath);
-        } else {
-            return null;
         }
     }
 

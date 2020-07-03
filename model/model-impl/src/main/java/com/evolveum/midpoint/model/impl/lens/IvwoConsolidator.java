@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.Holder;
 
 import org.jetbrains.annotations.NotNull;
@@ -96,6 +97,13 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     private final boolean addUnchangedValues;
 
     /**
+     * This is the behavior originally present in ObjectTemplateProcessor, then moved to DeltaSetTripleConsolidation,
+     * then moved here. We should somehow integrate it with the rest of consolidation processing. (Including
+     * finding better name.)
+     */
+    private final boolean specialZeroSetProcessing;
+
+    /**
      * If true, we skip adding values that are already present in the item
      * as well as removing values that are not present in the item.
      *
@@ -140,7 +148,15 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         isAssignment = FocusType.F_ASSIGNMENT.equivalent(itemPath);
 
         ivwoTriple = builder.ivwoTriple;
-        existingItem = builder.itemContainer != null ? builder.itemContainer.findItem(itemPath) : null;
+
+        if (builder.existingItem != null) {
+            existingItem = builder.existingItem;
+        } else if (builder.itemContainer != null) {
+            existingItem = builder.itemContainer.findItem(itemPath);
+        } else {
+            existingItem = null;
+        }
+
         aprioriItemDelta = builder.aprioriItemDelta;
 
         valueMatcher = builder.valueMatcher;
@@ -148,6 +164,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
         addUnchangedValues = builder.addUnchangedValues;
         filterExistingValues = builder.filterExistingValues;
+        specialZeroSetProcessing = builder.specialZeroSetProcessing;
 
         strengthSelector = builder.strengthSelector;
         itemIsExclusiveStrong = builder.isExclusiveStrong;
@@ -180,6 +197,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 LOGGER.trace("Item {} will have some values in {}, weak mapping processing skipped", itemPath, contextDescription);
             }
 
+            if (specialZeroSetProcessing) {
+                doSpecialZeroSetProcessing();
+            }
+
             // TODO What about skipped consolidation (resulting in empty delta)?
             //  Shouldn't we set estimated old values also there?
             setEstimatedOldValues();
@@ -188,6 +209,45 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
         return itemDelta;
     }
+
+    private void doSpecialZeroSetProcessing() throws SchemaException {
+        boolean aprioriDeltaIsEmpty = aprioriItemDelta == null || aprioriItemDelta.isEmpty();
+        boolean existingItemIsEmpty = existingItem == null || existingItem.isEmpty();
+
+        Collection<I> zeroSet = ivwoTriple.getZeroSet();
+        for (I zeroSetIvwo: zeroSet) {
+
+            PrismValueDeltaSetTripleProducer<?, ?> mapping = zeroSetIvwo.getMapping();
+            if (mapping.getStrength() == null || mapping.getStrength() == MappingStrengthType.NORMAL) {
+                if (aprioriDeltaIsEmpty && mapping.isSourceless()) {
+                    LOGGER.trace("Considering adding zero values from normal mapping {} (sourceless, no apriori delta)", mapping);
+                    addValueIfNotThere(zeroSetIvwo);
+                }
+            } else if (mapping.getStrength() == MappingStrengthType.WEAK) {
+                if (existingItemIsEmpty && !itemDelta.addsAnyValue()) {
+                    LOGGER.trace("Considering adding zero values from weak mapping {} (existing item empty, itemDelta "
+                            + "does not add anything: {})", mapping, itemDelta);
+                    addValueIfNotThere(zeroSetIvwo);
+                }
+            } else {
+                LOGGER.trace("Considering adding zero values from strong mapping {}", mapping);
+                addValueIfNotThere(zeroSetIvwo);
+            }
+        }
+    }
+
+    private void addValueIfNotThere(I zeroSetIvwo) throws SchemaException {
+        V value = zeroSetIvwo.getItemValue();
+        if (existingItem == null || !existingItem.contains(value, EquivalenceStrategy.REAL_VALUE)) {
+            LOGGER.trace(" -> Reconciliation will add value {} for item {}. Existing item: {}", value, itemPath, existingItem);
+            boolean isAssignment = SchemaConstants.PATH_ASSIGNMENT.equivalent(itemPath);
+            //noinspection unchecked
+            itemDelta.addValuesToAdd(LensUtil.cloneAndApplyMetadata(value, isAssignment, zeroSetIvwo.getMapping()));
+        } else {
+            LOGGER.trace(" -> ...but the value is already in the delta, not adding it.");
+        }
+    }
+
 
     private void consolidate(V value) throws PolicyViolationException, ExpressionEvaluationException, SchemaException {
         new ValueConsolidation(value).consolidate();
@@ -271,7 +331,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
             if (!zeroIvwos.isEmpty() && !addUnchangedValues) {
                 LOGGER.trace("Value {} unchanged, doing nothing", value);
-                applyMetadataOnUnchangedValue(value); // TODO
+                applyMetadataOnUnchangedValue(); // TODO
                 return;
             }
 
@@ -306,6 +366,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         private void checkDeletionOfZeroStrongValue() throws PolicyViolationException {
             PrismValueDeltaSetTripleProducer<V, D> zeroStrongMapping = findStrongMappingAmongZeroIvwos();
 
+            // We perhaps should not rely on current apriori delta, as it contains both primary and secondary changes.
             if (zeroStrongMapping != null && aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value, true)) {
                 throw new PolicyViolationException("Attempt to delete value " + value + " from item " + itemPath
                         + " but that value is mandated by a strong " + zeroStrongMapping.toHumanReadableDescription()
@@ -323,6 +384,31 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             }
             return null;
         }
+
+        // TEMPORARY!
+        private void applyMetadataOnUnchangedValue() {
+            if (!value.getValueMetadata().isEmpty()) {
+                V existingValue = findValueInExistingItem();
+                if (existingValue != null) {
+                    applyValueMetadata(existingValue, value);
+                }
+            } else {
+                LOGGER.info("Huh? Value is not there: {}", value); // FIXME
+            }
+        }
+
+        private V findValueInExistingItem() {
+            if (existingItem == null) {
+                return null;
+            }
+            if (valueMatcher != null && value instanceof PrismPropertyValue) {
+                //noinspection unchecked
+                return (V) valueMatcher.findValue((PrismProperty)existingItem, (PrismPropertyValue)value);
+            } else {
+                return existingItem.findValue(value, EquivalenceStrategy.IGNORE_METADATA, comparator);
+            }
+        }
+
 
         private class AddConsolidation {
 
@@ -349,12 +435,15 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                             value, itemPath, contextDescription);
                     return false;
                 }
-                if (!strengthSelector.isNormal() && !strengthSelector.isStrong()) {
-                    LOGGER.trace("Value {} has only strong/normal mappings and we are processing only weak mappings now, in item {} in {}",
-                            value, itemPath, contextDescription);
-                    return false;
-                }
+                // If strength selector for normal + strong is off, we see only weak mappings and so we are not here.
+                assert strengthSelector.isNormal() || strengthSelector.isStrong();
+//                if (!strengthSelector.isNormal() && !strengthSelector.isStrong()) {
+//                    LOGGER.trace("Value {} has only strong/normal mappings and we are processing only weak mappings now, in item {} in {}",
+//                            value, itemPath, contextDescription);
+//                    return false;
+//                }
                 if (hasAtLeastOneStrongMapping) {
+                    // We perhaps should not rely on current apriori delta, as it contains both primary and secondary changes.
                     if (aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value, true)) {
                         throw new PolicyViolationException("Attempt to delete value "+value+" from item "+itemPath
                                 +" but that value is mandated by a strong mapping (in "+contextDescription+")");
@@ -366,14 +455,14 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                         return false;
                     }
                     if (aprioriItemDelta != null && !aprioriItemDelta.isEmpty()) {
-                        // There is already a delta, skip this
+                        // We perhaps should not rely on current apriori delta, as it contains both primary and secondary changes.
                         LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, " +
                                 "skipping adding in {}", value, itemPath, contextDescription);
                         return false;
                     }
                 }
                 if (filterExistingValues) {
-                    V existingValue = findValue(existingItem, value);
+                    V existingValue = findValueInExistingItem();
                     if (existingValue != null) {
                         LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value in {}",
                                 value, itemPath, contextDescription);
@@ -482,18 +571,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                     checkMappingExclusiveness(mapping);
                 }
             }
-        }
-    }
-
-    // TEMPORARY!
-    private void applyMetadataOnUnchangedValue(V value) {
-        if (!value.getValueMetadata().isEmpty()) {
-            V existingValue = findValue(existingItem, value);
-            if (existingValue != null) {
-                applyValueMetadata(existingValue, value);
-            }
-        } else {
-            LOGGER.info("Huh? Value is not there: {}", value); // FIXME
         }
     }
 
@@ -640,18 +717,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             Item<V,D> clonedItem = existingItem.clone();
             itemDelta.applyToMatchingPath(clonedItem, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
             return !clonedItem.isEmpty();
-        }
-    }
-
-    private V findValue(Item<V,D> existingUserItem, V newValue) {
-        if (existingUserItem == null) {
-            return null;
-        }
-        if (valueMatcher != null && newValue instanceof PrismPropertyValue) {
-            //noinspection unchecked
-            return (V) valueMatcher.findValue((PrismProperty)existingUserItem, (PrismPropertyValue)newValue);
-        } else {
-            return existingUserItem.findValue(newValue, EquivalenceStrategy.IGNORE_METADATA, comparator);
         }
     }
 }

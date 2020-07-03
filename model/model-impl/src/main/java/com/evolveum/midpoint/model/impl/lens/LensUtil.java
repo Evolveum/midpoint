@@ -1187,4 +1187,12 @@ public class LensUtil {
             mapping.setTarget(target);
         }
     }
+
+    public static void rejectNonTolerantSettingIfPresent(ObjectTemplateItemDefinitionType templateItemDefinition,
+            ItemPath itemPath, String contextDescription) {
+        if (templateItemDefinition != null && Boolean.FALSE.equals(templateItemDefinition.isTolerant())) {
+            throw new UnsupportedOperationException("The 'tolerant=false' setting on template items is no longer supported."
+                    + " Please use mapping range instead. In '" + itemPath + "' consolidation in " + contextDescription);
+        }
+    }
 }

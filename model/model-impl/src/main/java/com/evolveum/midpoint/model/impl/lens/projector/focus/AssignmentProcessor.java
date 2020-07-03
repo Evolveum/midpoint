@@ -363,8 +363,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     "focus mappings in assignments of " + focusContext.getHumanReadableName(),
                     now, task);
 
-            DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(
-                    focusOutputTripleMap, null,
+            DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(focusOutputTripleMap,
                     focusOdo.getNewObject(), focusOdo.getObjectDelta(), focusContext.getObjectDefinition(),
                     env, beans);
             consolidation.computeItemDeltas();

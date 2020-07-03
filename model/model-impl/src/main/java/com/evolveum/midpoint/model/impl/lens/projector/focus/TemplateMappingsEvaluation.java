@@ -13,6 +13,7 @@ import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -226,7 +227,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
     private void consolidateToItemDeltas() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
         LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLineLazily(outputTripleMap));
-        consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap, itemDefinitionsMap,
+        consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap,
                 targetObject, targetAPrioriDelta, targetDefinition, env, beans);
         consolidation.computeItemDeltas();
     }
@@ -253,8 +254,11 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             if (def.getRef() == null) {
                 throw new IllegalStateException("Item definition with null ref in " + env.contextDescription);
             }
+            UniformItemPath itemPath = beans.prismContext.toUniformPath(def.getRef());
+            LensUtil.rejectNonTolerantSettingIfPresent(def, itemPath, env.contextDescription);
+
             // TODO check for incompatible overrides
-            ItemPathCollectionsUtil.putToMap(itemDefinitionsMap, beans.prismContext.toUniformPath(def.getRef()), def);
+            ItemPathCollectionsUtil.putToMap(itemDefinitionsMap, itemPath, def);
         }
     }
 

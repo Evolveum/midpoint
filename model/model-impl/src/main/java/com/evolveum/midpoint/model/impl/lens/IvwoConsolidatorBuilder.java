@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -25,16 +26,15 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     D itemDefinition;
     ItemDelta<V, D> aprioriItemDelta;
     PrismContainer<?> itemContainer;
+    Item<V,D> existingItem; // alternative to using itemContainer
     ValueMatcher valueMatcher;
     Comparator<V> comparator;
     boolean addUnchangedValues;
     boolean filterExistingValues;
+    boolean specialZeroSetProcessing;
     boolean isExclusiveStrong;
     String contextDescription;
     StrengthSelector strengthSelector;
-
-    public IvwoConsolidatorBuilder() {
-    }
 
     public IvwoConsolidatorBuilder<V, D, I> itemPath(ItemPath val) {
         itemPath = val;
@@ -56,8 +56,15 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
+    // Alternative to existingItem
     public IvwoConsolidatorBuilder<V, D, I> itemContainer(PrismContainer<?> val) {
         itemContainer = val;
+        return this;
+    }
+
+    // Alternative to itemContainer
+    public IvwoConsolidatorBuilder<V, D, I> existingItem(Item<V, D> val) {
+        existingItem = val;
         return this;
     }
 
@@ -78,6 +85,11 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
 
     public IvwoConsolidatorBuilder<V, D, I> filterExistingValues(boolean val) {
         filterExistingValues = val;
+        return this;
+    }
+
+    public IvwoConsolidatorBuilder<V, D, I> specialZeroSetProcessing(boolean val) {
+        specialZeroSetProcessing = val;
         return this;
     }
 

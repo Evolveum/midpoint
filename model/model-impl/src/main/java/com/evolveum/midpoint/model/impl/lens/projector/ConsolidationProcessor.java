@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -226,9 +227,7 @@ public class ConsolidationProcessor {
 
             PropertyDelta<QName> propDelta = (PropertyDelta) consolidator.consolidateToDelta();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Auxiliary object class delta:\n{}",propDelta.debugDump());
-            }
+            LOGGER.trace("Auxiliary object class delta:\n{}",propDelta.debugDumpLazily());
 
             if (!propDelta.isEmpty()) {
                 objectDelta.addModification(propDelta);
@@ -428,9 +427,7 @@ public class ConsolidationProcessor {
             } else {
                 // Also consider a synchronization delta (if it is present). This may filter out some deltas.
                 itemDelta = consolidateItemWithSync(projCtx, itemDelta, valueMatcher);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",discr,itemDelta==null?"null":itemDelta.debugDump());
-                }
+                LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",discr, DebugUtil.debugDumpLazily(itemDelta));
             }
 
             if (itemDelta != null && !itemDelta.isEmpty()) {
@@ -1079,11 +1076,7 @@ public class ConsolidationProcessor {
             return;
         }
 
-        boolean addUnchangedValues = false;
-        if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
-            addUnchangedValues = true;
-        }
-
+        boolean addUnchangedValues = projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD;
 
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(projCtx.getOid());
