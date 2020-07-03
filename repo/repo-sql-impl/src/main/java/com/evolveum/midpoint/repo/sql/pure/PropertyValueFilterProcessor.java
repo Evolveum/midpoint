@@ -8,6 +8,7 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
+
 public class PropertyValueFilterProcessor implements FilterProcessor<PropertyValueFilter<?>> {
 
     private final SqlPathContext context;
@@ -24,12 +25,12 @@ public class PropertyValueFilterProcessor implements FilterProcessor<PropertyVal
         if (!filterPath.isSingleName()) {
             throw new QueryException("Filter with non-single path is not supported YET: " + filterPath);
         }
+        if (filter.getRightHandSidePath() != null) {
+            throw new QueryException("Filter with right-hand-side path is not supported YET: " + filterPath);
+        }
 
         // TODO: needed only for Any filter?
 //        ItemDefinition definition = filter.getDefinition();
-
-        // TODO: later with polystring attributes this may relate to two different SQL paths, see existing PolyStringMatcher
-        // instead of mapping returning things to deal with, it should accept information and return predicate
 
         QueryModelMapping<?, ?> mapping = context.mapping();
         FilterProcessor<PropertyValueFilter<?>> processor =

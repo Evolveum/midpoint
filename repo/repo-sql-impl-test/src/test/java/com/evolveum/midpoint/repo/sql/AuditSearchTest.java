@@ -13,8 +13,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
-import java.time.Instant;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -238,18 +236,104 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test140SearchAuditEventsCreatedBefore() throws SchemaException {
+    public void test140SearchAuditEventsTimestampLessOrEqual() throws SchemaException {
         when("searching audit filtered by timestamp up to specified time");
-        System.out.println("Instant = " + Instant.ofEpochMilli(TIMESTAMP_2));
-        XMLGregorianCalendar xmlGregorianCalendar = MiscUtil.asXMLGregorianCalendar(TIMESTAMP_2);
-        System.out.println("xmlGregorianCalendar = " + xmlGregorianCalendar);
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
-                .item(AuditEventRecordType.F_TIMESTAMP).le(xmlGregorianCalendar)
+                .item(AuditEventRecordType.F_TIMESTAMP)
+                .le(MiscUtil.asXMLGregorianCalendar(TIMESTAMP_2))
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with the timestamp less or equal to specified time are returned");
+        assertThat(result).hasSize(2);
+    }
+
+    @Test
+    public void test141SearchAuditEventsTimestampEqual() throws SchemaException {
+        when("searching audit filtered by timestamp equal to specified time");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TIMESTAMP)
+                .eq(MiscUtil.asXMLGregorianCalendar(TIMESTAMP_2))
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with the timestamp equal to are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+    }
+
+    @Test
+    public void test142SearchAuditEventsTimestampGreater() throws SchemaException {
+        when("searching audit filtered by timestamp up to specified time");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TIMESTAMP)
+                .gt(MiscUtil.asXMLGregorianCalendar(TIMESTAMP_2))
                 .build();
         SearchResultList<AuditEventRecordType> result =
                 auditService.searchObjects(query, null, null);
 
         then("only audit events with the timestamp less or equal are returned");
-        assertThat(result).hasSize(2);
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getMessage()).isEqualTo("RECORD THREE");
     }
+
+    // complex filter
+
+    @Test
+    public void test500SearchAuditEventsByTwoTimestampConditions() throws SchemaException {
+        when("searching audit filtered by timestamp AND timestamp condition");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TIMESTAMP)
+                .gt(MiscUtil.asXMLGregorianCalendar(TIMESTAMP_1)) // matches records 2 and 3
+                .and()
+                .item(AuditEventRecordType.F_TIMESTAMP)
+                .lt(MiscUtil.asXMLGregorianCalendar(TIMESTAMP_3)) // matches records 1 and 2
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events matching both timestamp conditions are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+    }
+
+    @Test
+    public void test501SearchAuditEventsByMessageAndTimestamp() throws SchemaException {
+        when("searching audit filtered by timestamp AND message condition");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TIMESTAMP)
+                .gt(MiscUtil.asXMLGregorianCalendar(TIMESTAMP_1)) // matches records 2 and 3
+                .and()
+                .item(AuditEventRecordType.F_MESSAGE)
+                .startsWith("rec") // matches records 1 and 2
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events matching both conditions are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+    }
+
+    @Test
+    public void test510SearchAuditEventsByMessageOrTimestamp() throws SchemaException {
+        when("searching audit filtered by timestamp AND message condition");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TIMESTAMP)
+                .lt(MiscUtil.asXMLGregorianCalendar(TIMESTAMP_2)) // matches only record 1
+                .or()
+                .item(AuditEventRecordType.F_MESSAGE)
+                .endsWith("three").matchingCaseIgnore() // matches only record 3
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events matching both conditions are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(aer ->
+                aer.getMessage().equals("record1") || aer.getMessage().equals("RECORD THREE"));
+    }
+
 }
