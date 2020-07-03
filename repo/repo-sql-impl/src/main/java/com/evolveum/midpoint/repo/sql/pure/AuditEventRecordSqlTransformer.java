@@ -22,6 +22,7 @@ public class AuditEventRecordSqlTransformer {
                 .message(row.message)
                 .timestamp(MiscUtil.asXMLGregorianCalendar(row.timestamp))
                 .outcome(operationResultStatusTypeFromRepo(row.outcome))
+                .result(row.result)
                 //
                 ;
         // todo transformation from whatever input

@@ -41,5 +41,6 @@ public class QAuditEventRecordMapping
         addItemMapping(F_TIMESTAMP, q -> q.timestamp, TimestampItemFilterProcessor::new);
         addItemMapping(F_OUTCOME, q -> q.outcome,
                 EnumOrdinalItemFilterProcessor.withValueFunction(ROperationResultStatus::fromSchemaValue));
+        addItemMapping(F_RESULT, q -> q.result, StringItemFilterProcessor::new);
     }
 }

@@ -54,6 +54,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.setEventType(AuditEventType.ADD_OBJECT);
         record1.setMessage("record1");
         record1.setOutcome(OperationResultStatus.SUCCESS);
+        record1.setResult("result1");
         auditService.audit(record1, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record2 = new AuditEventRecord();
@@ -147,7 +148,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
     @Test
     public void test115SearchByOutcomeIsNull() throws SchemaException {
-        when("searching audit filtered by null outcome");
+        when("searching audit filtered by null outcome (enum)");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_OUTCOME).isNull()
                 .build();
@@ -159,6 +160,19 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result.get(0).getOutcome()).isNull();
     }
 
+    @Test
+    public void test118SearchByResultIsNull() throws SchemaException {
+        when("searching audit filtered by null result (string)");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_RESULT).isNull()
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events without any result are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(aer -> aer.getResult() == null);
+    }
     @Test
     public void test120SearchByMessageEquals() throws SchemaException {
         when("searching audit filtered by message equal to value");
