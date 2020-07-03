@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 /**
- * Commonly-used model beans.
+ * Commonly-used beans for model-impl module.
  *
  * This class is intended to be used in classes that are not managed by Spring.
  * (To avoid massive transfer of references to individual beans from Spring-managed class

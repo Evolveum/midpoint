@@ -5,8 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.common.mapping;
+package com.evolveum.midpoint.model.common.mapping.metadata;
 
+import com.evolveum.midpoint.model.common.mapping.AbstractMappingImpl;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
@@ -16,7 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
 /**
  * Evaluated or to-be-evaluated metadata mapping.
  */
-public class MetadataMappingImpl<V extends PrismValue, D extends ItemDefinition> extends AbstractMappingImpl<V, D, MetadataMappingType> {
+public class MetadataMappingImpl<V extends PrismValue, D extends ItemDefinition> extends
+        AbstractMappingImpl<V, D, MetadataMappingType> {
 
     MetadataMappingImpl(MetadataMappingBuilder<V, D> builder) {
         super(builder);
@@ -26,7 +28,8 @@ public class MetadataMappingImpl<V extends PrismValue, D extends ItemDefinition>
         super(prototype);
     }
 
-    ValueMetadataComputer createValueMetadataComputer(OperationResult result) {
+    protected ValueMetadataComputer createValueMetadataComputer(OperationResult result) {
+        // No value metadata computing for value metadata itself.
         return null;
     }
 

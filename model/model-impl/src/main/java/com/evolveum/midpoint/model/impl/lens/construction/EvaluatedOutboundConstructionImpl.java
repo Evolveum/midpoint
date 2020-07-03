@@ -249,7 +249,7 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
                         if (object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null) {
                             ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
                             try {
-                                ValuePolicyType valuePolicyType = mappingBuilder.getObjectResolver().resolve(ref, ValuePolicyType.class,
+                                ValuePolicyType valuePolicyType = mappingBuilder.getBeans().objectResolver.resolve(ref, ValuePolicyType.class,
                                         null, "resolving value policy for generate attribute "+ outputDefinition.getItemName()+"value", task, result);
                                 if (valuePolicyType != null) {
                                     return valuePolicyType;

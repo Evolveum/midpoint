@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.common.mapping;
+package com.evolveum.midpoint.model.common.mapping.metadata;
 
 import java.util.*;
 
@@ -43,7 +43,7 @@ public class ValueMetadataProcessingSpec {
         return mappings.isEmpty() && itemDefinitions.isEmpty();
     }
 
-    void addFromObjectTemplate(ObjectTemplateType rootTemplate, ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
+    public void addFromObjectTemplate(ObjectTemplateType rootTemplate, ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
@@ -132,7 +132,7 @@ public class ValueMetadataProcessingSpec {
         }
     }
 
-    void addMappings(List<MetadataMappingType> mappings) {
+    public void addMappings(List<MetadataMappingType> mappings) {
         this.mappings.addAll(mappings);
     }
 

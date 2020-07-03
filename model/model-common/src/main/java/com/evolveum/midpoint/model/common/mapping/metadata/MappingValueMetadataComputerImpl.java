@@ -5,9 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.common.mapping;
+package com.evolveum.midpoint.model.common.mapping.metadata;
 
 import java.util.List;
+
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -21,26 +24,27 @@ import com.evolveum.midpoint.util.exception.*;
  * Value metadata computer implementation that works in the context of a data mapping.
  * It obtains metadata mappings from the current mapping as well as from current object template.
  */
-class MappingValueMetadataComputerImpl implements ValueMetadataComputer {
+public class MappingValueMetadataComputerImpl implements ValueMetadataComputer {
+
     @NotNull final ValueMetadataProcessingSpec processingSpec;
     @NotNull final MappingImpl<?, ?> dataMapping;
-    @NotNull final MetadataMappingEvaluator metadataMappingEvaluator;
+    @NotNull final ModelCommonBeans beans;
 
-    MappingValueMetadataComputerImpl(@NotNull ValueMetadataProcessingSpec processingSpec, @NotNull MappingImpl<?, ?> dataMapping) {
+    public MappingValueMetadataComputerImpl(@NotNull ValueMetadataProcessingSpec processingSpec, @NotNull MappingImpl<?, ?> dataMapping) {
         this.processingSpec = processingSpec;
         this.dataMapping = dataMapping;
-        this.metadataMappingEvaluator = dataMapping.metadataMappingEvaluator;
-        if (metadataMappingEvaluator == null) {
+        this.beans = dataMapping.getBeans();
+        if (beans.metadataMappingEvaluator == null) {
             throw new IllegalStateException("Metadata mapping evaluation requested but"
                     + " metadataMappingEvaluator is not present; in " + dataMapping.getMappingContextDescription());
         }
     }
 
     @Override
-    public ValueMetadata compute(@NotNull List<PrismValue> valuesTuple, @NotNull OperationResult result)
+    public ValueMetadata compute(@NotNull List<PrismValue> inputValues, @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
-        ValueMetadataComputation computation = new ValueMetadataComputation(valuesTuple, this, result);
+        ValueMetadataComputation computation = ValueMetadataComputation.forMapping(inputValues, this, result);
         return computation.execute();
     }
 

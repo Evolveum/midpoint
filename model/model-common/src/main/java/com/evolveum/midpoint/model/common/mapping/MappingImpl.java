@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.common.mapping;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.mapping.metadata.MappingValueMetadataComputerImpl;
+import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataProcessingSpec;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
@@ -30,7 +32,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
         super(prototype);
     }
 
-    ValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
+    protected ValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
         ValueMetadataProcessingSpec processingSpec = createProcessingSpec(result);
@@ -50,7 +52,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
             ObjectTemplateType focusTemplate = lensContext.getFocusTemplate();
             if (focusTemplate != null) {
                 processingSpec.addFromObjectTemplate(focusTemplate, parser.getOutputPath(),
-                        objectResolver, getMappingContextDescription(), task, result);
+                        beans.objectResolver, getMappingContextDescription(), task, result);
             }
         }
         processingSpec.addMappings(mappingBean.getMetadataMapping());
