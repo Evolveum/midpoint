@@ -84,7 +84,7 @@ class DeltaSetTripleConsolidation<T extends AssignmentHolderType> {
                 .valueMatcher(null)
                 .comparator(null)
                 .addUnchangedValues(wholeConsolidation.addUnchangedValues)
-                .filterExistingValues(!LensUtil.isNonTolerant(templateItemDefinition)) // if non-tolerant, we want to gather ZERO & PLUS sets
+                .filterExistingValues(true)
                 .isExclusiveStrong(false)
                 .contextDescription(wholeConsolidation.contextDescription)
                 .strengthSelector(StrengthSelector.ALL)
@@ -101,7 +101,6 @@ class DeltaSetTripleConsolidation<T extends AssignmentHolderType> {
      */
     private void reconcileItemDelta() throws SchemaException {
         boolean isAssignment = SchemaConstants.PATH_ASSIGNMENT.equivalent(itemPath);
-        boolean isNonTolerant = LensUtil.isNonTolerant(templateItemDefinition);
 
         Collection<? extends ItemValueWithOrigin<?,?>> zeroSet = deltaSetTriple.getZeroSet();
         Item<PrismValue, ItemDefinition> itemNew = null;
@@ -137,29 +136,9 @@ class DeltaSetTripleConsolidation<T extends AssignmentHolderType> {
             }
         }
 
-        if (isNonTolerant) {
-            if (itemDelta.isDelete()) {
-                LOGGER.trace("Non-tolerant item with values to DELETE => removing them");
-                itemDelta.resetValuesToDelete();
-            }
-            if (itemDelta.isReplace()) {
-                LOGGER.trace("Non-tolerant item with resulting REPLACE delta => doing nothing");
-            } else {
-                for (ItemValueWithOrigin<?,?> zeroSetIvwo: zeroSet) {
-                    // TODO aren't values added twice (regarding addValuesToAdd called ~10 lines above)?
-                    itemDelta.addValuesToAdd(LensUtil.cloneAndApplyMetadata(zeroSetIvwo.getItemValue(), isAssignment, zeroSetIvwo.getMapping()));
-                }
-                itemDelta.addToReplaceDelta();
-                LOGGER.trace("Non-tolerant item with resulting ADD delta => converted ADD to REPLACE values: {}", itemDelta.getValuesToReplace());
-            }
-            // To avoid phantom changes, compare with existing values (MID-2499).
-            // TODO why we do this check only for non-tolerant items?
-            if (isDeltaRedundant(wholeConsolidation.targetObject, templateItemDefinition, itemDelta)) {
-                LOGGER.trace("Computed item delta is redundant => skipping it. Delta = \n{}", itemDelta.debugDumpLazily());
-                itemDelta = null;
-                return;
-            }
-            PrismUtil.setDeltaOldValue(wholeConsolidation.targetObject, itemDelta);
+        if (templateItemDefinition != null && Boolean.FALSE.equals(templateItemDefinition.isTolerant())) {
+            throw new UnsupportedOperationException("The 'tolerant=false' setting on template items is no longer supported."
+                    + " Please use mapping range instead. In '" + itemPath + "' consolidation in " + wholeConsolidation.contextDescription);
         }
 
         itemDelta.simplify();
