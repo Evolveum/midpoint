@@ -9,11 +9,11 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 /**
  * Mapping for a string attribute path (Prism item).
  */
-public class StringItemMapper implements FilterProcessor<PropertyValueFilter<String>> {
+public class StringItemFilterProcessor implements FilterProcessor<PropertyValueFilter<String>> {
 
     private final Path<?> path;
 
-    public StringItemMapper(Path<?> path) {
+    public StringItemFilterProcessor(Path<?> path) {
         this.path = path;
     }
 

@@ -13,8 +13,11 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
  * What happens with it depends on the context implementing the processor.
  * There are two typical usages:
  * <ul>
- *     <li>processors in the context of a query (or subquery);</li>
- *     <li>processors in the context of a single Prism item (not necessarily one SQL column).</li>
+ *     <li>Processors in the context of a query (or subquery).
+ *     These typically determine what other processor should be used in the next step.</li>
+ *     <li>Processors in the context of a single Prism item (not necessarily one SQL column).
+ *     These are executed as "leafs" of filter processing tree returning terminal predicates.
+ *     Typically are named as {@code *ItemFilterProcessor}.</li>
  * </ul>
  */
 public interface FilterProcessor<O extends ObjectFilter> {
@@ -23,7 +26,6 @@ public interface FilterProcessor<O extends ObjectFilter> {
 
     default Ops operation(ValueFilter<?, ?> filter) throws QueryException {
         if (filter instanceof EqualFilter) {
-            // TODO possibly EQ_IGNORE_CASE based on matching? or rather we control it?
             return isIgnoreCaseFilter(filter) ? Ops.EQ_IGNORE_CASE : Ops.EQ;
         } else if (filter instanceof GreaterFilter) {
             GreaterFilter<?> gf = (GreaterFilter<?>) filter;

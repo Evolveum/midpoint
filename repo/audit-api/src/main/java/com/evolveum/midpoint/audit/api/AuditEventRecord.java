@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -498,8 +498,8 @@ public class AuditEventRecord implements DebugDumpable {
         AuditEventRecordType auditRecordType = new AuditEventRecordType();
         auditRecordType.setChannel(channel);
         auditRecordType.setEventIdentifier(eventIdentifier);
-        auditRecordType.setEventStage(AuditEventStage.fromAuditEventStage(eventStage));
-        auditRecordType.setEventType(AuditEventType.fromAuditEventType(eventType));
+        auditRecordType.setEventStage(AuditEventStage.toSchemaValue(eventStage));
+        auditRecordType.setEventType(AuditEventType.toSchemaValue(eventType));
         auditRecordType.setHostIdentifier(hostIdentifier);
         auditRecordType.setRemoteHostAddress(remoteHostAddress);
         auditRecordType.setNodeIdentifier(nodeIdentifier);

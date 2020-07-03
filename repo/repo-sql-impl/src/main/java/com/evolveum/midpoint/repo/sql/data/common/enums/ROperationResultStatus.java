@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,9 +11,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
-/**
- * @author lazyman
- */
 @JaxbType(type = OperationResultStatusType.class)
 public enum ROperationResultStatus implements SchemaEnum<OperationResultStatusType> {
 
@@ -26,13 +23,13 @@ public enum ROperationResultStatus implements SchemaEnum<OperationResultStatusTy
     UNKNOWN(OperationResultStatusType.UNKNOWN),
     HANDLED_ERROR(OperationResultStatusType.HANDLED_ERROR);
 
-    private OperationResultStatusType status;
+    private final OperationResultStatusType status;
 
     ROperationResultStatus(OperationResultStatusType status) {
         this.status = status;
     }
 
-    public OperationResultStatus getStatus(){
+    public OperationResultStatus getStatus() {
         return OperationResultStatus.parseStatusType(status);
     }
 
@@ -41,7 +38,7 @@ public enum ROperationResultStatus implements SchemaEnum<OperationResultStatusTy
         return status;
     }
 
-    public static ROperationResultStatus toRepo(OperationResultStatusType jaxb) {
+    public static ROperationResultStatus fromSchemaValue(OperationResultStatusType jaxb) {
         if (jaxb == null) {
             return null;
         }

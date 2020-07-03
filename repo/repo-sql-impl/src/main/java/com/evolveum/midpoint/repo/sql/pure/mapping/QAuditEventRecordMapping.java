@@ -3,6 +3,9 @@ package com.evolveum.midpoint.repo.sql.pure.mapping;
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.*;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
+import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
+import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
@@ -29,10 +32,14 @@ public class QAuditEventRecordMapping
                 TARGET_OWNER_NAME, TARGET_OWNER_OID, TARGET_OWNER_TYPE,
                 TASK_IDENTIFIER, TASK_OID, TIMESTAMP);
 
-        addItemMapping(F_EVENT_TYPE, q -> q.eventType, EnumOrdinalItemMapper::new);
-        addItemMapping(F_EVENT_STAGE, q -> q.eventStage, EnumOrdinalItemMapper::new);
-        addItemMapping(F_MESSAGE, q -> q.message, StringItemMapper::new);
-        addItemMapping(F_CHANNEL, q -> q.channel, StringItemMapper::new);
-        addItemMapping(F_TIMESTAMP, q -> q.timestamp, TimestampItemMapper::new);
+        addItemMapping(F_EVENT_TYPE, q -> q.eventType,
+                EnumOrdinalItemFilterProcessor.withValueFunction(RAuditEventType::fromSchemaValue));
+        addItemMapping(F_EVENT_STAGE, q -> q.eventStage,
+                EnumOrdinalItemFilterProcessor.withValueFunction(RAuditEventStage::fromSchemaValue));
+        addItemMapping(F_MESSAGE, q -> q.message, StringItemFilterProcessor::new);
+        addItemMapping(F_CHANNEL, q -> q.channel, StringItemFilterProcessor::new);
+        addItemMapping(F_TIMESTAMP, q -> q.timestamp, TimestampItemFilterProcessor::new);
+        addItemMapping(F_OUTCOME, q -> q.outcome,
+                EnumOrdinalItemFilterProcessor.withValueFunction(ROperationResultStatus::fromSchemaValue));
     }
 }

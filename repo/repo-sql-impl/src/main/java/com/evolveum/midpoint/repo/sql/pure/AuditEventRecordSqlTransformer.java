@@ -1,14 +1,14 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
  * Simple class with static methods for audit event transformation between repo and Prism world.
@@ -21,6 +21,7 @@ public class AuditEventRecordSqlTransformer {
                 .eventStage(auditEventStageTypeFromRepo(row.eventStage))
                 .message(row.message)
                 .timestamp(MiscUtil.asXMLGregorianCalendar(row.timestamp))
+                .outcome(operationResultStatusTypeFromRepo(row.outcome))
                 //
                 ;
         // todo transformation from whatever input
@@ -32,7 +33,7 @@ public class AuditEventRecordSqlTransformer {
     public static AuditEventTypeType auditEventTypeTypeFromRepo(Integer ordinal) {
         RAuditEventType rAuditEventType = MiscUtil.enumFromOrdinal(RAuditEventType.class, ordinal);
         return rAuditEventType != null
-                ? AuditEventType.fromAuditEventType(rAuditEventType.getType())
+                ? rAuditEventType.getSchemaValue()
                 : null;
 
     }
@@ -40,8 +41,14 @@ public class AuditEventRecordSqlTransformer {
     public static AuditEventStageType auditEventStageTypeFromRepo(Integer ordinal) {
         RAuditEventStage rAuditEventStage = MiscUtil.enumFromOrdinal(RAuditEventStage.class, ordinal);
         return rAuditEventStage != null
-                ? AuditEventStage.fromAuditEventStage(rAuditEventStage.getStage())
+                ? rAuditEventStage.getSchemaValue()
                 : null;
     }
 
+    public static OperationResultStatusType operationResultStatusTypeFromRepo(Integer ordinal) {
+        ROperationResultStatus rOperationResultStatus = MiscUtil.enumFromOrdinal(ROperationResultStatus.class, ordinal);
+        return rOperationResultStatus != null
+                ? rOperationResultStatus.getSchemaValue()
+                : null;
+    }
 }

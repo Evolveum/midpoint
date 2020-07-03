@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 
 /**
  * Common supertype for mapping between Q-classes and model (prism) classes.
+ * See {@link #addItemMapping(ItemName, Function, Function)} for details about mapping mechanism.
  * <p>
  * Goals:
  * <ul>
@@ -43,25 +44,6 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
 //    private final Map<QName, ColumnMetadata> itemToColumn = new LinkedHashMap<>();
 
     private final Map<QName, ItemMapping> itemFilterProcessorMapping = new LinkedHashMap<>();
-
-    // E=entity, A=attribute
-    private static class ItemMapping<E extends EntityPath<?>, A> {
-        public final Function<E, Path<A>> rootToItem;
-        public final Function<Path<A>, FilterProcessor<?>> processorFactory;
-
-        private ItemMapping(
-                Function<E, Path<A>> rootToItem,
-                Function<Path<A>, FilterProcessor<?>> processorFactory) {
-            this.rootToItem = rootToItem;
-            this.processorFactory = processorFactory;
-        }
-
-        public FilterProcessor<?> createFilterProcessor(Path<?> entityPath) {
-            //noinspection unchecked
-            Path<A> itemPath = rootToItem.apply((E) entityPath);
-            return processorFactory.apply(itemPath);
-        }
-    }
 
     private Q defaultAlias;
 
@@ -94,11 +76,28 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
         return this;
     }
 
+    /**
+     * Adds information how item (attribute) from model type is mapped to query,
+     * especially for condition creating purposes.
+     * <p>
+     * The {@code processorFactory} function is typically as a constructor to one of the
+     * {@code *ItemFilterProcessor} classes, because at the time of mapping specification
+     * we don't have the actual query path representing the column.
+     * These paths are non-static properties of query class instances.
+     * But it is possible to specify, how to obtain item path from query type instance
+     * (function provided as {@code rootToQueryItem} parameter) and then how to create
+     * {@link FilterProcessor} for such a path ({@code processorFactory} function).
+     *
+     * @param itemName item name from schema type (see {@code F_*} constants on schema types)
+     * @param rootToQueryItem function returning query attribute path for the base (entity) path
+     * @param processorFactory function creating {@link FilterProcessor} for given attribute path
+     */
     public <A> void addItemMapping(
             ItemName itemName,
             Function<Q, Path<A>> rootToQueryItem,
             Function<Path<A>, FilterProcessor<?>> processorFactory) {
-        itemFilterProcessorMapping.put(itemName, new ItemMapping<>(rootToQueryItem, processorFactory));
+        itemFilterProcessorMapping.put(itemName,
+                new ItemMapping<>(rootToQueryItem, processorFactory));
     }
 
     // we want loose typing for client's sake, there is no other chance to get the right type here
@@ -148,4 +147,23 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
     }
 
     // TODO extension columns + null default alias after every change - synchronized!
+
+    // E = entity type, A = attribute (path) type
+    private static class ItemMapping<E extends EntityPath<?>, A> {
+        public final Function<E, Path<A>> rootToItem;
+        public final Function<Path<A>, FilterProcessor<?>> processorFactory;
+
+        private ItemMapping(
+                Function<E, Path<A>> rootToItem,
+                Function<Path<A>, FilterProcessor<?>> processorFactory) {
+            this.rootToItem = rootToItem;
+            this.processorFactory = processorFactory;
+        }
+
+        public FilterProcessor<?> createFilterProcessor(Path<?> entityPath) {
+            //noinspection unchecked
+            Path<A> itemPath = rootToItem.apply((E) entityPath);
+            return processorFactory.apply(itemPath);
+        }
+    }
 }
