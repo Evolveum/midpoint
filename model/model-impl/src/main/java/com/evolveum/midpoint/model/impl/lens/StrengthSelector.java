@@ -19,7 +19,7 @@ public class StrengthSelector {
     private final boolean normal;
     private final boolean strong;
 
-    public StrengthSelector(boolean weak, boolean normal, boolean strong) {
+    private StrengthSelector(boolean weak, boolean normal, boolean strong) {
         super();
         this.weak = weak;
         this.normal = normal;

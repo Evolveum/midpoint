@@ -491,7 +491,6 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     //endregion
 
-
     Collection<V> getClonedValues();
 
     void normalize();
