@@ -87,8 +87,8 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
 
     // columns and relations
     public final NumberPath<Long> id = addMetadata(createNumber("id", Long.class), ID);
-    public final StringPath attorneyName = addMetadata(createString("attorneyname"), ATTORNEY_NAME);
-    public final StringPath attorneyOid = addMetadata(createString("attorneyoid"), ATTORNEY_OID);
+    public final StringPath attorneyName = addMetadata(createString("attorneyName"), ATTORNEY_NAME);
+    public final StringPath attorneyOid = addMetadata(createString("attorneyOid"), ATTORNEY_OID);
     public final StringPath channel = addMetadata(createString("channel"), CHANNEL);
     public final StringPath eventIdentifier =
             addMetadata(createString("eventIdentifier"), EVENT_IDENTIFIER);
@@ -96,40 +96,40 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
             addMetadata(createNumber("eventStage", Integer.class), EVENT_STAGE);
     public final NumberPath<Integer> eventType =
             addMetadata(createNumber("eventType", Integer.class), EVENT_TYPE);
-    public final StringPath hostidentifier =
-            addMetadata(createString("hostidentifier"), HOST_IDENTIFIER);
-    public final StringPath initiatorname =
-            addMetadata(createString("initiatorname"), INITIATOR_NAME);
-    public final StringPath initiatoroid =
-            addMetadata(createString("initiatoroid"), INITIATOR_OID);
-    public final NumberPath<Integer> initiatortype =
-            addMetadata(createNumber("initiatortype", Integer.class), INITIATOR_TYPE);
+    public final StringPath hostIdentifier =
+            addMetadata(createString("hostIdentifier"), HOST_IDENTIFIER);
+    public final StringPath initiatorName =
+            addMetadata(createString("initiatorName"), INITIATOR_NAME);
+    public final StringPath initiatorOid =
+            addMetadata(createString("initiatorOid"), INITIATOR_OID);
+    public final NumberPath<Integer> initiatorType =
+            addMetadata(createNumber("initiatorType", Integer.class), INITIATOR_TYPE);
     public final StringPath message = addMetadata(createString("message"), MESSAGE);
-    public final StringPath nodeidentifier =
-            addMetadata(createString("nodeidentifier"), NODE_IDENTIFIER);
+    public final StringPath nodeIdentifier =
+            addMetadata(createString("nodeIdentifier"), NODE_IDENTIFIER);
     public final NumberPath<Integer> outcome =
             addMetadata(createNumber("outcome", Integer.class), OUTCOME);
     public final StringPath parameter = addMetadata(createString("parameter"), PARAMETER);
-    public final StringPath remotehostaddress =
-            addMetadata(createString("remotehostaddress"), REMOTE_HOST_ADDRESS);
-    public final StringPath requestidentifier =
-            addMetadata(createString("requestidentifier"), REQUEST_IDENTIFIER);
+    public final StringPath remoteHostAddress =
+            addMetadata(createString("remoteHostAddress"), REMOTE_HOST_ADDRESS);
+    public final StringPath requestIdentifier =
+            addMetadata(createString("requestIdentifier"), REQUEST_IDENTIFIER);
     public final StringPath result = addMetadata(createString("result"), RESULT);
-    public final StringPath sessionidentifier =
-            addMetadata(createString("sessionidentifier"), SESSION_IDENTIFIER);
-    public final StringPath targetname = addMetadata(createString("targetname"), TARGET_NAME);
-    public final StringPath targetoid = addMetadata(createString("targetoid"), TARGET_OID);
-    public final StringPath targetownername =
-            addMetadata(createString("targetownername"), TARGET_OWNER_NAME);
-    public final StringPath targetowneroid =
-            addMetadata(createString("targetowneroid"), TARGET_OWNER_OID);
-    public final NumberPath<Integer> targetownertype =
-            addMetadata(createNumber("targetownertype", Integer.class), TARGET_OWNER_TYPE);
-    public final NumberPath<Integer> targettype =
-            addMetadata(createNumber("targettype", Integer.class), TARGET_TYPE);
-    public final StringPath taskidentifier =
-            addMetadata(createString("taskidentifier"), TASK_IDENTIFIER);
-    public final StringPath taskoid = addMetadata(createString("taskoid"), TASK_OID);
+    public final StringPath sessionIdentifier =
+            addMetadata(createString("sessionIdentifier"), SESSION_IDENTIFIER);
+    public final StringPath targetName = addMetadata(createString("targetName"), TARGET_NAME);
+    public final StringPath targetOid = addMetadata(createString("targetOid"), TARGET_OID);
+    public final StringPath targetOwnerName =
+            addMetadata(createString("targetOwnerName"), TARGET_OWNER_NAME);
+    public final StringPath targetOwnerOid =
+            addMetadata(createString("targetOwnerOid"), TARGET_OWNER_OID);
+    public final NumberPath<Integer> targetOwnerType =
+            addMetadata(createNumber("targetOwnerType", Integer.class), TARGET_OWNER_TYPE);
+    public final NumberPath<Integer> targetType =
+            addMetadata(createNumber("targetType", Integer.class), TARGET_TYPE);
+    public final StringPath taskIdentifier =
+            addMetadata(createString("taskIdentifier"), TASK_IDENTIFIER);
+    public final StringPath taskOid = addMetadata(createString("taskOid"), TASK_OID);
     public final DateTimePath<Instant> timestamp =
             addMetadata(createDateTime("timestamp", Instant.class), TIMESTAMP);
 

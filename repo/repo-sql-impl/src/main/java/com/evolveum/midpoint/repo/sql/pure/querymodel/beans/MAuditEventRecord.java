@@ -26,26 +26,26 @@ public class MAuditEventRecord {
     public Integer eventType;
     public String attorneyName;
     public String attorneyOid;
-    public String hostidentifier;
-    public String initiatorname;
-    public String initiatoroid;
-    public Integer initiatortype;
+    public String hostIdentifier;
+    public String initiatorName;
+    public String initiatorOid;
+    public Integer initiatorType;
     public String message;
-    public String nodeidentifier;
+    public String nodeIdentifier;
     public Integer outcome;
     public String parameter;
-    public String remotehostaddress;
-    public String requestidentifier;
+    public String remoteHostAddress;
+    public String requestIdentifier;
     public String result;
-    public String sessionidentifier;
-    public String targetname;
-    public String targetoid;
-    public String targetownername;
-    public String targetowneroid;
-    public Integer targetownertype;
-    public Integer targettype;
-    public String taskidentifier;
-    public String taskoid;
+    public String sessionIdentifier;
+    public String targetName;
+    public String targetOid;
+    public String targetOwnerName;
+    public String targetOwnerOid;
+    public Integer targetOwnerType;
+    public Integer targetType;
+    public String taskIdentifier;
+    public String taskOid;
 
     // "transient" fields not used by Querydsl
     public List<MAuditDelta> deltas;
@@ -57,30 +57,30 @@ public class MAuditEventRecord {
                 ", eventIdentifier='" + eventIdentifier + '\'' +
                 ", timestamp=" + timestamp +
                 ", channel='" + channel + '\'' +
-                ", eventType=" + eventType +
                 ", eventStage=" + eventStage +
-//                ", attorneyName='" + attorneyName + '\'' +
-//                ", attorneyOid='" + attorneyOid + '\'' +
-//                ", hostidentifier='" + hostidentifier + '\'' +
-//                ", initiatorname='" + initiatorname + '\'' +
-//                ", initiatoroid='" + initiatoroid + '\'' +
-//                ", initiatortype=" + initiatortype +
-//                ", message='" + message + '\'' +
-//                ", nodeidentifier='" + nodeidentifier + '\'' +
-//                ", outcome=" + outcome +
-//                ", parameter='" + parameter + '\'' +
-//                ", remotehostaddress='" + remotehostaddress + '\'' +
-//                ", requestidentifier='" + requestidentifier + '\'' +
-//                ", result='" + result + '\'' +
-//                ", sessionidentifier='" + sessionidentifier + '\'' +
-//                ", targetname='" + targetname + '\'' +
-//                ", targetoid='" + targetoid + '\'' +
-//                ", targetownername='" + targetownername + '\'' +
-//                ", targetowneroid='" + targetowneroid + '\'' +
-//                ", targetownertype=" + targetownertype +
-//                ", targettype=" + targettype +
-//                ", taskidentifier='" + taskidentifier + '\'' +
-//                ", taskoid='" + taskoid + '\'' +
+                ", eventType=" + eventType +
+                ", attorneyName='" + attorneyName + '\'' +
+                ", attorneyOid='" + attorneyOid + '\'' +
+                ", hostIdentifier='" + hostIdentifier + '\'' +
+                ", initiatorName='" + initiatorName + '\'' +
+                ", initiatorOid='" + initiatorOid + '\'' +
+                ", initiatorType=" + initiatorType +
+                ", message='" + message + '\'' +
+                ", nodeIdentifier='" + nodeIdentifier + '\'' +
+                ", outcome=" + outcome +
+                ", parameter='" + parameter + '\'' +
+                ", remoteHostAddress='" + remoteHostAddress + '\'' +
+                ", requestIdentifier='" + requestIdentifier + '\'' +
+                ", result='" + result + '\'' +
+                ", sessionIdentifier='" + sessionIdentifier + '\'' +
+                ", targetName='" + targetName + '\'' +
+                ", targetOid='" + targetOid + '\'' +
+                ", targetOwnerName='" + targetOwnerName + '\'' +
+                ", targetOwnerOid='" + targetOwnerOid + '\'' +
+                ", targetOwnerType=" + targetOwnerType +
+                ", targetType=" + targetType +
+                ", taskIdentifier='" + taskIdentifier + '\'' +
+                ", taskOid='" + taskOid + '\'' +
                 '}';
     }
 

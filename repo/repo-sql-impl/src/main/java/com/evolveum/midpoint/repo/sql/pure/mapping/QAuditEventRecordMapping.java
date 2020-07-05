@@ -42,6 +42,10 @@ public class QAuditEventRecordMapping
         addItemMapping(F_OUTCOME, q -> q.outcome,
                 EnumOrdinalItemFilterProcessor.withValueFunction(ROperationResultStatus::fromSchemaValue));
         addItemMapping(F_RESULT, q -> q.result, StringItemFilterProcessor::new);
-        addItemMapping(F_INITIATOR_REF, q -> q.initiatoroid);
+        addItemMapping(F_INITIATOR_REF, q -> q.initiatorOid);
+        addItemMapping(F_ATTORNEY_REF, q -> q.attorneyOid);
+        addItemMapping(F_HOST_IDENTIFIER, q -> q.hostIdentifier, StringItemFilterProcessor::new);
+        addItemMapping(F_REMOTE_HOST_ADDRESS, q -> q.remoteHostAddress, StringItemFilterProcessor::new);
+        addItemMapping(F_REQUEST_IDENTIFIER, q -> q.requestIdentifier, StringItemFilterProcessor::new);
     }
 }

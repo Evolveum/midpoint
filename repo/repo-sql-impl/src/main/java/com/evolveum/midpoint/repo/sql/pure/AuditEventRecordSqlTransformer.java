@@ -25,6 +25,10 @@ public class AuditEventRecordSqlTransformer {
                 .result(row.result)
                 .channel(row.channel)
 //                .initiatorRef() // TODO MID-6319 how to map refs?
+//                .attorneyRef() // ditto
+                .hostIdentifier(row.hostIdentifier)
+                .remoteHostAddress(row.remoteHostAddress)
+                .requestIdentifier(row.requestIdentifier)
                 //
                 ;
         // todo transformation from whatever input

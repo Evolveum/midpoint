@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
@@ -51,13 +52,14 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     private DataSourceFactory dataSourceFactory;
 
     private String initiatorOid;
+    private String attorneyOid;
 
     @Override
     public void initSystem() throws Exception {
-        PrismObject<UserType> initiator = new UserType(prismContext)
-                .name("initiator")
-                .asPrismObject();
-        initiatorOid = repositoryService.addObject(initiator, null, createOperationResult());
+        PrismObject<UserType> initiator = createUser("initiator");
+        initiatorOid = initiator.getOid();
+        PrismObject<UserType> attorney = createUser("attorney");
+        attorneyOid = attorney.getOid();
 
         AuditEventRecord record1 = new AuditEventRecord();
         record1.addPropertyValue("prop", "val1");
@@ -66,6 +68,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.setMessage("record1");
         record1.setOutcome(OperationResultStatus.SUCCESS);
         record1.setResult("result1");
+        record1.setHostIdentifier("localhost");
+        record1.setRemoteHostAddress("192.168.10.10");
         auditService.audit(record1, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record2 = new AuditEventRecord();
@@ -76,6 +80,10 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.setMessage("record2");
         record2.setOutcome(OperationResultStatus.UNKNOWN);
         record2.setInitiator(initiator);
+        record2.setHostIdentifier("127.0.0.1");
+        record2.setRemoteHostAddress("192.168.10.10");
+        record2.setAttorney(attorney);
+        record2.setRequestIdentifier("req-id");
         auditService.audit(record2, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record3 = new AuditEventRecord();
@@ -106,6 +114,15 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         }
     }
 
+    private PrismObject<UserType> createUser(String userName)
+            throws ObjectAlreadyExistsException, SchemaException {
+        PrismObject<UserType> user = new UserType(prismContext)
+                .name(userName)
+                .asPrismObject();
+        repositoryService.addObject(user, null, createOperationResult());
+        return user;
+    }
+
     @Test
     public void test100SearchAllAuditEvents() throws SchemaException {
         when("Searching audit with query without any conditions");
@@ -129,6 +146,19 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("only audit events of the specified type are returned");
         assertThat(result).hasSize(1);
         assertThat(result).allMatch(aer -> aer.getEventType() == AuditEventTypeType.ADD_OBJECT);
+    }
+
+    @Test
+    public void test111SearchByUnusedEventType() throws SchemaException {
+        when("searching audit filtered by unused event type");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_EVENT_TYPE).eq(AuditEventTypeType.RECONCILIATION)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("no audit events are returned");
+        assertThat(result).hasSize(0);
     }
 
     @Test
@@ -356,6 +386,22 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         // TODO check mapping of initiator, see TODO in AuditEventRecordSqlTransformer#toAuditEventRecordType
     }
 
+    @Test
+    public void test152SearchByAttorney() throws SchemaException {
+        when("searching audit filtered by attorney (reference by OID)");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_ATTORNEY_REF)
+                .ref(attorneyOid)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with the specified attorney are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+        // TODO check mapping of initiator, see TODO in AuditEventRecordSqlTransformer#toAuditEventRecordType
+    }
+
     // if this works, all other operations work too based on message related tests
     @Test
     public void test160SearchByChannel() throws SchemaException {
@@ -369,6 +415,48 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("only audit events with exactly the same channel are returned");
         assertThat(result).hasSize(1);
         assertThat(result).allMatch(aer -> aer.getChannel().equals(CHANNEL_REST_URI));
+    }
+
+    @Test
+    public void test161SearchByHostIdentifier() throws SchemaException {
+        when("searching audit filtered by host identifier equal to value");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_HOST_IDENTIFIER).eq("localhost")
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with exactly the same host identifier are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result).allMatch(aer -> aer.getHostIdentifier().equals("localhost"));
+    }
+
+    @Test
+    public void test162SearchByRemoteHostAddress() throws SchemaException {
+        when("searching audit filtered by remote host address equal to value");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_REMOTE_HOST_ADDRESS).eq("192.168.10.10")
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with exactly the same remote host address are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(aer -> aer.getRemoteHostAddress().equals("192.168.10.10"));
+    }
+
+    @Test
+    public void test163SearchByRequestIdentifier() throws SchemaException {
+        when("searching audit filtered by request identifier equal to value");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_REQUEST_IDENTIFIER).eq("req-id")
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with exactly the same request identifier are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result).allMatch(aer -> aer.getRequestIdentifier().equals("req-id"));
     }
 
     // complex filters with AND and/or OR
