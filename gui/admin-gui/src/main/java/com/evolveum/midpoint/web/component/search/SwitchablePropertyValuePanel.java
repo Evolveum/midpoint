@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -58,6 +59,7 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
 
     public SwitchablePropertyValuePanel(String id, IModel<SelectableBean<ValueSearchFilterItem>> model){
         super(id, model);
+        isExpressionMode = getExpressionWrapper() != null;
     }
 
     @Override
@@ -78,7 +80,7 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
         valueContainer.add(valueField);
 
 
-        ExpressionWrapper expression = getModelObject().getValue().getFilter().getExpression();
+        ExpressionWrapper expression = getExpressionWrapper();
         ExpressionType expressionType = null;
         if (expression != null) {
             Object expressionValue = expression.getExpression();
@@ -106,6 +108,11 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                if (isExpressionMode){
+                    SwitchablePropertyValuePanel.this.getModelObject().getValue().getFilter().setExpression(null);
+                } else {
+                    SwitchablePropertyValuePanel.this.getModelObject().getValue().getFilter().setValue(null);
+                }
                 isExpressionMode = !isExpressionMode;
                 target.add(SwitchablePropertyValuePanel.this);
             }
@@ -122,7 +129,7 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
 
     }
 
-    private Component getValueField(String id) {
+    private <T extends Object> Component getValueField(String id) {
         Component searchItemField = null;
         ValueSearchFilterItem valueSearchFilter = getModelObject().getValue();
         ItemDefinition propertyDef = valueSearchFilter.getPropertyDef();
@@ -151,23 +158,28 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
                         }
                     };
                 } else if (CollectionUtils.isNotEmpty(allowedValues)) {
-                    searchItemField = new DropDownChoicePanel<DisplayableValue>(id,
-                            new PropertyModel<>(getModel(), "value." + ValueSearchFilterItem.F_VALUE),
-                            Model.ofList(allowedValues), new IChoiceRenderer<DisplayableValue>() {
+                    List<T> allowedValuesList = new ArrayList<>();
+                    allowedValues.forEach(val -> allowedValuesList.add((T)val.getValue()));
+                    searchItemField = new DropDownChoicePanel<T>(id,
+                            new PropertyModel<T>(getModel(), "value." + ValueSearchFilterItem.F_VALUE),
+                            Model.ofList(allowedValuesList), new IChoiceRenderer<T>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        public Object getDisplayValue(DisplayableValue val) {
-                            return val.getLabel();
+                        public Object getDisplayValue(T val) {
+                            if (val instanceof DisplayableValue){
+                                return ((DisplayableValue) val).getLabel();
+                            }
+                            return val;
                         }
 
                         @Override
-                        public String getIdValue(DisplayableValue val, int index) {
+                        public String getIdValue(T val, int index) {
                             return Integer.toString(index);
                         }
 
                         @Override
-                        public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
+                        public T getObject(String id, IModel<? extends List<? extends T>> choices) {
                             return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
                         }
                     }, true);
@@ -181,6 +193,14 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
             ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         }
         return searchItemField != null ? searchItemField : new WebMarkupContainer(id);
+    }
+
+    private ExpressionWrapper getExpressionWrapper(){
+        SelectableBean<ValueSearchFilterItem> filterModelObj = getModelObject();
+        if (filterModelObj == null || filterModelObj.getValue() == null || filterModelObj.getValue().getFilter() == null){
+            return null;
+        }
+        return filterModelObj.getValue().getFilter().getExpression();
     }
 
 }

@@ -186,7 +186,15 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
         IColumn<SelectableBean<ValueSearchFilterItem>, String> propertyColumn = new PropertyColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.property"),
-                "value." + ValueSearchFilterItem.F_PROPERTY_NAME);
+                "value." + ValueSearchFilterItem.F_PROPERTY_NAME){
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getCssClass() {
+                return getColumnStyleClass();
+            }
+        };
         columns.add(propertyColumn);
 
         IColumn<SelectableBean<ValueSearchFilterItem>, String> valueColumn = new AbstractColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
@@ -196,6 +204,11 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ValueSearchFilterItem>>> item, String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
                 item.add(new SwitchablePropertyValuePanel(id, rowModel));
+            }
+
+            @Override
+            public String getCssClass() {
+                return "max-width-column";
             }
         };
         columns.add(valueColumn);
@@ -217,6 +230,11 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 filterPanel.getBaseFormComponent().add(new EnableBehaviour(() -> availableFilterNames.size() > 1));
                 item.add(filterPanel);
             }
+
+            @Override
+            public String getCssClass() {
+                return getColumnStyleClass();
+            }
         };
         columns.add(filterColumn);
 
@@ -235,14 +253,30 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 matchingRulePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 item.add(matchingRulePanel);
             }
+
+            @Override
+            public String getCssClass() {
+                return getColumnStyleClass();
+            }
         };
         columns.add(matchingRuleColumn);
 
         CheckBoxColumn<SelectableBean<ValueSearchFilterItem>> negationColumn = new CheckBoxColumn<SelectableBean<ValueSearchFilterItem>>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.applyNegotiation"),
-                "value." + ValueSearchFilterItem.F_APPLY_NEGATION);
+                "value." + ValueSearchFilterItem.F_APPLY_NEGATION){
+
+            @Override
+            public String getCssClass() {
+                return getColumnStyleClass();
+            }
+
+        };
         columns.add(negationColumn);
         return columns;
+    }
+
+    private String getColumnStyleClass(){
+        return "mid-width-column";
     }
 
     private LoadableModel<List<Property>> getAvailablePropertiesListModel() {
