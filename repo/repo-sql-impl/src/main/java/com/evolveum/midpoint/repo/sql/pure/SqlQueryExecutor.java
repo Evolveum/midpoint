@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.DataSourceFactory;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
@@ -60,9 +59,9 @@ public class SqlQueryExecutor {
         SqlQueryContext context = new SqlQueryContext(root, rootMapping);
 
         // add conditions (with exists clauses as necessary)
-        ObjectFilter filter = query != null ? query.getFilter() : null;
-        if (filter != null) {
-            context.process(filter);
+        if (query != null) {
+            context.process(query.getFilter());
+            context.setPagination(query.getPaging());
         }
 
         // TODO: what if we declare AuditEventRecordType, but we want transformed result?
@@ -83,11 +82,7 @@ public class SqlQueryExecutor {
         try (Connection connection = getConnection()) {
             EntityPath<?> root = context.root();
             SQLQuery<Tuple> query = context.query(connection)
-                    .select(Projections.tuple(root))
-                    // TODO add paging
-//                    .offset(2)
-//                    .limit(2)
-                    ;
+                    .select(Projections.tuple(root));
             // TODO logging
             System.out.println("query = " + query);
             long count = query.fetchCount();

@@ -44,8 +44,11 @@ public class QAuditEventRecordMapping
         addItemMapping(F_RESULT, StringItemFilterProcessor.mapper(path(q -> q.result)));
         addItemMapping(F_INITIATOR_REF, RefItemFilterProcessor.mapper(path(q -> q.initiatorOid)));
         addItemMapping(F_ATTORNEY_REF, RefItemFilterProcessor.mapper(path(q -> q.attorneyOid)));
+        // no need to map initiatorName, initiatorType, attorneyName for query, OID should suffice
         addItemMapping(F_HOST_IDENTIFIER, StringItemFilterProcessor.mapper(path(q -> q.hostIdentifier)));
         addItemMapping(F_REMOTE_HOST_ADDRESS, StringItemFilterProcessor.mapper(path(q -> q.remoteHostAddress)));
         addItemMapping(F_REQUEST_IDENTIFIER, StringItemFilterProcessor.mapper(path(q -> q.requestIdentifier)));
+        // TODO rethink the mapping again to support order by - ideally without repeating the q-mapping
+        // for poly-string, orig q-mapping is "primary" and used for order by, try to reflect that
     }
 }

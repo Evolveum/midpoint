@@ -557,4 +557,34 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("all audit records are returned (no restricting conditions are added)");
         assertThat(result).hasSize(3);
     }
+
+    @Test
+    public void test950SearchWithNoPaging() throws SchemaException {
+        when("searching audit using no paging");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("all audit records are returned");
+        assertThat(result).hasSize(3);
+    }
+
+    // TODO this asc(...) works by accident, add more tests with ordering (and implement it :-))
+
+    @Test
+    public void test955SearchWithOffsetAndMaxSize() throws SchemaException {
+        when("searching audit using no paging");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .asc(AuditEventRecordType.F_TIMESTAMP)
+                .offset(1)
+                .maxSize(1)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only the expected page is returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+    }
 }
