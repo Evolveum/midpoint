@@ -220,8 +220,8 @@ public class ConsolidationProcessor {
                     .valueMatcher(null)
                     .comparator(null)
                     .addUnchangedValues(addUnchangedValues)
+                    .addUnchangedValuesExceptForNormalMappings(false) // todo
                     .filterExistingValues(projCtx.hasFullShadow())
-                    .specialZeroSetProcessing(false) // todo
                     .isExclusiveStrong(false)
                     .contextDescription(discr.toHumanReadableDescription())
                     .strengthSelector(StrengthSelector.ALL_EXCEPT_WEAK)
@@ -406,8 +406,8 @@ public class ConsolidationProcessor {
                     .valueMatcher(valueMatcher)
                     .comparator(comparator)
                     .addUnchangedValues(addUnchangedValues || forceAddUnchangedValues)
+                    .addUnchangedValuesExceptForNormalMappings(false) // todo
                     .filterExistingValues(projCtx.hasFullShadow())
-                    .specialZeroSetProcessing(false) // todo
                     .isExclusiveStrong(isExclusiveStrong)
                     .contextDescription(discr.toHumanReadableDescription())
                     .strengthSelector(projCtx.hasFullShadow() ? strengthSelector : strengthSelector.notWeak())

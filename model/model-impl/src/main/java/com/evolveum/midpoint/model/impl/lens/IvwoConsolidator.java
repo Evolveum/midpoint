@@ -107,11 +107,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     private final boolean addUnchangedValues;
 
     /**
-     * This is the behavior originally present in ObjectTemplateProcessor, then moved to DeltaSetTripleConsolidation,
-     * then moved here. We should somehow integrate it with the rest of consolidation processing. (Including
-     * finding better name.)
+     * Whether we want to consider values from zero set as being added, except for normal, source-ful mappings.
      */
-    private final boolean specialZeroSetProcessing;
+    private final boolean addUnchangedValuesExceptForNormalMappings;
 
     /**
      * If true, we skip adding values that are already present in the item
@@ -176,8 +174,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         comparator = builder.comparator;
 
         addUnchangedValues = builder.addUnchangedValues;
+        addUnchangedValuesExceptForNormalMappings = builder.addUnchangedValuesExceptForNormalMappings;
+
         filterExistingValues = builder.filterExistingValues;
-        specialZeroSetProcessing = builder.specialZeroSetProcessing;
 
         strengthSelector = builder.strengthSelector;
         itemIsExclusiveStrong = builder.isExclusiveStrong;
@@ -209,15 +208,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             } else {
                 LOGGER.trace("Item {} will have some values in {}, weak mapping processing skipped", itemPath, contextDescription);
             }
-
-            if (specialZeroSetProcessing) {
-                doSpecialZeroSetProcessing();
-            }
-
-            // TODO What about skipped consolidation (resulting in empty delta)?
-            //  Shouldn't we set estimated old values also there?
-            setEstimatedOldValues();
         }
+        setEstimatedOldValues();
         logEnd();
 
         return itemDelta;
@@ -271,21 +263,24 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     }
 
     private void applyWeakMappings() throws SchemaException {
-        Collection<? extends ItemValueWithOrigin<V,D>> nonNegativeIvwos = ivwoTriple.getNonNegativeValues();
-
-        // TODO why we select values from ASSIGNMENTS, then OUTBOUND, then all?
-        Collection<ItemValueWithOrigin<V,D>> valuesToAdd = selectWeakValues(nonNegativeIvwos, OriginType.ASSIGNMENTS);
-        if (valuesToAdd.isEmpty()) {
-            valuesToAdd = selectWeakValues(nonNegativeIvwos, OriginType.OUTBOUND);
-        }
-        if (valuesToAdd.isEmpty()) {
-            valuesToAdd = selectWeakValues(nonNegativeIvwos, null);
-        }
+        Collection<ItemValueWithOrigin<V,D>> valuesToAdd = selectWeakNonNegativeValues();
         LOGGER.trace("No value for item {} in {}, weak mapping processing yielded values: {}",
                 itemPath, contextDescription, valuesToAdd);
         for (ItemValueWithOrigin<V, D> valueWithOrigin : valuesToAdd) {
             itemDelta.addValueToAdd(LensUtil.cloneAndApplyMetadata(valueWithOrigin.getItemValue(), isAssignment, singleton(valueWithOrigin)));
         }
+    }
+
+    private Collection<ItemValueWithOrigin<V,D>> selectWeakNonNegativeValues() {
+        Collection<ItemValueWithOrigin<V,D>> values = new ArrayList<>();
+        if (strengthSelector.isWeak()) {
+            for (ItemValueWithOrigin<V, D> ivwo : ivwoTriple.getNonNegativeValues()) {
+                if (ivwo.getMapping().getStrength() == MappingStrengthType.WEAK) {
+                    values.add(ivwo);
+                }
+            }
+        }
+        return values;
     }
 
     private class ValueConsolidation {
@@ -341,29 +336,29 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
         private void consolidate() throws PolicyViolationException, ExpressionEvaluationException, SchemaException {
 
-            checkDeletionOfZeroStrongValue();
+            checkDeletionOfStrongValue();
 
-            if (!zeroIvwos.isEmpty() && !addUnchangedValues) {
-                LOGGER.trace("Value {} unchanged, doing nothing", value0);
-                applyMetadataOnUnchangedValue(); // TODO
-                return;
-            }
-
-            if (!findReasonsToAdd().isEmpty()) {
+            findReasonsToAdd();
+            if (!reasonsToAdd.isEmpty()) {
                 new AddConsolidation().consolidate();
             } else {
                 new NoAddConsolidation().consolidate();
             }
         }
 
-        private Collection<ItemValueWithOrigin<V, D>> findReasonsToAdd() {
+        private void findReasonsToAdd() {
+            reasonsToAdd = new HashSet<>(plusIvwos);
             if (addUnchangedValues) {
-                //noinspection unchecked
-                reasonsToAdd = MiscUtil.union(zeroIvwos, plusIvwos);
+                reasonsToAdd.addAll(zeroIvwos);
+            } else if (addUnchangedValuesExceptForNormalMappings) {
+                for (ItemValueWithOrigin<V, D> zeroIvwo : zeroIvwos) {
+                    if (zeroIvwo.isStrong() || zeroIvwo.isNormal() && zeroIvwo.isSourceless() || zeroIvwo.isWeak()) {
+                        reasonsToAdd.add(zeroIvwo);
+                    }
+                }
             } else {
                 reasonsToAdd = plusIvwos;
             }
-            return reasonsToAdd;
         }
 
         private void checkMappingExclusiveness(PrismValueDeltaSetTripleProducer<V, D> mapping) throws ExpressionEvaluationException {
@@ -377,20 +372,25 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             }
         }
 
-        private void checkDeletionOfZeroStrongValue() throws PolicyViolationException {
-            PrismValueDeltaSetTripleProducer<V, D> zeroStrongMapping = findStrongMappingAmongZeroIvwos();
+        private void checkDeletionOfStrongValue() throws PolicyViolationException {
+            if (aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value0, true)) {
+                checkIfStrong(zeroIvwos);
+                checkIfStrong(plusIvwos);
+            }
+        }
 
-            // We perhaps should not rely on current apriori delta, as it contains both primary and secondary changes.
-            if (zeroStrongMapping != null && aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value0, true)) {
+        private void checkIfStrong(Collection<ItemValueWithOrigin<V, D>> ivwos) throws PolicyViolationException {
+            PrismValueDeltaSetTripleProducer<V, D> strongMapping = findStrongMapping(ivwos);
+            if (strongMapping != null) {
                 throw new PolicyViolationException("Attempt to delete value " + value0 + " from item " + itemPath
-                        + " but that value is mandated by a strong " + zeroStrongMapping.toHumanReadableDescription()
+                        + " but that value is mandated by a strong " + strongMapping.toHumanReadableDescription()
                         + " (for " + contextDescription + ")");
             }
         }
 
         @Nullable
-        private PrismValueDeltaSetTripleProducer<V, D> findStrongMappingAmongZeroIvwos() {
-            for (ItemValueWithOrigin<V,D> pvwo : MiscUtil.emptyIfNull(zeroIvwos)) {
+        private PrismValueDeltaSetTripleProducer<V, D> findStrongMapping(Collection<ItemValueWithOrigin<V, D>> ivwos) {
+            for (ItemValueWithOrigin<V,D> pvwo : MiscUtil.emptyIfNull(ivwos)) {
                 PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     return mapping;
@@ -434,30 +434,21 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
              * So let us sort out the mappings to learn about the presence of weak-normal-strong ones and decide
              * on adding/not-adding the value using this information.
              */
-            private void consolidate() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
+            private void consolidate() throws ExpressionEvaluationException, SchemaException {
                 classifyMappings(reasonsToAdd, true);
                 if (shouldAddValue()) {
                     itemDelta.addValueToAdd(LensUtil.cloneAndApplyMetadata(value0, isAssignment, reasonsToAdd));
                 }
             }
 
-            private boolean shouldAddValue() throws PolicyViolationException {
+            private boolean shouldAddValue() {
                 if (hasOnlyWeakMappings) {
                     LOGGER.trace("Value {} mapping is weak in item {}, postponing processing in {}",
                             value0, itemPath, contextDescription);
                     return false;
                 }
 
-                // If strength selector for normal + strong is off, we see only weak mappings and so we are not here.
-                assert strengthSelector.isNormal() || strengthSelector.isStrong();
-
-                if (hasAtLeastOneStrongMapping) {
-                    // We perhaps should not rely on current apriori delta, as it contains both primary and secondary changes.
-                    if (aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value0, true)) {
-                        throw new PolicyViolationException("Attempt to delete value "+ value0 +" from item "+itemPath
-                                +" but that value is mandated by a strong mapping (in "+contextDescription+")");
-                    }
-                } else {
+                if (!hasAtLeastOneStrongMapping) {
                     if (ignoreNormalMappings) {
                         LOGGER.trace("Value {} mapping is normal in item {} and we have exclusiveStrong, skipping processing in {}",
                                 value0, itemPath, contextDescription);
@@ -469,6 +460,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                         return false;
                     }
                 }
+
                 if (filterExistingValues) {
                     V existingValue = findValueInExistingItem();
                     if (existingValue != null) {
@@ -488,13 +480,17 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             /**
              * We have no reason to add the value based on the mappings. Let's check the other options.
              */
-            private void consolidate() throws SchemaException, ExpressionEvaluationException {
+            private void consolidate() throws ExpressionEvaluationException {
 
                 // We need to check for empty plus set. Values that are both in plus and minus are considered
                 // to have a reason to be added. This is covered by "AddConsolidation" case above.
                 assert plusIvwos.isEmpty();
 
-                if (!minusIvwos.isEmpty()) {
+                if (!zeroIvwos.isEmpty()) {
+                    // We should do something with the metadata here.
+                    applyMetadataOnUnchangedValue();
+
+                } else if (!minusIvwos.isEmpty()) {
                     classifyMappings(minusIvwos, false);
                     if (shouldDeleteValue()) {
                         //noinspection unchecked
@@ -703,19 +699,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         return mappingStrength == MappingStrengthType.STRONG && !strengthSelector.isStrong() ||
                 mappingStrength == MappingStrengthType.NORMAL && !strengthSelector.isNormal() ||
                 mappingStrength == MappingStrengthType.WEAK && !strengthSelector.isWeak();
-    }
-
-    private Collection<ItemValueWithOrigin<V,D>> selectWeakValues(Collection<? extends ItemValueWithOrigin<V,D>> ivwos, OriginType origin) {
-        Collection<ItemValueWithOrigin<V,D>> values = new ArrayList<>();
-        if (strengthSelector.isWeak()) {
-            for (ItemValueWithOrigin<V, D> ivwo : ivwos) {
-                if (ivwo.getMapping().getStrength() == MappingStrengthType.WEAK &&
-                        (origin == null || origin == ivwo.getItemValue().getOriginType())) {
-                    values.add(ivwo);
-                }
-            }
-        }
-        return values;
     }
 
     /**

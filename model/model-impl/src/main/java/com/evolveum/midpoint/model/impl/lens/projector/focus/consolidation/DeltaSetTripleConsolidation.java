@@ -102,8 +102,8 @@ class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition
                 .valueMatcher(null)
                 .comparator(null)
                 .addUnchangedValues(addUnchangedValues)
+                .addUnchangedValuesExceptForNormalMappings(true)
                 .filterExistingValues(true)
-                .specialZeroSetProcessing(true)
                 .contextDescription(env.contextDescription)
                 .strengthSelector(StrengthSelector.ALL)
                 .build();

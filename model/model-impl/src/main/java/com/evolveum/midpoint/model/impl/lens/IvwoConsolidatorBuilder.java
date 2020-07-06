@@ -31,7 +31,7 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     Comparator<V> comparator;
     boolean addUnchangedValues;
     boolean filterExistingValues;
-    boolean specialZeroSetProcessing;
+    boolean addUnchangedValuesExceptForNormalMappings;
     boolean isExclusiveStrong;
     String contextDescription;
     StrengthSelector strengthSelector;
@@ -88,8 +88,8 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
-    public IvwoConsolidatorBuilder<V, D, I> specialZeroSetProcessing(boolean val) {
-        specialZeroSetProcessing = val;
+    public IvwoConsolidatorBuilder<V, D, I> addUnchangedValuesExceptForNormalMappings(boolean val) {
+        addUnchangedValuesExceptForNormalMappings = val;
         return this;
     }
 
