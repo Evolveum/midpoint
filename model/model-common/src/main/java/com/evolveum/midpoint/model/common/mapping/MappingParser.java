@@ -107,7 +107,7 @@ class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> {
                 source.recompute();
 
                 // Override existing sources (e.g. default source)
-                m.sources.removeIf(next -> next.getName().equals(source.getName()));
+                m.sources.removeIf(existing -> existing.getName().equals(source.getName()));
                 m.sources.add(source);
             }
         }

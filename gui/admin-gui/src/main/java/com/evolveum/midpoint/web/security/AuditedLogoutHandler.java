@@ -75,12 +75,11 @@ public class AuditedLogoutHandler extends SimpleUrlLogoutSuccessHandler {
             targetUrl = getDefaultTargetUrl();
         } else {
             targetUrl = GuiConstants.DEFAULT_PATH_AFTER_LOGOUT;
-        }
-
-        if (authentication instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
-            if (mpAuthentication.getAuthenticationChannel() != null) {
-                targetUrl = mpAuthentication.getAuthenticationChannel().getPathAfterLogout();
+            if (authentication instanceof MidpointAuthentication) {
+                MidpointAuthentication mpAuthentication = (MidpointAuthentication) authentication;
+                if (mpAuthentication.getAuthenticationChannel() != null) {
+                    targetUrl = mpAuthentication.getAuthenticationChannel().getPathAfterLogout();
+                }
             }
         }
 

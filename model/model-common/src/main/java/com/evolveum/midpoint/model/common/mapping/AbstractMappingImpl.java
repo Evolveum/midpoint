@@ -287,7 +287,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      */
     private TimeConstraintsEvaluation timeConstraintsEvaluation;
 
-
     /**
      * When the mapping evaluation started. Used only if profiling is turned on.
      */

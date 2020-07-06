@@ -63,7 +63,7 @@ public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefiniti
 
     boolean isSingleValue(LayerType layer);
 
-    boolean isExlusiveStrong();
+    boolean isExclusiveStrong();
 
     PropertyLimitations getLimitations(LayerType layer);
 
