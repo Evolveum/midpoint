@@ -13,12 +13,13 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
+import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.util.QNameUtil;
 
 /**
  * Common supertype for mapping between Q-classes and model (prism) classes.
- * See {@link #addItemMapping(ItemName, Function, Function)} for details about mapping mechanism.
+ * See {@link #addItemMapping(ItemName, Function)} for details about mapping mechanism.
  * <p>
  * Goals:
  * <ul>
@@ -40,10 +41,8 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
 
     private final Map<String, ColumnMetadata> columns = new LinkedHashMap<>();
 
-    // Is one column enough? For polystring we will have to map two anyway...
-//    private final Map<QName, ColumnMetadata> itemToColumn = new LinkedHashMap<>();
-
-    private final Map<QName, ItemMapping> itemFilterProcessorMapping = new LinkedHashMap<>();
+    private final Map<QName, Function<SqlPathContext, FilterProcessor<?>>>
+            itemFilterProcessorMapping = new LinkedHashMap<>();
 
     private Q defaultAlias;
 
@@ -80,59 +79,56 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
      * Adds information how item (attribute) from model type is mapped to query,
      * especially for condition creating purposes.
      * <p>
-     * The {@code processorFactory} function is typically as a constructor to one of the
-     * {@code *ItemFilterProcessor} classes, because at the time of mapping specification
-     * we don't have the actual query path representing the column.
+     * The {@code processorFactory} function must provide {@link FilterProcessor} that can process
+     * {@link ObjectFilter} related to the {@link ItemName} specified as the first parameter.
+     * It must be "factory function" because at the time of mapping specification
+     * we don't have the actual query path representing the entity or the column.
      * These paths are non-static properties of query class instances.
-     * But it is possible to specify, how to obtain item path from query type instance
-     * (function provided as {@code rootToQueryItem} parameter) and then how to create
-     * {@link FilterProcessor} for such a path ({@code processorFactory} function).
+     * <p>
+     * The actually provided {@code processorFactory} function must also somehow "wrap" the
+     * information how the query path representing entity translates to the column that represents
+     * the specified {@code itemName} from the model.
+     * See usages how this is typically done - this may vary by column types and for some types
+     * (e.g. poly-strings) there may be other than 1-to-1 mapping.
+     * <p>
+     * Creation of {@code processorFactory} is typically simplified by static methods
+     * {@code #mapper()} provided on various {@code *ItemFilterProcessor} classes.
+     * This works as a "factory function factory" (or "processor factory factory", if you will).
      *
      * @param itemName item name from schema type (see {@code F_*} constants on schema types)
-     * @param rootToQueryItem function returning query attribute path for the base (entity) path
-     * @param processorFactory function creating {@link FilterProcessor} for given attribute path
+     * @param processorFactory function creating {@link FilterProcessor} for the given itemName
+     * using the current {@link SqlPathContext}
      */
-    public <A> void addItemMapping(
+    public void addItemMapping(
             ItemName itemName,
-            Function<Q, Path<A>> rootToQueryItem,
-            Function<Path<A>, FilterProcessor<?>> processorFactory) {
-        itemFilterProcessorMapping.put(itemName,
-                new ItemMapping<>(rootToQueryItem, processorFactory));
+            Function<SqlPathContext, FilterProcessor<?>> processorFactory) {
+        itemFilterProcessorMapping.put(itemName, processorFactory);
     }
 
     /**
-     * Version of item mapping when item filter processor is not necessary.
-     * This is used for instance for reference filter which already knows exactly what to do
-     * and doesn't need additional (typically type related) information about the query item.
+     * Helping lambda "wrapper" that helps with type inference when mapping paths from entity path.
+     * The returned types are ambiguous just as they are used in {@code mapper()} static methods
+     * on item filter processors.
      */
-    public <A> void addItemMapping(
-            ItemName itemName,
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    protected <A> Function<EntityPath<?>, Path<?>> path(
             Function<Q, Path<A>> rootToQueryItem) {
-        itemFilterProcessorMapping.put(itemName,
-                new ItemMapping<>(rootToQueryItem, null));
+        return (Function) rootToQueryItem;
     }
 
     // we want loose typing for client's sake, there is no other chance to get the right type here
     public <T extends ObjectFilter> @NotNull FilterProcessor<T> getFilterProcessor(
-            ItemName itemName, Path<?> entityPath)
+            ItemName itemName, SqlPathContext context)
             throws QueryException {
-        ItemMapping<?, ?> itemMapping = QNameUtil.getByQName(itemFilterProcessorMapping, itemName);
+        Function<SqlPathContext, FilterProcessor<?>> itemMapping =
+                QNameUtil.getByQName(itemFilterProcessorMapping, itemName);
         if (itemMapping == null) {
             throw new QueryException("Missing mapping for " + itemName
                     + " in mapping " + getClass().getSimpleName());
         }
 
         //noinspection unchecked
-        return (FilterProcessor<T>) itemMapping.createFilterProcessor(entityPath);
-    }
-
-    public Path<?> entityToItemPath(ItemName itemName, Path<?> entityPath) throws QueryException {
-        ItemMapping<?, ?> itemMapping = QNameUtil.getByQName(itemFilterProcessorMapping, itemName);
-        if (itemMapping == null) {
-            throw new QueryException("Missing mapping for " + itemName
-                    + " in mapping " + getClass().getSimpleName());
-        }
-        return itemMapping.entityToItemPath(entityPath);
+        return (FilterProcessor<T>) itemMapping.apply(context);
     }
 
     public String tableName() {
@@ -151,16 +147,15 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
         return queryType;
     }
 
-    public Q newAlias(String alias) {
+    public Q newAlias(String alias) throws QueryException {
         try {
             return queryType.getConstructor(String.class).newInstance(alias);
         } catch (ReflectiveOperationException e) {
-            // TODO MID-6319
-            throw new RuntimeException(e);
+            throw new QueryException("Invalid constructor for type " + queryType, e);
         }
     }
 
-    public synchronized Q defaultAlias() {
+    public synchronized Q defaultAlias() throws QueryException {
         if (defaultAlias == null) {
             defaultAlias = newAlias(defaultAliasName);
         }
@@ -168,27 +163,4 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
     }
 
     // TODO extension columns + null default alias after every change - synchronized!
-
-    // E = entity type, A = attribute (path) type
-    private static class ItemMapping<E extends EntityPath<?>, A> {
-        public final Function<E, Path<A>> rootToItem;
-        public final Function<Path<A>, FilterProcessor<?>> processorFactory;
-
-        private ItemMapping(
-                Function<E, Path<A>> rootToItem,
-                Function<Path<A>, FilterProcessor<?>> processorFactory) {
-            this.rootToItem = rootToItem;
-            this.processorFactory = processorFactory;
-        }
-
-        public FilterProcessor<?> createFilterProcessor(Path<?> entityPath) {
-            Path<A> itemPath = entityToItemPath(entityPath);
-            return processorFactory.apply(itemPath);
-        }
-
-        public Path<A> entityToItemPath(Path<?> entityPath) {
-            //noinspection unchecked
-            return rootToItem.apply((E) entityPath);
-        }
-    }
 }

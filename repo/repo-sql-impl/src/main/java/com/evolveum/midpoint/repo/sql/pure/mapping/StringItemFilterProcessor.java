@@ -1,27 +1,38 @@
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
-import com.querydsl.core.types.*;
+import java.util.function.Function;
+
+import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
+import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 /**
- * Mapping for a string attribute path (Prism item).
+ * Filter processor for a string attribute path (Prism item).
  */
-public class StringItemFilterProcessor implements FilterProcessor<PropertyValueFilter<String>> {
+public class StringItemFilterProcessor extends ItemFilterProcessor<PropertyValueFilter<String>> {
 
     private final Path<?> path;
 
-    public StringItemFilterProcessor(Path<?> path) {
+    /**
+     * Returns the mapper function creating the string filter processor from context.
+     */
+    public static Function<SqlPathContext, FilterProcessor<?>> mapper(
+            Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+        return context -> new StringItemFilterProcessor(rootToQueryItem.apply(context.path()));
+    }
+
+    private StringItemFilterProcessor(Path<?> path) {
         this.path = path;
     }
 
-    @SuppressWarnings("ConstantConditions")
     @Override
     public Predicate process(PropertyValueFilter<String> filter) throws QueryException {
-        String value = filter.getSingleValue().getRealValue();
-        Ops operator = operation(filter);
-        return ExpressionUtils.predicate(operator, path, ConstantImpl.create(value));
+        String value = getSingleValue(filter);
+        return createBinaryCondition(filter, path, value);
     }
 }

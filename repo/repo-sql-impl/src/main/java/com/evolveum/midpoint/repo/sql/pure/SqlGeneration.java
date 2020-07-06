@@ -24,13 +24,11 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 // TODO MID-6319 must go after done
 @Deprecated
 public class SqlGeneration {
-
-    public static final QAuditEventRecord M_AUDIT_EVENT =
-            QAuditEventRecordMapping.INSTANCE.defaultAlias();
 
     public static void main(String[] args) throws Exception {
         org.h2.Driver.load();
@@ -47,11 +45,11 @@ public class SqlGeneration {
     private static void extensionExperiments1() throws SQLException {
         try (Connection conn = getConnection()) {
             QAuditEventRecord aer = new QAuditEventRecord("aer");
-            System.out.println("M_AUDIT_EVENT.meta.size = " + M_AUDIT_EVENT.all().length);
-            System.out.println("M_AUDIT_DELTA.meta.size = " + M_AUDIT_DELTA.all().length);
+            System.out.println("M_AUDIT_EVENT.meta.size = " + aer.all().length);
+            System.out.println("M_AUDIT_DELTA.meta.size = " + aer.all().length);
 
-            QMap auditDelta = Projections.map(M_AUDIT_DELTA.all());
-            QMap auditEvent = Projections.map(M_AUDIT_EVENT.all());
+            QMap auditDelta = Projections.map(aer.all());
+            QMap auditEvent = Projections.map(aer.all());
 //        List<Tuple> result = queryFactory
             List<?> result = newQuery(conn)
                     // this way we don't use M-beans, which is more flexible, and still get close to "select whole entity A+B"
@@ -60,9 +58,9 @@ public class SqlGeneration {
                     // This is also interesting, we instruct to create map for auditDelta paths.
                     // .all() above is necessary, otherwise the map contains only one M-bean, which we want to avoid
                     // Also, we want to extract this expression as variable, so we can use it later, e.g. to get from a tuple, or mapOneToMany processing, etc.
-//                .select(M_AUDIT_EVENT.id, auditDelta)
-                    .select(M_AUDIT_EVENT)
-                    .from(M_AUDIT_EVENT)
+//                .select(aer.id, auditDelta)
+                    .select(aer)
+                    .from(aer)
 //                .leftJoin(M_AUDIT_EVENT._auditDeltaFk, M_AUDIT_DELTA)
                     .fetch();
 //        Map<Long, Collection<Map<Expression<?>, ?>>> mapResult =
@@ -94,22 +92,23 @@ public class SqlGeneration {
         return pathsCombined.toArray(new Expression<?>[0]);
     }
 
-    private static void examples() throws SQLException {
+    private static void examples() throws SQLException, QueryException {
         try (Connection conn = getConnection()) {
-            System.out.println(M_AUDIT_EVENT);
-            System.out.println("\nColumns: " + M_AUDIT_EVENT.getColumns());
-            System.out.println("\nAnnotated element: " + M_AUDIT_EVENT.getAnnotatedElement());
-            System.out.println("\nFKs: " + M_AUDIT_EVENT.getForeignKeys());
-            System.out.println("\nInverse FKs: " + M_AUDIT_EVENT.getInverseForeignKeys());
+            QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
+            System.out.println(aer);
+            System.out.println("\nColumns: " + aer.getColumns());
+            System.out.println("\nAnnotated element: " + aer.getAnnotatedElement());
+            System.out.println("\nFKs: " + aer.getForeignKeys());
+            System.out.println("\nInverse FKs: " + aer.getInverseForeignKeys());
             System.out.println();
 
             System.out.println("audit size = " + newQuery(conn)
-                    .select(M_AUDIT_EVENT)
-                    .from(M_AUDIT_EVENT)
+                    .select(aer)
+                    .from(aer)
                     .fetchCount());
 
             SQLQuery<Tuple> query = newQuery(conn)
-                    .select(M_AUDIT_EVENT, M_AUDIT_DELTA)
+                    .select(aer, M_AUDIT_DELTA)
 //                .select(M_AUDIT_EVENT.id, M_AUDIT_DELTA.checksum)
 //                .from(M_AUDIT_EVENT)
                     // leftJoin if we want also events without deltas
@@ -117,30 +116,30 @@ public class SqlGeneration {
                     // alternatively:
                     // .join(M_AUDIT_DELTA).on(M_AUDIT_DELTA.recordId.eq(M_AUDIT_EVENT.id))
 //                .orderBy(M_AUDIT_EVENT.id.asc())
-                    .from(M_AUDIT_EVENT, M_AUDIT_DELTA)
-                    .where(M_AUDIT_EVENT.id.eq(M_AUDIT_DELTA.recordId)) // this replaces "join-on", but only inner
-                    .where(M_AUDIT_EVENT.id.eq(452L)); // "Works on my computer! :-)"
+                    .from(aer, M_AUDIT_DELTA)
+                    .where(aer.id.eq(M_AUDIT_DELTA.recordId)) // this replaces "join-on", but only inner
+                    .where(aer.id.eq(452L)); // "Works on my computer! :-)"
 
             List<Tuple> result = query.fetch();
             System.out.println("result = " + result);
             System.out.println("\nsize: " + result.size());
 
-            System.out.println("\ncount: " + query.transform(groupBy(M_AUDIT_EVENT.id).as(M_AUDIT_DELTA.count())));
-            Map<?, ?> transform = query.transform(GroupBy.groupBy(M_AUDIT_EVENT.id).as(GroupBy.list(M_AUDIT_DELTA)));
+            System.out.println("\ncount: " + query.transform(groupBy(aer.id).as(M_AUDIT_DELTA.count())));
+            Map<?, ?> transform = query.transform(GroupBy.groupBy(aer.id).as(GroupBy.list(M_AUDIT_DELTA)));
             System.out.println("transform = " + transform);
 
             // "manual" transformation of one-to-many to proper graph
             List<Tuple> plainResult = newQuery(conn)
-                    .select(M_AUDIT_EVENT, M_AUDIT_DELTA)
-                    .from(M_AUDIT_EVENT)
-                    .leftJoin(M_AUDIT_EVENT._auditDeltaFk, M_AUDIT_DELTA)
+                    .select(aer, M_AUDIT_DELTA)
+                    .from(aer)
+                    .leftJoin(aer._auditDeltaFk, M_AUDIT_DELTA)
                     // alternatively:
                     // .leftJoin(M_AUDIT_DELTA).on(M_AUDIT_DELTA.recordId.eq(M_AUDIT_EVENT.id))
 //                .orderBy(M_AUDIT_EVENT.id.asc())
-                    .where(M_AUDIT_EVENT.id.eq(452L))
+                    .where(aer.id.eq(452L))
                     .fetch();
             Map<MAuditEventRecord, Collection<MAuditDelta>> resultMap =
-                    mapOneToMany(plainResult, M_AUDIT_EVENT, M_AUDIT_DELTA, (o, m) -> o.addDelta(m));
+                    mapOneToMany(plainResult, aer, M_AUDIT_DELTA, (o, m) -> o.addDelta(m));
             System.out.println("\nFinal result" + resultMap);
 
             System.out.println("deltas for 1st item: " + resultMap.keySet().iterator().next().deltas);

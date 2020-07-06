@@ -15,6 +15,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 /**
  * Context information about SQL query.
  * Works as a kind of accumulator where information are added as the object query is interpreted.
+ * It is also used as an entry point for {@link FilterProcessor} execution for this query.
  */
 public class SqlQueryContext extends SqlPathContext implements FilterProcessor<ObjectFilter> {
 

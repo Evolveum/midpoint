@@ -3,10 +3,12 @@ package com.evolveum.midpoint.repo.sql.pure.mapping;
 import java.util.function.Function;
 
 import com.querydsl.core.types.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
+import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 /**
@@ -17,7 +19,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
  * to final type used for ordinal. Can be {@code null} if no mapping is needed.
  */
 public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
-        implements FilterProcessor<PropertyValueFilter<E>> {
+        extends ItemFilterProcessor<PropertyValueFilter<E>> {
 
     private final Path<Integer> path;
 
@@ -25,41 +27,46 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
     private final Function<E, Enum<?>> valueFunction;
 
     /**
-     * Creates enum filter processor for concrete attribute path.
-     * This has no mapping function so filter must contain enum whose ordinal numbers are used in repo.
+     * Returns the mapper function creating the enum filter processor from context.
+     * With no value mapping function the filter value must contain enum whose ordinal
+     * numbers are used in the repository.
      */
-    public EnumOrdinalItemFilterProcessor(Path<Integer> path) {
-        this(path, null);
+    public static Function<SqlPathContext, FilterProcessor<?>> mapper(
+            @NotNull Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+        //noinspection unchecked
+        return ctx -> new EnumOrdinalItemFilterProcessor<>(
+                (Path<Integer>) rootToQueryItem.apply(ctx.path()));
     }
 
     /**
-     * Creates enum filter processor for concrete attribute path.
-     * This uses value function for enum conversion before calling ordinal.
+     * Returns the mapper function creating the enum filter processor from context
+     * with enum value mapping function.
      */
-    public EnumOrdinalItemFilterProcessor(Path<Integer> path,
+    public static <E extends Enum<E>> Function<SqlPathContext, FilterProcessor<?>> mapper(
+            @NotNull Function<EntityPath<?>, Path<?>> rootToQueryItem,
+            @Nullable Function<E, Enum<?>> valueFunction) {
+        //noinspection unchecked
+        return ctx -> new EnumOrdinalItemFilterProcessor<>(
+                (Path<Integer>) rootToQueryItem.apply(ctx.path()), valueFunction);
+    }
+
+    private EnumOrdinalItemFilterProcessor(Path<Integer> path,
             @Nullable Function<E, Enum<?>> valueFunction) {
         this.path = path;
         this.valueFunction = valueFunction;
     }
 
-    /**
-     * Allows shorter creation of path->handler mapping function for enum-ordinal paths with
-     * enum value mapping function. See the single line lambda it may replace.
-     */
-    public static <E extends Enum<E>> Function<Path<Integer>, FilterProcessor<?>> withValueFunction(
-            @Nullable Function<E, Enum<?>> valueFunction) {
-        return p -> new EnumOrdinalItemFilterProcessor<>(p, valueFunction);
+    private EnumOrdinalItemFilterProcessor(Path<Integer> path) {
+        this(path, null);
     }
 
     @Override
-    @SuppressWarnings("ConstantConditions")
     public Predicate process(PropertyValueFilter<E> filter) throws QueryException {
-        E value = filter.getSingleValue().getRealValue();
-        Enum<?> finalValue = valueFunction != null
+        E value = getSingleValue(filter);
+        Enum<?> finalValue = valueFunction != null && value != null
                 ? valueFunction.apply(value)
                 : value;
-        Ops operator = operation(filter);
-        return ExpressionUtils.predicate(operator, path,
-                ConstantImpl.create(finalValue.ordinal()));
+        return createBinaryCondition(filter, path,
+                finalValue != null ? finalValue.ordinal() : null);
     }
 }

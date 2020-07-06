@@ -1,12 +1,10 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
-import com.querydsl.core.types.*;
+import com.querydsl.core.types.Predicate;
 
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 public class RefFilterProcessor implements FilterProcessor<RefFilter> {
@@ -18,7 +16,6 @@ public class RefFilterProcessor implements FilterProcessor<RefFilter> {
     }
 
     @Override
-    @SuppressWarnings("ConstantConditions")
     public Predicate process(RefFilter filter) throws QueryException {
         ItemPath filterPath = filter.getPath();
         ItemName itemName = filterPath.firstName();
@@ -30,9 +27,8 @@ public class RefFilterProcessor implements FilterProcessor<RefFilter> {
             throw new QueryException("Filter with right-hand-side path is not supported YET: " + filterPath);
         }
 
-        QueryModelMapping<?, ?> mapping = context.mapping();
-        Referencable ref = filter.getSingleValue().getRealValue();
-        Path<?> path = mapping.entityToItemPath(itemName, context.path());
-        return ExpressionUtils.predicate(Ops.EQ, path, ConstantImpl.create(ref.getOid()));
+        FilterProcessor<RefFilter> filterProcessor =
+                context.mapping().getFilterProcessor(itemName, context);
+        return filterProcessor.process(filter);
     }
 }

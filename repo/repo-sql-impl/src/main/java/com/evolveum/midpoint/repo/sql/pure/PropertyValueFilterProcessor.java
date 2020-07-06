@@ -1,13 +1,10 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
-import com.querydsl.core.types.Ops;
 import com.querydsl.core.types.Predicate;
-import com.querydsl.core.types.dsl.Expressions;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 public class PropertyValueFilterProcessor implements FilterProcessor<PropertyValueFilter<?>> {
@@ -20,7 +17,6 @@ public class PropertyValueFilterProcessor implements FilterProcessor<PropertyVal
 
     @Override
     public Predicate process(PropertyValueFilter<?> filter) throws QueryException {
-        System.out.println("filter = " + filter);
         ItemPath filterPath = filter.getPath();
         ItemName itemName = filterPath.firstName();
         if (!filterPath.isSingleName()) {
@@ -33,13 +29,8 @@ public class PropertyValueFilterProcessor implements FilterProcessor<PropertyVal
         // TODO: needed only for Any filter?
 //        ItemDefinition definition = filter.getDefinition();
 
-        QueryModelMapping<?, ?> mapping = context.mapping();
-        if (filter.getValues() == null || filter.getValues().isEmpty()) {
-            return Expressions.booleanOperation(Ops.IS_NULL,
-                    mapping.entityToItemPath(itemName, context.path()));
-        }
         FilterProcessor<PropertyValueFilter<?>> processor =
-                mapping.getFilterProcessor(itemName, context.path());
+                context.mapping().getFilterProcessor(itemName, context);
         return processor.process(filter);
     }
 }

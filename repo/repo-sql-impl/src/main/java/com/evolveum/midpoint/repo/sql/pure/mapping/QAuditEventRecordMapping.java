@@ -32,20 +32,20 @@ public class QAuditEventRecordMapping
                 TARGET_OWNER_NAME, TARGET_OWNER_OID, TARGET_OWNER_TYPE,
                 TASK_IDENTIFIER, TASK_OID, TIMESTAMP);
 
-        addItemMapping(F_EVENT_TYPE, q -> q.eventType,
-                EnumOrdinalItemFilterProcessor.withValueFunction(RAuditEventType::fromSchemaValue));
-        addItemMapping(F_EVENT_STAGE, q -> q.eventStage,
-                EnumOrdinalItemFilterProcessor.withValueFunction(RAuditEventStage::fromSchemaValue));
-        addItemMapping(F_MESSAGE, q -> q.message, StringItemFilterProcessor::new);
-        addItemMapping(F_CHANNEL, q -> q.channel, StringItemFilterProcessor::new);
-        addItemMapping(F_TIMESTAMP, q -> q.timestamp, TimestampItemFilterProcessor::new);
-        addItemMapping(F_OUTCOME, q -> q.outcome,
-                EnumOrdinalItemFilterProcessor.withValueFunction(ROperationResultStatus::fromSchemaValue));
-        addItemMapping(F_RESULT, q -> q.result, StringItemFilterProcessor::new);
-        addItemMapping(F_INITIATOR_REF, q -> q.initiatorOid);
-        addItemMapping(F_ATTORNEY_REF, q -> q.attorneyOid);
-        addItemMapping(F_HOST_IDENTIFIER, q -> q.hostIdentifier, StringItemFilterProcessor::new);
-        addItemMapping(F_REMOTE_HOST_ADDRESS, q -> q.remoteHostAddress, StringItemFilterProcessor::new);
-        addItemMapping(F_REQUEST_IDENTIFIER, q -> q.requestIdentifier, StringItemFilterProcessor::new);
+        addItemMapping(F_EVENT_TYPE, EnumOrdinalItemFilterProcessor.mapper(
+                path(q -> q.eventType), RAuditEventType::fromSchemaValue));
+        addItemMapping(F_EVENT_STAGE, EnumOrdinalItemFilterProcessor.mapper(
+                path(q -> q.eventStage), RAuditEventStage::fromSchemaValue));
+        addItemMapping(F_MESSAGE, StringItemFilterProcessor.mapper(path(q -> q.message)));
+        addItemMapping(F_CHANNEL, StringItemFilterProcessor.mapper(path(q -> q.channel)));
+        addItemMapping(F_TIMESTAMP, TimestampItemFilterProcessor.mapper(path(q -> q.timestamp)));
+        addItemMapping(F_OUTCOME, EnumOrdinalItemFilterProcessor.mapper(
+                path(q -> q.outcome), ROperationResultStatus::fromSchemaValue));
+        addItemMapping(F_RESULT, StringItemFilterProcessor.mapper(path(q -> q.result)));
+        addItemMapping(F_INITIATOR_REF, RefItemFilterProcessor.mapper(path(q -> q.initiatorOid)));
+        addItemMapping(F_ATTORNEY_REF, RefItemFilterProcessor.mapper(path(q -> q.attorneyOid)));
+        addItemMapping(F_HOST_IDENTIFIER, StringItemFilterProcessor.mapper(path(q -> q.hostIdentifier)));
+        addItemMapping(F_REMOTE_HOST_ADDRESS, StringItemFilterProcessor.mapper(path(q -> q.remoteHostAddress)));
+        addItemMapping(F_REQUEST_IDENTIFIER, StringItemFilterProcessor.mapper(path(q -> q.requestIdentifier)));
     }
 }

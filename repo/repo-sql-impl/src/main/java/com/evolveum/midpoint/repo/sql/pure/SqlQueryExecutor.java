@@ -68,6 +68,7 @@ public class SqlQueryExecutor {
         // TODO: what if we declare AuditEventRecordType, but we want transformed result?
         // some mapping function as an argument?
         // some builder to construct the whole definition that will be an argument?
+        // The goal is to have "audit" stuff out of general SqlQueryExecutor.
 
         PageOf<Tuple> result = executeQuery(context);
 
