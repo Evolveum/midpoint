@@ -371,6 +371,20 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test145SearchByTimestampIsNull() throws SchemaException {
+        when("searching audit filtered by timestamp is null");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TIMESTAMP).isNull()
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        // this does not test IS NULL properly as =NULL would also return nothing, just saying...
+        then("no audit events are returned as all have timestamp");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     public void test150SearchByInitiator() throws SchemaException {
         when("searching audit filtered by initiator (reference by OID)");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
@@ -384,6 +398,20 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getMessage()).isEqualTo("record2");
         // TODO check mapping of initiator, see TODO in AuditEventRecordSqlTransformer#toAuditEventRecordType
+    }
+
+    @Test
+    public void test151SearchByInitiatorIsNull() throws SchemaException {
+        when("searching audit filtered by NULL initiator");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_INITIATOR_REF).isNull()
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with NULL initiator are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(aer -> aer.getInitiatorRef() == null);
     }
 
     @Test
