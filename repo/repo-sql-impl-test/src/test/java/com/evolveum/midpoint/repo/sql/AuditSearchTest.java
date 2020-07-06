@@ -11,12 +11,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_REST_URI;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -47,9 +41,6 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     public static final long TIMESTAMP_1 = 1577836800000L; // 2020-01-01
     public static final long TIMESTAMP_2 = 1580515200000L; // 2020-02-01
     public static final long TIMESTAMP_3 = 1583020800000L; // 2020-03-01
-
-    @Autowired
-    private DataSourceFactory dataSourceFactory;
 
     private String initiatorOid;
     private String attorneyOid;
@@ -97,21 +88,6 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record3.setChannel(CHANNEL_REST_URI);
         // null outcome is kinda like "unknown", but not quite, filter must handle it
         auditService.audit(record3, NullTaskImpl.INSTANCE);
-
-        // TODO remove after done
-        try (Connection conn = dataSourceFactory.getDataSource().getConnection();
-                PreparedStatement stmt = conn.prepareStatement(
-                        "select id, message, timestampValue from M_AUDIT_EVENT"
-                                + " WHERE timestampValue <= ?")) {
-            stmt.setTimestamp(1, new Timestamp(TIMESTAMP_2));
-
-            ResultSet res = stmt.executeQuery();
-            while (res.next()) {
-                Timestamp timestampValue = res.getTimestamp("timestampValue");
-                System.out.println(res.getLong("id") + " - " + timestampValue + ": " + res.getString("message"));
-                System.out.println("timestampValue = " + timestampValue.getTime());
-            }
-        }
     }
 
     private PrismObject<UserType> createUser(String userName)
@@ -544,4 +520,41 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 aer.getMessage().equals("record1") || aer.getMessage().equals("RECORD THREE"));
     }
 
+    @Test
+    public void test900SearchWithAllFilter() throws SchemaException {
+        when("searching audit using ALL filter");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .all()
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("all audit records are returned");
+        assertThat(result).hasSize(3);
+    }
+
+    @Test
+    public void test902SearchWithNoneFilter() throws SchemaException {
+        when("searching audit using NONE filter");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .none()
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("no audit records are returned");
+        assertThat(result).hasSize(0);
+    }
+
+    @Test
+    public void test902SearchWithEmptyFilter() throws SchemaException {
+        when("searching audit without any filter specified");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("all audit records are returned (no restricting conditions are added)");
+        assertThat(result).hasSize(3);
+    }
 }

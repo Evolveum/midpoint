@@ -1,11 +1,9 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
 import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.Expressions;
 
-import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 public class ObjectFilterProcessor implements FilterProcessor<ObjectFilter> {
@@ -27,6 +25,10 @@ public class ObjectFilterProcessor implements FilterProcessor<ObjectFilter> {
         } else if (filter instanceof RefFilter) {
             return new RefFilterProcessor(context)
                     .process((RefFilter) filter);
+        } else if (filter instanceof AllFilter) {
+            return Expressions.TRUE;
+        } else if (filter instanceof NoneFilter) {
+            return Expressions.FALSE;
         } else {
             throw new QueryException("Unsupported filter " + filter);
         }
