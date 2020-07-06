@@ -209,6 +209,7 @@ public class MappingSetEvaluator {
                 .comparator(null)
                 .addUnchangedValues(true)
                 .filterExistingValues(true)
+                .specialZeroSetProcessing(false) // todo
                 .isExclusiveStrong(false)
                 .contextDescription(" updating chained source (" + path + ") in " + contextDesc)
                 .strengthSelector(StrengthSelector.ALL)
