@@ -54,12 +54,12 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     public static final String PARAMETER_EVENT_TYPE = "eventType";
     public static final String PARAMETER_EVENT_STAGE = "eventStage";
     public static final String PARAMETER_OUTCOME = "outcome";
-    public static final String PARAMETER_INITIATOR_NAME = "initiatorName";
+    public static final String PARAMETER_INITIATOR_OID = "initiatorName";
     public static final String PARAMETER_CHANNEL = "channel";
     public static final String PARAMETER_HOST_IDENTIFIER = "hostIdentifier";
     public static final String PARAMETER_REQUEST_IDENTIFIER = "requestIdentifier";
-    public static final String PARAMETER_TARGET_OWNER_NAME = "targetOwnerName";
-    public static final String PARAMETER_TARGET_NAMES = "targetNames";
+    public static final String PARAMETER_TARGET_OWNER_OID = "targetOwnerName";
+    public static final String PARAMETER_TARGET_OIDS = "targetNames";
     public static final String PARAMETER_TASK_IDENTIFIER = "taskIdentifier";
     public static final String PARAMETER_RESOURCE_OID = "resourceOid";
 
@@ -274,10 +274,10 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         } else {
             parameters.remove(PARAMETER_OUTCOME);
         }
-        if (parameters.get(PARAMETER_INITIATOR_NAME) != null) {
+        if (parameters.get(PARAMETER_INITIATOR_OID) != null) {
             conditions.add("aer.initiatorOid = :initiatorName");
         } else {
-            parameters.remove(PARAMETER_INITIATOR_NAME);
+            parameters.remove(PARAMETER_INITIATOR_OID);
         }
         if (parameters.get(PARAMETER_CHANNEL) != null) {
             conditions.add("aer.channel = :channel");
@@ -294,15 +294,15 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         } else {
             parameters.remove(PARAMETER_REQUEST_IDENTIFIER);
         }
-        if (parameters.get(PARAMETER_TARGET_OWNER_NAME) != null) {
+        if (parameters.get(PARAMETER_TARGET_OWNER_OID) != null) {
             conditions.add("aer.targetOwnerOid = :targetOwnerName");
         } else {
-            parameters.remove(PARAMETER_TARGET_OWNER_NAME);
+            parameters.remove(PARAMETER_TARGET_OWNER_OID);
         }
-        if (parameters.get(PARAMETER_TARGET_NAMES) != null) {
+        if (parameters.get(PARAMETER_TARGET_OIDS) != null) {
             conditions.add("aer.targetOid in ( :targetNames )");
         } else {
-            parameters.remove(PARAMETER_TARGET_NAMES);
+            parameters.remove(PARAMETER_TARGET_OIDS);
         }
         if (parameters.get(PARAMETER_TASK_IDENTIFIER) != null) {
             conditions.add("aer.taskIdentifier = :taskIdentifier");
