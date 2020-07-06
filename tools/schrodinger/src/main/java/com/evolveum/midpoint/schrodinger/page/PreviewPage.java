@@ -22,8 +22,11 @@ import static com.codeborne.selenide.Selenide.$;
  */
 public class PreviewPage extends BasicPage {
 
+    //hack for name
+    private static final String TAB_NAME_PREFIX = "\n            ";
+
     public PreviewChangesTab selectPanelByName(String name) {
-        SelenideElement element = findTabPanel().clickTabWithName(name);
+        SelenideElement element = findTabPanel().clickTabWithName(TAB_NAME_PREFIX + name);
         return new PreviewChangesTab(this, element);
     }
 
