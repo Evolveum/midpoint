@@ -30,7 +30,7 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     ValueMatcher valueMatcher;
     Comparator<V> comparator;
     boolean addUnchangedValues;
-    boolean filterExistingValues;
+    boolean hasExistingItem;
     boolean addUnchangedValuesExceptForNormalMappings;
     boolean isExclusiveStrong;
     String contextDescription;
@@ -83,8 +83,8 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
-    public IvwoConsolidatorBuilder<V, D, I> filterExistingValues(boolean val) {
-        filterExistingValues = val;
+    public IvwoConsolidatorBuilder<V, D, I> hasExistingItem(boolean val) {
+        hasExistingItem = val;
         return this;
     }
 

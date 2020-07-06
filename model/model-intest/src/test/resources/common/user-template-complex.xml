@@ -192,7 +192,7 @@
 
     <!-- copied the same mapping twice to check that it won't cause problems -->
     <mapping>
-        <name>assignment-from-subtype-2</name>
+        <name>assignment-from-subtype</name>
         <authoritative>true</authoritative>
         <source>
             <path>subtype</path>
