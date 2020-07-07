@@ -10,6 +10,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -262,6 +272,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         CheckBoxColumn<SelectableBean<ValueSearchFilterItem>> negationColumn = new CheckBoxColumn<SelectableBean<ValueSearchFilterItem>>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.applyNegotiation"),
                 "value." + ValueSearchFilterItem.F_APPLY_NEGATION){
+            private static final long serialVersionUID = 1L;
 
             @Override
             public String getCssClass() {
@@ -270,7 +281,43 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
         };
         columns.add(negationColumn);
+
+        InlineMenuButtonColumn<SelectableBean<ValueSearchFilterItem>> actionsColumn = new InlineMenuButtonColumn<SelectableBean<ValueSearchFilterItem>>
+                (getTableMenuItems(), getPageBase()){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getCssClass() {
+                return "min-width-column";
+            }
+        };
+        columns.add(actionsColumn);
+
         return columns;
+    }
+
+    private List<InlineMenuItem> getTableMenuItems(){
+        InlineMenuItem deleteMenuItem = new ButtonInlineMenuItem(createStringResource("PageBase.button.delete")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ValueSearchFilterItem>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        propertyDeletedPerformed(getRowModel(), target);
+                    }
+                };
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
+            }
+        };
+        return Arrays.asList(deleteMenuItem);
     }
 
     private String getColumnStyleClass(){
@@ -324,6 +371,14 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         if (newPropertyValue != null) {
             getModelObject().addSearchFilterItem(createDefaultValueFilter(newPropertyValue));
         }
+        target.add(SearchPropertiesConfigPanel.this);
+    }
+
+    private void propertyDeletedPerformed(IModel<SelectableBean<ValueSearchFilterItem>> rowModel, AjaxRequestTarget target) {
+        if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null){
+            return;
+        }
+        getModelObject().deleteSearchFilterItem(rowModel.getObject().getValue().getPropertyDef());
         target.add(SearchPropertiesConfigPanel.this);
     }
 
