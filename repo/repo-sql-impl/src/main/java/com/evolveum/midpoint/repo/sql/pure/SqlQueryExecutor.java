@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.DataSourceFactory;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
@@ -44,8 +45,8 @@ public class SqlQueryExecutor {
         // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
     }
 
-    @Autowired
-    private DataSourceFactory dataSourceFactory;
+    @Autowired private PrismContext prismContext;
+    @Autowired private DataSourceFactory dataSourceFactory;
 
     public <T extends Containerable> SearchResultList<T> list(
             @NotNull Class<T> prismType,
@@ -70,10 +71,12 @@ public class SqlQueryExecutor {
         // The goal is to have "audit" stuff out of general SqlQueryExecutor.
 
         PageOf<Tuple> result = executeQuery(context);
+        // TODO: reading of to many relations here
 
+        AuditEventRecordSqlTransformer transformer = new AuditEventRecordSqlTransformer(prismContext);
         PageOf<AuditEventRecordType> map = result
                 .map(t -> (MAuditEventRecord) t.get(root))
-                .map(AuditEventRecordSqlTransformer::toAuditEventRecordType);
+                .map(transformer::toAuditEventRecordType);
         //noinspection unchecked
         return (SearchResultList<T>) createSearchResultList(map);
     }

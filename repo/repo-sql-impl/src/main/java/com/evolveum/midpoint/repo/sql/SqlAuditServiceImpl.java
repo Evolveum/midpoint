@@ -361,15 +361,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                             audit.setInitiator(resolve(session, resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
                                     // TODO: when JDK-8 is gone use Objects.requireNonNullElse
-                                    defaultIfNull(RObjectType.values()[resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)], RObjectType.FOCUS)));
+                                    defaultIfNull(RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)), RObjectType.FOCUS)));
                             audit.setAttorney(resolve(session, resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.FOCUS));
                             audit.setTarget(resolve(session, resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.TARGET_NAME_COLUMN_NAME),
-                                    RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME)]), getPrismContext());
+                                    RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME))), getPrismContext());
                             audit.setTargetOwner(resolve(session, resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
-                                    RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME)]));
+                                    RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME))));
                         } catch (SchemaException ex) {
                             baseHelper.handleGeneralCheckedException(ex, session, null);
                         }
