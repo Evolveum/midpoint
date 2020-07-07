@@ -7,13 +7,15 @@
 
 package com.evolveum.midpoint.model.impl;
 
-import com.evolveum.midpoint.model.impl.lens.projector.focus.AutoAssignMappingCollector;
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingSetEvaluator;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.AutoAssignMappingCollector;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -33,8 +35,10 @@ public class ModelBeans {
     @Autowired public PrismContext prismContext;
     @Autowired public ModelObjectResolver modelObjectResolver;
     @Autowired @Qualifier("cacheRepositoryService") public RepositoryService cacheRepositoryService;
-    @Autowired public MappingSetEvaluator mappingSetEvaluator;
     @Autowired public MatchingRuleRegistry matchingRuleRegistry;
     @Autowired public AutoAssignMappingCollector autoAssignMappingCollector;
+    @Autowired public MappingEvaluator mappingEvaluator;
+    @Autowired public MappingFactory mappingFactory;
+    @Autowired public ModelCommonBeans commonBeans;
 
 }

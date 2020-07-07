@@ -46,9 +46,11 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author semancik
  */
-public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> {
+public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> implements AutoCloseable {
 
     private static final Trace LOGGER = TraceManager.getTrace(IvwoConsolidator.class);
+
+    private static final String OP_CONSOLIDATE_TO_DELTA = IvwoConsolidator.class.getName() + ".consolidateToDelta";
 
     /**
      * Path of item being consolidated.
@@ -147,6 +149,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
     /**
      * Operation result (currently needed for value metadata computation).
+     * Experimentally we make this consolidator auto-closeable so the result is marked as closed automatically.
+     *
+     * TODO reconsider if we should not record processing in the caller (e.g. because ConsolidationProcessor
+     * already creates a result for item consolidation).
      */
     private final OperationResult result;
 
@@ -188,7 +194,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
         valueMetadataComputer = builder.valueMetadataComputer;
         contextDescription = builder.contextDescription;
-        result = builder.result;
+        result = builder.result.createMinorSubresult(OP_CONSOLIDATE_TO_DELTA)
+                .addArbitraryObjectAsParam("itemPath", itemPath);
 
         //noinspection unchecked
         itemDelta = builder.itemDefinition.createEmptyDelta(itemPath);
@@ -212,28 +219,33 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     public ItemDelta<V,D> consolidateToDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
-        logStart();
-        if (strengthSelector.isNone()) {
-            LOGGER.trace("Consolidation of {} skipped as strength selector is 'none'", itemPath);
-        } else {
-            // We will process each value individually. I really mean each value. This whole method deals with
-            // a single item (e.g. attribute). But this loop iterates over every potential value of that item.
-            Collection<V> allValues = collectAllValues();
-            for (V value : allValues) {
-                consolidate(value);
-            }
-
-            if (!newItemWillHaveAnyValue()) {
-                // The application of computed delta results in no value, apply weak mappings
-                applyWeakMappings();
+        try {
+            logStart();
+            if (strengthSelector.isNone()) {
+                LOGGER.trace("Consolidation of {} skipped as strength selector is 'none'", itemPath);
             } else {
-                LOGGER.trace("Item {} will have some values in {}, weak mapping processing skipped", itemPath, contextDescription);
-            }
-        }
-        setEstimatedOldValues();
-        logEnd();
+                // We will process each value individually. I really mean each value. This whole method deals with
+                // a single item (e.g. attribute). But this loop iterates over every potential value of that item.
+                Collection<V> allValues = collectAllValues();
+                for (V value : allValues) {
+                    consolidate(value);
+                }
 
-        return itemDelta;
+                if (!newItemWillHaveAnyValue()) {
+                    // The application of computed delta results in no value, apply weak mappings
+                    applyWeakMappings();
+                } else {
+                    LOGGER.trace("Item {} will have some values in {}, weak mapping processing skipped", itemPath, contextDescription);
+                }
+            }
+            setEstimatedOldValues();
+            logEnd();
+
+            return itemDelta;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        }
     }
 
     private void consolidate(V value) throws PolicyViolationException, ExpressionEvaluationException, SchemaException,
@@ -633,11 +645,13 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                         + "   - isExclusiveStrong: {}\n"
                         + "   - strengthSelector: {}\n"
                         + "   - valueMatcher: {}\n"
-                        + "   - comparator: {}",
+                        + "   - comparator: {}\n"
+                        + "   - valueMetadataComputer: {}",
                 itemPath, ivwoTriple.debugDumpLazily(1),
                 DebugUtil.debugDumpLazily(aprioriItemDelta, 2),
                 DebugUtil.debugDumpLazily(existingItem, 2),
-                addUnchangedValues, existingItemKnown, itemIsExclusiveStrong, strengthSelector, valueMatcher, comparator);
+                addUnchangedValues, existingItemKnown, itemIsExclusiveStrong, strengthSelector, valueMatcher, comparator,
+                valueMetadataComputer);
     }
 
     private void logEnd() {
@@ -738,6 +752,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         if (valueMetadataComputer == null) {
+            LOGGER.trace("Skipping value metadata computation because computer is null");
             return;
         }
 
@@ -818,5 +833,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 return value2 == null;
             }
         }
+    }
+
+    @Override
+    public void close() {
+        result.computeStatusIfUnknown();
     }
 }

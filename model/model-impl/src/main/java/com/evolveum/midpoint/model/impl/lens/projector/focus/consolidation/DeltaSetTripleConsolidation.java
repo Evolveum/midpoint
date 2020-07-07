@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -65,6 +66,11 @@ class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition
     private final boolean addUnchangedValues;
 
     /**
+     * Metadata computer to be used during consolidation.
+     */
+    private final ValueMetadataComputer valueMetadataComputer;
+
+    /**
      * Mapping evaluation environment (context description, now, task).
      */
     private final MappingEvaluationEnvironment env;
@@ -77,13 +83,14 @@ class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition
     private ItemDelta<V, D> itemDelta;
 
     DeltaSetTripleConsolidation(UniformItemPath itemPath, DeltaSetTriple<I> deltaSetTriple, ItemDelta<V, D> aprioriItemDelta, PrismObject<?> targetObject, D itemDefinition,
-            boolean addUnchangedValues, MappingEvaluationEnvironment env, OperationResult result) {
+            boolean addUnchangedValues, ValueMetadataComputer valueMetadataComputer, MappingEvaluationEnvironment env, OperationResult result) {
         this.itemPath = itemPath;
         this.deltaSetTriple = deltaSetTriple;
         this.aprioriItemDelta = aprioriItemDelta;
         this.existingItem = targetObject != null ? targetObject.findItem(itemPath) : null;
         this.itemDefinition = itemDefinition;
         this.addUnchangedValues = addUnchangedValues;
+        this.valueMetadataComputer = valueMetadataComputer;
         this.env = env;
         this.result = result;
     }
@@ -100,7 +107,7 @@ class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition
 
     private void computeItemDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
-        IvwoConsolidator<V, D, I> consolidator = new IvwoConsolidatorBuilder<V, D, I>()
+        try (IvwoConsolidator<V, D, I> consolidator = new IvwoConsolidatorBuilder<V, D, I>()
                 .itemPath(itemPath)
                 .ivwoTriple(deltaSetTriple)
                 .itemDefinition(itemDefinition)
@@ -113,11 +120,11 @@ class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition
                 .existingItemKnown(true)
                 .contextDescription(env.contextDescription)
                 .strengthSelector(StrengthSelector.ALL)
-                .valueMetadataComputer(null)
+                .valueMetadataComputer(valueMetadataComputer)
                 .result(result)
-                .build();
-
-        itemDelta = consolidator.consolidateToDelta();
+                .build()) {
+            itemDelta = consolidator.consolidateToDelta();
+        }
     }
 
     private void cleanupItemDelta() throws SchemaException {

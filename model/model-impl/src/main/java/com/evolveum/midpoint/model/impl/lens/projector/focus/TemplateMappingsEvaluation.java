@@ -32,6 +32,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
 
@@ -111,7 +113,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
      * For standard template processing this is the current object.
      * For persona template processing this is the new (persona) object.
      */
-    private final PrismObject<T> targetObject;
+    private final TargetObjectSpecification<T> targetSpecification;
 
     /**
      * Definition of the target object.
@@ -140,14 +142,9 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
     //region Results of the evaluation
     /**
-     * Result of the computation: information on the next required recompute.
+     * Result of the computation: evaluation of the mappings.
      */
-    private NextRecompute nextRecompute;
-
-    /**
-     * Result of the computation: output triple map.
-     */
-    private final Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> outputTripleMap = new HashMap<>();
+    private MappingSetEvaluation<F, T> mappingSetEvaluation;
 
     /**
      * Consolidation of output triple map to item deltas.
@@ -160,7 +157,8 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             ObjectTemplateMappingEvaluationPhaseType phase,
             ObjectTemplateType template,
             int iteration, String iterationToken,
-            PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta,
+            TargetObjectSpecification<T> targetSpecification, ObjectDelta<T> targetAPrioriDelta,
+            PrismObjectDefinition<T> targetDefinition,
             String parentContextDesc, XMLGregorianCalendar now, Task task, OperationResult result) {
         this.beans = beans;
         this.context = context;
@@ -170,9 +168,9 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         this.phase = phase;
         this.iteration = iteration;
         this.iterationToken = iterationToken;
-        this.targetObject = targetObject;
+        this.targetSpecification = targetSpecification;
         this.targetAPrioriDelta = targetAPrioriDelta;
-        this.targetDefinition = targetObject.getDefinition();
+        this.targetDefinition = targetDefinition;
         this.env = new MappingEvaluationEnvironment(getContextDescription(parentContextDesc), now, task);
         this.result = result;
     }
@@ -181,12 +179,14 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             ModelBeans beans, LensContext<AH> context, ObjectTemplateMappingEvaluationPhaseType phase,
             XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException {
         LensFocusContext<AH> focusContext = context.getFocusContextRequired();
+        TargetObjectSpecification<AH> targetSpecification = new FixedTargetSpecification<>(focusContext.getObjectNew(), true);
         return new TemplateMappingsEvaluation<>(beans, context,
                 focusContext.getObjectDeltaObject(),
                 phase,
                 context.getFocusTemplate(),
                 focusContext.getIteration(), focusContext.getIterationToken(),
-                focusContext.getObjectNew(), focusContext.getDelta(),
+                targetSpecification, focusContext.getDelta(),
+                 focusContext.getObjectDefinition(),
                  "focus " + focusContext.getObjectAny(), now, task, result);
     }
 
@@ -195,15 +195,16 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             ModelBeans beans, LensContext<F> context,
             ObjectDeltaObject<F> focusOdo,
             ObjectTemplateType template,
-            PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta,
+            @NotNull PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta,
             String contextDescription,
             XMLGregorianCalendar now, Task task, OperationResult result) {
+        TargetObjectSpecification<T> targetSpecification = new FixedTargetSpecification<>(targetObject, false);
         return new TemplateMappingsEvaluation<>(beans, context,
                 focusOdo,
                 BEFORE_ASSIGNMENTS,
                 template,
                 0, null,
-                targetObject, targetAPrioriDelta,
+                targetSpecification, targetAPrioriDelta, targetObject.getDefinition(),
                 contextDescription, now, task, result);
     }
 
@@ -211,7 +212,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             SecurityViolationException, ConfigurationException, CommunicationException {
 
         LOGGER.trace("Applying object template {} to {} (target {}), iteration {} ({}), phase {}",
-                template, focusContext.getObjectNew(), targetObject, iteration, iterationToken, phase);
+                template, focusContext.getObjectNew(), targetSpecification.getTargetObject(), iteration, iterationToken, phase);
 
         collectDefinitionsAndMappings();
         evaluateMappings();
@@ -220,16 +221,33 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
     private void evaluateMappings() throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
-        TargetObjectSpecification<? extends AssignmentHolderType> targetSpecification = new FixedTargetSpecification<>(targetObject);
-        nextRecompute = beans.mappingSetEvaluator.evaluateMappingsToTriples(context, mappings, phase, focusOdo,
-                targetSpecification, outputTripleMap, null, null, iteration, iterationToken, env.now, env.task, result);
+
+        mappingSetEvaluation = new MappingSetEvaluationBuilder<F, T>()
+                .context(context)
+                .evaluationRequests(mappings)
+                .phase(phase)
+                .focusOdo(focusOdo)
+                .targetSpecification(targetSpecification)
+                .iteration(iteration)
+                .iterationToken(iterationToken)
+                .beans(beans)
+                .env(env)
+                .result(result)
+                .build();
+        mappingSetEvaluation.evaluateMappingsToTriples();
     }
 
     private void consolidateToItemDeltas() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+        Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
         LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLineLazily(outputTripleMap));
-        consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap,
-                targetObject, targetAPrioriDelta, targetDefinition, env, beans, result);
+
+        // TODO for chained mappings: what exactly should be the target object?
+        //  What is used here is the original focus odo, which is maybe correct.
+        PrismObject<T> targetObject = targetSpecification.getTargetObject();
+
+        consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap, targetObject, targetAPrioriDelta,
+                targetDefinition, env, beans, context, result);
         consolidation.computeItemDeltas();
     }
 
@@ -305,6 +323,6 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     }
 
     NextRecompute getNextRecompute() {
-        return nextRecompute;
+        return mappingSetEvaluation.getNextRecompute();
     }
 }

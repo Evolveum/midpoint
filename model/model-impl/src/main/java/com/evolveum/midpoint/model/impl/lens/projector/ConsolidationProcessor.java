@@ -155,7 +155,7 @@ public class ConsolidationProcessor {
              }
          }
 
-         RefinedObjectClassDefinition rOcDef = consolidateAuxiliaryObjectClasses(context, projCtx, addUnchangedValues, objectDelta, existingDelta);
+         RefinedObjectClassDefinition rOcDef = consolidateAuxiliaryObjectClasses(context, projCtx, addUnchangedValues, objectDelta, existingDelta, result);
 
 
         if (LOGGER.isTraceEnabled()) {
@@ -171,7 +171,7 @@ public class ConsolidationProcessor {
     }
 
     private <F extends FocusType> RefinedObjectClassDefinition consolidateAuxiliaryObjectClasses(LensContext<F> context,
-            LensProjectionContext projCtx, boolean addUnchangedValues, ObjectDelta<ShadowType> objectDelta, ObjectDelta<ShadowType> existingDelta)
+            LensProjectionContext projCtx, boolean addUnchangedValues, ObjectDelta<ShadowType> objectDelta, ObjectDelta<ShadowType> existingDelta, OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
         ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses = projCtx.getSqueezedAuxiliaryObjectClasses();
@@ -210,7 +210,7 @@ public class ConsolidationProcessor {
             }
 
             //noinspection unchecked
-            IvwoConsolidator<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>, ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>
+            try (IvwoConsolidator<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>, ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>
                     consolidator = new IvwoConsolidatorBuilder()
                     .itemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS)
                     .ivwoTriple(ivwoTriple)
@@ -225,15 +225,19 @@ public class ConsolidationProcessor {
                     .isExclusiveStrong(false)
                     .contextDescription(discr.toHumanReadableDescription())
                     .strengthSelector(StrengthSelector.ALL_EXCEPT_WEAK)
-                    .build();
+                    .result(result)
+                    .build()) {
 
-            PropertyDelta<QName> propDelta = (PropertyDelta) consolidator.consolidateToDeltaNoMetadata();
+                //noinspection unchecked
+                PropertyDelta<QName> propDelta = (PropertyDelta) consolidator.consolidateToDeltaNoMetadata();
 
-            LOGGER.trace("Auxiliary object class delta:\n{}", propDelta.debugDumpLazily());
+                LOGGER.trace("Auxiliary object class delta:\n{}", propDelta.debugDumpLazily());
 
-            if (!propDelta.isEmpty()) {
-                objectDelta.addModification(propDelta);
+                if (!propDelta.isEmpty()) {
+                    objectDelta.addModification(propDelta);
+                }
             }
+
         }
 
         RefinedObjectClassDefinition structuralObjectClassDefinition = projCtx.getStructuralObjectClassDefinition();
@@ -396,8 +400,9 @@ public class ConsolidationProcessor {
             LOGGER.trace("CONSOLIDATE {}\n  ({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
                     itemDesc, discr, projCtx.hasFullShadow(), addUnchangedValues, forceAddUnchangedValues);
 
+            ItemDelta<V, D> itemDelta;
             // Use the consolidator to do the computation. It does most of the work.
-            IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidatorBuilder<V,D,ItemValueWithOrigin<V, D>>()
+            try (IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidatorBuilder<V,D,ItemValueWithOrigin<V, D>>()
                     .itemPath(itemPath)
                     .ivwoTriple(triple)
                     .itemDefinition(itemDefinition)
@@ -411,9 +416,11 @@ public class ConsolidationProcessor {
                     .isExclusiveStrong(isExclusiveStrong)
                     .contextDescription(discr.toHumanReadableDescription())
                     .strengthSelector(projCtx.hasFullShadow() ? strengthSelector : strengthSelector.notWeak())
-                    .build();
+                    .result(result)
+                    .build()) {
 
-            ItemDelta<V, D> itemDelta = consolidator.consolidateToDeltaNoMetadata();
+                itemDelta = consolidator.consolidateToDeltaNoMetadata();
+            }
 
             LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",discr, itemDelta.debugDumpLazily());
 
