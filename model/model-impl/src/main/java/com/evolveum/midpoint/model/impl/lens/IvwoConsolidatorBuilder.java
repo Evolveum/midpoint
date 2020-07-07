@@ -15,6 +15,8 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.Comparator;
@@ -33,7 +35,9 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     boolean existingItemKnown;
     boolean addUnchangedValuesExceptForNormalMappings;
     boolean isExclusiveStrong;
+    ValueMetadataComputer valueMetadataComputer;
     String contextDescription;
+    OperationResult result;
     StrengthSelector strengthSelector;
 
     public IvwoConsolidatorBuilder<V, D, I> itemPath(ItemPath val) {
@@ -98,8 +102,18 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
+    public IvwoConsolidatorBuilder<V, D, I> valueMetadataComputer(ValueMetadataComputer val) {
+        valueMetadataComputer = val;
+        return this;
+    }
+
     public IvwoConsolidatorBuilder<V, D, I> contextDescription(String val) {
         contextDescription = val;
+        return this;
+    }
+
+    public IvwoConsolidatorBuilder<V, D, I> result(OperationResult val) {
+        result = val;
         return this;
     }
 
@@ -108,7 +122,7 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
-    public IvwoConsolidator<V, D, I> build() throws SchemaException {
+    public IvwoConsolidator<V, D, I> build() {
         return new IvwoConsolidator<>(this);
     }
 }

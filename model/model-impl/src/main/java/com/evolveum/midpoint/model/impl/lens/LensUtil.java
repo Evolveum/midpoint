@@ -168,7 +168,7 @@ public class LensUtil {
     }
 
     public static <V extends PrismValue, D extends ItemDefinition> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
-            Collection<ItemValueWithOrigin<V, D>> origins) throws SchemaException {
+            Collection<? extends ItemValueWithOrigin<V, D>> origins) throws SchemaException {
         return cloneAndApplyAssignmentOrigin(value, isAssignment, () -> getAutoCreationIdentifier(origins));
     }
 
@@ -208,7 +208,8 @@ public class LensUtil {
         return cloned;
     }
 
-    private static <V extends PrismValue, D extends ItemDefinition> String getAutoCreationIdentifier(Collection<ItemValueWithOrigin<V, D>> origins) {
+    private static <V extends PrismValue, D extends ItemDefinition> String getAutoCreationIdentifier(
+            Collection<? extends ItemValueWithOrigin<V, D>> origins) {
         // let's ignore conflicts (name1 vs name2, named vs unnamed) for now
         for (ItemValueWithOrigin<V, D> origin : origins) {
             if (origin.getMapping() != null && origin.getMapping().getIdentifier() != null) {

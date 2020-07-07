@@ -225,10 +225,11 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
                 targetSpecification, outputTripleMap, null, null, iteration, iterationToken, env.now, env.task, result);
     }
 
-    private void consolidateToItemDeltas() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
+    private void consolidateToItemDeltas() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLineLazily(outputTripleMap));
         consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap,
-                targetObject, targetAPrioriDelta, targetDefinition, env, beans);
+                targetObject, targetAPrioriDelta, targetDefinition, env, beans, result);
         consolidation.computeItemDeltas();
     }
 

@@ -14,10 +14,9 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -70,10 +69,15 @@ class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition
      */
     private final MappingEvaluationEnvironment env;
 
+    /**
+     * Operation result (currently needed for value metadata computation).
+     */
+    private final OperationResult result;
+
     private ItemDelta<V, D> itemDelta;
 
     DeltaSetTripleConsolidation(UniformItemPath itemPath, DeltaSetTriple<I> deltaSetTriple, ItemDelta<V, D> aprioriItemDelta, PrismObject<?> targetObject, D itemDefinition,
-            boolean addUnchangedValues, MappingEvaluationEnvironment env) {
+            boolean addUnchangedValues, MappingEvaluationEnvironment env, OperationResult result) {
         this.itemPath = itemPath;
         this.deltaSetTriple = deltaSetTriple;
         this.aprioriItemDelta = aprioriItemDelta;
@@ -81,9 +85,11 @@ class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition
         this.itemDefinition = itemDefinition;
         this.addUnchangedValues = addUnchangedValues;
         this.env = env;
+        this.result = result;
     }
 
-    ItemDelta<?, ?> consolidateItem() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
+    ItemDelta<?, ?> consolidateItem() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         LOGGER.trace("Computing delta for {} with the delta set triple:\n{}", itemPath, deltaSetTriple.debugDumpLazily());
 
         computeItemDelta();
@@ -92,7 +98,8 @@ class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition
         return itemDelta;
     }
 
-    private void computeItemDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
+    private void computeItemDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+            ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
         IvwoConsolidator<V, D, I> consolidator = new IvwoConsolidatorBuilder<V, D, I>()
                 .itemPath(itemPath)
                 .ivwoTriple(deltaSetTriple)
@@ -106,6 +113,8 @@ class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition
                 .existingItemKnown(true)
                 .contextDescription(env.contextDescription)
                 .strengthSelector(StrengthSelector.ALL)
+                .valueMetadataComputer(null)
+                .result(result)
                 .build();
 
         itemDelta = consolidator.consolidateToDelta();

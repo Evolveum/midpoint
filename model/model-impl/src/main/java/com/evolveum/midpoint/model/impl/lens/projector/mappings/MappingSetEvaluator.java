@@ -83,7 +83,7 @@ public class MappingSetEvaluator {
 
             // for mapping chaining
             ObjectDeltaObject<AH> updatedFocusOdo = getUpdatedFocusOdo(context, focusOdo, outputTripleMap, request,
-                    updateAlsoTargetItem, description);
+                    updateAlsoTargetItem, description, result);
 
             PrismObject<T> targetObject = targetSpecification.getTargetObject(updatedFocusOdo);
 
@@ -150,12 +150,12 @@ public class MappingSetEvaluator {
     @SuppressWarnings("unused")
     private <AH extends AssignmentHolderType> ObjectDeltaObject<AH> getUpdatedFocusOdo(LensContext<AH> context, ObjectDeltaObject<AH> focusOdo,
             Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
-            FocalMappingEvaluationRequest<?, ?> evaluationRequest, boolean updateAlsoTargetItem, String contextDesc) throws ExpressionEvaluationException,
-            PolicyViolationException, SchemaException {
+            FocalMappingEvaluationRequest<?, ?> evaluationRequest, boolean updateAlsoTargetItem, String contextDesc, OperationResult result) throws ExpressionEvaluationException,
+            PolicyViolationException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         Holder<ObjectDeltaObject<AH>> focusOdoClonedHolder = new Holder<>();
         MappingType mappingBean = evaluationRequest.getMapping();
         for (VariableBindingDefinitionType source : mappingBean.getSource()) {
-            updateSourceOrTarget(context, focusOdo, focusOdoClonedHolder, outputTripleMap, contextDesc, source);
+            updateSourceOrTarget(context, focusOdo, focusOdoClonedHolder, outputTripleMap, contextDesc, source, result);
         }
         // TODO Consider if we need to update the target item.
         //   Generally, we use its value to know if we have to remove a value because of range specification.
@@ -172,8 +172,9 @@ public class MappingSetEvaluator {
     private <AH extends AssignmentHolderType> void updateSourceOrTarget(LensContext<AH> context, ObjectDeltaObject<AH> focusOdo,
             Holder<ObjectDeltaObject<AH>> focusOdoClonedHolder,
             Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap, String contextDesc,
-            VariableBindingDefinitionType source) throws ExpressionEvaluationException,
-            PolicyViolationException, SchemaException {
+            VariableBindingDefinitionType source, OperationResult result) throws ExpressionEvaluationException,
+            PolicyViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
+            CommunicationException, SecurityViolationException {
         if (source.getPath() == null) {
             return;
         }
@@ -213,6 +214,8 @@ public class MappingSetEvaluator {
                 .isExclusiveStrong(false)
                 .contextDescription(" updating chained source (" + path + ") in " + contextDesc)
                 .strengthSelector(StrengthSelector.ALL)
+                .valueMetadataComputer(null)
+                .result(result)
                 .build();
 
         ItemDelta itemDelta = consolidator.consolidateToDelta();

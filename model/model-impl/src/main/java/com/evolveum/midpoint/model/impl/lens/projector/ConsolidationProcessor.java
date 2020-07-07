@@ -227,7 +227,7 @@ public class ConsolidationProcessor {
                     .strengthSelector(StrengthSelector.ALL_EXCEPT_WEAK)
                     .build();
 
-            PropertyDelta<QName> propDelta = (PropertyDelta) consolidator.consolidateToDelta();
+            PropertyDelta<QName> propDelta = (PropertyDelta) consolidator.consolidateToDeltaNoMetadata();
 
             LOGGER.trace("Auxiliary object class delta:\n{}", propDelta.debugDumpLazily());
 
@@ -413,7 +413,7 @@ public class ConsolidationProcessor {
                     .strengthSelector(projCtx.hasFullShadow() ? strengthSelector : strengthSelector.notWeak())
                     .build();
 
-            ItemDelta<V, D> itemDelta = consolidator.consolidateToDelta();
+            ItemDelta<V, D> itemDelta = consolidator.consolidateToDeltaNoMetadata();
 
             LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",discr, itemDelta.debugDumpLazily());
 
