@@ -290,9 +290,7 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
         );
     }
 
-
-
-@Test(priority = 7, dependsOnMethods = {LINKED_USER_ACCOUNT_DELETED})
+    @Test(priority = 7, dependsOnMethods = {LINKED_USER_ACCOUNT_DELETED})
     public void resourceAccountCreatedWhenResourceUnreachable() throws IOException {
 
         changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME,  ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath()+"err", false);
@@ -315,10 +313,10 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
 
     changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath(), true);
 
-
-    ListTasksPage  tasksPage = basicPage.listTasks();
+        ListTasksPage  tasksPage = basicPage.listTasks();
+        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
         tasksPage
-            .table()
+                .table()
                 .search()
                 .byName()
                 .inputValue("LiveSyncTest")
@@ -327,7 +325,6 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
                 .clickByName("LiveSyncTest")
                 .clickResume()
                 .resumeStopRefreshing();
-
 
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
@@ -372,13 +369,13 @@ public class SynchronizationTests extends AbstractSchrodingerTest {
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath()+"err",false);
-        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
+//        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         FileUtils.copyFile(ScenariosCommons.CSV_SOURCE_FILE, csvTargetFile);
         Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         changeResourceAttribute(ScenariosCommons.RESOURCE_CSV_GROUPS_AUTHORITATIVE_NAME , ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, csvTargetFile.getAbsolutePath(),true);
-        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
+//        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         ListTasksPage  tasksPage = basicPage.listTasks();
         tasksPage
