@@ -81,7 +81,8 @@ public class MetadataContainerValuePanel extends PrismValuePanel<Containerable, 
 
             @Override
             protected void populateItem(ListItem<PrismContainerWrapper> listItem) {
-                listItem.add(new MetadataContainerPanel(ID_CONTAINER, listItem.getModel(), getSettings().copy()));
+                ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
+                listItem.add(new MetadataContainerPanel(ID_CONTAINER, listItem.getModel(), settings));
             }
         };
 
@@ -107,7 +108,7 @@ public class MetadataContainerValuePanel extends PrismValuePanel<Containerable, 
             tabs.add(new PanelTab(createStringResource(w.getDisplayName())) {
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
-                    ItemPanelSettings settings = getSettings().copy();
+                    ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
                     settings.setHeaderVisible(false);
                     return new MetadataContainerPanel(panelId, Model.of(w), settings);
                 }
@@ -118,7 +119,7 @@ public class MetadataContainerValuePanel extends PrismValuePanel<Containerable, 
             tabs.add(new PanelTab(createStringResource(getModelObject().getDisplayName())) {
                 @Override
                 public WebMarkupContainer createPanel(String panelId) {
-                    ItemPanelSettings s = getSettings().copy();
+                    ItemPanelSettings s = getSettings() != null ? getSettings().copy() : null;
                     s.setVisibilityHandler(wrapper -> {
                         if (wrapper instanceof PrismContainerWrapper) {
                             return ItemVisibility.HIDDEN;
