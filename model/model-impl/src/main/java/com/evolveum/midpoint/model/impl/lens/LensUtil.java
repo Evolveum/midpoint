@@ -167,9 +167,9 @@ public class LensUtil {
         return new LensProjectionContext(context, rsd);
     }
 
-    public static <V extends PrismValue, D extends ItemDefinition> V cloneAndApplyMetadata(V value, boolean isAssignment,
+    public static <V extends PrismValue, D extends ItemDefinition> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
             Collection<ItemValueWithOrigin<V, D>> origins) throws SchemaException {
-        return cloneAndApplyMetadata(value, isAssignment, () -> getAutoCreationIdentifier(origins));
+        return cloneAndApplyAssignmentOrigin(value, isAssignment, () -> getAutoCreationIdentifier(origins));
     }
 
 //    public static <V extends PrismValue> Collection<V> cloneAndApplyMetadata(Collection<V> values, boolean isAssignment,
@@ -181,17 +181,17 @@ public class LensUtil {
 //        return rv;
 //    }
 
-    public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+    public static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
             PrismValueDeltaSetTripleProducer<?, ?> mapping) throws SchemaException {
-        return cloneAndApplyMetadata(value, isAssignment, mapping::getIdentifier);
+        return cloneAndApplyAssignmentOrigin(value, isAssignment, mapping::getIdentifier);
     }
 
-    public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+    public static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
             MappingType mapping) throws SchemaException {
-        return cloneAndApplyMetadata(value, isAssignment, mapping::getName);
+        return cloneAndApplyAssignmentOrigin(value, isAssignment, mapping::getName);
     }
 
-    private static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+    private static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
             Supplier<String> originMappingNameSupplier) throws SchemaException {
         //noinspection unchecked
         V cloned = (V) value.clone();
