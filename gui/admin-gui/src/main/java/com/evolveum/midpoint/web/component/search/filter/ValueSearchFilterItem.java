@@ -215,16 +215,16 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
             builtFilter = conditionEntry.lt(value).buildFilter();
         } else if (FilterName.LESS_OR_EQUAL.equals(filterTypeName)) {
             builtFilter = conditionEntry.le(value).buildFilter();
-        } else if (FilterName.REF.equals(filterTypeName) && value != null) {
-            PrismReferenceValue refVal = (PrismReferenceValue) value;
-            //todo do we need to separately create refType and refRelation ?
-//            if (StringUtils.isNotEmpty(refVal.getOid())){
-//
-//            }
-            if (refVal.getParent() instanceof RefFilter){
-                builtFilter = (RefFilter) refVal.getParent();
+        } else if (FilterName.REF.equals(filterTypeName)) {
+            if (value != null) {
+                PrismReferenceValue refVal = (PrismReferenceValue) value;
+                if (refVal.getParent() instanceof RefFilter) {
+                    builtFilter = (RefFilter) refVal.getParent();
+                } else {
+                    builtFilter = conditionEntry.ref(refVal).buildFilter();
+                }
             } else {
-                builtFilter = conditionEntry.ref(refVal).buildFilter();
+                builtFilter = conditionEntry.ref(Collections.emptyList()).buildFilter();
             }
         } else if (FilterName.SUBSTRING.equals(filterTypeName)) {
             builtFilter = conditionEntry.contains(value).buildFilter();
@@ -235,6 +235,9 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         }
         if (builtFilter instanceof ValueFilter && matchingRule != null){
             ((ValueFilter) builtFilter).setMatchingRule(matchingRule.getMatchingRuleName());
+        }
+        if (builtFilter instanceof ValueFilter && filter.getExpression() != null){
+            ((ValueFilter) builtFilter).setExpression(filter.getExpression());
         }
         if (isApplyNegation()){
             builtFilter = prismContext.queryFactory().createNot(builtFilter);
