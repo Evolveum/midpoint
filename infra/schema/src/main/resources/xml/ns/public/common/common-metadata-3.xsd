@@ -85,6 +85,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="provenance" type="tns:ProvenanceMetadataType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
@@ -588,6 +595,114 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:complexType name="ProvenanceMetadataType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Provenance metadata provide high-level information about origin of the value.
+                It specifies system, process, partner or organization that was used to obtain the data.
+                This is a high-level information without excessive details, designed for long-term storage with the data.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="yield" type="tns:ProvenanceYieldType" minOccurs="0" maxOccurs="unbounded">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProvenanceYieldType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Yield data structure represent an output or product of data processing.
+                Inbound synchronization _yields_ data values, as do mappings and users entering data in user interface.
+                Each such result will be described by a value of this data structure.
+                Multiple values of this metadata structure indicate several independent sources for the data value that it describes.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="acquisition" type="tns:ProvenanceAcquisitionType" minOccurs="0" maxOccurs="unbounded">
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ProvenanceAcquisitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Ultimate origin of the data.
+                This metadata structure represents the way how the data (or their components) entered the system.
+                As data are processed by midPoint mechanisms (such as mappings), the acquisition metadata are preserved during the processing.
+                Multiple values of acquisition data indicate that data from several sources were combined to create the result.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="timestamp" type="xsd:dateTime" minOccurs="0">
+                <!-- TODO: Change this to xsd:timestamp? -->
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Timestamp of the event when the data value entered the system for the first time.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="channel" type="xsd:string" minOccurs="0">
+                <!-- TODO: We want to change this to a native Axiom qname type with default namespace of .../channels-3. -->
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Channel that was the source of the value (shortened).
+                        E.g. "user" channel indicates that the value was entered in user interface, "reconciliation" means that the value was learned during resource recondiliation and so on.
+
+                        The channel is shortened to the shortest possible form.
+                        E.g. the standard midPoint channel namespace is removed (custom channel names still retain the namespace).
+                        This is metadata, we do not want to repeat long URIs for every value.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to a resource that was the source of the value (if applicable).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="actorRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to actor (active agent) that was active when the value was obtained from the source (if applicable).
+                        For example this is reference to the user that was logged in to user interface when the value was entered,
+                        identity of service that authenticated to REST interface when the value was provided and so on.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="originRef" type="c:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to value origin.
+                        _Origin_ is an abstract, high-level representation of data source.
+                        It represents something that the users will understand, such as _human resource data_, _marketing data broker_ or _self-service user data entry_.
+                        Origin is an ordinary midPoint object, it is expected that _org_ or _service_ will usually be used to represent origin.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
 
     <xsd:complexType name="MetadataHandlingType">
         <xsd:annotation>
