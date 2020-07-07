@@ -489,7 +489,7 @@ public class QueryConverterImpl implements QueryConverter {
         }
 
         XNodeImpl valueXnode = clauseXMap.get(ELEMENT_VALUE);
-        if (valueXnode != null) {
+        if (valueXnode != null && (!(valueXnode instanceof ListXNode) || !((ListXNode)valueXnode).isEmpty())) {
             if (preliminaryParsingOnly) {
                 return null;
             }
