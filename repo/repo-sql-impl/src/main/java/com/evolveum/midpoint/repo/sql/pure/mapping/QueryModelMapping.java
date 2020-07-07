@@ -19,11 +19,11 @@ import com.evolveum.midpoint.util.QNameUtil;
 
 /**
  * Common supertype for mapping between Q-classes and model (prism) classes.
- * See {@link #addItemMapping(ItemName, Function)} for details about mapping mechanism.
+ * See {@link #addItemMapping(ItemName, ItemSqlMapper)} for details about mapping mechanism.
  * <p>
  * Goals:
  * <ul>
- *     <li>Map object query conditions to SQL.</li>
+ *     <li>Map object query conditions and ORDER BY to SQL.</li>
  * </ul>
  * <p>
  * Non-goals:
@@ -41,8 +41,7 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
 
     private final Map<String, ColumnMetadata> columns = new LinkedHashMap<>();
 
-    private final Map<QName, Function<SqlPathContext, FilterProcessor<?>>>
-            itemFilterProcessorMapping = new LinkedHashMap<>();
+    private final Map<QName, ItemSqlMapper> itemFilterProcessorMapping = new LinkedHashMap<>();
 
     private Q defaultAlias;
 
@@ -79,30 +78,27 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
      * Adds information how item (attribute) from model type is mapped to query,
      * especially for condition creating purposes.
      * <p>
-     * The {@code processorFactory} function must provide {@link FilterProcessor} that can process
+     * The {@link ItemSqlMapper} works as a factory for {@link FilterProcessor} that can process
      * {@link ObjectFilter} related to the {@link ItemName} specified as the first parameter.
-     * It must be "factory function" because at the time of mapping specification
-     * we don't have the actual query path representing the entity or the column.
+     * It is not possible to use filter processor directly because at the time of mapping
+     * specification we don't have the actual query path representing the entity or the column.
      * These paths are non-static properties of query class instances.
      * <p>
-     * The actually provided {@code processorFactory} function must also somehow "wrap" the
-     * information how the query path representing entity translates to the column that represents
-     * the specified {@code itemName} from the model.
-     * See usages how this is typically done - this may vary by column types and for some types
-     * (e.g. poly-strings) there may be other than 1-to-1 mapping.
+     * The {@link ItemSqlMapper} also provides so called "primary mapping" to a column for ORDER BY
+     * part of the filter.
+     * But there can be additional column mappings specified as for some types (e.g. poly-strings)
+     * there may be other than 1-to-1 mapping.
      * <p>
-     * Creation of {@code processorFactory} is typically simplified by static methods
+     * Construction of the {@link ItemSqlMapper} is typically simplified by static methods
      * {@code #mapper()} provided on various {@code *ItemFilterProcessor} classes.
-     * This works as a "factory function factory" (or "processor factory factory", if you will).
+     * This works as a "processor factory factory" and makes table mapping specification simpler.
      *
      * @param itemName item name from schema type (see {@code F_*} constants on schema types)
-     * @param processorFactory function creating {@link FilterProcessor} for the given itemName
-     * using the current {@link SqlPathContext}
+     * @param itemMapper mapper wrapping the information about column mappings working also
+     * as a factory for {@link FilterProcessor}
      */
-    public void addItemMapping(
-            ItemName itemName,
-            Function<SqlPathContext, FilterProcessor<?>> processorFactory) {
-        itemFilterProcessorMapping.put(itemName, processorFactory);
+    public void addItemMapping(ItemName itemName, ItemSqlMapper itemMapper) {
+        itemFilterProcessorMapping.put(itemName, itemMapper);
     }
 
     /**
@@ -117,18 +113,25 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
     }
 
     // we want loose typing for client's sake, there is no other chance to get the right type here
-    public <T extends ObjectFilter> @NotNull FilterProcessor<T> getFilterProcessor(
+    public <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
             ItemName itemName, SqlPathContext context)
             throws QueryException {
-        Function<SqlPathContext, FilterProcessor<?>> itemMapping =
-                QNameUtil.getByQName(itemFilterProcessorMapping, itemName);
+        return itemMapping(itemName).createFilterProcessor(context);
+    }
+
+    public @NotNull Path<?> primarySqlPath(ItemName itemName, SqlPathContext context)
+            throws QueryException {
+        return itemMapping(itemName).itemPath(context.path());
+    }
+
+    @NotNull
+    public ItemSqlMapper itemMapping(ItemName itemName) throws QueryException {
+        ItemSqlMapper itemMapping = QNameUtil.getByQName(itemFilterProcessorMapping, itemName);
         if (itemMapping == null) {
             throw new QueryException("Missing mapping for " + itemName
                     + " in mapping " + getClass().getSimpleName());
         }
-
-        //noinspection unchecked
-        return (FilterProcessor<T>) itemMapping.apply(context);
+        return itemMapping;
     }
 
     public String tableName() {

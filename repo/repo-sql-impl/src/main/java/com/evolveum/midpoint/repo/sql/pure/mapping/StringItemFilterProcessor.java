@@ -7,8 +7,6 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
-import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 /**
@@ -19,11 +17,12 @@ public class StringItemFilterProcessor extends ItemFilterProcessor<PropertyValue
     private final Path<?> path;
 
     /**
-     * Returns the mapper function creating the string filter processor from context.
+     * Returns the mapper creating the string filter processor from context.
      */
-    public static Function<SqlPathContext, FilterProcessor<?>> mapper(
+    public static ItemSqlMapper mapper(
             Function<EntityPath<?>, Path<?>> rootToQueryItem) {
-        return context -> new StringItemFilterProcessor(rootToQueryItem.apply(context.path()));
+        return new ItemSqlMapper(rootToQueryItem,
+                ctx -> new StringItemFilterProcessor(rootToQueryItem.apply(ctx.path())));
     }
 
     private StringItemFilterProcessor(Path<?> path) {

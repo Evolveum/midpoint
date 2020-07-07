@@ -30,7 +30,7 @@ public class PropertyValueFilterProcessor implements FilterProcessor<PropertyVal
 //        ItemDefinition definition = filter.getDefinition();
 
         FilterProcessor<PropertyValueFilter<?>> processor =
-                context.mapping().getFilterProcessor(itemName, context);
+                context.mapping().createItemFilterProcessor(itemName, context);
         return processor.process(filter);
     }
 }

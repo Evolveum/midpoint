@@ -61,7 +61,7 @@ public class SqlQueryExecutor {
         // add conditions (with exists clauses as necessary)
         if (query != null) {
             context.process(query.getFilter());
-            context.setPagination(query.getPaging());
+            context.processObjectPaging(query.getPaging());
         }
 
         // TODO: what if we declare AuditEventRecordType, but we want transformed result?

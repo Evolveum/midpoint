@@ -10,8 +10,6 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
-import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -27,9 +25,10 @@ public class TimestampItemFilterProcessor extends ItemFilterProcessor<PropertyVa
     /**
      * Returns the mapper function creating the timestamp filter processor from context.
      */
-    public static Function<SqlPathContext, FilterProcessor<?>> mapper(
+    public static ItemSqlMapper mapper(
             Function<EntityPath<?>, Path<?>> rootToQueryItem) {
-        return context -> new TimestampItemFilterProcessor(rootToQueryItem.apply(context.path()));
+        return new ItemSqlMapper(rootToQueryItem,
+                context -> new TimestampItemFilterProcessor(rootToQueryItem.apply(context.path())));
     }
 
     private TimestampItemFilterProcessor(Path<?> path) {

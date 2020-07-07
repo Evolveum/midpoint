@@ -61,6 +61,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.setResult("result1");
         record1.setHostIdentifier("localhost");
         record1.setRemoteHostAddress("192.168.10.10");
+        // all tested records have parameter, it is used for assertions where practical
+        record1.setParameter("1");
         auditService.audit(record1, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record2 = new AuditEventRecord();
@@ -75,6 +77,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.setRemoteHostAddress("192.168.10.10");
         record2.setAttorney(attorney);
         record2.setRequestIdentifier("req-id");
+        record2.setParameter("2");
         auditService.audit(record2, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record3 = new AuditEventRecord();
@@ -85,8 +88,9 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record3.setEventType(AuditEventType.MODIFY_OBJECT);
         record3.setEventStage(AuditEventStage.EXECUTION);
         record3.setMessage("RECORD THREE");
+        // null outcome is kinda like "unknown", but not quite, filter/GUI must handle it
         record3.setChannel(CHANNEL_REST_URI);
-        // null outcome is kinda like "unknown", but not quite, filter must handle it
+        record3.setParameter("3");
         auditService.audit(record3, NullTaskImpl.INSTANCE);
     }
 
@@ -328,7 +332,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only audit events with the timestamp equal to are returned");
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+        assertThat(result.get(0).getParameter()).isEqualTo("2");
     }
 
     @Test
@@ -343,7 +347,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only audit events with the timestamp less or equal are returned");
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getMessage()).isEqualTo("RECORD THREE");
+        assertThat(result.get(0).getParameter()).isEqualTo("3");
     }
 
     @Test
@@ -372,7 +376,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only audit events with the specific initiator are returned");
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+        assertThat(result.get(0).getParameter()).isEqualTo("2");
         // TODO check mapping of initiator, see TODO in AuditEventRecordSqlTransformer#toAuditEventRecordType
     }
 
@@ -402,7 +406,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only audit events with the specified attorney are returned");
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+        assertThat(result.get(0).getParameter()).isEqualTo("2");
         // TODO check mapping of initiator, see TODO in AuditEventRecordSqlTransformer#toAuditEventRecordType
     }
 
@@ -480,7 +484,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only audit events matching both timestamp conditions are returned");
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+        assertThat(result.get(0).getParameter()).isEqualTo("2");
     }
 
     @Test
@@ -498,7 +502,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only audit events matching both conditions are returned");
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+        assertThat(result.get(0).getParameter()).isEqualTo("2");
     }
 
     @Test
@@ -516,8 +520,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only audit events matching both conditions are returned");
         assertThat(result).hasSize(2);
-        assertThat(result).allMatch(aer ->
-                aer.getMessage().equals("record1") || aer.getMessage().equals("RECORD THREE"));
+        assertThat(result).extracting(aer -> aer.getParameter()).contains("1", "3");
     }
 
     @Test
@@ -559,6 +562,21 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test920SearchWithOrderByOneItem() throws SchemaException {
+        when("searching audit with order by one item (no paging)");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .asc(AuditEventRecordType.F_TIMESTAMP)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("all records are returned ordered by specified item");
+        assertThat(result).hasSize(3);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactly("1", "2", "3");
+    }
+
+    @Test
     public void test950SearchWithNoPaging() throws SchemaException {
         when("searching audit using no paging");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
@@ -569,8 +587,6 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("all audit records are returned");
         assertThat(result).hasSize(3);
     }
-
-    // TODO this asc(...) works by accident, add more tests with ordering (and implement it :-))
 
     @Test
     public void test955SearchWithOffsetAndMaxSize() throws SchemaException {
@@ -585,6 +601,6 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only the expected page is returned");
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).getMessage()).isEqualTo("record2");
+        assertThat(result.get(0).getParameter()).isEqualTo("2");
     }
 }

@@ -16,7 +16,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 public class AuditEventRecordSqlTransformer {
 
     public static AuditEventRecordType toAuditEventRecordType(MAuditEventRecord row) {
-        AuditEventRecordType rv = new AuditEventRecordType()
+        return new AuditEventRecordType()
                 .eventType(auditEventTypeTypeFromRepo(row.eventType))
                 .eventStage(auditEventStageTypeFromRepo(row.eventStage))
                 .message(row.message)
@@ -29,33 +29,31 @@ public class AuditEventRecordSqlTransformer {
                 .hostIdentifier(row.hostIdentifier)
                 .remoteHostAddress(row.remoteHostAddress)
                 .requestIdentifier(row.requestIdentifier)
+                .parameter(row.parameter)
                 //
                 ;
-        // todo transformation from whatever input
-//        rv.set where is repo ID? is it not necessary?
-
-        return rv;
     }
 
     public static AuditEventTypeType auditEventTypeTypeFromRepo(Integer ordinal) {
-        RAuditEventType rAuditEventType = MiscUtil.enumFromOrdinal(RAuditEventType.class, ordinal);
-        return rAuditEventType != null
-                ? rAuditEventType.getSchemaValue()
+        RAuditEventType eventType = MiscUtil.enumFromOrdinal(RAuditEventType.class, ordinal);
+        return eventType != null
+                ? eventType.getSchemaValue()
                 : null;
 
     }
 
     public static AuditEventStageType auditEventStageTypeFromRepo(Integer ordinal) {
-        RAuditEventStage rAuditEventStage = MiscUtil.enumFromOrdinal(RAuditEventStage.class, ordinal);
-        return rAuditEventStage != null
-                ? rAuditEventStage.getSchemaValue()
+        RAuditEventStage stage = MiscUtil.enumFromOrdinal(RAuditEventStage.class, ordinal);
+        return stage != null
+                ? stage.getSchemaValue()
                 : null;
     }
 
     public static OperationResultStatusType operationResultStatusTypeFromRepo(Integer ordinal) {
-        ROperationResultStatus rOperationResultStatus = MiscUtil.enumFromOrdinal(ROperationResultStatus.class, ordinal);
-        return rOperationResultStatus != null
-                ? rOperationResultStatus.getSchemaValue()
+        ROperationResultStatus status =
+                MiscUtil.enumFromOrdinal(ROperationResultStatus.class, ordinal);
+        return status != null
+                ? status.getSchemaValue()
                 : null;
     }
 }
