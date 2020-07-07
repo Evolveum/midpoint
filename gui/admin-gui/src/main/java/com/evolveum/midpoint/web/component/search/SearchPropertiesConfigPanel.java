@@ -21,7 +21,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.panel.Fragment;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -29,7 +28,6 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -344,6 +342,11 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     protected void okButtonClicked(AjaxRequestTarget target){
         ObjectFilter configuredFilter = getModelObject().buildObjectFilter();
         filterConfiguredPerformed(configuredFilter, target);
+    }
+
+    @Override
+    protected void cancelButtonClicked(AjaxRequestTarget target) {
+        getPageBase().hideMainPopup(target);
     }
 
     protected void filterConfiguredPerformed(ObjectFilter configuredFilter, AjaxRequestTarget target){
