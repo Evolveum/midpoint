@@ -27,7 +27,7 @@ import java.util.*;
  */
 public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<O>>, DebugDumpable, Serializable {
 
-    private List<ObjectDelta<O>> waves = new ArrayList<>();
+    private final List<ObjectDelta<O>> waves = new ArrayList<>();
 
     /**
      * Get merged deltas from all the waves.

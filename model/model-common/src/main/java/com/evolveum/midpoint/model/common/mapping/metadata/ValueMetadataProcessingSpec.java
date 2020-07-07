@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.common.mapping.metadata;
 
 import java.util.*;
 
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.common.util.ObjectTemplateIncludeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
@@ -17,6 +19,8 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -31,22 +35,62 @@ import org.jetbrains.annotations.NotNull;
  */
 public class ValueMetadataProcessingSpec {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ValueMetadataProcessingSpec.class);
+
     @NotNull private final Collection<MetadataMappingType> mappings = new ArrayList<>();
     @NotNull private final Collection<MetadataItemDefinitionType> itemDefinitions = new ArrayList<>();
+
+    /**
+     * This processing spec will contain mappings targeted at this scope.
+     */
+    @NotNull private final MetadataMappingScopeType scope;
 
     /**
      * Item processing for given metadata items. Lazily evaluated.
      */
     private Map<ItemPath, ItemProcessingType> itemProcessingMap;
 
+    private ValueMetadataProcessingSpec(@NotNull MetadataMappingScopeType scope) {
+        this.scope = scope;
+    }
+
+    public static ValueMetadataProcessingSpec forScope(@NotNull MetadataMappingScopeType scope) {
+        return new ValueMetadataProcessingSpec(scope);
+    }
+
+    public void populateFromCurrentFocusTemplate(ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
+            Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        populateFromCurrentFocusTemplate(
+                ModelExpressionThreadLocalHolder.getLensContext(), dataPath, objectResolver, contextDesc, task, result);
+    }
+
+    public void populateFromCurrentFocusTemplate(ModelContext<?> lensContext, ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
+            Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        if (lensContext != null) {
+            ObjectTemplateType focusTemplate = lensContext.getFocusTemplate();
+            if (focusTemplate != null) {
+                addFromObjectTemplate(focusTemplate, dataPath, objectResolver, contextDesc, task, result);
+            } else {
+                LOGGER.trace("No focus template for {}, no metadata handling from this source", lensContext);
+            }
+        } else {
+            LOGGER.trace("No current lens context, no metadata handling");
+        }
+    }
+
     public boolean isEmpty() {
         return mappings.isEmpty() && itemDefinitions.isEmpty();
     }
 
-    public void addFromObjectTemplate(ObjectTemplateType rootTemplate, ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
+    private void addFromObjectTemplate(ObjectTemplateType rootTemplate, ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
             Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
+
+        LOGGER.trace("Obtaining metadata handling instructions from {}", rootTemplate);
+
         // TODO resolve conflicts in included templates
         try {
             new ObjectTemplateIncludeProcessor(objectResolver)
@@ -63,12 +107,14 @@ public class ValueMetadataProcessingSpec {
 
     private void addFromObjectTemplate(ObjectTemplateType template, ItemPath dataPath) {
         try {
-            if (isApplicable(dataPath, template.getMeta())) {
-                mappings.addAll(template.getMeta().getMapping());
+            if (isHandlingApplicable(dataPath, template.getMeta())) {
+                addMappings(template.getMeta().getMapping());
                 for (MetadataItemDefinitionType item : template.getMeta().getItem()) {
                     itemDefinitions.add(item);
                     for (MetadataMappingType itemMapping : item.getMapping()) {
-                        mappings.add(provideDefaultTarget(itemMapping, item));
+                        if (hasCompatibleScope(itemMapping)) {
+                            mappings.add(provideDefaultTarget(itemMapping, item));
+                        }
                     }
                 }
             }
@@ -77,14 +123,14 @@ public class ValueMetadataProcessingSpec {
         }
     }
 
-    private boolean isApplicable(ItemPath dataPath, MetadataHandlingType handling) throws SchemaException {
+    private boolean isHandlingApplicable(ItemPath dataPath, MetadataHandlingType handling) throws SchemaException {
         if (handling == null) {
             return false;
         } else if (handling.getApplicability() == null) {
             return true;
         } else {
-            List<ItemPath> includes = getPaths(handling.getApplicability().getInclude());
-            List<ItemPath> excludes = getPaths(handling.getApplicability().getExclude());
+            List<ItemPath> includes = getPathsFromSpecs(handling.getApplicability().getInclude());
+            List<ItemPath> excludes = getPathsFromSpecs(handling.getApplicability().getExclude());
             while (!dataPath.isEmpty()) {
                 boolean yes = ItemPathCollectionsUtil.containsEquivalent(includes, dataPath);
                 boolean no = ItemPathCollectionsUtil.containsEquivalent(excludes, dataPath);
@@ -102,7 +148,7 @@ public class ValueMetadataProcessingSpec {
         }
     }
 
-    private List<ItemPath> getPaths(List<MetadataProcessingItemApplicabilitySpecificationType> specs) throws SchemaException {
+    private List<ItemPath> getPathsFromSpecs(List<MetadataProcessingItemApplicabilitySpecificationType> specs) throws SchemaException {
         List<ItemPath> paths = new ArrayList<>();
         for (MetadataProcessingItemApplicabilitySpecificationType spec : specs) {
             if (spec.getPath() == null) {
@@ -132,17 +178,21 @@ public class ValueMetadataProcessingSpec {
         }
     }
 
-    public void addMappings(List<MetadataMappingType> mappings) {
-        this.mappings.addAll(mappings);
+    public void addMappings(List<MetadataMappingType> mappingsToAdd) {
+        for (MetadataMappingType mapping : mappingsToAdd) {
+            if (hasCompatibleScope(mapping)) {
+                mappings.add(mapping);
+            }
+        }
     }
 
-    public Collection<MetadataMappingType> getMappings() {
-        return mappings;
+    public @NotNull Collection<MetadataMappingType> getMappings() {
+        return Collections.unmodifiableCollection(mappings);
     }
 
-    public Collection<MetadataItemDefinitionType> getItemDefinitions() {
-        return itemDefinitions;
-    }
+//    public @NotNull Collection<MetadataItemDefinitionType> getItemDefinitions() {
+//        return Collections.unmodifiableCollection(itemDefinitions);
+//    }
 
     private void computeItemProcessingMapIfNeeded() throws SchemaException {
         if (itemProcessingMap == null) {
@@ -196,5 +246,14 @@ public class ValueMetadataProcessingSpec {
 
     boolean isFullProcessing(ItemPath itemPath) throws SchemaException {
         return getProcessing(itemPath) == ItemProcessingType.FULL;
+    }
+
+    private boolean hasCompatibleScope(MetadataMappingType metadataMapping) {
+        MetadataMappingScopeType mappingScope = metadataMapping.getScope();
+        return mappingScope == null || mappingScope == scope;
+    }
+
+    public MetadataMappingScopeType getScope() {
+        return scope;
     }
 }

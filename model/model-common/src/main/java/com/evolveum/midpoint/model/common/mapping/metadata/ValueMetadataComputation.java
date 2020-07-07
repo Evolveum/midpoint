@@ -7,7 +7,14 @@
 
 package com.evolveum.midpoint.model.common.mapping.metadata;
 
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
+import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetadataMapping;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -17,16 +24,13 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Objects;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingScopeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
 
 /**
  * Computation of value metadata.
@@ -41,7 +45,9 @@ import java.util.Objects;
  * - it works with simplified computation model: its input is simply a list of input values (regardless of their
  *   parent item).
  */
-class ValueMetadataComputation {
+public class ValueMetadataComputation {
+
+    private static final Trace LOGGER = TraceManager.getTrace(ValueMetadataComputation.class);
 
     /**
      * Input for the computation. Currently a simple list of values,
@@ -56,19 +62,9 @@ class ValueMetadataComputation {
     @NotNull private final ValueMetadataProcessingSpec processingSpec;
 
     /**
-     * Instant of the evaluation.
+     * Context desc + now + task.
      */
-    private final XMLGregorianCalendar now;
-
-    /**
-     * Current context description.
-     */
-    private final String contextDescription;
-
-    /**
-     * Task under which the computation executes.
-     */
-    private final Task task;
+    private final MappingEvaluationEnvironment env;
 
     /**
      * The operation result.
@@ -91,14 +87,12 @@ class ValueMetadataComputation {
     @NotNull private final PrismContainerValue<ValueMetadataType> outputMetadata;
 
     private ValueMetadataComputation(@NotNull List<PrismValue> inputValues, @NotNull ValueMetadataProcessingSpec processingSpec,
-            @NotNull ModelCommonBeans beans, XMLGregorianCalendar now, String contextDescription, Task task,
+            @NotNull ModelCommonBeans beans, MappingEvaluationEnvironment env,
             @NotNull OperationResult result) {
         this.inputValues = inputValues;
         this.processingSpec = processingSpec;
         this.beans = beans;
-        this.now = now;
-        this.contextDescription = contextDescription;
-        this.task = task;
+        this.env = env;
         this.result = result;
         this.metadataDefinition = Objects.requireNonNull(
                 beans.prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class),
@@ -107,17 +101,29 @@ class ValueMetadataComputation {
         this.outputMetadata = new ValueMetadataType(beans.prismContext).asPrismContainerValue();
     }
 
-    static ValueMetadataComputation forMapping(List<PrismValue> inputValues, MappingValueMetadataComputerImpl computer,
-            OperationResult result) {
-        return new ValueMetadataComputation(inputValues, computer.processingSpec, computer.beans, computer.dataMapping.getNow(),
-                computer.getContextDescription(), computer.dataMapping.getTask(), result);
+    public static ValueMetadataComputation forMapping(List<PrismValue> inputValues, ValueMetadataProcessingSpec processingSpec,
+            MappingImpl<?, ?> mapping, OperationResult result) {
+        MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
+                "metadata evaluation in " + mapping.getMappingContextDescription(),
+                mapping.getNow(), mapping.getTask());
+        return new ValueMetadataComputation(inputValues, processingSpec, mapping.getBeans(), env, result);
+    }
+
+    public static ValueMetadataComputation forConsolidation(List<PrismValue> inputValues, ValueMetadataProcessingSpec processingSpec,
+            ModelCommonBeans beans, MappingEvaluationEnvironment env, OperationResult result) {
+        return new ValueMetadataComputation(inputValues, processingSpec, beans, env.createChild("metadata evaluation in"), result);
     }
 
     public ValueMetadata execute() throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        logStart();
         processCustomMappings();
         processBuiltinMappings();
         return MidpointValueMetadataFactory.createFrom(outputMetadata);
+    }
+
+    private void logStart() {
+        LOGGER.trace("Starting metadata computation for input values: {}", inputValues);
     }
 
     private void processCustomMappings()
@@ -125,7 +131,7 @@ class ValueMetadataComputation {
             ConfigurationException, ExpressionEvaluationException {
         for (MetadataMappingType mappingBean : processingSpec.getMappings()) {
             MetadataMappingImpl<?, ?> mapping = createMapping(mappingBean);
-            mapping.evaluate(task, result);
+            mapping.evaluate(env.task, result);
             appendValues(mapping.getOutputPath(), mapping.getOutputTriple());
         }
     }
@@ -140,10 +146,10 @@ class ValueMetadataComputation {
 
     private MetadataMappingImpl<?, ?> createMapping(MetadataMappingType mappingBean) throws SchemaException {
         MetadataMappingBuilder<?, ?> builder = beans.metadataMappingEvaluator.mappingFactory
-                .createMappingBuilder(mappingBean, contextDescription);
+                .createMappingBuilder(mappingBean, env.contextDescription);
         createSources(builder, mappingBean);
         builder.targetContext(metadataDefinition)
-                .now(now)
+                .now(env.now)
                 .conditionMaskOld(false); // We are not interested in old values (deltas are irrelevant in metadata mappings).
         return builder.build();
     }
@@ -168,7 +174,7 @@ class ValueMetadataComputation {
     private MutableItemDefinition getAdaptedSourceDefinition(ItemPath sourcePath) {
         ItemDefinition sourceDefinition =
                 Objects.requireNonNull(metadataDefinition.findItemDefinition(sourcePath),
-                        () -> "No definition for '" + sourcePath + "' in " + contextDescription);
+                        () -> "No definition for '" + sourcePath + "' in " + env.contextDescription);
         MutableItemDefinition sourceDefinitionMultivalued =
                 sourceDefinition.clone().toMutable();
         sourceDefinitionMultivalued.setMaxOccurs(-1);
@@ -193,19 +199,35 @@ class ValueMetadataComputation {
     }
 
     private ItemPath getSourcePath(VariableBindingDefinitionType sourceDef) {
-        return Objects.requireNonNull(sourceDef.getPath(), () -> "No source path in " + contextDescription)
+        return Objects.requireNonNull(sourceDef.getPath(), () -> "No source path in " + env.contextDescription)
                 .getItemPath();
     }
 
     private void processBuiltinMappings() throws SchemaException {
         for (BuiltinMetadataMapping mapping : beans.metadataMappingEvaluator.getBuiltinMappings()) {
             if (isApplicable(mapping)) {
-                mapping.apply(inputValues, outputMetadata, contextDescription, now, task, result);
+                mapping.apply(this);
             }
         }
     }
 
     private boolean isApplicable(BuiltinMetadataMapping mapping) throws SchemaException {
         return processingSpec.isFullProcessing(mapping.getTargetPath());
+    }
+
+    public MetadataMappingScopeType getScope() {
+        return processingSpec.getScope();
+    }
+
+    public MappingEvaluationEnvironment getEnv() {
+        return env;
+    }
+
+    public List<PrismValue> getInputValues() {
+        return Collections.unmodifiableList(inputValues);
+    }
+
+    public PrismContainerValue<?> getOutputMetadata() {
+        return outputMetadata;
     }
 }

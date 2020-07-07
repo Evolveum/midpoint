@@ -990,7 +990,7 @@ public class InboundProcessor implements ProjectorProcessor {
 
             Collection<ItemValueWithOrigin<V, D>> shouldBeItemValues = consolidatedTriples.getNonNegativeValues();
             for (ItemValueWithOrigin<V, D> itemWithOrigin : shouldBeItemValues) {
-                V clonedValue = LensUtil.cloneAndApplyMetadata(itemWithOrigin.getItemValue(),
+                V clonedValue = LensUtil.cloneAndApplyAssignmentOrigin(itemWithOrigin.getItemValue(),
                         isAssignment,
                         shouldBeItemValues);
                 shouldBeItem.add(clonedValue, EquivalenceStrategy.REAL_VALUE);
@@ -1018,7 +1018,7 @@ public class InboundProcessor implements ProjectorProcessor {
                     if (targetFocusItem != null && !targetFocusItem.getDefinition().isMultiValue()
                             && !targetFocusItem.isEmpty()) {
                         Collection<V> replace = new ArrayList<>();
-                        replace.add(LensUtil.cloneAndApplyMetadata(value, isAssignment, originMapping.getMappingBean()));
+                        replace.add(LensUtil.cloneAndApplyAssignmentOrigin(value, isAssignment, originMapping.getMappingBean()));
                         outputFocusItemDelta.setValuesToReplace(replace);
 
 
@@ -1029,7 +1029,7 @@ public class InboundProcessor implements ProjectorProcessor {
                             alreadyReplaced = true;
                         }
                     } else {
-                        outputFocusItemDelta.addValueToAdd(LensUtil.cloneAndApplyMetadata(value, isAssignment, originMapping.getMappingBean()));
+                        outputFocusItemDelta.addValueToAdd(LensUtil.cloneAndApplyAssignmentOrigin(value, isAssignment, originMapping.getMappingBean()));
                     }
                 }
             }

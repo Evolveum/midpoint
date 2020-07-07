@@ -7,26 +7,18 @@
 
 package com.evolveum.midpoint.model.common.mapping.metadata.builtin;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
-
 import org.jetbrains.annotations.NotNull;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.List;
+import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataComputation;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * TODO
  */
 public interface BuiltinMetadataMapping {
 
-    void apply(List<PrismValue> valuesTuple, PrismContainerValue<ValueMetadataType> outputMetadata,
-            String contextDescription, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException;
+    void apply(@NotNull ValueMetadataComputation computation) throws SchemaException;
 
     @NotNull
     ItemPath getTargetPath();

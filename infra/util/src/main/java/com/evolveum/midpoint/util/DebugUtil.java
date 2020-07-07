@@ -613,13 +613,10 @@ public class DebugUtil {
     }
 
     public static Object debugDumpLazily(DebugDumpable dumpable, int indent) {
-        if (dumpable == null) {
-            return null;
-        }
         return new Object() {
             @Override
             public String toString() {
-                return dumpable.debugDump(indent);
+                return debugDump(dumpable, indent);
             }
         };
     }

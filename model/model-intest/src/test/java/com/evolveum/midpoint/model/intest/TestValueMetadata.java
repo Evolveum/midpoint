@@ -93,6 +93,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
         addObject(TEMPLATE_REGULAR_USER, initTask, initResult);
         addObject(USER_ALICE, initTask, initResult);
+
+//        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
     }
 
     @Override
@@ -264,19 +266,44 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         addObject(USER_PAUL, task, result);
 
         then();
-        assertUserAfter(USER_PAUL.oid)
+        PrismContainerValue<ValueMetadataType> fullNameMetadata1 = assertUserAfter(USER_PAUL.oid)
                 .display()
                 .displayXml()
                 .assertFullName("Paul Morphy")
-                .valueMetadata(UserType.F_FULL_NAME)
-                    .display()
-                    .assertSize(1)
-                    .end()
                 .assertDescription("Paul")
                 .valueMetadata(UserType.F_DESCRIPTION)
                     .display()
-                    .assertSize(0);
+                    .assertSize(0)
+                    .end()
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .display()
+                    .assertSize(1)
+                    .getPrismValue();
 
+        when("recompute");
+        recomputeUser(USER_PAUL.oid, task, result);
+
+        then("after recompute");
+        PrismContainerValue<ValueMetadataType> fullNameMetadata2 = assertUserAfter(USER_PAUL.oid)
+                .display()
+                .displayXml()
+                .assertFullName("Paul Morphy")
+                .assertDescription("Paul")
+                .valueMetadata(UserType.F_DESCRIPTION)
+                    .display()
+                    .assertSize(0)
+                    .end()
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .display()
+                    .assertSize(1)
+                    .getPrismValue();
+
+        displayDumpable("full name metadata after add", fullNameMetadata1);
+        displayDumpable("full name metadata after recompute", fullNameMetadata2);
+
+        assertThat(fullNameMetadata2.asContainerable().getStorage().getCreateTimestamp())
+                .as("create time after recompute")
+                .isEqualTo(fullNameMetadata1.asContainerable().getStorage().getCreateTimestamp());
     }
     //endregion
 
