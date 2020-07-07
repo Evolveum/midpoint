@@ -30,7 +30,7 @@ public class TabPanel<T> extends Component<T> {
     }
 
     public SelenideElement clickTabWithName(String tabName) {
-        SelenideElement link = getParentElement().$(Schrodinger.byElementValue("a", tabName));
+        SelenideElement link = getParentElement().$(By.linkText(tabName));
 
         return verifyAndFetchActiveTab(link);
     }

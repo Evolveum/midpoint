@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schrodinger.page;
 import static com.codeborne.selenide.Selenide.$;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
@@ -37,6 +38,7 @@ public abstract class AssignmentHolderDetailsPage<P extends AssignmentHolderDeta
 
     public PreviewPage clickPreview() {
         getPreviewButton().waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new PreviewPage();
     }
 
