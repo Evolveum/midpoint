@@ -104,4 +104,10 @@ public class SqlQueryContext extends SqlPathContext implements FilterProcessor<O
             }
         }
     }
+
+    public void setDistinct(boolean distinct) {
+        if (distinct) {
+            query.distinct();
+        }
+    }
 }

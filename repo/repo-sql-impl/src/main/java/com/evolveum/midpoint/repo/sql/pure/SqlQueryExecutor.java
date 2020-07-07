@@ -52,12 +52,12 @@ public class SqlQueryExecutor {
             @NotNull Class<T> prismType,
             ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) throws QueryException {
 
-        // TODO use?
-        boolean distinctRequested = GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options));
-
         QueryModelMapping<?, ?> rootMapping = QueryModelMappingConfig.getByModelType(prismType);
         EntityPath<?> root = rootMapping.defaultAlias();
         SqlQueryContext context = new SqlQueryContext(root, rootMapping);
+        // TODO: cover with tests, not relevant for Audit though (at least not yet without multiplying joins)
+        context.setDistinct(
+                GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options)));
 
         // add conditions (with exists clauses as necessary)
         if (query != null) {
