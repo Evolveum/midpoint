@@ -174,31 +174,29 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             record.setSessionIdentifier(task.getTaskIdentifier());
         }
 
-        if (record.getDeltas() != null) {
-            for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : record.getDeltas()) {
-                ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
+        for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : record.getDeltas()) {
+            ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();
 
-                // currently this does not work as expected (retrieves all default items)
-                Collection<SelectorOptions<GetOperationOptions>> nameOnlyOptions = schemaHelper.getOperationOptionsBuilder()
-                        .item(ObjectType.F_NAME).retrieve()
-                        .build();
-                ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> {
-                    if (record.getNonExistingReferencedObjects().contains(oid)) {
-                        return null;    // save a useless getObject call plus associated warning (MID-5378)
-                    }
-                    if (repositoryService == null) {
-                        LOGGER.warn("No repository, no OID resolution (for {})", oid);
-                        return null;
-                    }
-                    LOGGER.warn("Unresolved object reference in delta being audited (for {}: {}) -- this might indicate "
-                                    + "a performance problem, as these references are normally resolved using repository cache",
-                            objectClass.getSimpleName(), oid);
-                    PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, nameOnlyOptions,
-                            new OperationResult(AuditServiceProxy.class.getName() + ".completeRecord.resolveName"));
-                    return object.getName();
-                };
-                resolveNames(delta, nameResolver, prismContext);
-            }
+            // currently this does not work as expected (retrieves all default items)
+            Collection<SelectorOptions<GetOperationOptions>> nameOnlyOptions = schemaHelper.getOperationOptionsBuilder()
+                    .item(ObjectType.F_NAME).retrieve()
+                    .build();
+            ObjectDeltaSchemaLevelUtil.NameResolver nameResolver = (objectClass, oid) -> {
+                if (record.getNonExistingReferencedObjects().contains(oid)) {
+                    return null;    // save a useless getObject call plus associated warning (MID-5378)
+                }
+                if (repositoryService == null) {
+                    LOGGER.warn("No repository, no OID resolution (for {})", oid);
+                    return null;
+                }
+                LOGGER.warn("Unresolved object reference in delta being audited (for {}: {}) -- this might indicate "
+                                + "a performance problem, as these references are normally resolved using repository cache",
+                        objectClass.getSimpleName(), oid);
+                PrismObject<? extends ObjectType> object = repositoryService.getObject(objectClass, oid, nameOnlyOptions,
+                        new OperationResult(AuditServiceProxy.class.getName() + ".completeRecord.resolveName"));
+                return object.getName();
+            };
+            resolveNames(delta, nameResolver, prismContext);
         }
     }
 

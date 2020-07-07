@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -580,7 +580,7 @@ public class RAuditEventRecord implements Serializable {
             audit.getResourceOids().add(resourceOID.getResourceOid());
         }
 
-        List<ObjectDeltaOperation> odos = new ArrayList<>();
+        List<ObjectDeltaOperation<?>> odos = new ArrayList<>();
         for (RObjectDeltaOperation rodo : repo.getDeltas()) {
             try {
                 ObjectDeltaOperation odo = RObjectDeltaOperation.fromRepo(rodo, prismContext, useUtf16);
@@ -592,7 +592,7 @@ public class RAuditEventRecord implements Serializable {
             }
         }
 
-        audit.getDeltas().addAll((Collection) odos);
+        audit.addDeltas(odos);
 
         for (RAuditPropertyValue rPropertyValue : repo.getPropertyValues()) {
             audit.addPropertyValue(rPropertyValue.getName(), rPropertyValue.getValue());

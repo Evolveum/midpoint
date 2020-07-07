@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 
 import java.util.*;
 import javax.xml.datatype.Duration;
@@ -207,7 +207,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     public void assertAnyRequestDeltas() {
         AuditEventRecord requestRecord = getRequestRecord();
         Collection<ObjectDeltaOperation<? extends ObjectType>> requestDeltas = requestRecord.getDeltas();
-        assert requestDeltas != null && !requestDeltas.isEmpty() : "Expected some deltas in audit request record but found none";
+        assert !requestDeltas.isEmpty() : "Expected some deltas in audit request record but found none";
     }
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutionDeltas() {
@@ -459,7 +459,9 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assertEquals("Wrong outcome of last audit record: " + lastRecord.getOutcome(), OperationResultStatus.SUCCESS, lastRecord.getOutcome());
         // TODO fix "login" "logout" auditing
         assertEquals("Audit session ID does not match", firstRecord.getSessionIdentifier(), lastRecord.getSessionIdentifier());
-        assertFalse("Same login and logout event IDs", firstRecord.getEventIdentifier().equals(lastRecord.getEventIdentifier()));
+        assertThat(firstRecord.getEventIdentifier())
+                .withFailMessage("Same login and logout event IDs")
+                .isNotEqualTo(lastRecord.getEventIdentifier());
         if (expectedChannel != null) {
             assertEquals("Wrong channel in first audit record", expectedChannel, firstRecord.getChannel());
             assertEquals("Wrong channel in last audit record", expectedChannel, lastRecord.getChannel());
