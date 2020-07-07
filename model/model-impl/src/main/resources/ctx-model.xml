@@ -183,12 +183,7 @@
     </bean>
 
     <bean id="mappingFactory" class="com.evolveum.midpoint.model.common.mapping.MappingFactory">
-        <property name="expressionFactory" ref="expressionFactory"/>
-        <property name="objectResolver" ref="modelObjectResolver"/>
-        <property name="metadataMappingEvaluator" ref="metadataMappingEvaluator"/>
-        <property name="protector" ref="protector"/>
-        <property name="prismContext" ref="prismContext"/>
-        <property name="securityContextManager" ref="securityContextManager"/>
+        <property name="beans" ref="modelCommonBeans"/>
     </bean>
 
     <bean id="midpointFunctionLibrary"

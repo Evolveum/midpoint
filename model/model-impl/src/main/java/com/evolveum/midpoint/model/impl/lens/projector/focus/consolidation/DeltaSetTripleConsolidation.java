@@ -7,183 +7,130 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation;
 
-import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
-import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateItemDefinitionType;
-
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.Collection;
 
 /**
  * Responsible for consolidation of delta set triple (plus, minus, zero sets) to item delta.
+ *
+ * TODO Consider making this an inner class of DeltaSetTripleMapConsolidation.
+ *   But it is (still) possible we would need to use this class directly from some clients.
+ *   Or should we merge its functionality with IVwO consolidator?
  */
 @Experimental
-class DeltaSetTripleConsolidation<T extends AssignmentHolderType> {
+class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> {
 
     // The logger name is intentionally different because of the backward compatibility.
     private static final Trace LOGGER = TraceManager.getTrace(ObjectTemplateProcessor.class);
 
-    private final DeltaSetTripleMapConsolidation<T> wholeConsolidation;
+    /**
+     * Path to item that is to be consolidated.
+     */
     private final UniformItemPath itemPath;
-    private final ItemDefinition<?> prismItemDefinition;
-    private final ObjectTemplateItemDefinitionType templateItemDefinition;
-    private final ItemDelta<?, ?> aprioriItemDelta;
-    private final DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> deltaSetTriple;
 
-    private ItemDelta itemDelta;
+    /**
+     * Delta set triple that is to be consolidated.
+     */
+    private final DeltaSetTriple<I> deltaSetTriple;
 
-    DeltaSetTripleConsolidation(DeltaSetTripleMapConsolidation<T> wholeConsolidation,
-            UniformItemPath itemPath, ItemDefinition<?> prismItemDefinition, ObjectTemplateItemDefinitionType templateItemDefinition,
-            ItemDelta<?, ?> aprioriItemDelta, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> deltaSetTriple) {
-        this.wholeConsolidation = wholeConsolidation;
+    /**
+     * Existing (apriori) delta that was specified by the caller and/or computed upstream.
+     */
+    private final ItemDelta<V, D> aprioriItemDelta;
+
+    /**
+     * Existing item values. Note: this is the state AFTER apriori item delta is applied!
+     */
+    private final Item<V, D> existingItem;
+
+    /**
+     * Definition of item to be consolidated.
+     */
+    private final D itemDefinition;
+
+    /**
+     * Should the values from zero set be transformed to delta ADD section?
+     * This is the case when the whole object is being added.
+     */
+    private final boolean addUnchangedValues;
+
+    /**
+     * Metadata computer to be used during consolidation.
+     */
+    private final ValueMetadataComputer valueMetadataComputer;
+
+    /**
+     * Mapping evaluation environment (context description, now, task).
+     */
+    private final MappingEvaluationEnvironment env;
+
+    /**
+     * Operation result (currently needed for value metadata computation).
+     */
+    private final OperationResult result;
+
+    private ItemDelta<V, D> itemDelta;
+
+    DeltaSetTripleConsolidation(UniformItemPath itemPath, DeltaSetTriple<I> deltaSetTriple, ItemDelta<V, D> aprioriItemDelta, PrismObject<?> targetObject, D itemDefinition,
+            boolean addUnchangedValues, ValueMetadataComputer valueMetadataComputer, MappingEvaluationEnvironment env, OperationResult result) {
         this.itemPath = itemPath;
-        this.prismItemDefinition = prismItemDefinition;
-        this.aprioriItemDelta = aprioriItemDelta;
         this.deltaSetTriple = deltaSetTriple;
-        this.templateItemDefinition = templateItemDefinition;
+        this.aprioriItemDelta = aprioriItemDelta;
+        this.existingItem = targetObject != null ? targetObject.findItem(itemPath) : null;
+        this.itemDefinition = itemDefinition;
+        this.addUnchangedValues = addUnchangedValues;
+        this.valueMetadataComputer = valueMetadataComputer;
+        this.env = env;
+        this.result = result;
     }
 
-    ItemDelta<?, ?> consolidateItem() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
+    ItemDelta<?, ?> consolidateItem() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         LOGGER.trace("Computing delta for {} with the delta set triple:\n{}", itemPath, deltaSetTriple.debugDumpLazily());
 
         computeItemDelta();
-        reconcileItemDelta();
+        cleanupItemDelta();
 
         return itemDelta;
     }
 
-    private void computeItemDelta() throws ExpressionEvaluationException,
-            PolicyViolationException, SchemaException {
-        //noinspection unchecked
-        IvwoConsolidator consolidator = new IvwoConsolidatorBuilder()
+    private void computeItemDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+            ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+        try (IvwoConsolidator<V, D, I> consolidator = new IvwoConsolidatorBuilder<V, D, I>()
                 .itemPath(itemPath)
                 .ivwoTriple(deltaSetTriple)
-                .itemDefinition(prismItemDefinition)
+                .itemDefinition(itemDefinition)
                 .aprioriItemDelta(aprioriItemDelta)
-                .itemContainer(wholeConsolidation.targetObject)
+                .existingItem(existingItem)
                 .valueMatcher(null)
                 .comparator(null)
-                .addUnchangedValues(wholeConsolidation.addUnchangedValues)
-                .filterExistingValues(!LensUtil.isNonTolerant(templateItemDefinition)) // if non-tolerant, we want to gather ZERO & PLUS sets
-                .isExclusiveStrong(false)
-                .contextDescription(wholeConsolidation.contextDescription)
+                .addUnchangedValues(addUnchangedValues)
+                .addUnchangedValuesExceptForNormalMappings(true)
+                .existingItemKnown(true)
+                .contextDescription(env.contextDescription)
                 .strengthSelector(StrengthSelector.ALL)
-                .build();
-
-        itemDelta = consolidator.consolidateToDelta();
+                .valueMetadataComputer(valueMetadataComputer)
+                .result(result)
+                .build()) {
+            itemDelta = consolidator.consolidateToDelta();
+        }
     }
 
-    /**
-     * Do a quick version of reconciliation. There is not much to reconcile as both the source and the target
-     * is focus. But there are few cases to handle, such as strong mappings, and sourceless normal mappings.
-     *
-     * TODO Why don't we do this as part of IVwO consolidation?
-     */
-    private void reconcileItemDelta() throws SchemaException {
-        boolean isAssignment = SchemaConstants.PATH_ASSIGNMENT.equivalent(itemPath);
-        boolean isNonTolerant = LensUtil.isNonTolerant(templateItemDefinition);
-
-        Collection<? extends ItemValueWithOrigin<?,?>> zeroSet = deltaSetTriple.getZeroSet();
-        Item<PrismValue, ItemDefinition> itemNew = null;
-        if (wholeConsolidation.targetObject != null) {
-            itemNew = wholeConsolidation.targetObject.findItem(itemPath);
-        }
-        for (ItemValueWithOrigin<?,?> zeroSetIvwo: zeroSet) {
-
-            PrismValueDeltaSetTripleProducer<?, ?> mapping = zeroSetIvwo.getMapping();
-            if (mapping.getStrength() == null || mapping.getStrength() == MappingStrengthType.NORMAL) {
-                if (aprioriItemDelta != null && !aprioriItemDelta.isEmpty()) {
-                    continue;
-                }
-                if (!mapping.isSourceless()) {
-                    continue;
-                }
-                LOGGER.trace("Adding zero values from normal mapping {}, a-priori delta: {}, isSourceless: {}",
-                        mapping, aprioriItemDelta, mapping.isSourceless());
-            } else if (mapping.getStrength() == MappingStrengthType.WEAK) {
-                if (itemNew != null && !itemNew.isEmpty() || itemDelta.addsAnyValue()) {
-                    continue;
-                }
-                LOGGER.trace("Adding zero values from weak mapping {}, itemNew: {}, itemDelta: {}",
-                        mapping, itemNew, itemDelta);
-            } else {
-                LOGGER.trace("Adding zero values from strong mapping {}", mapping);
-            }
-
-            PrismValue valueFromZeroSet = zeroSetIvwo.getItemValue();
-            if (itemNew == null || !itemNew.contains(valueFromZeroSet, EquivalenceStrategy.REAL_VALUE)) {
-                LOGGER.trace("Reconciliation will add value {} for item {}. Existing item: {}", valueFromZeroSet, itemPath, itemNew);
-                itemDelta.addValuesToAdd(LensUtil.cloneAndApplyMetadata(valueFromZeroSet, isAssignment, mapping));
-            }
-        }
-
-        if (isNonTolerant) {
-            if (itemDelta.isDelete()) {
-                LOGGER.trace("Non-tolerant item with values to DELETE => removing them");
-                itemDelta.resetValuesToDelete();
-            }
-            if (itemDelta.isReplace()) {
-                LOGGER.trace("Non-tolerant item with resulting REPLACE delta => doing nothing");
-            } else {
-                for (ItemValueWithOrigin<?,?> zeroSetIvwo: zeroSet) {
-                    // TODO aren't values added twice (regarding addValuesToAdd called ~10 lines above)?
-                    itemDelta.addValuesToAdd(LensUtil.cloneAndApplyMetadata(zeroSetIvwo.getItemValue(), isAssignment, zeroSetIvwo.getMapping()));
-                }
-                itemDelta.addToReplaceDelta();
-                LOGGER.trace("Non-tolerant item with resulting ADD delta => converted ADD to REPLACE values: {}", itemDelta.getValuesToReplace());
-            }
-            // To avoid phantom changes, compare with existing values (MID-2499).
-            // TODO why we do this check only for non-tolerant items?
-            if (isDeltaRedundant(wholeConsolidation.targetObject, templateItemDefinition, itemDelta)) {
-                LOGGER.trace("Computed item delta is redundant => skipping it. Delta = \n{}", itemDelta.debugDumpLazily());
-                itemDelta = null;
-                return;
-            }
-            PrismUtil.setDeltaOldValue(wholeConsolidation.targetObject, itemDelta);
-        }
-
+    private void cleanupItemDelta() throws SchemaException {
         itemDelta.simplify();
-        itemDelta.validate(wholeConsolidation.contextDescription);
+        itemDelta.validate(env.contextDescription);
         LOGGER.trace("Computed delta:\n{}", itemDelta.debugDumpLazily());
     }
 
-    // TODO this should be maybe moved into LensUtil.consolidateTripleToDelta e.g.
-    //  under a special option "createReplaceDelta", but for the time being, let's keep it here
-    private boolean isDeltaRedundant(PrismObject<T> targetObject,
-            ObjectTemplateItemDefinitionType templateItemDefinition, @NotNull ItemDelta<?, ?> itemDelta)
-            throws SchemaException {
-        if (itemDelta instanceof PropertyDelta) {
-            QName matchingRuleName = templateItemDefinition != null ? templateItemDefinition.getMatchingRule() : null;
-            return isPropertyDeltaRedundant(targetObject, matchingRuleName, (PropertyDelta<?>) itemDelta);
-        } else {
-            return itemDelta.isRedundant(targetObject, false);
-        }
-    }
-
-    private <AH extends AssignmentHolderType, X> boolean isPropertyDeltaRedundant(PrismObject<AH> targetObject,
-            QName matchingRuleName, @NotNull PropertyDelta<X> propertyDelta)
-            throws SchemaException {
-        MatchingRule<X> matchingRule = wholeConsolidation.beans.matchingRuleRegistry.getMatchingRule(matchingRuleName, null);
-        return propertyDelta.isRedundant(targetObject, EquivalenceStrategy.IGNORE_METADATA, matchingRule, false);
-    }
 }
