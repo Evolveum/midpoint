@@ -265,7 +265,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
             @Override
             public String getCssClass() {
-                return getColumnStyleClass();
+                return "min-width-column";
             }
 
         };
