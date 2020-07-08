@@ -15,6 +15,8 @@ import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
+import com.querydsl.sql.ForeignKey;
+import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
@@ -23,9 +25,12 @@ import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 /**
  * Querydsl query type for M_AUDIT_EVENT table.
  */
+@SuppressWarnings("unused")
 public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRecord> {
 
     private static final long serialVersionUID = -229589301;
+
+    public static final String TABLE_NAME = "M_AUDIT_EVENT";
 
     // column metadata constants, we don't care about the indexes, better to remove them
     public static final ColumnMetadata ID =
@@ -86,62 +91,48 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
             ColumnMetadata.named("TIMESTAMPVALUE").ofType(Types.TIMESTAMP).withSize(23).withDigits(10);
 
     // columns and relations
-    public final NumberPath<Long> id = addMetadata(createNumber("id", Long.class), ID);
-    public final StringPath attorneyName = addMetadata(createString("attorneyName"), ATTORNEY_NAME);
-    public final StringPath attorneyOid = addMetadata(createString("attorneyOid"), ATTORNEY_OID);
-    public final StringPath channel = addMetadata(createString("channel"), CHANNEL);
-    public final StringPath eventIdentifier =
-            addMetadata(createString("eventIdentifier"), EVENT_IDENTIFIER);
-    public final NumberPath<Integer> eventStage =
-            addMetadata(createNumber("eventStage", Integer.class), EVENT_STAGE);
-    public final NumberPath<Integer> eventType =
-            addMetadata(createNumber("eventType", Integer.class), EVENT_TYPE);
-    public final StringPath hostIdentifier =
-            addMetadata(createString("hostIdentifier"), HOST_IDENTIFIER);
-    public final StringPath initiatorName =
-            addMetadata(createString("initiatorName"), INITIATOR_NAME);
-    public final StringPath initiatorOid =
-            addMetadata(createString("initiatorOid"), INITIATOR_OID);
-    public final NumberPath<Integer> initiatorType =
-            addMetadata(createNumber("initiatorType", Integer.class), INITIATOR_TYPE);
-    public final StringPath message = addMetadata(createString("message"), MESSAGE);
-    public final StringPath nodeIdentifier =
-            addMetadata(createString("nodeIdentifier"), NODE_IDENTIFIER);
-    public final NumberPath<Integer> outcome =
-            addMetadata(createNumber("outcome", Integer.class), OUTCOME);
-    public final StringPath parameter = addMetadata(createString("parameter"), PARAMETER);
+    public final NumberPath<Long> id = createLong("id", ID);
+    public final StringPath attorneyName = createString("attorneyName", ATTORNEY_NAME);
+    public final StringPath attorneyOid = createString("attorneyOid", ATTORNEY_OID);
+    public final StringPath channel = createString("channel", CHANNEL);
+    public final StringPath eventIdentifier = createString("eventIdentifier", EVENT_IDENTIFIER);
+    public final NumberPath<Integer> eventStage = createInteger("eventStage", EVENT_STAGE);
+    public final NumberPath<Integer> eventType = createInteger("eventType", EVENT_TYPE);
+    public final StringPath hostIdentifier = createString("hostIdentifier", HOST_IDENTIFIER);
+    public final StringPath initiatorName = createString("initiatorName", INITIATOR_NAME);
+    public final StringPath initiatorOid = createString("initiatorOid", INITIATOR_OID);
+    public final NumberPath<Integer> initiatorType = createInteger("initiatorType", INITIATOR_TYPE);
+    public final StringPath message = createString("message", MESSAGE);
+    public final StringPath nodeIdentifier = createString("nodeIdentifier", NODE_IDENTIFIER);
+    public final NumberPath<Integer> outcome = createInteger("outcome", OUTCOME);
+    public final StringPath parameter = createString("parameter", PARAMETER);
     public final StringPath remoteHostAddress =
-            addMetadata(createString("remoteHostAddress"), REMOTE_HOST_ADDRESS);
+            createString("remoteHostAddress", REMOTE_HOST_ADDRESS);
     public final StringPath requestIdentifier =
-            addMetadata(createString("requestIdentifier"), REQUEST_IDENTIFIER);
-    public final StringPath result = addMetadata(createString("result"), RESULT);
+            createString("requestIdentifier", REQUEST_IDENTIFIER);
+    public final StringPath result = createString("result", RESULT);
     public final StringPath sessionIdentifier =
-            addMetadata(createString("sessionIdentifier"), SESSION_IDENTIFIER);
-    public final StringPath targetName = addMetadata(createString("targetName"), TARGET_NAME);
-    public final StringPath targetOid = addMetadata(createString("targetOid"), TARGET_OID);
-    public final StringPath targetOwnerName =
-            addMetadata(createString("targetOwnerName"), TARGET_OWNER_NAME);
-    public final StringPath targetOwnerOid =
-            addMetadata(createString("targetOwnerOid"), TARGET_OWNER_OID);
+            createString("sessionIdentifier", SESSION_IDENTIFIER);
+    public final StringPath targetName = createString("targetName", TARGET_NAME);
+    public final StringPath targetOid = createString("targetOid", TARGET_OID);
+    public final StringPath targetOwnerName = createString("targetOwnerName", TARGET_OWNER_NAME);
+    public final StringPath targetOwnerOid = createString("targetOwnerOid", TARGET_OWNER_OID);
     public final NumberPath<Integer> targetOwnerType =
-            addMetadata(createNumber("targetOwnerType", Integer.class), TARGET_OWNER_TYPE);
-    public final NumberPath<Integer> targetType =
-            addMetadata(createNumber("targetType", Integer.class), TARGET_TYPE);
-    public final StringPath taskIdentifier =
-            addMetadata(createString("taskIdentifier"), TASK_IDENTIFIER);
-    public final StringPath taskOid = addMetadata(createString("taskOid"), TASK_OID);
-    public final DateTimePath<Instant> timestamp =
-            addMetadata(createDateTime("timestamp", Instant.class), TIMESTAMP);
+            createInteger("targetOwnerType", TARGET_OWNER_TYPE);
+    public final NumberPath<Integer> targetType = createInteger("targetType", TARGET_TYPE);
+    public final StringPath taskIdentifier = createString("taskIdentifier", TASK_IDENTIFIER);
+    public final StringPath taskOid = createString("taskOid", TASK_OID);
+    public final DateTimePath<Instant> timestamp = createInstant("timestamp", TIMESTAMP);
 
-    public final com.querydsl.sql.PrimaryKey<MAuditEventRecord> constraint85c = createPrimaryKey(id);
-    public final com.querydsl.sql.ForeignKey<QMAuditItem> _auditItemFk = createInvForeignKey(id, "RECORD_ID");
-    public final com.querydsl.sql.ForeignKey<QMAuditPropValue> _auditPropValueFk = createInvForeignKey(id, "RECORD_ID");
-    public final com.querydsl.sql.ForeignKey<MAuditDelta> _auditDeltaFk = createInvForeignKey(id, "RECORD_ID");
-    public final com.querydsl.sql.ForeignKey<QMAuditRefValue> _auditRefValueFk = createInvForeignKey(id, "RECORD_ID");
-    public final com.querydsl.sql.ForeignKey<QMAuditResource> _auditResourceFk = createInvForeignKey(id, "RECORD_ID");
+    public final PrimaryKey<MAuditEventRecord> constraint85c = createPrimaryKey(id);
+    public final ForeignKey<QMAuditItem> _auditItemFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<QMAuditPropValue> _auditPropValueFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<MAuditDelta> _auditDeltaFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<QMAuditRefValue> _auditRefValueFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<QMAuditResource> _auditResourceFk = createInvForeignKey(id, "RECORD_ID");
 
     public QAuditEventRecord(String variable) {
-        this(variable, "PUBLIC", "M_AUDIT_EVENT");
+        this(variable, "PUBLIC", TABLE_NAME);
     }
 
     public QAuditEventRecord(String variable, String schema, String table) {

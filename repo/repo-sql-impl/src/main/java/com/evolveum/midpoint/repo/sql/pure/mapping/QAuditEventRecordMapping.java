@@ -15,7 +15,6 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 public class QAuditEventRecordMapping
         extends QueryModelMapping<AuditEventRecordType, QAuditEventRecord> {
 
-    public static final String TABLE_NAME = "M_AUDIT_EVENT";
     public static final String DEFAULT_ALIAS_NAME = "aer";
 
     public static final QAuditEventRecordMapping INSTANCE = new QAuditEventRecordMapping();
