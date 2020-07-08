@@ -10,8 +10,6 @@ import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
 import java.sql.Types;
 
-import com.querydsl.core.types.Path;
-import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
@@ -19,11 +17,12 @@ import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditPropertyValue;
 
 /**
  * Querydsl query type for M_AUDIT_PROP_VALUE table.
  */
-public class QMAuditPropValue extends FlexibleRelationalPathBase<QMAuditPropValue> {
+public class QAuditPropertyValue extends FlexibleRelationalPathBase<MAuditPropertyValue> {
 
     private static final long serialVersionUID = -1656131713;
 
@@ -43,40 +42,15 @@ public class QMAuditPropValue extends FlexibleRelationalPathBase<QMAuditPropValu
     public final StringPath name = createString("name", NAME);
     public final StringPath value = createString("value", VALUE);
 
-    public final PrimaryKey<QMAuditPropValue> constraint6 = createPrimaryKey(id);
+    public final PrimaryKey<MAuditPropertyValue> constraint6 = createPrimaryKey(id);
     public final ForeignKey<QAuditEventRecord> auditPropValueFk = createForeignKey(recordId, "ID");
 
-    public QMAuditPropValue(String variable) {
-        super(QMAuditPropValue.class, forVariable(variable), "PUBLIC", "M_AUDIT_PROP_VALUE");
-        addMetadata();
+    public QAuditPropertyValue(String variable) {
+        this(variable, "PUBLIC", TABLE_NAME);
     }
 
-    public QMAuditPropValue(String variable, String schema, String table) {
-        super(QMAuditPropValue.class, forVariable(variable), schema, table);
-        addMetadata();
+    public QAuditPropertyValue(String variable, String schema, String table) {
+        super(MAuditPropertyValue.class, forVariable(variable), schema, table);
     }
-
-    public QMAuditPropValue(String variable, String schema) {
-        super(QMAuditPropValue.class, forVariable(variable), schema, "M_AUDIT_PROP_VALUE");
-        addMetadata();
-    }
-
-    public QMAuditPropValue(Path<? extends QMAuditPropValue> path) {
-        super(path.getType(), path.getMetadata(), "PUBLIC", "M_AUDIT_PROP_VALUE");
-        addMetadata();
-    }
-
-    public QMAuditPropValue(PathMetadata metadata) {
-        super(QMAuditPropValue.class, metadata, "PUBLIC", TABLE_NAME);
-        addMetadata();
-    }
-
-    public void addMetadata() {
-        addMetadata(id, ID);
-        addMetadata(name, NAME);
-        addMetadata(recordId, RECORD_ID);
-        addMetadata(value, VALUE);
-    }
-
 }
 

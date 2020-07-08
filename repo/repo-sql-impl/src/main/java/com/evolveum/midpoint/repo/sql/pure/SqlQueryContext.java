@@ -110,4 +110,8 @@ public class SqlQueryContext extends SqlPathContext implements FilterProcessor<O
             query.distinct();
         }
     }
+
+    public SQLQuery<?> newQuery(Connection conn) {
+        return new SQLQuery<>(conn, QUERYDSL_CONFIGURATION);
+    }
 }

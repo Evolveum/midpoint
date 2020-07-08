@@ -11,6 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_REST_URI;
 
+import java.util.Comparator;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -27,6 +29,7 @@ import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
@@ -63,7 +66,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         AuditEventRecord record1 = new AuditEventRecord();
         // all tested records have parameter, it is used for assertions where practical
         record1.setParameter("1");
-        record1.addPropertyValue("prop", "val1");
+        record1.addPropertyValue("prop1", "val1");
         record1.setTimestamp(TIMESTAMP_1);
         record1.setEventType(AuditEventType.ADD_OBJECT);
         record1.setMessage("record1");
@@ -80,7 +83,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         AuditEventRecord record2 = new AuditEventRecord();
         record2.setParameter("2");
-        record2.addPropertyValue("prop", "val2");
+        record2.addPropertyValue("prop1", "val2");
         record2.setTimestamp(TIMESTAMP_2);
         record2.setEventType(AuditEventType.MODIFY_OBJECT);
         record2.setEventStage(AuditEventStage.EXECUTION);
@@ -96,9 +99,10 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         AuditEventRecord record3 = new AuditEventRecord();
         record3.setParameter("3");
-        record3.addPropertyValue("prop", "val3-1");
-        record3.addPropertyValue("prop", "val3-2");
-        record3.addPropertyValue("prop", "val3-3");
+        record3.addPropertyValue("prop1", "val3-1");
+        record3.addPropertyValue("prop1", "val3-2");
+        record3.addPropertyValue("prop1", "val3-3");
+        record3.addPropertyValue("prop2", null);
         record3.setTimestamp(TIMESTAMP_3);
         record3.setEventType(AuditEventType.MODIFY_OBJECT);
         record3.setEventStage(AuditEventStage.EXECUTION);
@@ -131,7 +135,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test105SearchByEventIdentifier() throws SchemaException {
+    public void test110SearchByEventIdentifier() throws SchemaException {
         when("searching audit with by without any conditions");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_EVENT_IDENTIFIER).eq(record1EventIdentifier)
@@ -145,7 +149,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test110SearchByEventType() throws SchemaException {
+    public void test111SearchByEventType() throws SchemaException {
         when("searching audit filtered by event type");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_EVENT_TYPE).eq(AuditEventTypeType.ADD_OBJECT)
@@ -159,7 +163,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test111SearchByUnusedEventType() throws SchemaException {
+    public void test112SearchByUnusedEventType() throws SchemaException {
         when("searching audit filtered by unused event type");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_EVENT_TYPE).eq(AuditEventTypeType.RECONCILIATION)
@@ -172,7 +176,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test112SearchByEventStage() throws SchemaException {
+    public void test113SearchByEventStage() throws SchemaException {
         when("searching audit filtered by event stage");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_EVENT_STAGE).eq(AuditEventStageType.EXECUTION)
@@ -640,6 +644,34 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result).allMatch(r -> r.getTaskOID().equals("task-oid"));
     }
 
+    @Test
+    public void test190SearchReturnsMappedToManyAttributes() throws SchemaException {
+        when("searching audit with query without any conditions and paging");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class).build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("all audit events are returned");
+        assertThat(result).hasSize(3);
+        result.sort(Comparator.comparing(AuditEventRecordType::getParameter));
+
+        AuditEventRecordType record1 = result.get(0);
+        assertThat(record1.getProperty()).hasSize(1);
+        AuditEventRecordPropertyType prop1 = record1.getProperty().get(0);
+        assertThat(prop1.getName()).isEqualTo("prop1");
+        assertThat(prop1.getValue()).containsExactly("val1");
+
+        AuditEventRecordType record3 = result.get(2);
+        assertThat(record3.getProperty()).as("two different property keys").hasSize(2);
+        prop1 = record3.getProperty().get(0);
+        assertThat(prop1.getName()).isEqualTo("prop1");
+        assertThat(prop1.getValue()).containsExactlyInAnyOrder("val3-1", "val3-2", "val3-3");
+        AuditEventRecordPropertyType prop2 = record3.getProperty().get(1);
+        assertThat(prop2.getName()).isEqualTo("prop2");
+        // feels fishy, but [null] it is, not empty collection
+        assertThat(prop2.getValue()).containsExactly((String) null);
+    }
+
     // complex filters with AND and/or OR
 
     @Test
@@ -693,7 +725,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only audit events matching both conditions are returned");
         assertThat(result).hasSize(2);
-        assertThat(result).extracting(aer -> aer.getParameter()).contains("1", "3");
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "3");
     }
 
     @Test

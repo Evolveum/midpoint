@@ -3,6 +3,8 @@ package com.evolveum.midpoint.repo.sql.pure;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.EntityPath;
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.DataSourceFactory;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditPropertyValue;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.support.InstantType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -82,18 +85,32 @@ public class SqlQueryExecutor {
     }
 
     public PageOf<Tuple> executeQuery(SqlQueryContext context) throws QueryException {
-        try (Connection connection = getConnection()) {
+        try (Connection conn = getConnection()) {
             EntityPath<?> root = context.root();
-            SQLQuery<Tuple> query = context.query(connection)
+            SQLQuery<Tuple> query = context.query(conn)
                     .select(Projections.tuple(root));
             // TODO logging
             System.out.println("query = " + query);
             long count = query.fetchCount();
 
-            return new PageOf<>(query.fetch(), PageOf.PAGE_NO_PAGINATION, 0, count);
+            List<Tuple> data = query.fetch();
+            data.forEach(t -> loadPropertyValues(t, conn, context));
+            return new PageOf<>(data, PageOf.PAGE_NO_PAGINATION, 0, count);
         } catch (SQLException e) {
             throw new QueryException(e.toString(), e);
         }
+    }
+
+    private void loadPropertyValues(Tuple rowTuple, Connection conn, SqlQueryContext context) {
+        MAuditEventRecord row = (MAuditEventRecord) Objects.requireNonNull(
+                rowTuple.get(context.root()));
+        QAuditPropertyValue apv = new QAuditPropertyValue("apv");
+        context.newQuery(conn)
+                .select(apv)
+                .from(apv)
+                .where(apv.recordId.eq(row.id))
+                .fetch()
+                .forEach(p -> row.addProperty(p));
     }
 
     @NotNull

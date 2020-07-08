@@ -1,5 +1,8 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
+import java.util.List;
+import java.util.Map;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
@@ -7,6 +10,7 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
@@ -22,7 +26,7 @@ public class AuditEventRecordSqlTransformer extends SqlTransformerBase {
     }
 
     public AuditEventRecordType toAuditEventRecordType(MAuditEventRecord row) {
-        return new AuditEventRecordType()
+        AuditEventRecordType record = new AuditEventRecordType()
                 .channel(row.channel)
                 .eventIdentifier(row.eventIdentifier)
                 .eventStage(auditEventStageTypeFromRepo(row.eventStage))
@@ -56,6 +60,14 @@ public class AuditEventRecordSqlTransformer extends SqlTransformerBase {
                         row.targetOwnerName))
 //                .customColumnProperty() // TODO how does this work?
                 ;
+        for (Map.Entry<String, List<String>> entry : row.properties.entrySet()) {
+            AuditEventRecordPropertyType propType = new AuditEventRecordPropertyType()
+                    .name(entry.getKey());
+            propType.getValue().addAll(entry.getValue());
+            record.property(propType);
+        }
+
+        return record;
     }
 
     private AuditEventTypeType auditEventTypeTypeFromRepo(Integer ordinal) {

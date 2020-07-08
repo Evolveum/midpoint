@@ -7,12 +7,10 @@
 package com.evolveum.midpoint.repo.sql.pure.querymodel.beans;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
- * MAuditEvent is a Querydsl bean type related to {@code QAuditEventRecord}.
+ * Querydsl "row bean" type related to {@code QAuditEventRecord}.
  * Usable only for built-in low-level queries without extension columns.
  */
 @SuppressWarnings("unused")
@@ -49,6 +47,15 @@ public class MAuditEventRecord {
 
     // "transient" fields not used by Querydsl
     public List<MAuditDelta> deltas;
+    public Map<String, List<String>> properties;
+
+    public void addProperty(MAuditPropertyValue propertyValue) {
+        if (properties == null) {
+            properties = new TreeMap<>();
+        }
+        List<String> values = properties.computeIfAbsent(propertyValue.name, s -> new ArrayList<>());
+        values.add(propertyValue.value);
+    }
 
     @Override
     public String toString() {

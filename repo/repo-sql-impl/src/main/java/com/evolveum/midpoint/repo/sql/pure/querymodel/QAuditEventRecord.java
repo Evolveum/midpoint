@@ -126,7 +126,7 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
 
     public final PrimaryKey<MAuditEventRecord> constraint85c = createPrimaryKey(id);
     public final ForeignKey<QMAuditItem> _auditItemFk = createInvForeignKey(id, "RECORD_ID");
-    public final ForeignKey<QMAuditPropValue> _auditPropValueFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<QAuditPropertyValue> _auditPropValueFk = createInvForeignKey(id, "RECORD_ID");
     public final ForeignKey<MAuditDelta> _auditDeltaFk = createInvForeignKey(id, "RECORD_ID");
     public final ForeignKey<QMAuditRefValue> _auditRefValueFk = createInvForeignKey(id, "RECORD_ID");
     public final ForeignKey<QMAuditResource> _auditResourceFk = createInvForeignKey(id, "RECORD_ID");
