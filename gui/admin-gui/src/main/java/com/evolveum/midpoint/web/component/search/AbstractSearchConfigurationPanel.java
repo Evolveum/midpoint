@@ -6,19 +6,15 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.component.search.filter.SearchFilter;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.search.filter.SearchFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -102,7 +98,7 @@ public abstract class AbstractSearchConfigurationPanel<F extends SearchFilter, O
 
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                //todo
+                cancelButtonClicked(ajaxRequestTarget);
             }
         };
         cancelButton.setOutputMarkupId(true);
@@ -111,8 +107,10 @@ public abstract class AbstractSearchConfigurationPanel<F extends SearchFilter, O
 
     protected abstract void initConfigurationPanel(WebMarkupContainer configPanel);
 
-    protected void okButtonClicked(AjaxRequestTarget target){
+    protected void okButtonClicked(AjaxRequestTarget target) {
+    }
 
+    protected void cancelButtonClicked(AjaxRequestTarget target) {
     }
 
     public Class<O> getType() {

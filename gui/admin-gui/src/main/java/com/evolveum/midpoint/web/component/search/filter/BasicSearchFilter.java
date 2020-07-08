@@ -7,13 +7,18 @@
 package com.evolveum.midpoint.web.component.search.filter;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author honchar
@@ -32,6 +37,19 @@ public class BasicSearchFilter<C extends Containerable> extends SearchFilter<C> 
     @Override
     public void addSearchFilterItem(ValueSearchFilterItem valueSearchFilterItem) {
         getValueSearchFilterItems().add(valueSearchFilterItem);
+    }
+
+    public void deleteSearchFilterItem(ItemDefinition itemToDelete) {
+        if (itemToDelete == null){
+            return;
+        }
+        Iterator<ValueSearchFilterItem> it = getValueSearchFilterItems().iterator();
+        while (it.hasNext()){
+            if (QNameUtil.match(itemToDelete.getItemName(), it.next().getPropertyDef().getItemName())){
+                it.remove();
+                return;
+            }
+        }
     }
 
 //    public ObjectFilter convertToObjectFilter() {
