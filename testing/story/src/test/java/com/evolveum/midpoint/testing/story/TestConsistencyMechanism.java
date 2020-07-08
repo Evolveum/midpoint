@@ -262,6 +262,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
     }
 
+//    @Override
+//    protected TracingProfileType getTestMethodTracingProfile() {
+//        return createModelAndProvisioningLoggingTracingProfile()
+//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+//    }
+
     /**
      * Initialize embedded OpenDJ instance Note: this is not in the abstract
      * superclass so individual tests may avoid starting OpenDJ.
@@ -2438,11 +2444,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         provisioningService.applyDefinition(accountShadow, task, result);
-        assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+        assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+        assertShadowModel(accountModel, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         ResourceAttribute attributes = ShadowUtil.getAttribute(accountModel, new QName(resourceTypeOpenDjrepo.getNamespace(), "uid"));
         assertEquals("morgan", attributes.getAnyRealValue());
         // TODO: check OpenDJ Account
