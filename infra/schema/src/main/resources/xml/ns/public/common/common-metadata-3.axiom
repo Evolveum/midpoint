@@ -1,0 +1,140 @@
+prism:model common-metadata {
+
+    namespace "http://midpoint.evolveum.com/xml/ns/public/common/common-3";
+    version "3.0.0";
+
+    import "http://midpoint.evolveum.com/xml/ns/public/common/prism" {
+        prefix prism;
+    }
+
+    metadata CommonMetadata {
+      container storage {
+        type StorageMetadata;
+        documentation """
+          The details when data were stored in midPoint repository. It is about the creation
+          (timestamp, originator user, channel, taskRef) and the last modification (the same).
+        """;
+        //operational true;
+      }
+      container process {
+        type ProcessMetadata;
+        documentation """
+          The details how the data were processed by midPoint processes/tasks.
+          Only present if it was approved or otherwise processed by a "process".
+        """;
+      }
+      container provisioning {
+        type ProvisioningMetadata;
+      }
+      container transformation {
+        type TransformationMetadata;
+      }
+      container provenance {
+        type ProvenanceMetadata;
+      }
+    }
+
+    container StorageMetadata {
+      operational true;
+      displayName "Storage Metadata";
+
+      property createTimestamp {
+        type DateTime; // FIXME: Should be xsd:dateTime or xsd:dateTimeStamp (which contains TZ info)
+        documentation """
+          The timestamp of data creation. It is set once and should never be changed.
+
+          In case of "background" processes to create object (e.g. create with approval)
+          this should be the timestamp when the process ended. I.e. the timestamp when
+          the operation was executed.
+        """;
+        displayName "MetadataType.createTimestamp";
+        operational true;
+        indexed true;
+        // since 3.5
+      }
+
+      reference creatorRef {
+        targetType UserType;
+        documentation "Reference to the user that created the data";
+      }
+
+      property createChannel {
+        type Uri;
+        documentation "Channel in which the object was created.";
+        displayName "MetadataType.createChannel";
+        operational true;
+        indexed true;
+      }
+
+      reference createTaskRef {
+        documentation "Reference to the task that created the object (if it was a persistent one).";
+        targetType TaskType;
+        displayName "MetadataType.createTaskRef";
+        operational true;
+      }
+      property modifyTimestamp {
+        type DateTime;
+        documentation """
+          The timestamp of last data modification. It should be updated to a current time
+          when the object is modified.
+          The modifications that change only operational attributes may not update the
+          modify timestamp.
+        """;
+        displayName "MetadataType.modifyTimestamp";
+        operational true;
+        indexed true;
+      }
+      reference modifierRef {
+        documentation "Reference to the user that modified the data";
+        displayName "MetadataType.modifierRef";
+        operational true;
+        indexed true;
+        targetType UserType;
+      }
+      property modifyChannel {
+        type Uri;
+        documentation "Chanel in whhich object was last modified."
+        operational true;
+        indexed true;
+      }
+      reference modifyTaskRef {
+        documentation """
+          Reference to the task that last modified the object (if it was a persistent one).
+          If the last modification was carried out by synchronous task, this reference will be empty.
+        """;
+        displayName "Metadata.modifyTaskRef";
+        operational true;
+        targetType TaskType;
+      }
+    }
+
+    container ProcessMetadata {
+      property requestTimestamp {
+        type DateTime;
+        documentation """
+          The timestamp of "create" operation request. It is set once and should never be changed.
+
+          In case of "background" processes to create object (e.g. create with approval)
+          this should be the timestamp when the process started. I.e. the timestamp when
+          the operation was requested.
+        """;
+        displayName "MetadataType.requestTimestamp";
+        operational true;
+      }
+      reference requestorRef {
+        documentation """
+          Reference to the user that requested the "create" operation for this object or assignment.
+        """;
+        displayName MetadataType.requestorComment;
+        targetType UserType;
+        operational true;
+      }
+      property requestorComment {
+        type String;
+        displayName "MetadataType.requestorComment";
+        operational true;
+      }
+
+    }
+    // FIXME: Convert additional metadata
+}
