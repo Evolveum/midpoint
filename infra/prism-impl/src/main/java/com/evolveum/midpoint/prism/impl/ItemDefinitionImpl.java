@@ -142,28 +142,6 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     }
 
     /**
-     * Returns true if property is single-valued.
-     *
-     * @return true if property is single-valued.
-     */
-    @Override
-    public boolean isSingleValue() {
-        int maxOccurs = getMaxOccurs();
-        return maxOccurs >= 0 && maxOccurs <= 1;
-    }
-
-    /**
-     * Returns true if property is multi-valued.
-     *
-     * @return true if property is multi-valued.
-     */
-    @Override
-    public boolean isMultiValue() {
-        int maxOccurs = getMaxOccurs();
-        return maxOccurs < 0 || maxOccurs > 1;
-    }
-
-    /**
      * Returns true if property is mandatory.
      *
      * @return true if property is mandatory.

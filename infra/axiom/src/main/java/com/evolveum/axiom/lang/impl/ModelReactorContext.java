@@ -52,9 +52,9 @@ public class ModelReactorContext extends
     private static final String AXIOM_MODEL_RESOURCE = "/axiom-model.axiom";
     private static final String AXIOM_TYPES_RESOURCE = "/axiom-types.axiom";
 
-    private static final Lazy<AxiomModelStatementSource> LANGUAGE_SOURCE = source(AXIOM_MODEL_RESOURCE);
-    private static final Lazy<AxiomModelStatementSource> TYPES_SOURCE = source(AXIOM_TYPES_RESOURCE);
-    private static final Lazy<AxiomModelStatementSource> INFRA_SOURCE = source(AXIOM_DATA_RESOURCE);
+    private static final Lazy<AxiomModelStatementSource> LANGUAGE_SOURCE = sourceFromResource(AXIOM_MODEL_RESOURCE);
+    private static final Lazy<AxiomModelStatementSource> TYPES_SOURCE = sourceFromResource(AXIOM_TYPES_RESOURCE);
+    private static final Lazy<AxiomModelStatementSource> INFRA_SOURCE = sourceFromResource(AXIOM_DATA_RESOURCE);
 
 
     public static final Lazy<AxiomSchemaContext> BASE_LANGUAGE = Lazy.from(() -> {
@@ -68,7 +68,7 @@ public class ModelReactorContext extends
         return reactorContext;
     }
 
-    private static Lazy<AxiomModelStatementSource> source(String axiomModelResource) {
+    public static Lazy<AxiomModelStatementSource> sourceFromResource(String axiomModelResource) {
         return Lazy.from(() -> {
             InputStream stream = AxiomBuiltIn.class.getResourceAsStream(axiomModelResource);
             try {

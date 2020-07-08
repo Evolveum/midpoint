@@ -25,6 +25,7 @@ public class AxiomName {
     public static final String TYPE_NAMESPACE = "https://schema.evolveum.com/ns/axiom/types";
     public static final String DATA_NAMESPACE = "https://schema.evolveum.com/ns/axiom/data";
 
+
     private static final Interner<AxiomName> INTERNER = Interners.newWeakInterner();
 
     private final String namespace;

@@ -189,17 +189,30 @@ public enum BasicStatementRule implements AxiomStatementRule<AxiomName> {
             });
         }
     },
-    ITEM_FROM_SUBSTITUTION(items(Item.SUBSTITUTION_DEFINITION), types(Type.SUBSTITUTION_DEFINITION)) {
+    /*ITEM_FROM_SUBSTITUTION(items(Item.SUBSTITUTION_DEFINITION), types(Type.SUBSTITUTION_DEFINITION)) {
 
         @Override
         public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
             // FIXME: Resolve original item
-            /*action.require(context.child(Item.NAME,AxiomName.class).flatMap(v -> {
-
-            }));*/
             Dependency<AxiomValueContext<?>> parent = action.require(context.parentValue().modify());
             action.apply(value -> {
                 parent.get().childItem(Item.ITEM_DEFINITION).addOperationalValue(value);
+            });
+        }
+
+    },*/
+    SUBSTITUTION(all(),all()) {
+
+        @Override
+        public boolean isApplicableTo(AxiomItemDefinition definition) {
+            return definition.substitutionOf().isPresent();
+        }
+
+        @Override
+        public void apply(Lookup<AxiomName> context, ActionBuilder<AxiomName> action) throws AxiomSemanticException {
+            Dependency<AxiomValueContext<?>> parent = action.require(context.parentValue().modify());
+            action.apply(value -> {
+                parent.get().childItem(context.itemDefinition().substitutionOf().get()).addOperationalValue(value);
             });
         }
 

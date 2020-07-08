@@ -3,7 +3,6 @@ package com.evolveum.axiom.api;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;

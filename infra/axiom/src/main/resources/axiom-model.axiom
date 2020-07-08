@@ -107,6 +107,7 @@ model axiom-model {
         }
 
         substitution substitution {
+            target item;
             type SubstitutionDefinition;
             identifier name;
             documentation """

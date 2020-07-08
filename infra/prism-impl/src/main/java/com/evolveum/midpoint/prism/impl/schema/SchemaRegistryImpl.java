@@ -22,6 +22,7 @@ import javax.xml.transform.Source;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
+import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.impl.*;
@@ -365,6 +366,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             long javaxSchemasDone = System.currentTimeMillis();
             LOGGER.trace("parseJavaxSchema() done in {} ms", javaxSchemasDone - prismSchemasDone);
 
+
+            parseAdditionalSchemas();
             schemaDescriptions.forEach(Freezable::freeze);
 
             invalidateCaches();
@@ -376,6 +379,11 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             }
             throw ex;
         }
+    }
+
+    protected void parseAdditionalSchemas() throws SchemaException {
+        // TODO Auto-generated method stub
+
     }
 
     private void invalidateCaches() {
@@ -399,7 +407,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         javaxSchema = schemaFactory.newSchema(sources);
     }
 
-    private void parsePrismSchemas() throws SchemaException {
+    protected void parsePrismSchemas() throws SchemaException {
         parsePrismSchemas(schemaDescriptions, true);
         applySchemaExtensions();
         for (SchemaDescription schemaDescription : schemaDescriptions) {
@@ -1610,4 +1618,9 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         return def;
     }
     //endregion
+
+
+    public QName getValueMetadataTypeName() {
+        return valueMetadataTypeName;
+    }
 }

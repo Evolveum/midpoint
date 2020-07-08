@@ -112,4 +112,8 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
     public void stream(TargetWithContext target, AntlrDecoderContext antlrDecoderContext) {
         stream(target, antlrDecoderContext,this);
     }
+
+    public static AxiomModelStatementSource fromResource(String resource) throws AxiomSyntaxException, IOException {
+        return from(resource, AxiomModelStatementSource.class.getClassLoader().getResourceAsStream(resource));
+    }
 }

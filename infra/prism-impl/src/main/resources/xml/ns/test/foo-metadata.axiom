@@ -1,0 +1,18 @@
+prism:model foo-metadata {
+
+    namespace "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
+
+    import "http://midpoint.evolveum.com/xml/ns/public/common/prism" {
+        prefix prism;
+    }
+
+    metadata FooValueMetadata {
+        prism:property loa {
+            type String;
+        }
+        prism:property test {
+            type String;
+        }
+    }
+
+}

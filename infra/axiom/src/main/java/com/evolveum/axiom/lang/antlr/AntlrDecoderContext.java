@@ -33,7 +33,7 @@ public class AntlrDecoderContext implements AxiomDecoderContext<AxiomParser.Pref
     private static final AntlrDecoder<String> STRING_ARGUMENT = AntlrDecoder.from((input, loc) -> {
             if(input.string() != null) {
                 return AbstractAxiomAntlrVisitor.convert(input.string());
-            };
+            }
             return input.getText();
     });
 
