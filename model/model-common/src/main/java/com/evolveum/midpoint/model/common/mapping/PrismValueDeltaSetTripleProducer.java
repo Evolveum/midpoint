@@ -19,7 +19,7 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
     QName getMappingQName();
 
     /**
-     * Null output tripple means "the mapping is not applicable", e.g. due to the
+     * Null output triple means "the mapping is not applicable", e.g. due to the
      * condition being false.
      * Empty output triple means "the mapping is applicable but there are no values".
      */
@@ -45,4 +45,15 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
      */
     String getIdentifier();
 
+    default boolean isStrong() {
+        return getStrength() == MappingStrengthType.STRONG;
+    }
+
+    default boolean isNormal() {
+        return getStrength() == MappingStrengthType.NORMAL;
+    }
+
+    default boolean isWeak() {
+        return getStrength() == MappingStrengthType.WEAK;
+    }
 }

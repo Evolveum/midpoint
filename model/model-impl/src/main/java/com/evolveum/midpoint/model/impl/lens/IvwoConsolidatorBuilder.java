@@ -8,12 +8,15 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.Comparator;
@@ -25,16 +28,17 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     D itemDefinition;
     ItemDelta<V, D> aprioriItemDelta;
     PrismContainer<?> itemContainer;
+    Item<V,D> existingItem; // alternative to using itemContainer
     ValueMatcher valueMatcher;
     Comparator<V> comparator;
     boolean addUnchangedValues;
-    boolean filterExistingValues;
+    boolean existingItemKnown;
+    boolean addUnchangedValuesExceptForNormalMappings;
     boolean isExclusiveStrong;
+    ValueMetadataComputer valueMetadataComputer;
     String contextDescription;
+    OperationResult result;
     StrengthSelector strengthSelector;
-
-    public IvwoConsolidatorBuilder() {
-    }
 
     public IvwoConsolidatorBuilder<V, D, I> itemPath(ItemPath val) {
         itemPath = val;
@@ -56,8 +60,15 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
+    // Alternative to existingItem
     public IvwoConsolidatorBuilder<V, D, I> itemContainer(PrismContainer<?> val) {
         itemContainer = val;
+        return this;
+    }
+
+    // Alternative to itemContainer
+    public IvwoConsolidatorBuilder<V, D, I> existingItem(Item<V, D> val) {
+        existingItem = val;
         return this;
     }
 
@@ -76,8 +87,13 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
-    public IvwoConsolidatorBuilder<V, D, I> filterExistingValues(boolean val) {
-        filterExistingValues = val;
+    public IvwoConsolidatorBuilder<V, D, I> existingItemKnown(boolean val) {
+        existingItemKnown = val;
+        return this;
+    }
+
+    public IvwoConsolidatorBuilder<V, D, I> addUnchangedValuesExceptForNormalMappings(boolean val) {
+        addUnchangedValuesExceptForNormalMappings = val;
         return this;
     }
 
@@ -86,8 +102,18 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
+    public IvwoConsolidatorBuilder<V, D, I> valueMetadataComputer(ValueMetadataComputer val) {
+        valueMetadataComputer = val;
+        return this;
+    }
+
     public IvwoConsolidatorBuilder<V, D, I> contextDescription(String val) {
         contextDescription = val;
+        return this;
+    }
+
+    public IvwoConsolidatorBuilder<V, D, I> result(OperationResult val) {
+        result = val;
         return this;
     }
 
@@ -96,7 +122,7 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
-    public IvwoConsolidator<V, D, I> build() throws SchemaException {
+    public IvwoConsolidator<V, D, I> build() {
         return new IvwoConsolidator<>(this);
     }
 }

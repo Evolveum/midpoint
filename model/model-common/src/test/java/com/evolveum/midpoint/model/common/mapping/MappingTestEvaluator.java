@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
+
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.Clock;
@@ -76,13 +78,16 @@ public class MappingTestEvaluator {
         Clock clock = new Clock();
         ExpressionFactory expressionFactory = ExpressionTestUtil.createInitializedExpressionFactory(resolver, protector, prismContext, clock, null, null);
 
-        mappingFactory = new MappingFactory();
-        mappingFactory.setExpressionFactory(expressionFactory);
-        mappingFactory.setObjectResolver(resolver);
-        mappingFactory.setPrismContext(prismContext);
-        mappingFactory.setProfiling(true);
+        // We need only selected beans for the mapping factory
+        ModelCommonBeans beans = new ModelCommonBeans();
+        beans.expressionFactory = expressionFactory;
+        beans.objectResolver = resolver;
+        beans.prismContext = prismContext;
+        beans.protector = protector;
 
-        mappingFactory.setProtector(protector);
+        mappingFactory = new MappingFactory();
+        mappingFactory.setBeans(beans);
+        mappingFactory.setProfiling(true);
     }
 
     public Protector getProtector() {
@@ -152,7 +157,6 @@ public class MappingTestEvaluator {
 
         MappingBuilder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> mappingBuilder =
                 mappingFactory.createMappingBuilder(mappingType, testName);
-        mappingBuilder.prismContext(prismContext);
 
         // Source context: user
         PrismObjectDefinition<UserType> objectDefinition =

@@ -8,20 +8,20 @@ package com.evolveum.midpoint.model.impl.lens;
 
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
-import static java.util.Collections.singleton;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Holder;
+
+import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -31,9 +31,6 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -49,9 +46,11 @@ import org.jetbrains.annotations.Nullable;
  *
  * @author semancik
  */
-public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> {
+public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> implements AutoCloseable {
 
     private static final Trace LOGGER = TraceManager.getTrace(IvwoConsolidator.class);
+
+    private static final String OP_CONSOLIDATE_TO_DELTA = IvwoConsolidator.class.getName() + ".consolidateToDelta";
 
     /**
      * Path of item being consolidated.
@@ -70,15 +69,25 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     private final DeltaSetTriple<I> ivwoTriple;
 
     /**
-     * Existing value of the item. This is the secondary input for the consolidation.
+     * Existing value(s) of the item. This is the secondary input for the consolidation.
      */
     private final Item<V,D> existingItem;
+
+    /**
+     * Is existing item empty?
+     */
+    private final boolean existingItemIsEmpty;
 
     /**
      * A priori (i.e. explicitly specified or previously computed) delta for the item. This is the tertiary
      * input for the consolidation.
      */
     private final ItemDelta<V,D> aprioriItemDelta;
+
+    /**
+     * Apriori delta is not empty.
+     */
+    private final boolean aprioriItemDeltaIsEmpty;
 
     /**
      * Value matcher used to compare values (for the purpose of consolidation).
@@ -96,13 +105,16 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     private final boolean addUnchangedValues;
 
     /**
-     * If true, we skip adding values that are already present in the item
-     * as well as removing values that are not present in the item.
-     *
-     * (Setting this to false is important e.g. when we do not have full projection information.
-     * Therefore we do not want to skip removing something just because we falsely think it's not there.)
+     * Whether we want to consider values from zero set as being added, except for normal, source-ful mappings.
      */
-    private final boolean filterExistingValues;
+    private final boolean addUnchangedValuesExceptForNormalMappings;
+
+    /**
+     * If true, we know the values of existing item so we can filter values using this knowledge.
+     *
+     * (Setting this to false is important e.g. when we do not have full projection information.)
+     */
+    private final boolean existingItemKnown;
 
     /**
      * What mappings are to be considered?
@@ -126,9 +138,23 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     private final boolean ignoreNormalMappings;
 
     /**
+     * Computer for value metadata.
+     */
+    private final ValueMetadataComputer valueMetadataComputer;
+
+    /**
      * Description of the context.
      */
     private final String contextDescription;
+
+    /**
+     * Operation result (currently needed for value metadata computation).
+     * Experimentally we make this consolidator auto-closeable so the result is marked as closed automatically.
+     *
+     * TODO reconsider if we should not record processing in the caller (e.g. because ConsolidationProcessor
+     * already creates a result for item consolidation).
+     */
+    private final OperationResult result;
 
     /**
      * The output.
@@ -140,56 +166,90 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         isAssignment = FocusType.F_ASSIGNMENT.equivalent(itemPath);
 
         ivwoTriple = builder.ivwoTriple;
-        existingItem = builder.itemContainer != null ? builder.itemContainer.findItem(itemPath) : null;
+
+        if (builder.existingItem != null) {
+            existingItem = builder.existingItem;
+        } else if (builder.itemContainer != null) {
+            existingItem = builder.itemContainer.findItem(itemPath);
+        } else {
+            existingItem = null;
+        }
+
+        existingItemIsEmpty = existingItem == null || existingItem.isEmpty(); // should be hasNoValues, perhaps!
+
         aprioriItemDelta = builder.aprioriItemDelta;
+        aprioriItemDeltaIsEmpty = aprioriItemDelta == null || aprioriItemDelta.isEmpty();
 
         valueMatcher = builder.valueMatcher;
         comparator = builder.comparator;
 
         addUnchangedValues = builder.addUnchangedValues;
-        filterExistingValues = builder.filterExistingValues;
+        addUnchangedValuesExceptForNormalMappings = builder.addUnchangedValuesExceptForNormalMappings;
+
+        existingItemKnown = builder.existingItemKnown;
 
         strengthSelector = builder.strengthSelector;
         itemIsExclusiveStrong = builder.isExclusiveStrong;
         ignoreNormalMappings = computeIgnoreNormalMappings();
 
+        valueMetadataComputer = builder.valueMetadataComputer;
         contextDescription = builder.contextDescription;
+        result = builder.result.createMinorSubresult(OP_CONSOLIDATE_TO_DELTA)
+                .addArbitraryObjectAsParam("itemPath", itemPath);
 
         //noinspection unchecked
         itemDelta = builder.itemDefinition.createEmptyDelta(itemPath);
     }
 
+    /**
+     * Simplified signature (exceptions thrown), assuming no value metadata computation is to be done.
+     */
     @NotNull
-    public ItemDelta<V,D> consolidateToDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
-
-        logStart();
-        if (strengthSelector.isNone()) {
-            LOGGER.trace("Consolidation of {} skipped as strength selector is 'none'", itemPath);
-        } else {
-            // We will process each value individually. I really mean each value. This whole method deals with
-            // a single item (e.g. attribute). But this loop iterates over every potential value of that item.
-            Collection<V> allValues = collectAllValues();
-            for (V value : allValues) {
-                consolidate(value);
-            }
-
-            if (!newItemWillHaveAnyValue()) {
-                // The application of computed delta results in no value, apply weak mappings
-                applyWeakMappings();
-            } else {
-                LOGGER.trace("Item {} will have some values in {}, weak mapping processing skipped", itemPath, contextDescription);
-            }
-
-            // TODO What about skipped consolidation (resulting in empty delta)?
-            //  Shouldn't we set estimated old values also there?
-            setEstimatedOldValues();
+    public ItemDelta<V,D> consolidateToDeltaNoMetadata() throws ExpressionEvaluationException, PolicyViolationException,
+            SchemaException {
+        try {
+            assert valueMetadataComputer == null;
+            return consolidateToDelta();
+        } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
+            throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);
         }
-        logEnd();
-
-        return itemDelta;
     }
 
-    private void consolidate(V value) throws PolicyViolationException, ExpressionEvaluationException, SchemaException {
+    @NotNull
+    public ItemDelta<V,D> consolidateToDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+
+        try {
+            logStart();
+            if (strengthSelector.isNone()) {
+                LOGGER.trace("Consolidation of {} skipped as strength selector is 'none'", itemPath);
+            } else {
+                // We will process each value individually. I really mean each value. This whole method deals with
+                // a single item (e.g. attribute). But this loop iterates over every potential value of that item.
+                Collection<V> allValues = collectAllValues();
+                for (V value : allValues) {
+                    consolidate(value);
+                }
+
+                if (!newItemWillHaveAnyValue()) {
+                    // The application of computed delta results in no value, apply weak mappings
+                    applyWeakMappings();
+                } else {
+                    LOGGER.trace("Item {} will have some values in {}, weak mapping processing skipped", itemPath, contextDescription);
+                }
+            }
+            setEstimatedOldValues();
+            logEnd();
+
+            return itemDelta;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        }
+    }
+
+    private void consolidate(V value) throws PolicyViolationException, ExpressionEvaluationException, SchemaException,
+            ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
         new ValueConsolidation(value).consolidate();
     }
 
@@ -200,36 +260,94 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         }
     }
 
-    private void applyWeakMappings() throws SchemaException {
-        Collection<? extends ItemValueWithOrigin<V,D>> nonNegativeIvwos = ivwoTriple.getNonNegativeValues();
-
-        // TODO why we select values from ASSIGNMENTS, then OUTBOUND, then all?
-        Collection<ItemValueWithOrigin<V,D>> valuesToAdd = selectWeakValues(nonNegativeIvwos, OriginType.ASSIGNMENTS);
-        if (valuesToAdd.isEmpty()) {
-            valuesToAdd = selectWeakValues(nonNegativeIvwos, OriginType.OUTBOUND);
-        }
-        if (valuesToAdd.isEmpty()) {
-            valuesToAdd = selectWeakValues(nonNegativeIvwos, null);
-        }
+    private void applyWeakMappings() throws SchemaException, ConfigurationException, ObjectNotFoundException,
+            CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+        Collection<I> valuesToAdd = selectWeakNonNegativeValues();
         LOGGER.trace("No value for item {} in {}, weak mapping processing yielded values: {}",
                 itemPath, contextDescription, valuesToAdd);
-        for (ItemValueWithOrigin<V, D> valueWithOrigin : valuesToAdd) {
-            itemDelta.addValueToAdd(LensUtil.cloneAndApplyMetadata(valueWithOrigin.getItemValue(), isAssignment, singleton(valueWithOrigin)));
+        ValueCategorization categorization = new ValueCategorization(valuesToAdd);
+        for (ValueCategorization.EquivalenceClass equivalenceClass : categorization.equivalenceClasses) {
+            V value = equivalenceClass.getRepresentative().getItemValue();
+            computeValueMetadata(value, null, equivalenceClass::getMemberValues);
+            itemDelta.addValueToAdd(LensUtil.cloneAndApplyAssignmentOrigin(value, isAssignment, equivalenceClass.members));
         }
+    }
+
+    private Collection<I> selectWeakNonNegativeValues() {
+        Collection<I> nonNegativeIvwos = ivwoTriple.getNonNegativeValues();
+
+        // The distinction here is necessary when dealing with outbound mappings; these are reconciled
+        // at the end, where all mappings were processed. So, if a value was given by assignment-based construction
+        // then we should use that one. If not, we need to check resource-based outbound mappings.
+
+        Collection<I> weakFromAssignments = selectWeakValues(nonNegativeIvwos, OriginType.ASSIGNMENTS);
+        if (!weakFromAssignments.isEmpty()) {
+            return weakFromAssignments;
+        }
+        Collection<I> weakFromOutbounds = selectWeakValues(nonNegativeIvwos, OriginType.OUTBOUND);
+        if (!weakFromOutbounds.isEmpty()) {
+            return weakFromOutbounds;
+        }
+        return selectWeakValues(nonNegativeIvwos, null);
+    }
+
+    private Collection<I> selectWeakValues(Collection<I> ivwos, OriginType origin) {
+        Collection<I> values = new ArrayList<>();
+        if (strengthSelector.isWeak()) {
+            for (I ivwo : ivwos) {
+                if (ivwo.getMapping().getStrength() == MappingStrengthType.WEAK &&
+                        (origin == null || origin == ivwo.getItemValue().getOriginType())) {
+                    values.add(ivwo);
+                }
+            }
+        }
+        return values;
     }
 
     private class ValueConsolidation {
 
-        private final V value;
-        private final Collection<ItemValueWithOrigin<V,D>> zeroIvwos;
-        private final Collection<ItemValueWithOrigin<V,D>> plusIvwos;
-        private final Collection<ItemValueWithOrigin<V,D>> minusIvwos;
+        /**
+         * Value being consolidated.
+         */
+        private final V value0;
 
         /**
-         * Reasons (IVwOs) that indicate the need to add the value to the item.
-         * These are IVwOs from plus set, optionally combined with IVwOs from zero set (if addUnchangedValues is true).
+         * IVwOs (origins) that have value0 in the plus set.
+         * 1. Filtered according to strength selector, so some mappings may be omitted.
+         * 2. Mappings from invalid constructions are also filtered out.
          */
-        private Collection<ItemValueWithOrigin<V, D>> reasonsToAdd;
+        private final Collection<ItemValueWithOrigin<V,D>> plusOrigins;
+
+        /**
+         * IVwOs (origins) that have value0 in the zero set.
+         * 1. Filtered according to strength selector, so some mappings may be omitted.
+         * 2. Mappings from invalid constructions are also filtered out.
+         */
+        private final Collection<ItemValueWithOrigin<V,D>> zeroOrigins;
+
+        /**
+         * IVwOs (origins) that have value0 in the minus set.
+         * 1. Filtered according to strength selector, so some mappings may be omitted.
+         * 2. However, mappings from invalid constructions ARE here, but only if they were valid
+         * and became invalid currently.
+         *
+         * TODO This valid-invalid behavior should be explained more thoroughly. Also, why the validity
+         *  of constructions is considered but validity of the mappings is not? We should check this.
+         *
+         * TODO Maybe we could employ value categorization when dealing with plus/zero/minus origins.
+         */
+        private final Collection<ItemValueWithOrigin<V,D>> minusOrigins;
+
+        /**
+         * IVwOs (origins) that indicate the need to add the value to the item:
+         * computed as plusOrigins, optionally combined with (all or selected) zeroOrigins.
+         */
+        private final Collection<ItemValueWithOrigin<V, D>> addingOrigins;
+
+        /**
+         * Value equivalent with value0 in existing item (if known).
+         */
+        private final V existingValue;
 
         /**
          * In cases we check for exclusiveness we need to store exclusive mapping we have found here.
@@ -249,47 +367,195 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
          */
         private boolean hasAtLeastOneStrongMapping;
 
-        private ValueConsolidation(V value) throws SchemaException {
-            this.value = value;
+        private ValueConsolidation(V value0) throws SchemaException {
+            this.value0 = value0;
 
-            LOGGER.trace("  consolidating value: {}", value);
+            LOGGER.trace("  consolidating value: {}", value0);
             // Check what to do with the value using the usual "triple routine". It means that if a value is
             // in zero set than we need no delta, plus set means add delta and minus set means delete delta.
             // The first set that the value is present determines the result.
             //
             // We ignore values from invalid constructions, except for a special case of valid->invalid values in minus set.
-            zeroIvwos = collectIvwosFromSet(value, ivwoTriple.getZeroSet(), false);
-            plusIvwos = collectIvwosFromSet(value, ivwoTriple.getPlusSet(), false);
-            minusIvwos = collectIvwosFromSet(value, ivwoTriple.getMinusSet(), true);
+            plusOrigins = collectIvwosFromSet(value0, ivwoTriple.getPlusSet(), false);
+            zeroOrigins = collectIvwosFromSet(value0, ivwoTriple.getZeroSet(), false);
+            minusOrigins = collectIvwosFromSet(value0, ivwoTriple.getMinusSet(), true);
 
-            LOGGER.trace("PVWOs for value {}:\nzero = {}\nplus = {}\nminus = {}", value, zeroIvwos, plusIvwos, minusIvwos);
+            addingOrigins = findAddingOrigins();
+
+            existingValue = findValueInExistingItem();
+
+            LOGGER.trace("PVWOs for value {}:\nzero = {}\nplus = {}\nminus = {}\nadding = {}\nexisting value = {}",
+                    value0, zeroOrigins, plusOrigins, minusOrigins, addingOrigins, existingValue);
         }
 
-        private void consolidate() throws PolicyViolationException, ExpressionEvaluationException, SchemaException {
+        private void consolidate() throws PolicyViolationException, ExpressionEvaluationException, SchemaException,
+                ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
-            checkDeletionOfZeroStrongValue();
+            checkDeletionOfStrongValue();
 
-            if (!zeroIvwos.isEmpty() && !addUnchangedValues) {
-                LOGGER.trace("Value {} unchanged, doing nothing", value);
-                applyMetadataOnUnchangedValue(value); // TODO
-                return;
-            }
-
-            if (!findReasonsToAdd().isEmpty()) {
-                new AddConsolidation().consolidate();
+            if (!addingOrigins.isEmpty()) {
+                consolidateToAddSet();
             } else {
-                new NoAddConsolidation().consolidate();
+                consolidateToDeleteSet();
             }
         }
 
-        private Collection<ItemValueWithOrigin<V, D>> findReasonsToAdd() {
+        private Collection<ItemValueWithOrigin<V, D>> findAddingOrigins() {
+            Collection<ItemValueWithOrigin<V, D>> addingOrigins = new HashSet<>(plusOrigins);
             if (addUnchangedValues) {
-                //noinspection unchecked
-                reasonsToAdd = MiscUtil.union(zeroIvwos, plusIvwos);
+                addingOrigins.addAll(zeroOrigins);
+            } else if (addUnchangedValuesExceptForNormalMappings) {
+                for (ItemValueWithOrigin<V, D> zeroIvwo : zeroOrigins) {
+                    if (zeroIvwo.isStrong() || zeroIvwo.isNormal() && zeroIvwo.isSourceless() || zeroIvwo.isWeak()) {
+                        addingOrigins.add(zeroIvwo);
+                    }
+                }
             } else {
-                reasonsToAdd = plusIvwos;
+                // only plus origins cause adding values here
             }
-            return reasonsToAdd;
+            return addingOrigins;
+        }
+
+        /**
+         * We know we have a reason to add the value: either a mapping that returned this value in its plus set,
+         * or a mapping that returned it in zero set with "addUnchangedValues" being true. (Typically during object ADD
+         * operation.) Or addUnchangedValues is false but addUnchangedValuesExceptForNormalMappings is true, and
+         * the mapping is strong or weak or sourceless normal.
+         *
+         * So let us sort out the mappings to learn about the presence of weak-normal-strong ones and decide
+         * on adding/not-adding the value using this information.
+         */
+        private void consolidateToAddSet() throws ExpressionEvaluationException, SchemaException, ConfigurationException,
+                ObjectNotFoundException, CommunicationException, SecurityViolationException {
+            classifyMappings(addingOrigins, true);
+            if (shouldAddValue()) {
+                itemDelta.addValueToAdd(LensUtil.cloneAndApplyAssignmentOrigin(value0, isAssignment, addingOrigins));
+            }
+        }
+
+        private boolean shouldAddValue() throws CommunicationException, ObjectNotFoundException, SchemaException,
+                SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            if (hasOnlyWeakMappings) {
+                LOGGER.trace("Value {} mapping is weak in item {}, postponing processing in {}",
+                        value0, itemPath, contextDescription);
+                return false;
+            }
+
+            // Checking for presence of value0 in existing item (real or assumed)
+
+            if (existingItemKnown) {
+                if (existingValue != null) {
+                    LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value in {}"
+                                    + " (will compute value metadata from existing value and all non-weak adding-origin values)",
+                            value0, itemPath, contextDescription);
+                    computeValueMetadata(existingValue, existingValue, () -> selectNonWeakValuesFrom(addingOrigins));
+                    return false;
+                }
+            } else {
+                if (hasZeroNonWeakMapping()) {
+                    // We use this approximate check only if we don't know current item value - we can only assume it
+                    LOGGER.trace("Value {} in item {} has zero mapping, so we assume it already exists, skipping processing in {}",
+                            value0, itemPath, contextDescription);
+                    // We cannot compute metadata because we do not have the target value to compute them for.
+                    return false;
+                }
+            }
+
+            // Normal mappings are ignored on some occasions
+
+            if (!hasAtLeastOneStrongMapping) {
+                if (ignoreNormalMappings) {
+                    LOGGER.trace("Value {} mapping is normal in item {} and we have exclusiveStrong, skipping processing in {}",
+                            value0, itemPath, contextDescription);
+                    // We are not sure what to do with metadata now. But, fortunately, this case occurs only with
+                    // resource object items mappings, and we currently do not implement metadata computation for them.
+                    return false;
+                }
+                if (!aprioriItemDeltaIsEmpty) {
+                    LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta; " +
+                                    "skipping adding in {} (also skipping value metadata computation)",
+                            value0, itemPath, contextDescription);
+                    return false;
+                }
+            }
+
+            LOGGER.trace("Decided to ADD value {} to delta for item {} in {}", value0, itemPath, contextDescription);
+            computeValueMetadata(value0, existingValue, () -> selectNonWeakValuesFrom(addingOrigins));
+            return true;
+        }
+
+        /**
+         * We have no reason to add the value based on the mappings. Let's check the other options.
+         */
+        private void consolidateToDeleteSet() throws ExpressionEvaluationException, ConfigurationException,
+                ObjectNotFoundException, SchemaException, CommunicationException, SecurityViolationException {
+
+            assert plusOrigins.isEmpty() : "Non-empty plus origin set is treated in consolidateToAddSet";
+
+            if (!zeroOrigins.isEmpty()) {
+                computeValueMetadata(existingValue, existingValue, () -> selectNonWeakValuesFrom(zeroOrigins));
+            } else if (!minusOrigins.isEmpty()) {
+                classifyMappings(minusOrigins, false);
+                if (shouldDeleteValue()) {
+                    //noinspection unchecked
+                    itemDelta.addValueToDelete((V) value0.clone());
+                } else {
+                    LOGGER.trace("Keeping the value {} for {} but have nothing to compute its metadata from"
+                            + " (zero and plus origin sets are empty) in {}", value0, itemPath, contextDescription);
+                }
+            } else {
+                LOGGER.trace("Value being consolidated ({} for {}) has no visible plus, minus, nor zero origins. " +
+                                "It probably has some origins but they have been filtered out. In this situation we " +
+                                "cannot put it into the delta nor we can compute any value metadata. In: {}",
+                        value0, itemPath, contextDescription);
+            }
+        }
+
+        private boolean shouldDeleteValue() {
+
+            if (hasOnlyWeakMappings && !existingItemIsEmpty) {
+                LOGGER.trace("Value {} mapping is weak and the item {} already has a value, skipping deletion in {}",
+                        value0, itemPath, contextDescription);
+                return false;
+            }
+
+            assert !hasOnlyWeakMappings || strengthSelector.isWeak() :
+                    "If we are ordered to skip weak mappings and all mappings in"
+                            + " minusIvwos are weak then minusIvwos must be empty set and so we are not here";
+
+            if (existingItemKnown && existingValue == null) {
+                LOGGER.trace("Value {} NOT add to delta as DELETE because item {} the item does not have that value in {} (matcher: {})",
+                        value0, itemPath, contextDescription, valueMatcher);
+                return false;
+            }
+
+            if (!hasAtLeastOneStrongMapping && !aprioriItemDeltaIsEmpty) {
+                LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta, skipping deletion in {}",
+                        value0, itemPath, contextDescription);
+                return false;
+            }
+
+            LOGGER.trace("Value {} added to delta as DELETE for item {} in {}", value0, itemPath, contextDescription);
+            return true;
+        }
+
+        private void classifyMappings(Collection<ItemValueWithOrigin<V, D>> origins, boolean checkExclusiveness)
+                throws ExpressionEvaluationException {
+            hasOnlyWeakMappings = true;
+            hasAtLeastOneStrongMapping = false;
+            exclusiveMapping = null;
+            for (ItemValueWithOrigin<V,D> origin : origins) {
+                PrismValueDeltaSetTripleProducer<V,D> mapping = origin.getMapping();
+                if (mapping.getStrength() != MappingStrengthType.WEAK) {
+                    hasOnlyWeakMappings = false;
+                }
+                if (mapping.getStrength() == MappingStrengthType.STRONG) {
+                    hasAtLeastOneStrongMapping = true;
+                }
+                if (checkExclusiveness && mapping.isExclusive()) {
+                    checkMappingExclusiveness(mapping);
+                }
+            }
         }
 
         private void checkMappingExclusiveness(PrismValueDeltaSetTripleProducer<V, D> mapping) throws ExpressionEvaluationException {
@@ -303,19 +569,25 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             }
         }
 
-        private void checkDeletionOfZeroStrongValue() throws PolicyViolationException {
-            PrismValueDeltaSetTripleProducer<V, D> zeroStrongMapping = findStrongMappingAmongZeroIvwos();
+        private void checkDeletionOfStrongValue() throws PolicyViolationException {
+            if (aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value0, true)) {
+                checkIfStrong(zeroOrigins);
+                checkIfStrong(plusOrigins);
+            }
+        }
 
-            if (zeroStrongMapping != null && aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value, true)) {
-                throw new PolicyViolationException("Attempt to delete value " + value + " from item " + itemPath
-                        + " but that value is mandated by a strong " + zeroStrongMapping.toHumanReadableDescription()
+        private void checkIfStrong(Collection<ItemValueWithOrigin<V, D>> origins) throws PolicyViolationException {
+            PrismValueDeltaSetTripleProducer<V, D> strongMapping = findStrongMapping(origins);
+            if (strongMapping != null) {
+                throw new PolicyViolationException("Attempt to delete value " + value0 + " from item " + itemPath
+                        + " but that value is mandated by a strong " + strongMapping.toHumanReadableDescription()
                         + " (for " + contextDescription + ")");
             }
         }
 
         @Nullable
-        private PrismValueDeltaSetTripleProducer<V, D> findStrongMappingAmongZeroIvwos() {
-            for (ItemValueWithOrigin<V,D> pvwo : MiscUtil.emptyIfNull(zeroIvwos)) {
+        private PrismValueDeltaSetTripleProducer<V, D> findStrongMapping(Collection<ItemValueWithOrigin<V, D>> ivwos) {
+            for (ItemValueWithOrigin<V,D> pvwo : MiscUtil.emptyIfNull(ivwos)) {
                 PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
                 if (mapping.getStrength() == MappingStrengthType.STRONG) {
                     return mapping;
@@ -324,176 +596,28 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             return null;
         }
 
-        private class AddConsolidation {
-
-            /**
-             * We know we have a reason to add the value: either a mapping that returned this value in its plus set,
-             * or a mapping that returned it in zero set with "addUnchangedValues" being true. (Typically during object ADD
-             * operation.)
-             *
-             * So let us sort out the mappings to learn about the presence of weak-normal-strong ones and decide
-             * on adding/not-adding the value using this information.
-             */
-            private void consolidate() throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
-
-                classifyMappings(reasonsToAdd, true);
-
-                if (shouldAddValue()) {
-                    itemDelta.addValueToAdd(LensUtil.cloneAndApplyMetadata(value, isAssignment, reasonsToAdd));
-                }
+        private V findValueInExistingItem() {
+            if (existingItem == null) {
+                return null;
             }
-
-            private boolean shouldAddValue() throws PolicyViolationException {
-                if (hasOnlyWeakMappings) {
-                    LOGGER.trace("Value {} mapping is weak in item {}, postponing processing in {}",
-                            value, itemPath, contextDescription);
-                    return false;
-                }
-                if (!strengthSelector.isNormal() && !strengthSelector.isStrong()) {
-                    LOGGER.trace("Value {} has only strong/normal mappings and we are processing only weak mappings now, in item {} in {}",
-                            value, itemPath, contextDescription);
-                    return false;
-                }
-                if (hasAtLeastOneStrongMapping) {
-                    if (aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(value, true)) {
-                        throw new PolicyViolationException("Attempt to delete value "+value+" from item "+itemPath
-                                +" but that value is mandated by a strong mapping (in "+contextDescription+")");
-                    }
-                } else {
-                    if (ignoreNormalMappings) {
-                        LOGGER.trace("Value {} mapping is normal in item {} and we have exclusiveStrong, skipping processing in {}",
-                                value, itemPath, contextDescription);
-                        return false;
-                    }
-                    if (aprioriItemDelta != null && !aprioriItemDelta.isEmpty()) {
-                        // There is already a delta, skip this
-                        LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, " +
-                                "skipping adding in {}", value, itemPath, contextDescription);
-                        return false;
-                    }
-                }
-                if (filterExistingValues) {
-                    V existingValue = findValue(existingItem, value);
-                    if (existingValue != null) {
-                        LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value in {}",
-                                value, itemPath, contextDescription);
-                        applyValueMetadata(existingValue, value);
-                        return false;
-                    }
-                }
-                LOGGER.trace("Decided to ADD value {} to delta for item {} in {}", value, itemPath, contextDescription);
-                return true;
+            if (valueMatcher != null && value0 instanceof PrismPropertyValue) {
+                //noinspection unchecked
+                return (V) valueMatcher.findValue((PrismProperty)existingItem, (PrismPropertyValue) value0);
+            } else {
+                return existingItem.findValue(value0, EquivalenceStrategy.IGNORE_METADATA, comparator);
             }
         }
 
-        private class NoAddConsolidation {
-
-            /**
-             * We have no reason to add the value based on the mappings. Let's check the other options.
-             */
-            private void consolidate() throws SchemaException, ExpressionEvaluationException {
-
-                // We need to check for empty plus set. Values that are both in plus and minus are considered
-                // to have a reason to be added. This is covered by "AddConsolidation" case above.
-                assert plusIvwos.isEmpty();
-
-                if (!minusIvwos.isEmpty()) {
-                    classifyMappings(minusIvwos, false);
-                    if (shouldDeleteValue()) {
-                        //noinspection unchecked
-                        itemDelta.addValueToDelete((V) value.clone());
-                    }
-                }
-
-                if (!zeroIvwos.isEmpty()) {
-                    classifyMappings(zeroIvwos, false);
-                    if (shouldAddValue()) {
-                        itemDelta.addValueToAdd(LensUtil.cloneAndApplyMetadata(value, isAssignment, zeroIvwos));
-                    }
-                }
-            }
-
-            private boolean shouldDeleteValue() {
-                if (!hasAtLeastOneStrongMapping && (aprioriItemDelta != null && !aprioriItemDelta.isEmpty())) {
-                    // There is already a delta, skip this
-                    LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta that is more concrete, skipping deletion in {}",
-                            value, itemPath, contextDescription);
-                    return false;
-                }
-                if (hasOnlyWeakMappings && (existingItem != null && !existingItem.isEmpty())) {
-                    // There is already a value, skip this
-                    LOGGER.trace("Value {} mapping is weak and the item {} already has a value, skipping deletion in {}",
-                            value, itemPath, contextDescription);
-                    return false;
-                }
-
-                if (hasOnlyWeakMappings && !strengthSelector.isWeak() && (existingItem == null || existingItem.isEmpty())) {
-                    // There is a weak mapping on a property, but we do not have full account available, so skipping deletion of the value is better way
-                    LOGGER.trace("Value {} mapping is weak and the full account could not be fetched, skipping deletion in {} with context {}",
-                            value, itemPath, contextDescription);
-                    return false;
-                }
-                if (filterExistingValues && !isValueInExistingItem()) {
-                    LOGGER.trace("Value {} NOT add to delta as DELETE because item {} the item does not have that value in {} (matcher: {})",
-                            value, itemPath, contextDescription, valueMatcher);
-                    return false;
-                }
-                LOGGER.trace("Value {} added to delta as DELETE for item {} in {}", value, itemPath, contextDescription);
-                return true;
-            }
-
-            private boolean shouldAddValue() {
-                if (hasAtLeastOneStrongMapping && aprioriItemDelta != null && aprioriItemDelta.isReplace()) {
-                    // Any strong mappings in the zero set needs to be re-applied as otherwise the replace will destroy it
-                    LOGGER.trace("Value {} added to delta for item {} in {} because there is strong mapping in the zero set",
-                            value, itemPath, contextDescription);
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-
-            private boolean isValueInExistingItem() {
-                if (existingItem == null) {
-                    return false;
-                } else if (valueMatcher != null && value instanceof PrismPropertyValue) {
-                    //noinspection unchecked
-                    return valueMatcher.hasRealValue((PrismProperty)existingItem, (PrismPropertyValue)value);
-                } else {
-                    return existingItem.contains(value, EquivalenceStrategy.IGNORE_METADATA, comparator);
-                }
-            }
+        private boolean hasZeroNonWeakMapping() {
+            return zeroOrigins.stream()
+                    .anyMatch(origin -> !origin.isWeak());
         }
 
-        private void classifyMappings(Collection<ItemValueWithOrigin<V, D>> relevantIvwos, boolean checkExclusiveness)
-                throws ExpressionEvaluationException {
-            hasOnlyWeakMappings = true;
-            hasAtLeastOneStrongMapping = false;
-            exclusiveMapping = null;
-            for (ItemValueWithOrigin<V,D> ivwo : relevantIvwos) {
-                PrismValueDeltaSetTripleProducer<V,D> mapping = ivwo.getMapping();
-                if (mapping.getStrength() != MappingStrengthType.WEAK) {
-                    hasOnlyWeakMappings = false;
-                }
-                if (mapping.getStrength() == MappingStrengthType.STRONG) {
-                    hasAtLeastOneStrongMapping = true;
-                }
-                if (checkExclusiveness && mapping.isExclusive()) {
-                    checkMappingExclusiveness(mapping);
-                }
-            }
-        }
-    }
-
-    // TEMPORARY!
-    private void applyMetadataOnUnchangedValue(V value) {
-        if (!value.getValueMetadata().isEmpty()) {
-            V existingValue = findValue(existingItem, value);
-            if (existingValue != null) {
-                applyValueMetadata(existingValue, value);
-            }
-        } else {
-            LOGGER.info("Huh? Value is not there: {}", value); // FIXME
+        private List<V> selectNonWeakValuesFrom(Collection<ItemValueWithOrigin<V, D>> origins) {
+            return origins.stream()
+                    .filter(origin -> !origin.isWeak())
+                    .map(ItemValueWithOrigin::getItemValue)
+                    .collect(Collectors.toList());
         }
     }
 
@@ -517,27 +641,21 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     private void logStart() {
         LOGGER.trace("Consolidating {} IVwO triple:\n{}\n  Apriori Delta:\n{}\n  Existing item:\n{}\n  Parameters:\n"
                         + "   - addUnchangedValues: {}\n"
-                        + "   - filterExistingValues: {}\n"
+                        + "   - existingItemKnown: {}\n"
                         + "   - isExclusiveStrong: {}\n"
                         + "   - strengthSelector: {}\n"
                         + "   - valueMatcher: {}\n"
-                        + "   - comparator: {}",
+                        + "   - comparator: {}\n"
+                        + "   - valueMetadataComputer: {}",
                 itemPath, ivwoTriple.debugDumpLazily(1),
                 DebugUtil.debugDumpLazily(aprioriItemDelta, 2),
                 DebugUtil.debugDumpLazily(existingItem, 2),
-                addUnchangedValues, filterExistingValues, itemIsExclusiveStrong, strengthSelector, valueMatcher, comparator);
+                addUnchangedValues, existingItemKnown, itemIsExclusiveStrong, strengthSelector, valueMatcher, comparator,
+                valueMetadataComputer);
     }
 
     private void logEnd() {
         LOGGER.trace("Consolidated {} IVwO triple to delta:\n{}", itemPath, itemDelta.debugDumpLazily(1));
-    }
-
-    private void applyValueMetadata(V existingValue, V value) {
-        if (!value.getValueMetadata().isEmpty()) {
-            LOGGER.info("Copying value metadata to value {} for item {} in {}",
-                    existingValue, itemPath, contextDescription);
-            existingValue.setValueMetadata(value.getValueMetadata().clone()); // TODO merge instead
-        }
     }
 
     private Collection<V> collectAllValues() throws SchemaException {
@@ -585,7 +703,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
      *                         (The reason is not quite clear to me.)
      *
      */
-    private Collection<ItemValueWithOrigin<V,D>> collectIvwosFromSet(V pvalue, Collection<? extends ItemValueWithOrigin<V,D>> deltaSet, boolean keepValidInvalid) throws SchemaException {
+    private Collection<ItemValueWithOrigin<V,D>> collectIvwosFromSet(V value, Collection<? extends ItemValueWithOrigin<V,D>> deltaSet, boolean keepValidInvalid) throws SchemaException {
         Collection<ItemValueWithOrigin<V,D>> ivwos = new ArrayList<>();
         for (ItemValueWithOrigin<V,D> setIvwo : deltaSet) {
             if (shouldSkipMapping(setIvwo.getMapping().getStrength())) {
@@ -601,7 +719,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 // valid -> invalid change. E.g. disabled assignment. We need to process that
             }
             //noinspection unchecked
-            if (setIvwo.equalsRealValue(pvalue, valueMatcher)) {
+            if (setIvwo.equalsRealValue(value, valueMatcher)) {
                 ivwos.add(setIvwo);
             }
         }
@@ -612,19 +730,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         return mappingStrength == MappingStrengthType.STRONG && !strengthSelector.isStrong() ||
                 mappingStrength == MappingStrengthType.NORMAL && !strengthSelector.isNormal() ||
                 mappingStrength == MappingStrengthType.WEAK && !strengthSelector.isWeak();
-    }
-
-    private Collection<ItemValueWithOrigin<V,D>> selectWeakValues(Collection<? extends ItemValueWithOrigin<V,D>> ivwos, OriginType origin) {
-        Collection<ItemValueWithOrigin<V,D>> values = new ArrayList<>();
-        if (strengthSelector.isWeak()) {
-            for (ItemValueWithOrigin<V, D> ivwo : ivwos) {
-                if (ivwo.getMapping().getStrength() == MappingStrengthType.WEAK &&
-                        (origin == null || origin == ivwo.getItemValue().getOriginType())) {
-                    values.add(ivwo);
-                }
-            }
-        }
-        return values;
     }
 
     /**
@@ -643,15 +748,95 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         }
     }
 
-    private V findValue(Item<V,D> existingUserItem, V newValue) {
-        if (existingUserItem == null) {
-            return null;
+    private void computeValueMetadata(V target, V existingValue, Supplier<List<V>> additionalSourcesSupplier)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        if (valueMetadataComputer == null) {
+            LOGGER.trace("Skipping value metadata computation because computer is null");
+            return;
         }
-        if (valueMatcher != null && newValue instanceof PrismPropertyValue) {
-            //noinspection unchecked
-            return (V) valueMatcher.findValue((PrismProperty)existingUserItem, (PrismPropertyValue)newValue);
-        } else {
-            return existingUserItem.findValue(newValue, EquivalenceStrategy.IGNORE_METADATA, comparator);
+
+        List<PrismValue> inputValues = new ArrayList<>();
+        if (existingValue != null) {
+            inputValues.add(existingValue);
         }
+        inputValues.addAll(additionalSourcesSupplier.get());
+        ValueMetadata metadata = valueMetadataComputer.compute(inputValues, result);
+
+        LOGGER.trace("Computed value metadata for {} ({}):\n{}", target, itemPath, DebugUtil.debugDumpLazily(metadata));
+        target.setValueMetadata(metadata);
+    }
+
+    private class ValueCategorization {
+
+        private class EquivalenceClass {
+            private final List<I> members = new ArrayList<>();
+
+            private EquivalenceClass(I head) {
+                members.add(head);
+            }
+
+            private I getRepresentative() {
+                return members.get(0);
+            }
+
+            private void addMember(I member) {
+                members.add(member);
+            }
+
+            private List<V> getMemberValues() {
+                return members.stream()
+                        .map(ItemValueWithOrigin::getItemValue)
+                        .collect(Collectors.toList());
+            }
+        }
+
+        @NotNull private final Set<EquivalenceClass> equivalenceClasses = new HashSet<>();
+
+        private ValueCategorization(Collection<I> allValues) throws SchemaException {
+            categorizeValues(new LinkedList<>(allValues));
+        }
+
+        private void categorizeValues(LinkedList<I> valuesToCategorize) throws SchemaException {
+            while (!valuesToCategorize.isEmpty()) {
+                categorizeFirstValue(valuesToCategorize);
+            }
+        }
+
+        private void categorizeFirstValue(LinkedList<I> valuesToCategorize) throws SchemaException {
+            Iterator<I> iterator = valuesToCategorize.iterator();
+            I head = iterator.next();
+            iterator.remove();
+            EquivalenceClass equivalenceClass = new EquivalenceClass(head);
+            equivalenceClasses.add(equivalenceClass);
+
+            while (iterator.hasNext()) {
+                I current = iterator.next();
+                if (areEquivalent(head, current)) {
+                    equivalenceClass.addMember(current);
+                    iterator.remove();
+                }
+            }
+        }
+
+        private boolean areEquivalent(I ivwo1, I ivwo2) throws SchemaException {
+            V value1 = ivwo1.getItemValue();
+            V value2 = ivwo2.getItemValue();
+            if (valueMatcher != null && value1 instanceof PrismPropertyValue && value2 instanceof PrismPropertyValue) {
+                //noinspection unchecked
+                return valueMatcher.match(value1.getRealValue(), value2.getRealValue());
+            } else if (comparator != null) {
+                return comparator.compare(value1, value2) == 0;
+            } else if (value1 != null) {
+                return value1.equals(value2, EquivalenceStrategy.IGNORE_METADATA);
+            } else {
+                return value2 == null;
+            }
+        }
+    }
+
+    @Override
+    public void close() {
+        result.computeStatusIfUnknown();
     }
 }

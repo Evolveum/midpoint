@@ -27,10 +27,10 @@ public abstract class TargetObjectSpecification<T extends AssignmentHolderType> 
      * @return The target object that is to be provided to the mapping evaluator. It is needed e.g. to find current values
      *         of mapping target item.
      */
-    public abstract <AH extends AssignmentHolderType> PrismObject<T> getTargetObject(ObjectDeltaObject<AH> updatedFocusOdo);
+    public abstract <AH extends AssignmentHolderType> PrismObject<T> getTargetObject();
 
     /**
-     * @return Should the target be updated with mapping results?
+     * @return Is the target the same object as source, i.e. should mappings be chained?
      */
-    public abstract boolean isUpdatedWithMappingResults();
+    public abstract boolean isSameAsSource();
 }

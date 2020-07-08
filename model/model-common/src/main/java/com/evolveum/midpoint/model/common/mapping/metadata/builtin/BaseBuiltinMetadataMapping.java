@@ -5,9 +5,15 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.common.mapping.builtin;
+package com.evolveum.midpoint.model.common.mapping.metadata.builtin;
 
 import javax.annotation.PostConstruct;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.PrismValue;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +22,11 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * TODO
@@ -52,5 +63,20 @@ abstract class BaseBuiltinMetadataMapping implements BuiltinMetadataMapping {
             //noinspection unchecked
             property.addRealValue(value);
         }
+    }
+
+    XMLGregorianCalendar earliestTimestamp(List<PrismValue> values, ItemPath path) {
+        Set<XMLGregorianCalendar> realValues = getRealValues(values, path);
+        return MiscUtil.getEarliestTimeIgnoringNull(realValues);
+    }
+
+    private <T> Set<T> getRealValues(List<PrismValue> values, ItemPath path) {
+        //noinspection unchecked
+        return (Set<T>) values.stream()
+                .map(PrismValue::getValueMetadata)
+                .map(v -> v.findItem(path))
+                .filter(Objects::nonNull)
+                .map(Item::getRealValue)
+                .collect(Collectors.toSet());
     }
 }
