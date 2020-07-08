@@ -20,6 +20,8 @@ import java.util.stream.Collectors;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.Session;
@@ -122,11 +124,11 @@ public class ObjectDeltaUpdater {
         Context ctx = new Context(modifyOptions, idGenerator, session, attemptContext);
 
         // Preprocess modifications: We want to process only real modifications. (As for assumeMissingItems, see MID-5280.)
-        Collection<? extends ItemDelta> narrowedModifications = prismObject.narrowModifications(modifications, true);
+        Collection<? extends ItemDelta> narrowedModifications = prismObject.narrowModifications(modifications,
+                EquivalenceStrategy.NOT_LITERAL, true);
         LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(narrowedModifications));
 
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();
-        //noinspection unchecked
         RObject object = session.byId(objectClass).getReference(oid);
 
         ManagedType<T> mainEntityType = entityRegistry.getJaxbMapping(type);
@@ -1028,26 +1030,27 @@ public class ObjectDeltaUpdater {
             //noinspection unchecked
             Collection<PrismEntityPair<?>> valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
             replaceValues(collection, valuesToReplace, item, idGenerator);
-            return;
-        }
 
-        // handle add
-        if (delta.isAdd()) {
-            //noinspection unchecked
-            Collection<PrismEntityPair<?>> valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
-            addValues(collection, valuesToAdd, idGenerator);
-        }
+        } else {
 
-        // handle delete
-        if (delta.isDelete()) {
-            //noinspection unchecked
-            Collection<PrismEntityPair<?>> valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType, delta, bean);
-            valuesToDelete.forEach(pair -> {
-                if (pair.getRepository() instanceof EntityState) {
-                    ((EntityState) pair.getRepository()).setTransient(false);
-                }
-            });
-            deleteValues(collection, valuesToDelete, item);
+            // handle add
+            if (delta.isAdd()) {
+                //noinspection unchecked
+                Collection<PrismEntityPair<?>> valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
+                addValues(collection, valuesToAdd, idGenerator);
+            }
+
+            // handle delete
+            if (delta.isDelete()) {
+                //noinspection unchecked
+                Collection<PrismEntityPair<?>> valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType, delta, bean);
+                valuesToDelete.forEach(pair -> {
+                    if (pair.getRepository() instanceof EntityState) {
+                        ((EntityState) pair.getRepository()).setTransient(false);
+                    }
+                });
+                deleteValues(collection, valuesToDelete, item);
+            }
         }
     }
 

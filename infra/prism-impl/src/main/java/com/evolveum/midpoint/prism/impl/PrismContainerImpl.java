@@ -22,7 +22,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.lang.reflect.Modifier;
@@ -746,11 +745,11 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     @Override
-    public boolean containsEquivalentValue(PrismContainerValue<C> value, @Nullable Comparator<PrismContainerValue<C>> comparator) {
+    public boolean containsEquivalentValue(PrismContainerValue<C> value, @NotNull Comparator<PrismContainerValue<C>> comparator) {
         if (value.isIdOnly()) {
             return findValue(value.getId()) != null;
         } else {
-            return contains(value, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, comparator);
+            return contains(value, comparator);
         }
     }
 

@@ -236,11 +236,6 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
         return (PrismProperty<T>) super.getItemNewMatchingPath(propertyOld);
     }
 
-    @Override
-    public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems) {
-        return (PropertyDelta<T>) super.narrow(object, assumeMissingItems);
-    }
-
     public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy,
             MatchingRule<T> matchingRule, boolean assumeMissingItems) {
         Comparator<PrismPropertyValue<T>> comparator = (o1, o2) -> {
@@ -250,19 +245,7 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
                 return 1;
             }
         };
-        return (PropertyDelta<T>) super.narrow(object, comparator, assumeMissingItems);
-    }
-
-    public boolean isRedundant(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy,
-            MatchingRule<T> matchingRule, boolean assumeMissingItems) {
-        Comparator<PrismPropertyValue<T>> comparator = (o1, o2) -> {
-            if (o1.equals(o2, strategy, matchingRule)) {
-                return 0;
-            } else {
-                return 1;
-            }
-        };
-        return super.isRedundant(object, comparator, assumeMissingItems);
+        return (PropertyDelta<T>) narrow(object, comparator, assumeMissingItems);
     }
 
     public static <O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, PrismObjectDefinition<O> objectDefinition) {

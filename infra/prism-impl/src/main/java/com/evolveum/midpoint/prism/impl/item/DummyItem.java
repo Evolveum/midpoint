@@ -260,22 +260,12 @@ public abstract class DummyItem<V extends PrismValue, D extends ItemDefinition<?
         return delegate().findValue(value, strategy, comparator);
     }
 
-    public final boolean containsEquivalentValue(V value) {
-        return delegate().containsEquivalentValue(value);
-    }
-
-    public final boolean containsEquivalentValue(V value,
-            Comparator<V> comparator) {
+    public final boolean containsEquivalentValue(V value, @NotNull Comparator<V> comparator) {
         return delegate().containsEquivalentValue(value, comparator);
     }
 
     public final V findValue(V value, @NotNull EquivalenceStrategy strategy) {
         return delegate().findValue(value, strategy);
-    }
-
-    public final boolean valuesEqual(Collection<V> matchValues,
-            Comparator<V> comparator) {
-        return delegate().valuesEqual(matchValues, comparator);
     }
 
     public final ItemDelta<V, D> diff(

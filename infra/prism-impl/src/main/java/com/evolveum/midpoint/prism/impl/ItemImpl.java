@@ -391,12 +391,17 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         return contains(value, getEqualsHashCodeStrategy());
     }
 
-    public boolean containsEquivalentValue(V value) {
-        return containsEquivalentValue(value, null);
+    public boolean containsEquivalentValue(V value, @NotNull Comparator<V> comparator) {
+        return contains(value, comparator);
     }
 
-    public boolean containsEquivalentValue(V value, @Nullable Comparator<V> comparator) {
-        return contains(value, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, comparator);
+    public boolean contains(V value, @NotNull Comparator<V> comparator) {
+        for (V myValue: getValues()) {
+            if (comparator.compare(myValue, value) == 0) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean contains(V value, @NotNull EquivalenceStrategy strategy) {
@@ -443,10 +448,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
             }
             return null;
         }
-    }
-
-    public boolean valuesEqual(Collection<V> matchValues, Comparator<V> comparator) {
-        return MiscUtil.unorderedCollectionCompare(values, matchValues, comparator);
     }
 
     public int size() {

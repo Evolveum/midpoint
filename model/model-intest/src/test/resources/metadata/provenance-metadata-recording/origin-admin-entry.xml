@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         oid="6c0a7a75-0551-4842-807d-424e279a257f">
+    <name>Admin data entry</name>
+    <description>Data entered manually by the administrator</description>
+</service>

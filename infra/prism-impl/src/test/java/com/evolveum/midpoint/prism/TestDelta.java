@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS;
+
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
@@ -1475,7 +1477,7 @@ public class TestDelta extends AbstractPrismTest {
         PrismObject<UserType> user = createUserFoo();
 
         // WHEN
-        PropertyDelta<String> narrowedDelta = delta.narrow(user, false);
+        ItemDelta narrowedDelta = delta.narrow(user, IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, false);
 
         // THEN
         System.out.println("Narrowed delta:");
@@ -1500,7 +1502,7 @@ public class TestDelta extends AbstractPrismTest {
         user.setPropertyRealValue(UserType.F_DESCRIPTION, "bubu");
 
         // WHEN
-        PropertyDelta<String> narrowedDelta = delta.narrow(user, false);
+        ItemDelta narrowedDelta = delta.narrow(user, IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, false);
 
         // THEN
         System.out.println("Narrowed delta:");
@@ -1524,7 +1526,7 @@ public class TestDelta extends AbstractPrismTest {
         user.setPropertyRealValue(UserType.F_DESCRIPTION, "bubu");
 
         // WHEN
-        PropertyDelta<String> narrowedDelta = delta.narrow(user, false);
+        ItemDelta narrowedDelta = delta.narrow(user, IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, false);
 
         // THEN
         System.out.println("Narrowed delta:");
@@ -1550,7 +1552,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // WHEN
         when();
-        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
+        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, false);
 
         // THEN
         then();
@@ -1580,7 +1582,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // WHEN
         when();
-        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
+        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, false);
 
         // THEN
         then();
@@ -1610,7 +1612,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // WHEN
         when();
-        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
+        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, false);
 
         // THEN
         then();
@@ -1636,7 +1638,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // WHEN
         when();
-        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
+        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, false);
 
         // THEN
         then();
@@ -1662,7 +1664,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // WHEN
         when();
-        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
+        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, false);
 
         // THEN
         then();
@@ -1689,7 +1691,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // WHEN
         when();
-        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
+        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, false);
 
         // THEN
         then();
@@ -1720,7 +1722,7 @@ public class TestDelta extends AbstractPrismTest {
 
         // WHEN
         when();
-        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, false);
+        ObjectDelta<UserType> narrowedDelta = userDelta.narrow(user, IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, false);
 
         // THEN
         then();

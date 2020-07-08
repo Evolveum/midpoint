@@ -165,7 +165,7 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
 
     void normalize();
 
-    ObjectDelta<O> narrow(PrismObject<O> existingObject, boolean assumeMissingItems);
+    ObjectDelta<O> narrow(PrismObject<O> existingObject, @NotNull ParameterizedEquivalenceStrategy strategy, boolean assumeMissingItems);
 
     // TODO better name
     void applyDefinitionIfPresent(PrismObjectDefinition<O> definition, boolean tolerateNoDefinition) throws SchemaException;
@@ -292,13 +292,10 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
      * Applicable only to modify deltas.
      * Currently compares paths by "equals" predicate -- in the future we might want to treat sub/super/equivalent paths!
      * So consider this method highly experimental.
-     *
-     * @param paths
-     * @return
      */
     ObjectDelta<O> subtract(@NotNull Collection<ItemPath> paths);
 
-    boolean isRedundant(PrismObject<O> object, boolean assumeMissingItems) throws SchemaException;
+    boolean isRedundant(PrismObject<O> object, @NotNull ParameterizedEquivalenceStrategy strategy, boolean assumeMissingItems) throws SchemaException;
 
     @Experimental
     void removeOperationalItems();

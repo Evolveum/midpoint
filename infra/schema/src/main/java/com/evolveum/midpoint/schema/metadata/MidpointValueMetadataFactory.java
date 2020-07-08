@@ -35,7 +35,7 @@ public class MidpointValueMetadataFactory implements ValueMetadataFactory {
                         .asPrismContainerValue());
     }
 
-    public static ValueMetadata createFrom(PrismContainerValue<?> pcv) {
+    public static ValueMetadata createFrom(@NotNull PrismContainerValue<?> pcv) {
         return ValueMetadataAdapter.holding(pcv);
     }
 }

@@ -18,6 +18,8 @@ import java.util.function.Function;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -445,19 +447,16 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     /**
      * @return true if the item contains an equivalent value (the same as {@link #containsEquivalentValue(PrismValue, Comparator)}
-     * with comparator being null)
+     * with comparator being IGNORE_METADATA_CONSIDER_DIFFERENT_IDS)
      */
-    boolean containsEquivalentValue(V value);
+    default boolean containsEquivalentValue(V value) {
+        return containsEquivalentValue(value, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.prismValueComparator());
+    }
 
     /**
-     * @return true if the item contains an equivalent value
-     *
-     * Item value is considered to be equivalent to the given value if:
-     * 1) given value is ID-only container value and item value has the same ID, or
-     * 2) comparator is not null and it gives "equals" (0) result when comparing these values, or
-     * 3) comparator is null and values match under IGNORE_METADATA_CONSIDER_DIFFERENT_IDS strategy
+     * @return true if the item contains an equivalent value under given strategy
      */
-    boolean containsEquivalentValue(V value, @Nullable Comparator<V> comparator);
+    boolean containsEquivalentValue(V value, @NotNull Comparator<V> comparator);
 
     /**
      * @return a value of this item that is equivalent to the given one under given equivalence strategy
@@ -470,7 +469,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * If comparator is null the default equals(..) comparison is used.
      */
-    boolean valuesEqual(Collection<V> matchValues, @Nullable Comparator<V> comparator);
+    default boolean valuesEqual(Collection<V> matchValues, @NotNull Comparator<V> comparator) {
+        return MiscUtil.unorderedCollectionCompare(getValues(), matchValues, comparator);
+    }
 
     /**
      * Computes a difference (delta) with the specified item using IGNORE_METADATA_CONSIDER_DIFFERENT_IDS equivalence strategy.

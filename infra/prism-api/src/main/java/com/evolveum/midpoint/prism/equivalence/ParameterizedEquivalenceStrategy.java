@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ import java.util.Map;
  *  Contrary to IGNORE_METADATA it ignores element names and reference filters (if OID is present).
  */
 @SuppressWarnings("unused")
-public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
+public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy, Cloneable {
 
     /**
      * The (almost) highest level of recognition. Useful e.g. for comparing values for the purpose of XML editing.
@@ -74,7 +75,6 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      *
      * Corresponds to pre-4.0 flags ignoreMetadata = true, literal = true.
      */
-    @SuppressWarnings("WeakerAccess")
     public static final ParameterizedEquivalenceStrategy LITERAL_IGNORE_METADATA;
 
     /**
@@ -109,6 +109,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         LITERAL.consideringReferenceFilters = true;
         LITERAL.consideringReferenceOptions = true;
         LITERAL.compareElementNames = true;
+        LITERAL.consideringValueMetadata = true;
         putIntoNiceNames(LITERAL, "LITERAL");
 
         NOT_LITERAL = new ParameterizedEquivalenceStrategy();
@@ -119,6 +120,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         NOT_LITERAL.consideringReferenceFilters = true;
         NOT_LITERAL.consideringReferenceOptions = true;         // ok?
         NOT_LITERAL.compareElementNames = true;
+        NOT_LITERAL.consideringValueMetadata = true;
         putIntoNiceNames(NOT_LITERAL, "NOT_LITERAL");
 
         IGNORE_METADATA = new ParameterizedEquivalenceStrategy();
@@ -129,6 +131,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         IGNORE_METADATA.consideringReferenceFilters = true;
         IGNORE_METADATA.consideringReferenceOptions = true;         // ok?
         IGNORE_METADATA.compareElementNames = true; //???
+        IGNORE_METADATA.consideringValueMetadata = false;
         putIntoNiceNames(IGNORE_METADATA, "IGNORE_METADATA");
 
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS = new ParameterizedEquivalenceStrategy();
@@ -139,6 +142,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringReferenceFilters = true;
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringReferenceOptions = true;         // ok?
         IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.compareElementNames = true; //???
+        IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringValueMetadata = false;
         putIntoNiceNames(IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, "IGNORE_METADATA_CONSIDER_DIFFERENT_IDS");
 
         LITERAL_IGNORE_METADATA = new ParameterizedEquivalenceStrategy();
@@ -149,6 +153,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         LITERAL_IGNORE_METADATA.consideringReferenceFilters = true;
         LITERAL_IGNORE_METADATA.consideringReferenceOptions = true;
         LITERAL_IGNORE_METADATA.compareElementNames = true;
+        LITERAL_IGNORE_METADATA.consideringValueMetadata = false;
         putIntoNiceNames(LITERAL_IGNORE_METADATA, "LITERAL_IGNORE_METADATA");
 
         REAL_VALUE = new ParameterizedEquivalenceStrategy();
@@ -159,6 +164,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         REAL_VALUE.consideringReferenceFilters = false;
         REAL_VALUE.consideringReferenceOptions = false;
         REAL_VALUE.compareElementNames = false;
+        REAL_VALUE.consideringValueMetadata = false;
         putIntoNiceNames(REAL_VALUE, "REAL_VALUE");
 
         REAL_VALUE_CONSIDER_DIFFERENT_IDS = new ParameterizedEquivalenceStrategy();
@@ -169,6 +175,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringReferenceFilters = false;
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringReferenceOptions = false;
         REAL_VALUE_CONSIDER_DIFFERENT_IDS.compareElementNames = false;
+        REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringValueMetadata = false;
         putIntoNiceNames(REAL_VALUE_CONSIDER_DIFFERENT_IDS, "REAL_VALUE_CONSIDER_DIFFERENT_IDS");
 
         DEFAULT_FOR_EQUALS = NOT_LITERAL;
@@ -203,6 +210,8 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      */
     private boolean hashRuntimeSchemaItems;                 // R
 
+    private boolean consideringValueMetadata;                   // M
+
     public String getDescription() {
         return (literalDomComparison ? "L" : "-") +
                 (consideringOperationalData ? "O" : "-") +
@@ -211,7 +220,8 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
                 (consideringReferenceFilters ? "F" : "-") +
                 (consideringReferenceOptions ? "r" : "-") +
                 (compareElementNames ? "E" : "-") +
-                (hashRuntimeSchemaItems ? "R" : "-");
+                (hashRuntimeSchemaItems ? "R" : "-") +
+                (consideringValueMetadata ? "M" : "-");
     }
 
     @Override
@@ -303,10 +313,46 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         this.hashRuntimeSchemaItems = hashRuntimeSchemaItems;
     }
 
+    public boolean isConsideringValueMetadata() {
+        return consideringValueMetadata;
+    }
+
+    public void setConsideringValueMetadata(boolean consideringValueMetadata) {
+        this.consideringValueMetadata = consideringValueMetadata;
+    }
+
     @Override
     public String toString() {
         String desc = getDescription();
         String niceName = NICE_NAMES.get(desc);
         return niceName != null ? niceName + " (" + desc + ")" : "(" + desc + ")";
+    }
+
+    public <V extends PrismValue> Comparator<V> prismValueComparator() {
+        return (o1, o2) -> {
+            if (o1.equals(o2, this)) {
+                return 0;
+            } else {
+                return 1;
+            }
+        };
+    }
+
+    public ParameterizedEquivalenceStrategy clone() {
+        try {
+            return (ParameterizedEquivalenceStrategy) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    public ParameterizedEquivalenceStrategy exceptForValueMetadata() {
+        if (consideringValueMetadata) {
+            ParameterizedEquivalenceStrategy clone = clone();
+            clone.consideringValueMetadata = false;
+            return clone;
+        } else {
+            return this;
+        }
     }
 }

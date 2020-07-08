@@ -10,16 +10,13 @@ package com.evolveum.midpoint.model.common.mapping.metadata.builtin;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -34,9 +31,8 @@ import java.util.stream.Collectors;
 abstract class BaseBuiltinMetadataMapping implements BuiltinMetadataMapping {
 
     @NotNull private final ItemPath targetPath;
-//    private ItemDefinition<?> targetDefinition;
 
-//    @Autowired private PrismContext prismContext;
+    @Autowired PrismContext prismContext;
     @Autowired private BuiltinMetadataMappingsRegistry registry;
 
     BaseBuiltinMetadataMapping(@NotNull ItemPath targetItem) {
@@ -46,9 +42,6 @@ abstract class BaseBuiltinMetadataMapping implements BuiltinMetadataMapping {
     @PostConstruct
     void register() {
         registry.registerBuiltinMapping(this);
-//        targetDefinition = Objects.requireNonNull(
-//                prismContext.getSchemaRegistry().getValueMetadataDefinition().findItemDefinition(targetPath),
-//                () -> "No definition for metadata item " + targetPath);
     }
 
     @Override

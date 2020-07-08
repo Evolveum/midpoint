@@ -288,13 +288,13 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications,
-            boolean assumeMissingItems) {
+            @NotNull ParameterizedEquivalenceStrategy strategy, boolean assumeMissingItems) {
         if (modifications == null) {
             return null;
         }
         Collection narrowedModifications = new ArrayList<>(modifications.size());
         for (ItemDelta<?, ?> modification: modifications) {
-            ItemDelta<?, ?> narrowedModification = modification.narrow(this, assumeMissingItems);
+            ItemDelta<?, ?> narrowedModification = modification.narrow(this, strategy, assumeMissingItems);
             if (narrowedModification != null && !narrowedModification.isEmpty()) {
                 narrowedModifications.add(narrowedModification);
             }

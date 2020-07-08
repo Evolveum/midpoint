@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         oid="760fda34-846f-4aac-a5ac-881c0ff23653">
+    <name>Self service app</name>
+    <description>Data entered by the self service application</description>
+</service>

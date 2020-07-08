@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.impl.sync.SynchronizationService;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -535,7 +536,7 @@ public class ProjectionValuesProcessor implements ProjectorProcessor {
                 if (SchemaConstants.PATH_ACTIVATION.equivalent(modification.getParentPath())) {
                     if (fullConflictingShadow != null) {
                         if (QNameUtil.match(ActivationType.F_ADMINISTRATIVE_STATUS, modification.getElementName())) {
-                            if (modification.isRedundant(fullConflictingShadow, false)) {
+                            if (modification.isRedundant(fullConflictingShadow, EquivalenceStrategy.IGNORE_METADATA, false)) {
                                 LOGGER.trace("Removing redundant secondary activation delta: {}", modification);
                                 iterator.remove();
                             }

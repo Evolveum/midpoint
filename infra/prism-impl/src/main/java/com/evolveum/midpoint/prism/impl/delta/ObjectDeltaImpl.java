@@ -487,7 +487,8 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         }
     }
 
-    public ObjectDeltaImpl<O> narrow(PrismObject<O> existingObject, boolean assumeMissingItems) {
+    public ObjectDeltaImpl<O> narrow(PrismObject<O> existingObject, @NotNull ParameterizedEquivalenceStrategy strategy,
+            boolean assumeMissingItems) {
         checkMutable();
         if (!isModify()) {
             throw new UnsupportedOperationException("Narrow is supported only for modify deltas");
@@ -495,7 +496,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         ObjectDeltaImpl<O> narrowedDelta = new ObjectDeltaImpl<>(this.objectTypeClass, this.changeType, this.prismContext);
         narrowedDelta.oid = this.oid;
         for (ItemDelta<?, ?> modification: modifications) {
-            ItemDelta<?, ?> narrowedModification = modification.narrow(existingObject, assumeMissingItems);
+            ItemDelta<?, ?> narrowedModification = modification.narrow(existingObject, strategy, assumeMissingItems);
             if (narrowedModification != null && !narrowedModification.isEmpty()) {
                 narrowedDelta.addModification(narrowedModification);
             }
@@ -1390,13 +1391,14 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     }
 
     @Override
-    public boolean isRedundant(PrismObject<O> object, boolean assumeMissingItems) throws SchemaException {
+    public boolean isRedundant(PrismObject<O> object, @NotNull ParameterizedEquivalenceStrategy strategy,
+            boolean assumeMissingItems) throws SchemaException {
         switch (changeType) {
             case MODIFY:
                 if (object == null) {
                     throw new SchemaException("Cannot apply MODIFY delta to a null object");    // TODO reconsider this exception
                 } else {
-                    return ObjectDelta.isEmpty(narrow(object, assumeMissingItems));
+                    return ObjectDelta.isEmpty(narrow(object, strategy, assumeMissingItems));
                 }
             case DELETE:
                 return object == null;

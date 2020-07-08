@@ -1058,9 +1058,11 @@ public class ChangeExecutor {
         //
         // LookupTableType operation optimization is not available here, because it looks like that isRedundant
         // does not work reliably for key-based row deletions (MID-5276).
+        //
+        // NOT_LITERAL: we consider value metadata as making a difference
         if (diffDelta != null && objectContext instanceof LensFocusContext<?> &&
                 !objectContext.isOfType(LookupTableType.class) &&
-                diffDelta.isRedundant(objectContext.getObjectCurrent(), false)) {
+                diffDelta.isRedundant(objectContext.getObjectCurrent(), EquivalenceStrategy.NOT_LITERAL, false)) {
             LOGGER.trace("delta is idempotent related to {}", objectContext.getObjectCurrent());
             return null;
         }

@@ -113,7 +113,7 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
     ObjectDelta<O> diff(PrismObject<O> other, ParameterizedEquivalenceStrategy strategy);
 
     Collection<? extends ItemDelta<?, ?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications,
-            boolean assumeMissingItems);
+            @NotNull ParameterizedEquivalenceStrategy strategy, boolean assumeMissingItems);
 
     ObjectDelta<O> createDelta(ChangeType changeType);
 

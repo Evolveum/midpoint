@@ -72,13 +72,10 @@ public interface PropertyDelta<T> extends ItemDelta<PrismPropertyValue<T>, Prism
      */
     PrismProperty<T> getPropertyNewMatchingPath(PrismProperty<T> propertyOld) throws SchemaException;
 
-    @Override
-    PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems);
-
     PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule,
             boolean assumeMissingItems);
 
-    boolean isRedundant(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule, boolean assumeMissingItems);
+//    boolean isRedundant(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule, boolean assumeMissingItems);
 
     // convenience method
     void setRealValuesToReplace(T... newValues);
