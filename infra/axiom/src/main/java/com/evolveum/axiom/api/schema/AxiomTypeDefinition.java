@@ -13,22 +13,16 @@ import java.util.stream.Collectors;
 
 import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomStructured;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomStructuredValue {
+public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomStructured {
 
     public final AxiomName IDENTIFIER_MEMBER = AxiomName.axiom("name");
     public final AxiomName SPACE = AxiomName.axiom("AxiomTypeDefinition");
     public final AxiomName NAME = AxiomName.axiom("name");
-
-
-
-    @Override
-    default Optional<AxiomTypeDefinition> type() {
-        return Optional.empty();
-    }
 
     Optional<AxiomItemDefinition> argument();
 

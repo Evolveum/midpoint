@@ -12,7 +12,7 @@ import java.util.Optional;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
 
-public interface AxiomValue<V> extends AxiomInfraValue {
+public interface AxiomValue<V> extends AxiomInfraValue, AxiomStructured {
 
     AxiomName AXIOM_VALUE = AxiomName.from(AxiomName.DATA_NAMESPACE, "AxiomValue");
     AxiomName TYPE = AXIOM_VALUE.localName("type");
@@ -35,12 +35,6 @@ public interface AxiomValue<V> extends AxiomInfraValue {
         return metadata().flatMap(m -> m.item(name));
     }
 
-    default Optional<AxiomStructuredValue> asComplex() {
-        if(this instanceof AxiomStructuredValue)  {
-            return Optional.of((AxiomStructuredValue) this);
-        }
-        return Optional.empty();
-    }
 
     interface Factory<V,T extends AxiomValue<V>> extends AxiomInfraValue.Factory<T> {
 

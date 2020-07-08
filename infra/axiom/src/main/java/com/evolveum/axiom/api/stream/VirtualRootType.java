@@ -12,7 +12,7 @@ import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
-public class VirtualRootType implements AxiomTypeDefinition{
+public class VirtualRootType implements AxiomTypeDefinition {
 
     AxiomSchemaContext context;
     private Map<AxiomName, AxiomItemDefinition> roots = new HashMap<>();
@@ -32,16 +32,6 @@ public class VirtualRootType implements AxiomTypeDefinition{
 
     @Override
     public String documentation() {
-        return null;
-    }
-
-    @Override
-    public Map<AxiomName, AxiomItem<?>> itemMap() {
-        return null;
-    }
-
-    @Override
-    public Map<AxiomName, AxiomItem<?>> infraItems() {
         return null;
     }
 

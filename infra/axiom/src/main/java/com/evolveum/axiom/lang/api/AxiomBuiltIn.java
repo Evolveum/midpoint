@@ -345,11 +345,6 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public Map<AxiomName, AxiomItem<?>> itemMap() {
-            return null;
-        }
-
-        @Override
         public boolean isComplex() {
             if(superType != null && superType.isComplex()) {
                 return true;
@@ -357,10 +352,6 @@ public class AxiomBuiltIn {
             return !itemDefinitions().isEmpty();
         }
 
-        @Override
-        public Map<AxiomName, AxiomItem<?>> infraItems() {
-            return null;
-        }
     }
 
 

@@ -21,7 +21,7 @@ model prism-model {
         target item;
         type PropertyItemDefinition;
       }
-      
+
       substitution container {
         target item;
         type ContainerItemDefinition;
@@ -160,11 +160,13 @@ model prism-model {
       }
 
       item targetType {
-        type QName; // FIXME: this should be TypeReference??
+         // FIXME: this should be TypeReference, when we HAVE full visibility
+         // into
+        type QName;
       }
 
       substitution objectReferenceTargetType {
-        // Compatibility: Adds substitution to be compatbile with current XSD schema?
+        // Compatibility: Adds substitution to be compatible with current XSD schema?
         type QName;
         target targetType;
       }

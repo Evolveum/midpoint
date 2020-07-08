@@ -16,11 +16,12 @@ import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomPath;
 import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.api.AxiomPath.Component;
+import com.evolveum.axiom.api.AxiomStructured;
 import com.evolveum.axiom.concepts.Navigable;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomItemDefinition extends AxiomNamedDefinition, Navigable<AxiomPath.Component<?>, AxiomItemDefinition> {
+public interface AxiomItemDefinition extends AxiomNamedDefinition, Navigable<AxiomPath.Component<?>, AxiomItemDefinition>, AxiomStructured {
 
     AxiomName ROOT_SPACE = AxiomName.axiom("AxiomRootDefinition");
     AxiomName SPACE = AxiomName.axiom("AxiomItemDefinition");

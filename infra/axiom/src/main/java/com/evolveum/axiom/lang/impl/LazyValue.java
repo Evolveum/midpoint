@@ -37,7 +37,7 @@ class LazyValue<V> extends LazyDelegate<AxiomValue<V>> implements AxiomValue<V> 
     }
 
     @Override
-    public Optional<AxiomStructuredValue> asComplex() {
+    public Optional<? extends AxiomStructuredValue> asComplex() {
         return delegate().asComplex();
     }
 

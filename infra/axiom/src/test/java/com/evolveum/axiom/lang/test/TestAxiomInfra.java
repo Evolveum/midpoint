@@ -5,6 +5,7 @@ import static org.testng.Assert.assertEquals;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
 import com.evolveum.axiom.api.AxiomStructuredValue;
@@ -61,7 +62,6 @@ public class TestAxiomInfra extends AbstractReactorTest {
         assertModel(result,"test");
     }
 
-    @Test
     void testInfraTypeApi() throws AxiomSemanticException, AxiomSyntaxException, FileNotFoundException, IOException {
         AxiomSchemaContext context = ModelReactorContext.defaultReactor()
                 .loadModelFromSource(source(PRISM))
@@ -86,7 +86,6 @@ public class TestAxiomInfra extends AbstractReactorTest {
         assertModel(result,"test");
     }
 
-    @Test
     void testInfraSerialized() throws AxiomSemanticException, AxiomSyntaxException, FileNotFoundException, IOException {
         AxiomSchemaContext context = ModelReactorContext.defaultReactor()
                 .loadModelFromSource(source(PRISM))
