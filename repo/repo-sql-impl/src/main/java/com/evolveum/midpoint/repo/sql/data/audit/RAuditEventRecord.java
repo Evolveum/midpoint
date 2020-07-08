@@ -486,7 +486,7 @@ public class RAuditEventRecord implements Serializable {
                 repo.setTargetType(ClassMapper.getHQLTypeForQName(target.getTargetType()));
             }
             if (record.getTargetOwner() != null) {
-                PrismObject targetOwner = record.getTargetOwner();
+                PrismObject<? extends FocusType> targetOwner = record.getTargetOwner();
                 repo.setTargetOwnerName(getOrigName(targetOwner));
                 repo.setTargetOwnerOid(targetOwner.getOid());
                 repo.setTargetOwnerType(ClassMapper.getHQLTypeForClass(targetOwner.getCompileTimeClass()));
@@ -646,7 +646,7 @@ public class RAuditEventRecord implements Serializable {
                 queryBulder.addParameter(TARGET_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForQName(target.getTargetType()));
             }
             if (record.getTargetOwner() != null) {
-                PrismObject targetOwner = record.getTargetOwner();
+                PrismObject<? extends FocusType> targetOwner = record.getTargetOwner();
                 queryBulder.addParameter(TARGET_OWNER_NAME_COLUMN_NAME, getOrigName(targetOwner));
                 queryBulder.addParameter(TARGET_OWNER_OID_COLUMN_NAME, targetOwner.getOid());
                 queryBulder.addParameter(TARGET_OWNER_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForClass(targetOwner.getCompileTimeClass()));

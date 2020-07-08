@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * MAuditEvent is a Querydsl bean type related to
+ * MAuditEvent is a Querydsl bean type related to {@code QAuditEventRecord}.
  * Usable only for built-in low-level queries without extension columns.
  */
 @SuppressWarnings("unused")
@@ -40,10 +40,10 @@ public class MAuditEventRecord {
     public String sessionIdentifier;
     public String targetName;
     public String targetOid;
+    public Integer targetType;
     public String targetOwnerName;
     public String targetOwnerOid;
     public Integer targetOwnerType;
-    public Integer targetType;
     public String taskIdentifier;
     public String taskOid;
 

@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
@@ -44,6 +45,9 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
     private String initiatorOid;
     private String attorneyOid;
+    private String targetOid;
+    private String targetOwnerOid;
+    private String record1EventIdentifier;
 
     @Override
     public void initSystem() throws Exception {
@@ -51,8 +55,14 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         initiatorOid = initiator.getOid();
         PrismObject<UserType> attorney = createUser("attorney");
         attorneyOid = attorney.getOid();
+        PrismObject<UserType> target = createUser("target");
+        targetOid = target.getOid();
+        PrismObject<? extends FocusType> targetOwner = createUser("targetOwner");
+        targetOwnerOid = targetOwner.getOid();
 
         AuditEventRecord record1 = new AuditEventRecord();
+        // all tested records have parameter, it is used for assertions where practical
+        record1.setParameter("1");
         record1.addPropertyValue("prop", "val1");
         record1.setTimestamp(TIMESTAMP_1);
         record1.setEventType(AuditEventType.ADD_OBJECT);
@@ -60,12 +70,16 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.setOutcome(OperationResultStatus.SUCCESS);
         record1.setResult("result1");
         record1.setHostIdentifier("localhost");
+        record1.setNodeIdentifier("node1");
         record1.setRemoteHostAddress("192.168.10.10");
-        // all tested records have parameter, it is used for assertions where practical
-        record1.setParameter("1");
+        record1.setSessionIdentifier("session-1");
+        record1.setTarget(target, prismContext);
+        record1.setTargetOwner(targetOwner);
         auditService.audit(record1, NullTaskImpl.INSTANCE);
+        record1EventIdentifier = record1.getEventIdentifier();
 
         AuditEventRecord record2 = new AuditEventRecord();
+        record2.setParameter("2");
         record2.addPropertyValue("prop", "val2");
         record2.setTimestamp(TIMESTAMP_2);
         record2.setEventType(AuditEventType.MODIFY_OBJECT);
@@ -75,12 +89,13 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.setInitiator(initiator);
         record2.setHostIdentifier("127.0.0.1");
         record2.setRemoteHostAddress("192.168.10.10");
+        record2.setSessionIdentifier("session-1"); // session-1 on purpose
         record2.setAttorney(attorney);
         record2.setRequestIdentifier("req-id");
-        record2.setParameter("2");
         auditService.audit(record2, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record3 = new AuditEventRecord();
+        record3.setParameter("3");
         record3.addPropertyValue("prop", "val3-1");
         record3.addPropertyValue("prop", "val3-2");
         record3.addPropertyValue("prop", "val3-3");
@@ -90,7 +105,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record3.setMessage("RECORD THREE");
         // null outcome is kinda like "unknown", but not quite, filter/GUI must handle it
         record3.setChannel(CHANNEL_REST_URI);
-        record3.setParameter("3");
+        record3.setTaskIdentifier("task-identifier");
+        record3.setTaskOid("task-oid");
         auditService.audit(record3, NullTaskImpl.INSTANCE);
     }
 
@@ -105,13 +121,27 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
     @Test
     public void test100SearchAllAuditEvents() throws SchemaException {
-        when("Searching audit with query without any conditions");
+        when("searching audit with query without any conditions and paging");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class).build();
         SearchResultList<AuditEventRecordType> result =
                 auditService.searchObjects(query, null, null);
 
-        then("All audit events are returned");
+        then("all audit events are returned");
         assertThat(result).hasSize(3);
+    }
+
+    @Test
+    public void test105SearchByEventIdentifier() throws SchemaException {
+        when("searching audit with by without any conditions");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_EVENT_IDENTIFIER).eq(record1EventIdentifier)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("all audit events are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getEventIdentifier()).isEqualTo(record1EventIdentifier);
     }
 
     @Test
@@ -181,6 +211,20 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("only audit events without any outcome are returned");
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getOutcome()).isNull();
+    }
+
+    @Test
+    public void test117SearchByResult() throws SchemaException {
+        when("searching audit filtered by result");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_RESULT).eq("result1")
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with specified result are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result).allMatch(aer -> aer.getResult().equals("result1"));
     }
 
     @Test
@@ -377,7 +421,10 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("only audit events with the specific initiator are returned");
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getParameter()).isEqualTo("2");
-        // TODO check mapping of initiator, see TODO in AuditEventRecordSqlTransformer#toAuditEventRecordType
+        assertThat(result.get(0).getInitiatorRef()).isNotNull()
+                .matches(r -> r.getOid().equals(initiatorOid))
+                .matches(r -> r.getDescription().equals("initiator"))
+                .matches(r -> r.getType().equals(UserType.COMPLEX_TYPE));
     }
 
     @Test
@@ -407,7 +454,50 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("only audit events with the specified attorney are returned");
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getParameter()).isEqualTo("2");
-        // TODO check mapping of initiator, see TODO in AuditEventRecordSqlTransformer#toAuditEventRecordType
+        assertThat(result.get(0).getAttorneyRef()).isNotNull()
+                .matches(r -> r.getOid().equals(attorneyOid))
+                .matches(r -> r.getDescription().equals("attorney"))
+                // type of this reference is always focus, audit record doesn't store it
+                .matches(r -> r.getType().equals(FocusType.COMPLEX_TYPE));
+    }
+
+    @Test
+    public void test154SearchByTarget() throws SchemaException {
+        when("searching audit filtered by target (reference by OID)");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TARGET_REF)
+                .ref(targetOid)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with the specified target are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getParameter()).isEqualTo("1");
+        assertThat(result.get(0).getTargetRef()).isNotNull()
+                .matches(r -> r.getOid().equals(targetOid))
+                .matches(r -> r.getDescription().equals("target"))
+                .matches(r -> r.getType().equals(UserType.COMPLEX_TYPE));
+    }
+
+    @Test
+    public void test156SearchByTargetOwner() throws SchemaException {
+        when("searching audit filtered by target owner (reference by OID)");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TARGET_REF)
+                .ref(targetOid)
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with the specified target owner are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getParameter()).isEqualTo("1");
+        assertThat(result.get(0).getTargetOwnerRef()).isNotNull()
+                .matches(r -> r.getOid().equals(targetOwnerOid))
+                .matches(r -> r.getDescription().equals("targetOwner"))
+                // type of this reference is always focus, audit record doesn't store it
+                .matches(r -> r.getType().equals(UserType.COMPLEX_TYPE));
     }
 
     // if this works, all other operations work too based on message related tests
@@ -465,6 +555,89 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("only audit events with exactly the same request identifier are returned");
         assertThat(result).hasSize(1);
         assertThat(result).allMatch(aer -> aer.getRequestIdentifier().equals("req-id"));
+    }
+
+    @Test
+    public void test165SearchByNodeIdentifier() throws SchemaException {
+        when("searching audit filtered by node identifier equal to value");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_NODE_IDENTIFIER).eq("node1")
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with exactly the same host identifier are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getNodeIdentifier()).isEqualTo("node1");
+    }
+
+    @Test
+    public void test165SearchByNodeIdentifierThatIsNotUsed() throws SchemaException {
+        when("searching audit filtered by node identifier equal to value that is not used");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_NODE_IDENTIFIER).eq("node-nonexistent")
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("no audit events are returned");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void test166SearchByParameter() throws SchemaException {
+        when("searching audit filtered by parameter attribute");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_PARAMETER).eq("1")
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with the same value of parameter are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getParameter()).isEqualTo("1");
+    }
+
+    @Test
+    public void test168SearchBySessionIdentifier() throws SchemaException {
+        when("searching audit filtered by session identifier");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_SESSION_IDENTIFIER).eq("session-1")
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with the same session identifier are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(r -> r.getSessionIdentifier().equals("session-1"));
+    }
+
+    @Test
+    public void test170SearchByTaskIdentifier() throws SchemaException {
+        when("searching audit filtered by task identifier");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TASK_IDENTIFIER).eq("task-identifier")
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with the same task identifier are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result).allMatch(r -> r.getTaskIdentifier().equals("task-identifier"));
+    }
+
+    @Test
+    public void test172SearchByTaskOid() throws SchemaException {
+        when("searching audit filtered by task OID");
+        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TASK_OID).eq("task-oid")
+                .build();
+        SearchResultList<AuditEventRecordType> result =
+                auditService.searchObjects(query, null, null);
+
+        then("only audit events with the same task OID are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result).allMatch(r -> r.getTaskOID().equals("task-oid"));
     }
 
     // complex filters with AND and/or OR
@@ -549,17 +722,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result).hasSize(0);
     }
 
-    @Test
-    public void test902SearchWithEmptyFilter() throws SchemaException {
-        when("searching audit without any filter specified");
-        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
-                .build();
-        SearchResultList<AuditEventRecordType> result =
-                auditService.searchObjects(query, null, null);
-
-        then("all audit records are returned (no restricting conditions are added)");
-        assertThat(result).hasSize(3);
-    }
+    // empty filter and no paging is covered by test100
 
     @Test
     public void test920SearchWithOrderByOneItem() throws SchemaException {
@@ -577,19 +740,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test950SearchWithNoPaging() throws SchemaException {
-        when("searching audit using no paging");
-        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
-                .build();
-        SearchResultList<AuditEventRecordType> result =
-                auditService.searchObjects(query, null, null);
-
-        then("all audit records are returned");
-        assertThat(result).hasSize(3);
-    }
-
-    @Test
-    public void test955SearchWithOffsetAndMaxSize() throws SchemaException {
+    public void test950SearchWithOffsetAndMaxSize() throws SchemaException {
         when("searching audit using no paging");
         ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
                 .asc(AuditEventRecordType.F_TIMESTAMP)

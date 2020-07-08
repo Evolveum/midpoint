@@ -148,7 +148,7 @@ public class AuditEventRecord implements DebugDumpable {
     private PrismReferenceValue target;
 
     // user that the target "belongs to"????: store OID, name
-    private PrismObject<FocusType> targetOwner;
+    private PrismObject<? extends FocusType> targetOwner;
 
     // event type
     private AuditEventType eventType;
@@ -324,11 +324,11 @@ public class AuditEventRecord implements DebugDumpable {
         }
     }
 
-    public PrismObject<FocusType> getTargetOwner() {
+    public PrismObject<? extends FocusType> getTargetOwner() {
         return targetOwner;
     }
 
-    public void setTargetOwner(PrismObject<FocusType> targetOwner) {
+    public void setTargetOwner(PrismObject<? extends FocusType> targetOwner) {
         this.targetOwner = targetOwner;
     }
 

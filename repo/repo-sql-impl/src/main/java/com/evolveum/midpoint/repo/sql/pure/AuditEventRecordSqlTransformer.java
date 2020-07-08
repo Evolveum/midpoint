@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
-import org.jetbrains.annotations.Nullable;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
@@ -12,30 +10,35 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
  * Simple class with methods for audit event transformation between repo and Prism world.
  */
-public class AuditEventRecordSqlTransformer {
-
-    // TODO: protected and to common transformer superclass later
-    private final PrismContext prismContext;
+public class AuditEventRecordSqlTransformer extends SqlTransformerBase {
 
     public AuditEventRecordSqlTransformer(PrismContext prismContext) {
-        this.prismContext = prismContext;
+        super(prismContext);
     }
 
     public AuditEventRecordType toAuditEventRecordType(MAuditEventRecord row) {
         return new AuditEventRecordType()
-                .eventType(auditEventTypeTypeFromRepo(row.eventType))
-                .eventStage(auditEventStageTypeFromRepo(row.eventStage))
-                .message(row.message)
-                .timestamp(MiscUtil.asXMLGregorianCalendar(row.timestamp))
-                .outcome(operationResultStatusTypeFromRepo(row.outcome))
-                .result(row.result)
                 .channel(row.channel)
+                .eventIdentifier(row.eventIdentifier)
+                .eventStage(auditEventStageTypeFromRepo(row.eventStage))
+                .eventType(auditEventTypeTypeFromRepo(row.eventType))
+                .hostIdentifier(row.hostIdentifier)
+                .message(row.message)
+                .nodeIdentifier(row.nodeIdentifier)
+                .outcome(operationResultStatusTypeFromRepo(row.outcome))
+                .parameter(row.parameter)
+                .remoteHostAddress(row.remoteHostAddress)
+                .requestIdentifier(row.requestIdentifier)
+                .result(row.result)
+                .sessionIdentifier(row.sessionIdentifier)
+                .taskIdentifier(row.taskIdentifier)
+                .taskOID(row.taskOid)
+                .timestamp(MiscUtil.asXMLGregorianCalendar(row.timestamp))
                 .initiatorRef(objectReferenceType(
                         row.initiatorOid,
                         repoObjectType(row.initiatorType, RObjectType.FOCUS),
@@ -45,17 +48,13 @@ public class AuditEventRecordSqlTransformer {
                 .targetRef(objectReferenceType(
                         row.targetOid,
                         // targetType must not be null if targetOid is not
-                        repoObjectType(row.targetType, null),
+                        repoObjectType(row.targetType),
                         row.targetName))
                 .targetOwnerRef(objectReferenceType(
                         row.targetOwnerOid,
-                        repoObjectType(row.targetOwnerType, null),
+                        repoObjectType(row.targetOwnerType),
                         row.targetOwnerName))
-                .hostIdentifier(row.hostIdentifier)
-                .remoteHostAddress(row.remoteHostAddress)
-                .requestIdentifier(row.requestIdentifier)
-                .parameter(row.parameter)
-                //
+//                .customColumnProperty() // TODO how does this work?
                 ;
     }
 
@@ -79,44 +78,5 @@ public class AuditEventRecordSqlTransformer {
         return status != null
                 ? status.getSchemaValue()
                 : null;
-    }
-
-    // TODO: To common superclass later - if transformer concept stays
-
-    /**
-     * Returns {@link ObjectReferenceType} with specified oid, proper type based on
-     * {@link RObjectType} and, optionally, description.
-     * Returns {@code null} if OID is null.
-     * Fails if OID is not null and {@code repoObjectType} is null.
-     */
-    private @Nullable ObjectReferenceType objectReferenceType(
-            @Nullable String oid, RObjectType repoObjectType, String description) {
-        if (oid == null) {
-            return null;
-        }
-        if (repoObjectType == null) {
-            throw new IllegalArgumentException(
-                    "NULL object type provided for object reference with OID " + oid);
-        }
-
-        return new ObjectReferenceType()
-                .oid(oid)
-                .type(prismContext.getSchemaRegistry().determineTypeForClass(
-                        repoObjectType.getJaxbClass()))
-                .description(description);
-    }
-
-    /**
-     * Returns nullable {@link RObjectType} from ordinal Integer with optional default value.
-     * If no default value is provided and null is returned it will not fail immediately
-     * (as the call to {@link RObjectType#fromOrdinal(int)} would) which is practical for eager
-     * argument resolution for {@link #objectReferenceType(String, RObjectType, String)}.
-     * Null may still be OK if OID is null as well - which means no reference.
-     */
-    private RObjectType repoObjectType(
-            @Nullable Integer repoObjectTypeId, RObjectType defaultValue) {
-        return repoObjectTypeId != null
-                ? RObjectType.fromOrdinal(repoObjectTypeId)
-                : defaultValue;
     }
 }
