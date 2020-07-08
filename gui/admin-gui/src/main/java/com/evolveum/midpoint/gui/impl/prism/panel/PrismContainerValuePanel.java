@@ -269,7 +269,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
                 typeName = new QName("ResourceAttributeDefinition");
             }
 
-            Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), getSettings().copy());
+            ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
+            Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), settings);
             panel.setOutputMarkupId(true);
             panel.add(AttributeModifier.append("class", appendStyleClassModel(item.getModel())));
             panel.add(new VisibleEnableBehaviour() {
@@ -292,7 +293,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private void populateContainer(ListItem<PrismContainerWrapper<?>> container) {
         PrismContainerWrapper<?> itemWrapper = container.getModelObject();
         try {
-            Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), getSettings().copy());
+            ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
+            Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), settings);
             panel.setOutputMarkupId(true);
             panel.add(new VisibleEnableBehaviour() {
                 @Override

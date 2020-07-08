@@ -862,6 +862,13 @@ public class MiscUtil {
         }
     }
 
+    public static XMLGregorianCalendar getEarliestTimeIgnoringNull(Collection<XMLGregorianCalendar> realValues) {
+        return realValues.stream()
+                .filter(Objects::nonNull)
+                .min(XMLGregorianCalendar::compare)
+                .orElse(null);
+    }
+
     /**
      * Converts integer ordinal number to enum value of the defined enum type.
      *

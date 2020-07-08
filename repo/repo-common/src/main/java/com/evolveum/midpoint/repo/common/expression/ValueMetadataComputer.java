@@ -19,12 +19,16 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 
 /**
- * Computes value metadata in given situation.
+ * Computes value metadata during expression evaluation or during consolidation.
+ *
+ * Currently supports only very simplistic evaluation model, where resulting metadata depend only
+ * on metadata attached to input values. (Not considering e.g. structuring of these input values
+ * to input items in absolute evaluation mode, nor metadata present in other input variables, etc.)
  */
 @Experimental
 public interface ValueMetadataComputer {
 
-    ValueMetadata compute(@NotNull List<PrismValue> valuesTuple, @NotNull OperationResult result)
+    ValueMetadata compute(@NotNull List<PrismValue> inputValues, @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException;
 }

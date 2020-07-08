@@ -343,12 +343,11 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         if (valuesToAdd == null) {
             valuesToAdd = newValueCollection();
         }
-        if (PrismValueCollectionsUtil.containsRealValue(valuesToAdd,newValue)) {
-            return;
+        if (!PrismValueCollectionsUtil.containsRealValue(valuesToAdd, newValue)) {
+            valuesToAdd.add(newValue);
+            newValue.setParent(this);
+            newValue.recompute();
         }
-        valuesToAdd.add(newValue);
-        newValue.setParent(this);
-        newValue.recompute();
     }
 
     public boolean removeValueToAdd(PrismValue valueToRemove) {

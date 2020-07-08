@@ -12,14 +12,12 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
-import com.evolveum.midpoint.repo.common.expression.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.*;
@@ -32,7 +30,10 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
+import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -55,13 +56,10 @@ public class MappingEvaluator {
     @Autowired private CredentialsProcessor credentialsProcessor;
     @Autowired private ContextLoader contextLoader;
     @Autowired private PrismContext prismContext;
-    @Autowired private ObjectResolver objectResolver;
 
     public PrismContext getPrismContext() {
         return prismContext;
     }
-
-    static final List<String> FOCUS_VARIABLE_NAMES = Arrays.asList(ExpressionConstants.VAR_FOCUS, ExpressionConstants.VAR_USER);
 
     public <V extends PrismValue, D extends ItemDefinition, F extends ObjectType> void evaluateMapping(MappingImpl<V, D> mapping,
             LensContext<F> lensContext, Task task, OperationResult parentResult)
@@ -552,9 +550,9 @@ public class MappingEvaluator {
                 || (aPrioriTargetItem.isEmpty() && !aPrioriTargetItem.isIncomplete());
     }
 
-    <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType, T extends AssignmentHolderType>
+    public <V extends PrismValue, D extends ItemDefinition, AH extends AssignmentHolderType, T extends AssignmentHolderType>
     MappingImpl<V, D> createFocusMapping(
-            MappingFactory mappingFactory, LensContext<AH> context, FocalMappingEvaluationRequest<?, ?> request,
+            LensContext<AH> context, FocalMappingEvaluationRequest<?, ?> request,
             ObjectDeltaObject<AH> focusOdo, PrismObject<T> targetContext, Integer iteration, String iterationToken,
             PrismObject<SystemConfigurationType> configuration, XMLGregorianCalendar now, String contextDesc,
             Task task, OperationResult result)

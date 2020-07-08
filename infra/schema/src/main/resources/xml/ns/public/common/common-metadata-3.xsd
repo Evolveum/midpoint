@@ -794,10 +794,54 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:AbstractMappingType"/>
+            <xsd:extension base="tns:AbstractMappingType">
+                <xsd:sequence>
+                    <xsd:element name="scope" type="tns:MetadataMappingScopeType">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Is this mapping to be used during value transformation, value consolidation, or in both contexts?
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="metadataMapping" type="tns:MappingType"/>
+
+    <xsd:simpleType name="MetadataMappingScopeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Scope for this metadata mapping.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="transformation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during value transformation (e.g. during regular data mapping evaluation).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TRANSFORMATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="consolidation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        This mapping should be used during value consolidation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CONSOLIDATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="MetadataProcessingApplicabilitySpecificationType">
         <xsd:annotation>

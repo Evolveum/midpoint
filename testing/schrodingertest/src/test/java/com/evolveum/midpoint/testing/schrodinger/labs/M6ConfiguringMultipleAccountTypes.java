@@ -51,7 +51,7 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
         AbstractTableWithPrismView<ProjectionsTab<UserPage>> table = showUser("kirk").selectTabProjections()
                 .table();
         Assert.assertTrue(table.search()
-                .byItem("Resource")
+                .byItemName("Resource")
                     .inputRefOid("10000000-9999-9999-0000-a000ff000002")
                     .updateSearch()
                 .and()
@@ -59,14 +59,14 @@ public class M6ConfiguringMultipleAccountTypes extends AbstractLabTest {
         Assert.assertTrue(table.containsText("_kirk"));
 
         Assert.assertTrue(table.search()
-                .byItem("Resource")
+                .byItemName("Resource")
                     .inputRefOid("10000000-9999-9999-0000-a000ff000003")
                     .updateSearch()
                 .and()
             .containsText("jkirk"));
 
         Assert.assertTrue(table.search()
-                .byItem("Resource")
+                .byItemName("Resource")
                     .inputRefOid("10000000-9999-9999-0000-a000ff000004")
                     .updateSearch()
                 .and()

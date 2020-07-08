@@ -5,11 +5,12 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.common.mapping;
+package com.evolveum.midpoint.model.common.mapping.metadata;
 
-import com.evolveum.midpoint.model.common.mapping.builtin.BuiltinMetadataMapping;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetadataMapping;
 
-import com.evolveum.midpoint.model.common.mapping.builtin.BuiltinMetadataMappingsRegistry;
+import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetadataMappingsRegistry;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -20,6 +21,7 @@ import java.util.Collection;
 
 /**
  * Evaluates metadata mappings.
+ * Probably will be removed soon.
  */
 @Component
 public class MetadataMappingEvaluator {

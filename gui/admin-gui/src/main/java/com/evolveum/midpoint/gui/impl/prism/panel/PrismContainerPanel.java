@@ -79,7 +79,8 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
     @Override
     protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
-        PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> panel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), getSettings().copy()) {
+        ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
+        PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> panel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), settings) {
 
             @Override
             protected void removeValue(PrismContainerValueWrapper<C> valueToRemove, AjaxRequestTarget target) throws SchemaException {

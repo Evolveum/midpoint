@@ -5,8 +5,9 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.common.mapping;
+package com.evolveum.midpoint.model.common.mapping.metadata;
 
+import com.evolveum.midpoint.model.common.mapping.AbstractMappingBuilder;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
