@@ -15,12 +15,15 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor;
@@ -105,13 +108,12 @@ public class AssignmentProcessor implements ProjectorProcessor {
     @Autowired private PrismContext prismContext;
     @Autowired private MappingFactory mappingFactory;
     @Autowired private MappingEvaluator mappingEvaluator;
-    @Autowired private MappingSetEvaluator mappingSetEvaluator;
     @Autowired private ActivationComputer activationComputer;
     @Autowired private ProvisioningService provisioningService;
     @Autowired private ConstructionProcessor constructionProcessor;
-    @Autowired private ObjectTemplateProcessor objectTemplateProcessor;
     @Autowired private PolicyRuleProcessor policyRuleProcessor;
     @Autowired private ContextLoader contextLoader;
+    @Autowired private ModelBeans beans;
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentProcessor.class);
 
@@ -288,7 +290,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 allRequests.addAll(evaluatedAssignment.getFocusMappingEvaluationRequests());
             }
 
-            MappingSetEvaluator.TripleCustomizer<PrismValue, ItemDefinition> customizer = (triple, abstractRequest) -> {
+            MappingSetEvaluation.TripleCustomizer<PrismValue, ItemDefinition> customizer = (triple, abstractRequest) -> {
                 if (triple == null) {
                     return null;
                 }
@@ -338,31 +340,44 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 return rv;
             };
 
-            MappingSetEvaluator.EvaluatedMappingConsumer<PrismValue, ItemDefinition> mappingConsumer = (mapping, abstractRequest) -> {
+            MappingSetEvaluation.EvaluatedMappingConsumer<PrismValue, ItemDefinition> mappingConsumer = (mapping, abstractRequest) -> {
                 AssignedFocusMappingEvaluationRequest request = (AssignedFocusMappingEvaluationRequest) abstractRequest;
                 request.getEvaluatedAssignment().addFocusMapping(mapping);
             };
 
-            Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> focusOutputTripleMap = new HashMap<>();
+            TargetObjectSpecification<AH> targetSpecification = new FixedTargetSpecification<>(focusOdo.getNewObject(), true);
 
-            // TODO choose between these two approaches
-            //TargetObjectSpecification<AH> targetSpecification = new SelfTargetSpecification<>();
-            TargetObjectSpecification<AH> targetSpecification = new FixedTargetSpecification<>(focusOdo.getNewObject());
+            MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
+                    "focus mappings in assignments of " + focusContext.getHumanReadableName(),
+                    now, task);
 
-            mappingSetEvaluator.evaluateMappingsToTriples(context, allRequests, null, focusOdo, targetSpecification,
-                    focusOutputTripleMap, customizer, mappingConsumer, focusContext.getIteration(),
-                    focusContext.getIterationToken(), now, task, result);
+            MappingSetEvaluation<AH, AH> mappingSetEvaluation = new MappingSetEvaluationBuilder<AH, AH>()
+                    .context(context)
+                    .evaluationRequests(allRequests)
+                    .phase(null)
+                    .focusOdo(focusOdo)
+                    .targetSpecification(targetSpecification)
+                    .tripleCustomizer(customizer)
+                    .mappingConsumer(mappingConsumer)
+                    .iteration(focusContext.getIteration())
+                    .iterationToken(focusContext.getIterationToken())
+                    .beans(beans)
+                    .env(env)
+                    .result(result)
+                    .build();
+            mappingSetEvaluation.evaluateMappingsToTriples();
 
-            if (LOGGER.isTraceEnabled()) {
-                for (Entry<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> entry : focusOutputTripleMap
-                        .entrySet()) {
-                    LOGGER.trace("Resulting output triple for {}:\n{}", entry.getKey(), entry.getValue().debugDump(1));
-                }
-            }
+            Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> focusOutputTripleMap =
+                    mappingSetEvaluation.getOutputTripleMap();
 
-            Collection<ItemDelta<?, ?>> focusDeltas = objectTemplateProcessor.computeItemDeltas(focusOutputTripleMap, null,
-                    focusOdo.getObjectDelta(), focusOdo.getNewObject(), focusContext.getObjectDefinition(),
-                    "focus mappings in assignments of " + focusContext.getHumanReadableName());
+            logOutputTripleMap(focusOutputTripleMap);
+
+            DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(focusOutputTripleMap,
+                    focusOdo.getNewObject(), focusOdo.getObjectDelta(), focusContext.getObjectDefinition(),
+                    env, beans, context, result);
+            consolidation.computeItemDeltas();
+            Collection<ItemDelta<?, ?>> focusDeltas = consolidation.getItemDeltas();
+
             LOGGER.trace("Computed focus deltas: {}", focusDeltas);
             focusContext.applyProjectionWaveSecondaryDeltas(focusDeltas);
             focusContext.recompute();
@@ -371,6 +386,16 @@ public class AssignmentProcessor implements ProjectorProcessor {
             throw t;
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    private void logOutputTripleMap(
+            Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> focusOutputTripleMap) {
+        if (LOGGER.isTraceEnabled()) {
+            for (Entry<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> entry : focusOutputTripleMap
+                    .entrySet()) {
+                LOGGER.trace("Resulting output triple for {}:\n{}", entry.getKey(), entry.getValue().debugDump(1));
+            }
         }
     }
 
@@ -605,7 +630,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     private <F extends AssignmentHolderType> void evaluateConstructions(LensContext<F> context,
-            Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+            Collection<EvaluatedAssignmentImpl<F>> evaluatedAssignments, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, ConfigurationException,
+            CommunicationException {
         if (evaluatedAssignments == null) {
             return;
         }

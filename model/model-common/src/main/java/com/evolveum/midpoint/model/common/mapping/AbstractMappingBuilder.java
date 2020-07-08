@@ -7,27 +7,30 @@
 
 package com.evolveum.midpoint.model.common.mapping;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.repo.common.expression.*;
+import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.repo.common.expression.Source;
+import com.evolveum.midpoint.repo.common.expression.VariableProducer;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Builder is used to construct a configuration of Mapping object, which - after building - becomes
@@ -44,15 +47,11 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
 
     private static final Trace LOGGER = TraceManager.getTrace(MappingImpl.class);
 
-    private ExpressionFactory expressionFactory;
     private final ExpressionVariables variables = new ExpressionVariables();
     private MBT mappingBean;
     private MappingKindType mappingKind;
     private ItemPath implicitSourcePath; // for tracing purposes
     private ItemPath implicitTargetPath; // for tracing purposes
-    private ObjectResolver objectResolver;
-    private MetadataMappingEvaluator metadataMappingEvaluator;
-    private SecurityContextManager securityContextManager;
     private Source<?, ?> defaultSource;
     private final List<Source<?, ?>> additionalSources = new ArrayList<>();
     private D defaultTargetDefinition;
@@ -74,16 +73,11 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     private String contextDescription;
     private QName mappingQName;
     private RefinedObjectClassDefinition refinedObjectClassDefinition;
-    private PrismContext prismContext;
+    private ModelCommonBeans beans;
 
     public abstract AbstractMappingImpl<V, D, MBT> build();
 
     //region Plain setters
-    public RT expressionFactory(ExpressionFactory val) {
-        expressionFactory = val;
-        return typedThis();
-    }
-
     public RT variablesFrom(ExpressionVariables val) {
         variables.addVariableDefinitions(val);
         return typedThis();
@@ -106,21 +100,6 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
 
     public RT implicitTargetPath(ItemPath val) {
         implicitTargetPath = val;
-        return typedThis();
-    }
-
-    public RT objectResolver(ObjectResolver val) {
-        objectResolver = val;
-        return typedThis();
-    }
-
-    public RT metadataMappingEvaluator(MetadataMappingEvaluator val) {
-        metadataMappingEvaluator = val;
-        return typedThis();
-    }
-
-    public RT securityContextManager(SecurityContextManager val) {
-        securityContextManager = val;
         return typedThis();
     }
 
@@ -227,8 +206,8 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
         return typedThis();
     }
 
-    public RT prismContext(PrismContext val) {
-        prismContext = val;
+    public RT beans(ModelCommonBeans val) {
+        beans = val;
         return typedThis();
     }
     //endregion
@@ -254,7 +233,7 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     public RT addVariableDefinition(ExpressionVariableDefinitionType varDef) throws SchemaException {
         if (varDef.getObjectRef() != null) {
             ObjectReferenceType ref = varDef.getObjectRef();
-            ref.setType(getPrismContext().getSchemaRegistry().qualifyTypeName(ref.getType()));
+            ref.setType(beans.prismContext.getSchemaRegistry().qualifyTypeName(ref.getType()));
             return addVariableDefinition(varDef.getName().getLocalPart(), ref);
         } else if (varDef.getValue() != null) {
             // This is raw value. We do have definition here. The best we can do is autodetect.
@@ -283,19 +262,19 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     }
 
     public RT addVariableDefinition(String name, String value) {
-        MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+        MutablePrismPropertyDefinition<Object> def = beans.prismContext.definitionFactory().createPropertyDefinition(
                 new QName(SchemaConstants.NS_C, name), PrimitiveType.STRING.getQname());
         return addVariableDefinition(name, value, def);
     }
 
     public RT addVariableDefinition(String name, boolean value) {
-        MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+        MutablePrismPropertyDefinition<Object> def = beans.prismContext.definitionFactory().createPropertyDefinition(
                 new QName(SchemaConstants.NS_C, name), PrimitiveType.BOOLEAN.getQname());
         return addVariableDefinition(name, value, def);
     }
 
     public RT addVariableDefinition(String name, int value) {
-        MutablePrismPropertyDefinition<Object> def = prismContext.definitionFactory().createPropertyDefinition(
+        MutablePrismPropertyDefinition<Object> def = beans.prismContext.definitionFactory().createPropertyDefinition(
                 new QName(SchemaConstants.NS_C, name), PrimitiveType.INT.getQname());
         return addVariableDefinition(name, value, def);
     }
@@ -351,12 +330,8 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     }
 
     //region Plain getters
-    public PrismContext getPrismContext() {
-        return prismContext;
-    }
-
-    public ExpressionFactory getExpressionFactory() {
-        return expressionFactory;
+    public ModelCommonBeans getBeans() {
+        return beans;
     }
 
     public ExpressionVariables getVariables() {
@@ -377,18 +352,6 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
 
     public ItemPath getImplicitTargetPath() {
         return implicitTargetPath;
-    }
-
-    public ObjectResolver getObjectResolver() {
-        return objectResolver;
-    }
-
-    public MetadataMappingEvaluator getMetadataMappingEvaluator() {
-        return metadataMappingEvaluator;
-    }
-
-    public SecurityContextManager getSecurityContextManager() {
-        return securityContextManager;
     }
 
     public Source<?, ?> getDefaultSource() {

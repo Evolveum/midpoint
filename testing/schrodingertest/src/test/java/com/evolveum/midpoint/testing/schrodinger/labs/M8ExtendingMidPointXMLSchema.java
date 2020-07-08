@@ -71,7 +71,7 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         form.findProperty("isManager");
         form.findProperty("empStatus");
 
-//        showTask("HR Synchronization").clickSuspend();
+        showTask("HR Synchronization").clickSuspend();
 
         importObject(HR_RESOURCE_FILE_8_1,true);
         changeResourceAttribute(HR_RESOURCE_NAME, ScenariosCommons.CSV_RESOURCE_ATTR_FILE_PATH, hrTargetFile.getAbsolutePath(), true);

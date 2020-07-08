@@ -107,7 +107,8 @@ public class MetadataContainerPanel<C extends Containerable> extends ItemPanel<P
 
             @Override
             protected void populateItem(ListItem<PrismContainerWrapper<?>> listItem) {
-                listItem.add(new MetadataContainerPanel(ID_CONTAINER, listItem.getModel(), getSettings().copy()));
+                ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
+                listItem.add(new MetadataContainerPanel(ID_CONTAINER, listItem.getModel(), settings));
             }
         };
         valuePanel.add(containers);

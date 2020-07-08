@@ -171,10 +171,10 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
         return tab.table()
                     .search()
                         .resetBasicSearch()
-                        .byItem(searchedItem)
-                            .inputValueWithEnter(itemValue)
-                        .and()
-                    .and();
+                        .byItemName(searchedItem)
+                            .inputValue(itemValue)
+                        .updateSearch()
+                        .and();
     }
 
     protected TaskPage showTask(String name) {

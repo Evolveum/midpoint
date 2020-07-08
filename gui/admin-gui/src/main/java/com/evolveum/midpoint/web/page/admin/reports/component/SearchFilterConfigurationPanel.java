@@ -6,8 +6,11 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.factory.panel.SearchFilterTypeModel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -16,16 +19,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.search.BasicSearchFilterModel;
 import com.evolveum.midpoint.web.component.search.SearchPropertiesConfigPanel;
-import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author honchar
@@ -51,12 +46,12 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         AceEditorPanel aceEditorField = new AceEditorPanel(ID_ACE_EDITOR_FIELD, null, new SearchFilterTypeModel(getModel(), getPageBase()), 10);
         aceEditorField.setOutputMarkupId(true);
         add(aceEditorField);
 
-                AjaxLink<Void> searchConfigurationButton = new AjaxLink<Void>(ID_CONFIGURE_BUTTON) {
+        AjaxLink<Void> searchConfigurationButton = new AjaxLink<Void>(ID_CONFIGURE_BUTTON) {
             private static final long serialVersionUID = 1L;
 
             @Override

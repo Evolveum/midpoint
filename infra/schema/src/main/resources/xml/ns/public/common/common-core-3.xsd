@@ -23531,6 +23531,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <!-- TODO: rename to fileFormat -->
                     <xsd:element name="export" type="tns:ExportConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -23614,6 +23615,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <!-- TODO: Rename to FileFormatConfigurationType -->
     <xsd:complexType name="ExportConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -23660,6 +23662,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <!-- TODO: rename to FileFormatTypeType -->
     <xsd:simpleType name="ExportType">
         <xsd:annotation>
             <xsd:documentation>
@@ -24255,6 +24258,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <!-- TODO: rename to ReportDataType -->
     <xsd:complexType name="ReportOutputType">
         <xsd:annotation>
             <xsd:documentation>
@@ -24265,7 +24269,9 @@
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="filePath" type="xsd:string"/>
-                    <xsd:element name="exportType" type="tns:ExportType"/>
+                    <xsd:element name="exportType" type="tns:ExportType">
+                        <!-- TODO: rename to fileFormat -->
+                    </xsd:element>
                     <xsd:element name="reportRef" type="c:ObjectReferenceType">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -24980,6 +24986,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Filter defines a custom filter which can be included during search execution
+                            (e.g. on the object list page).
+                            Also in the future can be used to predefine the value of the searchable item if path is defined.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -25161,6 +25178,11 @@
                        </xsd:annotation>
                    </xsd:element>
                    <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
+                   <!--
+                        TODO: we may need to add <type> here.
+                        E.g. if we want to specify that the CSV field that looks like string is in fact boolean.
+                        This can be also used by GUI, e.g. rendering checkbox instead of text input field.
+                        -->
                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
                        <xsd:annotation>
                            <xsd:documentation>
@@ -25217,6 +25239,7 @@
                        </xsd:annotation>
                    </xsd:element>
                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                       <!-- TODO: change to import/expression and export/expression -->
                        <xsd:annotation>
                            <xsd:documentation>
                                <p>

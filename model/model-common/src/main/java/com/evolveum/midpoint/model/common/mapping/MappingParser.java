@@ -107,7 +107,7 @@ class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> {
                 source.recompute();
 
                 // Override existing sources (e.g. default source)
-                m.sources.removeIf(next -> next.getName().equals(source.getName()));
+                m.sources.removeIf(existing -> existing.getName().equals(source.getName()));
                 m.sources.add(source);
             }
         }
@@ -134,7 +134,7 @@ class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> {
         String variableName = sourceQName.getLocalPart();
 
         TypedValue<?> typedSourceObject = ExpressionUtil.resolvePathGetTypedValue(path, m.variables, true,
-                m.getTypedSourceContext(), m.objectResolver, m.prismContext,
+                m.getTypedSourceContext(), m.beans.objectResolver, m.beans.prismContext,
                 "source definition in " + m.getMappingContextDescription(), m.getTask(), result);
 
         Object sourceObject = typedSourceObject != null ? typedSourceObject.getValue() : null;
@@ -177,7 +177,7 @@ class MappingParser<D extends ItemDefinition, MBT extends AbstractMappingType> {
                     domainSetType, sourceItemDefinition, m.expressionProfile, variableName,
                     "domain of " + variableName + " in " + m.getMappingContextDescription(),
                     m.getTask(), result);
-            setDef.init(m.expressionFactory);
+            setDef.init(m.beans.expressionFactory);
             setDef.setAdditionalVariables(m.variables);
             try {
 

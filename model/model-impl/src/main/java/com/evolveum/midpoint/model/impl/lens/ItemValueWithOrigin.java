@@ -143,4 +143,20 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         return "ItemValueWithOrigin(" + itemValue + ", M="
                 + mapping + ", C=" + construction + ")";
     }
+
+    public boolean isStrong() {
+        return mapping != null && mapping.isStrong();
+    }
+
+    public boolean isNormal() {
+        return mapping != null && mapping.isNormal();
+    }
+
+    public boolean isWeak() {
+        return mapping != null && mapping.isWeak();
+    }
+
+    boolean isSourceless() {
+        return mapping != null && mapping.isSourceless();
+    }
 }

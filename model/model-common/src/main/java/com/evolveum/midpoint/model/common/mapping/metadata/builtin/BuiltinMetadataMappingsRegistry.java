@@ -5,7 +5,7 @@
  * and European Union Public License. See LICENSE file for details.
  */
 
-package com.evolveum.midpoint.model.common.mapping.builtin;
+package com.evolveum.midpoint.model.common.mapping.metadata.builtin;
 
 import java.util.ArrayList;
 import java.util.List;
