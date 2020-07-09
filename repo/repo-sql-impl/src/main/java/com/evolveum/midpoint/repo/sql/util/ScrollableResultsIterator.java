@@ -7,11 +7,11 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import org.apache.commons.lang.Validate;
-import org.hibernate.ScrollableResults;
-
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.Objects;
+
+import org.hibernate.ScrollableResults;
 
 /**
  * @author lazyman
@@ -22,7 +22,7 @@ public class ScrollableResultsIterator<T> implements Iterator<T> {
     private Boolean hasNext;
 
     public ScrollableResultsIterator(ScrollableResults results) {
-        Validate.notNull(results, "Scrollable results must not be null.");
+        Objects.requireNonNull(results, "Scrollable results must not be null.");
 
         this.results = results;
     }

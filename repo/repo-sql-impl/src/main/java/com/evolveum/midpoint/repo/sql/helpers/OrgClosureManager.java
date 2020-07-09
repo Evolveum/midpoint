@@ -6,6 +6,22 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import static java.util.Collections.singletonList;
+
+import java.util.*;
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.lang3.mutable.MutableInt;
+import org.hibernate.Session;
+import org.hibernate.query.NativeQuery;
+import org.hibernate.query.Query;
+import org.hibernate.type.IntegerType;
+import org.hibernate.type.StringType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -27,34 +43,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.mutable.MutableInt;
-import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.hibernate.query.NativeQuery;
-import org.hibernate.type.IntegerType;
-import org.hibernate.type.StringType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.util.*;
-
-import static java.util.Collections.singletonList;
 
 /**
  * This class and its subclasses provides org. closure table handling.
- *
+ * <p>
  * Data structures used are:
- *
- *  (1) Repo object graph G = (V, E) where V is a set of vertices (repo objects) and E is a set of edges (parentRef relations).
- *      There is an edge e = (V1, V2) in E [i.e. edge from V1 to V2] if and only if V1.parentRef contains V2 [i.e. V2 is a parent of V1].
- *
- *  (2) OrgClosure table. OrgClosure(D, A, N) iff there are exactly N paths in object graph from D (descendant) to A (ancestor).
- *      It is transitive reflexive closure, i.e. OrgClosure(V, V, 1) items are there as well.
- *
+ * <p>
+ * (1) Repo object graph G = (V, E) where V is a set of vertices (repo objects) and E is a set of edges (parentRef relations).
+ * There is an edge e = (V1, V2) in E [i.e. edge from V1 to V2] if and only if V1.parentRef contains V2 [i.e. V2 is a parent of V1].
+ * <p>
+ * (2) OrgClosure table. OrgClosure(D, A, N) iff there are exactly N paths in object graph from D (descendant) to A (ancestor).
+ * It is transitive reflexive closure, i.e. OrgClosure(V, V, 1) items are there as well.
+ * <p>
  * Algorithms taken from "SQL Design Patterns" book by Vadim Tropashko (http://vadimtropashko.wordpress.com/)
  * namely from Chapter 6 (http://vadimtropashko.files.wordpress.com/2014/01/book_sql_chap6_v1.pdf).
  * SQL queries were then optimized by hand for various database engines.
@@ -84,10 +84,12 @@ public class OrgClosureManager {
     private long lastOperationDuration;
 
     //region Public interface
+
     /**
      * Main method called from SQL repository service to update the closure table during an operation.
-     *  @param originalObject Original state of the object - before applying modification in the repository.
-     *                       It is used only in case of MODIFY (note that "overwriting ADD" is present here as MODIFY!)
+     *
+     * @param originalObject Original state of the object - before applying modification in the repository.
+     * It is used only in case of MODIFY (note that "overwriting ADD" is present here as MODIFY!)
      * @param modifications Collection of modifications to be applied to the object.
      * @param session Database session to use.
      * @param oid OID of the object.
@@ -181,7 +183,7 @@ public class OrgClosureManager {
             long start = System.currentTimeMillis();
             NativeQuery q = session.createNativeQuery(createTableQueryText);
             q.executeUpdate();
-            LOGGER.trace("Temporary table {} created in {} ms", ctx.temporaryTableName, System.currentTimeMillis()-start);
+            LOGGER.trace("Temporary table {} created in {} ms", ctx.temporaryTableName, System.currentTimeMillis() - start);
         }
         return ctx;
     }
@@ -249,14 +251,14 @@ public class OrgClosureManager {
 
     /**
      * Does a consistency check (either quick or thorough one) and rebuilds the closure table if necessary.
-     *
+     * <p>
      * Quick check is conducted by comparing whether are there any orgs without entries in closure
      * (the reverse direction is ensured via foreign keys in m_org_closure).
-     *
+     * <p>
      * Thorough check is conducted by recomputing the closure table.
      */
     public void checkAndOrRebuild(boolean check, boolean rebuild, boolean stopOnFailure, boolean quickCheckOnly, OperationResult result) {
-        LOGGER.debug("Org closure check/rebuild request: check={}, rebuild={}", check?(quickCheckOnly?"quick":"thorough"):"none", rebuild);
+        LOGGER.debug("Org closure check/rebuild request: check={}, rebuild={}", check ? (quickCheckOnly ? "quick" : "thorough") : "none", rebuild);
         if (!isEnabled()) {
             result.recordWarning("Organizational closure processing is disabled.");
             return;
@@ -310,7 +312,7 @@ public class OrgClosureManager {
                 // or we did, but we want them to disappear (although this wish is a bit strange...)
                 session.getTransaction().rollback();
             }
-        } catch (SchemaException|RuntimeException e) {
+        } catch (SchemaException | RuntimeException e) {
             LoggingUtils.logException(LOGGER, "Exception during check and/or recomputation of closure table", e);
             session.getTransaction().rollback();
             if (stopOnFailure) {
@@ -499,16 +501,17 @@ public class OrgClosureManager {
         if (parent != null) {
             long start = System.currentTimeMillis();
             NativeQuery addToClosureQuery = session.createNativeQuery(
-                    "insert into "+ CLOSURE_TABLE_NAME +" (descendant_oid, ancestor_oid, val) " +
+                    "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
                             "select :oid as descendant_oid, CL.ancestor_oid as ancestor_oid, CL.val as val " +
-                            "from "+ CLOSURE_TABLE_NAME +" CL " +
+                            "from " + CLOSURE_TABLE_NAME + " CL " +
                             "where CL.descendant_oid = :parent");
             addToClosureQuery.setParameter("oid", oid);
             addToClosureQuery.setParameter("parent", parent);
             int count = addToClosureQuery.executeUpdate();
-            if (LOGGER.isTraceEnabled())
+            if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("addEdges simplified: Added {} records to closure table ({} ms).", count,
                         System.currentTimeMillis() - start);
+            }
         }
         session.flush();
         session.clear();
@@ -580,9 +583,12 @@ public class OrgClosureManager {
                 }
                 NativeQuery upsertQuery = session.createNativeQuery(upsertQueryText);
                 int countUpsert = upsertQuery.executeUpdate();
-                if (LOGGER.isTraceEnabled())
+                if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Added/updated {} records to closure table ({} ms)", countUpsert, System.currentTimeMillis() - startUpsert);
-                if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+                }
+                if (DUMP_TABLES) {
+                    dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+                }
 
             } else {    // separate update and insert
 
@@ -603,10 +609,13 @@ public class OrgClosureManager {
                 }
                 NativeQuery updateInClosureQuery = session.createNativeQuery(updateInClosureQueryText);
                 int countUpdate = updateInClosureQuery.executeUpdate();
-                if (LOGGER.isTraceEnabled())
+                if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Updated {} records to closure table ({} ms)", countUpdate, System.currentTimeMillis() - startUpdate);
+                }
 
-                if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+                if (DUMP_TABLES) {
+                    dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+                }
 
                 long startAdd = System.currentTimeMillis();
                 String addQuery =
@@ -623,10 +632,13 @@ public class OrgClosureManager {
                 }
                 NativeQuery addToClosureQuery = session.createNativeQuery(addQuery);
                 count = addToClosureQuery.executeUpdate();
-                if (LOGGER.isTraceEnabled())
+                if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Added {} records to closure table ({} ms)", count, System.currentTimeMillis() - startAdd);
+                }
 
-                if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+                if (DUMP_TABLES) {
+                    dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+                }
             }
         } finally {
             dropDeltaTableIfNecessary(session, deltaTempTableName);
@@ -643,7 +655,7 @@ public class OrgClosureManager {
                 .addScalar("ancestor_oid", StringType.INSTANCE);
         long start = System.currentTimeMillis();
         List list = query.list();
-        LOGGER.trace("Cycles checked in {} ms, {} conflicts found", System.currentTimeMillis()-start, list.size());
+        LOGGER.trace("Cycles checked in {} ms, {} conflicts found", System.currentTimeMillis() - start, list.size());
         if (!list.isEmpty()) {
             throw new IllegalArgumentException("Modification couldn't be executed, because a cycle in org structure graph would be created. Cycle-creating edges being added: " + formatList(list));
         }
@@ -661,7 +673,7 @@ public class OrgClosureManager {
             }
             sb.append(ancestor).append(" -> ").append(descendant);          // results contains "existing" paths, so the newly added ones are in reverse
             if (count == 10) {
-                sb.append("... (and ").append(list.size()-10).append(" more)");
+                sb.append("... (and ").append(list.size() - 10).append(" more)");
                 break;
             }
         }
@@ -707,7 +719,7 @@ public class OrgClosureManager {
                     "if (exists (" +
                             "select * " +
                             "from sys.tables " +
-                            "where name like '"+deltaTempTableName+"%'))\n" +
+                            "where name like '" + deltaTempTableName + "%'))\n" +
                             "drop table " + deltaTempTableName + ";");
             dropQuery.executeUpdate();
         }
@@ -726,19 +738,25 @@ public class OrgClosureManager {
 
         // delete all edges "<child> -> OID" from the closure
         removeChildrenEdges(oid, livingChildren, context, session);
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'child' links.", livingChildren.size());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Deleted {} 'child' links.", livingChildren.size());
+        }
 
         // delete all edges "OID -> <parent>" from the closure
         List<String> livingParents = retainExistingOids(getParents(oid, session), session);
         removeParentEdges(oid, livingParents, context, session);
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Deleted {} 'parent' links.", livingParents.size());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Deleted {} 'parent' links.", livingParents.size());
+        }
 
         // delete (OID, OID) record
-        NativeQuery deleteSelfQuery = session.createNativeQuery("delete from "+ CLOSURE_TABLE_NAME +" " +
+        NativeQuery deleteSelfQuery = session.createNativeQuery("delete from " + CLOSURE_TABLE_NAME + " " +
                 "where descendant_oid=:oid and ancestor_oid=:oid");
         deleteSelfQuery.setParameter("oid", oid);
         int count = deleteSelfQuery.executeUpdate();
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("Removed {} self-record from closure table.", count);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Removed {} self-record from closure table.", count);
+        }
     }
 
     private void handleDeleteLeaf(String oid, Session session) {
@@ -747,7 +765,9 @@ public class OrgClosureManager {
                         "where descendant_oid = :oid");
         removeFromClosureQuery.setParameter("oid", oid);
         int count = removeFromClosureQuery.executeUpdate();
-        if (LOGGER.isTraceEnabled()) LOGGER.trace("DeleteLeaf: Removed {} records from closure table.", count);
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("DeleteLeaf: Removed {} records from closure table.", count);
+        }
     }
 
     private void removeChildrenEdges(String oid, List<String> livingChildren, Context context, Session session) {
@@ -777,7 +797,7 @@ public class OrgClosureManager {
         session.flush();
         session.clear();
 
-        LOGGER.trace("--------------------- DONE REMOVE EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis()-start);
+        LOGGER.trace("--------------------- DONE REMOVE EDGES: {} ({} ms) ----------------", edges, System.currentTimeMillis() - start);
     }
 
     private void removeIndependentEdgesInternal(List<Edge> edges, Context context, Session session) {
@@ -810,12 +830,12 @@ public class OrgClosureManager {
                 // delete is the same as for MySQL
                 deleteFromClosureQueryText = "delete " + CLOSURE_TABLE_NAME + " from " + CLOSURE_TABLE_NAME + " " +
                         "inner join " + deltaTempTableName + " td on " +
-                        "td.descendant_oid = "+ CLOSURE_TABLE_NAME +".descendant_oid and td.ancestor_oid = "+ CLOSURE_TABLE_NAME +".ancestor_oid and "+
-                        "td.val = "+ CLOSURE_TABLE_NAME +".val";
+                        "td.descendant_oid = " + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid = " + CLOSURE_TABLE_NAME + ".ancestor_oid and " +
+                        "td.val = " + CLOSURE_TABLE_NAME + ".val";
                 // update is also done via inner join (as in MySQL), but using slightly different syntax
                 updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
-                        "set "+ CLOSURE_TABLE_NAME +".val = "+ CLOSURE_TABLE_NAME +".val - td.val " +
-                        "from "+ CLOSURE_TABLE_NAME + " " +
+                        "set " + CLOSURE_TABLE_NAME + ".val = " + CLOSURE_TABLE_NAME + ".val - td.val " +
+                        "from " + CLOSURE_TABLE_NAME + " " +
                         "inner join " + deltaTempTableName + " td " +
                         "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and " +
                         "td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid";
@@ -824,30 +844,36 @@ public class OrgClosureManager {
                 // TODO consider this for other databases as well
                 deleteFromClosureQueryText = "delete " + CLOSURE_TABLE_NAME + " from " + CLOSURE_TABLE_NAME + " " +
                         "inner join " + deltaTempTableName + " td on " +
-                        "td.descendant_oid = "+ CLOSURE_TABLE_NAME +".descendant_oid and td.ancestor_oid = "+ CLOSURE_TABLE_NAME +".ancestor_oid and "+
-                        "td.val = "+ CLOSURE_TABLE_NAME +".val";
+                        "td.descendant_oid = " + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid = " + CLOSURE_TABLE_NAME + ".ancestor_oid and " +
+                        "td.val = " + CLOSURE_TABLE_NAME + ".val";
                 // it is not possible to use temporary table twice in a query
                 // TODO consider using this in postgresql as well...
                 updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME +
                         " join " + deltaTempTableName + " td " +
                         "on td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid " +
-                        "set "+ CLOSURE_TABLE_NAME +".val = "+ CLOSURE_TABLE_NAME +".val - td.val";
+                        "set " + CLOSURE_TABLE_NAME + ".val = " + CLOSURE_TABLE_NAME + ".val - td.val";
             } else {
                 throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
             }
             long startDelete = System.currentTimeMillis();
             NativeQuery deleteFromClosureQuery = session.createNativeQuery(deleteFromClosureQueryText);
             count = deleteFromClosureQuery.executeUpdate();
-            if (LOGGER.isTraceEnabled())
+            if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Deleted {} records from closure table in {} ms", count, System.currentTimeMillis() - startDelete);
-            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+            }
+            if (DUMP_TABLES) {
+                dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+            }
 
             long startUpdate = System.currentTimeMillis();
             NativeQuery updateInClosureQuery = session.createNativeQuery(updateInClosureQueryText);
             count = updateInClosureQuery.executeUpdate();
-            if (LOGGER.isTraceEnabled())
+            if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Updated {} records in closure table in {} ms", count, System.currentTimeMillis() - startUpdate);
-            if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+            }
+            if (DUMP_TABLES) {
+                dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+            }
         } finally {
             dropDeltaTableIfNecessary(session, deltaTempTableName);
         }
@@ -857,7 +883,7 @@ public class OrgClosureManager {
     //region Handling MODIFY
 
     private void handleModify(String oid, Collection<? extends ItemDelta> modifications,
-                              PrismObject<? extends ObjectType> originalObject, Context context, Session session) {
+            PrismObject<? extends ObjectType> originalObject, Context context, Session session) {
         if (modifications.isEmpty()) {
             return;
         }
@@ -897,7 +923,7 @@ public class OrgClosureManager {
         } else {
             throw new AssertionError("Neither H2 nor Oracle nor SQL Server");
         }
-        LOGGER.trace("...locked in {} ms", System.currentTimeMillis()-start);
+        LOGGER.trace("...locked in {} ms", System.currentTimeMillis() - start);
 
     }
 
@@ -976,7 +1002,7 @@ public class OrgClosureManager {
             count = query1.executeUpdate();
         }
         LOGGER.trace("Added {} records to temporary delta table {} ({} ms).", count, deltaTempTableName,
-                System.currentTimeMillis()-start);
+                System.currentTimeMillis() - start);
 
         if (isPostgreSQL()) {
             start = System.currentTimeMillis();
@@ -985,13 +1011,19 @@ public class OrgClosureManager {
                     "  USING btree " +
                     "  (descendant_oid, ancestor_oid)");
             qIndex.executeUpdate();
-            if (LOGGER.isTraceEnabled()) LOGGER.trace("Index created in {} ms", System.currentTimeMillis()-start);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Index created in {} ms", System.currentTimeMillis() - start);
+            }
         }
 
         // TODO index for MySQL !!!
 
-        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
-        if (DUMP_TABLES) dumpOrgClosureTypeTable(session, deltaTempTableName);
+        if (DUMP_TABLES) {
+            dumpOrgClosureTypeTable(session, CLOSURE_TABLE_NAME);
+        }
+        if (DUMP_TABLES) {
+            dumpOrgClosureTypeTable(session, deltaTempTableName);
+        }
 
         // TODO drop delta table in case of exception
 
@@ -1001,7 +1033,7 @@ public class OrgClosureManager {
     private String generateDeltaTempTableName() {
         String deltaTempTableName;
         deltaTempTableName =
-                (isSQLServer()?"#":"") +
+                (isSQLServer() ? "#" : "") +
                         "m_org_closure_delta_" + System.currentTimeMillis() + "_" + ((int) (Math.random() * 10000000.0));
         return deltaTempTableName;
     }
@@ -1093,7 +1125,7 @@ public class OrgClosureManager {
     }
 
     private Set<String> getParentOidsToDelete(Collection<? extends ItemDelta> modifications, PrismObject<? extends ObjectType> originalObject) {
-        Validate.notNull(originalObject);
+        Objects.requireNonNull(originalObject);
 
         Set<String> oids = new HashSet<>();
 
@@ -1116,7 +1148,8 @@ public class OrgClosureManager {
                     boolean found = false;
                     for (PrismReferenceValue newVal : (Collection<PrismReferenceValue>) delta.getValuesToReplace()) {
                         if (existingOid.equals(newVal.getOid())) {
-                            found = true; break;
+                            found = true;
+                            break;
                         }
                     }
                     if (!found) {
@@ -1235,35 +1268,41 @@ public class OrgClosureManager {
     public static class Edge {
         private String descendant;              // i.e. child, or technically, edge tail
         private String ancestor;                // i.e. parent, or technically, edge head
+
         public Edge(String descendant, String ancestor) {
             this.descendant = descendant;
             this.ancestor = ancestor;
         }
+
         public String getDescendant() {
             return descendant;
         }
+
         public String getAncestor() {
             return ancestor;
         }
+
         public String getTail() {
             return descendant;
         }
+
         public String getHead() {
             return ancestor;
         }
+
         public String toString() {
             return descendant + "->" + ancestor;
         }
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false; }
 
             Edge edge = (Edge) o;
 
-            if (!ancestor.equals(edge.ancestor)) return false;
-            if (!descendant.equals(edge.descendant)) return false;
+            if (!ancestor.equals(edge.ancestor)) { return false; }
+            if (!descendant.equals(edge.descendant)) { return false; }
 
             return true;
         }
@@ -1294,7 +1333,7 @@ public class OrgClosureManager {
         }
 
         public static StartupAction fromValue(String v) {
-            for (StartupAction a: StartupAction.values()) {
+            for (StartupAction a : StartupAction.values()) {
                 if (a.value.equals(v)) {
                     return a;
                 }
@@ -1307,8 +1346,6 @@ public class OrgClosureManager {
         String temporaryTableName;
     }
     //endregion
-
-
 
 //    private void lockClosureTableIfNeeded(Session session) {
 //        if (!getConfiguration().isUsingH2()) {
@@ -1325,8 +1362,5 @@ public class OrgClosureManager {
 //        LOGGER.info("...locked in {} ms", System.currentTimeMillis()-start);
 //
 //    }
-
-
-
 
 }

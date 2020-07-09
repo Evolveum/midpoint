@@ -19,7 +19,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.internal.SessionFactoryImpl;
@@ -1070,7 +1070,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (!specArchetypeRefs.isEmpty()) {
             if (object.canRepresent(AssignmentHolderType.class)) {
                 boolean match = false;
-                List<ObjectReferenceType> actualArchetypeRefs = ((AssignmentHolderType)object.asObjectable()).getArchetypeRef();
+                List<ObjectReferenceType> actualArchetypeRefs = ((AssignmentHolderType) object.asObjectable()).getArchetypeRef();
                 for (ObjectReferenceType specArchetypeRef : specArchetypeRefs) {
                     for (ObjectReferenceType actualArchetypeRef : actualArchetypeRefs) {
                         if (actualArchetypeRef.getOid().equals(specArchetypeRef.getOid())) {

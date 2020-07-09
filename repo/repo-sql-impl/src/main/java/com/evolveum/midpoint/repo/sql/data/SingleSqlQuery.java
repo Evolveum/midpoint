@@ -9,7 +9,6 @@ package com.evolveum.midpoint.repo.sql.data;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -19,23 +18,24 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class SingleSqlQuery extends SqlQuery {
 
-    private String query;
-    private Map<Integer, Object> parameters;
+    private final String query;
+    private final Map<Integer, Object> parameters;
 
     public SingleSqlQuery(String query, Map<Integer, Object> parameters) {
-        if(StringUtils.isBlank(query)) {
+        if (StringUtils.isBlank(query)) {
             throw new IllegalArgumentException("Query is empty");
         }
         this.query = query;
         this.parameters = parameters;
     }
+
     public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
         return createPreparedStatement(con, null);
     }
 
     public PreparedStatement createPreparedStatement(Connection con, String[] keyColumn) throws SQLException {
         PreparedStatement stmt;
-        if(keyColumn != null && keyColumn.length > 0) {
+        if (keyColumn != null && keyColumn.length > 0) {
             stmt = con.prepareStatement(query, keyColumn);
         } else {
             stmt = con.prepareStatement(query);

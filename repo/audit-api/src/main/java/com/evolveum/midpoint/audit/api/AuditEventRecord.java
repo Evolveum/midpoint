@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,6 +9,9 @@ package com.evolveum.midpoint.audit.api;
 import java.beans.Transient;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -28,19 +31,19 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.apache.commons.lang3.Validate;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Audit event record describes a single event (usually data change) in a format suitable for audit.
  *
  * @author Radovan Semancik
- *
  */
 public class AuditEventRecord implements DebugDumpable {
 
@@ -83,8 +86,6 @@ public class AuditEventRecord implements DebugDumpable {
      * Identification of (interactive) session in which the event occurred.
      */
     private String sessionIdentifier;
-
-    // channel???? (e.g. web gui, web service, ...)
 
     /**
      * <p>
@@ -129,7 +130,7 @@ public class AuditEventRecord implements DebugDumpable {
      * (or similar object, e.g. service) that has logged-in to the user interface or REST
      * or other mechanism. Figuratively speaking, this is the user that pressed the button
      * to execute the action.
-     *
+     * <p>
      * For the vast majority of cases, this is really an object of UserType. But sometimes it can be
      * a ServiceType (or, very occasionally, maybe RoleType or OrgType - but this does not make
      * much sense).
@@ -137,17 +138,17 @@ public class AuditEventRecord implements DebugDumpable {
     private PrismObject<? extends FocusType> attorney;
 
     /**
-     *  (primary) target (object, the thing acted on): store OID, type, name.
-     *  This is reference instead of full object, because sometimes we have just
-     *  the OID of the object and reading full object would be too expensive.
-     *  The reference can store OID but it can also store whole object if
-     *  that is available.
-     *  OPTIONAL
+     * (primary) target (object, the thing acted on): store OID, type, name.
+     * This is reference instead of full object, because sometimes we have just
+     * the OID of the object and reading full object would be too expensive.
+     * The reference can store OID but it can also store whole object if
+     * that is available.
+     * OPTIONAL
      */
     private PrismReferenceValue target;
 
     // user that the target "belongs to"????: store OID, name
-    private PrismObject<FocusType> targetOwner;
+    private PrismObject<? extends FocusType> targetOwner;
 
     // event type
     private AuditEventType eventType;
@@ -156,6 +157,7 @@ public class AuditEventRecord implements DebugDumpable {
     private AuditEventStage eventStage;
 
     // delta
+    @NotNull
     private final Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = new ArrayList<>();
 
     // delta order (primary, secondary)
@@ -173,7 +175,7 @@ public class AuditEventRecord implements DebugDumpable {
     private String message;
 
     /**
-     *  Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
+     * Resource OIDs. This field is used for resource OIDs of target, when target is FocusType or Shadowtype.
      */
     private Set<String> resourceOids = new HashSet<>();
 
@@ -322,11 +324,11 @@ public class AuditEventRecord implements DebugDumpable {
         }
     }
 
-    public PrismObject<FocusType> getTargetOwner() {
+    public PrismObject<? extends FocusType> getTargetOwner() {
         return targetOwner;
     }
 
-    public void setTargetOwner(PrismObject<FocusType> targetOwner) {
+    public void setTargetOwner(PrismObject<? extends FocusType> targetOwner) {
         this.targetOwner = targetOwner;
     }
 
@@ -346,7 +348,7 @@ public class AuditEventRecord implements DebugDumpable {
         this.eventStage = eventStage;
     }
 
-    public Collection<ObjectDeltaOperation<? extends ObjectType>> getDeltas() {
+    public @NotNull Collection<ObjectDeltaOperation<? extends ObjectType>> getDeltas() {
         return deltas;
     }
 
@@ -354,7 +356,7 @@ public class AuditEventRecord implements DebugDumpable {
         deltas.add(delta);
     }
 
-    public void addDeltas(Collection<ObjectDeltaOperation<? extends ObjectType>> deltasToAdd) {
+    public void addDeltas(Collection<? extends ObjectDeltaOperation<? extends ObjectType>> deltasToAdd) {
         deltas.addAll(deltasToAdd);
     }
 
@@ -500,8 +502,8 @@ public class AuditEventRecord implements DebugDumpable {
         AuditEventRecordType auditRecordType = new AuditEventRecordType();
         auditRecordType.setChannel(channel);
         auditRecordType.setEventIdentifier(eventIdentifier);
-        auditRecordType.setEventStage(AuditEventStage.fromAuditEventStage(eventStage));
-        auditRecordType.setEventType(AuditEventType.fromAuditEventType(eventType));
+        auditRecordType.setEventStage(AuditEventStage.toSchemaValue(eventStage));
+        auditRecordType.setEventType(AuditEventType.toSchemaValue(eventType));
         auditRecordType.setHostIdentifier(hostIdentifier);
         auditRecordType.setRemoteHostAddress(remoteHostAddress);
         auditRecordType.setNodeIdentifier(nodeIdentifier);
@@ -530,8 +532,8 @@ public class AuditEventRecord implements DebugDumpable {
                 DeltaConvertor.toObjectDeltaOperationType(delta, odo, options);
                 auditRecordType.getDelta().add(odo);
             } catch (Exception e) {
-                if (tolerateInconsistencies){
-                    if (delta.getExecutionResult() != null){
+                if (tolerateInconsistencies) {
+                    if (delta.getExecutionResult() != null) {
                         // TODO does this even work? [med]
                         delta.getExecutionResult().setMessage("Could not show audit record, bad data in delta: " + delta.getObjectDelta());
                     } else {
@@ -539,7 +541,6 @@ public class AuditEventRecord implements DebugDumpable {
                         result.setMessage("Could not show audit record, bad data in delta: " + delta.getObjectDelta());
                         odo.setExecutionResult(result.createOperationResultType());
                     }
-                    continue;
                 } else {
                     throw new SystemException(e.getMessage(), e);
                 }
@@ -597,28 +598,12 @@ public class AuditEventRecord implements DebugDumpable {
                 + " toid=" + taskOid + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
                 + ", I=" + formatObject(initiator) + ", A=" + formatObject(attorney)
                 + ", T=" + formatReference(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
-                + ", es=" + eventStage + ", D=" + deltas + ", ch="+ channel +", o=" + outcome + ", r=" + result + ", p=" + parameter
+                + ", es=" + eventStage + ", D=" + deltas + ", ch=" + channel + ", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
                 + ", cuscolprop=" + customColumnProperty
                 + ", prop=" + properties
                 + ", roid=" + resourceOids
                 + ", ref=" + references + "]";
-    }
-
-    private String formatResult(OperationResult result) {
-        if (result == null || result.getReturns() == null || result.getReturns().isEmpty()) {
-            return "nothing";
-        }
-        StringBuilder sb = new StringBuilder();
-        for (String key : result.getReturns().keySet()) {
-            if (sb.length() > 0) {
-                sb.append(", ");
-            }
-            sb.append(key);
-            sb.append("=");
-            sb.append(result.getReturns().get(key));
-        }
-        return sb.toString();
     }
 
     private static String formatTimestamp(Long timestamp) {

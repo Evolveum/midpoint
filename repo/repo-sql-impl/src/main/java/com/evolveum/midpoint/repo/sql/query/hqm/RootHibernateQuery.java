@@ -7,29 +7,28 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm;
 
-import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query.hqm.condition.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.hibernate.criterion.MatchMode;
-import org.hibernate.transform.ResultTransformer;
-import org.hibernate.type.Type;
-
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * @author mederly
- */
+import org.hibernate.Session;
+import org.hibernate.criterion.MatchMode;
+import org.hibernate.query.Query;
+import org.hibernate.transform.ResultTransformer;
+import org.hibernate.type.Type;
+
+import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
+import com.evolveum.midpoint.repo.sql.query.hqm.condition.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 public class RootHibernateQuery extends HibernateQuery {
 
     private static final Trace LOGGER = TraceManager.getTrace(RootHibernateQuery.class);
 
-    private Map<String,QueryParameterValue> parameters = new HashMap<>();
+    private final Map<String, QueryParameterValue> parameters = new HashMap<>();
+
     private Integer maxResults;
     private Integer firstResult;
     private ResultTransformer resultTransformer;
@@ -37,14 +36,6 @@ public class RootHibernateQuery extends HibernateQuery {
 
     public RootHibernateQuery(JpaEntityDefinition primaryEntityDef) {
         super(primaryEntityDef);
-    }
-
-    private RootHibernateQuery(EntityReference primaryEntity) {
-        super(primaryEntity);
-    }
-
-    public RootHibernateQuery createWrapperQuery() {
-        return new RootHibernateQuery(getPrimaryEntity());
     }
 
     public String addParameter(String prefix, Object value, Type type) {
@@ -72,8 +63,8 @@ public class RootHibernateQuery extends HibernateQuery {
 
     private String findFreeName(String prefix) {
         int i = 1;
-        for (;;) {
-            String name = i == 1 ? prefix : prefix+i;
+        for (; ; ) {
+            String name = i == 1 ? prefix : prefix + i;
             if (!parameters.containsKey(name)) {
                 return name;
             }
@@ -85,7 +76,7 @@ public class RootHibernateQuery extends HibernateQuery {
         String text = getAsHqlText(0, distinct);
         LOGGER.trace("HQL text generated:\n{}", text);
         Query query = session.createQuery(text);
-        for (Map.Entry<String,QueryParameterValue> parameter : parameters.entrySet()) {
+        for (Map.Entry<String, QueryParameterValue> parameter : parameters.entrySet()) {
             String name = parameter.getKey();
             QueryParameterValue parameterValue = parameter.getValue();
             LOGGER.trace("Parameter {} = {}", name, parameterValue.debugDump());
@@ -177,10 +168,17 @@ public class RootHibernateQuery extends HibernateQuery {
 
     public Condition createLike(String propertyPath, String value, MatchMode matchMode, boolean ignoreCase) {
         switch (matchMode) {
-            case ANYWHERE: value = "%" + value + "%"; break;
-            case START: value = value + "%"; break;
-            case END: value = "%" + value; break;
-            default: throw new IllegalStateException("Unsupported match mode: " + matchMode);
+            case ANYWHERE:
+                value = "%" + value + "%";
+                break;
+            case START:
+                value = value + "%";
+                break;
+            case END:
+                value = "%" + value;
+                break;
+            default:
+                throw new IllegalStateException("Unsupported match mode: " + matchMode);
         }
         return new SimpleComparisonCondition(this, propertyPath, value, "like", ignoreCase);
     }

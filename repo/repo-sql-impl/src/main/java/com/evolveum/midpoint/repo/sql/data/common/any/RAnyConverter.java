@@ -7,6 +7,22 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Timestamp;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.bind.annotation.XmlEnumValue;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -24,22 +40,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.w3c.dom.Element;
-
-import javax.xml.bind.annotation.XmlEnumValue;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.Timestamp;
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author lazyman
@@ -60,9 +60,9 @@ public class RAnyConverter {
 
         POLY_STRING(PolyString.class, ROExtPolyString.class, RAExtPolyString.class);
 
-        private Class valueType;
-        private Class<? extends ROExtValue<?>> oExtType;
-        private Class<? extends RAExtValue<?>> aExtType;
+        private final Class valueType;
+        private final Class<? extends ROExtValue<?>> oExtType;
+        private final Class<? extends RAExtValue<?>> aExtType;
 
         ValueType(Class valueType, Class oExtType, Class aExtType) {
             this.valueType = valueType;
@@ -97,8 +97,9 @@ public class RAnyConverter {
 
     private static final Trace LOGGER = TraceManager.getTrace(RAnyConverter.class);
     private static final Map<QName, ValueType> TYPE_MAP = new HashMap<>();
-    private PrismContext prismContext;
-    private ExtItemDictionary extItemDictionary;
+
+    private final PrismContext prismContext;
+    private final ExtItemDictionary extItemDictionary;
 
     static {
         TYPE_MAP.put(DOMUtil.XSD_BOOLEAN, ValueType.BOOLEAN);
@@ -158,10 +159,10 @@ public class RAnyConverter {
     }
 
     //todo assignment parameter really messed up this method, proper interfaces must be introduced later [lazyman]
-    public Set<RAnyValue<?>> convertToRValue(Item<?,?> item, boolean assignment,
+    public Set<RAnyValue<?>> convertToRValue(Item<?, ?> item, boolean assignment,
             RObjectExtensionType ownerType) throws SchemaException, DtoTranslationException {
-        Validate.notNull(item, "Object for converting must not be null.");
-        Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
+        Objects.requireNonNull(item, "Object for converting must not be null.");
+        Objects.requireNonNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
 
         ItemDefinition definition = item.getDefinition();
         Set<RAnyValue<?>> rValues = new HashSet<>();
@@ -190,8 +191,8 @@ public class RAnyConverter {
     }
 
     // copied from PrismBeanInspector (maybe reconcile somehow later)
-    private static String findEnumFieldValueUncached(Class classType, String toStringValue){
-        for (Field field: classType.getDeclaredFields()) {
+    private static String findEnumFieldValueUncached(Class classType, String toStringValue) {
+        for (Field field : classType.getDeclaredFields()) {
             XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
             if (xmlEnumValue != null && field.getName().equals(toStringValue)) {
                 return xmlEnumValue.value();
@@ -208,7 +209,8 @@ public class RAnyConverter {
             throws SchemaException {
         if (definition == null) {
             return null;
-        }if (definition instanceof PrismContainerDefinition) {
+        }
+        if (definition instanceof PrismContainerDefinition) {
             return null;
         } else if (definition instanceof PrismReferenceDefinition) {
             // TODO make reference indexing configurable
@@ -273,6 +275,7 @@ public class RAnyConverter {
         }
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     private static boolean isIndexed(ItemDefinition definition, ItemName elementName,
             boolean indexAlsoDynamics, PrismContext prismContext)
             throws SchemaException {
@@ -326,10 +329,7 @@ public class RAnyConverter {
      * This method provides extension type (in real it's table) string for definition and value
      * defined as parameters.
      *
-     * @param definition
-     * @param prismContext
      * @return One of "strings", "longs", "dates", "clobs"
-     * @throws SchemaException
      */
     public static String getAnySetType(ItemDefinition definition, PrismContext prismContext) throws
             SchemaException, QueryException {
@@ -359,7 +359,7 @@ public class RAnyConverter {
      * in that element.
      * <p>
      * Expects only property values (references are handled at other place).
-     *
+     * <p>
      * [pm] is this method really used? i.e. do we ever try to store PrismPropertyValue<Element>?
      */
     @NotNull
@@ -374,7 +374,7 @@ public class RAnyConverter {
             typeName = DOMUtil.resolveXsiType(value);
         }
 
-        Validate.notNull(typeName, "Definition was not defined for element value '"
+        Objects.requireNonNull(typeName, "Definition was not defined for element value '"
                 + DOMUtil.getQNameWithoutPrefix(value) + "' and it doesn't have xsi:type.");
 
         if (willBeSavedAs == ValueType.STRING) {
@@ -396,7 +396,6 @@ public class RAnyConverter {
     /**
      * Method provides aggregation of some java types (only simple types, which are indexed)
      *
-     * @param object
      * @return aggregated object
      */
     public static Object getAggregatedRepoObject(Object object) {

@@ -39,6 +39,8 @@ import static java.util.Collections.emptySet;
  */
 public class NullTaskImpl implements Task {
 
+    public static final Task INSTANCE = new NullTaskImpl();
+
     @Override
     public void addDependent(String taskIdentifier) {
         throw new UnsupportedOperationException();

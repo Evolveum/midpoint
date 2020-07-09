@@ -1,12 +1,11 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.report.impl.controller.export;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.xml.namespace.QName;
 
@@ -235,7 +234,6 @@ public abstract class ExportController {
         return values.iterator().next();
     }
 
-
     protected String getColumnLabel(String name, PrismObjectDefinition<ObjectType> objectDefinition, ItemPath path) {
         if (path != null) {
             ItemDefinition def = objectDefinition.findItemDefinition(path);
@@ -300,7 +298,7 @@ public abstract class ExportController {
             case AuditConstants.MESSAGE_COLUMN:
                 return record.getMessage() == null ? "" : record.getMessage();
             case AuditConstants.DELTA_COLUMN:
-                if (record.getDeltas() == null || record.getDeltas().isEmpty()) {
+                if (record.getDeltas().isEmpty()) {
                     return "";
                 }
                 StringBuilder sbDelta = new StringBuilder();

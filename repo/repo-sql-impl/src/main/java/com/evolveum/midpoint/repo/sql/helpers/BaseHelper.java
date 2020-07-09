@@ -7,16 +7,12 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import com.evolveum.midpoint.repo.sql.*;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.util.backoff.BackoffComputer;
-import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.StringUtils;
+import static com.evolveum.midpoint.repo.sql.SqlBaseService.*;
+
+import java.sql.SQLException;
+import java.util.regex.Pattern;
+
+import com.google.common.base.Strings;
 import org.hibernate.*;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.LockAcquisitionException;
@@ -26,12 +22,15 @@ import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureExcep
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
 
-import java.sql.SQLException;
-import java.util.regex.Pattern;
-
-import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_EXP_THRESHOLD;
-import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_MAX_RETRIES;
-import static com.evolveum.midpoint.repo.sql.SqlBaseService.LOCKING_DELAY_INTERVAL_BASE;
+import com.evolveum.midpoint.repo.sql.*;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ExceptionUtil;
+import com.evolveum.midpoint.util.backoff.BackoffComputer;
+import com.evolveum.midpoint.util.backoff.ExponentialBackoffComputer;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Core functionality needed in all members of SQL service family.
@@ -60,12 +59,6 @@ public class BaseHelper {
         return sessionFactory;
     }
 
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        RUtil.fixCompositeIDHandling(sessionFactory);
-
-        this.sessionFactory = sessionFactory;
-    }
-
     public LocalSessionFactoryBean getSessionFactoryBean() {
         return sessionFactoryBean;
     }
@@ -84,7 +77,7 @@ public class BaseHelper {
 
         if (getConfiguration().getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
             LOGGER.trace("Setting transaction isolation level SNAPSHOT.");
-            session.doWork(connection -> RUtil.executeStatement(connection,"SET TRANSACTION ISOLATION LEVEL SNAPSHOT"));
+            session.doWork(connection -> RUtil.executeStatement(connection, "SET TRANSACTION ISOLATION LEVEL SNAPSHOT"));
         }
 
         if (readOnly) {
@@ -93,7 +86,7 @@ public class BaseHelper {
             session.setHibernateFlushMode(FlushMode.MANUAL);
 
             LOGGER.trace("Marking transaction as read only.");
-                session.doWork(connection -> RUtil.executeStatement(connection, "SET TRANSACTION READ ONLY"));
+            session.doWork(connection -> RUtil.executeStatement(connection, "SET TRANSACTION READ ONLY"));
         }
         return session;
     }
@@ -109,7 +102,7 @@ public class BaseHelper {
     }
 
     void rollbackTransaction(Session session, Throwable ex, String message, OperationResult result, boolean fatal) {
-        if (StringUtils.isEmpty(message) && ex != null) {
+        if (Strings.isNullOrEmpty(message) && ex != null) {
             message = ex.getMessage();
         }
 
@@ -308,27 +301,27 @@ public class BaseHelper {
     };
 
     private static final String[] OK_STRINGS = new String[] {
-        "Unique index or primary key violation: \"IEXTITEMDEFINITION",              // H2
-        "Violation of UNIQUE KEY constraint 'iExtItemDefinition'",                  // SQL Server
-        "duplicate key value violates unique constraint \"iextitemdefinition\"",    // PostgreSQL
+            "Unique index or primary key violation: \"IEXTITEMDEFINITION",              // H2
+            "Violation of UNIQUE KEY constraint 'iExtItemDefinition'",                  // SQL Server
+            "duplicate key value violates unique constraint \"iextitemdefinition\"",    // PostgreSQL
 
-        // SQL Server
-        "Violation of PRIMARY KEY constraint 'PK__m_org_cl__",
-        "Violation of PRIMARY KEY constraint 'PK__m_refere__",
-        "Violation of PRIMARY KEY constraint 'PK__m_assign__",
-        "Violation of PRIMARY KEY constraint 'PK__m_operat__",
-        "Violation of PRIMARY KEY constraint 'PK__m_audit___",      // MID-4815
+            // SQL Server
+            "Violation of PRIMARY KEY constraint 'PK__m_org_cl__",
+            "Violation of PRIMARY KEY constraint 'PK__m_refere__",
+            "Violation of PRIMARY KEY constraint 'PK__m_assign__",
+            "Violation of PRIMARY KEY constraint 'PK__m_operat__",
+            "Violation of PRIMARY KEY constraint 'PK__m_audit___",      // MID-4815
 
-        // ???
-        "is not present in table \"m_ext_item\"",
+            // ???
+            "is not present in table \"m_ext_item\"",
 
-        // PostgreSQL
-        "duplicate key value violates unique constraint \"m_audit_item_pkey\"",     // MID-4815
-        "duplicate key value violates unique constraint \"m_audit_event_pkey\"",    // MID-4815
-        "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
-        "duplicate key value violates unique constraint \"m_reference_pkey\"",
-        "duplicate key value violates unique constraint \"m_assignment_pkey\"",
-        "duplicate key value violates unique constraint \"m_operation_execution_pkey\""     // TODO resolve more intelligently (and completely!)
+            // PostgreSQL
+            "duplicate key value violates unique constraint \"m_audit_item_pkey\"",     // MID-4815
+            "duplicate key value violates unique constraint \"m_audit_event_pkey\"",    // MID-4815
+            "duplicate key value violates unique constraint \"m_org_closure_pkey\"",
+            "duplicate key value violates unique constraint \"m_reference_pkey\"",
+            "duplicate key value violates unique constraint \"m_assignment_pkey\"",
+            "duplicate key value violates unique constraint \"m_operation_execution_pkey\""     // TODO resolve more intelligently (and completely!)
     };
 
     private boolean hasSerializationRelatedConstraintViolationException(Throwable ex) {
