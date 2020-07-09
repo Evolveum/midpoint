@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schrodinger.page.login.FormLoginPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
 
 import org.apache.commons.io.FileUtils;
+import org.assertj.core.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
@@ -77,7 +78,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
                     .isSuccess();
 
         FileUtils.copyFile(HR_SOURCE_FILE_11_1, hrTargetFile);
-        Selenide.sleep(MidPoint.TIMEOUT_MEDIUM_6_S);
+        Selenide.sleep(MidPoint.TIMEOUT_LONG_1_M);
 
         String notification = readBodyOfLastNotification();
 
@@ -118,8 +119,8 @@ public class M11SystemConfiguration extends AbstractLabTest {
                 + "Channel: http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync\n"
                 + "\n";
 
-        Assert.assertEquals(notification, startOfNotification);
-        Assert.assertEquals(notification, endOfNotification);
+        Assertions.assertThat(notification).startsWith(startOfNotification);
+        Assertions.assertThat(notification).endsWith(endOfNotification);
     }
 
     @Test(dependsOnMethods = {"mod11test01ConfiguringNotifications"},groups={"M11"}, dependsOnGroups={"M10"})
