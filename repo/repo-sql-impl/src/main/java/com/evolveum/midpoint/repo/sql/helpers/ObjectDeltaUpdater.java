@@ -125,7 +125,7 @@ public class ObjectDeltaUpdater {
 
         // Preprocess modifications: We want to process only real modifications. (As for assumeMissingItems, see MID-5280.)
         Collection<? extends ItemDelta> narrowedModifications = prismObject.narrowModifications(modifications,
-                EquivalenceStrategy.NOT_LITERAL, true);
+                EquivalenceStrategy.NOT_LITERAL, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
         LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(narrowedModifications));
 
         Class<? extends RObject> objectClass = RObjectType.getByJaxbType(type).getClazz();

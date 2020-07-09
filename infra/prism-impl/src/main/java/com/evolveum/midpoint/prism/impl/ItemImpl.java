@@ -7,27 +7,26 @@
 
 package com.evolveum.midpoint.prism.impl;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.DEFAULT_FOR_EQUALS;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -82,8 +81,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     protected D definition;
     @NotNull protected final List<V> values = new ArrayList<>();
     private transient Map<String,Object> userData = new HashMap<>();
-
-    protected EquivalenceStrategy defaultEquivalenceStrategy;
 
     protected boolean immutable;
     protected boolean incomplete;
@@ -353,127 +350,17 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         }
     }
 
-    public boolean isSingleValue() {
-        // TODO what about dynamic definitions? See MID-3922
-        if (getDefinition() != null) {
-            if (getDefinition().isMultiValue()) {
-                return false;
-            }
-        }
-        return values.size() <= 1;
+    public boolean addAll(Collection<V> newValues, @NotNull EquivalenceStrategy strategy) throws SchemaException {
+        return addAllInternal(newValues, true, strategy);
     }
 
-    @Override
-    public V findValue(V value, @NotNull EquivalenceStrategy strategy) {
-        for (V myVal : getValues()) {
-            if (myVal.equals(value, strategy)) {
-                return myVal;
-            }
-        }
-        return null;
-    }
-
-//    public List<? extends PrismValue> findValuesIgnoringMetadata(PrismValue value) {
-//        return getValues().stream()
-//                .filter(v -> v.equalsComplex(value, true, false))
-//                .collect(Collectors.toList());
-//    }
-
-    public Collection<V> getClonedValues() {
-        Collection<V> clonedValues = new ArrayList<>(getValues().size());
-        for (V val: getValues()) {
-            clonedValues.add((V)val.clone());
-        }
-        return clonedValues;
-    }
-
-    public boolean contains(V value) {
-        return contains(value, getEqualsHashCodeStrategy());
-    }
-
-    public boolean containsEquivalentValue(V value, @NotNull Comparator<V> comparator) {
-        return contains(value, comparator);
-    }
-
-    public boolean contains(V value, @NotNull Comparator<V> comparator) {
-        for (V myValue: getValues()) {
-            if (comparator.compare(myValue, value) == 0) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public boolean contains(V value, @NotNull EquivalenceStrategy strategy) {
-        for (V myValue: getValues()) {
-            if (strategy.equals(myValue, value)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean contains(V value, EquivalenceStrategy strategy, Comparator<V> comparator) {
-        if (comparator == null) {
-            if (strategy == null) {
-                return contains(value);
-            } else {
-                return contains(value, strategy);
-            }
-        } else {
-            for (V myValue : getValues()) {
-                if (comparator.compare(myValue, value) == 0) {
-                    return true;
-                }
-            }
-            return false;
-        }
-    }
-
-    @Override
-    @Experimental
-    public V findValue(V value, EquivalenceStrategy strategy, Comparator<V> comparator) {
-        if (comparator == null) {
-            if (strategy == null) {
-                return findValue(value, defaultEquivalenceStrategy);
-            } else {
-                return findValue(value, strategy);
-            }
-        } else {
-            for (V myValue : getValues()) {
-                if (comparator.compare(myValue, value) == 0) {
-                    return myValue;
-                }
-            }
-            return null;
-        }
-    }
-
-    public int size() {
-        return values.size();
-    }
-
-    public boolean addAll(Collection<V> newValues) throws SchemaException {
+    // The checkUniqueness parameter is redundant but let's keep it for robustness.
+    @Contract("_, true, null -> fail; _, false, !null -> fail")
+    private boolean addAllInternal(Collection<V> newValues, boolean checkUniqueness, EquivalenceStrategy strategy) throws SchemaException {
         checkMutable();
         boolean changed = false;
         for (V val: newValues) {
-            if (add(val)) {
-                changed = true;
-            }
-        }
-        return changed;
-    }
-
-    public boolean addAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException {
-        return addAll(newValues, true, strategy);
-    }
-
-    public boolean addAll(Collection<V> newValues, boolean checkUniqueness, EquivalenceStrategy strategy) throws SchemaException {
-        checkMutable();
-        boolean changed = false;
-        for (V val: newValues) {
-            if (add(val, checkUniqueness, strategy)) {
+            if (addInternal(val, checkUniqueness, strategy)) {
                 changed = true;
             }
         }
@@ -482,25 +369,58 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
 
     @Override
     public boolean add(@NotNull V newValue, @NotNull EquivalenceStrategy equivalenceStrategy) throws SchemaException {
-        return add(newValue, true, equivalenceStrategy);
+        return addInternal(newValue, true, equivalenceStrategy);
     }
 
-    public boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException {
-        return add(newValue, checkUniqueness, getEqualsHashCodeStrategy());
+    @Override
+    public void addIgnoringEquivalents(@NotNull V newValue) throws SchemaException {
+        addInternal(newValue, false, null);
     }
 
-    // equivalenceStrategy must not be null if checkUniqueness is true
-    public boolean add(@NotNull V newValue, boolean checkUniqueness, EquivalenceStrategy equivalenceStrategy) throws SchemaException {
+    // The checkUniqueness parameter is redundant but let's keep it for robustness.
+    @Contract("_, true, null -> fail; _, false, !null -> fail")
+    protected boolean addInternal(@NotNull V newValue, boolean checkEquivalents, EquivalenceStrategy equivalenceStrategy) throws SchemaException {
+
+        if (checkEquivalents && equivalenceStrategy == null) {
+            throw new IllegalArgumentException("Equivalence strategy must be present if checkEquivalents is true");
+        }
+        if (!checkEquivalents && equivalenceStrategy != null) {
+            throw new IllegalArgumentException("Equivalence strategy must not be present if checkEquivalents is false");
+        }
+
         checkMutable();
         if (newValue.getPrismContext() == null) {
             newValue.setPrismContext(prismContext);
         }
+
+        // The parent is needed also for comparisons. So we set it here.
         Itemable originalParent = newValue.getParent();
-        newValue.setParent(this);       // needed e.g. because of PrismReferenceValue comparisons
-        if (checkUniqueness && contains(newValue, equivalenceStrategy)) {
-            newValue.setParent(originalParent);
-            return false;
+        newValue.setParent(this);
+
+        if (checkEquivalents) {
+            boolean exactEquivalentFound = false;
+            boolean somethingRemoved = false;
+            Iterator<V> iterator = values.iterator();
+            while (iterator.hasNext()) {
+                V currentValue = iterator.next();
+                if (equivalenceStrategy.equals(currentValue, newValue)) {
+                    if (!exactEquivalentFound &&
+                            (DEFAULT_FOR_EQUALS.equals(equivalenceStrategy) || DEFAULT_FOR_EQUALS.equals(currentValue, newValue))) {
+                        exactEquivalentFound = true;
+                    } else {
+                        iterator.remove();
+                        currentValue.setParent(null);
+                        somethingRemoved = true;
+                    }
+                }
+            }
+
+            if (exactEquivalentFound && !somethingRemoved) {
+                newValue.setParent(originalParent);
+                return false;
+            }
         }
+
         D definition = getDefinition();
         if (definition != null) {
             if (!values.isEmpty() && definition.isSingleValue()) {
@@ -508,6 +428,10 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
             }
             newValue.applyDefinition(definition, false);
         }
+        return addInternalExecution(newValue);
+    }
+
+    protected boolean addInternalExecution(@NotNull V newValue) {
         return values.add(newValue);
     }
 
@@ -516,31 +440,16 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
      * For internal use only.
      */
     @Experimental
-    public boolean addForced(@NotNull V newValue) {
-        return values.add(newValue);
+    public void addForced(@NotNull V newValue) {
+        values.add(newValue);
     }
 
-    public boolean removeAll(Collection<V> newValues) {
+    @Override
+    public boolean removeAll(Collection<V> newValues, @NotNull EquivalenceStrategy strategy) {
         checkMutable();
         boolean changed = false;
         for (V val: newValues) {
-            if (remove(val)) {
-                changed = true;
-            }
-        }
-        return changed;
-    }
-
-    public boolean remove(V newValue) {
-        checkMutable();
-        boolean changed = false;
-        Iterator<V> iterator = values.iterator();
-        while (iterator.hasNext()) {
-            V val = iterator.next();
-            // the same algorithm as when deleting the item value from delete delta
-            if (val.representsSameValue(newValue, false) || val.equals(newValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
-                iterator.remove();
-                val.setParent(null);
+            if (remove(val, strategy)) {
                 changed = true;
             }
         }
@@ -571,7 +480,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     }
 
     @Override
-    public void replaceAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException {
+    public void replaceAll(Collection<V> newValues, @NotNull EquivalenceStrategy strategy) throws SchemaException {
         checkMutable();
         clear();
         addAll(newValues, strategy);
@@ -581,7 +490,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     public void replace(V newValue) throws SchemaException {
         checkMutable();
         clear();
-        add(newValue);
+        addIgnoringEquivalents(newValue);
     }
 
     @Override
@@ -711,16 +620,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         });
     }
 
-    public void filterValues(Function<V, Boolean> function) {
-        Iterator<V> iterator = values.iterator();
-        while (iterator.hasNext()) {
-            Boolean keep = function.apply(iterator.next());
-            if (keep == null || !keep) {
-                iterator.remove();
-            }
-        }
-    }
-
     public void applyDefinition(D definition) throws SchemaException {
         applyDefinition(definition, true);
     }
@@ -835,30 +734,6 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         Checks.checkSchemaNotNull(definition, "No definition in {} in {}", this, sourceDescription);
     }
 
-    /**
-     * Returns true is all the values are raw.
-     */
-    public boolean isRaw() {
-        for (V val: getValues()) {
-            if (!val.isRaw()) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /**
-     * Returns true is at least one of the values is raw.
-     */
-    public boolean hasRaw() {
-        for (V val: getValues()) {
-            if (val.isRaw()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     @Override
     public int hashCode(@NotNull EquivalenceStrategy equivalenceStrategy) {
         return equivalenceStrategy.hashCode(this);
@@ -889,12 +764,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
 
     @Override
     public int hashCode() {
-        return hashCode(getEqualsHashCodeStrategy());
-    }
-
-    @NotNull
-    protected EquivalenceStrategy getEqualsHashCodeStrategy() {
-        return defaultIfNull(defaultEquivalenceStrategy, ParameterizedEquivalenceStrategy.DEFAULT_FOR_EQUALS);
+        return hashCode(DEFAULT_FOR_EQUALS);
     }
 
     public boolean equals(Object obj, @NotNull EquivalenceStrategy strategy) {
@@ -937,7 +807,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     @Override
     public boolean equals(Object obj) {
-        return equals(obj, getEqualsHashCodeStrategy());
+        return equals(obj, DEFAULT_FOR_EQUALS);
     }
 
     @Override

@@ -982,46 +982,6 @@ public class ChangeExecutor {
         return objectAfterModification;
     }
 
-    private <T extends ObjectType, F extends FocusType> void removeExecutedItemDeltas(
-            ObjectDelta<T> objectDelta, LensElementContext<T> objectContext) {
-        if (objectContext == null) {
-            return;
-        }
-
-        if (objectDelta == null || objectDelta.isEmpty()) {
-            return;
-        }
-
-        if (objectDelta.getModifications() == null || objectDelta.getModifications().isEmpty()) {
-            return;
-        }
-
-        List<LensObjectDeltaOperation<T>> executedDeltas = objectContext.getExecutedDeltas();
-        for (LensObjectDeltaOperation<T> executedDelta : executedDeltas) {
-            ObjectDelta<T> executed = executedDelta.getObjectDelta();
-            Iterator<? extends ItemDelta> objectDeltaIterator = objectDelta.getModifications().iterator();
-            while (objectDeltaIterator.hasNext()) {
-                ItemDelta d = objectDeltaIterator.next();
-                if (executed.containsModification(d, EquivalenceStrategy.LITERAL_IGNORE_METADATA) || d.isEmpty()) {     // todo why literal?
-                    objectDeltaIterator.remove();
-                }
-            }
-        }
-    }
-
-//    // TODO beware - what if the delta was executed but not successfully?
-//    private <T extends ObjectType, F extends FocusType> boolean alreadyExecuted(ObjectDelta<T> objectDelta,
-//            LensElementContext<T> objectContext) {
-//        if (objectContext == null) {
-//            return false;
-//        }
-//        if (LOGGER.isTraceEnabled()) {
-//            LOGGER.trace("Checking for already executed delta:\n{}\nIn deltas:\n{}", objectDelta.debugDump(),
-//                    DebugUtil.debugDump(objectContext.getExecutedDeltas()));
-//        }
-//        return ObjectDeltaOperation.containsDelta(objectContext.getExecutedDeltas(), objectDelta);
-//    }
-
     /**
      * Was this object already added? (temporary method, should be removed soon)
      */
@@ -1062,7 +1022,8 @@ public class ChangeExecutor {
         // NOT_LITERAL: we consider value metadata as making a difference
         if (diffDelta != null && objectContext instanceof LensFocusContext<?> &&
                 !objectContext.isOfType(LookupTableType.class) &&
-                diffDelta.isRedundant(objectContext.getObjectCurrent(), EquivalenceStrategy.NOT_LITERAL, false)) {
+                diffDelta.isRedundant(objectContext.getObjectCurrent(), EquivalenceStrategy.NOT_LITERAL,
+                        EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, false)) {
             LOGGER.trace("delta is idempotent related to {}", objectContext.getObjectCurrent());
             return null;
         }

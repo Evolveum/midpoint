@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.delta.ObjectDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -68,7 +69,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
         checkMutable();
         PrismObjectValue<O> newValue = new PrismObjectValueImpl<>(prismContext);
         try {
-            add(newValue, false);
+            addIgnoringEquivalents(newValue);
             return newValue;
         } catch (SchemaException e) {
             // This should not happen
@@ -89,15 +90,16 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
     @Override
     public void setValue(@NotNull PrismContainerValue<O> value) throws SchemaException {
         clear();
-        add(value, false);
+        addIgnoringEquivalents(value);
     }
 
     @Override
-    public boolean add(@NotNull PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException {
+    protected boolean addInternal(@NotNull PrismContainerValue newValue, boolean checkEquivalents, EquivalenceStrategy strategy) throws SchemaException {
         if (!(newValue instanceof PrismObjectValue)) {
             throw new IllegalArgumentException("Couldn't add non-PrismObjectValue to a PrismObject: value = "
                     + newValue + ", object = " + this);
         }
+        // TODO deal with this somehow
         if (values.size() > 1) {
             throw new IllegalStateException("PrismObject with more than one value: " + this);
         } else if (values.size() == 1) {
@@ -109,7 +111,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
                         + ", object = " + this);
             }
         }
-        return super.add(newValue, checkUniqueness);
+        return super.addInternal(newValue, checkEquivalents, strategy);
     }
 
     /**
@@ -265,7 +267,7 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 
     @NotNull
     public ObjectDelta<O> diff(PrismObject<O> other) {
-        return diff(other, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
+        return diff(other, ParameterizedEquivalenceStrategy.FOR_DELTA_ADD_APPLICATION);
     }
 
     @NotNull
@@ -288,13 +290,15 @@ public class PrismObjectImpl<O extends Objectable> extends PrismContainerImpl<O>
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public Collection<? extends ItemDelta<?,?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications,
-            @NotNull ParameterizedEquivalenceStrategy strategy, boolean assumeMissingItems) {
+            @NotNull ParameterizedEquivalenceStrategy plusStrategy, @NotNull ParameterizedEquivalenceStrategy minusStrategy,
+            boolean assumeMissingItems) {
         if (modifications == null) {
             return null;
         }
         Collection narrowedModifications = new ArrayList<>(modifications.size());
         for (ItemDelta<?, ?> modification: modifications) {
-            ItemDelta<?, ?> narrowedModification = modification.narrow(this, strategy, assumeMissingItems);
+            ItemDelta<?, ?> narrowedModification = modification.narrow(this, plusStrategy.prismValueComparator(),
+                    minusStrategy.prismValueComparator(), assumeMissingItems);
             if (narrowedModification != null && !narrowedModification.isEmpty()) {
                 narrowedModifications.add(narrowedModification);
             }

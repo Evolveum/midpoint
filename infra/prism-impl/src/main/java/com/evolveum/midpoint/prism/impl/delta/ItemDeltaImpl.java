@@ -15,17 +15,21 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.function.Function;
 
+import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.FOR_DELTA_ADD_APPLICATION;
+import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.FOR_DELTA_DELETE_APPLICATION;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import static com.evolveum.midpoint.prism.path.ItemPath.checkNoSpecialSymbols;
 
@@ -41,50 +45,55 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
      * Name of the property
      */
     protected ItemName elementName;
+
     /**
-     * Parent path of the property (path to the property container)
+     * Parent path of the item (path to the property container)
      */
     protected ItemPath parentPath;
-    protected ItemPath fullPath;            // lazily evaluated
+
+    /**
+     * Full path to the item. Lazily evaluated.
+     */
+    private ItemPath fullPath;
+
+    /**
+     * Definition of the item.
+     */
     protected D definition;
 
     protected Collection<V> valuesToReplace = null;
     protected Collection<V> valuesToAdd = null;
     protected Collection<V> valuesToDelete = null;
-    protected Collection<V> estimatedOldValues = null;
+    private Collection<V> estimatedOldValues = null;
 
     transient private PrismContext prismContext;
 
-    protected ItemDeltaImpl(D itemDefinition, PrismContext prismContext) {
+    ItemDeltaImpl(D itemDefinition, PrismContext prismContext) {
         if (itemDefinition == null) {
             throw new IllegalArgumentException("Attempt to create item delta without a definition");
         }
-        //checkPrismContext(prismContext, itemDefinition);
         this.prismContext = prismContext;
         this.elementName = itemDefinition.getItemName();
         this.parentPath = ItemPath.EMPTY_PATH;
         this.definition = itemDefinition;
     }
 
-    protected ItemDeltaImpl(QName elementName, D itemDefinition, PrismContext prismContext) {
-        //checkPrismContext(prismContext, itemDefinition);
-        this.prismContext = prismContext;
-        this.elementName = ItemName.fromQName(elementName);
-        this.parentPath = ItemPath.EMPTY_PATH;
-        this.definition = itemDefinition;
-    }
+//    protected ItemDeltaImpl(QName elementName, D itemDefinition, PrismContext prismContext) {
+//        this.prismContext = prismContext;
+//        this.elementName = ItemName.fromQName(elementName);
+//        this.parentPath = ItemPath.EMPTY_PATH;
+//        this.definition = itemDefinition;
+//    }
 
-    protected ItemDeltaImpl(ItemPath itemPath, QName elementName, D itemDefinition, PrismContext prismContext) {
-        //checkPrismContext(prismContext, itemDefinition);
-        this.parentPath = prismContext.toUniformPath(itemPath);
+    ItemDeltaImpl(ItemPath parentPath, QName itemName, D itemDefinition, PrismContext prismContext) {
         checkNoSpecialSymbols(parentPath);
+        this.parentPath = prismContext.toUniformPath(parentPath);
         this.prismContext = prismContext;
-        this.elementName = ItemName.fromQName(elementName);
+        this.elementName = ItemName.fromQName(itemName);
         this.definition = itemDefinition;
     }
 
-    protected ItemDeltaImpl(ItemPath path, D itemDefinition, PrismContext prismContext) {
-        //checkPrismContext(prismContext, itemDefinition);
+    ItemDeltaImpl(ItemPath path, D itemDefinition, PrismContext prismContext) {
         checkNoSpecialSymbols(path);
         this.prismContext = prismContext;
 
@@ -103,13 +112,6 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         }
         this.definition = itemDefinition;
     }
-
-    // currently unused; we allow deltas without prismContext, except for some operations (e.g. serialization to ItemDeltaType)
-//    private void checkPrismContext(PrismContext prismContext, ItemDefinition itemDefinition) {
-//        if (prismContext == null) {
-//            throw new IllegalStateException("No prismContext in delta for " + itemDefinition);
-//        }
-//    }
 
     public ItemName getElementName() {
         return elementName;
@@ -134,13 +136,12 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     @NotNull
     @Override
     public ItemPath getPath() {
-        if (fullPath != null) {
-            return fullPath;
+        if (fullPath == null) {
+            if (parentPath == null) {
+                throw new IllegalStateException("No parent path in " + this);
+            }
+            fullPath = parentPath.append(elementName);
         }
-        if (getParentPath() == null) {
-            throw new IllegalStateException("No parent path in "+this);
-        }
-        fullPath = getParentPath().append(elementName);
         return fullPath;
     }
 
@@ -437,7 +438,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         if (valuesToDelete == null) {
             valuesToDelete = newValueCollection();
         }
-        if (containsEquivalentValue(valuesToDelete, newValue)) {
+        if (containsEquivalentValue(valuesToDelete, newValue, ParameterizedEquivalenceStrategy.REAL_VALUE)) {
             return;
         }
         valuesToDelete.add(newValue);
@@ -445,20 +446,20 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         newValue.recompute();
     }
 
-    private boolean containsEquivalentValue(Collection<V> collection, V value) {
+    private boolean containsEquivalentValue(Collection<V> collection, V value, ParameterizedEquivalenceStrategy strategy) {
         if (collection == null) {
             return false;
         }
         for (V colVal: collection) {
-            if (isValueEquivalent(colVal, value)) {
+            if (isValueEquivalent(colVal, value, strategy)) {
                 return true;
             }
         }
         return false;
     }
 
-    protected boolean isValueEquivalent(V a, V b) {
-        return a.equals(b, EquivalenceStrategy.REAL_VALUE);
+    protected boolean isValueEquivalent(V a, V b, ParameterizedEquivalenceStrategy strategy) {
+        return a.equals(b, strategy);
     }
 
     public void mergeValuesToDelete(Collection<V> newValues) {
@@ -812,116 +813,102 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     /**
      * Filters out all delta values that are meaningless to apply. E.g. removes all values to add
      * that the property already has, removes all values to delete that the property does not have, etc.
-     * Returns null if the delta is not needed at all.
-     *
-     * @param assumeMissingItems Assumes that some items in the object may be missing. So replacing
-     *                           them by null or deleting some values from them cannot be narrowed out.
+     * Returns null if the delta is not needed at all. See description on the interface.
      */
-    public ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object,
-            @NotNull Comparator<V> comparator, boolean assumeMissingItems) {
+    public ItemDelta<V,D> narrow(@NotNull PrismObject<? extends Objectable> object,
+            @NotNull Comparator<V> plusComparator, @NotNull Comparator<V> minusComparator,
+            boolean assumeMissingItems) {
         checkMutable();
         Item<V,D> currentItem = object.findItem(getPath());
         if (currentItem == null) {
-            if (assumeMissingItems || object.isIncomplete()) {
-                return this;        // we know nothing about missing item
-            }
-            if (valuesToDelete != null) {
-                ItemDelta<V, D> clone = clone();
-                clone.resetValuesToDelete();
-                return clone;
-            } else if (CollectionUtils.isEmpty(valuesToAdd) && CollectionUtils.isEmpty(valuesToReplace)) {
-                return null;    // i.e. either "replace to ()" or "add ()" or empty delta altogether => can skip
-            } else {
-                // Nothing to narrow
-                return this;
-            }
+            return narrowWhenNoItem(object, assumeMissingItems);
         } else {
             if (isReplace()) {
-                // We can narrow replace deltas only if the replace set matches
-                // current item exactly. Otherwise we may lose some values.
-                // And of course we can do this only on complete items.
-                if (!currentItem.isIncomplete() && currentItem.valuesEqual(valuesToReplace, comparator)) {
-                    return null;
-                } else {
-                    return this;
-                }
+                return narrowReplaceDelta(currentItem, plusComparator);
             } else {
-                ItemDelta<V,D> clone = clone();
-
-                removeValuesAddedAndDeleted(clone, comparator);
-                removeValuesToDeleteNotPresentInItem(clone, currentItem, comparator);
-                removeValuesToAddPresentInItem(clone, currentItem, comparator);
-
+                ItemDeltaImpl<V,D> clone = clone();
+                clone.narrowRegularDelta(currentItem, plusComparator, minusComparator);
                 return clone;
             }
         }
     }
 
-    private void removeValuesAddedAndDeleted(ItemDelta<V, D> delta, Comparator<V> comparator) {
-        if (delta.isAdd() && delta.isDelete()) {
-            List<V> uselessAddValues = new ArrayList<>();
-            List<V> uselessDeleteValues = new ArrayList<>();
-            for (V valueToAdd : delta.getValuesToAdd()) {
-                for (V valueToDelete : delta.getValuesToDelete()) {
-                    if (comparator.compare(valueToAdd, valueToDelete) == 0) {
-                        uselessAddValues.add(valueToAdd);
-                        uselessDeleteValues.add(valueToDelete);
+    @Nullable
+    private ItemDelta<V, D> narrowWhenNoItem(PrismObject<? extends Objectable> object, boolean assumeMissingItems) {
+        if (assumeMissingItems || object.isIncomplete()) {
+            return this; // we know nothing about missing item
+        } else if (valuesToDelete != null) {
+            ItemDelta<V, D> clone = clone();
+            clone.resetValuesToDelete();
+            return clone;
+        } else if (CollectionUtils.isEmpty(valuesToAdd) && CollectionUtils.isEmpty(valuesToReplace)) {
+            return null; // i.e. either "replace to ()" or "add ()" or empty delta altogether => can skip
+        } else {
+            // Nothing to narrow
+            return this;
+        }
+    }
+
+    @Nullable
+    private ItemDelta<V, D> narrowReplaceDelta(Item<V, D> currentItem, @NotNull Comparator<V> comparator) {
+        // We can narrow replace deltas only if the replace set matches
+        // current item exactly. Otherwise we may lose some values.
+        // And of course we can do this only on complete items.
+        //
+        // We must be aware that adding real-value equivalent but not really equal values
+        // changes the state of the target item: values are being updated. So if we use e.g.
+        // "ignore metadata" strategy then value metadata can be lost upon delta narrowing.
+        if (!currentItem.isIncomplete() &&
+                MiscUtil.unorderedCollectionCompare(currentItem.getValues(), valuesToReplace, comparator)) {
+            return null;
+        } else {
+            return this;
+        }
+    }
+
+    private void narrowRegularDelta(Item<V, D> currentItem, @NotNull Comparator<V> plusComparator,
+            @NotNull Comparator<V> minusComparator) {
+
+        if (!currentItem.isIncomplete() && valuesToDelete != null) {
+            // There is no point in insisting on deletion of values that are simply not
+            // present in the current item.
+            valuesToDelete
+                    .removeIf(valueToDelete -> !itemContainsDeletionEquivalentValue(currentItem, valueToDelete, minusComparator));
+        }
+
+        if (valuesToAdd != null) {
+            for (Iterator<V> iterator = valuesToAdd.iterator(); iterator.hasNext(); ) {
+                V valueToAdd = iterator.next();
+                if (itemContainsAdditionEquivalentValue(currentItem, valueToAdd, plusComparator)) {
+                    iterator.remove();
+                    if (valuesToDelete != null) {
+                        valuesToDelete.removeIf(valueToDelete -> minusComparator.compare(valueToDelete, valueToAdd) == 0);
                     }
                 }
             }
-            if (!uselessAddValues.isEmpty()) {
-                LOGGER.trace("Removing value that is both added and deleted: {} / {}", uselessAddValues, uselessDeleteValues);
-//                System.out.println("Removing value that is both added and deleted: " + uselessAddValues + " / " + uselessDeleteValues);
-                // Beware, when removing we are using special strategy ... so we might be removing actually more than we expect
-                for (V uselessAddValue : uselessAddValues) {
-                    delta.removeValueToAdd(uselessAddValue);
-                }
-                for (V uselessDeleteValue : uselessDeleteValues) {
-                    delta.removeValueToDelete(uselessDeleteValue);
-                }
-            }
+        }
+
+        if (valuesToDelete != null && valuesToDelete.isEmpty()) {
+            resetValuesToDelete();
+        }
+        if (valuesToAdd != null && valuesToAdd.isEmpty()) {
+            resetValuesToAdd();
         }
     }
 
-    private void removeValuesToAddPresentInItem(ItemDelta<V, D> delta, Item<V, D> currentItem, @NotNull Comparator<V> comparator) {
-        if (delta.getValuesToAdd() != null) {
-            delta.getValuesToAdd().removeIf(
-                    valueToAdd -> currentItem.containsEquivalentValue(valueToAdd, comparator)
-                            && !containsEquivalentValue(delta.getValuesToDelete(), valueToAdd));
-            if (delta.getValuesToAdd().isEmpty()) {
-                delta.resetValuesToAdd();
-            }
-        }
+    private boolean itemContainsAdditionEquivalentValue(Item<V, D> item, V value, @NotNull Comparator<V> comparator) {
+        return item.findValue(value, comparator) != null;
     }
 
-    private void removeValuesToDeleteNotPresentInItem(ItemDelta<V, D> delta, Item<V, D> currentItem, @NotNull Comparator<V> comparator) {
-        if (!currentItem.isIncomplete() && delta.getValuesToDelete() != null) {
-            delta.getValuesToDelete()
-                    .removeIf(valueToDelete -> !currentItem.containsEquivalentValue(valueToDelete, comparator));
-            if (delta.getValuesToDelete().isEmpty()) {
-                delta.resetValuesToDelete();
-            }
-        }
+    boolean itemContainsDeletionEquivalentValue(Item<V, D> item, V value, @NotNull Comparator<V> comparator) {
+        return item.findValue(value, comparator) != null;
     }
 
-    public boolean isRedundant(PrismObject<? extends Objectable> object, @NotNull ParameterizedEquivalenceStrategy strategy,
-            boolean assumeMissingItems) {
-        Item<V,D> currentItem = object.findItem(getPath());
-        if (currentItem == null) {
-            if (valuesToReplace != null) {
-                return valuesToReplace.isEmpty();
-            } else {
-                return !hasAnyValue(valuesToAdd);
-            }
-        } else {
-            if (valuesToReplace != null) {
-                return MiscUtil.unorderedCollectionCompare(valuesToReplace, currentItem.getValues(),
-                        strategy.prismValueComparator());
-            } else {
-                ItemDeltaImpl<V, D> narrowed = (ItemDeltaImpl<V, D>) narrow(object, strategy, assumeMissingItems);
-                return narrowed == null || narrowed.hasAnyValue(narrowed.valuesToAdd) || narrowed.hasAnyValue(narrowed.valuesToDelete);
-            }
-        }
+    public boolean isRedundant(PrismObject<? extends Objectable> object,
+            @NotNull ParameterizedEquivalenceStrategy strategy, boolean assumeMissingItems) {
+        Comparator<V> comparator = strategy.prismValueComparator();
+        ItemDeltaImpl<V, D> narrowed = (ItemDeltaImpl<V, D>) narrow(object, comparator, comparator, assumeMissingItems);
+        return narrowed == null || narrowed.isEmpty();
     }
 
     public void validate() throws SchemaException {
@@ -954,12 +941,12 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         validateValues(validator, getEstimatedOldValues());
     }
 
-    public void validateValues(ItemDeltaValidator<V> validator, Collection<V> oldValues) throws SchemaException {
+    public void validateValues(ItemDeltaValidator<V> validator, Collection<V> oldValues) {
         validateSet(valuesToAdd, PlusMinusZero.PLUS, validator);
         validateSet(valuesToDelete, PlusMinusZero.MINUS, validator);
         if (isReplace()) {
             for (V val: getValuesToReplace()) {
-                if (oldValues != null && PrismValueCollectionsUtil.containsRealValue(oldValues, val)) {
+                if (PrismValueCollectionsUtil.containsRealValue(oldValues, val)) {
                     validator.validate(PlusMinusZero.ZERO, val);
                 } else {
                     validator.validate(PlusMinusZero.PLUS, val);
@@ -1225,35 +1212,29 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     }
 
     public void applyTo(PrismContainerValue containerValue) throws SchemaException {
-        applyTo(containerValue, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
-    }
-
-    public void applyTo(PrismContainerValue containerValue, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
         ItemPath deltaPath = getPath();
         if (ItemPath.isEmpty(deltaPath)) {
             throw new IllegalArgumentException("Cannot apply empty-path delta " + this + " directly to a PrismContainerValue " + containerValue);
         }
         Item subItem = containerValue.findOrCreateItem(deltaPath, getItemClass(), getDefinition());
-        applyToMatchingPath(subItem, strategy);
+        if (subItem == null) {
+            throw new SchemaException("Couldn't create sub item for '" + deltaPath + "' in '" + containerValue + "'");
+        }
+        applyToMatchingPath(subItem);
     }
 
-    public void applyTo(Item item) throws SchemaException {
-        applyTo(item, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
-    }
-
-    public void applyTo(Item item, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
+    public void applyTo(@NotNull Item item) throws SchemaException {
         ItemPath itemPath = item.getPath();
         ItemPath deltaPath = getPath();
         CompareResult compareComplex = itemPath.compareComplex(deltaPath);
         if (compareComplex == CompareResult.EQUIVALENT) {
-            applyToMatchingPath(item, strategy);
-            cleanupAllTheWayUp(item);
+            applyToMatchingPath(item);
         } else if (compareComplex == CompareResult.SUBPATH) {
             if (item instanceof PrismContainer<?>) {
                 PrismContainer<?> container = (PrismContainer<?>)item;
                 ItemPath remainderPath = deltaPath.remainder(itemPath);
                 Item subItem = container.findOrCreateItem(remainderPath, getItemClass(), getDefinition());
-                applyToMatchingPath(subItem, strategy);
+                applyToMatchingPath(subItem);
             } else {
                 throw new SchemaException("Cannot apply delta "+this+" to "+item+" as delta path is below the item path and the item is not a container");
             }
@@ -1265,50 +1246,65 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     }
 
     /**
-     * Applies delta to item were path of the delta and path of the item matches (skips path checks).
+     * Applies delta to item. Assumes that path of the delta and path of the item matches
+     * (does not do path checks).
      */
-    public void applyToMatchingPath(Item item, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
-        if (item == null) {
+    public void applyToMatchingPath(Item item) throws SchemaException {
+        if (item == null) { // TODO check when this can be null
             return;
         }
-        if (item.getDefinition() == null && getDefinition() != null){
+        applyDefinitionAndCheckCompatibility(item);
+        if (valuesToReplace != null) {
+            applyValuesToReplace(item);
+        } else {
+            applyValuesToDelete(item);
+            applyValuesToAdd(item);
+        }
+        // Application of delta might have removed values therefore leaving empty items.
+        // Those needs to be cleaned-up (removed) as empty item is not a legal state.
+        cleanupAllTheWayUp(item);
+    }
+
+    private void applyDefinitionAndCheckCompatibility(Item item) throws SchemaException {
+        if (item.getDefinition() == null && getDefinition() != null) {
             //noinspection unchecked
             item.applyDefinition(getDefinition());
         }
         if (!getItemClass().isAssignableFrom(item.getClass())) {
             throw new SchemaException("Cannot apply delta "+this+" to "+item+" because the deltas is applicable only to "+getItemClass().getSimpleName());
         }
-        if (valuesToReplace != null) {
-            // FIXME This is a temporary solution (ugly hack). We do this to avoid O(n^2) comparisons when replacing
-            //  a lot of values, like 100K members for a group. But the serious solution is to employ hashing in ItemImpl,
-            //  and resolve this efficiency issue (1) for all cases - i.e. ADD+DELETE+REPLACE, (2) preserving uniqueness checking.
-            //  See MID-5889.
-            item.clear();
+    }
+
+    private void applyValuesToAdd(Item item) throws SchemaException {
+        if (valuesToAdd != null) {
+            if (item.getDefinition() != null && item.getDefinition().isSingleValue()) {
+                item.clear();
+            }
+            // We have to use addAll (not do the selection of values ourselves) because we want to replace already-existing
+            // values with the values provided in the delta.
+
             //noinspection unchecked
-            item.addAll(PrismValueCollectionsUtil.cloneCollection(valuesToReplace), false, strategy);
-        } else {
-            if (valuesToDelete != null) {
-                //noinspection unchecked
-                item.removeAll(valuesToDelete);
-            }
-            if (valuesToAdd != null) {
-                if (item.getDefinition() != null && item.getDefinition().isSingleValue()) {
-                    //noinspection unchecked
-                    item.replaceAll(PrismValueCollectionsUtil.cloneCollection(valuesToAdd), strategy);
-                } else {
-                    for (V valueToAdd : valuesToAdd) {
-                        //noinspection unchecked
-                        if (!item.contains(valueToAdd, strategy)) {
-                            //noinspection unchecked
-                            item.add(valueToAdd.clone(), false);
-                        }
-                    }
-                }
-            }
+            item.addAll(CloneUtil.cloneCollectionMembers(valuesToAdd), FOR_DELTA_ADD_APPLICATION);
         }
-        // Application of delta might have removed values therefore leaving empty items.
-        // Those needs to be cleaned-up (removed) as empty item is not a legal state.
-        cleanupAllTheWayUp(item);
+    }
+
+    private void applyValuesToDelete(Item item) {
+        if (valuesToDelete != null) {
+            //noinspection unchecked
+            item.removeAll(valuesToDelete, FOR_DELTA_DELETE_APPLICATION);
+        }
+    }
+
+    private void applyValuesToReplace(Item item) throws SchemaException {
+        // FIXME This is a temporary solution (ugly hack). We do this to avoid O(n^2) comparisons when replacing
+        //  a lot of values, like 100K members for a group. But the serious solution is to employ hashing in ItemImpl,
+        //  and resolve this efficiency issue (1) for all cases - i.e. ADD+DELETE+REPLACE, (2) preserving uniqueness checking.
+        //  See MID-5889.
+        item.clear();
+        for (V v : valuesToReplace) {
+            //noinspection unchecked
+            item.addIgnoringEquivalents(v.clone());
+        }
     }
 
     public ItemDelta<?,?> getSubDelta(ItemPath path) {
@@ -1385,7 +1381,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         } else {
             itemNew = itemOld.clone();
         }
-        applyToMatchingPath(itemNew, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
+        applyToMatchingPath(itemNew);
         return itemNew;
     }
 

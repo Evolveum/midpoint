@@ -165,7 +165,8 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
 
     void normalize();
 
-    ObjectDelta<O> narrow(PrismObject<O> existingObject, @NotNull ParameterizedEquivalenceStrategy strategy, boolean assumeMissingItems);
+    ObjectDelta<O> narrow(PrismObject<O> existingObject, @NotNull ParameterizedEquivalenceStrategy plusStrategy,
+            @NotNull ParameterizedEquivalenceStrategy minusStrategy, boolean assumeMissingItems);
 
     // TODO better name
     void applyDefinitionIfPresent(PrismObjectDefinition<O> definition, boolean tolerateNoDefinition) throws SchemaException;
@@ -190,8 +191,6 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
      * It modifies the provided object.
      */
     void applyTo(PrismObject<O> targetObject) throws SchemaException;
-
-    void applyTo(PrismObject<O> targetObject, ParameterizedEquivalenceStrategy strategy) throws SchemaException;
 
     /**
      * Applies this object delta to specified object, returns updated object.
@@ -295,7 +294,11 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
      */
     ObjectDelta<O> subtract(@NotNull Collection<ItemPath> paths);
 
-    boolean isRedundant(PrismObject<O> object, @NotNull ParameterizedEquivalenceStrategy strategy, boolean assumeMissingItems) throws SchemaException;
+    /**
+     * Check if delta is redundant w.r.t. given object - i.e. if its application would have no visible effect on that object.
+     */
+    boolean isRedundant(PrismObject<O> object, @NotNull ParameterizedEquivalenceStrategy plusStrategy,
+            @NotNull ParameterizedEquivalenceStrategy minusStrategy, boolean assumeMissingItems) throws SchemaException;
 
     @Experimental
     void removeOperationalItems();

@@ -603,8 +603,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             if (valueMatcher != null && value0 instanceof PrismPropertyValue) {
                 //noinspection unchecked
                 return (V) valueMatcher.findValue((PrismProperty)existingItem, (PrismPropertyValue) value0);
+            } else if (comparator != null) {
+                return existingItem.findValue(value0, comparator);
             } else {
-                return existingItem.findValue(value0, EquivalenceStrategy.IGNORE_METADATA, comparator);
+                return existingItem.findValue(value0, EquivalenceStrategy.IGNORE_METADATA); // TODO ok?
             }
         }
 
@@ -743,7 +745,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         } else {
             //noinspection unchecked
             Item<V,D> clonedItem = existingItem.clone();
-            itemDelta.applyToMatchingPath(clonedItem, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
+            itemDelta.applyToMatchingPath(clonedItem);
             return !clonedItem.isEmpty();
         }
     }

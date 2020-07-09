@@ -8,12 +8,7 @@
 package com.evolveum.midpoint.prism;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 import javax.xml.namespace.QName;
@@ -32,6 +27,9 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.google.common.annotations.VisibleForTesting;
+
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS;
+import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.DEFAULT_FOR_EQUALS;
 
 /**
  * Item is a common abstraction of Property, Reference and Container.
@@ -56,7 +54,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     D getDefinition();
 
     /**
-     * Returns true if this item and all contained items have proper definition.
+     * Returns true if this item and all contained items have definitions.
      */
     default boolean hasCompleteDefinition() {
         return getDefinition() != null;
@@ -208,7 +206,9 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     /**
      * Returns the number of values for this item.
      */
-    int size();
+    default int size() {
+        return getValues().size();
+    }
 
     /**
      * Returns any of the values. Usually called when we are quite confident that there is only a single value;
@@ -288,43 +288,56 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     /**
      * Returns true if the item contains 0 or 1 values and (by definition) is not multivalued.
      */
-    boolean isSingleValue();
+    default boolean isSingleValue() {
+        // TODO what about dynamic definitions? See MID-3922
+        D definition = getDefinition();
+        if (definition != null) {
+            if (definition.isMultiValue()) {
+                return false;
+            }
+        }
+        return getValues().size() <= 1;
+    }
 
     //region Add and remove
 
     /**
-     * Adds a given value, unless an equivalent one is already there (if checkUniqueness is true).
+     * Adds a given value, overwriting existing one.
      *
-     * @return true if this item changed as a result of the call (i.e. if the value was really added)
-     *
-     * Note that even if checkUniqueness is false we check the cardinality of the item according to its definition,
-     * i.e. we do not allow single-valued item to contain more than one value.
-     */
-    boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException;
-
-    /**
-     * Adds a given value, unless an equivalent one is already there. It is the same as calling add with checkUniqueness=true.
-     *
-     * @return true if this item changed as a result of the call (i.e. if the value was really added)
+     * It compares values using DEFAULT_FOR_EQUALS (NOT_LITERAL) strategy, so it e.g. takes value metadata differences into account.
+     * It is because this method is used during parsing, internal computations (typically using generated beans),
+     * and similar situations where we expect little sophistication when it comes to value comparison.
+     * The less surprises the better.
      */
     default boolean add(@NotNull V newValue) throws SchemaException {
-        return add(newValue, true);
+        return add(newValue, DEFAULT_FOR_EQUALS);
     }
 
     /**
-     * Adds a given value, unless an equivalent one is already there. It is the same as calling add with checkUniqueness=true.
-     * Uses given strategy for equivalence testing.
+     * Adds a value, overwriting existing one(s). Uses specified equivalence strategy.
      *
-     * @return true if this item changed as a result of the call (i.e. if the value was really added)
+     * @return true if this item changed as a result of the call. This is either during real value addition
+     * or during overwriting existing value with a different one. The "difference" is taken using the
+     * DEFAULT_FOR_EQUALS (NOT_LITERAL) equivalence strategy.
      */
-    boolean add(@NotNull V newValue, @NotNull EquivalenceStrategy equivalenceStrategy) throws SchemaException;
+    boolean add(@NotNull V newValue, @NotNull EquivalenceStrategy strategy) throws SchemaException;
+
+    /**
+     * Adds a value, not looking for equivalent values. (This means that the new value is always added, if possible.)
+     *
+     * Note that we check the cardinality of the item according to its definition,
+     * i.e. we do not allow single-valued item to contain more than one value.
+     */
+    void addIgnoringEquivalents(@NotNull V newValue) throws SchemaException;
 
     /**
      * Adds given values, with the same semantics as repeated add(..) calls.
      *
      * @return true if this item changed as a result of the call (i.e. if at least one value was really added)
      */
-    boolean addAll(Collection<V> newValues) throws SchemaException;
+    default boolean addAll(Collection<V> newValues) throws SchemaException {
+        return addAll(newValues, DEFAULT_FOR_EQUALS);
+    }
 
     /**
      * Adds given values, with the same semantics as repeated add(..) calls.
@@ -332,27 +345,17 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return true if this item changed as a result of the call (i.e. if at least one value was really added)
      */
-    boolean addAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException;
+    boolean addAll(Collection<V> newValues, @NotNull EquivalenceStrategy strategy) throws SchemaException;
 
     /**
-     * Adds given values, with the same semantics as repeated add(..) calls.
-     * For equality testing uses given strategy.
+     * Removes values equivalent to given value from the item.
      *
-     * @return true if this item changed as a result of the call (i.e. if at least one value was really added)
+     * Note we use REAL_VALUE_CONSIDER_DIFFERENT_IDS strategy that ignores value metadata and operational
+     * data. This may or may not be good! TODO reconsider
      */
-    boolean addAll(Collection<V> newValues, boolean checkUniqueness, EquivalenceStrategy strategy) throws SchemaException;
-
-    /**
-     * Removes given value from the item.
-     *
-     * "Given value" currently means any value that is considered equivalent via REAL_VALUE equivalence strategy
-     * or a value that is considered "the same" via "representsSameValue(.., lax=false)" method.
-     *
-     * @return true if this item changed as a result of the call (i.e. if at least one value was really removed)
-     *
-     * Note that there can be more than one values removed.
-     */
-    boolean remove(V value);
+    default boolean remove(V value) {
+        return remove(value, REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+    }
 
     /**
      * Removes values equivalent to given value from the item; under specified equivalence strategy
@@ -363,11 +366,12 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     boolean remove(V value, @NotNull EquivalenceStrategy strategy);
 
     /**
-     * Removes all given values from the item. It is basically a shortcut for repeated remove(value) call.
+     * Removes all given values from the item. It is basically a shortcut for repeated
+     * {@link #remove(PrismValue, EquivalenceStrategy)} call.
      *
      * @return true if this item changed as a result of the call (i.e. if at least one value was really removed)
      */
-    boolean removeAll(Collection<V> values);
+    boolean removeAll(Collection<V> values, @NotNull EquivalenceStrategy strategy);
 
     /**
      * Removes all values from the item.
@@ -377,7 +381,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     /**
      * Replaces all values of the item by given values.
      */
-    void replaceAll(Collection<V> newValues, EquivalenceStrategy strategy) throws SchemaException;
+    void replaceAll(Collection<V> newValues, @NotNull EquivalenceStrategy strategy) throws SchemaException;
 
     /**
      * Replaces all values of the item by given value.
@@ -389,7 +393,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     //region Finding and comparing values
 
     /**
-     * Compares this item to the specified object under NOT_LITERAL strategy (if no other is pre-set).
+     * Compares this item to the specified object under DEFAULT_FOR_EQUALS (NOT_LITERAL) strategy.
      */
     @Override
     boolean equals(Object obj);
@@ -405,7 +409,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
 
     /**
-     * Computes hash code to be used under NOT_LITERAL equivalence strategy.
+     * Computes hash code to be used under DEFAULT_FOR_EQUALS (currently NOT_LITERAL) equivalence strategy.
      */
     @Override
     int hashCode();
@@ -421,65 +425,48 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     int hashCode(@NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
 
     /**
-     * @return true if the item contains a given value (by default using NOT_LITERAL strategy)
+     * @return true if the item contains a given value (by default using DEFAULT_FOR_EQUALS
+     * i.e. NOT_LITERAL strategy)
      *
      * Note that the "sameness" (ID-only value matching) is NOT considered here.
      */
-    boolean contains(V value);
+    default boolean contains(@NotNull V value) {
+        return findValue(value, DEFAULT_FOR_EQUALS) != null;
+    }
 
     /**
      * @return true if the item contains a given value under specified equivalence strategy
      *
      * Note that the "sameness" (ID-only value matching) is NOT considered here.
      */
-    boolean contains(V value, @NotNull EquivalenceStrategy strategy);
-
-    /**
-     * @return true if the item contains a given value using comparator (if not null) or
-     * under specified equivalence strategy (if comparator is null).
-     *
-     * Note that the "sameness" (ID-only value matching) is NOT considered here.
-     */
-    boolean contains(V value, @Nullable EquivalenceStrategy strategy, @Nullable Comparator<V> comparator);
-
-    @Experimental
-    V findValue (V value, @Nullable EquivalenceStrategy strategy, @Nullable Comparator<V> comparator);
-
-    /**
-     * @return true if the item contains an equivalent value (the same as {@link #containsEquivalentValue(PrismValue, Comparator)}
-     * with comparator being IGNORE_METADATA_CONSIDER_DIFFERENT_IDS)
-     */
-    default boolean containsEquivalentValue(V value) {
-        return containsEquivalentValue(value, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.prismValueComparator());
+    default boolean contains(@NotNull V value, @NotNull EquivalenceStrategy strategy) {
+        return findValue(value, strategy) != null;
     }
-
-    /**
-     * @return true if the item contains an equivalent value under given strategy
-     */
-    boolean containsEquivalentValue(V value, @NotNull Comparator<V> comparator);
 
     /**
      * @return a value of this item that is equivalent to the given one under given equivalence strategy
      * (or null if no such value exists)
      */
-    V findValue(V value, @NotNull EquivalenceStrategy strategy);
-
-    /**
-     * @return true if the values of this item match the "matchValues" collection, under given comparator.
-     *
-     * If comparator is null the default equals(..) comparison is used.
-     */
-    default boolean valuesEqual(Collection<V> matchValues, @NotNull Comparator<V> comparator) {
-        return MiscUtil.unorderedCollectionCompare(getValues(), matchValues, comparator);
+    default V findValue(@NotNull V value, @NotNull EquivalenceStrategy strategy) {
+        return findValue(value, strategy.prismValueComparator());
     }
 
     /**
-     * Computes a difference (delta) with the specified item using IGNORE_METADATA_CONSIDER_DIFFERENT_IDS equivalence strategy.
+     * @return a value of this item that is equivalent to the given one under given comparator
+     * (or null if no such value exists)
+     */
+    default V findValue(V value, @NotNull Comparator<V> comparator) {
+        return MiscUtil.find(getValues(), value, comparator);
+    }
+
+    /**
+     * Computes a difference (delta) with the specified item using DEFAULT_FOR_DELTA_APPLICATION
+     * (IGNORE_METADATA_CONSIDER_DIFFERENT_IDS) equivalence strategy.
      *
      * Compares item values only -- does NOT dive into lower levels.
      */
     default ItemDelta<V,D> diff(Item<V,D> other) {
-        return diff(other, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DIFF);
+        return diff(other, ParameterizedEquivalenceStrategy.FOR_DELTA_ADD_APPLICATION);
     }
 
     /**
@@ -492,7 +479,15 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     //endregion
 
-    Collection<V> getClonedValues();
+    default Collection<V> getClonedValues() {
+        List<V> values = getValues();
+        Collection<V> clonedValues = new ArrayList<>(values.size());
+        for (V val: values) {
+            //noinspection unchecked
+            clonedValues.add((V)val.clone());
+        }
+        return clonedValues;
+    }
 
     void normalize();
 
@@ -526,13 +521,19 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     void recomputeAllValues();
 
-    void filterValues(Function<V, Boolean> function);
+    default void filterValues(Function<V, Boolean> function) {
+        Iterator<V> iterator = getValues().iterator();
+        while (iterator.hasNext()) {
+            Boolean keep = function.apply(iterator.next());
+            if (keep == null || !keep) {
+                iterator.remove();
+            }
+        }
+    }
 
     void applyDefinition(D definition) throws SchemaException;
 
     void applyDefinition(D definition, boolean force) throws SchemaException;
-
-    void revive(PrismContext prismContext) throws SchemaException;
 
     /**
      * Literal clone.
@@ -551,7 +552,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
         Collection<T> clones = new ArrayList<>(items.size());
         for (T item: items) {
             //noinspection unchecked
-            clones.add((T)((Item<?,?>)item).clone());
+            clones.add((T) item.clone());
         }
         return clones;
     }
@@ -590,13 +591,31 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     /**
      * Returns true is all the values are raw.
      */
-    boolean isRaw();
+    default boolean isRaw() {
+        for (V val: getValues()) {
+            if (!val.isRaw()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * Returns true is at least one of the values is raw.
      */
-    boolean hasRaw();
+    default boolean hasRaw() {
+        for (V val: getValues()) {
+            if (val.isRaw()) {
+                return true;
+            }
+        }
+        return false;
+    }
 
+    /**
+     * Normally the same as {@link #hasNoValues()}. But a container is considered empty also
+     * if all its values (PCVs) are empty. This is a bit strange and should be revisited.
+     */
     default boolean isEmpty() {
         return hasNoValues();
     }
@@ -605,12 +624,10 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
         return getValues().isEmpty();
     }
 
-
     @SuppressWarnings("unused")
     static boolean hasNoValues(Item<?, ?> item) {
         return item == null || item.getValues().isEmpty();
     }
-
 
     /**
      * Returns true if this item is metadata item that should be ignored
@@ -618,11 +635,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      */
     default boolean isOperational() {
         D def = getDefinition();
-        if (def != null) {
-            return def.isOperational();
-        } else {
-            return false;
-        }
+        return def != null && def.isOperational();
     }
 
     @NotNull
@@ -644,7 +657,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     @VisibleForTesting
     PrismContext getPrismContextLocal();
 
-    void setPrismContext(PrismContext prismContext);        // todo remove
+    void setPrismContext(PrismContext prismContext); // todo remove
 
     Long getHighestId();
 }

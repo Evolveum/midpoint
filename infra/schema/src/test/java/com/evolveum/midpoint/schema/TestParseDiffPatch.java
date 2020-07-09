@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.schema;
 
 import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.NOT_LITERAL;
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.*;
 
@@ -768,7 +769,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         System.out.println("DELTA:");
         System.out.println(delta.debugDump());
 
-        ObjectDelta<SystemConfigurationType> deltaNarrowed = delta.narrow(before, NOT_LITERAL, true);
+        ObjectDelta<SystemConfigurationType> deltaNarrowed = delta.narrow(before, NOT_LITERAL, REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
         System.out.println("DELTA NARROWED:");
         System.out.println(deltaNarrowed.debugDump());
 

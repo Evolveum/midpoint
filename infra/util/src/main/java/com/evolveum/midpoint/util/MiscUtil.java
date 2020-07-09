@@ -862,4 +862,13 @@ public class MiscUtil {
                 .min(XMLGregorianCalendar::compare)
                 .orElse(null);
     }
+
+    public static <V> V find(Collection<V> values, V value, @NotNull Comparator<V> comparator) {
+        for (V current : values) {
+            if (comparator.compare(value, current) == 0) {
+                return current;
+            }
+        }
+        return null;
+    }
 }
