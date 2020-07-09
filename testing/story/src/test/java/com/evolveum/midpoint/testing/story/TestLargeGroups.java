@@ -76,11 +76,11 @@ public class TestLargeGroups extends AbstractStoryTest {
         dummyResource.setSyncStyle(DummySyncStyle.SMART);
     }
 
-    @Override
-    protected TracingProfileType getTestMethodTracingProfile() {
-        return createModelLoggingTracingProfile()
-                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-    }
+//    @Override
+//    protected TracingProfileType getTestMethodTracingProfile() {
+//        return createModelLoggingTracingProfile()
+//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+//    }
 
     @Test
     public void test000Sanity() throws Exception {
