@@ -118,8 +118,8 @@ public class M11SystemConfiguration extends AbstractLabTest {
                 + "Channel: http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync\n"
                 + "\n";
 
-        Assert.assertTrue(notification.startsWith(startOfNotification));
-        Assert.assertTrue(notification.endsWith(endOfNotification));
+        Assert.assertEquals(notification, startOfNotification);
+        Assert.assertEquals(notification, endOfNotification);
     }
 
     @Test(dependsOnMethods = {"mod11test01ConfiguringNotifications"},groups={"M11"}, dependsOnGroups={"M10"})
