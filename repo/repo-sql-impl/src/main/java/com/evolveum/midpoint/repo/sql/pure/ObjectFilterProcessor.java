@@ -19,6 +19,9 @@ public class ObjectFilterProcessor implements FilterProcessor<ObjectFilter> {
         if (filter instanceof NaryLogicalFilter) {
             return new NaryLogicalFilterProcessor(context)
                     .process((NaryLogicalFilter) filter);
+        } else if (filter instanceof NotFilter) {
+            return new NotFilterProcessor(context)
+                    .process((NotFilter) filter);
         } else if (filter instanceof PropertyValueFilter) {
             return new PropertyValueFilterProcessor(context)
                     .process((PropertyValueFilter<?>) filter);

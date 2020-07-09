@@ -17,6 +17,13 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
+/**
+ * Type of {@link FilterProcessor} for a single Prism item (not necessarily one SQL column).
+ * These are executed as "leafs" of filter processing tree returning terminal predicates.
+ * These are used in {@link QueryModelMapping} objects.
+ * This superclass contains support methods for determining operator from filter,
+ * getting single value and other typical operations needed by item filter processors.
+ */
 public abstract class ItemFilterProcessor<O extends ObjectFilter>
         implements FilterProcessor<O> {
 
