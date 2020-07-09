@@ -7,6 +7,16 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
+import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Embeddable;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
@@ -15,16 +25,6 @@ import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-
-import javax.persistence.Column;
-import javax.persistence.Embeddable;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.xml.datatype.XMLGregorianCalendar;
 
 @Embeddable
 @JaxbType(type = ActivationType.class)
@@ -135,29 +135,29 @@ public class RActivation {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         RActivation that = (RActivation) o;
 
-        if (validFrom != null ? !validFrom.equals(that.validFrom) : that.validFrom != null) return false;
-        if (validTo != null ? !validTo.equals(that.validTo) : that.validTo != null) return false;
+        if (validFrom != null ? !validFrom.equals(that.validFrom) : that.validFrom != null) { return false; }
+        if (validTo != null ? !validTo.equals(that.validTo) : that.validTo != null) { return false; }
         if (administrativeStatus != null ? !administrativeStatus.equals(that.administrativeStatus) :
-                that.administrativeStatus != null) return false;
+                that.administrativeStatus != null) { return false; }
         if (effectiveStatus != null ? !effectiveStatus.equals(that.effectiveStatus) :
-                that.effectiveStatus != null) return false;
+                that.effectiveStatus != null) { return false; }
         if (validityStatus != null ? !validityStatus.equals(that.validityStatus) :
-                that.validityStatus != null) return false;
+                that.validityStatus != null) { return false; }
         if (archiveTimestamp != null ? !archiveTimestamp.equals(that.archiveTimestamp) :
-                that.archiveTimestamp != null) return false;
+                that.archiveTimestamp != null) { return false; }
         if (disableTimestamp != null ? !disableTimestamp.equals(that.disableTimestamp) :
-                that.disableTimestamp != null) return false;
+                that.disableTimestamp != null) { return false; }
         if (enableTimestamp != null ? !enableTimestamp.equals(that.enableTimestamp) :
-                that.enableTimestamp != null) return false;
+                that.enableTimestamp != null) { return false; }
         if (validityChangeTimestamp != null ? !validityChangeTimestamp.equals(that.validityChangeTimestamp) :
-                that.validityChangeTimestamp != null) return false;
+                that.validityChangeTimestamp != null) { return false; }
         if (disableReason != null ? !disableReason.equals(that.disableReason) :
-                that.disableReason != null) return false;
+                that.disableReason != null) { return false; }
 
         return true;
     }
@@ -184,8 +184,8 @@ public class RActivation {
 
     public static void fromJaxb(ActivationType jaxb, RActivation repo, RepositoryContext repositoryContext) throws
             DtoTranslationException {
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
 
         repo.setAdministrativeStatus(RUtil.getRepoEnumValue(jaxb.getAdministrativeStatus(), RActivationStatus.class));
         repo.setEffectiveStatus(RUtil.getRepoEnumValue(jaxb.getEffectiveStatus(), RActivationStatus.class));
@@ -201,8 +201,8 @@ public class RActivation {
     }
 
     public static void copyToJAXB(RActivation repo, ActivationType jaxb, PrismContext prismContext) {
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
 
         if (repo.getAdministrativeStatus() != null) {
             jaxb.setAdministrativeStatus(repo.getAdministrativeStatus().getSchemaValue());

@@ -7,9 +7,10 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 
+import java.util.Objects;
+
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
-import org.apache.commons.lang.Validate;
 
 /**
  * @author mederly
@@ -20,7 +21,7 @@ public class NotCondition extends Condition {
 
     public NotCondition(RootHibernateQuery rootHibernateQuery, Condition child) {
         super(rootHibernateQuery);
-        Validate.notNull(child, "child");
+        Objects.requireNonNull(child, "child");
         this.child = child;
     }
 
@@ -33,8 +34,8 @@ public class NotCondition extends Condition {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         NotCondition that = (NotCondition) o;
 

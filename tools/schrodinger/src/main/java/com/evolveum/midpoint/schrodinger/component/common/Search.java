@@ -30,6 +30,10 @@ public class Search<T> extends Component<T> {
     public SearchItemField<Search<T>> byName() {
         choiceBasicSearch();
         SelenideElement nameElement = getItemByName("Name");
+        if (nameElement == null){
+            addSearchItem("Name");
+            nameElement = getItemByName("Name");
+        }
         SelenideElement nameInput = nameElement.parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new SearchItemField(this, nameInput);

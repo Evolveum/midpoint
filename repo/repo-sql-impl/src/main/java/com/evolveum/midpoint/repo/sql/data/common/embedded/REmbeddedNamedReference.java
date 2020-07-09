@@ -13,9 +13,8 @@ import javax.persistence.Embeddable;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -84,8 +83,8 @@ public class REmbeddedNamedReference extends REmbeddedReference {
     }
 
     public static void copyToJAXB(REmbeddedNamedReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
         REmbeddedReference.copyToJAXB(repo, jaxb, prismContext);
 
         jaxb.setTargetName(RPolyString.copyToJAXB(repo.getTargetName(), prismContext));

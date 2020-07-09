@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Evolveum and contributors
+ * Copyright (c) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -116,9 +116,7 @@ public class AuditController implements ModelAuditService {
             return objectFromLastEvent;
         }
 
-        PrismObject<O> reconstructedObject = rollBackTime(currentObject.clone(), changeTrail);
-
-        return reconstructedObject;
+        return rollBackTime(currentObject.clone(), changeTrail);
     }
 
     private List<AuditEventRecord> getChangeTrail(String targetOid, String finalEventIdentifier, OperationResult result) throws ObjectNotFoundException {
@@ -205,24 +203,22 @@ public class AuditController implements ModelAuditService {
                 LOGGER.trace("Applying event {} ({})", event.getEventIdentifier(), XmlTypeConverter.createXMLGregorianCalendar(event.getTimestamp()));
             }
             Collection<ObjectDeltaOperation<? extends ObjectType>> deltaOperations = event.getDeltas();
-            if (deltaOperations != null) {
-                for (ObjectDeltaOperation<? extends ObjectType> deltaOperation: deltaOperations) {
-                    ObjectDelta<O> objectDelta = (ObjectDelta<O>) deltaOperation.getObjectDelta();
-                    if (!isApplicable(deltaOperation, object, event)) {
-                        continue;
-                    }
-                    if (objectDelta.isDelete()) {
-                        throw new SchemaException("Delete delta found in the audit trail. Object history cannot be reconstructed.");
-                    }
-                    if (objectDelta.isAdd()) {
-                        throw new SchemaException("Add delta found in the audit trail. Object history cannot be reconstructed.");
-                    }
-                    ObjectDelta<O> reverseDelta = objectDelta.createReverseDelta();
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Applying delta (reverse):\n{}", reverseDelta.debugDump(1));
-                    }
-                    reverseDelta.applyTo(object);
+            for (ObjectDeltaOperation<? extends ObjectType> deltaOperation: deltaOperations) {
+                ObjectDelta<O> objectDelta = (ObjectDelta<O>) deltaOperation.getObjectDelta();
+                if (!isApplicable(deltaOperation, object, event)) {
+                    continue;
                 }
+                if (objectDelta.isDelete()) {
+                    throw new SchemaException("Delete delta found in the audit trail. Object history cannot be reconstructed.");
+                }
+                if (objectDelta.isAdd()) {
+                    throw new SchemaException("Add delta found in the audit trail. Object history cannot be reconstructed.");
+                }
+                ObjectDelta<O> reverseDelta = objectDelta.createReverseDelta();
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Applying delta (reverse):\n{}", reverseDelta.debugDump(1));
+                }
+                reverseDelta.applyTo(object);
             }
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Object after application of event {} ({}):\n{}", event.getEventIdentifier(),
