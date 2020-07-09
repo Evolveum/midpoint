@@ -7,17 +7,17 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 /**
  * SQL path context with mapping information.
  */
-public class SqlPathContext {
+public class SqlPathContext<Q extends EntityPath<R>, R> {
 
-    private final EntityPath<?> path;
-    private final QueryModelMapping<?, ?> mapping;
+    private final Q path;
+    private final QueryModelMapping<?, Q, R> mapping;
 
-    public SqlPathContext(EntityPath<?> path, QueryModelMapping<?, ?> mapping) {
+    public SqlPathContext(Q path, QueryModelMapping<?, Q, R> mapping) {
         this.path = path;
         this.mapping = mapping;
     }
 
-    public EntityPath<?> path() {
+    public Q path() {
         return path;
     }
 
@@ -25,7 +25,7 @@ public class SqlPathContext {
         return pathType.cast(path);
     }
 
-    public QueryModelMapping<?, ?> mapping() {
+    public QueryModelMapping<?, Q, R> mapping() {
         return mapping;
     }
 }

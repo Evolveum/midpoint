@@ -24,20 +24,19 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
  * Works as a kind of accumulator where information are added as the object query is interpreted.
  * It is also used as an entry point for {@link FilterProcessor} execution for this query.
  */
-public class SqlQueryContext extends SqlPathContext implements FilterProcessor<ObjectFilter> {
+public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<Q, R>
+        implements FilterProcessor<ObjectFilter> {
 
     public static final int DEFAULT_PAGE_SIZE = 10;
 
     private final SQLQuery<?> query;
 
-    public SqlQueryContext(
-            EntityPath<?> root,
-            QueryModelMapping<?, ?> rootMapping) {
+    public SqlQueryContext(Q root, QueryModelMapping<?, Q, R> rootMapping) {
         super(root, rootMapping);
         query = new SQLQuery<>(QUERYDSL_CONFIGURATION).from(root);
     }
 
-    public EntityPath<?> root() {
+    public Q root() {
         return path();
     }
 
@@ -47,10 +46,6 @@ public class SqlQueryContext extends SqlPathContext implements FilterProcessor<O
 
     public SQLQuery<?> query(Connection connection) {
         return query.clone(connection);
-    }
-
-    public void addPredicate(Predicate predicate) {
-        query.where(predicate);
     }
 
     @Override

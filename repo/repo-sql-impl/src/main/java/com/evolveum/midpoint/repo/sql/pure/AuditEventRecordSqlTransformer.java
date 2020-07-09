@@ -19,13 +19,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 /**
  * Simple class with methods for audit event transformation between repo and Prism world.
  */
-public class AuditEventRecordSqlTransformer extends SqlTransformerBase {
+public class AuditEventRecordSqlTransformer
+        extends SqlTransformer<AuditEventRecordType, MAuditEventRecord> {
 
     public AuditEventRecordSqlTransformer(PrismContext prismContext) {
         super(prismContext);
     }
 
-    public AuditEventRecordType toAuditEventRecordType(MAuditEventRecord row) {
+    public AuditEventRecordType toSchemaObject(MAuditEventRecord row) {
         AuditEventRecordType record = new AuditEventRecordType()
                 .channel(row.channel)
                 .eventIdentifier(row.eventIdentifier)

@@ -3,17 +3,20 @@ package com.evolveum.midpoint.repo.sql.pure.mapping;
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.*;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
+import com.evolveum.midpoint.repo.sql.pure.AuditEventRecordSqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 /**
  * Mapping between {@link QAuditEventRecord} and {@link AuditEventRecordType}.
  */
 public class QAuditEventRecordMapping
-        extends QueryModelMapping<AuditEventRecordType, QAuditEventRecord> {
+        extends QueryModelMapping<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
 
     public static final String DEFAULT_ALIAS_NAME = "aer";
 
@@ -62,5 +65,10 @@ public class QAuditEventRecordMapping
 
         // TODO rest of items/attrs/columns
 
+    }
+
+    @Override
+    public AuditEventRecordSqlTransformer createTransformer(PrismContext prismContext) {
+        return new AuditEventRecordSqlTransformer(prismContext);
     }
 }

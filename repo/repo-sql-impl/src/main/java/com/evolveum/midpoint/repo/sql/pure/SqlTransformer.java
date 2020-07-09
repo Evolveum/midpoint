@@ -10,13 +10,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 /**
  * Base class for SQL transformers translating from query beans or tuples to model types.
  */
-public abstract class SqlTransformerBase {
+public abstract class SqlTransformer<M, R> {
 
     protected final PrismContext prismContext;
 
-    protected SqlTransformerBase(PrismContext prismContext) {
+    protected SqlTransformer(PrismContext prismContext) {
         this.prismContext = prismContext;
     }
+
+    public abstract M toSchemaObject(R row);
 
     /**
      * Returns {@link ObjectReferenceType} with specified oid, proper type based on

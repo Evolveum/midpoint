@@ -10,10 +10,12 @@ import com.querydsl.core.types.Path;
 import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
 import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
+import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.util.QNameUtil;
 
@@ -31,8 +33,12 @@ import com.evolveum.midpoint.util.QNameUtil;
  *     <li>Map objects from Q-type to prism and back.
  *     This is done by code, possibly static method from a DTO "assembler" class.</li>
  * </ul>
+ *
+ * @param <M> model type
+ * @param <Q> entity type (entity path or type R)
+ * @param <R> row/bean type used by the Q-class
  */
-public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
+public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
 
     private final String tableName;
     private final String defaultAliasName;
@@ -69,7 +75,7 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
         }
     }
 
-    public QueryModelMapping<M, Q> add(ColumnMetadata column) {
+    public QueryModelMapping<M, Q, R> add(ColumnMetadata column) {
         columns.put(column.getName(), column);
         return this;
     }
@@ -164,6 +170,8 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<?>> {
         }
         return defaultAlias;
     }
+
+    public abstract SqlTransformer<M,R> createTransformer(PrismContext prismContext);
 
     // TODO extension columns + null default alias after every change - synchronized!
 }
