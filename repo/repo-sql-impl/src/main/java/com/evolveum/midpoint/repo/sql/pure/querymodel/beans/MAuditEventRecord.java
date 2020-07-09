@@ -11,7 +11,6 @@ import java.util.*;
 
 /**
  * Querydsl "row bean" type related to {@code QAuditEventRecord}.
- * Usable only for built-in low-level queries without extension columns.
  */
 @SuppressWarnings("unused")
 public class MAuditEventRecord {
