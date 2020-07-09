@@ -90,7 +90,7 @@ public class SqlQueryExecutor {
             SQLQuery<Tuple> query = context.query(conn)
                     .select(Projections.tuple(root));
             // TODO logging
-            System.out.println("query = " + query);
+            System.out.println("SQL query = " + query);
             long count = query.fetchCount();
 
             List<Tuple> data = query.fetch();
