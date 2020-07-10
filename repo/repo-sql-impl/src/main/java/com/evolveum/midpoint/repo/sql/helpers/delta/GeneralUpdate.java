@@ -19,7 +19,7 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityPair;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
-import com.evolveum.midpoint.repo.sql.util.PrismIdentifierGenerator;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
@@ -48,200 +50,232 @@ import static com.evolveum.midpoint.repo.sql.helpers.modify.DeltaUpdaterUtils.*;
 class GeneralUpdate extends BaseUpdate {
 
     private static final Trace LOGGER = TraceManager.getTrace(GeneralUpdate.class);
+
     private final PrismObject<? extends ObjectType> prismObject;
-    private final ManagedType<? extends ObjectType> mainEntityType;
+
+    private final ItemPath path;
+    private final Iterator<?> segmentsIterator;
+
+    private Object currentBean;
+    private ManagedType<?> currentBeanType;
+    private ItemName currentItemName;
 
     <T extends ObjectType> GeneralUpdate(RObject object, ItemDelta<?, ?> delta, PrismObject<T> prismObject, ManagedType<T> mainEntityType, UpdateContext ctx) {
         super(object, delta, ctx);
+        this.path = delta.getPath();
+        this.segmentsIterator = path.getSegments().iterator();
         this.prismObject = prismObject;
-        this.mainEntityType = mainEntityType;
+        this.currentBean = object;
+        this.currentBeanType = mainEntityType;
     }
 
     void handleItemDelta() throws SchemaException {
-        TypeValuePair currentValueTypePair = new TypeValuePair();
-        currentValueTypePair.type = mainEntityType;
-        currentValueTypePair.value = object;
-
-        ItemPath path = delta.getPath();
-        Iterator<?> segments = path.getSegments().iterator();
-        while (segments.hasNext()) {
-            Object segment = segments.next();
-            if (!ItemPath.isName(segment)) {
-                LOGGER.trace("Segment {} in path {} is not name item, finishing entity update for delta", segment, path);
+        while (segmentsIterator.hasNext()) {
+            Object currentPathSegment = segmentsIterator.next();
+            if (!ItemPath.isName(currentPathSegment)) {
+                // TODO Why is this? Shouldn't we throw an exception instead?
+                LOGGER.trace("Segment {} in path {} is not name item, finishing entity update for delta", currentPathSegment, path);
                 break;
             }
 
-            ItemName name = ItemPath.toName(segment);
-            String nameLocalPart = name.getLocalPart();
-
-            if (currentValueTypePair.value instanceof RAssignment) {
-                RAssignment assignment = (RAssignment) currentValueTypePair.value;
-                if (QNameUtil.match(name, AssignmentType.F_EXTENSION)) {
-                    if (segments.hasNext()) {
-                        AssignmentExtensionUpdate extensionUpdate = new AssignmentExtensionUpdate(object, assignment, delta, ctx);
-                        extensionUpdate.handleItemDelta();
-                    } else {
-                        AssignmentExtensionUpdate.handleWholeContainerDelta(object, assignment, delta, ctx);
-                    }
+            currentItemName = ItemPath.toName(currentPathSegment);
+            if (currentBean instanceof RAssignment) {
+                if (handleAssignment(currentItemName)) {
                     break;
-                } else if (QNameUtil.match(name, AssignmentType.F_METADATA)) {
-                    if (!segments.hasNext()) {
-                        MetadataUpdate metadataUpdate = new MetadataUpdate(object, assignment, delta, ctx);
-                        metadataUpdate.handleWholeContainerDelta();
-                        break;
-                    }
                 }
             }
 
-            Attribute attribute = findAttribute(currentValueTypePair, nameLocalPart, segments, name);
+            Attribute attribute = findAttributeForCurrentState();
             if (attribute == null) {
                 // there's no table/column that needs update
                 break;
             }
 
-            if (segments.hasNext()) {
-                stepThroughAttribute(attribute, currentValueTypePair, segments);
-                continue;
-            }
-
-            handleAttribute(attribute, currentValueTypePair.value, delta, prismObject, ctx.idGenerator);
-
-            if ("name".equals(attribute.getName()) && RObject.class
-                    .isAssignableFrom(attribute.getDeclaringType().getJavaType())) {
-                // we also need to handle "nameCopy" column, we doesn't need path/segments/nameSegment for this call
-                Attribute nameCopyAttribute = findAttribute(currentValueTypePair, "nameCopy", null, null);
-                assert nameCopyAttribute != null;
-                handleAttribute(nameCopyAttribute, currentValueTypePair.value, delta, prismObject, ctx.idGenerator);
+            if (segmentsIterator.hasNext()) {
+                stepThroughAttribute(attribute);
+            } else {
+                updateAttribute(attribute);
+                updateNameCopyAttribute(attribute);
             }
         }
     }
 
-    private Attribute findAttribute(TypeValuePair typeValuePair, String nameLocalPart, Iterator<?> segments, ItemName name) {
-        Attribute attribute = beans.entityRegistry.findAttribute(typeValuePair.type, nameLocalPart);
+    private void updateNameCopyAttribute(Attribute attribute) {
+        if ("name".equals(attribute.getName()) &&
+                RObject.class.isAssignableFrom(attribute.getDeclaringType().getJavaType())) {
+            Attribute nameCopyAttribute = findAttributeForName("nameCopy");
+            assert nameCopyAttribute != null;
+            updateAttribute(nameCopyAttribute);
+        }
+    }
+
+    /**
+     * @return true if the delta is completely handled
+     */
+    private boolean handleAssignment(ItemName name) throws SchemaException {
+        RAssignment assignment = (RAssignment) currentBean;
+        if (QNameUtil.match(name, AssignmentType.F_EXTENSION)) {
+            if (segmentsIterator.hasNext()) {
+                AssignmentExtensionUpdate extensionUpdate = new AssignmentExtensionUpdate(object, assignment, delta, ctx);
+                extensionUpdate.handleItemDelta();
+            } else {
+                AssignmentExtensionUpdate.handleWholeContainerDelta(object, assignment, delta, ctx);
+            }
+            return true;
+        } else if (QNameUtil.match(name, AssignmentType.F_METADATA)) {
+            if (!segmentsIterator.hasNext()) {
+                MetadataUpdate metadataUpdate = new MetadataUpdate(object, assignment, delta, ctx);
+                metadataUpdate.handleWholeContainerDelta();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private Attribute findAttributeForCurrentState() {
+        Attribute attribute = findAttributeForName(currentItemName.getLocalPart());
         if (attribute != null) {
             return attribute;
-        }
-
-        Attribute<?, ?> attributeOverride = beans.entityRegistry.findAttributeOverride(typeValuePair.type, nameLocalPart);
-        if (attributeOverride != null) {
-            return attributeOverride;
-        }
-
-        if (!segments.hasNext()) {
+        } else if (segmentsIterator.hasNext()) {
+            return findAttributePathOverrideIfExists();
+        } else {
             return null;
         }
+    }
 
-        // try to search path overrides like metadata/* or assignment/metadata/* or assignment/construction/resourceRef
-        Object segment;
-        ItemPath subPath = name;
-        while (segments.hasNext()) {
-            if (!beans.entityRegistry.hasAttributePathOverride(typeValuePair.type, subPath)) {
+    private Attribute findAttributeForName(String name) {
+        Attribute attribute = beans.entityRegistry.findAttribute(currentBeanType, name);
+        if (attribute != null) {
+            return attribute;
+        } else {
+            return beans.entityRegistry.findAttributeOverride(currentBeanType, name);
+        }
+    }
+
+    // try to search path overrides like metadata/* or assignment/metadata/* or assignment/construction/resourceRef
+    @Nullable
+    private Attribute findAttributePathOverrideIfExists() {
+        ItemPath subPath = currentItemName;
+        while (segmentsIterator.hasNext()) {
+            if (beans.entityRegistry.hasAttributePathOverride(currentBeanType, subPath)) {
+                Object nextSegment = segmentsIterator.next();
+                if (ItemPath.isName(nextSegment)) {
+                    subPath = subPath.append(nextSegment);
+                } else {
+                    // TODO is this ok?
+                    return null;
+                }
+            } else {
                 subPath = subPath.allUpToLastName();
                 break;
             }
-
-            segment = segments.next();
-            if (!ItemPath.isName(segment)) {
-                return null;
-            }
-            subPath = subPath.append(segment);
         }
 
-        return beans.entityRegistry.findAttributePathOverride(typeValuePair.type, subPath);
+        return beans.entityRegistry.findAttributePathOverride(currentBeanType, subPath);
     }
 
-    private void stepThroughAttribute(Attribute attribute, TypeValuePair step, Iterator<?> segments) {
+    private void stepThroughAttribute(Attribute attribute) {
         Method method = (Method) attribute.getJavaMember();
 
         switch (attribute.getPersistentAttributeType()) {
             case EMBEDDED:
-                step.type = beans.entityRegistry.getMapping(attribute.getJavaType());
-                Object child = invoke(step.value, method);
-                if (child == null) {
-                    // embedded entity doesn't exist we have to create it first, so it can be populated later
-                    Class childType = getRealOutputType(attribute);
-                    try {
-                        child = childType.newInstance();
-                        PropertyUtils.setSimpleProperty(step.value, attribute.getName(), child);
-                    } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
-                        throw new SystemException("Couldn't create new instance of '" + childType.getName()
-                                + "', attribute '" + attribute.getName() + "'", ex);
-                    }
-                }
-                step.value = child;
+                stepIntoSingleValue(attribute, method);
                 break;
             case ONE_TO_MANY:
                 // object extension is handled separately, only {@link Container} and references are handled here
-                Class clazz = getRealOutputType(attribute);
-
-                Long id = ItemPath.toId(segments.next());
-
-                Collection c = (Collection) invoke(step.value, method);
-                if (!Container.class.isAssignableFrom(clazz)) {
-                    throw new SystemException("Don't know how to go through collection of '" + getRealOutputType(attribute) + "'");
-                }
-
-                boolean found = false;
-                //noinspection unchecked
-                for (Container o : (Collection<Container>) c) {
-                    long l = o.getId().longValue();
-                    if (l == id) {
-                        step.type = beans.entityRegistry.getMapping(clazz);
-                        step.value = o;
-
-                        found = true;
-                        break;
-                    }
-                }
-
-                if (!found) {
-                    throw new RuntimeException("Couldn't find container of type '" + getRealOutputType(attribute)
-                            + "' with id '" + id + "'");
-                }
+                Long id = ItemPath.toId(segmentsIterator.next());
+                stepIntoContainerValue(attribute, method, id);
+                break;
+            case MANY_TO_ONE:
                 break;
             case ONE_TO_ONE:
                 // assignment extension is handled separately
+                break;
+            case BASIC:
+            case MANY_TO_MANY:
+            case ELEMENT_COLLECTION:
                 break;
             default:
                 // nothing to do for other cases
         }
     }
 
-    private void handleAttribute(Attribute attribute, Object bean, ItemDelta delta, PrismObject prismObject, PrismIdentifierGenerator idGenerator) {
+    private void stepIntoSingleValue(Attribute attribute, Method method) {
+        Object child = invoke(method);
+        if (child != null) {
+            currentBean = child;
+        } else {
+            currentBean = createAndSetNewAttributeValue(attribute);
+        }
+        //noinspection unchecked
+        currentBeanType = beans.entityRegistry.getMapping(attribute.getJavaType());
+    }
+
+    // embedded entity doesn't exist, so we have to create it first in order to be populated later
+    @NotNull
+    private Object createAndSetNewAttributeValue(Attribute attribute) {
+        Class<?> childType = getAttributeValueType(attribute);
+        try {
+            Object child = childType.getDeclaredConstructor().newInstance();
+            PropertyUtils.setSimpleProperty(currentBean, attribute.getName(), child);
+            return child;
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException ex) {
+            throw new SystemException("Couldn't create new instance of '" + childType.getName()
+                    + "', attribute '" + attribute.getName() + "'", ex);
+        }
+    }
+
+    private void stepIntoContainerValue(Attribute attribute, Method method, Long id) {
+        Class clazz = getAttributeValueType(attribute);
+        Collection c = (Collection) invoke(method);
+        if (!Container.class.isAssignableFrom(clazz)) {
+            throw new SystemException("Don't know how to go through collection of '" + getAttributeValueType(attribute) + "'");
+        }
+
+        //noinspection unchecked
+        for (Container o : (Collection<Container>) c) {
+            long l = o.getId().longValue();
+            if (l == id) {
+                currentBean = o;
+                //noinspection unchecked
+                currentBeanType = beans.entityRegistry.getMapping(clazz);
+                return;
+            }
+        }
+
+        throw new RuntimeException("Couldn't find container of type '" + getAttributeValueType(attribute)
+                + "' with id '" + id + "'");
+    }
+
+    private void updateAttribute(Attribute attribute) {
         Method method = (Method) attribute.getJavaMember();
 
         switch (attribute.getPersistentAttributeType()) {
             case BASIC:
             case EMBEDDED:
-                handleBasicOrEmbedded(bean, delta, attribute);
+                updateBasicOrEmbedded(attribute);
                 break;
             case MANY_TO_MANY:
                 // not used in our mappings
                 throw new SystemException("Don't know how to handle @ManyToMany relationship, should not happen");
             case ONE_TO_ONE:
-                // assignment extension is handled separately
+                // assignment extension was handled separately
                 break;
             case MANY_TO_ONE:
                 // this can't be in delta (probably)
                 throw new SystemException("Don't know how to handle @ManyToOne relationship, should not happen");
             case ONE_TO_MANY:
-                // object extension is handled separately, only {@link Container} and references are handled here
-                Collection oneToMany = (Collection) invoke(bean, method);
-                handleOneToMany(oneToMany, delta, attribute, bean, prismObject, idGenerator);
-                break;
             case ELEMENT_COLLECTION:
-                Collection elementCollection = (Collection) invoke(bean, method);
-                handleElementCollection(elementCollection, delta, attribute, bean, prismObject, idGenerator);
+                // object extension is handled separately, only {@link Container} and references are handled here
+                Collection collection = (Collection) invoke(method);
+                updateOneToMany(collection, getAttributeValueType(attribute));
                 break;
         }
     }
 
-    private void handleBasicOrEmbedded(Object bean, ItemDelta<?, ?> delta, Attribute attribute) {
-        Class outputType = getRealOutputType(attribute);
-
+    private void updateBasicOrEmbedded(Attribute attribute) {
         PrismValue prismValue;
         if (delta.isAdd()) {
-            assert !delta.getValuesToAdd().isEmpty();
             prismValue = getSingleValue(attribute, delta.getValuesToAdd());
         } else if (delta.isReplace()) {
             if (!delta.getValuesToReplace().isEmpty()) {
@@ -255,17 +289,18 @@ class GeneralUpdate extends BaseUpdate {
             prismValue = null;
         } else {
             // This should not occur. The narrowing process eliminates empty deltas.
-            LOGGER.warn("Empty delta {} for attribute {} of {} -- skipping it", delta, attribute.getName(), bean.getClass().getName());
+            LOGGER.warn("Empty delta {} for attribute {} of {} -- skipping it", delta, attribute.getName(), currentBean.getClass().getName());
             return;
         }
 
         Object value = prismValue != null ? prismValue.getRealValue() : null;
+        Class attributeValueType = getAttributeValueType(attribute);
 
         //noinspection unchecked
-        Object valueMapped = beans.prismEntityMapper.map(value, outputType);
+        Object valueMapped = beans.prismEntityMapper.map(value, attributeValueType);
 
         try {
-            PropertyUtils.setSimpleProperty(bean, attribute.getName(), valueMapped);
+            PropertyUtils.setSimpleProperty(currentBean, attribute.getName(), valueMapped);
         } catch (Exception ex) {
             throw new SystemException("Couldn't set simple property for '" + attribute.getName() + "'", ex);
         }
@@ -286,66 +321,55 @@ class GeneralUpdate extends BaseUpdate {
         return uniqueValues.iterator().next();
     }
 
-    private void handleElementCollection(Collection collection, ItemDelta delta, Attribute attribute, Object bean, PrismObject prismObject, PrismIdentifierGenerator idGenerator) {
-        handleOneToMany(collection, delta, attribute, bean, prismObject, idGenerator);
-    }
-
-    private void handleOneToMany(Collection collection, ItemDelta delta, Attribute attribute, Object bean, PrismObject prismObject, PrismIdentifierGenerator idGenerator) {
-        Class outputType = getRealOutputType(attribute);
+    private void updateOneToMany(Collection collection, Class attributeValueType) {
 
         Item item = prismObject.findItem(delta.getPath());
 
         // handle replace
         if (delta.isReplace()) {
+            Collection<PrismEntityPair> valuesToReplace = convertToPrismEntityPairs(delta.getValuesToReplace(), attributeValueType);
             //noinspection unchecked
-            Collection<PrismEntityPair<?>> valuesToReplace = processDeltaValues(delta.getValuesToReplace(), outputType, delta, bean);
-            replaceValues(collection, valuesToReplace, item, idGenerator);
+            replaceValues(collection, (Collection) valuesToReplace, item, ctx.idGenerator);
 
         } else {
 
             // handle add
             if (delta.isAdd()) {
+                Collection<PrismEntityPair> valuesToAdd = convertToPrismEntityPairs(delta.getValuesToAdd(), attributeValueType);
                 //noinspection unchecked
-                Collection<PrismEntityPair<?>> valuesToAdd = processDeltaValues(delta.getValuesToAdd(), outputType, delta, bean);
-                addValues(collection, valuesToAdd, idGenerator);
+                addValues(collection, (Collection) valuesToAdd, ctx.idGenerator);
             }
 
             // handle delete
             if (delta.isDelete()) {
-                //noinspection unchecked
-                Collection<PrismEntityPair<?>> valuesToDelete = processDeltaValues(delta.getValuesToDelete(), outputType, delta, bean);
+                Collection<PrismEntityPair> valuesToDelete = convertToPrismEntityPairs(delta.getValuesToDelete(), attributeValueType);
                 valuesToDelete.forEach(pair -> {
                     if (pair.getRepository() instanceof EntityState) {
                         ((EntityState) pair.getRepository()).setTransient(false);
                     }
                 });
-                deleteValues(collection, valuesToDelete, item);
+                //noinspection unchecked
+                deleteValues(collection, (Collection) valuesToDelete, item);
             }
         }
     }
 
-    private Collection<PrismEntityPair> processDeltaValues(Collection<? extends PrismValue> values, Class outputType,
-            ItemDelta delta, Object bean) {
-        if (values == null) {
-            return new ArrayList<>();
-        }
-
-        Collection<PrismEntityPair> results = new ArrayList<>();
-        for (PrismValue value : values) {
+    private Collection<PrismEntityPair> convertToPrismEntityPairs(Collection<? extends PrismValue> values, Class outputType) {
+        Collection<PrismEntityPair> pairs = new ArrayList<>();
+        for (PrismValue value : MiscUtil.emptyIfNull(values)) {
             MapperContext context = new MapperContext();
             context.setRepositoryContext(beans.createRepositoryContext());
             context.setDelta(delta);
-            context.setOwner(bean);
+            context.setOwner(currentBean);
 
             //noinspection unchecked
             Object result = beans.prismEntityMapper.mapPrismValue(value, outputType, context);
-            results.add(new PrismEntityPair<>(value, result));
+            pairs.add(new PrismEntityPair<>(value, result));
         }
-
-        return results;
+        return pairs;
     }
 
-    private Class getRealOutputType(Attribute attribute) {
+    private Class getAttributeValueType(Attribute attribute) {
         Class type = attribute.getJavaType();
         if (!Collection.class.isAssignableFrom(type)) {
             return type;
@@ -356,17 +380,16 @@ class GeneralUpdate extends BaseUpdate {
         Type t = parametrized.getActualTypeArguments()[0];
         if (t instanceof Class) {
             return (Class) t;
+        } else {
+            return (Class) ((ParameterizedType) t).getRawType();
         }
-
-        parametrized = (ParameterizedType) t;
-        return (Class) parametrized.getRawType();
     }
 
-    private Object invoke(Object object, Method method) {
+    private Object invoke(Method method) {
         try {
-            return method.invoke(object);
+            return method.invoke(currentBean);
         } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
-            throw new SystemException("Couldn't invoke method '" + method.getName() + "' on object '" + object + "'", ex);
+            throw new SystemException("Couldn't invoke method '" + method.getName() + "' on object '" + currentBean + "'", ex);
         }
     }
 }
