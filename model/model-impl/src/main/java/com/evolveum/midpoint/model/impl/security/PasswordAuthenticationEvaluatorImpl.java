@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
@@ -29,7 +30,7 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv, PasswordAuthenticationContext authCtx) {
         if (StringUtils.isBlank(authCtx.getUsername())) {
             recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty login provided", authCtx.getPrincipalType(), false);
-            throw new BadCredentialsException("web.security.provider.invalid");
+            throw new UsernameNotFoundException("web.security.provider.invalid");
         }
         if (StringUtils.isBlank(authCtx.getPassword())) {
             recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);

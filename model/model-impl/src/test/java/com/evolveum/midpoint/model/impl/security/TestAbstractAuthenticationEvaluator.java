@@ -286,10 +286,10 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
 
-        } catch (BadCredentialsException e) {
+        } catch (UsernameNotFoundException e) {
             then();
             displayExpectedException(e);
-            assertPasswordEncodingException(e);
+            assertNoUserException(e);
         }
 
     }
