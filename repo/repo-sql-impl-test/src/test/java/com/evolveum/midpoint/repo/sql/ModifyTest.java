@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.SerializationOptions.createSerializeForExport;
@@ -82,14 +83,25 @@ public class ModifyTest extends BaseSQLRepoTest {
     private static final File SYSTEM_CONFIGURATION_BEFORE_FILE = new File(TEST_DIR, "system-configuration-before.xml");
     private static final File SYSTEM_CONFIGURATION_AFTER_FILE = new File(TEST_DIR, "system-configuration-after.xml");
 
+    private static final File USER_ADAM_FILE = new File(TEST_DIR, "user-adam.xml");
+    private static final File USER_ADAM_NEW_ASSIGNMENT_NO_ID_FILE = new File(TEST_DIR, "user-adam-new-assignment-no-id.xml");
+    private static final File USER_ADAM_NEW_ASSIGNMENT_EXISTING_ID_FILE = new File(TEST_DIR, "user-adam-new-assignment-existing-id.xml");
+
+    private PrismObject<ObjectType> userAdam;
+
     @Override
     public void initSystem() throws Exception {
         super.initSystem();
+
+        OperationResult result = new OperationResult("initSystem");
 
         // This is an experimental feature, so it needs to be explicitly enabled. This will be eliminated later,
         // when we make it enabled by default.
         sqlRepositoryService.getConfiguration().setEnableIndexOnlyItems(true);
         InternalsConfig.encryptionChecks = false;
+
+        userAdam = prismContext.parseObject(USER_ADAM_FILE);
+        repositoryService.addObject(userAdam, null, result);
     }
 
     protected RepoModifyOptions getModifyOptions() {
@@ -784,7 +796,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .item(RoleType.F_DESCRIPTION).replace("123456")
                 .asItemDeltas();
         try {
-            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, getModifyOptions(), result);
             // THEN
             fail("unexpected success");
         } catch (PreconditionViolationException e) {
@@ -808,7 +820,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .item(RoleType.F_DESCRIPTION).replace("123456")
                 .asItemDeltas();
         try {
-            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, getModifyOptions(), result);
             // THEN
             fail("unexpected success");
         } catch (PreconditionViolationException e) {
@@ -833,7 +845,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .item(RoleType.F_DESCRIPTION).replace("123456")
                 .asItemDeltas();
         try {
-            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+            repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, getModifyOptions(), result);
             // THEN
             fail("unexpected success");
         } catch (PreconditionViolationException e) {
@@ -857,7 +869,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         List<ItemDelta<?, ?>> itemDeltas = prismContext.deltaFor(RoleType.class)
                 .item(RoleType.F_DESCRIPTION).replace("123456")
                 .asItemDeltas();
-        repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, null, result);
+        repositoryService.modifyObject(RoleType.class, roleOid, itemDeltas, precondition, getModifyOptions(), result);
 
         String versionAfter = repositoryService.getVersion(RoleType.class, roleOid, result);
         assertEquals("unexpected version change", Integer.parseInt(versionBefore) + 1, Integer.parseInt(versionAfter));
@@ -972,7 +984,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         List<ItemDelta<?, ?>> deltas1 = prismContext.deltaFor(ObjectCollectionType.class)
                 .item(ObjectCollectionType.F_NAME).replace(PolyString.fromOrig("collection2"))
                 .asItemDeltas();
-        repositoryService.modifyObject(ObjectCollectionType.class, collection.getOid(), deltas1, result);
+        repositoryService.modifyObject(ObjectCollectionType.class, collection.getOid(), deltas1, getModifyOptions(), result);
 
         ItemDeltaCollectionsUtil.applyTo(deltas1, collection.asPrismObject());
         PrismObject<ObjectCollectionType> afterChange1 = repositoryService
@@ -988,7 +1000,7 @@ public class ModifyTest extends BaseSQLRepoTest {
                 .item(ObjectCollectionType.F_DESCRIPTION).replace("description")
                 .item(ObjectCollectionType.F_FILTER).replace(filterBean)
                 .asItemDeltas();
-        repositoryService.modifyObject(ObjectCollectionType.class, collection.getOid(), deltas2, result);
+        repositoryService.modifyObject(ObjectCollectionType.class, collection.getOid(), deltas2, getModifyOptions(), result);
 
         ItemDeltaCollectionsUtil.applyTo(deltas2, collection.asPrismObject());
         PrismObject<ObjectCollectionType> afterChange2 = repositoryService
@@ -1466,7 +1478,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         String oid = before.getOid();
 
         // WHEN
-        repositoryService.modifyObject(SystemConfigurationType.class, oid, delta.getModifications(), result);
+        repositoryService.modifyObject(SystemConfigurationType.class, oid, delta.getModifications(), getModifyOptions(), result);
 
         // THEN
         PrismObject<SystemConfigurationType> read = repositoryService.getObject(SystemConfigurationType.class, oid, null, result);
@@ -1474,6 +1486,58 @@ public class ModifyTest extends BaseSQLRepoTest {
         normalize(after);
         normalize(read);
         PrismAsserts.assertEquals("System configuration was stored incorrectly", after, read);
+    }
+
+    /**
+     * Adding equivalent assignment (without ID) to a user. It should replace the existing one.
+     */
+    @Test(enabled = false)
+    public void test520AddEquivalentAssignmentNoId() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        String oid = userAdam.getOid();
+
+        PrismValue assignmentValue = prismContext.parserFor(USER_ADAM_NEW_ASSIGNMENT_NO_ID_FILE).parseItemValue();
+        List<ItemDelta<?, ?>> modifications = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(assignmentValue)
+                .asItemDeltas();
+
+        when();
+        repositoryService.modifyObject(UserType.class, oid, modifications, getModifyOptions(), result);
+
+        then();
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, oid, null, result);
+
+        displayDumpable("user after", userAfter);
+        assertThat(userAfter.asObjectable().getAssignment().size()).as("# of assignments").isEqualTo(1);
+    }
+
+    /**
+     * Adding equivalent assignment (with ID) to a user. It should replace the existing one.
+     */
+    @Test(enabled = false)
+    public void test530AddEquivalentAssignmentExistingId() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        String oid = userAdam.getOid();
+
+        PrismValue assignmentValue = prismContext.parserFor(USER_ADAM_NEW_ASSIGNMENT_EXISTING_ID_FILE).parseItemValue();
+        List<ItemDelta<?, ?>> modifications = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(assignmentValue)
+                .asItemDeltas();
+
+        when();
+        repositoryService.modifyObject(UserType.class, oid, modifications, getModifyOptions(), result);
+
+        then();
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, oid, null, result);
+
+        displayDumpable("user after", userAfter);
+        assertThat(userAfter.asObjectable().getAssignment().size()).as("# of assignments").isEqualTo(1);
     }
 
     private void normalize(PrismObject<?> object) {

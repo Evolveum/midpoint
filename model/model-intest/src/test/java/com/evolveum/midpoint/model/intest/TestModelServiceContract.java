@@ -87,7 +87,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         InternalMonitor.reset();
         InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT, true);
 
-//        setGlobalTracingOverride(addNotificationsLogging(createModelLoggingTracingProfile()));
+        setGlobalTracingOverride(addNotificationsLogging(createModelLoggingTracingProfile()));
     }
 
     @Test
