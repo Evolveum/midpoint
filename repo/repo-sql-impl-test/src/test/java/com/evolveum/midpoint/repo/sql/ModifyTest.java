@@ -20,6 +20,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -85,7 +87,6 @@ public class ModifyTest extends BaseSQLRepoTest {
 
     private static final File USER_ADAM_FILE = new File(TEST_DIR, "user-adam.xml");
     private static final File USER_ADAM_NEW_ASSIGNMENT_NO_ID_FILE = new File(TEST_DIR, "user-adam-new-assignment-no-id.xml");
-    private static final File USER_ADAM_NEW_ASSIGNMENT_EXISTING_ID_FILE = new File(TEST_DIR, "user-adam-new-assignment-existing-id.xml");
 
     private PrismObject<ObjectType> userAdam;
 
@@ -1524,7 +1525,15 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         String oid = userAdam.getOid();
 
-        PrismValue assignmentValue = prismContext.parserFor(USER_ADAM_NEW_ASSIGNMENT_EXISTING_ID_FILE).parseItemValue();
+        PrismValue assignmentValue = prismContext.parserFor(USER_ADAM_NEW_ASSIGNMENT_NO_ID_FILE).parseItemValue();
+
+        PrismObject<UserType> userBefore = repositoryService.getObject(UserType.class, oid, null, result);
+        displayDumpable("user before", userBefore);
+
+        Long id = userBefore.findContainer(UserType.F_ASSIGNMENT).getValue().getId();
+        System.out.println("Setting ID " + id + " to assignment being added");
+        ((PrismContainerValue) assignmentValue).setId(id);
+
         List<ItemDelta<?, ?>> modifications = deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT)
                 .add(assignmentValue)
@@ -1538,6 +1547,146 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         displayDumpable("user after", userAfter);
         assertThat(userAfter.asObjectable().getAssignment().size()).as("# of assignments").isEqualTo(1);
+    }
+
+    /**
+     * Adding equivalent assignment (with ID) to a user. Uses ADD+DELETE.
+     */
+    @Test(enabled = false)
+    public void test532AddEquivalentAssignmentExistingId() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        String oid = userAdam.getOid();
+        String channel = "test532";
+
+        PrismObject<UserType> userBefore = repositoryService.getObject(UserType.class, oid, null, result);
+        displayDumpable("user before", userBefore);
+
+        PrismValue assignmentValueOld = userBefore.findItem(UserType.F_ASSIGNMENT).getValue().clone();
+        PrismValue assignmentValueNew = assignmentValueOld.clone();
+        assignmentValueNew.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginStorage()
+                            .createChannel(channel)
+                        .<ValueMetadataType>end());
+        List<ItemDelta<?, ?>> modifications = deltaFor(UserType.class)
+                .item(UserType.F_ASSIGNMENT)
+                .add(assignmentValueNew).delete(assignmentValueOld)
+                .asItemDeltas();
+
+        when();
+        repositoryService.modifyObject(UserType.class, oid, modifications, getModifyOptions(), result);
+
+        then();
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, oid, null, result);
+
+        displayDumpable("user after", userAfter);
+        assertThat(userAfter.asObjectable().getAssignment().size()).as("# of assignments").isEqualTo(1);
+        assertValueMetadataChannel(userAfter, UserType.F_ASSIGNMENT, channel);
+    }
+
+    /**
+     * Add 'name' metadata using simple 'add'
+     */
+    @Test
+    public void test540AddNameMetadataUsingAdd() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        String oid = userAdam.getOid();
+
+        String channel = "test540";
+        PrismValue newNameValue = createCloneWithMetadata(UserType.F_NAME, channel);
+
+        List<ItemDelta<?, ?>> modifications = deltaFor(UserType.class)
+                .item(UserType.F_NAME).add(newNameValue)
+                .asItemDeltas();
+
+        when();
+        repositoryService.modifyObject(UserType.class, oid, modifications, getModifyOptions(), result);
+
+        then();
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, oid, null, result);
+
+        displayDumpable("user after", userAfter);
+        assertValueMetadataChannel(userAfter, UserType.F_NAME, channel);
+    }
+
+    /**
+     * Add 'name' metadata using 'delete' plus 'add'
+     */
+    @Test
+    public void test542AddNameMetadataUsingDeleteAndAdd() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        String oid = userAdam.getOid();
+
+        String channel = "test542";
+        PrismValue oldNameValue = userAdam.findItem(UserType.F_NAME).getValue().clone();
+        PrismValue newNameValue = createCloneWithMetadata(UserType.F_NAME, channel);
+
+        List<ItemDelta<?, ?>> modifications = deltaFor(UserType.class)
+                .item(UserType.F_NAME).add(newNameValue).delete(oldNameValue)
+                .asItemDeltas();
+
+        when();
+        repositoryService.modifyObject(UserType.class, oid, modifications, getModifyOptions(), result);
+
+        then();
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, oid, null, result);
+
+        displayDumpable("user after", userAfter);
+        assertValueMetadataChannel(userAfter, UserType.F_NAME, channel);
+    }
+
+    /**
+     * Add 'name' metadata using 'replace'
+     */
+    @Test
+    public void test544AddNameMetadataUsingReplace() throws Exception {
+        given();
+        OperationResult result = createOperationResult();
+
+        String oid = userAdam.getOid();
+
+        String channel = "test544";
+        PrismValue newNameValue = createCloneWithMetadata(UserType.F_NAME, channel);
+
+        List<ItemDelta<?, ?>> modifications = deltaFor(UserType.class)
+                .item(UserType.F_NAME).replace(newNameValue)
+                .asItemDeltas();
+
+        when();
+        repositoryService.modifyObject(UserType.class, oid, modifications, getModifyOptions(), result);
+
+        then();
+        PrismObject<UserType> userAfter = repositoryService.getObject(UserType.class, oid, null, result);
+
+        displayDumpable("user after", userAfter);
+        assertValueMetadataChannel(userAfter, UserType.F_NAME, channel);
+    }
+
+    private void assertValueMetadataChannel(PrismObject<?> object, ItemName itemName, String expectedValue) {
+        Item<PrismValue, ItemDefinition> item = object.findItem(itemName);
+        assertThat(item).isNotNull();
+        assertThat(item.size()).isEqualTo(1);
+        ValueMetadataType metadata = (ValueMetadataType) item.getValue().getValueMetadata().asContainerable();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getStorage()).isNotNull();
+        assertThat(metadata.getStorage().getCreateChannel()).isEqualTo(expectedValue);
+    }
+
+    private PrismValue createCloneWithMetadata(ItemName itemName, String channel) {
+        ValueMetadataType metadata = new ValueMetadataType(prismContext)
+                .beginStorage()
+                    .createChannel(channel)
+                .end();
+
+        PrismValue clonedValue = userAdam.findItem(itemName).getValue().clone();
+        clonedValue.setValueMetadata(metadata);
+        return clonedValue;
     }
 
     private void normalize(PrismObject<?> object) {
