@@ -125,11 +125,11 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public final DateTimePath<Instant> timestamp = createInstant("timestamp", TIMESTAMP);
 
     public final PrimaryKey<MAuditEventRecord> constraint85c = createPrimaryKey(id);
-    public final ForeignKey<QMAuditItem> _auditItemFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<QAuditItem> _auditItemFk = createInvForeignKey(id, "RECORD_ID");
     public final ForeignKey<QAuditPropertyValue> _auditPropValueFk = createInvForeignKey(id, "RECORD_ID");
     public final ForeignKey<MAuditDelta> _auditDeltaFk = createInvForeignKey(id, "RECORD_ID");
-    public final ForeignKey<QMAuditRefValue> _auditRefValueFk = createInvForeignKey(id, "RECORD_ID");
-    public final ForeignKey<QMAuditResource> _auditResourceFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<QAuditRefValue> _auditRefValueFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<QAuditResource> _auditResourceFk = createInvForeignKey(id, "RECORD_ID");
 
     public QAuditEventRecord(String variable) {
         this(variable, "PUBLIC", TABLE_NAME);
