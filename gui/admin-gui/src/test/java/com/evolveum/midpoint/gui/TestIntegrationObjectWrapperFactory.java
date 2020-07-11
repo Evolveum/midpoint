@@ -634,7 +634,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //        PrismAsserts.assertPropertyValue(groupAssociationValuePVal.asReferencable().getTargetName(), GROUP_DUMMY_MAPMAKERS_NAME);
     }
 
-    @Test
+    @Test(enabled = false)
     public void test240OrgScummBarModifyTransformDescription() throws Exception {
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_SCUMM_BAR_OID);
 
@@ -670,7 +670,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
     }
 
-    @Test
+    @Test(enabled = false)
     public void test241OrgScummBarModifyTransformProperties() throws Exception {
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_SCUMM_BAR_OID);
 
