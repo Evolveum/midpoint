@@ -18,6 +18,8 @@ import java.util.Set;
 import javax.persistence.metamodel.Attribute;
 import javax.persistence.metamodel.ManagedType;
 
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -245,9 +247,7 @@ class GeneralUpdate extends BaseUpdate {
     }
 
     private void updateAttribute(Attribute attribute) {
-        Method method = (Method) attribute.getJavaMember();
-
-        LOGGER.trace("Updating attribute {}", attribute);
+        LOGGER.trace("Updating attribute {}", attribute.getName());
 
         switch (attribute.getPersistentAttributeType()) {
             case BASIC:
@@ -266,11 +266,24 @@ class GeneralUpdate extends BaseUpdate {
             case ONE_TO_MANY:
             case ELEMENT_COLLECTION:
                 // object extension is handled separately, only {@link Container} and references are handled here
-                Collection collection = (Collection) invoke(method);
-                //noinspection unchecked
-                new CollectionUpdate(collection, currentBean, prismObject, delta, getAttributeValueType(attribute), ctx)
-                        .execute();
+                updateCollection(attribute);
                 break;
+        }
+    }
+
+    private void updateCollection(Attribute attribute) {
+        Method method = (Method) attribute.getJavaMember();
+        Collection collection = (Collection) invoke(method);
+        Class attributeValueType = getAttributeValueType(attribute);
+
+        if (Container.class.isAssignableFrom(attributeValueType)) {
+            //noinspection unchecked
+            new ContainerCollectionUpdate(collection, currentBean, prismObject, (ContainerDelta) delta, attributeValueType, ctx)
+                    .execute();
+        } else {
+            //noinspection unchecked
+            new CollectionUpdate(collection, currentBean, prismObject, delta, attributeValueType, ctx)
+                    .execute();
         }
     }
 

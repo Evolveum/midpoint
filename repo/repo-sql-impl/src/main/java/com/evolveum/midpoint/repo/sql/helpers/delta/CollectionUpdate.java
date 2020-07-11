@@ -7,37 +7,30 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.delta;
 
+import java.util.Collection;
+
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
-import com.evolveum.midpoint.repo.sql.helpers.modify.PrismEntityPair;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.jetbrains.annotations.NotNull;
-
-import java.util.*;
-
 /**
  * "Update" operation on Hibernate collection.
  */
-class CollectionUpdate<T, V extends PrismValue> {
+class CollectionUpdate<R, V extends PrismValue, I extends Item<V, ?>, ID extends ItemDelta<V, ?>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(GeneralUpdate.class);
+    private static final Trace LOGGER = TraceManager.getTrace(CollectionUpdate.class);
 
     /**
      * Collection that is to be updated.
      */
-    private final Collection<T> targetCollection;
+    private final Collection<R> targetCollection;
 
     /**
      * Owning object. (E.g. RUser if the collection is a set of assignments.)
@@ -47,42 +40,33 @@ class CollectionUpdate<T, V extends PrismValue> {
     /**
      * Delta that is to be applied.
      */
-    private final ItemDelta<V, ?> delta;
+    private final ID delta;
 
     /**
      * Existing item value (before delta application).
      */
-    private final Item<V, ?> existingItem;
+    final I existingItem;
 
     /**
      * Type of objects in the collection.
      */
-    private final Class<T> attributeValueType;
+    private final Class<R> attributeValueType;
 
-    /**
-     * Identifiers that were (originally) in the repo collection.
-     *
-     * They are used as an optimization tool: if we add an ID that is in this collection,
-     * we should call session.merge beforehand, because we need to replace existing database object.
-     */
-    private final Set<Integer> idsInRepo;
+    final UpdateContext ctx;
 
-    private final UpdateContext ctx;
-
-    CollectionUpdate(Collection<T> targetCollection, Object collectionOwner,
-            PrismObject<? extends ObjectType> prismObject, ItemDelta<V, ?> delta,
-            Class<T> attributeValueType, UpdateContext ctx) {
+    CollectionUpdate(Collection<R> targetCollection, Object collectionOwner,
+            PrismObject<? extends ObjectType> prismObject, ID delta,
+            Class<R> attributeValueType, UpdateContext ctx) {
         this.targetCollection = targetCollection;
         this.collectionOwner = collectionOwner;
         this.delta = delta;
-        this.existingItem = prismObject.findItem(delta.getPath());
+        //noinspection unchecked
+        this.existingItem = (I) prismObject.findItem(delta.getPath());
         this.attributeValueType = attributeValueType;
         this.ctx = ctx;
-        this.idsInRepo = collectExistingIdFromRepo(targetCollection);
     }
 
     public void execute() {
-
         if (delta.isReplace()) {
             replaceValues(delta.getValuesToReplace());
         } else {
@@ -95,202 +79,81 @@ class CollectionUpdate<T, V extends PrismValue> {
         }
     }
 
-    private void addValues(Collection<V> valuesToAdd) {
-        Collection<PrismEntityPair<T>> pairsToAdd = convertToPrismEntityPairs(valuesToAdd);
-        markNewOnesTransientAndAddToExisting(targetCollection, pairsToAdd);
+    private void replaceValues(Collection<V> valuesToReplace) {
+        targetCollection.clear();
+        addValues(valuesToReplace);
     }
 
-    private Collection<PrismEntityPair<T>> convertToPrismEntityPairs(Collection<V> values) {
-        Collection<PrismEntityPair<T>> pairs = new ArrayList<>();
-        for (V value : MiscUtil.emptyIfNull(values)) {
-            MapperContext context = new MapperContext();
-            context.setRepositoryContext(ctx.beans.createRepositoryContext());
-            context.setDelta(delta);
-            context.setOwner(collectionOwner);
+    private void addValues(Collection<V> valuesToAdd) {
+        loadTargetCollection();
+        for (V valueToAdd : valuesToAdd) {
+            R repoValueToAdd = mapToRepo(valueToAdd, true);
+            V existingPrismValue = findExistingValue(valueToAdd);
+            R adaptedRepoValueToAdd = adaptValueBeforeAddition(repoValueToAdd, valueToAdd, existingPrismValue);
 
-            T result = ctx.beans.prismEntityMapper.mapPrismValue(value, attributeValueType, context);
-            pairs.add(new PrismEntityPair<>(value, result));
+            LOGGER.trace("Adding value: {} / {}", adaptedRepoValueToAdd, valuesToAdd);
+            targetCollection.add(adaptedRepoValueToAdd);
         }
-        return pairs;
+    }
+
+    /**
+     * Really ugly hack. It looks like adding into the collection produces exceptions
+     * if the collection was not loaded at least once.
+     */
+    private void loadTargetCollection() {
+        LOGGER.trace("Size of target collection (just to load it): {}", targetCollection.size());
     }
 
     private void deleteValues(Collection<V> valuesToDelete) {
-        if (targetCollection.isEmpty() || valuesToDelete.isEmpty()) {
-            return;
-        }
-
-        Collection<PrismEntityPair<T>> pairsToDelete = convertToPrismEntityPairs(valuesToDelete);
-
-        Collection<PrismEntityPair<T>> existingPairs = createExistingPairs();
-
-        Collection<T> toDelete = new ArrayList<>();
-        for (PrismEntityPair<T> toDeletePair : pairsToDelete) {
-            if (toDeletePair.getRepository() instanceof EntityState) {
-                ((EntityState) toDeletePair.getRepository()).setTransient(false);
-            }
-            PrismEntityPair<T> existingPair = findMatch(existingPairs, toDeletePair);
-            if (existingPair != null) {
-                toDelete.add(existingPair.getRepository());
+        for (V valueToDelete : valuesToDelete) {
+            V existingValue = findExistingValue(valueToDelete);
+            if (existingValue != null) {
+                deleteExistingValue(existingValue);
             }
         }
-
-        LOGGER.trace("deleteValues: Deleting {}", toDelete);
-        targetCollection.removeAll(toDelete);
     }
 
-    private PrismEntityPair<T> findMatch(Collection<PrismEntityPair<T>> collection, PrismEntityPair<T> pair) {
-        boolean isContainer = pair.getRepository() instanceof Container;
+    private void deleteExistingValue(V existingValue) {
+        R repoValueToDelete = mapToRepo(existingValue, false);
+        R existingRepoValue = targetCollection.stream()
+                .filter(v -> v.equals(repoValueToDelete))
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Repository tables inconsistency! Value " + existingValue
+                        + " is present according to the full object data but was missing in the repository."
+                        + " Existing repo values: " + targetCollection));
 
-        Object pairObject = pair.getRepository();
-
-        for (PrismEntityPair<T> item : collection) {
-            if (isContainer) {
-                Container c = (Container) item.getRepository();
-                Container pairContainer = (Container) pairObject;
-
-                if (Objects.equals(c.getId(), pairContainer.getId())
-                        || pair.getPrism().equals(item.getPrism(), EquivalenceStrategy.IGNORE_METADATA)) {  //todo
-                    return item;
-                }
-            } else {
-                // e.g. RObjectReference
-                if (Objects.equals(item.getRepository(), pairObject)) {
-                    return item;
-                }
-            }
-        }
-
-        return null;
+        LOGGER.trace("Deleting value: {} / {}", existingRepoValue, existingValue);
+        targetCollection.remove(existingRepoValue);
     }
 
-    private Collection<PrismEntityPair<T>> createExistingPairs() {
-        Collection<PrismEntityPair<T>> pairs = new ArrayList<>();
+    private R mapToRepo(V value, boolean trans) {
+        MapperContext context = new MapperContext();
+        context.setRepositoryContext(ctx.beans.createRepositoryContext());
+        context.setDelta(delta);
+        context.setOwner(collectionOwner);
 
-        for (T obj : targetCollection) {
-            if (obj instanceof Container) {
-                Container container = (Container) obj;
-
-                PrismValue value = (PrismValue) existingItem.find(ItemPath.create(container.getId()));
-
-                pairs.add(new PrismEntityPair<>(value, obj));
-            } else {
-                // todo improve somehow
-                pairs.add(new PrismEntityPair<>(null, obj));
-            }
+        R repo = ctx.beans.prismEntityMapper.mapPrismValue(value, attributeValueType, context);
+        if (repo instanceof EntityState) {
+            ((EntityState) repo).setTransient(trans);
         }
-
-        return pairs;
+        return repo;
     }
 
-    private void replaceValues(Collection<V> prismValuesToReplace) {
-
-        Collection<PrismEntityPair<T>> pairsToReplace = convertToPrismEntityPairs(prismValuesToReplace);
-
-        if (targetCollection.isEmpty()) {
-            markNewOnesTransientAndAddToExisting(targetCollection, pairsToReplace);
-            return;
-        }
-
-        Collection<PrismEntityPair<T>> existingPairs = createExistingPairs();
-
-        Collection<T> skipAddingTheseObjects = new ArrayList<>();
-        Collection<Integer> skipAddingTheseIds = new ArrayList<>();
-
-        Collection<T> toDelete = new ArrayList<>();
-
-        // mark existing object for deletion, skip if they would be replaced with the same value
-        for (PrismEntityPair<T> existingPair : existingPairs) {
-            PrismEntityPair<T> toReplacePair = findMatch(pairsToReplace, existingPair);
-            if (toReplacePair == null) {
-                toDelete.add(existingPair.getRepository());
-            } else {
-                T existingObject = existingPair.getRepository();
-                if (existingObject instanceof Container) {
-                    Container c = (Container) existingObject;
-                    skipAddingTheseIds.add(c.getId());
-                }
-                skipAddingTheseObjects.add(existingObject);
-            }
-        }
-        LOGGER.trace("replaceValues: Removing these values: {}", toDelete);
-        targetCollection.removeAll(toDelete);
-
-        Iterator<PrismEntityPair<T>> iterator = pairsToReplace.iterator();
-        while (iterator.hasNext()) {
-            PrismEntityPair<T> pair = iterator.next();
-            T obj = pair.getRepository();
-            if (obj instanceof Container) {
-                Container container = (Container) obj;
-                if (container.getId() == null && skipAddingTheseObjects.contains(obj)) {
-                    iterator.remove();
-                    continue;
-                }
-
-                if (skipAddingTheseIds.contains(container.getId())) {
-                    iterator.remove();
-                }
-            } else {
-                if (skipAddingTheseObjects.contains(obj)) {
-                    iterator.remove();
-                }
-            }
-        }
-
-        markNewOnesTransientAndAddToExisting(targetCollection, pairsToReplace);
-    }
-
-
-    private void markNewOnesTransientAndAddToExisting(Collection collectionToUpdate, Collection<PrismEntityPair<T>> newOnes) {
-        for (PrismEntityPair<T> newValue : newOnes) {
+    R adaptValueBeforeAddition(R repoValueToAdd, V valueToAdd, V existingValue) {
+        if (existingValue != null && repoValueToAdd instanceof EntityState) {
+            LOGGER.trace("Value to add already exists in the object. So merging it with the repo. Value: {}", repoValueToAdd);
             //noinspection unchecked
-            V newPrismValue = (V) newValue.getPrism();
-            T newRepoValue = newValue.getRepository();
-
-            if (newRepoValue instanceof EntityState) {
-                ((EntityState) newRepoValue).setTransient(true);
-            }
-
-            if (newRepoValue instanceof Container) {
-                PrismContainerValue newPrismContainerValue = (PrismContainerValue) newPrismValue;
-                Container newRepoContainerValue = (Container) newRepoValue;
-
-                if (newPrismContainerValue.getId() != null) {
-                    Integer clientSuppliedId = newPrismContainerValue.getId().intValue();
-                    if (idsInRepo.contains(clientSuppliedId)) {
-                        LOGGER.trace("markNewOnesTransientAndAddToExisting: Found conflicting value with client-supplied ID {}",
-                                clientSuppliedId);
-                        // We do merge only if we know there is a conflict. This is to eliminate needless SQL SELECTs.
-                        //noinspection unchecked
-                        newRepoValue = (T) ctx.session.merge(newRepoValue);
-                    }
-                    LOGGER.trace("markNewOnesTransientAndAddToExisting: Setting client-supplied ID {} to {}", clientSuppliedId, newRepoContainerValue);
-                    newRepoContainerValue.setId(clientSuppliedId);
-                } else {
-                    long nextId = ctx.idGenerator.nextId();
-                    LOGGER.trace("markNewOnesTransientAndAddToExisting: Setting newly-generated ID {} to {}", nextId, newRepoContainerValue);
-                    newRepoContainerValue.setId((int) nextId);
-                    newPrismContainerValue.setId(nextId);
-                }
-            }
-
-            LOGGER.trace("markNewOnesTransientAndAddToExisting: Adding value: {}", newRepoValue);
-
-            //noinspection unchecked
-            collectionToUpdate.add(newRepoValue);
+            return (R) ctx.session.merge(repoValueToAdd);
+        } else {
+            return repoValueToAdd;
         }
     }
 
-    @NotNull
-    private Set<Integer> collectExistingIdFromRepo(Collection<T> existing) {
-        Set<Integer> existingIds = new HashSet<>();
-        for (Object obj : existing) {
-            if (obj instanceof Container) {
-                Integer id = ((Container) obj).getId();
-                if (id != null) {
-                    existingIds.add(id);
-                }
-            }
+    V findExistingValue(V value) {
+        if (existingItem != null) {
+            return existingItem.findValue(value, EquivalenceStrategy.REAL_VALUE);
+        } else {
+            return null;
         }
-        return existingIds;
     }
 }

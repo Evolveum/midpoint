@@ -1492,7 +1492,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     /**
      * Adding equivalent assignment (without ID) to a user. It should replace the existing one.
      */
-    @Test(enabled = false)
+    @Test
     public void test520AddEquivalentAssignmentNoId() throws Exception {
         given();
         OperationResult result = createOperationResult();

@@ -273,6 +273,9 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
 
     public void setOwner(RObject owner) {
         this.owner = owner;
+        if (owner != null) {
+            setOwnerOid(owner.getOid());
+        }
     }
 
     public void setOwnerOid(String ownerOid) {

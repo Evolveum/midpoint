@@ -185,13 +185,13 @@ public class ROperationExecution implements Container<RObject> {
         }
 
         ROperationExecution that = (ROperationExecution) o;
-        return Objects.equals(ownerOid, that.ownerOid)
+        return Objects.equals(getOwnerOid(), that.getOwnerOid())
                 && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerOid, id);
+        return Objects.hash(getOwnerOid(), id);
     }
 
     @Override
