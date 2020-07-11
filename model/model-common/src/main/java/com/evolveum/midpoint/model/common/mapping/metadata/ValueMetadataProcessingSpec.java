@@ -268,7 +268,7 @@ public class ValueMetadataProcessingSpec implements ShortDumpable {
             sb.append(itemDefinitions.stream()
                     .map(ItemRefinedDefinitionType::getRef)
                     .map(String::valueOf)
-                    .collect(Collectors.joining()));
+                    .collect(Collectors.joining(", ")));
         }
     }
 }

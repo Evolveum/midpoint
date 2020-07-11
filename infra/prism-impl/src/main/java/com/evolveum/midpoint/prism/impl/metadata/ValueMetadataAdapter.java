@@ -589,7 +589,7 @@ public class ValueMetadataAdapter implements ValueMetadata {
         if (!delegate.hasNoItems()) {
             sb.append(delegate.getItems().stream()
                     .map(this::getItemShortDump)
-                    .collect(Collectors.joining()));
+                    .collect(Collectors.joining(", ")));
         }
     }
 
