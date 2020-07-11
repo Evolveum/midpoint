@@ -75,6 +75,9 @@ public class ROperationExecution implements Container<RObject> {
     @Override
     public void setOwner(RObject owner) {
         this.owner = owner;
+        if (owner != null) {
+            setOwnerOid(owner.getOid());
+        }
     }
 
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
@@ -197,7 +200,7 @@ public class ROperationExecution implements Container<RObject> {
     @Override
     public String toString() {
         return "ROperationExecution{" +
-                "ownerOid='" + ownerOid + '\'' +
+                "ownerOid='" + getOwnerOid() + '\'' +
                 ", id=" + id +
                 ", initiatorRef=" + initiatorRef +
                 ", taskRef=" + taskRef +
