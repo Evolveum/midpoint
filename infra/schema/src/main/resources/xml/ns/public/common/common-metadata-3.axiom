@@ -7,8 +7,10 @@ prism:model common-metadata {
         prefix prism;
     }
 
+
+
     metadata CommonMetadata {
-      container storage {
+      prism:container storage {
         type StorageMetadata;
         documentation """
           The details when data were stored in midPoint repository. It is about the creation
@@ -16,20 +18,20 @@ prism:model common-metadata {
         """;
         //operational true;
       }
-      container process {
+      prism:container process {
         type ProcessMetadata;
         documentation """
           The details how the data were processed by midPoint processes/tasks.
           Only present if it was approved or otherwise processed by a "process".
         """;
       }
-      container provisioning {
+      prism:container provisioning {
         type ProvisioningMetadata;
       }
-      container transformation {
+      prism:container transformation {
         type TransformationMetadata;
       }
-      container provenance {
+      prism:container provenance {
         type ProvenanceMetadata;
       }
     }
@@ -93,7 +95,7 @@ prism:model common-metadata {
       }
       property modifyChannel {
         type Uri;
-        documentation "Chanel in whhich object was last modified."
+        documentation "Chanel in whhich object was last modified.";
         operational true;
         indexed true;
       }
@@ -108,7 +110,7 @@ prism:model common-metadata {
       }
     }
 
-    container ProcessMetadata {
+    prism:container ProcessMetadata {
       property requestTimestamp {
         type DateTime;
         documentation """
@@ -125,7 +127,7 @@ prism:model common-metadata {
         documentation """
           Reference to the user that requested the "create" operation for this object or assignment.
         """;
-        displayName MetadataType.requestorComment;
+        displayName "MetadataType.requestorComment";
         targetType UserType;
         operational true;
       }
@@ -137,4 +139,111 @@ prism:model common-metadata {
 
     }
     // FIXME: Convert additional metadata
+    container ProvisioningMetadata {
+      operational true;
+      displayName "Provisioning metadata";
+      property lastProvisioningTimestamp {
+        type DateTime;
+        documentation """
+          The timestamp last provisioning operation that was based on this object.
+          E.g. the timestamp of last modification of any account based on the
+          data from the user. This value is only updated if there was any
+          real change in the resource.
+
+          This meta-datum is used as an informational property that tells when
+          the data were last synchronized in outbound direction. But it has another
+          important role. It is used indirectly to trigger optimistic locking
+          conflicts that are used to detect a "clean" recompute (i.e. recompute
+          that is processing data without any outside interaction).
+        """;
+        displayName "MetadataType.lastProvisioningTimestamp";
+        operational true;
+      }
+    }
+
+    container TransformationMetadata {
+      displayName "Transformation Metadata";
+      operational true;
+      container source {
+        type ValueSource;
+        documentation "Source(s) of the value";
+        maxOccurs "unbounded";
+      }
+      container transformer {
+        type ValueTransformer;
+        documentation "Transformer(s) that acted upon the value.";
+        maxOccurs "unbounded";
+      }
+    }
+
+    container ValueSource {
+      property kind {
+        type Uri;
+      }
+      property name {
+        type String;
+      }
+      reference objectRef {
+        documentation """
+          A midPoint object representing the source of the value (resource object,
+          object template, assignment holder, user, ...)
+        """;
+      }
+      property storage {
+        type prism:ItemPath;
+        documentation "Where was the original value stored.";
+      }
+    }
+
+    container ValueTransformer {
+      property kind {
+        type Uri;
+      }
+      property name {
+        type String;
+      }
+      reference objectRef {
+        documentation "A midPoint object holding the transformer";
+      }
+    }
+
+    container ProvenanceMetadata {
+      container yield {
+        type ProvenanceYield;
+        maxOccurs "unbounded";
+      }
+    }
+
+    container ProvenanceYield {
+      container acquisition {
+        type ProvenanceAcquisition;
+        maxOccurs "unbounded";
+      }
+    }
+
+    container ProvenanceAcquisition {
+      documentation """
+        Ultimate origin of the data.
+        This metadata structure represents the way how the data (or their components) entered the system.
+        As data are processed by midPoint mechanisms (such as mappings), the acquisition metadata are preserved during the processing.
+        Multiple values of acquisition data indicate that data from several sources were combined to create the result.
+      """;
+      property timestamp {
+        type DateTime;
+      }
+      property channel {
+        type String;
+      }
+      reference resourceRef {
+        targetType ResourceType;
+      }
+      reference actorRef {
+
+      }
+      reference originRef {
+
+      }
+    }
+
+
 }

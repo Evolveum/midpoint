@@ -10,6 +10,10 @@ model prism-model {
         type Model;
     }
 
+    type ItemPath {
+      // Prism type compatibility
+    }
+
     augmentation PrismItem {
       target axiom:TypeDefinition;
 
@@ -74,40 +78,6 @@ model prism-model {
 
       include PrismItemAnnotation;
 
-      item indexOnly {
-        type Boolean;
-      }
-      item displayOrder {
-        type Integer;
-      }
-      item help {
-        type String;
-      }
-      item access {
-        type AccessAnnotation;
-      }
-      item ignore {
-        type Boolean;
-      }
-      item processing {
-        type ItemProcessing;
-      }
-    }
-
-    type ContainerItemDefinition {
-      supertype ItemDefinition;
-
-      item operational {
-        type Boolean;
-      }
-
-    }
-
-    type PropertyItemDefinition {
-      supertype ItemDefinition;
-
-      // Probably Mixin IndexingSpecification
-
       item indexed {
         type Boolean;
         documentation """
@@ -149,6 +119,33 @@ model prism-model {
           restrict the length of a datatype that can be efficiently indexed.
         """;
       }
+
+      item displayOrder {
+        type Integer;
+      }
+      item help {
+        type String;
+      }
+      item access {
+        type AccessAnnotation;
+      }
+      item ignore {
+        type Boolean;
+      }
+      item processing {
+        type ItemProcessing;
+      }
+    }
+
+    type ContainerItemDefinition {
+      supertype ItemDefinition;
+    }
+
+    type PropertyItemDefinition {
+      supertype ItemDefinition;
+
+      // Probably Mixin IndexingSpecification
+
     }
 
     type ReferenceItemDefinition {
@@ -198,6 +195,12 @@ model prism-model {
 
     type ContainerTypeDefinition {
       supertype TypeDefinition;
+      item operational {
+          type Boolean;
+          documentation """
+              Marks if data are operational (provided by system).
+          """;
+      }
     }
 
     type Reference;

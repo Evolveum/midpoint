@@ -12,6 +12,7 @@ import java.util.Collections;
 
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.impl.schema.axiom.AxiomEnabledSchemaRegistry;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -23,6 +24,8 @@ import com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
 
+import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
+import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
@@ -91,13 +94,27 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 
     @NotNull
     private SchemaRegistryImpl createSchemaRegistry() throws SchemaException, IOException {
-        SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
+        SchemaRegistryImpl schemaRegistry = new AxiomEnabledSchemaRegistry();
         schemaRegistry.setDefaultNamespace(SchemaConstantsGenerated.NS_COMMON);
         schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
         registerBuiltinSchemas(schemaRegistry);
         registerExtensionSchemas(schemaRegistry);
+        registerAxiomSchemas(schemaRegistry);
         schemaRegistry.setValueMetadataTypeName(ValueMetadataType.COMPLEX_TYPE);
         return schemaRegistry;
+    }
+
+    private void registerAxiomSchemas(SchemaRegistryImpl schemaRegistry) {
+        if(schemaRegistry instanceof AxiomEnabledSchemaRegistry) {
+            AxiomEnabledSchemaRegistry axiomRegistry = (AxiomEnabledSchemaRegistry) schemaRegistry;
+            AxiomModelStatementSource commonMetadata;
+            try {
+                commonMetadata = AxiomModelStatementSource.fromResource("xml/ns/public/common/common-metadata-3.axiom");
+            } catch (AxiomSyntaxException | IOException e) {
+               throw new RuntimeException(e);
+            }
+            axiomRegistry.addAxiomSource(commonMetadata);
+        }
     }
 
     protected void registerExtensionSchemas(SchemaRegistryImpl schemaRegistry) throws SchemaException, IOException {

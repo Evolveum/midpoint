@@ -17,10 +17,11 @@ public class AxiomItemDefinitionImpl extends AbstractBaseDefinition implements A
     public static final AxiomStructuredValue.Factory FACTORY = AxiomItemDefinitionImpl::new;
     private final AxiomValue<AxiomTypeDefinition> valueType;
     private final Optional<AxiomItem<String>> minOccurs;
-    private Optional<AxiomIdentifierDefinition> identifierDef;
-    private Optional<AxiomName> substitutionOf;
-    private Optional<AxiomValue<?>> defaultValue;
-    private Optional<AxiomValue<?>> constantValue;
+    private final Optional<AxiomIdentifierDefinition> identifierDef;
+    private final Optional<AxiomName> substitutionOf;
+    private final Optional<AxiomValue<?>> defaultValue;
+    private final Optional<AxiomValue<?>> constantValue;
+    private final int maxOccurs;
 
 
     public AxiomItemDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, Map<AxiomName, AxiomItem<?>> items, Map<AxiomName, AxiomItem<?>> infraItems) {
@@ -28,6 +29,16 @@ public class AxiomItemDefinitionImpl extends AbstractBaseDefinition implements A
         this.valueType = require(asComplex().get().onlyValue(AxiomTypeDefinition.class,Item.TYPE_REFERENCE, Item.REF_TARGET));
         this.identifierDef = asComplex().get().onlyValue(AxiomIdentifierDefinition.class, Item.IDENTIFIER_DEFINITION).map(v -> AxiomIdentifierDefinitionImpl.from(v));
         minOccurs = as(String.class,item(Item.MIN_OCCURS.name()));
+        maxOccurs = as(String.class,item(Item.MAX_OCCURS.name())).map(v -> {
+            String value = v.onlyValue().value();
+            if("unbounded".equals(v.onlyValue().value())) {
+                return -1;
+            }
+            if(value == null) {
+                return 1;
+            }
+            return Integer.parseInt(v.onlyValue().value());
+        }).orElse(1);
         substitutionOf = as(AxiomName.class, item(Item.SUBSTITUTION_OF.name())).map(v -> v.onlyValue().value());
         defaultValue = item(DEFAULT).map(AxiomItem::onlyValue);
         constantValue = item(CONSTANT).map(AxiomItem::onlyValue);
@@ -60,8 +71,7 @@ public class AxiomItemDefinitionImpl extends AbstractBaseDefinition implements A
 
     @Override
     public int maxOccurs() {
-        // FIXME: Return real value
-        return Integer.MAX_VALUE;
+        return maxOccurs;
     }
 
     @Override
