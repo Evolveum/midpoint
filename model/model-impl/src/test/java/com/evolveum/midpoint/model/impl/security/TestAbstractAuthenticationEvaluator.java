@@ -290,6 +290,10 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             then();
             displayExpectedException(e);
             assertNoUserException(e);
+        } catch (BadCredentialsException e) {
+            then();
+            displayExpectedException(e);
+            assertPasswordEncodingException(e);
         }
 
     }
