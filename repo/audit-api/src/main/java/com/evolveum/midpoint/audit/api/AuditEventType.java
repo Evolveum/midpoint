@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,10 +8,6 @@ package com.evolveum.midpoint.audit.api;
 
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 
-/**
- * @author semancik
- *
- */
 public enum AuditEventType {
 
     GET_OBJECT,
@@ -52,21 +48,7 @@ public enum AuditEventType {
 
     RUN_TASK_IMMEDIATELY;
 
-    /*
-     * Query session, modify session
-     */
-
-    /*
-     * Task states???
-     */
-
-    /*
-     * Startup, shutdown, critical failure (whole system)
-     */
-
-    // backup, restores
-
-    public static AuditEventType toAuditEventType(AuditEventTypeType event) {
+    public static AuditEventType fromSchemaValue(AuditEventTypeType event) {
         if (event == null) {
             return null;
         }
@@ -104,7 +86,7 @@ public enum AuditEventType {
         }
     }
 
-    public static AuditEventTypeType fromAuditEventType(AuditEventType event) {
+    public static AuditEventTypeType toSchemaValue(AuditEventType event) {
         if (event == null) {
             return null;
         }
@@ -139,9 +121,6 @@ public enum AuditEventType {
                 return AuditEventTypeType.RUN_TASK_IMMEDIATELY;
             default:
                 throw new IllegalArgumentException("Unknown audit event type: " + event);
-
         }
-
     }
-
 }

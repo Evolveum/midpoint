@@ -7,6 +7,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
+import java.util.Objects;
+import javax.persistence.Embeddable;
+import javax.persistence.Enumerated;
+
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.commons.lang3.builder.ToStringStyle;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RAvailabilityStatus;
@@ -14,13 +21,6 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationalStateType;
-
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ReflectionToStringBuilder;
-import org.apache.commons.lang.builder.ToStringStyle;
-
-import javax.persistence.Embeddable;
-import javax.persistence.Enumerated;
 
 @Embeddable
 public class ROperationalState {
@@ -38,21 +38,16 @@ public class ROperationalState {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         ROperationalState that = (ROperationalState) o;
-
-        if (lastAvailabilityStatus != null ? !lastAvailabilityStatus.equals(that.lastAvailabilityStatus) :
-                that.lastAvailabilityStatus != null) return false;
-
-        return true;
+        return Objects.equals(lastAvailabilityStatus, that.lastAvailabilityStatus);
     }
 
     @Override
     public int hashCode() {
-        int result = lastAvailabilityStatus != null ? lastAvailabilityStatus.hashCode() : 0;
-        return result;
+        return Objects.hashCode(lastAvailabilityStatus);
     }
 
     @Override
@@ -61,9 +56,9 @@ public class ROperationalState {
     }
 
     public static void copyToJAXB(ROperationalState repo, OperationalStateType jaxb, ObjectType parent, ItemPath path,
-                                  PrismContext prismContext) throws DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+            PrismContext prismContext) throws DtoTranslationException {
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
         try {
             if (repo.getLastAvailabilityStatus() != null) {
@@ -76,8 +71,8 @@ public class ROperationalState {
 
     public static void fromJaxb(OperationalStateType jaxb, ROperationalState repo) throws
             DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
         try {
             if (jaxb.getLastAvailabilityStatus() != null) {

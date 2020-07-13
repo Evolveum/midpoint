@@ -100,8 +100,8 @@
                                     return null
                                     }
 
-                                    long milis = Long.parseLong(val)
-                                    Date date = new Date(milis)
+                                    long millis = Long.parseLong(val)
+                                    Date date = new Date(millis)
                                     return XmlTypeConverter.createXMLGregorianCalendar(date)
                                 </code>
                             </script>

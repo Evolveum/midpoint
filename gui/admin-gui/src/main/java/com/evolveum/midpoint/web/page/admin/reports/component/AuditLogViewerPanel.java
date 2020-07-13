@@ -20,7 +20,6 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -31,7 +30,6 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -526,11 +524,11 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             parameters.put(AuditEventRecordProvider.PARAMETER_RESOURCE_OID, search.getResourceOid());
         }
         if (search.getInitiatorName() != null) {
-            parameters.put(AuditEventRecordProvider.PARAMETER_INITIATOR_NAME, search.getInitiatorName().getOid());
+            parameters.put(AuditEventRecordProvider.PARAMETER_INITIATOR_OID, search.getInitiatorName().getOid());
         }
 
         if (search.getTargetOwnerName() != null) {
-            parameters.put(AuditEventRecordProvider.PARAMETER_TARGET_OWNER_NAME, search.getTargetOwnerName().getOid());
+            parameters.put(AuditEventRecordProvider.PARAMETER_TARGET_OWNER_OID, search.getTargetOwnerName().getOid());
         }
         List<String> targetOids = new ArrayList<>();
         if (isNotEmpty(search.getTargetNamesObjects())) {
@@ -544,7 +542,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                     .collect(toList()));
         }
         if (!targetOids.isEmpty()) {
-            parameters.put(AuditEventRecordProvider.PARAMETER_TARGET_NAMES, targetOids);
+            parameters.put(AuditEventRecordProvider.PARAMETER_TARGET_OIDS, targetOids);
         }
         if (getAuditLogStorage() != null &&
                 ItemPathPanel.ItemPathPanelMode.TEXT_MODE.equals(getAuditLogStorage().getSearchDto().getChangedItemPanelMode())) {

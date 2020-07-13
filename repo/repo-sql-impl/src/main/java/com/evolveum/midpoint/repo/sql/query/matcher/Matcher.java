@@ -7,14 +7,16 @@
 
 package com.evolveum.midpoint.repo.sql.query.matcher;
 
+import java.util.Objects;
+
+import org.hibernate.criterion.MatchMode;
+
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.restriction.ItemRestrictionOperation;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.Validate;
-import org.hibernate.criterion.MatchMode;
 
 /**
  * @author lazyman
@@ -23,12 +25,15 @@ public abstract class Matcher<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(Matcher.class);
 
-    public abstract Condition match(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyPath, T value, String matcher)
+    public abstract Condition match(
+            RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation,
+            String propertyPath, T value, String matcher)
             throws QueryException;
 
-    protected Condition basicMatch(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyPath, Object value,
-                                   boolean ignoreCase) throws QueryException {
-        Validate.notNull(hibernateQuery, "hibernateQuery");
+    protected Condition basicMatch(
+            RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation,
+            String propertyPath, Object value, boolean ignoreCase) throws QueryException {
+        Objects.requireNonNull(hibernateQuery, "hibernateQuery");
 
         if (ignoreCase && !(value instanceof String)) {
             LOGGER.warn("Ignoring ignoreCase setting for non-string value of {}", value);

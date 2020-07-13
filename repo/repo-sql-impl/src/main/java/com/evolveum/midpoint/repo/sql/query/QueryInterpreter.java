@@ -88,16 +88,12 @@ public class QueryInterpreter {
         AVAILABLE_MATCHERS = Collections.unmodifiableMap(matchers);
     }
 
-    private SqlRepositoryConfiguration repoConfiguration;
-    private ExtItemDictionary extItemDictionary;
+    private final SqlRepositoryConfiguration repoConfiguration;
+    private final ExtItemDictionary extItemDictionary;
 
     public QueryInterpreter(SqlRepositoryConfiguration repoConfiguration, ExtItemDictionary extItemDictionary) {
         this.repoConfiguration = repoConfiguration;
         this.extItemDictionary = extItemDictionary;
-    }
-
-    public SqlRepositoryConfiguration getRepoConfiguration() {
-        return repoConfiguration;
     }
 
     public RootHibernateQuery interpret(ObjectQuery query, @NotNull Class<? extends Containerable> type,

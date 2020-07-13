@@ -10,7 +10,6 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.sql.SQLType;
 import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
@@ -61,20 +60,20 @@ public abstract class SqlQuery {
 
         } else if (value instanceof AuditEventTypeType) {
             return RAuditEventType.toRepo(
-                    AuditEventType.toAuditEventType((AuditEventTypeType) value)).ordinal();
+                    AuditEventType.fromSchemaValue((AuditEventTypeType) value)).ordinal();
 
         } else if (value instanceof AuditEventStage) {
             return RAuditEventStage.toRepo((AuditEventStage) value).ordinal();
 
         } else if (value instanceof AuditEventStageType) {
             return RAuditEventStage.toRepo(
-                    AuditEventStage.toAuditEventStage((AuditEventStageType) value)).ordinal();
+                    AuditEventStage.fromSchemaValue((AuditEventStageType) value)).ordinal();
 
         } else if (value instanceof OperationResultStatusType) {
-            return ROperationResultStatus.toRepo((OperationResultStatusType) value).ordinal();
+            return ROperationResultStatus.fromSchemaValue((OperationResultStatusType) value).ordinal();
 
         } else if (value instanceof OperationResultStatus) {
-            return ROperationResultStatus.toRepo(
+            return ROperationResultStatus.fromSchemaValue(
                     OperationResultStatus.createStatusType((OperationResultStatus) value)).ordinal();
 
         } else if (value.getClass().isEnum()) {

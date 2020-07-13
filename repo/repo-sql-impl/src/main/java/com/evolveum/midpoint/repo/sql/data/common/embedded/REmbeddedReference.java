@@ -12,8 +12,7 @@ import static com.evolveum.midpoint.repo.sql.util.RUtil.*;
 import java.util.Objects;
 import javax.persistence.*;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 
@@ -112,8 +111,8 @@ public class REmbeddedReference implements ObjectReference {
     }
 
     public static void copyToJAXB(REmbeddedReference repo, ObjectReferenceType jaxb, PrismContext prismContext) {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
         jaxb.setType(ClassMapper.getQNameForHQLType(repo.getTargetType()));
         jaxb.setRelation(stringToQName(repo.getRelation()));
         if (StringUtils.isNotEmpty(repo.getTargetOid())) {
@@ -123,8 +122,8 @@ public class REmbeddedReference implements ObjectReference {
 
     public static REmbeddedReference fromJaxb(ObjectReferenceType jaxb, REmbeddedReference repo,
             RelationRegistry relationRegistry) {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
         repo.setTargetType(ClassMapper.getHQLTypeForQName(jaxb.getType()));
         repo.setRelation(qnameToString(relationRegistry.normalizeRelation(jaxb.getRelation())));
         repo.setTargetOid(jaxb.getOid());

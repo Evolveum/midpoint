@@ -108,9 +108,9 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (isExpressionMode){
-                    SwitchablePropertyValuePanel.this.getModelObject().getValue().getFilter().setExpression(null);
+                    SwitchablePropertyValuePanel.this.getModelObject().getValue().setExpression(null);
                 } else {
-                    SwitchablePropertyValuePanel.this.getModelObject().getValue().getFilter().setValue(null);
+                    SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(null);
                 }
                 isExpressionMode = !isExpressionMode;
                 target.add(SwitchablePropertyValuePanel.this);
@@ -137,7 +137,14 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
             if (propertyDef instanceof PrismReferenceDefinition) {
                 ObjectReferenceType propertyValue = (ObjectReferenceType) valueSearchFilter.getValue();
                 searchItemField = new ReferenceValueSearchPanel(id, Model.of(propertyValue),
-                        (PrismReferenceDefinition) propertyDef);
+                        (PrismReferenceDefinition) propertyDef){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void referenceValueUpdated(ObjectReferenceType ort){
+                        SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(ort);
+                    }
+                };
             } else if (propertyDef instanceof PrismPropertyDefinition) {
                 List<DisplayableValue> allowedValues = new ArrayList<>();
                 if (((PrismPropertyDefinition) propertyDef).getAllowedValues() != null) {
@@ -196,10 +203,10 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
 
     private ExpressionWrapper getExpressionWrapper(){
         SelectableBean<ValueSearchFilterItem> filterModelObj = getModelObject();
-        if (filterModelObj == null || filterModelObj.getValue() == null || filterModelObj.getValue().getFilter() == null){
+        if (filterModelObj == null || filterModelObj.getValue() == null || filterModelObj.getValue().getExpression() == null){
             return null;
         }
-        return filterModelObj.getValue().getFilter().getExpression();
+        return filterModelObj.getValue().getExpression();
     }
 
 }

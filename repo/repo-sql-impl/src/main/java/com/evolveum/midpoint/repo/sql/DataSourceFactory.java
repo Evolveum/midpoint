@@ -7,19 +7,20 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.jndi.JndiObjectFactoryBean;
-
+import java.io.Closeable;
+import java.io.IOException;
 import javax.annotation.PreDestroy;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import java.io.Closeable;
-import java.io.IOException;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.jndi.JndiObjectFactoryBean;
+
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author Viliam Repan (lazyman)

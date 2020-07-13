@@ -1,11 +1,20 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.util;
+
+import static com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil.resolveNames;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
+import java.util.Collection;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
@@ -25,17 +34,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-
-import static com.evolveum.midpoint.schema.util.ObjectDeltaSchemaLevelUtil.resolveNames;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
- *  Uses cache repository service to resolve object names.
+ * Uses cache repository service to resolve object names.
  */
 @Component
 public class AuditHelper {
@@ -45,6 +46,7 @@ public class AuditHelper {
     @Autowired private AuditService auditService;
     @Autowired private PrismContext prismContext;
     @Autowired private SchemaHelper schemaHelper;
+
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
@@ -53,8 +55,8 @@ public class AuditHelper {
     private static final String OP_RESOLVE_NAME = AuditHelper.class.getName() + ".resolveName";
 
     /**
-     * @param externalNameResolver Name resolver that should be tried first. It should be fast. If it returns null it means
-     *                             "I don't know".
+     * @param externalNameResolver Name resolver that should be tried first. It should be fast.
+     * If it returns null it means "I don't know".
      */
     public void audit(AuditEventRecord record, ObjectDeltaSchemaLevelUtil.NameResolver externalNameResolver, Task task,
             OperationResult parentResult) {
@@ -73,7 +75,9 @@ public class AuditHelper {
         }
     }
 
-    private void resolveNamesInDeltas(AuditEventRecord record, ObjectDeltaSchemaLevelUtil.NameResolver externalNameResolver,
+    private void resolveNamesInDeltas(
+            AuditEventRecord record,
+            ObjectDeltaSchemaLevelUtil.NameResolver externalNameResolver,
             OperationResult parentResult) {
         for (ObjectDeltaOperation<? extends ObjectType> objectDeltaOperation : emptyIfNull(record.getDeltas())) {
             ObjectDelta<? extends ObjectType> delta = objectDeltaOperation.getObjectDelta();

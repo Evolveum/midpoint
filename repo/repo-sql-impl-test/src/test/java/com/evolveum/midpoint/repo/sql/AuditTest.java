@@ -108,12 +108,12 @@ public class AuditTest extends BaseSQLRepoTest {
         ObjectDeltaOperation delta = new ObjectDeltaOperation();
         delta.setObjectDelta(prismContext.deltaFactory().object().createModificationAddReference(UserType.class, "1234", UserType.F_LINK_REF,
                 "123"));
-        record.getDeltas().add(delta);
+        record.addDelta(delta);
 
         delta = new ObjectDeltaOperation();
         delta.setObjectDelta(prismContext.deltaFactory().object().createModificationAddReference(UserType.class, "1234", UserType.F_LINK_REF,
                 "124"));
-        record.getDeltas().add(delta);
+        record.addDelta(delta);
 
         auditService.audit(record, new NullTaskImpl());
     }

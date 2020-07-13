@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.repo.sql.query.restriction;
 
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.ClassUtils;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ComparativeFilter;
@@ -42,12 +42,13 @@ public class PropertyRestriction extends ItemValueRestriction<PropertyValueFilte
 
     private static final Trace LOGGER = TraceManager.getTrace(PropertyRestriction.class);
 
-    private JpaLinkDefinition<JpaPropertyDefinition> linkDefinition;
+    private final JpaLinkDefinition<JpaPropertyDefinition> linkDefinition;
 
-    public PropertyRestriction(InterpretationContext context, PropertyValueFilter filter, JpaEntityDefinition baseEntityDefinition,
+    public PropertyRestriction(InterpretationContext context,
+            PropertyValueFilter filter, JpaEntityDefinition baseEntityDefinition,
             Restriction parent, JpaLinkDefinition<JpaPropertyDefinition> linkDefinition) {
         super(context, filter, baseEntityDefinition, parent);
-        Validate.notNull(linkDefinition, "linkDefinition");
+        Objects.requireNonNull(linkDefinition, "linkDefinition");
         this.linkDefinition = linkDefinition;
     }
 
