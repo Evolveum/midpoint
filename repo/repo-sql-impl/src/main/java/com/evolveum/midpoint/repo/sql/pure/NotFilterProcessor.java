@@ -15,6 +15,7 @@ public class NotFilterProcessor implements FilterProcessor<NotFilter> {
 
     @Override
     public Predicate process(NotFilter filter) throws QueryException {
+        context.markNotFilterUsage();
         return new ObjectFilterProcessor(context)
                 .process(filter.getConditions().get(0))
                 .not();

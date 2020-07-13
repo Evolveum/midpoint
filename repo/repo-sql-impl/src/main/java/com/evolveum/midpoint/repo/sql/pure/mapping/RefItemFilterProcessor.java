@@ -7,25 +7,23 @@ import com.querydsl.core.types.*;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 
 /**
  * Filter processor for a reference attribute path.
  */
-public class RefItemFilterProcessor extends ItemFilterProcessor<RefFilter> {
-
-    private final Path<?> path;
+public class RefItemFilterProcessor extends SinglePathItemFilterProcessor<RefFilter> {
 
     /**
      * Returns the mapper function creating the string filter processor from context.
      */
-    public static ItemSqlMapper mapper(
-            Function<EntityPath<?>, Path<?>> rootToQueryItem) {
-        return new ItemSqlMapper(rootToQueryItem,
-                context -> new RefItemFilterProcessor(rootToQueryItem.apply(context.path())));
+    public static ItemSqlMapper mapper(Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+        return new ItemSqlMapper(ctx -> new RefItemFilterProcessor(ctx, rootToQueryItem));
     }
 
-    private RefItemFilterProcessor(Path<?> path) {
-        this.path = path;
+    private RefItemFilterProcessor(
+            SqlPathContext<?, ?> context, Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+        super(context, rootToQueryItem);
     }
 
     @Override

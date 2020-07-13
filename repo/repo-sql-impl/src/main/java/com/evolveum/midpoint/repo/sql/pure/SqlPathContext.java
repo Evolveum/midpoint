@@ -18,6 +18,8 @@ public class SqlPathContext<Q extends EntityPath<R>, R> {
     private final QueryModelMapping<?, Q, R> mapping;
     private final PrismContext prismContext;
 
+    private boolean notFilterUsed = false;
+
     public SqlPathContext(Q path, QueryModelMapping<?, Q, R> mapping, PrismContext prismContext) {
         this.path = path;
         this.mapping = mapping;
@@ -44,5 +46,13 @@ public class SqlPathContext<Q extends EntityPath<R>, R> {
     public <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
             ItemName itemName) throws QueryException {
         return mapping.createItemFilterProcessor(itemName, this);
+    }
+
+    public void markNotFilterUsage() {
+        notFilterUsed = true;
+    }
+
+    public boolean isNotFilterUsed() {
+        return notFilterUsed;
     }
 }

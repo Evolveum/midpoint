@@ -10,6 +10,7 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -126,7 +127,7 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
         return itemMapping(itemName).createFilterProcessor(context);
     }
 
-    public @NotNull Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?> context)
+    public @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?> context)
             throws QueryException {
         return itemMapping(itemName).itemPath(context.path());
     }
