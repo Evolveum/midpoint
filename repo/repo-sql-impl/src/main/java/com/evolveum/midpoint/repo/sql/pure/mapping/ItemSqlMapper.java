@@ -37,7 +37,8 @@ public class ItemSqlMapper {
         return primaryItemMapping.apply(root);
     }
 
-    public <T extends ObjectFilter> FilterProcessor<T> createFilterProcessor(SqlPathContext pathContext) {
+    public <T extends ObjectFilter> FilterProcessor<T> createFilterProcessor(
+            SqlPathContext<?, ?> pathContext) {
         //noinspection unchecked
         return (FilterProcessor<T>) filterProcessorFactory.apply(pathContext);
     }

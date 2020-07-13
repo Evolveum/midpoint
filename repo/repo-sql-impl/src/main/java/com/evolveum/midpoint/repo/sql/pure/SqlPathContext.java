@@ -1,9 +1,13 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
 import com.querydsl.core.types.EntityPath;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 /**
  * SQL path context with mapping information.

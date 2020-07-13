@@ -121,12 +121,12 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
 
     // we want loose typing for client's sake, there is no other chance to get the right type here
     public <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
-            ItemName itemName, SqlPathContext context)
+            ItemName itemName, SqlPathContext<?, ?> context)
             throws QueryException {
         return itemMapping(itemName).createFilterProcessor(context);
     }
 
-    public @NotNull Path<?> primarySqlPath(ItemName itemName, SqlPathContext context)
+    public @NotNull Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?> context)
             throws QueryException {
         return itemMapping(itemName).itemPath(context.path());
     }

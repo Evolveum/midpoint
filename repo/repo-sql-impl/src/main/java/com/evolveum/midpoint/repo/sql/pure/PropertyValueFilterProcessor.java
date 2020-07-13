@@ -9,9 +9,9 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 public class PropertyValueFilterProcessor implements FilterProcessor<PropertyValueFilter<?>> {
 
-    private final SqlPathContext context;
+    private final SqlPathContext<?, ?> context;
 
-    public PropertyValueFilterProcessor(SqlPathContext context) {
+    public PropertyValueFilterProcessor(SqlPathContext<?, ?> context) {
         this.context = context;
     }
 
