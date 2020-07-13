@@ -28,7 +28,7 @@ public class RefFilterProcessor implements FilterProcessor<RefFilter> {
         }
 
         FilterProcessor<RefFilter> filterProcessor =
-                context.mapping().createItemFilterProcessor(itemName, context);
+                context.createItemFilterProcessor(itemName);
         return filterProcessor.process(filter);
     }
 }

@@ -40,4 +40,9 @@ public class SqlPathContext<Q extends EntityPath<R>, R> {
     public PrismContext prismContext() {
         return prismContext;
     }
+
+    public <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
+            ItemName itemName) throws QueryException {
+        return mapping.createItemFilterProcessor(itemName, this);
+    }
 }
