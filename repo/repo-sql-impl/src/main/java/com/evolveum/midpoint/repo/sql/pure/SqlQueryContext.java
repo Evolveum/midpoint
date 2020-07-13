@@ -11,12 +11,14 @@ import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.sql.SQLQuery;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sql.pure.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 /**
@@ -27,13 +29,29 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<Q, R>
         implements FilterProcessor<ObjectFilter> {
 
+    /**
+     * Default page size if pagination is requested, that is offset is set, but maxSize is not.
+     */
     public static final int DEFAULT_PAGE_SIZE = 10;
+
+    /**
+     * If no other limit is used for query this limit will be used for sanity reasons.
+     */
+    public static final long NO_PAGINATION_LIMIT = 10_000;
+
+    /**
+     * Number of values (identifiers) used in the IN clause to-many fetching selects.
+     * This works effectively as factor of how bad N+1 select is, it's at most N/this-limit+1 bad.
+     * For obvious reasons, this works only for non-composite PKs (IDs) on the master entity.
+     */
+    public static final int MAX_ID_IN_FOR_TO_MANY_FETCH = 100;
 
     private final SQLQuery<?> query;
 
-    public SqlQueryContext(Q root, QueryModelMapping<?, Q, R> rootMapping) {
-        super(root, rootMapping);
-        query = new SQLQuery<>(QUERYDSL_CONFIGURATION).from(root);
+    public SqlQueryContext(QueryModelMapping<?, Q, R> rootMapping, PrismContext prismContext)
+            throws QueryException {
+        super(rootMapping.defaultAlias(), rootMapping, prismContext);
+        query = new SQLQuery<>(QUERYDSL_CONFIGURATION).from(root());
     }
 
     public Q root() {
@@ -42,10 +60,6 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
 
     public <T extends FlexibleRelationalPathBase<?>> T root(Class<T> rootType) {
         return path(rootType);
-    }
-
-    public SQLQuery<?> query(Connection connection) {
-        return query.clone(connection);
     }
 
     @Override
@@ -108,5 +122,24 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
 
     public SQLQuery<?> newQuery(Connection conn) {
         return new SQLQuery<>(conn, QUERYDSL_CONFIGURATION);
+    }
+
+    public PageOf<R> executeQuery(Connection conn) {
+        SQLQuery<R> query = this.query.clone(conn)
+                .select(root());
+        if (query.getMetadata().getModifiers().getLimit() == null) {
+            query.limit(NO_PAGINATION_LIMIT);
+        }
+        // TODO logging
+        System.out.println("SQL query = " + query);
+
+        long count = query.fetchCount();
+        List<R> data = query.fetch();
+
+        for (SqlDetailFetchMapper<R, ?, ?, ?> fetcher : mapping().detailFetchMappers()) {
+            fetcher.execute(() -> newQuery(conn), data);
+        }
+
+        return new PageOf<>(data, PageOf.PAGE_NO_PAGINATION, 0, count);
     }
 }

@@ -2,8 +2,6 @@ package com.evolveum.midpoint.repo.sql.pure;
 
 import static com.querydsl.core.group.GroupBy.groupBy;
 
-import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditDelta.M_AUDIT_DELTA;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.*;
@@ -21,6 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.pure.mapping.QAuditEventRecordMapping;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditDelta;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
@@ -107,8 +106,9 @@ public class SqlGeneration {
                     .from(aer)
                     .fetchCount());
 
+            QAuditDelta ad = new QAuditDelta("mad");
             SQLQuery<Tuple> query = newQuery(conn)
-                    .select(aer, M_AUDIT_DELTA)
+                    .select(aer, ad)
 //                .select(M_AUDIT_EVENT.id, M_AUDIT_DELTA.checksum)
 //                .from(M_AUDIT_EVENT)
                     // leftJoin if we want also events without deltas
@@ -116,30 +116,30 @@ public class SqlGeneration {
                     // alternatively:
                     // .join(M_AUDIT_DELTA).on(M_AUDIT_DELTA.recordId.eq(M_AUDIT_EVENT.id))
 //                .orderBy(M_AUDIT_EVENT.id.asc())
-                    .from(aer, M_AUDIT_DELTA)
-                    .where(aer.id.eq(M_AUDIT_DELTA.recordId)) // this replaces "join-on", but only inner
+                    .from(aer, ad)
+                    .where(aer.id.eq(ad.recordId)) // this replaces "join-on", but only inner
                     .where(aer.id.eq(452L)); // "Works on my computer! :-)"
 
             List<Tuple> result = query.fetch();
             System.out.println("result = " + result);
             System.out.println("\nsize: " + result.size());
 
-            System.out.println("\ncount: " + query.transform(groupBy(aer.id).as(M_AUDIT_DELTA.count())));
-            Map<?, ?> transform = query.transform(GroupBy.groupBy(aer.id).as(GroupBy.list(M_AUDIT_DELTA)));
+            System.out.println("\ncount: " + query.transform(groupBy(aer.id).as(ad.count())));
+            Map<?, ?> transform = query.transform(GroupBy.groupBy(aer.id).as(GroupBy.list(ad)));
             System.out.println("transform = " + transform);
 
             // "manual" transformation of one-to-many to proper graph
             List<Tuple> plainResult = newQuery(conn)
-                    .select(aer, M_AUDIT_DELTA)
+                    .select(aer, ad)
                     .from(aer)
-                    .leftJoin(aer._auditDeltaFk, M_AUDIT_DELTA)
+                    .leftJoin(aer._auditDeltaFk, ad)
                     // alternatively:
                     // .leftJoin(M_AUDIT_DELTA).on(M_AUDIT_DELTA.recordId.eq(M_AUDIT_EVENT.id))
 //                .orderBy(M_AUDIT_EVENT.id.asc())
                     .where(aer.id.eq(452L))
                     .fetch();
             Map<MAuditEventRecord, Collection<MAuditDelta>> resultMap =
-                    mapOneToMany(plainResult, aer, M_AUDIT_DELTA, (o, m) -> o.addDelta(m));
+                    mapOneToMany(plainResult, aer, ad, (o, m) -> o.addDelta(m));
             System.out.println("\nFinal result" + resultMap);
 
             System.out.println("deltas for 1st item: " + resultMap.keySet().iterator().next().deltas);

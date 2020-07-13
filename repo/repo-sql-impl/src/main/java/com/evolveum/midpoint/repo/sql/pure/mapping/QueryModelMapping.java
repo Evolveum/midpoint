@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Function;
@@ -171,7 +172,16 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
         return defaultAlias;
     }
 
-    public abstract SqlTransformer<M,R> createTransformer(PrismContext prismContext);
+    /**
+     * Creates {@link SqlTransformer} of row bean to model/schema type.
+     */
+    public abstract SqlTransformer<M, R> createTransformer(PrismContext prismContext);
+
+    /**
+     * Returns collection of {@link SqlDetailFetchMapper}s that know how to fetch
+     * to-many details related to this mapped entity (master) - fetcher per detail type/table.
+     */
+    public abstract Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers();
 
     // TODO extension columns + null default alias after every change - synchronized!
 }

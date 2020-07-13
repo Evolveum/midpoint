@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditPropertyValue;
 /**
  * Querydsl query type for M_AUDIT_PROP_VALUE table.
  */
+@SuppressWarnings("unused")
 public class QAuditPropertyValue extends FlexibleRelationalPathBase<MAuditPropertyValue> {
 
     private static final long serialVersionUID = -1656131713;

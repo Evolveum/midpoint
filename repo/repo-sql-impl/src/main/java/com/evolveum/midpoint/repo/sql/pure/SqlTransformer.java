@@ -18,6 +18,15 @@ public abstract class SqlTransformer<M, R> {
         this.prismContext = prismContext;
     }
 
+    /**
+     * Transforms row of R to M type - typically a model/schema object.
+     * If pre-generated bean is used as row it does not include extension (dynamic) columns,
+     * which is OK if extension columns are used only for query and their information
+     * is still contained in the object somehow else (e.g. full object LOB).
+     * <p>
+     * Alternative would be dynamically generated list of select expressions and transforming
+     * row to M object directly from {@link com.querydsl.core.Tuple}.
+     */
     public abstract M toSchemaObject(R row);
 
     /**
