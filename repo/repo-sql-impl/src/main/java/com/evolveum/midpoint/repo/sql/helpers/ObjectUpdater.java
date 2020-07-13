@@ -16,6 +16,10 @@ import javax.persistence.PersistenceException;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 
+import com.evolveum.midpoint.repo.sql.helpers.delta.ObjectDeltaUpdater;
+
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
@@ -113,7 +117,7 @@ public class ObjectUpdater {
             closureContext = closureManager.onBeginTransactionAdd(session, object, options.isOverwrite());
 
             if (options.isOverwrite()) {
-                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext, noFetchExtensionValueInsertionForbidden);
+                oid = overwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
             } else {
                 oid = nonOverwriteAddObjectAttempt(object, rObject, originalOid, session, closureContext);
             }
@@ -164,7 +168,7 @@ public class ObjectUpdater {
 
     private <T extends ObjectType> String overwriteAddObjectAttempt(
             PrismObject<T> object, RObject rObject, String originalOid, Session session,
-            OrgClosureManager.Context closureContext, boolean noFetchExtensionValueInsertionForbidden)
+            OrgClosureManager.Context closureContext)
             throws SchemaException, DtoTranslationException {
 
         PrismObject<T> oldObject = null;
@@ -192,7 +196,7 @@ public class ObjectUpdater {
 
         updateFullObject(rObject, object);
 
-        RObject merged = objectDeltaUpdater.update(object, rObject, noFetchExtensionValueInsertionForbidden, session);
+        RObject merged = (RObject) session.merge(rObject);
         lookupTableHelper.addLookupTableRows(session, rObject, oldObject != null);
         caseHelper.addCertificationCampaignCases(session, rObject, oldObject != null);
 
@@ -614,9 +618,9 @@ public class ObjectUpdater {
 
     /**
      * Gathers things relevant to the whole attempt.
-     * EXPERIMENTAL
      */
-    static class AttemptContext {
-        boolean noFetchExtensionValueInsertionAttempted;
+    @Experimental
+    public static class AttemptContext {
+        public boolean noFetchExtensionValueInsertionAttempted;
     }
 }

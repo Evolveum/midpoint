@@ -96,6 +96,9 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
+        if (owner != null && ownerOid == null) {
+            ownerOid = owner.getOid();
+        }
         return ownerOid;
     }
 
@@ -177,8 +180,8 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
 
     public void setOwner(RAccessCertificationCampaign owner) {
         this.owner = owner;
-        if (owner != null) {        // sometimes we are called with null owner but non-null ownerOid
-            this.ownerOid = owner.getOid();
+        if (owner != null) {
+            setOwnerOid(owner.getOid());
         }
     }
 
@@ -290,20 +293,20 @@ public class RAccessCertificationCase implements Container<RAccessCertificationC
         }
 
         RAccessCertificationCase that = (RAccessCertificationCase) o;
-        return Objects.equals(ownerOid, that.ownerOid)
+        return Objects.equals(getOwnerOid(), that.getOwnerOid())
                 && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerOid, id);
+        return Objects.hash(getOwnerOid(), id);
     }
 
     @Override
     public String toString() {
         return "RAccessCertificationCase{" +
                 "id=" + id +
-                ", ownerOid='" + ownerOid + '\'' +
+                ", ownerOid='" + getOwnerOid() + '\'' +
                 ", targetRef=" + targetRef +
                 ", targetRef=" + targetRef +
                 ", objectRef=" + objectRef +

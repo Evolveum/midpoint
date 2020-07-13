@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.prism;
 
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -112,7 +113,12 @@ public interface PrismObject<O extends Objectable> extends PrismContainer<O> {
     @NotNull
     ObjectDelta<O> diff(PrismObject<O> other, ParameterizedEquivalenceStrategy strategy);
 
+    /**
+     * See description of {@link ItemDelta#narrow(PrismObject, Comparator, Comparator, boolean)} method.
+     */
     Collection<? extends ItemDelta<?, ?>> narrowModifications(Collection<? extends ItemDelta<?, ?>> modifications,
+            @NotNull ParameterizedEquivalenceStrategy plusStrategy,
+            @NotNull ParameterizedEquivalenceStrategy minusStrategy,
             boolean assumeMissingItems);
 
     ObjectDelta<O> createDelta(ChangeType changeType);

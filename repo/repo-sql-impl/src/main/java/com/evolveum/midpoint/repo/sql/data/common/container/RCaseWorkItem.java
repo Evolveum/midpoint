@@ -75,7 +75,7 @@ public class RCaseWorkItem implements Container<RCase> {
 
     public void setOwner(RCase _case) {
         this.owner = _case;
-        if (_case != null) {            // sometimes we are called with null _case but non-null IDs
+        if (_case != null) {
             this.ownerOid = _case.getOid();
         }
     }
@@ -83,6 +83,9 @@ public class RCaseWorkItem implements Container<RCase> {
     @Column(name = "owner_oid", length = RUtil.COLUMN_LENGTH_OID, nullable = false)
     @OwnerIdGetter()
     public String getOwnerOid() {
+        if (owner != null && ownerOid == null) {
+            ownerOid = owner.getOid();
+        }
         return ownerOid;
     }
 
@@ -198,7 +201,7 @@ public class RCaseWorkItem implements Container<RCase> {
         if (this == o) { return true; }
         if (!(o instanceof RCaseWorkItem)) { return false; }
         RCaseWorkItem that = (RCaseWorkItem) o;
-        return Objects.equals(ownerOid, that.ownerOid) &&
+        return Objects.equals(getOwnerOid(), that.getOwnerOid()) &&
                 Objects.equals(id, that.id) &&
                 Objects.equals(stageNumber, that.stageNumber) &&
                 Objects.equals(assigneeRef, that.assigneeRef) &&
@@ -212,7 +215,7 @@ public class RCaseWorkItem implements Container<RCase> {
     @Override
     public int hashCode() {
         return Objects
-                .hash(ownerOid, id, stageNumber, assigneeRef, performerRef, outcome, closeTimestamp, createTimestamp, deadline);
+                .hash(getOwnerOid(), id, stageNumber, assigneeRef, performerRef, outcome, closeTimestamp, createTimestamp, deadline);
     }
 
     @Transient
@@ -254,5 +257,24 @@ public class RCaseWorkItem implements Container<RCase> {
         rWorkItem.setCloseTimestamp(workItem.getCloseTimestamp());
         rWorkItem.setCreateTimestamp(workItem.getCreateTimestamp());
         rWorkItem.setDeadline(workItem.getDeadline());
+    }
+
+    @Override
+    public String toString() {
+        return "RCaseWorkItem{" +
+                "trans=" + trans +
+                ", owner=" + owner +
+                ", ownerOid='" + ownerOid + '\'' +
+                ", id=" + id +
+                ", stageNumber=" + stageNumber +
+                ", originalAssigneeRef=" + originalAssigneeRef +
+                ", assigneeRef=" + assigneeRef +
+                ", candidateRef=" + candidateRef +
+                ", performerRef=" + performerRef +
+                ", outcome='" + outcome + '\'' +
+                ", createTimestamp=" + createTimestamp +
+                ", closeTimestamp=" + closeTimestamp +
+                ", deadline=" + deadline +
+                '}';
     }
 }

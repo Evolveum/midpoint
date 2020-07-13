@@ -15,8 +15,15 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
+import com.evolveum.midpoint.test.DummyTestResource;
+
+import com.evolveum.midpoint.test.PredefinedTestMethodTracing;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -67,6 +74,27 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
             CREATION_METADATA_RECORDING_DIR, "user-paul.xml", "7c8e736b-b195-4ca1-bce4-12f86ff1bc71");
     //endregion
 
+    //region Constants for provenance metadata recording scenario
+    private static final File PROVENANCE_METADATA_RECORDING_DIR = new File(TEST_DIR, "provenance-metadata-recording");
+
+    private static final TestResource<ArchetypeType> ARCHETYPE_PROVENANCE_METADATA_RECORDING = new TestResource<>(
+            PROVENANCE_METADATA_RECORDING_DIR, "archetype-provenance-metadata-recording.xml", "b2117a51-a516-4151-9168-30f8baa78ec2");
+    private static final TestResource<ObjectTemplateType> TEMPLATE_PROVENANCE_METADATA_RECORDING = new TestResource<>(
+            PROVENANCE_METADATA_RECORDING_DIR, "template-provenance-metadata-recording.xml", "9ff4dcad-8f7e-4a28-8515-83cf50daec22");
+
+    private static final TestResource<ServiceType> ORIGIN_ADMIN_ENTRY = new TestResource<>(
+            PROVENANCE_METADATA_RECORDING_DIR, "origin-admin-entry.xml", "6c0a7a75-0551-4842-807d-424e279a257f");
+    private static final TestResource<ServiceType> ORIGIN_SELF_SERVICE_APP = new TestResource<>(
+            PROVENANCE_METADATA_RECORDING_DIR, "origin-self-service-app.xml", "760fda34-846f-4aac-a5ac-881c0ff23653");
+    private static final TestResource<ServiceType> ORIGIN_HR_FEED = new TestResource<>(
+            PROVENANCE_METADATA_RECORDING_DIR, "origin-hr-feed.xml", "f43bd824-e07e-4a41-950e-00de06881555");
+    private static final DummyTestResource RESOURCE_HR = new DummyTestResource(
+            PROVENANCE_METADATA_RECORDING_DIR, "resource-hr.xml", "9a34c3b6-aca5-4f9b-aae4-24f3f2d98ce9", "hr");
+
+    private static final TestResource<UserType> USER_LEONHARD = new TestResource<>(
+            PROVENANCE_METADATA_RECORDING_DIR, "user-leonhard.xml", "31984da7-e162-4e22-a437-6f60d80092c4");
+    //endregion
+
     private static final String NS_EXT_METADATA = "http://midpoint.evolveum.com/xml/ns/samples/metadata";
     private static final ItemName LOA_NAME = new ItemName(NS_EXT_METADATA, "loa");
     private static final ItemPath LOA_PATH = ItemPath.create(ObjectType.F_EXTENSION, LOA_NAME);
@@ -91,10 +119,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         addObject(ARCHETYPE_CREATION_METADATA_RECORDING, initTask, initResult);
         addObject(TEMPLATE_CREATION_METADATA_RECORDING, initTask, initResult);
 
+        addObject(ARCHETYPE_PROVENANCE_METADATA_RECORDING, initTask, initResult);
+        addObject(TEMPLATE_PROVENANCE_METADATA_RECORDING, initTask, initResult);
+        initDummyResource(RESOURCE_HR, initTask, initResult);
+        addObject(ORIGIN_ADMIN_ENTRY, initTask, initResult);
+        addObject(ORIGIN_SELF_SERVICE_APP, initTask, initResult);
+        addObject(ORIGIN_HR_FEED, initTask, initResult);
+        addObject(USER_LEONHARD, initTask, initResult);
+
         addObject(TEMPLATE_REGULAR_USER, initTask, initResult);
         addObject(USER_ALICE, initTask, initResult);
 
-//        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
+        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
     }
 
     @Override
@@ -335,6 +371,117 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .end()
                     .end();
         // TODO for roleMembershipRef (when implemented)
+    }
+    //endregion
+
+    //region Scenario 9: Provenance metadata
+    @Test
+    public void test900ProvideNamesByAdmin() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
+
+        // @formatter:off
+        PrismPropertyValue<PolyString> leonhard = prismContext.itemFactory().createPropertyValue();
+        leonhard.setValue(PolyString.fromOrig("Leonhard"));
+        leonhard.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginProvenance()
+                            .beginYield()
+                                .beginAcquisition()
+                                    .timestamp(now)
+                                    .channel(SchemaConstants.CHANNEL_GUI_USER_URI)
+                                    .originRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .<ProvenanceYieldType>end()
+                            .<ProvenanceMetadataType>end()
+                        .<ValueMetadataType>end());
+        // @formatter:on
+
+        // @formatter:off
+        PrismPropertyValue<PolyString> euler = prismContext.itemFactory().createPropertyValue();
+        euler.setValue(PolyString.fromOrig("Euler"));
+        euler.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginProvenance()
+                            .beginYield()
+                                .beginAcquisition()
+                                    .timestamp(now)
+                                    .channel(SchemaConstants.CHANNEL_GUI_USER_URI)
+                                    .originRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .<ProvenanceYieldType>end()
+                            .<ProvenanceMetadataType>end()
+                        .<ValueMetadataType>end());
+        // @formatter:on
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).add(leonhard)
+                .item(UserType.F_FAMILY_NAME).add(euler)
+                .asObjectDelta(USER_LEONHARD.oid);
+
+        when();
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertUserAfter(USER_LEONHARD.oid)
+                .displayXml()
+                .valueMetadata(UserType.F_GIVEN_NAME)
+                    .display()
+                    .end()
+
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .display()
+                    .end()
+
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .display()
+                    .end();
+    }
+
+    @Test
+    public void test910AddSameFamilyNameByRest() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
+
+        // @formatter:off
+        PrismPropertyValue<PolyString> euler = prismContext.itemFactory().createPropertyValue();
+        euler.setValue(PolyString.fromOrig("Euler"));
+        euler.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginProvenance()
+                            .beginYield()
+                                .beginAcquisition()
+                                    .timestamp(now)
+                                    .channel(SchemaConstants.CHANNEL_REST_URI)
+                                    .originRef(ORIGIN_SELF_SERVICE_APP.ref())
+                                .<ProvenanceYieldType>end()
+                            .<ProvenanceMetadataType>end()
+                        .<ValueMetadataType>end());
+        // @formatter:on
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_FAMILY_NAME).add(euler)
+                .asObjectDelta(USER_LEONHARD.oid);
+
+        when();
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertUserAfter(USER_LEONHARD.oid)
+                .displayXml()
+                .valueMetadata(UserType.F_GIVEN_NAME)
+                .display()
+                .end()
+
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                .display()
+                .end()
+
+                .valueMetadata(UserType.F_FULL_NAME)
+                .display()
+                .end();
     }
     //endregion
 

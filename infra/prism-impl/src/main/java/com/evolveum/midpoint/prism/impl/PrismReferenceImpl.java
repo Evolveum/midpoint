@@ -39,6 +39,7 @@ import java.util.List;
 public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismReferenceDefinition> implements PrismReference {
     private static final long serialVersionUID = 1872343401395762657L;
 
+    @SuppressWarnings("unused") // called dynamically from ItemImpl.createNewDefinitionlessItem
     public PrismReferenceImpl(QName name) {
         super(name);
     }
@@ -47,10 +48,8 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
         super(name, definition, prismContext);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @NotNull
+    @Override
     public PrismReferenceValue getValue() {
         // I know of no reason why we should not return a value if it's only one (even for multivalued items) (see MID-3922)
         // TODO reconsider this
@@ -235,7 +234,7 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
         super.copyValues(strategy, clone);
         for (PrismReferenceValue value : getValues()) {
             try {
-                clone.add(value.cloneComplex(strategy), false);
+                clone.addIgnoringEquivalents(value.cloneComplex(strategy));
             } catch (SchemaException e) {
                 throw new IllegalStateException("Unexpected SchemaException while copying values: " + e.getMessage(), e);
             }
@@ -262,9 +261,7 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
         sb.append(DebugUtil.formatElementName(getElementName()));
         sb.append(": ");
         List<PrismReferenceValue> values = getValues();
-        if (getValues() == null) {
-            sb.append("null");
-        } else if (values.isEmpty()) {
+        if (values.isEmpty()) {
             sb.append("[ ]");
         } else {
             if (definition != null && DebugUtil.isDetailedDebugDump()) {

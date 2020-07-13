@@ -8,6 +8,8 @@ package com.evolveum.midpoint.prism.impl.item;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.*;
@@ -44,6 +46,11 @@ public class DummyReferenceImpl extends DummyItem<PrismReferenceValue,PrismRefer
     @NotNull
     public Collection<Referencable> getRealValues() {
         return delegate().getRealValues();
+    }
+
+    @Override
+    public void addIgnoringEquivalents(@NotNull PrismReferenceValue newValue) throws SchemaException {
+        delegate().addIgnoringEquivalents(newValue);
     }
 
     public boolean merge(PrismReferenceValue value) {

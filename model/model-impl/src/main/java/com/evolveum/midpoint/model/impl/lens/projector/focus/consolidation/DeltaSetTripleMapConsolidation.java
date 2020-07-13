@@ -147,8 +147,8 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
         } else {
             return (inputValues, computationOpResult) ->
                     ValueMetadataComputation
-                            .forConsolidation(inputValues, processingSpec, beans.commonBeans, env, computationOpResult)
-                            .execute();
+                            .forConsolidation(inputValues, processingSpec, beans.commonBeans, env)
+                            .execute(computationOpResult);
         }
     }
 

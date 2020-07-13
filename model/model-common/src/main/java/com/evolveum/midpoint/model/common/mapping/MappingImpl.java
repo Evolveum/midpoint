@@ -35,13 +35,14 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
         ValueMetadataProcessingSpec processingSpec = createProcessingSpec(result);
+        LOGGER.trace("Value metadata processing spec: {}", processingSpec.shortDumpLazily());
         if (processingSpec.isEmpty()) {
             return null;
         } else {
             return (inputValues, computationOpResult) ->
                     ValueMetadataComputation
-                            .forMapping(inputValues, processingSpec, this, computationOpResult)
-                            .execute();
+                            .forMapping(inputValues, processingSpec, this)
+                            .execute(computationOpResult);
         }
     }
 

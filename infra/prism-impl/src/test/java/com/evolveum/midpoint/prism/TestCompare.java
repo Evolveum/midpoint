@@ -143,7 +143,7 @@ public abstract class TestCompare extends AbstractPrismTest {
         PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
 
         // WHEN
-        ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified, EquivalenceStrategy.NOT_LITERAL);
+        ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified, ParameterizedEquivalenceStrategy.NOT_LITERAL);
 
         // THEN
         System.out.println("Jack delta:");

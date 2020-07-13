@@ -14,6 +14,7 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugDumpable;
 
 import org.apache.commons.lang.BooleanUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.bind.JAXBElement;
@@ -44,7 +45,11 @@ public interface PrismPropertyValue<T> extends DebugDumpable, Serializable, Pris
     @Override
     PrismPropertyValue<T> cloneComplex(CloneStrategy strategy);
 
-    boolean equals(PrismPropertyValue<?> other, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule);
+    /**
+     * @return true if values are equivalent under given strategy and (if present) also under matching rule.
+     * Some of the strategy requirements (e.g. literal DOM comparison) can be skipped if matching rule is used.
+     */
+    boolean equals(PrismPropertyValue<?> other, @NotNull ParameterizedEquivalenceStrategy strategy, @Nullable MatchingRule<T> matchingRule);
 
     @Override
     boolean equals(Object obj);

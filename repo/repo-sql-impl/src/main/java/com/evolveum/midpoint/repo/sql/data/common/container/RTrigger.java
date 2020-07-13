@@ -101,6 +101,9 @@ public class RTrigger implements Container<RObject> {
 
     public void setOwner(RObject owner) {
         this.owner = owner;
+        if (owner != null) {
+            setOwnerOid(owner.getOid());
+        }
     }
 
     public void setOwnerOid(String ownerOid) {
@@ -129,13 +132,13 @@ public class RTrigger implements Container<RObject> {
         }
 
         RTrigger that = (RTrigger) o;
-        return Objects.equals(ownerOid, that.ownerOid)
+        return Objects.equals(getOwnerOid(), that.getOwnerOid())
                 && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerOid, id);
+        return Objects.hash(getOwnerOid(), id);
     }
 
     public static void copyToJAXB(RTrigger repo, TriggerType jaxb) {
@@ -180,5 +183,17 @@ public class RTrigger implements Container<RObject> {
         TriggerType object = new TriggerType();
         RTrigger.copyToJAXB(this, object);
         return object;
+    }
+
+    @Override
+    public String toString() {
+        return "RTrigger{" +
+                "trans=" + trans +
+                ", owner=" + owner +
+                ", ownerOid='" + ownerOid + '\'' +
+                ", id=" + id +
+                ", handlerUri='" + handlerUri + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
     }
 }
