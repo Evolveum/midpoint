@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,7 +15,6 @@ import java.util.*;
 import java.util.Map.Entry;
 import javax.persistence.*;
 
-import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
@@ -441,8 +440,8 @@ public class RAuditEventRecord implements Serializable {
             SystemConfigurationAuditType auditConfiguration)
             throws DtoTranslationException {
 
-        Validate.notNull(record, "Audit event record must not be null.");
-        Validate.notNull(prismContext, "Prism context must not be null.");
+        Objects.requireNonNull(record, "Audit event record must not be null.");
+        Objects.requireNonNull(prismContext, "Prism context must not be null.");
 
         RAuditEventRecord repo = new RAuditEventRecord();
 
@@ -487,7 +486,7 @@ public class RAuditEventRecord implements Serializable {
                 repo.setTargetType(ClassMapper.getHQLTypeForQName(target.getTargetType()));
             }
             if (record.getTargetOwner() != null) {
-                PrismObject targetOwner = record.getTargetOwner();
+                PrismObject<? extends FocusType> targetOwner = record.getTargetOwner();
                 repo.setTargetOwnerName(getOrigName(targetOwner));
                 repo.setTargetOwnerOid(targetOwner.getOid());
                 repo.setTargetOwnerType(ClassMapper.getHQLTypeForClass(targetOwner.getCompileTimeClass()));
@@ -512,13 +511,11 @@ public class RAuditEventRecord implements Serializable {
                 ObjectDelta<?> objectDelta = delta.getObjectDelta();
                 for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
                     ItemPath path = itemDelta.getPath();
-                    if (path != null) {        // TODO what if empty?
-                        CanonicalItemPath canonical = prismContext.createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
-                        for (int i = 0; i < canonical.size(); i++) {
-                            RAuditItem changedItem = RAuditItem.toRepo(repo, canonical.allUpToIncluding(i).asString());
-                            changedItem.setTransient(isTransient);
-                            repo.getChangedItems().add(changedItem);
-                        }
+                    CanonicalItemPath canonical = prismContext.createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
+                    for (int i = 0; i < canonical.size(); i++) {
+                        RAuditItem changedItem = RAuditItem.toRepo(repo, canonical.allUpToIncluding(i).asString());
+                        changedItem.setTransient(isTransient);
+                        repo.getChangedItems().add(changedItem);
                     }
                 }
 
@@ -583,13 +580,11 @@ public class RAuditEventRecord implements Serializable {
             audit.getResourceOids().add(resourceOID.getResourceOid());
         }
 
-        List<ObjectDeltaOperation> odos = new ArrayList<>();
+        List<ObjectDeltaOperation<?>> odos = new ArrayList<>();
         for (RObjectDeltaOperation rodo : repo.getDeltas()) {
             try {
                 ObjectDeltaOperation odo = RObjectDeltaOperation.fromRepo(rodo, prismContext, useUtf16);
-                if (odo != null) {
-                    odos.add(odo);
-                }
+                odos.add(odo);
             } catch (Exception ex) {
 
                 // TODO: for now thi is OK, if we cannot parse detla, just skipp
@@ -597,7 +592,7 @@ public class RAuditEventRecord implements Serializable {
             }
         }
 
-        audit.getDeltas().addAll((Collection) odos);
+        audit.addDeltas(odos);
 
         for (RAuditPropertyValue rPropertyValue : repo.getPropertyValues()) {
             audit.addPropertyValue(rPropertyValue.getName(), rPropertyValue.getValue());
@@ -616,7 +611,7 @@ public class RAuditEventRecord implements Serializable {
     public static SingleSqlQuery toRepo(AuditEventRecord record, Map<String, String> customColumn)
             throws DtoTranslationException {
 
-        Validate.notNull(record, "Audit event record must not be null.");
+        Objects.requireNonNull(record, "Audit event record must not be null.");
         InsertQueryBuilder queryBulder = new InsertQueryBuilder(TABLE_NAME);
         if (record.getRepoId() != null) {
             queryBulder.addParameter(ID_COLUMN_NAME, record.getRepoId());
@@ -651,7 +646,7 @@ public class RAuditEventRecord implements Serializable {
                 queryBulder.addParameter(TARGET_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForQName(target.getTargetType()));
             }
             if (record.getTargetOwner() != null) {
-                PrismObject targetOwner = record.getTargetOwner();
+                PrismObject<? extends FocusType> targetOwner = record.getTargetOwner();
                 queryBulder.addParameter(TARGET_OWNER_NAME_COLUMN_NAME, getOrigName(targetOwner));
                 queryBulder.addParameter(TARGET_OWNER_OID_COLUMN_NAME, targetOwner.getOid());
                 queryBulder.addParameter(TARGET_OWNER_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForClass(targetOwner.getCompileTimeClass()));

@@ -17,7 +17,7 @@
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-    <name>Dummy HR Resource</name>
+    <name>resource-hr</name>
     <connectorRef type="ConnectorType">
         <filter>
             <q:and>
@@ -56,17 +56,56 @@
             <objectClass>ri:AccountObjectClass</objectClass>
             <attribute>
                 <ref>icfs:name</ref>
-                <displayName>Username</displayName>
                 <inbound>
                     <strength>strong</strength>
                     <target>
                         <path>$user/name</path>
                     </target>
                 </inbound>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <assignmentTargetSearch>
+                            <targetType>ArchetypeType</targetType>
+                            <oid>b2117a51-a516-4151-9168-30f8baa78ec2</oid> <!-- archetype-provenance-metadata-recording -->
+                        </assignmentTargetSearch>
+                    </expression>
+                    <target>
+                        <path>assignment</path>
+                    </target>
+                </inbound>
             </attribute>
+            <attribute>
+                <ref>ri:firstname</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>input</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>$user/givenName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <attribute>
+                <ref>ri:lastname</ref>
+                <inbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <script>
+                            <code>input</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>$user/familyName</path>
+                    </target>
+                </inbound>
+            </attribute>
+            <originRef oid="f43bd824-e07e-4a41-950e-00de06881555" type="ServiceType"/> <!-- HR employee feed -->
         </objectType>
     </schemaHandling>
-
     <synchronization>
         <objectSynchronization>
             <objectClass>ri:AccountObjectClass</objectClass>

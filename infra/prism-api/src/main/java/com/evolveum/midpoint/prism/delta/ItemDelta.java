@@ -145,6 +145,10 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
     boolean isEmpty();
 
+    static boolean isEmpty(ItemDelta<?, ?> itemDelta) {
+        return itemDelta == null || itemDelta.isEmpty();
+    }
+
     // TODO merge with isEmpty
     boolean isInFactEmpty();
 

@@ -20,7 +20,7 @@ import com.evolveum.midpoint.repo.sql.helpers.delta.ObjectDeltaUpdater;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.query.NativeQuery;

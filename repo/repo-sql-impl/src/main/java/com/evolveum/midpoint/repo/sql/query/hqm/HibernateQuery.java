@@ -9,17 +9,14 @@ package com.evolveum.midpoint.repo.sql.query.hqm;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.definition.JpaLinkDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 
 /**
  * Query in HQL that is being created.
@@ -29,9 +26,6 @@ import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 public abstract class HibernateQuery {
 
     private static final String INDENT_STRING = "  ";
-
-    // projection elements - i.e. select projectionElement1, projectionElement2, ..., projectionElementN from ...
-    private List<ProjectionElement> projectionElements = new ArrayList<>();
 
     /**
      * Primary entity for this query, along with joined entities.
@@ -43,12 +37,27 @@ public abstract class HibernateQuery {
      * <p>
      * (originally, we thought about cross-joins with other entities, hence "primary entity")
      */
-    private EntityReference primaryEntity;          // not null
+    @NotNull private final EntityReference primaryEntity;
+
+    // projection elements - i.e. select projectionElement1, projectionElement2, ..., projectionElementN from ...
+    private final List<ProjectionElement> projectionElements = new ArrayList<>();
 
     /**
      * List of conditions in the "where" clause. They are to be interpreted as a conjunction.
      */
-    private List<Condition> conditions = new ArrayList<>();
+    private final List<Condition> conditions = new ArrayList<>();
+
+    private final List<Ordering> orderingList = new ArrayList<>();
+
+    private final List<Grouping> groupingList = new ArrayList<>();
+
+    public HibernateQuery(@NotNull JpaEntityDefinition primaryEntityDef) {
+        primaryEntity = createItemSpecification(primaryEntityDef);
+    }
+
+    protected HibernateQuery(@NotNull EntityReference primaryEntity) {
+        this.primaryEntity = primaryEntity;
+    }
 
     public static class Ordering {
         @NotNull private final String byProperty;
@@ -69,8 +78,6 @@ public abstract class HibernateQuery {
         }
     }
 
-    private List<Ordering> orderingList = new ArrayList<>();
-
     public static class Grouping {
         @NotNull private final String byProperty;
 
@@ -82,16 +89,6 @@ public abstract class HibernateQuery {
         public String getByProperty() {
             return byProperty;
         }
-    }
-
-    private List<Grouping> groupingList = new ArrayList<>();
-
-    public HibernateQuery(@NotNull JpaEntityDefinition primaryEntityDef) {
-        primaryEntity = createItemSpecification(primaryEntityDef);
-    }
-
-    protected HibernateQuery(EntityReference primaryEntity) {
-        this.primaryEntity = primaryEntity;
     }
 
     public List<ProjectionElement> getProjectionElements() {
@@ -108,12 +105,8 @@ public abstract class HibernateQuery {
         }
     }
 
-    public EntityReference getPrimaryEntity() {
+    public @NotNull EntityReference getPrimaryEntity() {
         return primaryEntity;
-    }
-
-    public void setPrimaryEntity(EntityReference primaryEntity) {
-        this.primaryEntity = primaryEntity;
     }
 
     public List<Condition> getConditions() {
@@ -208,7 +201,7 @@ public abstract class HibernateQuery {
     }
 
     public String createAlias(JpaLinkDefinition linkDefinition) {
-        Validate.notNull(linkDefinition.getJpaName(), "Got unnamed transition");
+        Objects.requireNonNull(linkDefinition.getJpaName(), "Got unnamed transition");
         return createAlias(linkDefinition.getJpaName(), false);
     }
 
@@ -224,7 +217,7 @@ public abstract class HibernateQuery {
         int index = 2;
         String alias = prefix;
         while (hasAlias(alias)) {
-            alias = prefix + Integer.toString(index);
+            alias = prefix + index;
             index++;
 
             if (index > LIMIT) {
@@ -237,10 +230,11 @@ public abstract class HibernateQuery {
     }
 
     private boolean hasAlias(String alias) {
-        if (primaryEntity != null && primaryEntity.containsAlias(alias)) {
-            return true;
+        //noinspection ConstantConditions - happens when called from constructor
+        if (primaryEntity == null) {
+            return false;
         }
-        return false;
+        return primaryEntity.containsAlias(alias);
     }
 
     public String getPrimaryEntityAlias() {
@@ -269,15 +263,4 @@ public abstract class HibernateQuery {
     }
 
     public abstract RootHibernateQuery getRootQuery();
-
-    // used to narrow the primary entity e.g. from RObject to RUser (e.g. during ItemValueRestriction processing)
-    public void narrowPrimaryEntity(JpaEntityDefinition newDefinition) throws QueryException {
-        String oldEntityName = getPrimaryEntity().getName();
-        Class<? extends RObject> oldEntityClass = ClassMapper.getHqlClassForHqlName(oldEntityName);
-        Class<?> newEntityClass = newDefinition.getJpaClass();
-        if (!(oldEntityClass.isAssignableFrom(newEntityClass))) {
-            throw new QueryException("Cannot narrow primary entity definition from " + oldEntityClass + " to " + newEntityClass);
-        }
-        getPrimaryEntity().setName(newDefinition.getJpaClassName());     // alias stays the same
-    }
 }

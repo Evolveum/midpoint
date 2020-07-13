@@ -7,11 +7,10 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 
+import java.util.Objects;
+
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
-import org.apache.commons.lang.Validate;
-
-import java.util.Objects;
 
 /**
  * Specific for SQL Server.
@@ -21,13 +20,13 @@ import java.util.Objects;
  */
 public class ExistsCondition extends Condition {
 
-    private String innerQueryText;
-    private String linkingCondition;
+    private final String innerQueryText;
+    private final String linkingCondition;
 
     public ExistsCondition(RootHibernateQuery rootHibernateQuery, String innerQueryText, String linkingCondition) {
         super(rootHibernateQuery);
-        Validate.notNull(innerQueryText);
-        Validate.notNull(linkingCondition);
+        Objects.requireNonNull(innerQueryText);
+        Objects.requireNonNull(linkingCondition);
         this.innerQueryText = innerQueryText;
         this.linkingCondition = linkingCondition;
     }
@@ -40,10 +39,9 @@ public class ExistsCondition extends Condition {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof ExistsCondition))
-            return false;
+        if (this == o) { return true; }
+        if (!(o instanceof ExistsCondition)) { return false; }
+
         ExistsCondition that = (ExistsCondition) o;
         return Objects.equals(innerQueryText, that.innerQueryText) &&
                 Objects.equals(linkingCondition, that.linkingCondition);

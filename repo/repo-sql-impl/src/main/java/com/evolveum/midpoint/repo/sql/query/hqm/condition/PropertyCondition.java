@@ -7,19 +7,17 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
-import org.apache.commons.lang.Validate;
+import java.util.Objects;
 
-/**
- * @author mederly
- */
+import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
+
 public abstract class PropertyCondition extends Condition {
 
     protected String propertyPath;
 
     public PropertyCondition(RootHibernateQuery rootHibernateQuery, String propertyPath) {
         super(rootHibernateQuery);
-        Validate.notNull(propertyPath, "propertyPath");
+        Objects.requireNonNull(propertyPath, "propertyPath");
         this.propertyPath = propertyPath;
     }
 
@@ -28,12 +26,12 @@ public abstract class PropertyCondition extends Condition {
     }
 
     protected String createParameterName(String propertyPath) {
-        Validate.notEmpty(propertyPath, "propertyPath");
+        Objects.requireNonNull(propertyPath, "propertyPath");
         int i = propertyPath.lastIndexOf('.');
         if (i < 0) {
             return propertyPath;
         } else {
-            String name = propertyPath.substring(i+1);
+            String name = propertyPath.substring(i + 1);
             if (!name.isEmpty()) {
                 return name;
             } else {
@@ -44,8 +42,8 @@ public abstract class PropertyCondition extends Condition {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         PropertyCondition that = (PropertyCondition) o;
 

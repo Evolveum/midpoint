@@ -46,9 +46,9 @@ import org.jetbrains.annotations.NotNull;
  */
 public abstract class Restriction<T extends ObjectFilter> {
 
-    @NotNull final protected InterpretationContext context;
-    final protected Restriction parent;
-    @NotNull final protected T filter;
+    @NotNull protected final InterpretationContext context;
+    protected final Restriction parent;
+    @NotNull protected final T filter;
 
     /**
      * Content of ItemPathResolutionStartInformation:

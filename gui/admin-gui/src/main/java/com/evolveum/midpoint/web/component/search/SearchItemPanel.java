@@ -109,7 +109,7 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
                 deletePerformed(target);
             }
         };
-        removeButton.add(new VisibleBehaviour(() -> canRemoveSearchItem()));
+        removeButton.add(new VisibleBehaviour(() -> !(getModelObject() instanceof FilterSearchItem) && canRemoveSearchItem()));
         removeButton.setOutputMarkupId(true);
         searchItemContainer.add(removeButton);
     }

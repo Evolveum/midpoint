@@ -8,10 +8,11 @@ package com.evolveum.midpoint.repo.sql.data.factory;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.Metadata;
@@ -177,8 +178,8 @@ public class MetadataFactory {
         if (reference == null) {
             return null;
         }
-        Validate.notNull(owner, "Owner of reference must not be null.");
-        Validate.notNull(refOwner, "Reference owner of reference must not be null.");
+        Objects.requireNonNull(owner, "Owner of reference must not be null.");
+        Objects.requireNonNull(refOwner, "Reference owner of reference must not be null.");
         Validate.notEmpty(reference.getOid(), "Target oid reference must not be null.");
 
         RAssignmentReference repoRef = new RAssignmentReference();

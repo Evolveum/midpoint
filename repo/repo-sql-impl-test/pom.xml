@@ -170,6 +170,18 @@
             <artifactId>spring-aop</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-sql</artifactId>
+            <version>${querydsl.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -99,6 +99,7 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
                     @Override
                     protected void confirmPerformed(AjaxRequestTarget target) {
                         target.add(ReferenceValueSearchPanel.this);
+                        referenceValueUpdated(ReferenceValueSearchPanel.this.getModelObject());
                     }
                 };
         value.setRenderBodyOnly(true);
@@ -113,6 +114,9 @@ public class ReferenceValueSearchPanel extends BasePanel<ObjectReferenceType> {
                 return WebComponentUtil.getReferenceObjectTextValue(getModelObject(), getPageBase());
             }
         };
+    }
+
+    protected void referenceValueUpdated(ObjectReferenceType ort){
     }
 
     public void togglePopover(AjaxRequestTarget target, Component button, Component popover, int paddingRight) {
