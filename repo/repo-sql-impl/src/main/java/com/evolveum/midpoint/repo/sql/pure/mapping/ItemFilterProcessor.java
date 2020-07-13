@@ -15,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
+import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 /**
@@ -26,6 +27,12 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
  */
 public abstract class ItemFilterProcessor<O extends ObjectFilter>
         implements FilterProcessor<O> {
+
+    protected final SqlPathContext<?, ?> context;
+
+    protected ItemFilterProcessor(SqlPathContext<?, ?> context) {
+        this.context = context;
+    }
 
     /**
      * Returns the single "real" value from the property filter (or null).
@@ -65,7 +72,7 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
     }
 
     @NotNull
-    protected PredicateOperation createBinaryCondition(
+    protected Predicate createBinaryCondition(
             ValueFilter<?, ?> filter, Path<?> path, Object value) throws QueryException {
         Ops operator = operation(filter);
         if (value == null) {
@@ -76,6 +83,9 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
             }
         }
 
-        return ExpressionUtils.predicate(operator, path, ConstantImpl.create(value));
+        Predicate predicate = ExpressionUtils.predicate(operator, path, ConstantImpl.create(value));
+        return context.isNotFilterUsed()
+                ? ExpressionUtils.and(predicate, ExpressionUtils.predicate(Ops.IS_NOT_NULL, path))
+                : predicate;
     }
 }

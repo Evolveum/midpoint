@@ -10,6 +10,7 @@ import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.util.MiscUtil;
 
@@ -18,21 +19,21 @@ import com.evolveum.midpoint.util.MiscUtil;
  * Should support conversion of filter value types {@link XMLGregorianCalendar}
  * (what else do we want?) to paths of {@link Instant}, {@link Timestamp} and {@link Long}.
  */
-public class TimestampItemFilterProcessor extends ItemFilterProcessor<PropertyValueFilter<String>> {
-
-    private final Path<?> path;
+public class TimestampItemFilterProcessor
+        extends SinglePathItemFilterProcessor<PropertyValueFilter<String>> {
 
     /**
      * Returns the mapper function creating the timestamp filter processor from context.
      */
     public static ItemSqlMapper mapper(
             Function<EntityPath<?>, Path<?>> rootToQueryItem) {
-        return new ItemSqlMapper(rootToQueryItem,
-                context -> new TimestampItemFilterProcessor(rootToQueryItem.apply(context.path())));
+        return new ItemSqlMapper(context ->
+                new TimestampItemFilterProcessor(context, rootToQueryItem), rootToQueryItem);
     }
 
-    private TimestampItemFilterProcessor(Path<?> path) {
-        this.path = path;
+    private TimestampItemFilterProcessor(SqlPathContext<?, ?> context,
+            Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+        super(context, rootToQueryItem);
     }
 
     @Override

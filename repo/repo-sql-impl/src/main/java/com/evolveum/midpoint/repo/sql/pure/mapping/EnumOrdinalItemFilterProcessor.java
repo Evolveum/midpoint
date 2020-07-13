@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 /**
@@ -19,9 +20,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
  * to final type used for ordinal. Can be {@code null} if no mapping is needed.
  */
 public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
-        extends ItemFilterProcessor<PropertyValueFilter<E>> {
-
-    private final Path<Integer> path;
+        extends SinglePathItemFilterProcessor<PropertyValueFilter<E>> {
 
     @Nullable
     private final Function<E, Enum<?>> valueFunction;
@@ -33,10 +32,7 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
      */
     public static ItemSqlMapper mapper(
             @NotNull Function<EntityPath<?>, Path<?>> rootToQueryItem) {
-        //noinspection unchecked
-        return new ItemSqlMapper(rootToQueryItem,
-                ctx -> new EnumOrdinalItemFilterProcessor<>(
-                        (Path<Integer>) rootToQueryItem.apply(ctx.path())));
+        return mapper(rootToQueryItem, null);
     }
 
     /**
@@ -46,20 +42,17 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
     public static <E extends Enum<E>> ItemSqlMapper mapper(
             @NotNull Function<EntityPath<?>, Path<?>> rootToQueryItem,
             @Nullable Function<E, Enum<?>> valueFunction) {
-        //noinspection unchecked
-        return new ItemSqlMapper(rootToQueryItem,
-                ctx -> new EnumOrdinalItemFilterProcessor<>(
-                        (Path<Integer>) rootToQueryItem.apply(ctx.path()), valueFunction));
+        return new ItemSqlMapper(ctx ->
+                new EnumOrdinalItemFilterProcessor<>(ctx, rootToQueryItem, valueFunction),
+                rootToQueryItem);
     }
 
-    private EnumOrdinalItemFilterProcessor(Path<Integer> path,
+    private EnumOrdinalItemFilterProcessor(
+            SqlPathContext<?, ?> context,
+            Function<EntityPath<?>, Path<?>> rootToQueryItem,
             @Nullable Function<E, Enum<?>> valueFunction) {
-        this.path = path;
+        super(context, rootToQueryItem);
         this.valueFunction = valueFunction;
-    }
-
-    private EnumOrdinalItemFilterProcessor(Path<Integer> path) {
-        this(path, null);
     }
 
     @Override

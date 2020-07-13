@@ -10,6 +10,7 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -121,12 +122,12 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
 
     // we want loose typing for client's sake, there is no other chance to get the right type here
     public <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
-            ItemName itemName, SqlPathContext context)
+            ItemName itemName, SqlPathContext<?, ?> context)
             throws QueryException {
         return itemMapping(itemName).createFilterProcessor(context);
     }
 
-    public @NotNull Path<?> primarySqlPath(ItemName itemName, SqlPathContext context)
+    public @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?> context)
             throws QueryException {
         return itemMapping(itemName).itemPath(context.path());
     }

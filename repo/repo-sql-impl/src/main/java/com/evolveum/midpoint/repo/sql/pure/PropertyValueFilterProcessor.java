@@ -9,9 +9,9 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 public class PropertyValueFilterProcessor implements FilterProcessor<PropertyValueFilter<?>> {
 
-    private final SqlPathContext context;
+    private final SqlPathContext<?, ?> context;
 
-    public PropertyValueFilterProcessor(SqlPathContext context) {
+    public PropertyValueFilterProcessor(SqlPathContext<?, ?> context) {
         this.context = context;
     }
 
@@ -30,7 +30,7 @@ public class PropertyValueFilterProcessor implements FilterProcessor<PropertyVal
 //        ItemDefinition definition = filter.getDefinition();
 
         FilterProcessor<PropertyValueFilter<?>> processor =
-                context.mapping().createItemFilterProcessor(itemName, context);
+                context.createItemFilterProcessor(itemName);
         return processor.process(filter);
     }
 }

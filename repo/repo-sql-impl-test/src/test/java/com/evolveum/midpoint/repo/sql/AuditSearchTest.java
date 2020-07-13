@@ -80,7 +80,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.setResult("result1");
         record1.setHostIdentifier("localhost");
         record1.setNodeIdentifier("node1");
-        record1.setRemoteHostAddress("192.168.10.10");
+        record1.setRemoteHostAddress("192.168.10.1");
         record1.setSessionIdentifier("session-1");
         record1.setTarget(target, prismContext);
         record1.setTargetOwner(targetOwner);
@@ -97,7 +97,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.setOutcome(OperationResultStatus.UNKNOWN);
         record2.setInitiator(initiator);
         record2.setHostIdentifier("127.0.0.1");
-        record2.setRemoteHostAddress("192.168.10.10");
+        record2.setRemoteHostAddress("192.168.10.2");
         record2.setSessionIdentifier("session-1"); // session-1 on purpose
         record2.setAttorney(attorney);
         record2.setRequestIdentifier("req-id");
@@ -532,12 +532,12 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         when("searching audit filtered by remote host address equal to value");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
-                .item(AuditEventRecordType.F_REMOTE_HOST_ADDRESS).eq("192.168.10.10")
+                .item(AuditEventRecordType.F_REMOTE_HOST_ADDRESS).eq("192.168.10.1")
                 .build());
 
         then("only audit events with exactly the same remote host address are returned");
-        assertThat(result).hasSize(2);
-        assertThat(result).allMatch(aer -> aer.getRemoteHostAddress().equals("192.168.10.10"));
+        assertThat(result).hasSize(1);
+        assertThat(result).allMatch(aer -> aer.getRemoteHostAddress().equals("192.168.10.1"));
     }
 
     @Test
@@ -630,8 +630,28 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result).allMatch(r -> r.getTaskOID().equals("task-oid"));
     }
 
+    /*
+     * Our NOT means "complement" and must include NULL values for NOT(EQ...).
+     * This is difference from SQL logic, where NOT x='value' does NOT return rows where x IS NULL.
+     * The solution is to use (x='value' AND x IS NOT NULL) for conditions inside the NOT filter.
+     */
+
     @Test
-    public void test200SearchReturnsMappedToManyAttributes() throws SchemaException {
+    public void test200SearchByRemoteHostAddressNotEqual() throws SchemaException {
+        when("searching audit filtered by remote host address NOT equal to value");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .not()
+                .item(AuditEventRecordType.F_REMOTE_HOST_ADDRESS).eq("192.168.10.1")
+                .build());
+
+        then("audit events with with remote host address not equal to the value are returned - including NULLs");
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(aer -> !"192.168.10.1".equals(aer.getRemoteHostAddress()));
+    }
+
+    @Test
+    public void test300SearchReturnsMappedToManyAttributes() throws SchemaException {
         when("searching audit with query without any conditions and paging");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class).build());
