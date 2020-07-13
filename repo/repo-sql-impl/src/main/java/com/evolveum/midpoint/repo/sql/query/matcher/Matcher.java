@@ -56,9 +56,11 @@ public abstract class Matcher<T> {
                 condition = hibernateQuery.createSimpleComparisonCondition(propertyPath, value, operation.symbol(), ignoreCase);
                 break;
             case NOT_NULL:
+                // TODO never used so it seems (never assigned to operation)
                 condition = hibernateQuery.createIsNotNull(propertyPath);
                 break;
             case NULL:
+                // TODO never used so it seems (never assigned to operation)
                 condition = hibernateQuery.createIsNull(propertyPath);
                 break;
             case STARTS_WITH:
