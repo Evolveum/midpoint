@@ -132,12 +132,12 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
         return this;
     }
 
-    public ValueMetadataAsserter<AssignmentAsserter<R>, R> valueMetadata() {
+    public ValueMetadataAsserter<AssignmentAsserter<R>> valueMetadata() {
         //noinspection unchecked
         PrismContainerValue<ValueMetadataType> valueMetadata = (PrismContainerValue<ValueMetadataType>)
                 (PrismContainerValue<?>) assignment.asPrismContainerValue().getValueMetadata();
-        ValueMetadataAsserter<AssignmentAsserter<R>, R> asserter =
-                new ValueMetadataAsserter<>(this, valueMetadata, "."); // TODO details
+        ValueMetadataAsserter<AssignmentAsserter<R>> asserter =
+                new ValueMetadataAsserter<>(valueMetadata, this, "."); // TODO details
         copySetupTo(asserter);
         return asserter;
     }

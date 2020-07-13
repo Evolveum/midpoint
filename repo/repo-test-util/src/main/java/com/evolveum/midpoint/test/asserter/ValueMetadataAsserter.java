@@ -14,68 +14,60 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
-public class ValueMetadataAsserter<PA extends AbstractAsserter<RA>, RA> extends PrismContainerValueAsserter<ValueMetadataType, PA> {
+public class ValueMetadataAsserter<RA extends AbstractAsserter> extends PrismContainerValueAsserter<ValueMetadataType, RA> {
 
-    private final PA parentAsserter;
-
-    public ValueMetadataAsserter(PA parentAsserter, PrismContainerValue<ValueMetadataType> valueMetadata) {
-        super(valueMetadata);
-        this.parentAsserter = parentAsserter;
-    }
-
-    public ValueMetadataAsserter(PA parentAsserter, PrismContainerValue<ValueMetadataType> valueMetadata, String details) {
-        super(valueMetadata, details);
-        this.parentAsserter = parentAsserter;
+    public ValueMetadataAsserter(PrismContainerValue<ValueMetadataType> valueMetadata, RA parentAsserter, String details) {
+        super(valueMetadata, parentAsserter, details);
     }
 
     @Override
-    public ValueMetadataAsserter<PA,RA> assertSize(int expected) {
-        return (ValueMetadataAsserter<PA, RA>) super.assertSize(expected);
+    public ValueMetadataAsserter<RA> assertSize(int expected) {
+        return (ValueMetadataAsserter<RA>) super.assertSize(expected);
     }
 
     @Override
-    public ValueMetadataAsserter<PA,RA> assertItems(QName... expectedItems) {
-        return (ValueMetadataAsserter<PA, RA>) super.assertItems(expectedItems);
+    public ValueMetadataAsserter<RA> assertItems(QName... expectedItems) {
+        return (ValueMetadataAsserter<RA>) super.assertItems(expectedItems);
     }
 
     @Override
-    public ValueMetadataAsserter<PA,RA> assertAny() {
-        return (ValueMetadataAsserter<PA, RA>) super.assertAny();
+    public ValueMetadataAsserter<RA> assertAny() {
+        return (ValueMetadataAsserter<RA>) super.assertAny();
     }
 
     @Override
-    public <T> ValueMetadataAsserter<PA,RA> assertPropertyValuesEqual(ItemPath path, T... expectedValues) {
-        return (ValueMetadataAsserter<PA, RA>) super.assertPropertyValuesEqual(path, expectedValues);
+    public <T> ValueMetadataAsserter<RA> assertPropertyValuesEqual(ItemPath path, T... expectedValues) {
+        return (ValueMetadataAsserter<RA>) super.assertPropertyValuesEqual(path, expectedValues);
     }
 
     @Override
-    public <T> ValueMetadataAsserter<PA,RA> assertPropertyValuesEqualRaw(ItemPath path, T... expectedValues) {
-        return (ValueMetadataAsserter<PA, RA>) super.assertPropertyValuesEqualRaw(path, expectedValues);
+    public <T> ValueMetadataAsserter<RA> assertPropertyValuesEqualRaw(ItemPath path, T... expectedValues) {
+        return (ValueMetadataAsserter<RA>) super.assertPropertyValuesEqualRaw(path, expectedValues);
     }
 
     @Override
-    public <T> ValueMetadataAsserter<PA,RA> assertNoItem(QName itemName) {
-        return (ValueMetadataAsserter<PA, RA>) super.assertNoItem(itemName);
+    public <T> ValueMetadataAsserter<RA> assertNoItem(QName itemName) {
+        return (ValueMetadataAsserter<RA>) super.assertNoItem(itemName);
+    }
+
+    public ProvenanceMetadataAsserter<ValueMetadataAsserter<RA>> provenance() {
+        return new ProvenanceMetadataAsserter<>(getPrismValue().asContainerable().getProvenance(),
+                this, "provenance in " + getDetails());
     }
 
     @Override
-    public <CC extends Containerable> PrismContainerValueAsserter<CC, ValueMetadataAsserter<PA,RA>> containerSingle(QName subcontainerQName) {
-        return (PrismContainerValueAsserter<CC, ValueMetadataAsserter<PA, RA>>) super.containerSingle(subcontainerQName);
+    public <CC extends Containerable> PrismContainerValueAsserter<CC, ValueMetadataAsserter<RA>> containerSingle(QName subcontainerQName) {
+        return (PrismContainerValueAsserter<CC, ValueMetadataAsserter<RA>>) super.containerSingle(subcontainerQName);
     }
 
 
     protected String desc() {
         // TODO handling of details
-        return "metadata of " + getDetails() + " of " + parentAsserter.desc();
+        return "metadata of " + getDetails();
     }
 
     @Override
-    public PA end() {
-        return parentAsserter;
-    }
-
-    @Override
-    public ValueMetadataAsserter<PA,RA> display() {
-        return (ValueMetadataAsserter<PA, RA>) super.display();
+    public ValueMetadataAsserter<RA> display() {
+        return (ValueMetadataAsserter<RA>) super.display();
     }
 }
