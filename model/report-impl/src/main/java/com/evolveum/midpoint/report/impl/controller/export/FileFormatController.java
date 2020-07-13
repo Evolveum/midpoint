@@ -6,9 +6,11 @@
  */
 package com.evolveum.midpoint.report.impl.controller.export;
 
-import java.text.SimpleDateFormat;
+import java.io.IOException;
 import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.task.api.RunningTask;
 
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
@@ -40,9 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 
-public abstract class ExportController {
+public abstract class FileFormatController {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ExportController.class);
+    private static final Trace LOGGER = TraceManager.getTrace(FileFormatController.class);
 
     protected static final String LABEL_COLUMN = "label";
     protected static final String NUMBER_COLUMN = "number";
@@ -52,10 +54,10 @@ public abstract class ExportController {
             ImmutableSet.of(LABEL_COLUMN, NUMBER_COLUMN, STATUS_COLUMN);
 
     private final ReportServiceImpl reportService;
-    private final ExportConfigurationType exportConfiguration;
+    private final FileFormatConfigurationType fileFormatConfiguration;
 
-    public ExportController(ExportConfigurationType exportConfiguration, ReportServiceImpl reportService) {
-        this.exportConfiguration = exportConfiguration;
+    public FileFormatController(FileFormatConfigurationType fileFormatConfiguration, ReportServiceImpl reportService) {
+        this.fileFormatConfiguration = fileFormatConfiguration;
         this.reportService = reportService;
     }
 
@@ -63,8 +65,8 @@ public abstract class ExportController {
         return reportService;
     }
 
-    public ExportConfigurationType getExportConfiguration() {
-        return exportConfiguration;
+    public FileFormatConfigurationType getFileFormatConfiguration() {
+        return fileFormatConfiguration;
     }
 
     protected static Set<String> getHeadsOfWidget() {
@@ -236,16 +238,28 @@ public abstract class ExportController {
     }
 
 
-    protected String getColumnLabel(String name, PrismObjectDefinition<ObjectType> objectDefinition, ItemPath path) {
-        if (path != null) {
-            ItemDefinition def = objectDefinition.findItemDefinition(path);
-            if (def == null) {
-                throw new IllegalArgumentException("Could'n find item for path " + path);
+    protected String getColumnLabel(GuiObjectColumnType column, PrismContainerDefinition objectDefinition) {
+        ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
+
+        DisplayType columnDisplay = column.getDisplay();
+        String label;
+        if(columnDisplay != null && columnDisplay.getLabel() != null) {
+            label = getMessage(columnDisplay.getLabel().getOrig());
+        } else  {
+
+            String name = column.getName();
+            if (path != null) {
+                ItemDefinition def = objectDefinition.findItemDefinition(path);
+                if (def == null) {
+                    throw new IllegalArgumentException("Could'n find item for path " + path);
+                }
+                String displayName = def.getDisplayName();
+                label =  getMessage(displayName);
+            } else {
+                label = name;
             }
-            String displayName = def.getDisplayName();
-            return getMessage(displayName);
         }
-        return name;
+        return label;
     }
 
     protected PrismObject<ObjectType> getObjectFromReference(Referencable ref) {
@@ -376,4 +390,8 @@ public abstract class ExportController {
         return (Class<ObjectType>) getReportService().getPrismContext().getSchemaRegistry()
                 .getCompileTimeClassForObjectType(type);
     }
+
+    public abstract void importCollectionReport(ReportType report, PrismContainerValue containerValue, RunningTask task, OperationResult result);
+
+    public abstract PrismContainer createContainerFromFile(ReportType report, ReportDataType reportData, Task task, OperationResult result) throws IOException;
 }

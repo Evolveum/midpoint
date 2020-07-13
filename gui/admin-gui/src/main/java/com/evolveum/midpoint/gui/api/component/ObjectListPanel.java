@@ -343,12 +343,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         }
         IColumn<SelectableBean<O>, String> column;
         for (GuiObjectColumnType customColumn : customColumns) {
-            if (customColumn.getPath() == null && customColumn.getExpression() == null) {
+            if (customColumn.getPath() == null && (customColumn.getExport() == null || customColumn.getExport().getExpression() == null)) {
                 continue;
             }
             ItemPath columnPath = customColumn.getPath() == null ? null : customColumn.getPath().getItemPath();
             // TODO this throws an exception for some kinds of invalid paths like e.g. fullName/norm (but we probably should fix prisms in that case!)
-            ExpressionType expression = customColumn.getExpression();
+            ExpressionType expression = customColumn.getExport() != null ? customColumn.getExport().getExpression() : null;
             if (columnPath != null) {
                 ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
                         .findObjectDefinitionByCompileTimeClass(type.getClassDefinition())

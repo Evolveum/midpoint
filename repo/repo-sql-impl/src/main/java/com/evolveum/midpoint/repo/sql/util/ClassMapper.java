@@ -50,7 +50,7 @@ public final class ClassMapper {
         TYPES.put(ObjectTypes.TASK, RObjectType.TASK);
         TYPES.put(ObjectTypes.USER, RObjectType.USER);
         TYPES.put(ObjectTypes.REPORT, RObjectType.REPORT);
-        TYPES.put(ObjectTypes.REPORT_OUTPUT, RObjectType.REPORT_OUTPUT);
+        TYPES.put(ObjectTypes.REPORT_DATA, RObjectType.REPORT_DATA);
         TYPES.put(ObjectTypes.OBJECT_TEMPLATE, RObjectType.OBJECT_TEMPLATE);
         TYPES.put(ObjectTypes.NODE, RObjectType.NODE);
         TYPES.put(ObjectTypes.ORG, RObjectType.ORG);

@@ -6,16 +6,24 @@
  */
 package com.evolveum.midpoint.report;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+
 import org.testng.annotations.Test;
+
+import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author skublik
@@ -23,8 +31,20 @@ import org.testng.annotations.Test;
 
 public class TestCsvReport extends BasicNewReportTest {
 
+    public static final File REPORT_IMPORT_OBJECT_COLLECTION_WITH_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-import-object-collection-with-view.xml");
+
+    public static final String IMPORT_USERS_FILE_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/import/import-users.csv";
+
+    public static final String REPORT_IMPORT_OBJECT_COLLECTION_WITH_CONDITION_OID = "2b77aa2e-dd86-4842-bcf5-762c8a9a85de";
+
     int expectedColumns;
     int expectedRow;
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+        importObjectFromFile(REPORT_IMPORT_OBJECT_COLLECTION_WITH_VIEW_FILE, initResult);
+    }
 
     @Override
     public void test001CreateDashboardReportWithDefaultColumn() throws Exception {
@@ -114,15 +134,23 @@ public class TestCsvReport extends BasicNewReportTest {
         super.test115CreateObjectCollectionReportWithCondition();
     }
 
+    @Test
+    public void test200ImportReportForUser() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_IMPORT_OBJECT_COLLECTION_WITH_CONDITION_OID);
+        importReport(report, IMPORT_USERS_FILE_PATH, false);
+        PrismObject<UserType> user = searchObjectByName(UserType.class, "testUser01");
+        assertNotNull("User testUser01 was not created", user);
+    }
+
     private void setExpectedValueForDashboardReport() {
         expectedColumns = 3;
         expectedRow = 7;
     }
 
     @Override
-    protected ExportConfigurationType getExportConfiguration() {
-        ExportConfigurationType config = new ExportConfigurationType();
-        config.setType(ExportType.CSV);
+    protected FileFormatConfigurationType getFileFormatConfiguration() {
+        FileFormatConfigurationType config = new FileFormatConfigurationType();
+        config.setType(FileFormatTypeType.CSV);
         return config;
     }
 

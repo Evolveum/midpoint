@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 
 import java.io.Serializable;
 import java.util.List;
@@ -18,9 +18,9 @@ public class ReportDeleteDialogDto implements Serializable{
     }
 
     private Operation operation;
-    private List<ReportOutputType> objects;
+    private List<ReportDataType> objects;
 
-    public ReportDeleteDialogDto(Operation op, List<ReportOutputType> objects){
+    public ReportDeleteDialogDto(Operation op, List<ReportDataType> objects){
         this.operation = op;
         this.objects = objects;
     }
@@ -33,11 +33,11 @@ public class ReportDeleteDialogDto implements Serializable{
         this.operation = operation;
     }
 
-    public List<ReportOutputType> getObjects() {
+    public List<ReportDataType> getObjects() {
         return objects;
     }
 
-    public void setObjects(List<ReportOutputType> objects) {
+    public void setObjects(List<ReportDataType> objects) {
         this.objects = objects;
     }
 }

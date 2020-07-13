@@ -12,7 +12,6 @@ import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperExportType;
 
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
@@ -63,7 +62,7 @@ public class JasperReportBasicConfigurationPanel extends BasePanel<ReportDto> {
 
         IModel choices = WebComponentUtil.createReadonlyValueModelFromEnum(JasperExportType.class, e -> e != JasperExportType.JXL);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
-        DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new PropertyModel<ExportType>(getModel(), ReportDto.F_EXPORT_TYPE), choices, renderer,
+        DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new PropertyModel<JasperExportType>(getModel(), ReportDto.F_EXPORT_TYPE), choices, renderer,
                 createStringResource("ReportType.export"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(exportType);
 

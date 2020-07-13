@@ -18,7 +18,6 @@ import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
 import com.evolveum.midpoint.repo.sql.data.common.container.*;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.helpers.mapper.*;
@@ -61,7 +60,6 @@ public class PrismEntityMapper {
         MAPPERS.put(new Key(MetadataType.class, Metadata.class), new MetadataMapper());
 
         MAPPERS.put(new Key(byte[].class, RFocusPhoto.class), new RFocusPhotoMapper());
-        MAPPERS.put(new Key(ExportConfigurationType.class, RExportType.class), new ReportExportConfigurationMapper());
     }
 
     @Autowired private RepositoryService repositoryService;

@@ -5,6 +5,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.*;
+import com.evolveum.midpoint.prism.*;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -23,10 +25,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -253,7 +251,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
             @Override
             protected InputStream initStream() {
-                ReportOutputType reportObject = getReportOutput();
+                ReportDataType reportObject = getReportData();
                 if (reportObject != null) {
                     return PageCreatedReports.createReport(reportObject, this, PageTask.this);
                 } else {
@@ -264,7 +262,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
             @Override
             public String getFileName() {
-                ReportOutputType reportObject = getReportOutput();
+                ReportDataType reportObject = getReportData();
                 return PageCreatedReports.getReportFileName(reportObject);
             }
         };
@@ -286,19 +284,19 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     private boolean isDownloadReportVisible() {
         return WebComponentUtil.isReport(getTask())
-                && getReportOutputProperty() != null;
+                && getReportDataOid() != null;
     }
 
-    private ReportOutputType getReportOutput() {
-        String reportOutput = getReportOutputProperty();
-        if (reportOutput == null) {
+    private ReportDataType getReportData() {
+        String reportData = getReportDataOid();
+        if (reportData == null) {
             return null;
         }
 
         Task opTask = createSimpleTask(OPERATION_LOAD_REPORT_OUTPUT);
         OperationResult result = opTask.getResult();
 
-        PrismObject<ReportOutputType> report = WebModelServiceUtils.loadObject(ReportOutputType.class, reportOutput, this, opTask, result);
+        PrismObject<ReportDataType> report = WebModelServiceUtils.loadObject(ReportDataType.class, reportData, this, opTask, result);
         if (report == null) {
             return null;
         }
@@ -309,14 +307,18 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     }
 
-    private String getReportOutputProperty() {
+    private String getReportDataOid() {
         PrismObject<TaskType> task = getTask().asPrismObject();
-        PrismProperty<String> reportOutput = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
-        if (reportOutput == null) {
-            return null;
+        PrismReference reportData = task.findReference(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_DATA_PROPERTY_NAME));
+        if (reportData == null && reportData.getRealValue() == null) {
+            PrismProperty<String> reportOutputOid = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
+            if (reportOutputOid == null){
+                return null;
+            }
+            return reportOutputOid.getRealValue();
         }
 
-        return reportOutput.getRealValue();
+        return reportData.getRealValue().getOid();
     }
 
     private void createRefreshNowIconButton(RepeatingView repeatingView) {

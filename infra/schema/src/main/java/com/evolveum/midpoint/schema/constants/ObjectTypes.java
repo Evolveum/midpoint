@@ -69,7 +69,7 @@ public enum ObjectTypes {
 
     REPORT(ReportType.COMPLEX_TYPE, SchemaConstants.C_REPORT, ReportType.class, ObjectManager.MODEL, "reports"),
 
-    REPORT_OUTPUT(ReportOutputType.COMPLEX_TYPE, SchemaConstants.C_REPORT_OUTPUT, ReportOutputType.class,
+    REPORT_DATA(ReportDataType.COMPLEX_TYPE, SchemaConstants.C_REPORT_DATA, ReportDataType.class,
             ObjectManager.MODEL, "reportOutputs"),
 
     SECURITY_POLICY(SecurityPolicyType.COMPLEX_TYPE, SchemaConstants.C_SECURITY_POLICY, SecurityPolicyType.class,

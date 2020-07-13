@@ -16,6 +16,8 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -234,7 +236,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
         PrismObject<ReportType> reportBefore = report.clone();
-        report.asObjectable().setExport(getExportConfiguration());
+        report.asObjectable().setFileFormat(getFileFormatConfiguration());
         ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
         executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
 
@@ -256,7 +258,41 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         return finishedTask;
     }
 
-    protected abstract ExportConfigurationType getExportConfiguration();
+    protected PrismObject<TaskType> importReport(PrismObject<ReportType> report, String pathToImportFile, boolean errorOk) throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        PrismObject<ReportType> reportBefore = report.clone();
+        report.asObjectable().setFileFormat(getFileFormatConfiguration());
+        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
+
+        PrismObject<ReportDataType> reportData = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(ReportDataType.class).instantiate();
+        reportData.asObjectable().setFileFormat(getFileFormatConfiguration().getType());
+        reportData.asObjectable().setFilePath(new File(pathToImportFile).getAbsolutePath());
+        reportData.asObjectable().setName(new PolyStringType(report.getName()));
+        String reportDataOid = addObject(reportData, task, result);
+        reportData.setOid(reportDataOid);
+
+        // WHEN
+        when();
+        reportManager.importReport(report, reportData, task, result);
+
+        assertInProgress(result);
+
+        display("Background task (running)", task);
+
+        waitForTaskFinish(task.getOid(), true, DEFAULT_TASK_WAIT_TIMEOUT, errorOk);
+
+        // THEN
+        then();
+        PrismObject<TaskType> finishedTask = getTask(task.getOid());
+        display("Background task (finished)", finishedTask);
+
+        return finishedTask;
+    }
+
+    protected abstract FileFormatConfigurationType getFileFormatConfiguration();
 
     protected List<String> basicCheckOutputFile(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         File outputFile = findOutputFile(report);

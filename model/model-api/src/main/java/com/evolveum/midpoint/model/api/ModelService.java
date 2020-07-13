@@ -40,7 +40,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -492,6 +491,16 @@ public interface ModelService {
      * @param task
      */
     void importObjectsFromFile(File input, ImportOptionsType options, Task task, OperationResult parentResult) throws FileNotFoundException;
+
+    /**
+     * Import object.
+     *
+     * The results will be provided in the task.
+     *
+     * @param object
+     * @param task
+     */
+    void importObject(PrismObject object, ImportOptionsType options, Task task, OperationResult parentResult);
 
     /**
      * Import objects from stream.

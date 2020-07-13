@@ -85,7 +85,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
@@ -1467,6 +1466,26 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         result.addParam(OperationResult.PARAM_LANGUAGE, language);
         try {
             objectImporter.importObjects(input, language, options, task, result);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Import result:\n{}", result.debugDump());
+            }
+            // No need to compute status. The validator inside will do it.
+            // result.computeStatus("Couldn't import object from input stream.");
+        } catch (RuntimeException e) {
+            result.recordFatalError(e.getMessage(), e);     // shouldn't really occur
+        } finally {
+            exitModelMethod();
+        }
+        result.cleanupResult();
+    }
+
+    @Override
+    public void importObject(PrismObject object, ImportOptionsType options, Task task, OperationResult parentResult) {
+        enterModelMethod();
+        OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
+        result.addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options);
+        try {
+            objectImporter.importObject(object, options, task, result);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Import result:\n{}", result.debugDump());
             }
