@@ -7,25 +7,27 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.h2.tools.Server;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.io.IOException;
 import java.net.BindException;
 import java.net.ServerSocket;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.google.common.base.Strings;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.h2.tools.Server;
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author lazyman
@@ -73,8 +75,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
         if (getSqlConfiguration().isAsServer()) {
             LOGGER.info("Shutting down embedded H2");
-            if (server != null && server.isRunning(true))
+            if (server != null && server.isRunning(true)) {
                 server.stop();
+            }
         } else {
             LOGGER.info("H2 running as local instance (from file); waiting " + H2_CLOSE_WAIT + " ms for the DB to be closed.");
             try {
@@ -142,7 +145,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private String getRelativeBaseDirPath(String baseDir) {
         String path = new File(".").toURI().relativize(new File(baseDir).toURI()).getPath();
-        if (StringUtils.isEmpty(path)) {
+        if (Strings.isNullOrEmpty(path)) {
             path = ".";
         }
         return path;
@@ -160,7 +163,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         } catch (BindException e) {
             throw new RepositoryServiceFactoryException("Configured port (" + port + ") for H2 already in use.", e);
         } catch (IOException e) {
-            LOGGER.error("Reported IO error, while binding ServerSocket to port "+port+" used to test availability " +
+            LOGGER.error("Reported IO error, while binding ServerSocket to port " + port + " used to test availability " +
                     "of port for H2 Server", e);
         } finally {
             try {
@@ -266,7 +269,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
             File lobDir = new File(file, fileName + ".lobs.db");
             if (lobDir.exists() && lobDir.isDirectory()) {
-                LOGGER.info("Deleting directory '{}'", new Object[]{lobDir.getAbsolutePath()});
+                LOGGER.info("Deleting directory '{}'", new Object[] { lobDir.getAbsolutePath() });
                 FileUtils.deleteDirectory(lobDir);
             }
         } catch (Exception ex) {
@@ -277,9 +280,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private void removeFile(File file) throws IOException {
         if (file.exists()) {
-            LOGGER.info("Deleting file '{}', result: {}", new Object[]{file.getAbsolutePath(), file.delete()});
+            LOGGER.info("Deleting file '{}', result: {}", new Object[] { file.getAbsolutePath(), file.delete() });
         } else {
-            LOGGER.info("File '{}' doesn't exist: delete status {}", new Object[]{file.getAbsolutePath(), file.delete()});
+            LOGGER.info("File '{}' doesn't exist: delete status {}", new Object[] { file.getAbsolutePath(), file.delete() });
         }
     }
 

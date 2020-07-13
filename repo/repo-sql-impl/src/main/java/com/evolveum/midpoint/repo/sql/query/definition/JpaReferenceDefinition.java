@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
-import org.apache.commons.lang.Validate;
+import java.util.Objects;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -28,7 +28,7 @@ public class JpaReferenceDefinition<T extends JpaReferenceDefinition<T>>
     public JpaReferenceDefinition(
             Class<? extends RObject> jpaClass, Class<? extends RObject> referencedEntityJpaClass) {
         super(jpaClass, null);          // JAXB class not important here
-        Validate.notNull(referencedEntityJpaClass, "referencedEntityJpaClass");
+        Objects.requireNonNull(referencedEntityJpaClass, "referencedEntityJpaClass");
         this.referencedEntityDefinition = new JpaEntityPointerDefinition(referencedEntityJpaClass);
     }
 

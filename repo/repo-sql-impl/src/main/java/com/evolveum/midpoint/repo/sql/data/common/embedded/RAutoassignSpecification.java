@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.embedded;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
-import org.apache.commons.lang3.Validate;
-
+import java.util.Objects;
 import javax.persistence.Embeddable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AutoassignSpecificationType;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -30,12 +30,12 @@ public class RAutoassignSpecification {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         RAutoassignSpecification that = (RAutoassignSpecification) o;
 
-        return enabled != null ? enabled.equals(that.enabled) : that.enabled == null;
+        return Objects.equals(enabled, that.enabled);
     }
 
     @Override
@@ -45,15 +45,12 @@ public class RAutoassignSpecification {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("RAutoassignSpecification{");
-        sb.append("enabled=").append(enabled);
-        sb.append('}');
-        return sb.toString();
+        return "RAutoassignSpecification{enabled=" + enabled + '}';
     }
 
     public static void formJaxb(AutoassignSpecificationType aa, RAutoassignSpecification raa) {
-        Validate.notNull(aa, "Autoassign specification type must not be null");
-        Validate.notNull(raa, "Repo autoassign specification must not be null");
+        Objects.requireNonNull(aa, "Autoassign specification type must not be null");
+        Objects.requireNonNull(raa, "Repo autoassign specification must not be null");
 
         raa.setEnabled(aa.isEnabled());
     }
