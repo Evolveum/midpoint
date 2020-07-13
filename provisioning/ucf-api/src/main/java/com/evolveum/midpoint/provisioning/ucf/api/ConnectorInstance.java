@@ -197,16 +197,13 @@ public interface ConnectorInstance {
      * The ObjectNotFoundException should be throws only if there is an error in search
      * parameters, e.g. if search base points to an non-existent object.
      *
-     * @param objectClass
-     * @param handler
-     * @return
-     * @throws CommunicationException
      * @throws SchemaException error converting object from the native (connector) format
      * @throws ObjectNotFoundException if something from the search parameters refers non-existent object.
      *                                     e.g. if search base points to an non-existent object.
      */
-    SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query, ShadowResultHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfigurationType, SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter,
-                                                              OperationResult parentResult)
+    SearchResultMetadata search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
+            ShadowResultHandler handler, AttributesToReturn attributesToReturn, PagedSearchCapabilityType pagedSearchConfigurationType,
+            SearchHierarchyConstraints searchHierarchyConstraints, StateReporter reporter, OperationResult parentResult)
             throws CommunicationException, GenericFrameworkException, SchemaException, SecurityViolationException,
                     ObjectNotFoundException;
 
