@@ -268,7 +268,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         ValueCategorization categorization = new ValueCategorization(valuesToAdd);
         for (ValueCategorization.EquivalenceClass equivalenceClass : categorization.equivalenceClasses) {
             V value = equivalenceClass.getRepresentative().getItemValue();
-            computeValueMetadata(value, null, equivalenceClass::getMemberValues);
+            computeValueMetadataOnDeltaValue(value, null, equivalenceClass::getMemberValues);
             itemDelta.addValueToAdd(LensUtil.cloneAndApplyAssignmentOrigin(value, isAssignment, equivalenceClass.members));
         }
     }
@@ -448,7 +448,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                     LOGGER.trace("Value {} NOT added to delta for item {} because the item already has that value in {}"
                                     + " (will compute value metadata from existing value and all non-weak adding-origin values)",
                             value0, itemPath, contextDescription);
-                    computeValueMetadata(existingValue, existingValue, () -> selectNonWeakValuesFrom(addingOrigins));
+                    computeMetadataOnExistingValue(existingValue, () -> selectNonWeakValuesFrom(addingOrigins));
                     return false;
                 }
             } else {
@@ -480,7 +480,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             }
 
             LOGGER.trace("Decided to ADD value {} to delta for item {} in {}", value0, itemPath, contextDescription);
-            computeValueMetadata(value0, existingValue, () -> selectNonWeakValuesFrom(addingOrigins));
+            computeValueMetadataOnDeltaValue(value0, existingValue, () -> selectNonWeakValuesFrom(addingOrigins));
             return true;
         }
 
@@ -493,7 +493,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             assert plusOrigins.isEmpty() : "Non-empty plus origin set is treated in consolidateToAddSet";
 
             if (!zeroOrigins.isEmpty()) {
-                computeValueMetadata(existingValue, existingValue, () -> selectNonWeakValuesFrom(zeroOrigins));
+                computeMetadataOnExistingValue(existingValue, () -> selectNonWeakValuesFrom(zeroOrigins));
             } else if (!minusOrigins.isEmpty()) {
                 classifyMappings(minusOrigins, false);
                 if (shouldDeleteValue()) {
@@ -603,8 +603,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             if (valueMatcher != null && value0 instanceof PrismPropertyValue) {
                 //noinspection unchecked
                 return (V) valueMatcher.findValue((PrismProperty)existingItem, (PrismPropertyValue) value0);
+            } else if (comparator != null) {
+                return existingItem.findValue(value0, comparator);
             } else {
-                return existingItem.findValue(value0, EquivalenceStrategy.IGNORE_METADATA, comparator);
+                return existingItem.findValue(value0, EquivalenceStrategy.IGNORE_METADATA); // TODO ok?
             }
         }
 
@@ -743,28 +745,63 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         } else {
             //noinspection unchecked
             Item<V,D> clonedItem = existingItem.clone();
-            itemDelta.applyToMatchingPath(clonedItem, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
+            itemDelta.applyToMatchingPath(clonedItem);
             return !clonedItem.isEmpty();
         }
     }
 
-    private void computeValueMetadata(V target, V existingValue, Supplier<List<V>> additionalSourcesSupplier)
+    private void computeMetadataOnExistingValue(V existingValue, Supplier<List<V>> additionalSourcesSupplier)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         if (valueMetadataComputer == null) {
-            LOGGER.trace("Skipping value metadata computation because computer is null");
-            return;
+            LOGGER.trace("Skipping value metadata computation (for existing value) because computer is null");
+        } else if (existingValue == null) {
+            LOGGER.trace("Skipping value metadata computation for existing value because existing value is null");
+        } else {
+            ValueMetadata metadata = computeValueMetadata(existingValue, additionalSourcesSupplier);
+            LOGGER.trace("Computed value metadata for existing value {} ({}):\n{}", existingValue, itemPath,
+                    DebugUtil.debugDumpLazily(metadata));
+            applyMetadataIfChanged(existingValue, metadata);
         }
+    }
 
+    @SuppressWarnings("unchecked")
+    private void applyMetadataIfChanged(V existingValue, ValueMetadata metadata) {
+        if (!metadata.equals(existingValue.getValueMetadata())) {
+            LOGGER.trace("Computed value metadata is different from existing, deleting old value and adding updated one");
+
+            V oldValue = (V) existingValue.clone();
+            itemDelta.addValueToDelete(oldValue);
+
+            V newValue = (V) existingValue.clone();
+            newValue.setValueMetadata(metadata);
+            itemDelta.addValuesToAdd(newValue);
+        } else {
+            LOGGER.trace("Computed value metadata is the same as existing, not doing anything");
+        }
+    }
+
+    private void computeValueMetadataOnDeltaValue(V target, V existingValue, Supplier<List<V>> additionalSourcesSupplier)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        if (valueMetadataComputer != null) {
+            ValueMetadata metadata = computeValueMetadata(existingValue, additionalSourcesSupplier);
+            LOGGER.trace("Computed value metadata for delta value {} ({}):\n{}", target, itemPath, DebugUtil.debugDumpLazily(metadata));
+            target.setValueMetadata(metadata);
+        } else {
+            LOGGER.trace("Skipping value metadata computation (for delta value) because computer is null");
+        }
+    }
+
+    private ValueMetadata computeValueMetadata(V existingValue, Supplier<List<V>> additionalSourcesSupplier)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
         List<PrismValue> inputValues = new ArrayList<>();
         if (existingValue != null) {
             inputValues.add(existingValue);
         }
         inputValues.addAll(additionalSourcesSupplier.get());
-        ValueMetadata metadata = valueMetadataComputer.compute(inputValues, result);
-
-        LOGGER.trace("Computed value metadata for {} ({}):\n{}", target, itemPath, DebugUtil.debugDumpLazily(metadata));
-        target.setValueMetadata(metadata);
+        return valueMetadataComputer.compute(inputValues, result);
     }
 
     private class ValueCategorization {

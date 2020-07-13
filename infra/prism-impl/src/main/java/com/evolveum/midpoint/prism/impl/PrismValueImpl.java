@@ -251,7 +251,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         clone.valueMetadata = valueMetadata != null ? valueMetadata.clone() : null;
     }
 
-    protected EquivalenceStrategy getEqualsHashCodeStrategy() {
+    EquivalenceStrategy getEqualsHashCodeStrategy() {
         return defaultIfNull(defaultEquivalenceStrategy, EquivalenceStrategy.NOT_LITERAL);
     }
 
@@ -279,11 +279,16 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
         }
     }
 
+    @SuppressWarnings("SimplifiableIfStatement")
     public boolean equals(PrismValue other, @NotNull ParameterizedEquivalenceStrategy strategy) {
         // parent is not considered at all. it is not relevant.
         // neither the immutable flag
         // neither the value origin
-        return true;
+        if (strategy.isConsideringValueMetadata()) {
+            return getValueMetadata().equals(other.getValueMetadata(), strategy.exceptForValueMetadata());
+        } else {
+            return true;
+        }
     }
 
     // original equals was "isLiteral = false"!
@@ -408,6 +413,15 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     @Override
     public void setValueMetadata(ValueMetadata valueMetadata) {
         this.valueMetadata = valueMetadata;
+    }
+
+    @Override
+    public void setValueMetadata(Containerable realValue) {
+        if (realValue != null) {
+            setValueMetadata(ValueMetadataAdapter.holding(realValue.asPrismContainerValue()));
+        } else {
+            setValueMetadata((ValueMetadata) null);
+        }
     }
 
     @Override

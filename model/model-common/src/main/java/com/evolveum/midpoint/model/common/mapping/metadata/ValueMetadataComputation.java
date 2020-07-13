@@ -49,6 +49,8 @@ public class ValueMetadataComputation {
 
     private static final Trace LOGGER = TraceManager.getTrace(ValueMetadataComputation.class);
 
+    private static final String OP_EXECUTE = ValueMetadataComputation.class.getName() + ".execute";
+
     /**
      * Input for the computation. Currently a simple list of values,
      * - either different in case of expression evaluation (note: they can belong to the same or different items)
@@ -67,9 +69,9 @@ public class ValueMetadataComputation {
     private final MappingEvaluationEnvironment env;
 
     /**
-     * The operation result.
+     * The operation result (actual).
      */
-    @NotNull private final OperationResult result;
+    private OperationResult result;
 
     /**
      * Necessary beans.
@@ -87,13 +89,11 @@ public class ValueMetadataComputation {
     @NotNull private final PrismContainerValue<ValueMetadataType> outputMetadata;
 
     private ValueMetadataComputation(@NotNull List<PrismValue> inputValues, @NotNull ValueMetadataProcessingSpec processingSpec,
-            @NotNull ModelCommonBeans beans, MappingEvaluationEnvironment env,
-            @NotNull OperationResult result) {
+            @NotNull ModelCommonBeans beans, MappingEvaluationEnvironment env) {
         this.inputValues = inputValues;
         this.processingSpec = processingSpec;
         this.beans = beans;
         this.env = env;
-        this.result = result;
         this.metadataDefinition = Objects.requireNonNull(
                 beans.prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(ValueMetadataType.class),
                 "No definition of value metadata container");
@@ -102,24 +102,32 @@ public class ValueMetadataComputation {
     }
 
     public static ValueMetadataComputation forMapping(List<PrismValue> inputValues, ValueMetadataProcessingSpec processingSpec,
-            MappingImpl<?, ?> mapping, OperationResult result) {
+            MappingImpl<?, ?> mapping) {
         MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
                 "metadata evaluation in " + mapping.getMappingContextDescription(),
                 mapping.getNow(), mapping.getTask());
-        return new ValueMetadataComputation(inputValues, processingSpec, mapping.getBeans(), env, result);
+        return new ValueMetadataComputation(inputValues, processingSpec, mapping.getBeans(), env);
     }
 
     public static ValueMetadataComputation forConsolidation(List<PrismValue> inputValues, ValueMetadataProcessingSpec processingSpec,
-            ModelCommonBeans beans, MappingEvaluationEnvironment env, OperationResult result) {
-        return new ValueMetadataComputation(inputValues, processingSpec, beans, env.createChild("metadata evaluation in"), result);
+            ModelCommonBeans beans, MappingEvaluationEnvironment env) {
+        return new ValueMetadataComputation(inputValues, processingSpec, beans, env.createChild("metadata evaluation in"));
     }
 
-    public ValueMetadata execute() throws CommunicationException, ObjectNotFoundException, SchemaException,
+    public ValueMetadata execute(OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        logStart();
-        processCustomMappings();
-        processBuiltinMappings();
-        return MidpointValueMetadataFactory.createFrom(outputMetadata);
+        result = parentResult.createMinorSubresult(OP_EXECUTE);
+        try {
+            logStart();
+            processCustomMappings();
+            processBuiltinMappings();
+            return MidpointValueMetadataFactory.createFrom(outputMetadata);
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     private void logStart() {
@@ -206,6 +214,7 @@ public class ValueMetadataComputation {
     private void processBuiltinMappings() throws SchemaException {
         for (BuiltinMetadataMapping mapping : beans.metadataMappingEvaluator.getBuiltinMappings()) {
             if (isApplicable(mapping)) {
+                LOGGER.trace("Applying built-in metadata mapping: {}", mapping.getClass().getSimpleName());
                 mapping.apply(this);
             }
         }
@@ -227,7 +236,11 @@ public class ValueMetadataComputation {
         return Collections.unmodifiableList(inputValues);
     }
 
-    public PrismContainerValue<?> getOutputMetadata() {
+    public @NotNull PrismContainerValue<ValueMetadataType> getOutputMetadata() {
         return outputMetadata;
+    }
+
+    public @NotNull ValueMetadataType getOutputMetadataBean() {
+        return outputMetadata.asContainerable();
     }
 }

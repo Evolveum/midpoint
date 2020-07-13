@@ -12,35 +12,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
+
+import com.evolveum.midpoint.util.Holder;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.CloneStrategy;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PartiallyResolvedItem;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContainerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.ValueMetadata;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
@@ -52,14 +36,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 @Experimental
 public class ValueMetadataAdapter implements ValueMetadata {
 
-    private final PrismContainerValue<Containerable> delegate;
+    @NotNull private final PrismContainerValue<Containerable> delegate;
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private ValueMetadataAdapter(PrismContainerValue delegate) {
+    private ValueMetadataAdapter(@NotNull PrismContainerValue delegate) {
         this.delegate = delegate;
     }
 
-    public static ValueMetadata holding(PrismContainerValue<?> value) {
+    public static ValueMetadata holding(@NotNull PrismContainerValue<?> value) {
         return new ValueMetadataAdapter(value);
     }
 
@@ -161,6 +145,13 @@ public class ValueMetadataAdapter implements ValueMetadata {
 
     @Override
     public void setValueMetadata(ValueMetadata valueMetadata) {
+        // Metadata should not have its own metadata. (At least for now.)
+        // TODO reconsider
+        throw new UnsupportedOperationException("Couldn't set metadata on value metadata");
+    }
+
+    @Override
+    public void setValueMetadata(Containerable realValue) {
         // Metadata should not have its own metadata. (At least for now.)
         // TODO reconsider
         throw new UnsupportedOperationException("Couldn't set metadata on value metadata");
@@ -593,4 +584,27 @@ public class ValueMetadataAdapter implements ValueMetadata {
         return delegate.hasNoItems();
     }
 
+    @Override
+    public void shortDump(StringBuilder sb) {
+        if (!delegate.hasNoItems()) {
+            sb.append(delegate.getItems().stream()
+                    .map(this::getItemShortDump)
+                    .collect(Collectors.joining(", ")));
+        }
+    }
+
+    private String getItemShortDump(Item<?,?> item) {
+        return item.getElementName().getLocalPart() + ": " + getLeafNodeCount(item);
+    }
+
+    private int getLeafNodeCount(Item<?, ?> item) {
+        Holder<Integer> count = new Holder<>(0);
+        //noinspection unchecked
+        item.accept(visitable -> {
+            if (visitable instanceof PrismPropertyValue || visitable instanceof PrismReferenceValue) {
+                count.setValue(count.getValue() + 1);
+            }
+        });
+        return count.getValue();
+    }
 }

@@ -675,7 +675,7 @@ public class Visualizer {
             property.addValues(CloneUtil.cloneCollectionMembers(delta.getEstimatedOldValues()));
         }
         try {
-            delta.applyToMatchingPath(property, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
+            delta.applyToMatchingPath(property);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't visualize property delta: " + delta + ": " + e.getMessage(), e);
         }
@@ -780,7 +780,7 @@ public class Visualizer {
             if (delta.getEstimatedOldValues() != null) {
                 reference.addAll(CloneUtil.cloneCollectionMembers(delta.getEstimatedOldValues()));
             }
-            delta.applyToMatchingPath(reference, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
+            delta.applyToMatchingPath(reference);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't visualize reference delta: " + delta + ": " + e.getMessage(), e);
         }

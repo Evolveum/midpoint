@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.common.mapping.metadata;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
@@ -17,7 +18,9 @@ import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -33,7 +36,7 @@ import org.jetbrains.annotations.NotNull;
  * Information present here is derived from e.g. object templates and metadata mappings attached to data mappings.
  * It is already processed regarding applicability of metadata processing to individual data items.
  */
-public class ValueMetadataProcessingSpec {
+public class ValueMetadataProcessingSpec implements ShortDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ValueMetadataProcessingSpec.class);
 
@@ -255,5 +258,17 @@ public class ValueMetadataProcessingSpec {
 
     public MetadataMappingScopeType getScope() {
         return scope;
+    }
+
+    @Override
+    public void shortDump(StringBuilder sb) {
+        sb.append(String.format("%d mapping(s), %d item definition(s)", mappings.size(), itemDefinitions.size()));
+        if (!itemDefinitions.isEmpty()) {
+            sb.append(" for ");
+            sb.append(itemDefinitions.stream()
+                    .map(ItemRefinedDefinitionType::getRef)
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(", ")));
+        }
     }
 }

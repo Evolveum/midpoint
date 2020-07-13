@@ -373,7 +373,7 @@ public class PrismAsserts {
         assertAdd(propertyDelta, expectedValues);
     }
 
-    public static <T> void assertAdd(PropertyDelta<T> propertyDelta, T... expectedValues) {
+    public static <T> void assertAdd(ItemDelta propertyDelta, T... expectedValues) {
         assertSet("delta "+propertyDelta+" for "+propertyDelta.getElementName(), "add", propertyDelta.getValuesToAdd(), expectedValues);
     }
 

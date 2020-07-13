@@ -347,6 +347,8 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
                     }
                 }
             }
+        } else {
+            LOGGER.trace("No value metadata computer present, skipping metadata computation.");
         }
     }
 

@@ -64,7 +64,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDefinition, MBT extends AbstractMappingType>
         implements Mapping<V, D>, DebugDumpable, PrismValueDeltaSetTripleProducer<V, D> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractMappingImpl.class);
+    static final Trace LOGGER = TraceManager.getTrace(AbstractMappingImpl.class);
 
     // TODO rename these op results when the right time comes
     private static final String OP_EVALUATE_PREPARED = MappingImpl.class.getName() + ".evaluatePrepared";

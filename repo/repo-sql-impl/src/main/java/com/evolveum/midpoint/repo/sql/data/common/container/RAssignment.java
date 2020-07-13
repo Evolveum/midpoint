@@ -273,6 +273,9 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
 
     public void setOwner(RObject owner) {
         this.owner = owner;
+        if (owner != null) {
+            setOwnerOid(owner.getOid());
+        }
     }
 
     public void setOwnerOid(String ownerOid) {
@@ -403,13 +406,13 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         }
 
         RAssignment that = (RAssignment) o;
-        return Objects.equals(ownerOid, that.ownerOid)
+        return Objects.equals(getOwnerOid(), that.getOwnerOid())
                 && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerOid, id);
+        return Objects.hash(getOwnerOid(), id);
     }
 
     public static void fromJaxb(AssignmentType jaxb, RAssignment repo, RObject parent,
