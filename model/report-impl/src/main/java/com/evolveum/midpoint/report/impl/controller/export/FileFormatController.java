@@ -142,7 +142,7 @@ public abstract class FileFormatController {
             }
         }
         if (expression != null) {
-            return evaluateExpression(expression, valueObject, task, result);
+            return evaluateExportExpression(expression, valueObject, task, result);
         }
         if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
             if (valueObject == null) {
@@ -202,17 +202,17 @@ public abstract class FileFormatController {
 
     protected abstract void appendMultivalueDelimiter(StringBuilder sb);
 
-    private String evaluateExpression(ExpressionType expression, Item valueObject, Task task, OperationResult result) {
+    private String evaluateExportExpression(ExpressionType expression, Item valueObject, Task task, OperationResult result) {
         Object object;
         if (valueObject == null) {
             object = null;
         } else {
             object = valueObject.getRealValue();
         }
-        return evaluateExpression(expression, object, task, result);
+        return evaluateExportExpression(expression, object, task, result);
     }
 
-    private String evaluateExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
+    private String evaluateExportExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
 
         ExpressionVariables variables = new ExpressionVariables();
         if (valueObject == null) {
@@ -230,6 +230,26 @@ public abstract class FileFormatController {
         }
         if (values == null || values.isEmpty()) {
             return "";
+        }
+        if (values.size() != 1) {
+            throw new IllegalArgumentException("Expected collection with one value, but it is " + values);
+        }
+        return values.iterator().next();
+    }
+
+    protected Object evaluateImportExpression(ExpressionType expression, String input, Task task, OperationResult result) {
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.put(ExpressionConstants.VAR_INPUT, input, String.class);
+        Collection<Object> values = null;
+        try {
+            values = ExpressionUtil.evaluateExpression(null ,variables, null, expression,
+                    null, getReportService().getExpressionFactory(), "value for column", task, result);
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+                | ConfigurationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't execute expression " + expression, e);
+        }
+        if (values == null || values.isEmpty()) {
+            return null;
         }
         if (values.size() != 1) {
             throw new IllegalArgumentException("Expected collection with one value, but it is " + values);
@@ -290,7 +310,7 @@ public abstract class FileFormatController {
         } else {
             object = DefaultColumnUtils.getObjectByAuditColumn(record, path);
         }
-        return evaluateExpression(expression, object, task, result);
+        return evaluateExportExpression(expression, object, task, result);
     }
 
     private String getStringValueByAuditColumn(AuditEventRecord record, ItemPath path) {

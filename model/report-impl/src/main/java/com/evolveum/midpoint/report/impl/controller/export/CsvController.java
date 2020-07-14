@@ -12,8 +12,10 @@ import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -23,6 +25,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.csv.*;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -358,23 +362,31 @@ public class CsvController extends FileFormatController {
                         for (GuiObjectColumnType column : columns) {
                             String columnName = getColumnLabel(column, def);
                             if (item.getElementName().getLocalPart().equals(columnName)) {
-                                Item newItem = object.getDefinition().findItemDefinition(column.getPath().getItemPath()).instantiate();
-                                if (newItem instanceof PrismProperty) {
-                                    String stringValue = (String) item.getRealValue();
-                                    if (StringUtils.isEmpty(stringValue)) {
-                                        continue;
+                                if (column.getPath() != null) {
+                                    Item newItem = object.getDefinition().findItemDefinition(column.getPath().getItemPath()).instantiate();
+                                    Object objectFromExpression = null;
+                                    if (column.getImport() != null && column.getImport().getExpression() != null) {
+                                        objectFromExpression = evaluateImportExpression(column.getImport().getExpression(), (String) item.getRealValue(), task, result);
+                                        if (objectFromExpression == null) {
+                                            continue;
+                                        }
                                     }
-                                    Object parsedObject;
-                                    try {
-                                        parsedObject = parseRealValueFromString((PrismPropertyDefinition) newItem.getDefinition(), stringValue);
-                                    } catch (SchemaException e) {
-                                        LOGGER.error("Couldn't parse value from " + stringValue + "for item " + newItem.getDefinition(), e);
-                                        continue;
+                                    if (newItem instanceof PrismProperty) {
+                                        processPropertyItemFromImportReport(objectFromExpression, item, newItem, result);
+                                    } else if (newItem instanceof PrismReference) {
+                                        processReferenceItemFromImportReport(objectFromExpression, item, newItem, type, task, result);
+                                    } else if (newItem instanceof PrismContainer) {
+                                        processContainerFromImportReport(objectFromExpression, item, newItem, column.getPath(), result);
                                     }
-                                    PrismPropertyValue newValue = getReportService().getPrismContext().itemFactory().createPropertyValue(parsedObject);
-                                    ((PrismProperty)newItem).addValue(newValue);
+                                    if (!newItem.getValues().isEmpty()) {
+                                        value.add(newItem);
+                                    }
+                                } else {
+                                    String message = "Path of column is null, skipping column " + columnName;
+                                    LOGGER.error(message);
+                                    result.recordPartialError(message);
+                                    continue;
                                 }
-                                value.add(newItem);
                             }
                         }
                     }
@@ -398,6 +410,164 @@ public class CsvController extends FileFormatController {
             result.recordFatalError(message, new IllegalArgumentException(message));
             return;
         }
+    }
+
+    private void processContainerFromImportReport(Object objectFromExpression, Item item, Item newItem, ItemPathType path, OperationResult result) {
+        if (objectFromExpression != null) {
+            Collection realValues = new ArrayList();
+            if (Collection.class.isAssignableFrom(objectFromExpression.getClass())) {
+                realValues.addAll((Collection) objectFromExpression);
+            } else {
+                realValues.add(objectFromExpression);
+            }
+            for (Object realValue : realValues) {
+                if (realValue != null) {
+                    PrismContainerValue newValue;
+                    if (realValue instanceof Containerable) {
+                        newValue = ((Containerable) realValue).asPrismContainerValue();
+                    } else {
+                        String message = "Couldn't create new container value from " + realValue + "; expect Containerable type";
+                        LOGGER.error(message);
+                        result.recordPartialError(message);
+                        continue;
+                    }
+                    try {
+                        ((PrismContainer) newItem).add(newValue);
+                    } catch (SchemaException e) {
+                        String message = "Couldn't add new container value to item " + newItem;
+                        LOGGER.error(message);
+                        result.recordPartialError(message);
+                        continue;
+                    }
+                }
+            }
+        } else {
+            String message = "Found unexpected type PrismContainer from path " + path + " for import column ";
+            LOGGER.error(message);
+            result.recordPartialError(message);
+        }
+    }
+
+    private void processReferenceItemFromImportReport(Object objectFromExpression, Item item, Item newItem, Class type, Task task, OperationResult result) {
+        if (objectFromExpression != null) {
+            Collection realValues = new ArrayList();
+            if (Collection.class.isAssignableFrom(objectFromExpression.getClass())) {
+                realValues.addAll((Collection) objectFromExpression);
+            } else {
+                realValues.add(objectFromExpression);
+            }
+            for (Object realValue : realValues) {
+                if (realValue != null) {
+                    PrismReferenceValue newValue;
+                    if (realValue instanceof PrismObject) {
+                        newValue = getReportService().getPrismContext().itemFactory().createReferenceValue((PrismObject) realValue);
+                    } else if (realValue instanceof Referencable) {
+                        newValue = ((Referencable) realValue).asReferenceValue();
+                    } else {
+                        String message = "Couldn't create new reference value from " + realValue + "; expect PrismObject or Referencable type";
+                        LOGGER.error(message);
+                        result.recordPartialError(message);
+                        continue;
+                    }
+                    try {
+                        ((PrismReference) newItem).add(newValue);
+                    } catch (SchemaException e) {
+                        String message = "Couldn't add new reference value to item " + newItem;
+                        LOGGER.error(message);
+                        result.recordPartialError(message);
+                        continue;
+                    }
+                }
+            }
+        } else {
+            ArrayList<String> stringValues = getImportStringValues((String) item.getRealValue(), newItem.isSingleValue());
+            for (String stringValue : stringValues) {
+
+                QName targetType = ((PrismReference) newItem).getDefinition().getTargetTypeName();
+                Class<ObjectType> targetTypeClass;
+                if (targetType == null) {
+                    targetTypeClass = ObjectType.class;
+                } else {
+                    targetTypeClass = (Class<ObjectType>) getReportService().getPrismContext().getSchemaRegistry()
+                            .getCompileTimeClassForObjectType(targetType);
+                }
+                ObjectQuery query = getReportService().getPrismContext().queryFor(targetTypeClass).item(ObjectType.F_NAME).eq(stringValue).build();
+                SearchResultList<PrismObject<ObjectType>> list = null;
+                try {
+                    list = getReportService().getModelService().searchObjects(type, query, null, task, result);
+                } catch (Exception e) {
+                    String message = "Couldn't search object of type " + targetTypeClass + " by name " + stringValue;
+                    LOGGER.error(message, e);
+                    result.recordPartialError(message, e);
+                    continue;
+                }
+                if (list != null) {
+                    if (list.size() > 1) {
+                        String message = "Expected one search object of type  " + targetTypeClass + " by name " + stringValue
+                                + "but found " + list.size() + ": " + list;
+                        LOGGER.error(message);
+                        result.recordPartialError(message);
+                        continue;
+                    }
+                    PrismReferenceValue newValue = getReportService().getPrismContext().itemFactory().createReferenceValue(list.get(0));
+                    try {
+                        ((PrismReference) newItem).add(newValue);
+                    } catch (SchemaException e) {
+                        String message = "Couldn't add new reference value to item " + newItem;
+                        LOGGER.error(message);
+                        result.recordPartialError(message);
+                        continue;
+                    }
+                }
+            }
+        }
+    }
+
+    private void processPropertyItemFromImportReport(Object objectFromExpression, Item item, Item newItem, OperationResult result) {
+        if (objectFromExpression != null) {
+            Collection realValues = new ArrayList();
+            if (Collection.class.isAssignableFrom(objectFromExpression.getClass())) {
+                realValues.addAll((Collection) objectFromExpression);
+            } else {
+                realValues.add(objectFromExpression);
+            }
+            for (Object realValue : realValues) {
+                if (realValue != null) {
+                    PrismPropertyValue newValue = getReportService().getPrismContext().itemFactory().createPropertyValue(realValue);
+                    ((PrismProperty) newItem).addValue(newValue);
+                }
+            }
+        } else {
+            ArrayList<String> stringValues = getImportStringValues((String) item.getRealValue(), newItem.isSingleValue());
+            for (String stringValue : stringValues) {
+
+                if (StringUtils.isEmpty(stringValue)) {
+                    continue;
+                }
+                Object parsedObject;
+                try {
+                    parsedObject = parseRealValueFromString((PrismPropertyDefinition) newItem.getDefinition(), stringValue);
+                } catch (SchemaException e) {
+                    String message = "Couldn't parse value from " + stringValue + "for item " + newItem.getDefinition();
+                    LOGGER.error(message, e);
+                    result.recordPartialError(message, e);
+                    continue;
+                }
+                PrismPropertyValue newValue = getReportService().getPrismContext().itemFactory().createPropertyValue(parsedObject);
+                ((PrismProperty) newItem).addValue(newValue);
+            }
+        }
+    }
+
+    private ArrayList<String> getImportStringValues(String realValue, boolean isSingleValue) {
+        ArrayList<String> stringValues = new ArrayList();
+        if (isSingleValue) {
+            stringValues.add(realValue);
+        } else {
+            String[] realValues = realValue.split(getMultivalueDelimiter());
+            stringValues.addAll(Arrays.asList(realValues));
+        }
+        return stringValues;
     }
 
     private Object parseRealValueFromString(PrismPropertyDefinition def, String value) throws SchemaException {
@@ -560,7 +730,12 @@ public class CsvController extends FileFormatController {
 
     @Override
     protected void appendMultivalueDelimiter(StringBuilder sb) {
-        String delimiter = getCsvConfiguration().getMultivalueDelimiter() == null ? "," : getCsvConfiguration().getMultivalueDelimiter();
+        String delimiter = getMultivalueDelimiter();
         sb.append(delimiter);
     }
+
+    private String getMultivalueDelimiter() {
+        return getCsvConfiguration().getMultivalueDelimiter() == null ? "," : getCsvConfiguration().getMultivalueDelimiter();
+    }
+
 }
