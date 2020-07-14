@@ -13,8 +13,12 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappi
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
+import java.util.function.Consumer;
 
-import com.evolveum.midpoint.model.impl.lens.LensContext;
+import com.evolveum.midpoint.model.impl.lens.*;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -22,16 +26,10 @@ import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataComputation;
 import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataProcessingSpec;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.ItemValueWithOrigin;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -46,13 +44,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType
 @Experimental
 public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
 
-    // The logger name is intentionally different because of the backward compatibility.
-    private static final Trace LOGGER = TraceManager.getTrace(ObjectTemplateProcessor.class);
+    private static final Trace LOGGER = TraceManager.getTrace(DeltaSetTripleMapConsolidation.class);
+
+    private static final String OP_CONSOLIDATE = DeltaSetTripleMapConsolidation.class.getName() + ".consolidate";
 
     /**
      * Item path-keyed map of output delta set triples.
      */
-    private final Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap;
+    private final PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap;
 
     /**
      * Target object, for which deltas are to be produced.
@@ -77,15 +76,27 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
      */
     private final boolean addUnchangedValues;
 
+    @Experimental
+    private final Consumer<IvwoConsolidatorBuilder> consolidatorBuilderCustomizer;
+
     /**
      * Mapping evaluation environment (context description, now, task).
      */
     private final MappingEvaluationEnvironment env;
 
     /**
-     * Operation result (currently needed for value metadata computation).
+     * Parent result.
      */
-    private final OperationResult result;
+    private final OperationResult parentResult;
+
+    /**
+     * Child operation result. Present during computeItemDeltas call.
+     *
+     * Not very nice solution. Still looking for some great idea how to manage operation results
+     * in contexts like this.
+     */
+    @Experimental
+    private OperationResult result;
 
     /**
      * Useful beans.
@@ -103,38 +114,49 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
      */
     private final Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
 
-    public DeltaSetTripleMapConsolidation(Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
-            PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta, PrismObjectDefinition<T> targetDefinition,
-            MappingEvaluationEnvironment env, ModelBeans beans, LensContext<?> lensContext, OperationResult result) {
+    public DeltaSetTripleMapConsolidation(PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
+            PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta, Boolean addUnchangedValuesOverride,
+            Consumer<IvwoConsolidatorBuilder> consolidatorBuilderCustomizer,
+            PrismObjectDefinition<T> targetDefinition, MappingEvaluationEnvironment env, ModelBeans beans,
+            LensContext<?> lensContext, OperationResult parentResult) {
         this.outputTripleMap = outputTripleMap;
         this.targetObject = targetObject;
         this.targetAPrioriDelta = targetAPrioriDelta;
         this.targetDefinition = targetDefinition;
+        this.consolidatorBuilderCustomizer = consolidatorBuilderCustomizer;
         this.env = env;
-        this.result = result;
+        this.parentResult = parentResult;
         this.beans = beans;
         this.lensContext = lensContext;
 
-        this.addUnchangedValues = targetAPrioriDelta != null && targetAPrioriDelta.isAdd();
+        this.addUnchangedValues = addUnchangedValuesOverride != null ?
+                addUnchangedValuesOverride : targetAPrioriDelta != null && targetAPrioriDelta.isAdd();
     }
 
     public void computeItemDeltas() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
-        LOGGER.trace("Computing deltas in {}, a priori delta:\n{}", env.contextDescription, debugDumpLazily(targetAPrioriDelta));
+        try {
+            this.result = parentResult.createMinorSubresult(OP_CONSOLIDATE);
+            LOGGER.trace("Computing deltas in {}, a priori delta:\n{}", env.contextDescription, debugDumpLazily(targetAPrioriDelta));
 
-        for (Map.Entry<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> entry: outputTripleMap.entrySet()) {
-            UniformItemPath itemPath = entry.getKey();
-            ItemDelta aprioriItemDelta = LensUtil.getAprioriItemDelta(targetAPrioriDelta, itemPath);
-            DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> deltaSetTriple = entry.getValue();
+            for (Map.Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?,?>>> entry: outputTripleMap.entrySet()) {
+                ItemPath itemPath = entry.getKey();
+                ItemDelta aprioriItemDelta = LensUtil.getAprioriItemDelta(targetAPrioriDelta, itemPath);
+                DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> deltaSetTriple = entry.getValue();
 
-            ValueMetadataComputer valueMetadataComputer = createValueMetadataComputer(itemPath);
+                ValueMetadataComputer valueMetadataComputer = createValueMetadataComputer(itemPath);
 
-            //noinspection unchecked
-            DeltaSetTripleConsolidation itemConsolidation =
-                    new DeltaSetTripleConsolidation(itemPath,
-                            deltaSetTriple, aprioriItemDelta, targetObject, targetDefinition.findItemDefinition(itemPath),
-                            addUnchangedValues, valueMetadataComputer, env, result);
-            CollectionUtils.addIgnoreNull(itemDeltas, itemConsolidation.consolidateItem());
+                //noinspection unchecked
+                DeltaSetTripleConsolidation itemConsolidation =
+                        new DeltaSetTripleConsolidation(itemPath, deltaSetTriple, aprioriItemDelta, valueMetadataComputer);
+                CollectionUtils.addIgnoreNull(itemDeltas, itemConsolidation.consolidateItem());
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+            result = null;
         }
     }
 
@@ -164,5 +186,89 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
 
     public Collection<ItemDelta<?, ?>> getItemDeltas() {
         return itemDeltas;
+    }
+
+    private class DeltaSetTripleConsolidation<V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V,D>> {
+
+        /**
+         * Path to item that is to be consolidated.
+         */
+        private final ItemPath itemPath;
+
+        /**
+         * Delta set triple that is to be consolidated.
+         */
+        private final DeltaSetTriple<I> deltaSetTriple;
+
+        /**
+         * Existing (apriori) delta that was specified by the caller and/or computed upstream.
+         */
+        private final ItemDelta<V, D> aprioriItemDelta;
+
+        /**
+         * Existing item values. Note: this is the state AFTER apriori item delta is applied!
+         */
+        private final Item<V, D> existingItem;
+
+        /**
+         * Definition of item to be consolidated.
+         */
+        private final D itemDefinition;
+
+        /**
+         * Metadata computer to be used during consolidation.
+         */
+        private final ValueMetadataComputer valueMetadataComputer;
+
+        private ItemDelta<V, D> itemDelta;
+
+        private DeltaSetTripleConsolidation(ItemPath itemPath, DeltaSetTriple<I> deltaSetTriple, ItemDelta<V, D> aprioriItemDelta,
+                ValueMetadataComputer valueMetadataComputer) {
+            this.itemPath = itemPath;
+            this.deltaSetTriple = deltaSetTriple;
+            this.aprioriItemDelta = aprioriItemDelta;
+            this.existingItem = targetObject != null ? targetObject.findItem(itemPath) : null;
+            this.itemDefinition = targetDefinition.findItemDefinition(itemPath);
+            this.valueMetadataComputer = valueMetadataComputer;
+        }
+
+        private ItemDelta<?, ?> consolidateItem() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+                ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+            LOGGER.trace("Computing delta for {} with the delta set triple:\n{}", itemPath, deltaSetTriple.debugDumpLazily());
+
+            computeItemDelta();
+            cleanupItemDelta();
+
+            return itemDelta;
+        }
+
+        private void computeItemDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+                ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+            try (IvwoConsolidator<V, D, I> consolidator = new IvwoConsolidatorBuilder<V, D, I>()
+                    .itemPath(itemPath)
+                    .ivwoTriple(deltaSetTriple)
+                    .itemDefinition(itemDefinition)
+                    .aprioriItemDelta(aprioriItemDelta)
+                    .existingItem(existingItem)
+                    .valueMatcher(null)
+                    .comparator(null)
+                    .addUnchangedValues(addUnchangedValues)
+                    .addUnchangedValuesExceptForNormalMappings(true)
+                    .existingItemKnown(true)
+                    .contextDescription(env.contextDescription)
+                    .strengthSelector(StrengthSelector.ALL)
+                    .valueMetadataComputer(valueMetadataComputer)
+                    .result(result)
+                    .customize(consolidatorBuilderCustomizer)
+                    .build()) {
+                itemDelta = consolidator.consolidateToDelta();
+            }
+        }
+
+        private void cleanupItemDelta() throws SchemaException {
+            itemDelta.simplify();
+            itemDelta.validate(env.contextDescription);
+            LOGGER.trace("Computed delta:\n{}", itemDelta.debugDumpLazily());
+        }
     }
 }

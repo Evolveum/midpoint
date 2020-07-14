@@ -17,6 +17,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation.DeltaSetTripleMapConsolidation;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluatorParams;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingInitializer;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingOutputProcessor;
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingTimeEval;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
@@ -33,7 +34,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -43,10 +43,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.util.DebugUtil.lazy;
@@ -72,7 +74,12 @@ class InboundMappingsEvaluation<F extends FocusType> {
     /**
      * Key: target item path, value: InboundMappingStruct(mapping, projectionCtx)
      */
-    private final PathKeyedMap<List<InboundMappingStruct<?, ?>>> mappingsToTarget = new PathKeyedMap<>();
+    private final PathKeyedMap<List<InboundMappingStruct<?, ?>>> mappingsMap = new PathKeyedMap<>();
+
+    /**
+     * Output triples for individual target paths.
+     */
+    private final PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap = new PathKeyedMap<>();
 
     /**
      * Lazily evaluated.
@@ -84,15 +91,16 @@ class InboundMappingsEvaluation<F extends FocusType> {
         this.beans = beans;
         this.env = env;
         this.result = result;
-
     }
 
     void collectAndEvaluateMappings() throws SchemaException, ObjectNotFoundException, SecurityViolationException,
-            CommunicationException, ConfigurationException, ExpressionEvaluationException {
+            CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException {
         collectMappings();
         evaluateMappings();
+        consolidateTriples();
     }
 
+    //region Collecting mappings (evaluation in some cases)
     /**
      * Used to collect all the mappings from all the projects, sorted by target property.
      *
@@ -117,18 +125,20 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 continue;
             }
 
-            new ProjectionMappingsCollector(projectionContext).collect();
+            new ProjectionMappingsCollector(projectionContext).collectOrEvaluate();
         }
     }
 
     /**
      * Collects inbound mappings from specified projection context.
+     *
+     * (Special mappings i.e. password and activation ones, are evaluated immediately. This is to be revised.)
      */
     private class ProjectionMappingsCollector {
 
         private final LensProjectionContext projectionContext;
 
-        private PrismObject<ShadowType> projectionCurrent;
+        private PrismObject<ShadowType> currentProjection;
 
         private final ObjectDelta<ShadowType> aPrioriDelta;
 
@@ -138,12 +148,12 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
         private ProjectionMappingsCollector(LensProjectionContext projectionContext) throws SchemaException {
             this.projectionContext = projectionContext;
-            this.projectionCurrent = projectionContext.getObjectCurrent();
+            this.currentProjection = projectionContext.getObjectCurrent();
             this.aPrioriDelta = getAPrioriDelta(projectionContext);
             this.projectionDefinition = projectionContext.getCompositeObjectClassDefinition();
         }
 
-        public void collect() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        private void collectOrEvaluate() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
 
             if (!projectionContext.isDoReconciliation() && aPrioriDelta == null &&
                     !LensUtil.hasDependentContext(context, projectionContext) && !projectionContext.isFullShadow() &&
@@ -161,7 +171,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
             checkObjectClassDefinitionPresent();
 
-            collectProjectionMappings();
+            collectOrEvaluateProjectionMappings();
         }
 
         private void checkObjectClassDefinitionPresent() {
@@ -173,7 +183,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
             }
         }
 
-        private void collectProjectionMappings()
+        private void collectOrEvaluateProjectionMappings()
                 throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException {
 
             loadIfAnyStrong();
@@ -196,23 +206,27 @@ class InboundMappingsEvaluation<F extends FocusType> {
             }
 
             if (isDeleteProjectionDelta()) {
+                // TODO why we are skipping evaluation of these special properties?
                 LOGGER.trace("Skipping application of special properties because of projection DELETE delta");
                 return;
             }
 
-            evaluateSpecialPropertyInbound(projectionDefinition.getPasswordInbound(), SchemaConstants.PATH_PASSWORD_VALUE, SchemaConstants.PATH_PASSWORD_VALUE,
-                    context.getFocusContext().getObjectNew(), projectionContext);
-
-            evaluateSpecialPropertyInbound(projectionDefinition.getActivationBidirectionalMappingType(ActivationType.F_ADMINISTRATIVE_STATUS), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-                    context.getFocusContext().getObjectNew(), projectionContext);
-            evaluateSpecialPropertyInbound(projectionDefinition.getActivationBidirectionalMappingType(ActivationType.F_VALID_FROM), SchemaConstants.PATH_ACTIVATION_VALID_FROM,
-                    context.getFocusContext().getObjectNew(), projectionContext);
-            evaluateSpecialPropertyInbound(projectionDefinition.getActivationBidirectionalMappingType(ActivationType.F_VALID_TO), SchemaConstants.PATH_ACTIVATION_VALID_TO,
-                    context.getFocusContext().getObjectNew(), projectionContext);
+            evaluateSpecialInbounds(projectionDefinition.getPasswordInbound(),
+                    SchemaConstants.PATH_PASSWORD_VALUE, SchemaConstants.PATH_PASSWORD_VALUE);
+            evaluateSpecialInbounds(getActivationInbound(ActivationType.F_ADMINISTRATIVE_STATUS),
+                    SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+            evaluateSpecialInbounds(getActivationInbound(ActivationType.F_VALID_FROM),
+                    SchemaConstants.PATH_ACTIVATION_VALID_FROM, SchemaConstants.PATH_ACTIVATION_VALID_FROM);
+            evaluateSpecialInbounds(getActivationInbound(ActivationType.F_VALID_TO),
+                    SchemaConstants.PATH_ACTIVATION_VALID_TO, SchemaConstants.PATH_ACTIVATION_VALID_TO);
 
             collectAuxiliaryObjectClassInbounds();
         }
 
+        private List<MappingType> getActivationInbound(ItemName itemName) {
+            ResourceBidirectionalMappingType biDirectionalMapping = projectionDefinition.getActivationBidirectionalMappingType(itemName);
+            return biDirectionalMapping != null ? biDirectionalMapping.getInbound() : Collections.emptyList();
+        }
 
         private boolean isDeleteProjectionDelta() throws SchemaException {
             return ObjectDelta.isDelete(projectionContext.getSyncDelta()) || ObjectDelta.isDelete(projectionContext.getDelta());
@@ -234,9 +248,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 attributeAPrioriDelta = null;
             }
 
-            RefinedAttributeDefinition<?> attributeDef = java.util.Objects.requireNonNull(
-                    projectionDefinition.findAttributeDefinition(attributeName),
-                    () -> "No definition for attribute " + attributeName);
+            RefinedAttributeDefinition<?> attributeDef = findAttributeDefinition(attributeName);
 
             if (attributeDef.isIgnored(LayerType.MODEL)) {
                 LOGGER.trace("Skipping inbound for attribute {} in {} because the attribute is ignored",
@@ -280,7 +292,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
                 if (attributeAPrioriDelta != null) {
                     LOGGER.trace("Processing inbound from a priori delta");
-                } else if (projectionCurrent != null) {
+                } else if (currentProjection != null) {
                     loadRequired();
                     if (shouldStop()) {
                         return;
@@ -301,14 +313,28 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         DebugUtil.debugDumpLazily(currentAttribute, 1));
 
                 //noinspection unchecked
-                collectMappingsForItem(inboundMappingBean, attributeName, currentAttribute, attributeAPrioriDelta, (D)attributeDef, null);
+                collectMapping(inboundMappingBean, attributeName, currentAttribute, attributeAPrioriDelta, (D)attributeDef, null);
             }
+        }
+
+        @NotNull
+        private RefinedAttributeDefinition<Object> findAttributeDefinition(QName attributeName) {
+            return java.util.Objects.requireNonNull(
+                    projectionDefinition.findAttributeDefinition(attributeName),
+                    () -> "No definition for attribute " + attributeName);
+        }
+
+        @NotNull
+        private RefinedAssociationDefinition findAssociationDefinition(QName associationName) {
+            return java.util.Objects.requireNonNull(
+                    projectionDefinition.findAssociationDefinition(associationName),
+                    () -> "No definition for association " + associationName);
         }
 
         @Nullable
         private PrismProperty getCurrentAttribute(QName attributeName) {
-            if (projectionCurrent != null) {
-                return projectionCurrent.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName));
+            if (currentProjection != null) {
+                return currentProjection.findProperty(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeName));
             } else {
                 return null;
             }
@@ -331,18 +357,16 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 associationAPrioriDelta = null;
             }
 
-            RefinedAssociationDefinition associationDef = java.util.Objects.requireNonNull(
-                    projectionDefinition.findAssociationDefinition(associationName),
-                    () -> "No definition for association " + associationName);
+            RefinedAssociationDefinition associationDef = findAssociationDefinition(associationName);
 
             if (associationDef.isIgnored(LayerType.MODEL)) {
-                LOGGER.trace("Skipping inbound for association {} in {} because the association is ignored",
+                LOGGER.trace("Skipping inbounds for association {} in {} because the association is ignored",
                         associationName, projectionContext.getResourceShadowDiscriminator());
                 return;
             }
 
             List<MappingType> inboundMappingBeans = associationDef.getInboundMappingTypes();
-            LOGGER.trace("Processing inbound for {} in {}; ({} mappings)", lazy(() -> PrettyPrinter.prettyPrint(associationName)),
+            LOGGER.trace("Processing inbounds for {} in {}; ({} mappings)", lazy(() -> PrettyPrinter.prettyPrint(associationName)),
                     projectionContext.getResourceShadowDiscriminator(), inboundMappingBeans.size());
 
             if (isNotReadable(associationDef.getLimitations(LayerType.MODEL))) {
@@ -366,15 +390,16 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
                 if (associationAPrioriDelta != null) {
                     LOGGER.trace("Processing inbound from a priori delta");
-                } else if (projectionCurrent != null) {
+                } else if (currentProjection != null) {
                     loadRequired();
                     if (shouldStop()) {
                         return;
                     }
                     LOGGER.trace("Processing inbound from account sync absolute state");
 
-                    PrismContainer<ShadowAssociationType> currentAssociation = projectionCurrent.findContainer(ShadowType.F_ASSOCIATION);
+                    PrismContainer<ShadowAssociationType> currentAssociation = currentProjection.findContainer(ShadowType.F_ASSOCIATION);
                     if (currentAssociation == null) {
+                        // Todo is this OK?
                         LOGGER.trace("No shadow association value");
                         return;
                     }
@@ -396,10 +421,17 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
                 PrismContainerDefinition<ResourceObjectAssociationType> associationContainerDef = getAssociationContainerDefinition();
                 //noinspection unchecked
-                collectMappingsForItem(inboundMappingBean, associationName, (Item<V,D>)filteredAssociations,
+                collectMapping(inboundMappingBean, associationName, (Item<V,D>)filteredAssociations,
                         associationAPrioriDelta, (D)associationContainerDef,
-                        (VariableProducer<V>) (VariableProducer<PrismContainerValue<ShadowAssociationType>>) this::resolveEntitlement);
+                        (VariableProducer<V>) (VariableProducer<PrismContainerValue<ShadowAssociationType>>) this::resolveEntitlementFromMap);
             }
+        }
+
+        private PrismContainerDefinition<ResourceObjectAssociationType> getAssociationContainerDefinition() {
+            if (associationContainerDefinition == null) {
+                associationContainerDefinition = beans.prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class).findContainerDefinition(ShadowType.F_ASSOCIATION);
+            }
+            return associationContainerDefinition;
         }
 
         private void resolveEntitlementsIfNeeded(ContainerDelta<ShadowAssociationType> associationAPrioriDelta,
@@ -409,39 +441,40 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 associationsToResolve.addAll(currentAssociation.getValues());
             }
             if (associationAPrioriDelta != null) {
+                // TODO Shouldn't we filter also these?
                 associationsToResolve.addAll(associationAPrioriDelta.getValues(ShadowAssociationType.class));
             }
 
             for (PrismContainerValue<ShadowAssociationType> associationToResolve : associationsToResolve) {
                 PrismReference shadowRef = associationToResolve.findReference(ShadowAssociationType.F_SHADOW_REF);
-                if (shadowRef == null) {
-                    continue;
-                }
-
-                if (projectionContext.getEntitlementMap().containsKey(shadowRef.getOid())) {
-                    shadowRef.getValue().setObject(projectionContext.getEntitlementMap().get(shadowRef.getOid()));
-                } else {
-                    try {
-                        PrismObject<ShadowType> entitlement = beans.provisioningService.getObject(ShadowType.class, shadowRef.getOid(),
-                                null, env.task, result);
-                        projectionContext.getEntitlementMap().put(entitlement.getOid(), entitlement);
-                    } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException
-                            | SecurityViolationException | ExpressionEvaluationException e) {
-                        LOGGER.error("failed to load entitlement.");
-                        // TODO: can we just ignore and continue?
-                        continue;
-                    }
+                if (shadowRef != null) {
+                    resolveEntitlementFromResource(shadowRef);
                 }
             }
         }
 
+        private void resolveEntitlementFromResource(PrismReference shadowRef) {
+            if (projectionContext.getEntitlementMap().containsKey(shadowRef.getOid())) {
+                shadowRef.getValue().setObject(projectionContext.getEntitlementMap().get(shadowRef.getOid()));
+            } else {
+                try {
+                    PrismObject<ShadowType> entitlement = beans.provisioningService.getObject(ShadowType.class, shadowRef.getOid(),
+                            null, env.task, result);
+                    projectionContext.getEntitlementMap().put(entitlement.getOid(), entitlement);
+                } catch (ObjectNotFoundException | CommunicationException | SchemaException | ConfigurationException
+                        | SecurityViolationException | ExpressionEvaluationException e) {
+                    LOGGER.error("failed to load entitlement.");
+                    // TODO: can we just ignore and continue?
+                }
+            }
+        }
 
         @Nullable
         private PrismContainer<ShadowAssociationType> getFilteredAssociations(QName associationName)
                 throws SchemaException {
             LOGGER.trace("Getting filtered associations for {}", associationName);
-            PrismContainer<ShadowAssociationType> currentAssociation = projectionCurrent != null ?
-                    projectionCurrent.findContainer(ShadowType.F_ASSOCIATION) : null;
+            PrismContainer<ShadowAssociationType> currentAssociation = currentProjection != null ?
+                    currentProjection.findContainer(ShadowType.F_ASSOCIATION) : null;
 
             if (currentAssociation != null) {
                 PrismContainer<ShadowAssociationType> filteredAssociations = currentAssociation.getDefinition().instantiate();
@@ -459,7 +492,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
             }
         }
 
-        private void resolveEntitlement(PrismContainerValue<ShadowAssociationType> value, ExpressionVariables variables) {
+        private void resolveEntitlementFromMap(PrismContainerValue<ShadowAssociationType> value, ExpressionVariables variables) {
             LOGGER.trace("Producing value {} ", value);
             PrismReference entitlementRef = value.findReference(ShadowAssociationType.F_SHADOW_REF);
             if (entitlementRef == null) {
@@ -525,15 +558,185 @@ class InboundMappingsEvaluation<F extends FocusType> {
                     .findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS);
 
             for (MappingType inboundMappingBean : inboundMappingBeans) {
-                PrismProperty<QName> oldAccountProperty = projectionCurrent.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
+                PrismProperty<QName> oldAccountProperty = currentProjection.findProperty(ShadowType.F_AUXILIARY_OBJECT_CLASS);
                 LOGGER.trace("Processing inbound from account sync absolute state (currentAccount): {}", oldAccountProperty);
-                collectMappingsForItem(inboundMappingBean, ShadowType.F_AUXILIARY_OBJECT_CLASS,
+                // TODO why we ignore auxiliary object class apriori delta?
+                collectMapping(inboundMappingBean, ShadowType.F_AUXILIARY_OBJECT_CLASS,
                         oldAccountProperty, null, auxiliaryObjectClassPropertyDefinition,
                         null);
             }
         }
 
-        private <V extends PrismValue, D extends ItemDefinition> void collectMappingsForItem(MappingType inboundMappingBean,
+        /**
+         * Processing for special (fixed-schema) properties such as credentials and activation.
+         *
+         * The code is rather strange. TODO revisit and clean up
+         *
+         * Also it is not clear why these mappings are not collected to the map for later execution,
+         * just like regular mappings are.
+         */
+        private void evaluateSpecialInbounds(Collection<MappingType> inboundMappingBeans,
+                ItemPath sourcePath, ItemPath targetPath) throws SchemaException,
+                ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
+                SecurityViolationException {
+
+            if (inboundMappingBeans == null || inboundMappingBeans.isEmpty()) {
+                return;
+            }
+
+            LOGGER.trace("Collecting {} inbounds for special property {}", inboundMappingBeans.size(), sourcePath);
+
+            PrismObject<F> focus = getCurrentFocus();
+            if (focus == null) {
+                LOGGER.trace("No current/new focus, skipping.");
+                return;
+            }
+            if (!projectionContext.isFullShadow()) {
+                // TODO - is this ok?
+                LOGGER.trace("Full shadow not loaded, skipping.");
+                return;
+            }
+
+            ObjectDelta<F> userPrimaryDelta = context.getFocusContext().getPrimaryDelta();
+            if (userPrimaryDelta != null) {
+                PropertyDelta primaryPropDelta = userPrimaryDelta.findPropertyDelta(targetPath);
+                if (primaryPropDelta != null && primaryPropDelta.isReplace()) {
+                    LOGGER.trace("Primary delta of 'replace' overrides any inbounds, skipping. Delta: {}", primaryPropDelta);
+                    return;
+                }
+            }
+
+            ObjectDelta<F> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
+            if (userSecondaryDelta != null) {
+                PropertyDelta<?> secondaryPropDelta = userSecondaryDelta.findPropertyDelta(targetPath);
+                if (secondaryPropDelta != null) {
+                    LOGGER.trace("There is a secondary delta in the current wave. Removing it. New value will be handled by inbounds: {}", secondaryPropDelta);
+                    userSecondaryDelta.getModifications().remove(secondaryPropDelta);
+                }
+            }
+
+            MappingInitializer<PrismValue, ItemDefinition> initializer =
+                    (builder) -> {
+                        if (projectionContext.getObjectNew() == null) {
+                            projectionContext.recompute();
+                            if (projectionContext.getObjectNew() == null) {
+                                // Still null? something must be really wrong here.
+                                String message = "Recomputing account " + projectionContext.getResourceShadowDiscriminator()
+                                        + " results in null new account. Something must be really broken.";
+                                LOGGER.error(message);
+                                LOGGER.trace("Account context:\n{}", projectionContext.debugDumpLazily());
+                                throw new SystemException(message);
+                            }
+                        }
+
+                        ItemDelta<PrismPropertyValue<?>,PrismPropertyDefinition<?>> specialAttributeDelta;
+                        if (aPrioriDelta != null) {
+                            specialAttributeDelta = aPrioriDelta.findItemDelta(sourcePath);
+                        } else {
+                            specialAttributeDelta = null;
+                        }
+                        ItemDeltaItem<PrismPropertyValue<?>,PrismPropertyDefinition<?>> sourceIdi = projectionContext.getObjectDeltaObject().findIdi(sourcePath);
+                        if (specialAttributeDelta == null) {
+                            specialAttributeDelta = sourceIdi.getDelta();
+                        }
+                        Source<PrismPropertyValue<?>,PrismPropertyDefinition<?>> source = new Source<>(
+                                sourceIdi.getItemOld(), specialAttributeDelta, sourceIdi.getItemOld(),
+                                ExpressionConstants.VAR_INPUT_QNAME,
+                                sourceIdi.getDefinition());
+                        builder.defaultSource(source)
+                                .addVariableDefinition(ExpressionConstants.VAR_USER, focus, UserType.class)
+                                .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus, FocusType.class)
+                                .addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
+
+                        PrismObject<ShadowType> accountNew = projectionContext.getObjectNew();
+                        builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew, ShadowType.class)
+                                .addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew, ShadowType.class)
+                                .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew, ShadowType.class)
+                                .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
+                                .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
+                                .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projectionContext.getResource(), ResourceType.class)
+                                .valuePolicySupplier(createValuePolicySupplier())
+                                .mappingKind(MappingKindType.INBOUND)
+                                .implicitSourcePath(sourcePath)
+                                .implicitTargetPath(targetPath)
+                                .originType(OriginType.INBOUND)
+                                .originObject(projectionContext.getResource());
+
+                        return builder;
+                    };
+
+            MappingOutputProcessor<PrismValue> processor =
+                    (mappingOutputPath, outputStruct) -> {
+                        PrismValueDeltaSetTriple<PrismValue> outputTriple = outputStruct.getOutputTriple();
+                        if (outputTriple == null){
+                            LOGGER.trace("Mapping for property {} evaluated to null. Skipping inbound processing for that property.", sourcePath);
+                            return false;
+                        }
+
+                        ObjectDelta<F> userSecondaryDeltaInt = context.getFocusContext().getProjectionWaveSecondaryDelta();
+                        if (userSecondaryDeltaInt != null) {
+                            PropertyDelta<?> delta = userSecondaryDeltaInt.findPropertyDelta(targetPath);
+                            if (delta != null) {
+                                //remove delta if exists, it will be handled by inbound
+                                userSecondaryDeltaInt.getModifications().remove(delta);
+                            }
+                        }
+
+                        PrismObjectDefinition<F> focusDefinition = context.getFocusContext().getObjectDefinition();
+                        PrismProperty result = focusDefinition.findPropertyDefinition(targetPath).instantiate();
+                        //noinspection unchecked
+                        result.addAll(PrismValueCollectionsUtil.cloneCollection(outputTriple.getNonNegativeValues()));
+
+                        PrismProperty targetPropertyNew = focus.findOrCreateProperty(targetPath);
+                        PropertyDelta<?> delta;
+                        if (ProtectedStringType.COMPLEX_TYPE.equals(targetPropertyNew.getDefinition().getTypeName())) {
+                            // We have to compare this in a special way. The cipherdata may be different due to a different
+                            // IV, but the value may still be the same
+                            ProtectedStringType resultValue = (ProtectedStringType) result.getRealValue();
+                            ProtectedStringType targetPropertyNewValue = (ProtectedStringType) targetPropertyNew.getRealValue();
+                            try {
+                                if (beans.protector.compareCleartext(resultValue, targetPropertyNewValue)) {
+                                    delta = null;
+                                } else {
+                                    //noinspection unchecked
+                                    delta = targetPropertyNew.diff(result);
+                                }
+                            } catch (EncryptionException e) {
+                                throw new SystemException(e.getMessage(), e);
+                            }
+                        } else {
+                            //noinspection unchecked
+                            delta = targetPropertyNew.diff(result);
+                        }
+                        if (LOGGER.isTraceEnabled()) {
+                            LOGGER.trace("targetPropertyNew:\n{}\ndelta:\n{}", targetPropertyNew.debugDump(1), DebugUtil.debugDump(delta, 1));
+                        }
+                        if (delta != null && !delta.isEmpty()) {
+                            delta.setParentPath(targetPath.allExceptLast());
+                            if (!context.getFocusContext().alreadyHasDelta(delta)){
+                                context.getFocusContext().swallowToProjectionWaveSecondaryDelta(delta);
+                            }
+                        }
+                        return false;
+                    };
+
+            MappingEvaluatorParams<PrismValue, ItemDefinition, F, F> params = new MappingEvaluatorParams<>();
+            params.setMappingTypes(inboundMappingBeans);
+            params.setMappingDesc("inbound mapping for " + sourcePath + " in " + projectionContext.getResource());
+            params.setNow(env.now);
+            params.setInitializer(initializer);
+            params.setProcessor(processor);
+            params.setAPrioriTargetObject(focus);
+            params.setAPrioriTargetDelta(userPrimaryDelta);
+            params.setTargetContext(context.getFocusContext());
+            params.setDefaultTargetItemPath(targetPath);
+            params.setEvaluateCurrent(MappingTimeEval.CURRENT);
+            params.setContext(context);
+            params.setHasFullTargetObject(true);
+            beans.mappingEvaluator.evaluateMappingSetProjection(params, env.task, result);
+        }
+
+        private <V extends PrismValue, D extends ItemDefinition> void collectMapping(MappingType inboundMappingBean,
                 QName projectionItemName, Item<V, D> currentProjectionItem, ItemDelta<V, D> itemAPrioriDelta,
                 D itemDefinition, VariableProducer<V> variableProducer) throws ObjectNotFoundException, SchemaException,
                 ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
@@ -550,21 +753,12 @@ class InboundMappingsEvaluation<F extends FocusType> {
             }
 
             PrismObject<ShadowType> shadowNew = projectionContext.getObjectNew();
-            PrismObjectDefinition<ShadowType> shadowNewDef;
-            if (shadowNew != null) {
-                shadowNewDef = shadowNew.getDefinition();
-            } else {
-                shadowNewDef = beans.prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-            }
+            PrismObjectDefinition<ShadowType> shadowNewDef = getShadowDefinition(shadowNew);
 
             PrismObject<F> focus = getCurrentFocus();
-            PrismObjectDefinition<F> focusNewDef;
-            if (focus != null) {
-                focusNewDef = focus.getDefinition();
-            } else {
-                focusNewDef = context.getFocusContextRequired().getObjectDefinition();
-            }
+            PrismObjectDefinition<F> focusDef = getFocusDefinition(focus);
 
+            // TODO apply metadata on if enabled
             if (currentProjectionItem != null) {
                 beans.projectionValueMetadataCreator.setValueMetadata(currentProjectionItem, projectionContext);
             }
@@ -582,8 +776,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
                     .contextDescription("inbound expression for "+projectionItemName+" in "+resource)
                     .defaultSource(defaultSource)
                     .targetContext(LensUtil.getFocusDefinition(context))
-                    .addVariableDefinition(ExpressionConstants.VAR_USER, focus, focusNewDef)
-                    .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus, focusNewDef)
+                    .addVariableDefinition(ExpressionConstants.VAR_USER, focus, focusDef)
+                    .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus, focusDef)
                     .addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS)
                     .addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadowNew, shadowNewDef)
                     .addVariableDefinition(ExpressionConstants.VAR_SHADOW, shadowNew, shadowNewDef)
@@ -594,7 +788,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                     .addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, context.getSystemConfiguration(), context.getSystemConfiguration().getDefinition())
                     .addVariableDefinition(ExpressionConstants.VAR_OPERATION, context.getFocusContext().getOperation().getValue(), String.class)
                     .variableResolver(variableProducer)
-                    .valuePolicySupplier(createStringPolicyResolver())
+                    .valuePolicySupplier(createValuePolicySupplier())
                     .originType(OriginType.INBOUND)
                     .originObject(resource);
 
@@ -602,7 +796,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 assert focus != null;
                 TypedValue<PrismObject<F>> targetContext = new TypedValue<>(focus);
                 ExpressionVariables variables = builder.getVariables();
-                Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingBean.getTarget(), targetContext, variables, beans.mappingFactory.getObjectResolver() , "resolving target values",
+                Collection<V> originalValues = ExpressionUtil.computeTargetValues(inboundMappingBean.getTarget(), targetContext,
+                        variables, beans.mappingFactory.getObjectResolver() , "resolving target values",
                         beans.prismContext, env.task, result);
                 builder.originalTargetValues(originalValues);
             }
@@ -620,26 +815,39 @@ class InboundMappingsEvaluation<F extends FocusType> {
             if (ItemPath.isEmpty(targetFocusItemPath)) {
                 throw new ConfigurationException("Empty target path in "+mapping.getContextDescription());
             }
-            PrismObjectDefinition<F> focusDefinition = context.getFocusContext().getObjectDefinition();
-            ItemDefinition targetItemDef = focusDefinition.findItemDefinition(targetFocusItemPath);
+            ItemDefinition targetItemDef = focusDef.findItemDefinition(targetFocusItemPath);
             if (targetItemDef == null) {
                 throw new SchemaException("No definition for focus property "+targetFocusItemPath+", cannot process inbound expression in "+resource);
             }
 
-            addToMappingsMap(mappingsToTarget, targetFocusItemPath, mappingStruct);
+            addToMappingsMap(targetFocusItemPath, mappingStruct);
+        }
+
+        private void addToMappingsMap(ItemPath itemPath, InboundMappingStruct<?, ?> mappingStruct) {
+            mappingsMap
+                    .computeIfAbsent(itemPath, k -> new ArrayList<>())
+                    .add(mappingStruct);
+        }
+
+        private PrismObjectDefinition<ShadowType> getShadowDefinition(PrismObject<ShadowType> shadowNew) {
+            if (shadowNew != null && shadowNew.getDefinition() != null) {
+                return shadowNew.getDefinition();
+            } else {
+                return beans.prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+            }
         }
 
         private void loadIfAnyStrong() throws SchemaException {
             if (!projectionContext.isFullShadow() && !projectionContext.isTombstone() && hasAnyStrongMapping()) {
                 LOGGER.trace("There are strong inbound mappings, but the shadow hasn't be fully loaded yet. Trying to load full shadow now.");
-                load();
+                doLoad();
             }
         }
 
         private void loadIfStrong(MappingType inboundMappingBean) throws SchemaException {
             if (!projectionContext.isFullShadow() && !projectionContext.isDelete() && inboundMappingBean.getStrength() == MappingStrengthType.STRONG) {
                 LOGGER.trace("There is an inbound mapping with strength == STRONG. Trying to load full account now.");
-                load();
+                doLoad();
             }
         }
 
@@ -649,7 +857,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
         private void loadRequired() throws SchemaException {
             if (!projectionContext.isFullShadow()) {
                 LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", projectionContext.getOid());      // todo change to trace level eventually
-                load();
+                doLoad();
                 if (!isBroken() && !projectionContext.isFullShadow()) {
                     if (projectionContext.getResourceShadowDiscriminator().getOrder() > 0) {
                         // higher-order context. It is OK not to load this
@@ -660,13 +868,19 @@ class InboundMappingsEvaluation<F extends FocusType> {
             }
         }
 
-        private void load() throws SchemaException {
-            projectionCurrent = loadProjection(projectionContext, projectionCurrent);
+        private void doLoad() throws SchemaException {
+            try {
+                beans.contextLoader.loadFullShadow(context, projectionContext, "inbound", env.task, result);
+                currentProjection = projectionContext.getObjectCurrent();
+            } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
+                LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", projectionContext.getOid(), e.getMessage());
+                projectionContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+            }
         }
 
         private boolean hasAnyStrongMapping() {
             for (QName attributeName : projectionDefinition.getNamesOfAttributesWithInboundExpressions()) {
-                RefinedAttributeDefinition<?> definition = projectionDefinition.findAttributeDefinition(attributeName);
+                RefinedAttributeDefinition<?> definition = findAttributeDefinition(attributeName);
                 for (MappingType inboundMapping : definition.getInboundMappingTypes()) {
                     if (inboundMapping.getStrength() == MappingStrengthType.STRONG) {
                         return true;
@@ -674,7 +888,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 }
             }
             for (QName associationName : projectionDefinition.getNamesOfAssociationsWithInboundExpressions()) {
-                RefinedAssociationDefinition definition = projectionDefinition.findAssociationDefinition(associationName);
+                RefinedAssociationDefinition definition = findAssociationDefinition(associationName);
                 for (MappingType inboundMapping : definition.getInboundMappingTypes()) {
                     if (inboundMapping.getStrength() == MappingStrengthType.STRONG) {
                         return true;
@@ -684,19 +898,6 @@ class InboundMappingsEvaluation<F extends FocusType> {
             return false;
         }
     }
-
-    private PrismObject<ShadowType> loadProjection(LensProjectionContext projContext, PrismObject<ShadowType> accountCurrent)
-            throws SchemaException {
-        try {
-            beans.contextLoader.loadFullShadow(context, projContext, "inbound", env.task, result);
-            accountCurrent = projContext.getObjectCurrent();
-        } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException | ExpressionEvaluationException e) {
-            LOGGER.warn("Couldn't load account with shadow OID {} because of {}, setting context as broken and skipping inbound processing on it", projContext.getOid(), e.getMessage());
-            projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-        }
-        return accountCurrent;
-    }
-
 
     /**
      * A priori delta is a delta that was executed in a previous "step". That means it is either delta from a previous
@@ -726,417 +927,102 @@ class InboundMappingsEvaluation<F extends FocusType> {
         return null;
     }
 
-    private <F extends ObjectType> boolean checkWeakSkip(MappingImpl<?,?> inbound, PrismObject<F> newUser) throws SchemaException {
+    private boolean checkWeakSkip(MappingImpl<?,?> inbound, PrismObject<F> focus) {
         if (inbound.getStrength() != MappingStrengthType.WEAK) {
             return false;
         }
-        if (newUser == null) {
+        if (focus != null) {
+            Item<?, ?> item = focus.findItem(inbound.getOutputPath());
+            return item != null && !item.isEmpty();
+        } else {
             return false;
         }
-        PrismProperty<?> property = newUser.findProperty(inbound.getOutputPath());
-        if (property != null && !property.isEmpty()) {
-            return true;
-        }
-        return false;
     }
+    //endregion
 
-
-    private void addToMappingsMap(Map<ItemPath, List<InboundMappingStruct<?, ?>>> mappingsToTarget,
-            ItemPath itemPath, InboundMappingStruct<?, ?> mappingStruct) {
-        mappingsToTarget
-                .computeIfAbsent(itemPath, k -> new ArrayList<>())
-                .add(mappingStruct);
-    }
-
+    //region Evaluating collected mappings
     /**
      * Evaluate mappings consolidated from all the projections. There may be mappings from different projections to the same target.
      * We want to merge their values. Otherwise those mappings will overwrite each other.
      */
-    private void evaluateMappings()
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException, CommunicationException {
-
-        PrismObject<F> focusNew = context.getFocusContext().getObjectCurrent();
-        if (focusNew == null) {
-            focusNew = context.getFocusContext().getObjectNew();
-        }
-
-        for (Map.Entry<ItemPath, List<InboundMappingStruct<?, ?>>> mappingsToTargetEntry : mappingsToTarget.entrySet()) {
-            evaluateMappingsForTargetItem(context, env.task, result, focusNew, mappingsToTargetEntry);
+    private void evaluateMappings() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
+            ConfigurationException, SecurityViolationException, CommunicationException {
+        for (Map.Entry<ItemPath, List<InboundMappingStruct<?, ?>>> entry : mappingsMap.entrySet()) {
+            evaluateMappingsForTargetItem(entry.getKey(), entry.getValue());
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> void evaluateMappingsForTargetItem(LensContext<F> context,
-            Task task, OperationResult result, PrismObject<F> focusNew,
-            Map.Entry<ItemPath, List<InboundMappingStruct<?, ?>>> mappingsToTargetEntry)
-            throws ExpressionEvaluationException,
-            ObjectNotFoundException, SchemaException,
-            SecurityViolationException,
-            ConfigurationException,
-            CommunicationException {
-        D outputDefinition = null;
-        boolean rangeCompletelyDefined = true;
-        DeltaSetTriple<ItemValueWithOrigin<V, D>> allTriples = beans.prismContext.deltaFactory().createDeltaSetTriple();
-        for (InboundMappingStruct<?, ?> mappingsToTargetStruct : mappingsToTargetEntry.getValue()) {
-            //noinspection unchecked
-            MappingImpl<V, D> mapping = (MappingImpl<V, D>) mappingsToTargetStruct.getMapping();
-            LensProjectionContext projectionCtx = mappingsToTargetStruct.getProjectionContext();
-            outputDefinition = mapping.getOutputDefinition();
-            if (!mapping.hasTargetRange()) {
-                rangeCompletelyDefined = false;
-            }
+    private void evaluateMappingsForTargetItem(ItemPath targetPath, List<InboundMappingStruct<?, ?>> mappingStructList)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, CommunicationException {
 
-            beans.mappingEvaluator.evaluateMapping(mapping, context, projectionCtx, task, result);
+        assert !mappingStructList.isEmpty();
+        for (InboundMappingStruct<?, ?> mappingStruct : mappingStructList) {
+            MappingImpl<?, ?> mapping = mappingStruct.getMapping();
+            LensProjectionContext projectionCtx = mappingStruct.getProjectionContext();
 
-            DeltaSetTriple<ItemValueWithOrigin<V, D>> iwwoTriple = ItemValueWithOrigin.createOutputTriple(mapping,
-                    beans.prismContext);
-            LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}",
-                    DebugUtil.shortDumpLazily(mapping.getDefaultSource()), DebugUtil.debugDumpLazily(iwwoTriple, 1));
-            if (iwwoTriple == null) {
-                continue;
-            }
-            if (projectionCtx.isDelete()) {
-                // Projection is going to be deleted. All the values that this projection was giving should be removed now.
+            beans.mappingEvaluator.evaluateMapping(mapping, context, projectionCtx, env.task, result);
+            mergeMappingOutput(mapping, targetPath, projectionCtx.isDelete());
+        }
+    }
+
+    private <V extends PrismValue, D extends ItemDefinition> void mergeMappingOutput(MappingImpl<V, D> mapping,
+            ItemPath targetPath, boolean allToDelete) {
+
+        DeltaSetTriple<ItemValueWithOrigin<V, D>> ivwoTriple = ItemValueWithOrigin.createOutputTriple(mapping, beans.prismContext);
+        LOGGER.trace("Inbound mapping for {}\nreturned triple:\n{}",
+                DebugUtil.shortDumpLazily(mapping.getDefaultSource()), DebugUtil.debugDumpLazily(ivwoTriple, 1));
+
+        if (ivwoTriple != null) {
+            if (allToDelete) {
                 LOGGER.trace("Projection is going to be deleted, setting values from this projection to minus set");
-                allTriples.addAllToMinusSet(iwwoTriple.getPlusSet());
-                allTriples.addAllToMinusSet(iwwoTriple.getZeroSet());
-                allTriples.addAllToMinusSet(iwwoTriple.getMinusSet());
+                DeltaSetTriple<ItemValueWithOrigin<V, D>> convertedTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
+                convertedTriple.addAllToMinusSet(ivwoTriple.getPlusSet());
+                convertedTriple.addAllToMinusSet(ivwoTriple.getZeroSet());
+                convertedTriple.addAllToMinusSet(ivwoTriple.getMinusSet());
+                //noinspection unchecked
+                DeltaSetTripleUtil.putIntoOutputTripleMap((PathKeyedMap) outputTripleMap, targetPath, convertedTriple);
             } else {
-                allTriples.merge(iwwoTriple);
+                //noinspection unchecked
+                DeltaSetTripleUtil.putIntoOutputTripleMap((PathKeyedMap) outputTripleMap, targetPath, ivwoTriple);
             }
-
         }
-        DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples = consolidateTriples(allTriples);
+    }
+    //endregion
 
-        LOGGER.trace("Consolidated triples for mapping for item {}\n{}", mappingsToTargetEntry.getKey(), consolidatedTriples.debugDumpLazily(1));
+    //region Consolidating triples to deltas
 
-        ItemDelta<V, D> focusItemDelta = collectOutputDelta(outputDefinition, mappingsToTargetEntry.getKey(), focusNew,
-                consolidatedTriples, rangeCompletelyDefined);
+    private void consolidateTriples() throws CommunicationException, ObjectNotFoundException, ConfigurationException,
+            SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
 
-        if (focusItemDelta != null && !focusItemDelta.isEmpty()) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Created delta (from inbound expressions for {})\n{}", focusItemDelta.getElementName(), focusItemDelta.debugDump(1));
+        PrismObject<F> focus = getCurrentFocus();
+        PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focus);
+        LensFocusContext<F> focusContext = context.getFocusContextRequired();
+        ObjectDelta<F> focusAPrioriDelta = focusContext.getDelta();
+
+        Consumer<IvwoConsolidatorBuilder> customizer = builder ->
+                builder.deleteExistingValues(builder.getItemDefinition().isSingleValue() &&
+                        !rangeIsCompletelyDefined(builder.getItemPath()));
+
+        DeltaSetTripleMapConsolidation<F> consolidation = new DeltaSetTripleMapConsolidation<>(
+                outputTripleMap, focus, focusAPrioriDelta, true,
+                customizer, focusDefinition,
+                env, beans, context, result);
+        consolidation.computeItemDeltas();
+
+        for (ItemDelta<?, ?> itemDelta : consolidation.getItemDeltas()) {
+            if (!itemDelta.isEmpty()) {
+                focusContext.swallowToSecondaryDelta(itemDelta);
             }
-            context.getFocusContext().swallowToProjectionWaveSecondaryDelta(focusItemDelta);
-            context.recomputeFocus();
-        } else {
-            LOGGER.trace("Created delta (from inbound expressions for {}) was null or empty.", focusItemDelta.getElementName());
         }
     }
 
-    private <V extends PrismValue, D extends ItemDefinition> DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidateTriples(DeltaSetTriple<ItemValueWithOrigin<V, D>> originTriples) {
-        // Meaning of the resulting triple:
-        // values in PLUS set will be added (valuesToAdd in delta)
-        // values in MINUS set will be removed (valuesToDelete in delta)
-        // values in ZERO set will be compared with existing values in
-        // user property
-        // the differences will be added to delta
-
-        Collection<ItemValueWithOrigin<V, D>> consolidatedZeroSet = new HashSet<>();
-        Collection<ItemValueWithOrigin<V, D>> consolidatedPlusSet = new HashSet<>();
-        Collection<ItemValueWithOrigin<V, D>> consolidatedMinusSet = new HashSet<>();
-
-        if (originTriples != null) {
-            if (originTriples.hasPlusSet()) {
-                Collection<ItemValueWithOrigin<V, D>> plusSet = originTriples.getPlusSet();
-                LOGGER.trace("Consolidating plusSet from origin:\n {}", DebugUtil.debugDumpLazily(plusSet));
-
-
-                for (ItemValueWithOrigin<V, D> plusValue : plusSet) {
-                    boolean consolidated = false;
-                    if (originTriples.hasMinusSet()) {
-                        for (ItemValueWithOrigin<V, D> minusValue: originTriples.getMinusSet()) {
-                            if (minusValue.getItemValue().equals(plusValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
-                                LOGGER.trace(
-                                        "Removing value {} from minus set -> moved to the zero, because the same value present in plus and minus set at the same time",
-                                        minusValue.debugDumpLazily());
-                                consolidatedMinusSet.remove(minusValue);
-                                consolidatedPlusSet.remove(plusValue);
-                                consolidatedZeroSet.add(minusValue);
-                                consolidated = true;
-                            }
-                        }
-                    }
-
-                    if (originTriples.hasZeroSet()) {
-                        for (ItemValueWithOrigin<V, D> zeroValue: originTriples.getZeroSet()) {
-                            if (zeroValue.getItemValue().equals(plusValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
-                                LOGGER.trace(
-                                        "Removing value {} from plus set -> moved to the zero, because the same value present in plus and minus set at the same time",
-                                        zeroValue.debugDumpLazily());
-                                consolidatedPlusSet.remove(plusValue);
-                                consolidated = true;
-                            }
-                        }
-                    }
-                    if (!consolidated) { //&& !PrismValue.containsRealValue(consolidatedPlusSet, plusValue)) {
-                        consolidatedPlusSet.add(plusValue);
-                    }
-                }
-            }
-
-
-            if (originTriples.hasZeroSet()) {
-                Collection<ItemValueWithOrigin<V, D>> zeroSet = originTriples.getZeroSet();
-                LOGGER.trace("Consolidating zero set from origin:\n {}", DebugUtil.debugDumpLazily(zeroSet));
-
-                for (ItemValueWithOrigin<V, D> zeroValue : zeroSet) {
-                    boolean consolidated = false;
-                    if (originTriples.hasMinusSet()) {
-                        for (ItemValueWithOrigin<V, D> minusValue : originTriples.getMinusSet()) {
-                            if (minusValue.getItemValue().equals(zeroValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
-                                LOGGER.trace(
-                                        "Removing value {} from minus set -> moved to the zero, because the same value present in zero and minus set at the same time",
-                                        minusValue.debugDumpLazily());
-                                consolidatedMinusSet.remove(minusValue);
-                                consolidatedZeroSet.add(minusValue);
-                                consolidated = true;
-                            }
-                        }
-
-                    }
-
-                    if (originTriples.hasPlusSet()) {
-                        for (ItemValueWithOrigin<V, D> plusValue : originTriples.getPlusSet()) {
-                            if (plusValue.getItemValue().equals(zeroValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
-                                LOGGER.trace(
-                                        "Removing value {} from plus set -> moved to the zero, because the same value present in zero and plus set at the same time",
-                                        plusValue.debugDumpLazily());
-                                consolidatedPlusSet.remove(plusValue);
-                                consolidatedZeroSet.add(plusValue);
-                                consolidated = true;
-                            }
-                        }
-
-                    }
-                    if (!consolidated) {// && !PrismValue.containsRealValue(consolidatedZeroSet, zeroValue)) {
-                        consolidatedZeroSet.add(zeroValue);
-                    }
-                }
-
-
-            }
-
-
-
-            if (originTriples.hasMinusSet()) {
-                Collection<ItemValueWithOrigin<V, D>> minusSet = originTriples.getMinusSet();
-                LOGGER.trace("Consolidating minus set from origin:\n {}", DebugUtil.debugDumpLazily(minusSet));
-
-                for (ItemValueWithOrigin<V, D> minusValue : minusSet){
-                    boolean consolidated = false;
-                    if (originTriples.hasPlusSet()) {
-                        for (ItemValueWithOrigin<V, D> plusValue : originTriples.getPlusSet()) {
-                            if (plusValue.getItemValue().equals(minusValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
-                                LOGGER.trace(
-                                        "Removing value {} from minus set -> moved to the zero, because the same value present in plus and minus set at the same time",
-                                        plusValue.debugDumpLazily());
-                                consolidatedPlusSet.remove(plusValue);
-                                consolidatedMinusSet.remove(minusValue);
-                                consolidatedZeroSet.add(minusValue);
-                                consolidated = true;
-                            }
-                        }
-                    }
-
-
-                    if (originTriples.hasZeroSet()) {
-                        for (ItemValueWithOrigin<V, D> zeroValue : originTriples.getZeroSet()) {
-                            if (zeroValue.getItemValue().equals(minusValue.getItemValue(), EquivalenceStrategy.REAL_VALUE)) {
-                                LOGGER.trace(
-                                        "Removing value {} from minus set -> moved to the zero, because the same value present in plus and minus set at the same time",
-                                        zeroValue.debugDumpLazily());
-                                consolidatedMinusSet.remove(minusValue);
-                                consolidatedZeroSet.add(zeroValue);
-                                consolidated = true;
-                            }
-                        }
-                    }
-
-                    if (!consolidated) { // && !PrismValue.containsRealValue(consolidatedMinusSet, minusValue)) {
-                        consolidatedMinusSet.add(minusValue);
-                    }
-
-                }
-
-            }
-        }
-
-        DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples = beans.prismContext.deltaFactory().createDeltaSetTriple();
-        consolidatedTriples.addAllToMinusSet(consolidatedMinusSet);
-        consolidatedTriples.addAllToPlusSet(consolidatedPlusSet);
-        consolidatedTriples.addAllToZeroSet(consolidatedZeroSet);
-        return consolidatedTriples;
+    private boolean rangeIsCompletelyDefined(ItemPath itemPath) {
+        return mappingsMap.get(itemPath).stream()
+                .allMatch(m -> m.getMapping().hasTargetRange());
     }
 
-
-    private <V extends PrismValue, D extends ItemDefinition> ItemDelta<V, D> collectOutputDelta(
-            D outputDefinition, ItemPath outputPath, PrismObject<F> focusNew,
-            DeltaSetTriple<ItemValueWithOrigin<V, D>> consolidatedTriples, boolean rangeCompletelyDefined) throws SchemaException {
-
-        ItemDelta outputFocusItemDelta = outputDefinition.createEmptyDelta(outputPath);
-        Item<V, D> targetFocusItem = null;
-        if (focusNew != null) {
-            targetFocusItem = focusNew.findItem(outputPath);
-        }
-        boolean isAssignment = FocusType.F_ASSIGNMENT.equivalent(outputPath);
-
-        Item<V,D> shouldBeItem = outputDefinition.instantiate();
-        if (consolidatedTriples != null) {
-
-            Collection<ItemValueWithOrigin<V, D>> shouldBeItemValues = consolidatedTriples.getNonNegativeValues();
-            for (ItemValueWithOrigin<V, D> itemWithOrigin : shouldBeItemValues) {
-                V clonedValue = LensUtil.cloneAndApplyAssignmentOrigin(itemWithOrigin.getItemValue(),
-                        isAssignment,
-                        shouldBeItemValues);
-                shouldBeItem.add(clonedValue, EquivalenceStrategy.REAL_VALUE);
-            }
-
-            if (consolidatedTriples.hasPlusSet()) {
-
-                boolean alreadyReplaced = false;
-                for (ItemValueWithOrigin<V, D> valueWithOrigin : consolidatedTriples.getPlusSet()) {
-                    MappingImpl<V,D> originMapping = (MappingImpl) valueWithOrigin.getMapping();
-                    if (targetFocusItem == null) {
-                        targetFocusItem = focusNew.findItem(originMapping.getOutputPath());
-                    }
-                    V value = valueWithOrigin.getItemValue();
-                    if (targetFocusItem != null && targetFocusItem.contains(value, EquivalenceStrategy.REAL_VALUE)) {
-                        continue;
-                    }
-
-                    if (outputFocusItemDelta == null) {
-                        outputFocusItemDelta = outputDefinition.createEmptyDelta(originMapping.getOutputPath());
-                    }
-
-                    // if property is not multi value replace existing
-                    // attribute
-                    if (targetFocusItem != null && !targetFocusItem.getDefinition().isMultiValue()
-                            && !targetFocusItem.isEmpty()) {
-                        Collection<V> replace = new ArrayList<>();
-                        replace.add(LensUtil.cloneAndApplyAssignmentOrigin(value, isAssignment, originMapping.getMappingBean()));
-                        outputFocusItemDelta.setValuesToReplace(replace);
-
-
-                        if (alreadyReplaced) {
-                            LOGGER.warn("Multiple values for a single-valued property {}; duplicate value = {}", targetFocusItem,
-                                    value);
-                        } else {
-                            alreadyReplaced = true;
-                        }
-                    } else {
-                        outputFocusItemDelta.addValueToAdd(LensUtil.cloneAndApplyAssignmentOrigin(value, isAssignment, originMapping.getMappingBean()));
-                    }
-                }
-            }
-
-            if (consolidatedTriples.hasMinusSet()) {
-                LOGGER.trace("Checking account sync property delta values to delete");
-                for (ItemValueWithOrigin<V, D> valueWithOrigin : consolidatedTriples.getMinusSet()) {
-                    V value = valueWithOrigin.getItemValue();
-
-                    if (targetFocusItem == null || targetFocusItem.contains(value, EquivalenceStrategy.REAL_VALUE)) {
-                        if (!outputFocusItemDelta.isReplace()) {
-                            // This is not needed if we are going to
-                            // replace. In fact it might cause an error.
-                            outputFocusItemDelta.addValueToDelete(value);
-                        }
-                    }
-                }
-            }
-
-        } else {
-            // triple == null
-            // the mapping is not applicable. Nothing to do.
-        }
-
-        // We want to diff the values that should be in the target property and the values that are already there.
-        // We want to add any values that should be there but are not there yet. Inbound mappings are not completely
-        // relative. E.g. we often get new state of an account, but we do not know what changes have happened there.
-        // Therefore it can easily happen that mapping will produce a value in a zero set, but that value is not
-        // present in the target property.
-        //
-        // This is some kind of "inbound reconciliation".
-        //
-        // Adding values that are not present is quite easy and reliable. But the real problem is when to remove a value.
-        // Default behavior in midPoint is to be tolerant. In case that non-tolerant behavior is needed, range can be used.
-        // However, inbound mappings are slightly special. We do not have the usual relativistic behavior here.
-        // Non-tolerant behavior would work fine for multivalue properties, as for that range definition is usually
-        // needed anyway. But for single-value properties the behavior may not be intuitive. As inbound mappings are
-        // almost always non-relativistic, there is no explicit delta that would remove a value. Therefore tolerant
-        // inbound mapping would not remove any values.
-        // The decision is that default behavior for single-value properties is to be non-tolerant. This is intuitive behavior.
-        // And as single-value properties cannot have more than one value anyway, it does not really has a big potential for any harm.
-
-        boolean tolerateTargetValues = !outputDefinition.isSingleValue() || rangeCompletelyDefined;
-
-        if (targetFocusItem != null) {
-            LOGGER.trace("Comparing focus item:\n{}\nto should be item:\n{}",
-                    DebugUtil.debugDumpLazily(targetFocusItem, 1), DebugUtil.debugDumpLazily(shouldBeItem, 1));
-            ItemDelta diffDelta = targetFocusItem.diff(shouldBeItem);
-            LOGGER.trace("The difference is:\n{}", DebugUtil.debugDumpLazily(diffDelta, 1));
-
-            if (diffDelta != null) {
-                // this is probably not correct, as the default for
-                // inbounds should be TRUE
-                if (tolerateTargetValues) {
-                    if (diffDelta.isReplace()) {
-                        if (diffDelta.getValuesToReplace().isEmpty()) {
-                            diffDelta.resetValuesToReplace();
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace("Removing empty replace part of the diff delta because mapping is tolerant:\n{}",
-                                        diffDelta.debugDump());
-                            }
-                        } else {
-                            if (LOGGER.isTraceEnabled()) {
-                                LOGGER.trace(
-                                        "Making sure that the replace part of the diff contains old values delta because mapping is tolerant:\n{}",
-                                        diffDelta.debugDump());
-                            }
-                            for (Object shouldBeValueObj : shouldBeItem.getValues()) {
-                                PrismValue shouldBeValue = (PrismValue) shouldBeValueObj;
-                                if (!PrismValueCollectionsUtil.containsRealValue(diffDelta.getValuesToReplace(), shouldBeValue)) {
-                                    diffDelta.addValueToReplace(shouldBeValue.clone());
-                                }
-                            }
-                        }
-                    } else {
-                        diffDelta.resetValuesToDelete();
-                        if (LOGGER.isTraceEnabled()) {
-                            LOGGER.trace("Removing delete part of the diff delta because mapping settings are tolerateTargetValues={}:\n{}",
-                                    tolerateTargetValues, diffDelta.debugDump(1));
-                        }
-                    }
-                }
-
-                diffDelta.setElementName(ItemPath.toName(outputPath.last()));
-                diffDelta.setParentPath(outputPath.allExceptLast());
-                outputFocusItemDelta.merge(diffDelta);
-            }
-
-        } else {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Adding user property because inbound say so (account doesn't contain that value):\n{}",
-                        shouldBeItem.getValues());
-            }
-            // if user property doesn't exist we have to add it (as delta), because inbound say so
-            outputFocusItemDelta.addValuesToAdd(shouldBeItem.getClonedValues());
-        }
-
-
-        return outputFocusItemDelta;
-    }
-
-    private <V extends PrismValue, D extends ItemDefinition> boolean hasRange(List<MappingImpl<V, D>> mappings) {
-        for (MappingImpl<V, D> mapping : mappings) {
-            if (mapping.hasTargetRange()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-
-    private ConfigurableValuePolicySupplier createStringPolicyResolver() {
+    private ConfigurableValuePolicySupplier createValuePolicySupplier() {
         return new ConfigurableValuePolicySupplier() {
             private ItemDefinition outputDefinition;
 
@@ -1155,170 +1041,23 @@ class InboundMappingsEvaluation<F extends FocusType> {
             }
         };
     }
+    //endregion
 
-    /**
-     * Processing for special (fixed-schema) properties such as credentials and activation.
-     */
-    private void evaluateSpecialPropertyInbound(ResourceBidirectionalMappingType biMapping, ItemPath sourceTargetPath,
-            PrismObject<F> newUser, LensProjectionContext projCtx) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        if (biMapping != null) {
-            evaluateSpecialPropertyInbound(biMapping.getInbound(), sourceTargetPath, sourceTargetPath, newUser, projCtx);
+    //region Miscellaneous
+    private PrismObject<F> getCurrentFocus() {
+        if (context.getFocusContext().getObjectCurrent() != null) {
+            return context.getFocusContext().getObjectCurrent();
+        } else {
+            return context.getFocusContext().getObjectNew();
         }
     }
 
-    /**
-     * Processing for special (fixed-schema) properties such as credentials and activation.
-     */
-    private void evaluateSpecialPropertyInbound(Collection<MappingType> inboundMappingBeans,
-            ItemPath sourcePath, ItemPath targetPath, PrismObject<F> newUser, LensProjectionContext projContext) throws SchemaException,
-            ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
-
-        if (inboundMappingBeans == null || inboundMappingBeans.isEmpty() || newUser == null || !projContext.isFullShadow()) {
-            return;
+    private PrismObjectDefinition<F> getFocusDefinition(PrismObject<F> focus) {
+        if (focus != null && focus.getDefinition() != null) {
+            return focus.getDefinition();
+        } else {
+            return context.getFocusContextRequired().getObjectDefinition();
         }
-
-        ObjectDelta<F> userPrimaryDelta = context.getFocusContext().getPrimaryDelta();
-        PropertyDelta primaryPropDelta;
-        if (userPrimaryDelta != null) {
-            primaryPropDelta = userPrimaryDelta.findPropertyDelta(targetPath);
-            if (primaryPropDelta != null && primaryPropDelta.isReplace()) {
-                // Replace primary delta overrides any inbound
-                return;
-            }
-        }
-
-        ObjectDelta<F> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
-        if (userSecondaryDelta != null) {
-            PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(targetPath);
-            if (delta != null) {
-                //remove delta if exists, it will be handled by inbound
-                userSecondaryDelta.getModifications().remove(delta);
-            }
-        }
-
-        MappingInitializer<PrismValue, ItemDefinition> initializer =
-                (builder) -> {
-                    if (projContext.getObjectNew() == null) {
-                        projContext.recompute();
-                        if (projContext.getObjectNew() == null) {
-                            // Still null? something must be really wrong here.
-                            String message = "Recomputing account " + projContext.getResourceShadowDiscriminator()
-                                    + " results in null new account. Something must be really broken.";
-                            LOGGER.error(message);
-                            LOGGER.trace("Account context:\n{}", projContext.debugDumpLazily());
-                            throw new SystemException(message);
-                        }
-                    }
-
-                    ObjectDelta<ShadowType> aPrioriShadowDelta = getAPrioriDelta(projContext);
-                    ItemDelta<PrismPropertyValue<?>,PrismPropertyDefinition<?>> specialAttributeDelta = null;
-                    if (aPrioriShadowDelta != null){
-                        specialAttributeDelta = aPrioriShadowDelta.findItemDelta(sourcePath);
-                    }
-                    ItemDeltaItem<PrismPropertyValue<?>,PrismPropertyDefinition<?>> sourceIdi = projContext.getObjectDeltaObject().findIdi(sourcePath);
-                    if (specialAttributeDelta == null){
-                        specialAttributeDelta = sourceIdi.getDelta();
-                    }
-                    Source<PrismPropertyValue<?>,PrismPropertyDefinition<?>> source = new Source<>(
-                            sourceIdi.getItemOld(), specialAttributeDelta, sourceIdi.getItemOld(),
-                            ExpressionConstants.VAR_INPUT_QNAME,
-                            sourceIdi.getDefinition());
-                    builder.defaultSource(source)
-                            .addVariableDefinition(ExpressionConstants.VAR_USER, newUser, UserType.class)
-                            .addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser, FocusType.class)
-                            .addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
-
-                    PrismObject<ShadowType> accountNew = projContext.getObjectNew();
-                    builder.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew, ShadowType.class)
-                            .addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew, ShadowType.class)
-                            .addVariableDefinition(ExpressionConstants.VAR_PROJECTION, accountNew, ShadowType.class)
-                            .addAliasRegistration(ExpressionConstants.VAR_ACCOUNT, ExpressionConstants.VAR_PROJECTION)
-                            .addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION)
-                            .addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projContext.getResource(), ResourceType.class)
-                            .valuePolicySupplier(createStringPolicyResolver())
-                            .mappingKind(MappingKindType.INBOUND)
-                            .implicitSourcePath(sourcePath)
-                            .implicitTargetPath(targetPath)
-                            .originType(OriginType.INBOUND)
-                            .originObject(projContext.getResource());
-
-                    return builder;
-                };
-
-        MappingOutputProcessor<PrismValue> processor =
-                (mappingOutputPath, outputStruct) -> {
-                    PrismValueDeltaSetTriple<PrismValue> outputTriple = outputStruct.getOutputTriple();
-                    if (outputTriple == null){
-                        LOGGER.trace("Mapping for property {} evaluated to null. Skipping inbound processing for that property.", sourcePath);
-                        return false;
-                    }
-
-                    ObjectDelta<F> userSecondaryDeltaInt = context.getFocusContext().getProjectionWaveSecondaryDelta();
-                    if (userSecondaryDeltaInt != null) {
-                        PropertyDelta<?> delta = userSecondaryDeltaInt.findPropertyDelta(targetPath);
-                        if (delta != null) {
-                            //remove delta if exists, it will be handled by inbound
-                            userSecondaryDeltaInt.getModifications().remove(delta);
-                        }
-                    }
-
-                    PrismObjectDefinition<F> focusDefinition = context.getFocusContext().getObjectDefinition();
-                    PrismProperty result = focusDefinition.findPropertyDefinition(targetPath).instantiate();
-                    result.addAll(PrismValueCollectionsUtil.cloneCollection(outputTriple.getNonNegativeValues()));
-
-                    PrismProperty targetPropertyNew = newUser.findOrCreateProperty(targetPath);
-                    PropertyDelta<?> delta;
-                    if (ProtectedStringType.COMPLEX_TYPE.equals(targetPropertyNew.getDefinition().getTypeName())) {
-                        // We have to compare this in a special way. The cipherdata may be different due to a different
-                        // IV, but the value may still be the same
-                        ProtectedStringType resultValue = (ProtectedStringType) result.getRealValue();
-                        ProtectedStringType targetPropertyNewValue = (ProtectedStringType) targetPropertyNew.getRealValue();
-                        try {
-                            if (beans.protector.compareCleartext(resultValue, targetPropertyNewValue)) {
-                                delta = null;
-                            } else {
-                                delta = targetPropertyNew.diff(result);
-                            }
-                        } catch (EncryptionException e) {
-                            throw new SystemException(e.getMessage(), e);
-                        }
-                    } else {
-                        delta = targetPropertyNew.diff(result);
-                    }
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("targetPropertyNew:\n{}\ndelta:\n{}", targetPropertyNew.debugDump(1), DebugUtil.debugDump(delta, 1));
-                    }
-                    if (delta != null && !delta.isEmpty()) {
-                        delta.setParentPath(targetPath.allExceptLast());
-                        if (!context.getFocusContext().alreadyHasDelta(delta)){
-                            context.getFocusContext().swallowToProjectionWaveSecondaryDelta(delta);
-                        }
-                    }
-                    return false;
-                };
-
-        MappingEvaluatorParams<PrismValue, ItemDefinition, F, F> params = new MappingEvaluatorParams<>();
-        params.setMappingTypes(inboundMappingBeans);
-        params.setMappingDesc("inbound mapping for " + sourcePath + " in " + projContext.getResource());
-        params.setNow(env.now);
-        params.setInitializer(initializer);
-        params.setProcessor(processor);
-        params.setAPrioriTargetObject(newUser);
-        params.setAPrioriTargetDelta(userPrimaryDelta);
-        params.setTargetContext(context.getFocusContext());
-        params.setDefaultTargetItemPath(targetPath);
-        params.setEvaluateCurrent(MappingTimeEval.CURRENT);
-        params.setContext(context);
-        params.setHasFullTargetObject(true);
-        beans.mappingEvaluator.evaluateMappingSetProjection(params, env.task, result);
-    }
-
-    private PrismContainerDefinition<ResourceObjectAssociationType> getAssociationContainerDefinition() {
-        if (associationContainerDefinition == null) {
-            associationContainerDefinition = beans.prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class).findContainerDefinition(ShadowType.F_ASSOCIATION);
-        }
-        return associationContainerDefinition;
     }
 
     static class InboundMappingStruct<V extends PrismValue, D extends ItemDefinition> {
@@ -1338,12 +1077,5 @@ class InboundMappingsEvaluation<F extends FocusType> {
             return projectionContext;
         }
     }
-
-    private PrismObject<F> getCurrentFocus() {
-        if (context.getFocusContext().getObjectCurrent() != null) {
-            return context.getFocusContext().getObjectCurrent();
-        } else {
-            return context.getFocusContext().getObjectNew();
-        }
-    }
+    //endregion
 }

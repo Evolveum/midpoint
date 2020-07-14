@@ -14,13 +14,13 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Holder;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -131,6 +131,12 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     private final boolean itemIsExclusiveStrong;
 
     /**
+     * If true, deletes all existing values that have no origin. (Non-tolerant behavior.)
+     */
+    @Experimental
+    private final boolean deleteExistingValues;
+
+    /**
      * Whether we should ignore values produced by normal-strength mappings.
      * This is the case if exclusiveStrong is true and there is at least one value produced by strong mapping.
      * TODO Currently checked for ADD values. Should we use the same approach for DELETE or unchanged values?
@@ -190,6 +196,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
         strengthSelector = builder.strengthSelector;
         itemIsExclusiveStrong = builder.isExclusiveStrong;
+        deleteExistingValues = builder.deleteExistingValues;
         ignoreNormalMappings = computeIgnoreNormalMappings();
 
         valueMetadataComputer = builder.valueMetadataComputer;
@@ -231,6 +238,12 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                     consolidate(value);
                 }
 
+                if (deleteExistingValues && existingItem != null) {
+                    for (V existingValue : existingItem.getValues()) {
+                        consolidateExistingValue(existingValue);
+                    }
+                }
+
                 if (!newItemWillHaveAnyValue()) {
                     // The application of computed delta results in no value, apply weak mappings
                     applyWeakMappings();
@@ -245,6 +258,20 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
+        }
+    }
+
+    @Experimental
+    private void consolidateExistingValue(V existingValue) throws SchemaException {
+        Collection<ItemValueWithOrigin<V,D>> plusOrigins = collectIvwosFromSet(existingValue, ivwoTriple.getPlusSet(), false);
+        Collection<ItemValueWithOrigin<V,D>> zeroOrigins = collectIvwosFromSet(existingValue, ivwoTriple.getZeroSet(), false);
+        Collection<ItemValueWithOrigin<V,D>> minusOrigins = collectIvwosFromSet(existingValue, ivwoTriple.getMinusSet(), true);
+        LOGGER.trace("Consolidation of existing value (EXPERIMENTAL): PVWOs for existing value {}:\nzero = {}\nplus = {}\nminus = {}",
+                existingValue, zeroOrigins, plusOrigins, minusOrigins);
+        if (plusOrigins.isEmpty() && zeroOrigins.isEmpty() && minusOrigins.isEmpty()) {
+            LOGGER.trace("No origins -- removing the value");
+            //noinspection unchecked
+            itemDelta.addValueToDelete((V) existingValue.clone());
         }
     }
 
@@ -648,12 +675,13 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                         + "   - strengthSelector: {}\n"
                         + "   - valueMatcher: {}\n"
                         + "   - comparator: {}\n"
+                        + "   - deleteExistingValues (experimental): {}\n"
                         + "   - valueMetadataComputer: {}",
                 itemPath, ivwoTriple.debugDumpLazily(1),
                 DebugUtil.debugDumpLazily(aprioriItemDelta, 2),
                 DebugUtil.debugDumpLazily(existingItem, 2),
                 addUnchangedValues, existingItemKnown, itemIsExclusiveStrong, strengthSelector, valueMatcher, comparator,
-                valueMetadataComputer);
+                deleteExistingValues, valueMetadataComputer);
     }
 
     private void logEnd() {

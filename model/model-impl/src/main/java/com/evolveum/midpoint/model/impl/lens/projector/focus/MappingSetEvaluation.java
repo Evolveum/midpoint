@@ -19,7 +19,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTripleUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -68,7 +68,7 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
      */
     private final boolean doingChaining;
 
-    private final Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap = new HashMap<>();
+    private final PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap = new PathKeyedMap<>();
 
     /**
      * Customizes triples produced by mappings before they are aggregated into overall triple map.
@@ -165,8 +165,9 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
             DeltaSetTriple<ItemValueWithOrigin<PrismValue, ItemDefinition>> rawOutputTriple =
                     ItemValueWithOrigin.createOutputTriple(mapping, beans.prismContext);
             LOGGER.trace("Raw output triple for {}:\n{}", mapping, debugDumpLazily(rawOutputTriple));
-            DeltaSetTriple<ItemValueWithOrigin<PrismValue, ItemDefinition>> customizedOutputTriple = customizeOutputTriple(rawOutputTriple, mapping, request);
-            putIntoOutputTripleMap(outputPath, customizedOutputTriple);
+            DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> customizedOutputTriple = customizeOutputTriple(rawOutputTriple, mapping, request);
+            //noinspection unchecked
+            DeltaSetTripleUtil.putIntoOutputTripleMap((PathKeyedMap) outputTripleMap, outputPath, customizedOutputTriple);
         }
     }
 
@@ -183,23 +184,8 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
         }
     }
 
-    private void putIntoOutputTripleMap(ItemPath outputPath,
-            DeltaSetTriple<ItemValueWithOrigin<PrismValue, ItemDefinition>> customizedOutputTriple) {
-        if (customizedOutputTriple != null) {
-            UniformItemPath uniformItemPath = beans.prismContext.toUniformPath(outputPath);
-            //noinspection unchecked
-            DeltaSetTriple<ItemValueWithOrigin<PrismValue, ItemDefinition>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<PrismValue, ItemDefinition>>)
-                    outputTripleMap.get(uniformItemPath);
-            if (mapTriple == null) {
-                outputTripleMap.put(uniformItemPath, customizedOutputTriple);
-            } else {
-                mapTriple.merge(customizedOutputTriple);
-            }
-        }
-    }
-
     private ObjectDeltaObject<F> getUpdatedFocusOdo(LensContext<F> context, ObjectDeltaObject<F> focusOdo,
-            Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
+            PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
             FocalMappingEvaluationRequest<?, ?> evaluationRequest, String contextDesc, OperationResult result) throws ExpressionEvaluationException,
             PolicyViolationException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         Holder<ObjectDeltaObject<F>> focusOdoClonedHolder = new Holder<>();
@@ -213,7 +199,7 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
 
     private void updateSource(LensContext<F> context, ObjectDeltaObject<F> focusOdo,
             Holder<ObjectDeltaObject<F>> focusOdoClonedHolder,
-            Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap, String contextDesc,
+            PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap, String contextDesc,
             VariableBindingDefinitionType source, OperationResult result) throws ExpressionEvaluationException,
             PolicyViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException {
@@ -224,7 +210,7 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
         if (path.startsWithVariable()) {
             return;
         }
-        DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> triple = DeltaSetTripleUtil.find(outputTripleMap, path);
+        DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> triple = outputTripleMap.get(path);
         if (triple == null) {
             return;
         }
@@ -283,7 +269,7 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
         void accept(MappingImpl<V, D> mapping, FocalMappingEvaluationRequest<?, ?> request);
     }
 
-    Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> getOutputTripleMap() {
+    PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> getOutputTripleMap() {
         return outputTripleMap;
     }
 

@@ -10,11 +10,9 @@ package com.evolveum.midpoint.prism.delta;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  *
@@ -62,16 +60,15 @@ public class DeltaSetTripleUtil {
         return triple;
     }
 
-    public static <T> DeltaSetTriple<? extends T> find(Map<? extends ItemPath, DeltaSetTriple<? extends T>> tripleMap, ItemPath path) {
-        List<Map.Entry<? extends ItemPath, DeltaSetTriple<? extends T>>> matching = tripleMap.entrySet().stream()
-                .filter(e -> path.equivalent(e.getKey()))
-                .collect(Collectors.toList());
-        if (matching.isEmpty()) {
-            return null;
-        } else if (matching.size() == 1) {
-            return matching.get(0).getValue();
-        } else {
-            throw new IllegalStateException("Multiple matching entries for key '" + path + "' in " + tripleMap);
+    public static <T> void putIntoOutputTripleMap(PathKeyedMap<DeltaSetTriple<T>> outputTripleMap,
+            ItemPath outputPath, DeltaSetTriple<T> outputTriple) {
+        if (outputTriple != null) {
+            DeltaSetTriple<T> mapTriple = outputTripleMap.get(outputPath);
+            if (mapTriple == null) {
+                outputTripleMap.put(outputPath, outputTriple);
+            } else {
+                mapTriple.merge(outputTriple);
+            }
         }
     }
 }

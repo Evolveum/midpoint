@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -367,14 +368,14 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     .build();
             mappingSetEvaluation.evaluateMappingsToTriples();
 
-            Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> focusOutputTripleMap =
+            PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> focusOutputTripleMap =
                     mappingSetEvaluation.getOutputTripleMap();
 
             logOutputTripleMap(focusOutputTripleMap);
 
             DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(focusOutputTripleMap,
-                    focusOdo.getNewObject(), focusOdo.getObjectDelta(), focusContext.getObjectDefinition(),
-                    env, beans, context, result);
+                    focusOdo.getNewObject(), focusOdo.getObjectDelta(), null, null,
+                    focusContext.getObjectDefinition(), env, beans, context, result);
             consolidation.computeItemDeltas();
             Collection<ItemDelta<?, ?>> focusDeltas = consolidation.getItemDeltas();
 
@@ -390,9 +391,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     private void logOutputTripleMap(
-            Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> focusOutputTripleMap) {
+            Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> focusOutputTripleMap) {
         if (LOGGER.isTraceEnabled()) {
-            for (Entry<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> entry : focusOutputTripleMap
+            for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> entry : focusOutputTripleMap
                     .entrySet()) {
                 LOGGER.trace("Resulting output triple for {}:\n{}", entry.getKey(), entry.getValue().debugDump(1));
             }

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import java.util.Comparator;
+import java.util.function.Consumer;
 
 public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemDefinition, I extends ItemValueWithOrigin<V, D>> {
 
@@ -35,6 +36,7 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     boolean existingItemKnown;
     boolean addUnchangedValuesExceptForNormalMappings;
     boolean isExclusiveStrong;
+    boolean deleteExistingValues;
     ValueMetadataComputer valueMetadataComputer;
     String contextDescription;
     OperationResult result;
@@ -45,6 +47,10 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
+    public ItemPath getItemPath() {
+        return itemPath;
+    }
+
     public IvwoConsolidatorBuilder<V, D, I> ivwoTriple(DeltaSetTriple<I> val) {
         ivwoTriple = val;
         return this;
@@ -53,6 +59,10 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     public IvwoConsolidatorBuilder<V, D, I> itemDefinition(D val) {
         itemDefinition = val;
         return this;
+    }
+
+    public D getItemDefinition() {
+        return itemDefinition;
     }
 
     public IvwoConsolidatorBuilder<V, D, I> aprioriItemDelta(ItemDelta<V, D> val) {
@@ -102,6 +112,11 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
+    public IvwoConsolidatorBuilder<V, D, I> deleteExistingValues(boolean val) {
+        deleteExistingValues = val;
+        return this;
+    }
+
     public IvwoConsolidatorBuilder<V, D, I> valueMetadataComputer(ValueMetadataComputer val) {
         valueMetadataComputer = val;
         return this;
@@ -122,7 +137,15 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
         return this;
     }
 
+    public IvwoConsolidatorBuilder<V, D, I> customize(Consumer<IvwoConsolidatorBuilder> customizer) {
+        if (customizer != null) {
+            customizer.accept(this);
+        }
+        return this;
+    }
+
     public IvwoConsolidator<V, D, I> build() {
         return new IvwoConsolidator<>(this);
     }
+
 }
