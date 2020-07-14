@@ -23,7 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.*;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
 import com.evolveum.midpoint.repo.sql.query.definition.NeverNull;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -83,7 +83,7 @@ public class RTask extends RObject implements OperationResultFull {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    @Column(nullable = true)
+    @Column
     public RThreadStopAction getThreadStopAction() {
         return threadStopAction;
     }
@@ -98,7 +98,7 @@ public class RTask extends RObject implements OperationResultFull {
     @AttributeOverrides({
             @AttributeOverride(name = "relation", column = @Column(name = "ownerRef_relation", length = RUtil.COLUMN_LENGTH_QNAME)),
             @AttributeOverride(name = "targetOid", column = @Column(name = "ownerRef_targetOid", length = RUtil.COLUMN_LENGTH_OID)),
-            @AttributeOverride(name = "type", column = @Column(name = "ownerRef_type"))
+            @AttributeOverride(name = "targetType", column = @Column(name = "ownerRef_targetType"))
     })
     public REmbeddedReference getOwnerRefTask() {
         return ownerRefTask;
@@ -111,7 +111,7 @@ public class RTask extends RObject implements OperationResultFull {
     }
 
     @Enumerated(EnumType.ORDINAL)
-    @Column(nullable = true)
+    @Column
     public RTaskBinding getBinding() {
         return binding;
     }
@@ -177,27 +177,27 @@ public class RTask extends RObject implements OperationResultFull {
         return handlerUri;
     }
 
-    @Column(nullable = true)
+    @Column
     public XMLGregorianCalendar getLastRunFinishTimestamp() {
         return lastRunFinishTimestamp;
     }
 
-    @Column(nullable = true)
+    @Column
     public XMLGregorianCalendar getCompletionTimestamp() {
         return completionTimestamp;
     }
 
-    @Column(nullable = true)
+    @Column
     public XMLGregorianCalendar getLastRunStartTimestamp() {
         return lastRunStartTimestamp;
     }
 
-    @Column(nullable = true)
+    @Column
     public String getNode() {
         return node;
     }
 
-    @Column(nullable = true)
+    @Column
     public String getTaskIdentifier() {
         return taskIdentifier;
     }

@@ -2126,6 +2126,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                     StringValue dashboardOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
                     return dashboard.getOid().equals(dashboardOid.toString());
                 }
+
+                @Override
+                public VisibleEnableBehaviour getVisibleEnable() {
+                    return new VisibleEnableBehaviour(){
+                        @Override
+                        public boolean isVisible() {
+                            return WebComponentUtil.getElementVisibility(dashboard.getVisibility());
+                        }
+                    };
+                }
             };
             item.getItems().add(menu);
         });
@@ -2776,6 +2786,10 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public <ID extends ItemDefinition> ItemWrapperFactory<?, ?, ?> findWrapperFactory(ID def) {
         return registry.findWrapperFactory(def);
+    }
+
+    public <C extends Containerable> PrismContainerWrapperFactory<C> findContainerWrapperFactory(PrismContainerDefinition<C> def) {
+        return registry.findContainerWrapperFactory(def);
     }
 
     public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {

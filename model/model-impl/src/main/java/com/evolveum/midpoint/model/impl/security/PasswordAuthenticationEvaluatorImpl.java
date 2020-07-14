@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
@@ -27,8 +28,12 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
 
     @Override
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv, PasswordAuthenticationContext authCtx) {
+        if (StringUtils.isBlank(authCtx.getUsername())) {
+            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty login provided", authCtx.getPrincipalType(), false);
+            throw new UsernameNotFoundException("web.security.provider.invalid");
+        }
         if (StringUtils.isBlank(authCtx.getPassword())) {
-            recordAuthenticationFailure(authCtx.getUsername(), connEnv, "empty password provided");
+            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
             throw new BadCredentialsException("web.security.provider.password.encoding");
         }
     }
@@ -50,7 +55,7 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
         ProtectedStringType protectedString = credential.getValue();
 
         if (protectedString == null) {
-            recordAuthenticationFailure(principal, connEnv, "no stored password value");
+            recordAuthenticationBehavior(principal.getUsername(), principal, connEnv, "no stored password value", principal.getFocus().getClass(), false);
             throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
         }
 

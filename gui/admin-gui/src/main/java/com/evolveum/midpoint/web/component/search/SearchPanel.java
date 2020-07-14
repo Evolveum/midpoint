@@ -7,6 +7,34 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.attributes.ThrottlingSettings;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.time.Duration;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -28,39 +56,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageRepositoryQuery;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
-import org.apache.wicket.ajax.attributes.ThrottlingSettings;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
-import org.apache.wicket.core.util.string.CssUtils;
-import org.apache.wicket.markup.ComponentTag;
-import org.apache.wicket.markup.MarkupStream;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.IFormSubmittingComponent;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.util.string.AppendingStringBuffer;
-import org.apache.wicket.util.time.Duration;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -117,7 +112,7 @@ public class SearchPanel extends BasePanel<Search> {
         initLayout();
     }
 
-    private void initLayout() {
+    private <S extends SearchItem, T extends Serializable> void initLayout() {
         moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
 
               private static final long serialVersionUID = 1L;
@@ -134,18 +129,18 @@ public class SearchPanel extends BasePanel<Search> {
         Form<?> form = new Form<>(ID_FORM);
         add(form);
 
-        ListView<SearchItem<?>> items = new ListView<SearchItem<?>>(ID_ITEMS,
+        ListView<S> items = new ListView<S>(ID_ITEMS,
             new PropertyModel<>(getModel(), Search.F_ITEMS)) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void populateItem(ListItem<SearchItem<?>> item) {
-                SearchItemPanel<?> searchItem = new SearchItemPanel(ID_ITEM, item.getModel()){
+            protected void populateItem(ListItem<S> item) {
+                SearchItemPanel<S, T> searchItem = new SearchItemPanel<S, T>(ID_ITEM, item.getModel()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected boolean canRemoveSearchItem(){
+                    protected boolean canRemoveSearchItem() {
                         return SearchPanel.this.getModelObject().isCanConfigure();
                     }
                 };
@@ -785,14 +780,14 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     private void searchConfigurationPerformed(AjaxRequestTarget target){
-        SearchPropertiesConfigPanel configPanel = new SearchPropertiesConfigPanel(getPageBase().getMainPopupBodyId(), getModel()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected @NotNull Class getObjectClass() {
-                return SearchPanel.this.getModelObject().getType();
-            }
-        };
-        getPageBase().showMainPopup(configPanel, target);
+//        SearchPropertiesConfigPanel configPanel = new SearchPropertiesConfigPanel(getPageBase().getMainPopupBodyId(), getModel()) {
+//            private static final long serialVersionUID = 1L;
+//
+//            @Override
+//            protected @NotNull Class getObjectClass() {
+//                return SearchPanel.this.getModelObject().getType();
+//            }
+//        };
+//        getPageBase().showMainPopup(configPanel, target);
     }
 }

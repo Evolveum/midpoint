@@ -6,13 +6,15 @@
  */
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+
 import java.io.Serializable;
 
 /**
  * @author semancik
  *
  */
-public interface Containerable extends Serializable {
+public interface Containerable extends Serializable, DebugDumpable {
 
     static <T extends Containerable> PrismContainerValue<T> asPrismContainerValue(Containerable containerable) {
         //noinspection unchecked
@@ -28,4 +30,8 @@ public interface Containerable extends Serializable {
      */
     void setupContainerValue(PrismContainerValue container);
 
+    @Override
+    default String debugDump(int indent) {
+        return asPrismContainerValue().debugDump(indent);
+    }
 }

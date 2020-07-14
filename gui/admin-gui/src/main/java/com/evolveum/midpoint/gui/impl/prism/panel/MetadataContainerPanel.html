@@ -1,0 +1,33 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+        <div class="label label-default" wicket:id="header"/>
+        <div class="container-wrapper">
+            <div class="panel panel-default" wicket:id="values">
+                <div class="panel-body" wicket:id="panel">
+                    <div wicket:id="nonContainers">
+                        <wicket:enclosure child="values">
+                            <div class="col-md-4" wicket:id="label"></div>
+                            <div class="col-md-8" wicket:id="values">
+                                <div wicket:id="value"></div>
+                            </div>
+                        </wicket:enclosure>
+                    </div>
+                    <div style="padding-left: 20px" wicket:id="containers">
+                        <div wicket:id="container"></div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+</wicket:panel>
+</html>

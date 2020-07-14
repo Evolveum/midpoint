@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -19,8 +19,7 @@ import javax.persistence.Table;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.annotations.NamedQueries;
 import org.hibernate.annotations.NamedQuery;
 import org.hibernate.annotations.*;
@@ -39,12 +38,7 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.data.factory.MetadataFactory;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbPath;
-import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualAny;
-import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -656,8 +650,8 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     static void copyObjectInformationFromJAXB(ObjectType jaxb, RObject repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult)
             throws DtoTranslationException {
-        Validate.notNull(jaxb, "JAXB object must not be null.");
-        Validate.notNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
 
         repo.setTransient(generatorResult.isGeneratedOid());
         repo.setOid(jaxb.getOid());
@@ -669,8 +663,8 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
         repo.setSubtype(RUtil.listToSet(jaxb.getSubtype()));
 
         String strVersion = jaxb.getVersion();
-        int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*") ? Integer.parseInt(jaxb
-                .getVersion()) : 0;
+        int version = StringUtils.isNotEmpty(strVersion) && strVersion.matches("[0-9]*")
+                ? Integer.parseInt(jaxb.getVersion()) : 0;
         repo.setVersion(version);
 
         repo.getParentOrgRef().addAll(RUtil.toRObjectReferenceSet(jaxb.getParentOrgRef(),

@@ -95,6 +95,7 @@ public class PolyStringNormalizerConfigurationType implements Serializable, Clon
         PolyStringNormalizerConfigurationType clone = new PolyStringNormalizerConfigurationType();
         clone.setClassName(getClassName());
         clone.setTrim(isTrim());
+        clone.setNfkd(isNfkd());
         clone.setTrimWhitespace(isTrimWhitespace());
         clone.setLowercase(isLowercase());
         return clone;

@@ -13,19 +13,38 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  *  Implementation of EquivalenceStrategy that uses a parametrization of built-in equals/hashCode/diff methods.
  *
- *  These strategies are still in progress and (most probably) will be changed before 4.0 release.
+ *  These strategies are still in progress and (most probably) will be changed.
  *
  *  The difference between REAL_VALUE and IGNORE_METADATA is to be established yet.
  *
  *  Basically, REAL_VALUE is oriented towards the effective content of the item or value.
  *  Contrary to IGNORE_METADATA it ignores element names and reference filters (if OID is present).
+ *
+ *     L = literalDomComparison
+ *     O = consideringOperationalData
+ *     I = consideringContainerIds
+ *     i = consideringDifferentContainerIds
+ *     F = consideringReferenceFilters
+ *     r = consideringReferenceOptions (resolution time, reference integrity)
+ *     E = compareElementNames
+ *     M = consideringValueMetadata
+ *
+ *     LITERAL                                  L O I i F r E M
+ *     NOT_LITERAL                              - O I i F r E M
+ *     LITERAL_IGNORE_METADATA                  L - - - F r E -
+ *     IGNORE_METADATA_CONSIDER_DIFFERENT_IDS   - - - i F r E -
+ *     IGNORE_METADATA                          - - - - F r E -
+ *     REAL_VALUE_CONSIDER_DIFFERENT_IDS        - - - i - - - -
+ *     REAL_VALUE                               - - - - - - - -
+ *
  */
-@SuppressWarnings("unused")
-public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
+@SuppressWarnings({ "unused", "DuplicatedCode" })
+public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy, Cloneable {
 
     /**
      * The (almost) highest level of recognition. Useful e.g. for comparing values for the purpose of XML editing.
@@ -33,7 +52,18 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      *
      * Corresponds to pre-4.0 flags ignoreMetadata = false, literal = true.
      */
-    public static final ParameterizedEquivalenceStrategy LITERAL;
+    static ParameterizedEquivalenceStrategy literal() {
+        ParameterizedEquivalenceStrategy literal = new ParameterizedEquivalenceStrategy();
+        literal.literalDomComparison = true;
+        literal.consideringOperationalData = true;
+        literal.consideringContainerIds = true;
+        literal.consideringDifferentContainerIds = true;
+        literal.consideringReferenceFilters = true;
+        literal.consideringReferenceOptions = true;
+        literal.compareElementNames = true;
+        literal.consideringValueMetadata = true;
+        return literal;
+    }
 
     /**
      * As LITERAL but ignores XML namespace prefixes.
@@ -43,7 +73,18 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      *
      * Roughly corresponds to pre-4.0 flags ignoreMetadata = false, literal = false.
      */
-    public static final ParameterizedEquivalenceStrategy NOT_LITERAL;
+    static ParameterizedEquivalenceStrategy notLiteral() {
+        ParameterizedEquivalenceStrategy notLiteral = new ParameterizedEquivalenceStrategy();
+        notLiteral.literalDomComparison = false;
+        notLiteral.consideringOperationalData = true;
+        notLiteral.consideringContainerIds = true;
+        notLiteral.consideringDifferentContainerIds = true;
+        notLiteral.consideringReferenceFilters = true;
+        notLiteral.consideringReferenceOptions = true;         // ok?
+        notLiteral.compareElementNames = true;
+        notLiteral.consideringValueMetadata = true;
+        return notLiteral;
+    }
 
     /**
      * Ignores metadata, typically operational items and values, container IDs, and origin information.
@@ -51,7 +92,18 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      *
      * Corresponds to pre-4.0 flags ignoreMetadata = true, literal = false.
      */
-    public static final ParameterizedEquivalenceStrategy IGNORE_METADATA;
+    static ParameterizedEquivalenceStrategy ignoreMetadata() {
+        ParameterizedEquivalenceStrategy ignoreMetadata = new ParameterizedEquivalenceStrategy();
+        ignoreMetadata.literalDomComparison = false;
+        ignoreMetadata.consideringOperationalData = false;
+        ignoreMetadata.consideringContainerIds = false;
+        ignoreMetadata.consideringDifferentContainerIds = false;
+        ignoreMetadata.consideringReferenceFilters = true;
+        ignoreMetadata.consideringReferenceOptions = true;         // ok?
+        ignoreMetadata.compareElementNames = true; //???
+        ignoreMetadata.consideringValueMetadata = false;
+        return ignoreMetadata;
+    }
 
     /**
      * Ignores metadata, typically operational items and values and origin information.
@@ -64,7 +116,18 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      * EXPERIMENTAL
      */
     @Experimental
-    public static final ParameterizedEquivalenceStrategy IGNORE_METADATA_CONSIDER_DIFFERENT_IDS;
+    static ParameterizedEquivalenceStrategy ignoreMetadataConsiderDifferentIds() {
+        ParameterizedEquivalenceStrategy ignoreMetadataConsiderDifferentIds = new ParameterizedEquivalenceStrategy();
+        ignoreMetadataConsiderDifferentIds.literalDomComparison = false;
+        ignoreMetadataConsiderDifferentIds.consideringOperationalData = false;
+        ignoreMetadataConsiderDifferentIds.consideringContainerIds = false;
+        ignoreMetadataConsiderDifferentIds.consideringDifferentContainerIds = true;
+        ignoreMetadataConsiderDifferentIds.consideringReferenceFilters = true;
+        ignoreMetadataConsiderDifferentIds.consideringReferenceOptions = true;         // ok?
+        ignoreMetadataConsiderDifferentIds.compareElementNames = true; //???
+        ignoreMetadataConsiderDifferentIds.consideringValueMetadata = false;
+        return ignoreMetadataConsiderDifferentIds;
+    }
 
     /**
      * As IGNORE_METADATA, but takes XML namespace prefixes into account.
@@ -74,8 +137,18 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      *
      * Corresponds to pre-4.0 flags ignoreMetadata = true, literal = true.
      */
-    @SuppressWarnings("WeakerAccess")
-    public static final ParameterizedEquivalenceStrategy LITERAL_IGNORE_METADATA;
+    static ParameterizedEquivalenceStrategy literalIgnoreMetadata() {
+        ParameterizedEquivalenceStrategy literalIgnoreMetadata = new ParameterizedEquivalenceStrategy();
+        literalIgnoreMetadata.literalDomComparison = true;
+        literalIgnoreMetadata.consideringOperationalData = false;
+        literalIgnoreMetadata.consideringContainerIds = false;
+        literalIgnoreMetadata.consideringDifferentContainerIds = false;
+        literalIgnoreMetadata.consideringReferenceFilters = true;
+        literalIgnoreMetadata.consideringReferenceOptions = true;
+        literalIgnoreMetadata.compareElementNames = true;
+        literalIgnoreMetadata.consideringValueMetadata = false;
+        return literalIgnoreMetadata;
+    }
 
     /**
      * Compares the real content if prism structures.
@@ -84,96 +157,51 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      * It is to be seen if operational data should be considered in this mode (they are ignored now).
      * So, currently this is the most lax way of determining equivalence.
      */
-    public static final ParameterizedEquivalenceStrategy REAL_VALUE;
+    static ParameterizedEquivalenceStrategy realValue() {
+        ParameterizedEquivalenceStrategy realValue = new ParameterizedEquivalenceStrategy();
+        realValue.literalDomComparison = false;
+        realValue.consideringOperationalData = false;
+        realValue.consideringContainerIds = false;
+        realValue.consideringDifferentContainerIds = false;
+        realValue.consideringReferenceFilters = false;
+        realValue.consideringReferenceOptions = false;
+        realValue.compareElementNames = false;
+        realValue.consideringValueMetadata = false;
+        return realValue;
+    }
 
     /**
      * As REAL_VALUE but treats values with different non-null IDs as not equivalent.
      *
      * EXPERIMENTAL
      */
-    @SuppressWarnings("WeakerAccess")
-    public static final ParameterizedEquivalenceStrategy REAL_VALUE_CONSIDER_DIFFERENT_IDS;
+    @Experimental
+    static ParameterizedEquivalenceStrategy realValueConsiderDifferentIds() {
+        ParameterizedEquivalenceStrategy realValueConsiderDifferentIds = new ParameterizedEquivalenceStrategy();
+        realValueConsiderDifferentIds.literalDomComparison = false;
+        realValueConsiderDifferentIds.consideringOperationalData = false;
+        realValueConsiderDifferentIds.consideringContainerIds = false;
+        realValueConsiderDifferentIds.consideringDifferentContainerIds = true;
+        realValueConsiderDifferentIds.consideringReferenceFilters = false;
+        realValueConsiderDifferentIds.consideringReferenceOptions = false;
+        realValueConsiderDifferentIds.compareElementNames = false;
+        realValueConsiderDifferentIds.consideringValueMetadata = false;
+        return realValueConsiderDifferentIds;
+    }
 
-    public static final ParameterizedEquivalenceStrategy DEFAULT_FOR_EQUALS;
-    public static final ParameterizedEquivalenceStrategy DEFAULT_FOR_DIFF;
-    public static final ParameterizedEquivalenceStrategy DEFAULT_FOR_DELTA_APPLICATION;
+    public static final ParameterizedEquivalenceStrategy DEFAULT_FOR_EQUALS = notLiteral();
+    public static final ParameterizedEquivalenceStrategy FOR_DELTA_ADD_APPLICATION = realValueConsiderDifferentIds();
+    public static final ParameterizedEquivalenceStrategy FOR_DELTA_DELETE_APPLICATION = realValueConsiderDifferentIds();
 
     private static final Map<String, String> NICE_NAMES = new HashMap<>();
-
     static {
-        LITERAL = new ParameterizedEquivalenceStrategy();
-        LITERAL.literalDomComparison = true;
-        LITERAL.consideringOperationalData = true;
-        LITERAL.consideringContainerIds = true;
-        LITERAL.consideringDifferentContainerIds = true;
-        LITERAL.consideringReferenceFilters = true;
-        LITERAL.consideringReferenceOptions = true;
-        LITERAL.compareElementNames = true;
-        putIntoNiceNames(LITERAL, "LITERAL");
-
-        NOT_LITERAL = new ParameterizedEquivalenceStrategy();
-        NOT_LITERAL.literalDomComparison = false;
-        NOT_LITERAL.consideringOperationalData = true;
-        NOT_LITERAL.consideringContainerIds = true;
-        NOT_LITERAL.consideringDifferentContainerIds = true;
-        NOT_LITERAL.consideringReferenceFilters = true;
-        NOT_LITERAL.consideringReferenceOptions = true;         // ok?
-        NOT_LITERAL.compareElementNames = true;
-        putIntoNiceNames(NOT_LITERAL, "NOT_LITERAL");
-
-        IGNORE_METADATA = new ParameterizedEquivalenceStrategy();
-        IGNORE_METADATA.literalDomComparison = false;
-        IGNORE_METADATA.consideringOperationalData = false;
-        IGNORE_METADATA.consideringContainerIds = false;
-        IGNORE_METADATA.consideringDifferentContainerIds = false;
-        IGNORE_METADATA.consideringReferenceFilters = true;
-        IGNORE_METADATA.consideringReferenceOptions = true;         // ok?
-        IGNORE_METADATA.compareElementNames = true; //???
-        putIntoNiceNames(IGNORE_METADATA, "IGNORE_METADATA");
-
-        IGNORE_METADATA_CONSIDER_DIFFERENT_IDS = new ParameterizedEquivalenceStrategy();
-        IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.literalDomComparison = false;
-        IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringOperationalData = false;
-        IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringContainerIds = false;
-        IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringDifferentContainerIds = true;
-        IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringReferenceFilters = true;
-        IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.consideringReferenceOptions = true;         // ok?
-        IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.compareElementNames = true; //???
-        putIntoNiceNames(IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, "IGNORE_METADATA_CONSIDER_DIFFERENT_IDS");
-
-        LITERAL_IGNORE_METADATA = new ParameterizedEquivalenceStrategy();
-        LITERAL_IGNORE_METADATA.literalDomComparison = true;
-        LITERAL_IGNORE_METADATA.consideringOperationalData = false;
-        LITERAL_IGNORE_METADATA.consideringContainerIds = false;
-        LITERAL_IGNORE_METADATA.consideringDifferentContainerIds = false;
-        LITERAL_IGNORE_METADATA.consideringReferenceFilters = true;
-        LITERAL_IGNORE_METADATA.consideringReferenceOptions = true;
-        LITERAL_IGNORE_METADATA.compareElementNames = true;
-        putIntoNiceNames(LITERAL_IGNORE_METADATA, "LITERAL_IGNORE_METADATA");
-
-        REAL_VALUE = new ParameterizedEquivalenceStrategy();
-        REAL_VALUE.literalDomComparison = false;
-        REAL_VALUE.consideringOperationalData = false;
-        REAL_VALUE.consideringContainerIds = false;
-        REAL_VALUE.consideringDifferentContainerIds = false;
-        REAL_VALUE.consideringReferenceFilters = false;
-        REAL_VALUE.consideringReferenceOptions = false;
-        REAL_VALUE.compareElementNames = false;
-        putIntoNiceNames(REAL_VALUE, "REAL_VALUE");
-
-        REAL_VALUE_CONSIDER_DIFFERENT_IDS = new ParameterizedEquivalenceStrategy();
-        REAL_VALUE_CONSIDER_DIFFERENT_IDS.literalDomComparison = false;
-        REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringOperationalData = false;
-        REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringContainerIds = false;
-        REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringDifferentContainerIds = true;
-        REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringReferenceFilters = false;
-        REAL_VALUE_CONSIDER_DIFFERENT_IDS.consideringReferenceOptions = false;
-        REAL_VALUE_CONSIDER_DIFFERENT_IDS.compareElementNames = false;
-        putIntoNiceNames(REAL_VALUE_CONSIDER_DIFFERENT_IDS, "REAL_VALUE_CONSIDER_DIFFERENT_IDS");
-
-        DEFAULT_FOR_EQUALS = NOT_LITERAL;
-        DEFAULT_FOR_DIFF = IGNORE_METADATA_CONSIDER_DIFFERENT_IDS;
-        DEFAULT_FOR_DELTA_APPLICATION = IGNORE_METADATA_CONSIDER_DIFFERENT_IDS;
+        putIntoNiceNames(literal(), "LITERAL");
+        putIntoNiceNames(notLiteral(), "NOT_LITERAL");
+        putIntoNiceNames(ignoreMetadata(), "IGNORE_METADATA");
+        putIntoNiceNames(ignoreMetadataConsiderDifferentIds(), "IGNORE_METADATA_CONSIDER_DIFFERENT_IDS");
+        putIntoNiceNames(literalIgnoreMetadata(), "LITERAL_IGNORE_METADATA");
+        putIntoNiceNames(realValue(), "REAL_VALUE");
+        putIntoNiceNames(realValueConsiderDifferentIds(), "REAL_VALUE_CONSIDER_DIFFERENT_IDS");
     }
 
     private static void putIntoNiceNames(ParameterizedEquivalenceStrategy strategy, String name) {
@@ -203,6 +231,13 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
      */
     private boolean hashRuntimeSchemaItems;                 // R
 
+    private boolean consideringValueMetadata;                   // M
+
+    public static ParameterizedEquivalenceStrategy getLiteral() {
+        return LITERAL;
+    }
+
+
     public String getDescription() {
         return (literalDomComparison ? "L" : "-") +
                 (consideringOperationalData ? "O" : "-") +
@@ -211,7 +246,8 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
                 (consideringReferenceFilters ? "F" : "-") +
                 (consideringReferenceOptions ? "r" : "-") +
                 (compareElementNames ? "E" : "-") +
-                (hashRuntimeSchemaItems ? "R" : "-");
+                (hashRuntimeSchemaItems ? "R" : "-") +
+                (consideringValueMetadata ? "M" : "-");
     }
 
     @Override
@@ -303,10 +339,62 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy {
         this.hashRuntimeSchemaItems = hashRuntimeSchemaItems;
     }
 
+    public boolean isConsideringValueMetadata() {
+        return consideringValueMetadata;
+    }
+
+    public void setConsideringValueMetadata(boolean consideringValueMetadata) {
+        this.consideringValueMetadata = consideringValueMetadata;
+    }
+
     @Override
     public String toString() {
         String desc = getDescription();
         String niceName = NICE_NAMES.get(desc);
         return niceName != null ? niceName + " (" + desc + ")" : "(" + desc + ")";
+    }
+
+    public ParameterizedEquivalenceStrategy clone() {
+        try {
+            return (ParameterizedEquivalenceStrategy) super.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    public ParameterizedEquivalenceStrategy exceptForValueMetadata() {
+        if (consideringValueMetadata) {
+            ParameterizedEquivalenceStrategy clone = clone();
+            clone.consideringValueMetadata = false;
+            return clone;
+        } else {
+            return this;
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof ParameterizedEquivalenceStrategy))
+            return false;
+        ParameterizedEquivalenceStrategy that = (ParameterizedEquivalenceStrategy) o;
+        return literalDomComparison == that.literalDomComparison &&
+                consideringOperationalData == that.consideringOperationalData &&
+                consideringContainerIds == that.consideringContainerIds &&
+                consideringDifferentContainerIds == that.consideringDifferentContainerIds &&
+                consideringReferenceFilters == that.consideringReferenceFilters &&
+                consideringReferenceOptions == that.consideringReferenceOptions &&
+                compareElementNames == that.compareElementNames &&
+                hashRuntimeSchemaItems == that.hashRuntimeSchemaItems &&
+                consideringValueMetadata == that.consideringValueMetadata;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects
+                .hash(literalDomComparison, consideringOperationalData, consideringContainerIds, consideringDifferentContainerIds,
+                        consideringReferenceFilters, consideringReferenceOptions, compareElementNames, hashRuntimeSchemaItems,
+                        consideringValueMetadata);
     }
 }

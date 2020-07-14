@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.prism;
 
-import org.testng.annotations.Test;
-
 public class TestPrismParsingJson extends TestPrismParsing {
 
     @Override
@@ -18,10 +16,6 @@ public class TestPrismParsingJson extends TestPrismParsing {
     @Override
     protected String getFilenameSuffix() {
         return "json";
-    }
-
-    @Test
-    public void f() {
     }
 
     @Override

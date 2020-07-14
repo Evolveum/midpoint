@@ -41,9 +41,8 @@ public class ClusterManager {
     private static final String CLASS_DOT = ClusterManager.class.getName() + ".";
     private static final String CHECK_SYSTEM_CONFIGURATION_CHANGED = CLASS_DOT + "checkSystemConfigurationChanged";
 
-    private TaskManagerQuartzImpl taskManager;
-
-    private NodeRegistrar nodeRegistrar;
+    private final TaskManagerQuartzImpl taskManager;
+    private final NodeRegistrar nodeRegistrar;
 
     private ClusterManagerThread clusterManagerThread;
 
@@ -115,6 +114,14 @@ public class ClusterManager {
     public void registerNodeUp(OperationResult result) {
         LOGGER.info("Registering the node as started");
         nodeRegistrar.registerNodeUp(result);
+    }
+
+    public void postConstruct() {
+        nodeRegistrar.postConstruct();
+    }
+
+    public void preDestroy() {
+        nodeRegistrar.preDestroy();
     }
 
     class ClusterManagerThread extends Thread {

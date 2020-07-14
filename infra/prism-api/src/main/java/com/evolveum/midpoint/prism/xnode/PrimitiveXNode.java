@@ -16,7 +16,7 @@ import javax.xml.namespace.QName;
 /**
  *
  */
-public interface PrimitiveXNode<T> extends XNode {
+public interface PrimitiveXNode<T> extends XNode, MetadataAware {
 
     String getGuessedFormattedValue() throws SchemaException;
 

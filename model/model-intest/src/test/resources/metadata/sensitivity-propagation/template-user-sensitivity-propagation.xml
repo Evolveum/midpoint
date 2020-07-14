@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="60b83ded-57ea-4987-9d88-af13d2862649"
+                xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>Template for users in 'sensitivity propagation' scenario</name>
+
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>extension/impairmentCategory</path>
+        </source>
+        <expression>
+            <assignmentTargetSearch>
+                <targetType>OrgType</targetType>
+                <oid>29963fc9-f494-4911-af3c-9e73fd64617f</oid> <!-- Special Medical Services -->
+                <assignmentProperties>
+                    <subtype>medical-services</subtype>
+                </assignmentProperties>
+            </assignmentTargetSearch>
+        </expression>
+        <condition>
+            <script>
+                <code>
+                    impairmentCategory >= 'B'
+                </code>
+            </script>
+        </condition>
+        <target>
+            <path>assignment</path>
+            <set>
+                <condition>
+                    <script>
+                        <code>assignment.subtype.contains('medical-services')</code>
+                    </script>
+                </condition>
+            </set>
+        </target>
+    </mapping>
+
+    <meta>
+        <item>
+            <ref>extension/sensitivity</ref>
+            <mapping>
+                <source>
+                    <path>extension/sensitivity</path>
+                </source>
+            </mapping>
+        </item>
+    </meta>
+</objectTemplate>

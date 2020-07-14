@@ -33,6 +33,7 @@
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-policy-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-case-management-3" />
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-security-3" />
+    <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-metadata-3" />
 
     <!-- ################################## -->
     <!-- ##      Common Schema Layer     ## -->
@@ -83,9 +84,6 @@
                     white space may be skipped, multiple spaces can be collapsed to one and so on.
                 </p>
             </xsd:documentation>
-            <xsd:appinfo>
-                <a:since>4.1</a:since>
-            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -109,6 +107,9 @@
                     non-blank line of text is also skipped.
                 </p>
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.1</a:since>
+            </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
 
@@ -867,6 +868,7 @@
                         <a:displayName>MetadataType.requestTimestamp</a:displayName>
                         <a:operational>true</a:operational>
                         <a:since>3.5</a:since>
+                        <a:valueMetadata />
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -879,6 +881,7 @@
                         <a:displayName>MetadataType.requestorRef</a:displayName>
                         <a:operational>true</a:operational>
                         <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                        <a:valueMetadata />
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -2105,7 +2108,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="tns:ObjectType">
+            <xsd:extension base="tns:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="nodeIdentifier" type="xsd:string">
                         <xsd:annotation>
@@ -4345,7 +4348,7 @@
                                 </p>
                                 <p>
                                 Assignments represent what the object SHOULD HAVE. The assignments represent a policy,
-                                a desired state of things (cf. linkRef).
+                                a desired state of things (cf. linkRef, roleMembershipRef).
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -4426,6 +4429,11 @@
                                   This is an operational property. It is set and managed by the system. It is used
                                   for efficient search of all current role members, e.g. for the purpose of displaying this
                                   information in the GUI.
+                                </p>
+                                <p>
+                                    Note: roleMembershipRef will be probably renamed to something like linkRef or
+                                    outboundLinkRef. We need to generalize it to contain information on generic links
+                                    between objects (e.g. between child and its parents).
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -4525,6 +4533,11 @@
                                 <p>
                                 Links define what the object HAS. The links reflect real state of things
                                 (cf. assignment).
+                                </p>
+                                <p>
+                                    Note: linkRef will be probably renamed to projectionRef or projectionLinkRef.
+                                    There are more kinds of links between objects than focus - projection links
+                                    (cf. roleMembershipRef).
                                 </p>
                             </xsd:documentation>
                             <xsd:appinfo>
@@ -6934,6 +6947,19 @@
                     </xsd:appinfo>
                 </xsd:annotation>
              </xsd:element>
+            <xsd:element name="originRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            TODO
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                        <!--<a:objectReferenceTargetType>tns:AbstractRoleRef</a:objectReferenceTargetType>-->
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -7925,8 +7951,81 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="persistence" type="tns:PersistenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Whether values of this item should be persisted.
+                        Currently implemented for metadata only.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>ItemRefinedDefinitionType.persistence</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+
+    <xsd:simpleType name="PersistenceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Whether or how data should be persisted.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="persistent">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Data are stored in the repository.
+                        (In full object and/or in indices.)
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PERSISTENT"/>
+                    </xsd:appinfo>
+                    <!--
+                     It is questionable whether we want to specify storage method in details here
+                     or we should use other properties for that. Currently the storage method
+                     is represented by:
+                     - ResourceItemDefinitionType.storageStrategy (normal / indexOnly) - only for attributes
+                     - "indexed" annotation - only in schema
+
+                     Overall, any item stored in the repository can be stored using one of the following three methods:
+                     1. in XML and "index tables"
+                     2. in XML but not in the index tables
+                     3. in index tables but not in XML
+
+                     I think it's preferrable to specify exact storage method separately from the fact that given
+                     item should or should not be stored persistently.
+                    -->
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="transient">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Data are not stored in the repository but provided to the client
+                        (e.g. when invoking preview changes).
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="TRANSIENT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="internal">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Data are held only during computation. They are not provided to the client.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="INTERNAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:complexType name="ResourceItemDefinitionType">
         <xsd:annotation>
@@ -8284,11 +8383,22 @@
             <xsd:enumeration value="auto">
                 <xsd:annotation>
                     <xsd:documentation>
-                        All usual processing of the item is applied. Or automated presentation,
-                        transformation or any other processing will take place.
+                        All usual processing of the item is applied.
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="AUTO"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="full">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Full processing of the item is applied. For GUI this means that
+                        automated presentation takes place. For metadata the meaning is that
+                        built-in mappings are applied.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="FULL"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -9569,8 +9679,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-
-    <xsd:complexType name="MappingType">
+    <xsd:complexType name="AbstractMappingType">
         <xsd:annotation>
             <xsd:documentation>
                 Defines how a value of a property (or attribute) should be
@@ -9782,6 +9891,36 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MappingType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specialization of abstract mapping for regular data mappings.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:displayName>MappingType.details</a:displayName>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractMappingType">
+                <xsd:sequence>
+                    <xsd:element name="metadataMapping" type="tns:MetadataMappingType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Explicit definition of metadata mappings. Should be used only when really needed:
+                                Metadata item definition is the preferred way how to express metadata handling.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="mapping" type="tns:MappingType"/>
 
@@ -14616,18 +14755,29 @@
                                 <p>
                                     Generic mapping that defines how object properties should be constructed.
                                 </p><p>
-                                    There is a major overlap of this mechanism with the "item" element of
-                                    object template. However, the overlap is not complete. The "item" functionality
-                                    can influence the presentation of the items, interpretation of schema and so on.
-                                    At the other hand this "mapping" mechanism can provide mappings that are not bound
-                                    to any specific target item. This can be useful for a variety of "validation" mappings
-                                    and other special-purpose configurations. Therfore both elements are needed.
-                                </p><p>
-                                    However, it is STRONGLY RECOMMENDED to use the "item" mechanism whenever possible.
-                                    This "mapping" mechanism should be used only in situation when no other mechanism
-                                    would do the job.
-                                </p>
+                                There is a major overlap of this mechanism with the "item" element of
+                                object template. However, the overlap is not complete. The "item" functionality
+                                can influence the presentation of the items, interpretation of schema and so on.
+                                At the other hand this "mapping" mechanism can provide mappings that are not bound
+                                to any specific target item. This can be useful for a variety of "validation" mappings
+                                and other special-purpose configurations. Therefore both elements are needed.
+                            </p><p>
+                                However, it is STRONGLY RECOMMENDED to use the "item" mechanism whenever possible.
+                                This "mapping" mechanism should be used only in situation when no other mechanism
+                                would do the job.
+                            </p>
                             </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="meta" type="tns:MetadataHandlingType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of handling of a metadata items.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
@@ -14656,20 +14806,20 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ItemRefinedDefinitionType">
                 <xsd:sequence>
-                <xsd:element name="mapping" type="tns:ObjectTemplateMappingType" minOccurs="0" maxOccurs="unbounded">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Defines how any of the object property value should
-                            be constructed. It can contain fixed value or
-                            an expression.
+                    <xsd:element name="mapping" type="tns:ObjectTemplateMappingType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Defines how any of the object property value should
+                                be constructed. It can contain fixed value or
+                                an expression.
 
-                            In case an expression is used following variables should be set:
-                            $user - The user object being created.
-                            $account - (optional) the account from which was the user created (if present)
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:element>
-            </xsd:sequence>
+                                In case an expression is used following variables should be set:
+                                $user - The user object being created.
+                                $account - (optional) the account from which was the user created (if present)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
           </xsd:extension>
        </xsd:complexContent>
     </xsd:complexType>
@@ -16432,14 +16582,11 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
-
-
 
     <xsd:complexType name="FullTextSearchConfigurationType">
         <xsd:annotation>
@@ -23409,6 +23556,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <!-- TODO: rename to fileFormat -->
                     <xsd:element name="export" type="tns:ExportConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -23492,6 +23640,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <!-- TODO: Rename to FileFormatConfigurationType -->
     <xsd:complexType name="ExportConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -23538,6 +23687,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <!-- TODO: rename to FileFormatTypeType -->
     <xsd:simpleType name="ExportType">
         <xsd:annotation>
             <xsd:documentation>
@@ -24047,6 +24197,20 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="showOnlyWidgetsTable" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Some export types show tables of objects from widgets.
+                                    These tables don't show if this element is true.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:displayName>DashboardReportEngineConfigurationType.showOnlyWidgetsTable</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <!-- TODO: other elements to configure the report -->
                 </xsd:sequence>
             </xsd:extension>
@@ -24119,6 +24283,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <!-- TODO: rename to ReportDataType -->
     <xsd:complexType name="ReportOutputType">
         <xsd:annotation>
             <xsd:documentation>
@@ -24129,7 +24294,9 @@
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="filePath" type="xsd:string"/>
-                    <xsd:element name="exportType" type="tns:ExportType"/>
+                    <xsd:element name="exportType" type="tns:ExportType">
+                        <!-- TODO: rename to fileFormat -->
+                    </xsd:element>
                     <xsd:element name="reportRef" type="c:ObjectReferenceType">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -24844,6 +25011,17 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="filter" type="q:SearchFilterType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Filter defines a custom filter which can be included during search execution
+                            (e.g. on the object list page).
+                            Also in the future can be used to predefine the value of the searchable item if path is defined.
+                        </p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="description" type="xsd:string" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -25025,6 +25203,11 @@
                        </xsd:annotation>
                    </xsd:element>
                    <xsd:element ref="tns:documentation" minOccurs="0" maxOccurs="1"/>
+                   <!--
+                        TODO: we may need to add <type> here.
+                        E.g. if we want to specify that the CSV field that looks like string is in fact boolean.
+                        This can be also used by GUI, e.g. rendering checkbox instead of text input field.
+                        -->
                    <xsd:element name="path" type="t:ItemPathType" minOccurs="0">
                        <xsd:annotation>
                            <xsd:documentation>
@@ -25081,6 +25264,7 @@
                        </xsd:annotation>
                    </xsd:element>
                    <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                       <!-- TODO: change to import/expression and export/expression -->
                        <xsd:annotation>
                            <xsd:documentation>
                                <p>
@@ -26249,10 +26433,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 <p>
-                    TODO
-                </p>
-                <p>
-                    TODO
+                    Configuration Dasboard dashboard showing in GUI.
                 </p>
             </xsd:documentation>
             <xsd:appinfo>
@@ -26267,6 +26448,19 @@
                     </xsd:element>
                     <!-- TODO: layout -->
                     <xsd:element name="widget" type="tns:DashboardWidgetType" minOccurs="0" maxOccurs="unbounded">
+                    </xsd:element>
+                    <xsd:element name="visibility" type="tns:UserInterfaceElementVisibilityType"
+                                 minOccurs="0" maxOccurs="1" default="automatic">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Defines, whether this dashboard will be visible or it will be hidden.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>DashboardType.visibility</a:displayName>
+                            </xsd:appinfo>
+                        </xsd:annotation>
                     </xsd:element>
                 </xsd:sequence>
             </xsd:extension>

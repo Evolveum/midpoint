@@ -12,7 +12,9 @@ import java.util.Map.Entry;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.AbstractFreezable;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Transformer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -36,7 +38,7 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
     public static final QName KEY_REFERENCE_TARGET_NAME = new QName(null, "targetName");
     public static final QName KEY_REFERENCE_OBJECT = new QName(null, "object");
 
-    public static final QName DUMMY_NAME = new QName(null, "dummy");
+    private static final QName DUMMY_NAME = new QName(null, "dummy");
 
     // Common fields
     protected XNodeImpl parent;         // currently unused
@@ -62,6 +64,11 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
 
     // a comment that could be stored into formats that support these (e.g. XML or YAML)
     private String comment;
+
+    /**
+     * Custom data to be used during parsing process. TODO reconsider
+     */
+    private transient Object parserData;
 
     public XNodeImpl getParent() {
         return parent;
@@ -227,4 +234,26 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
         return this instanceof MapXNodeImpl && ((MapXNodeImpl) this).size() == 1;
     }
 
+    public Object getParserData() {
+        return parserData;
+    }
+
+    public void setParserData(Object parserData) {
+        this.parserData = parserData;
+    }
+
+    void appendMetadata(StringBuilder sb, int indent, MapXNode metadata) {
+        if (metadata != null) {
+            sb.append("\n");
+            DebugUtil.debugDumpWithLabel(sb, "metadata", metadata, indent);
+        }
+    }
+
+    boolean metadataEquals(MapXNode metadata1, MapXNode metadata2) {
+        if (metadata1 == null) {
+            return metadata2 == null;
+        } else {
+            return metadata1.equals(metadata2);
+        }
+    }
 }

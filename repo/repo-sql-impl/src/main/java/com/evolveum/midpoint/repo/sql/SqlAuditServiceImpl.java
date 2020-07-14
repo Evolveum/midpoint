@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,12 +17,7 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.dialect.Dialect;
@@ -30,6 +25,7 @@ import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -41,6 +37,8 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
 import com.evolveum.midpoint.repo.sql.data.BatchSqlQuery;
 import com.evolveum.midpoint.repo.sql.data.SelectQueryBuilder;
@@ -49,11 +47,16 @@ import com.evolveum.midpoint.repo.sql.data.audit.*;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
+import com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -62,8 +65,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -79,6 +84,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     @Autowired
     private BaseHelper baseHelper;
+
+    @Autowired
+    private SqlQueryExecutor sqlQueryExecutor;
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
@@ -96,8 +104,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     @Override
     public void audit(AuditEventRecord record, Task task) {
-        Validate.notNull(record, "Audit event record must not be null.");
-        Validate.notNull(task, "Task must not be null.");
+        Objects.requireNonNull(record, "Audit event record must not be null.");
+        Objects.requireNonNull(task, "Task must not be null.");
 
         final String operation = "audit";
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
@@ -183,6 +191,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     }
 
+    // Hibernate-based
     @Override
     public void reindexEntry(AuditEventRecord record) {
         final String operation = "reindexEntry";
@@ -203,6 +212,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     private void reindexEntryAttempt(AuditEventRecord record) {
         Session session = baseHelper.beginTransaction();
         try {
@@ -228,6 +238,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     }
 
+    // Hibernate-based
     private void listRecordsIterativeAttempt(String query, Map<String, Object> params,
             AuditResultHandler handler, OperationResult result) {
 
@@ -349,15 +360,16 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                             // TODO what if original name (in audit log) differs from the current one (in repo) ?
                             audit.setInitiator(resolve(session, resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
-                                    defaultIfNull(RObjectType.values()[resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)], RObjectType.FOCUS)));
+                                    // TODO: when JDK-8 is gone use Objects.requireNonNullElse
+                                    defaultIfNull(RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)), RObjectType.FOCUS)));
                             audit.setAttorney(resolve(session, resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.FOCUS));
                             audit.setTarget(resolve(session, resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.TARGET_NAME_COLUMN_NAME),
-                                    RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME)]), getPrismContext());
+                                    RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME))), getPrismContext());
                             audit.setTargetOwner(resolve(session, resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
-                                    RObjectType.values()[resultList.getInt(RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME)]));
+                                    RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME))));
                         } catch (SchemaException ex) {
                             baseHelper.handleGeneralCheckedException(ex, session, null);
                         }
@@ -400,6 +412,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         queryBuilder.addParameters(params);
     }
 
+    // Hibernate-based
     // using generic parameter to avoid typing warnings
     private <X extends ObjectType> PrismObject<X> resolve(Session session, String oid, String defaultName, RObjectType defaultType) throws SchemaException {
         if (oid == null) {
@@ -426,6 +439,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         return result;
     }
 
+    // Hibernate-based
     private void auditAttempt(AuditEventRecord record) {
         Session session = baseHelper.beginTransaction();
         try {
@@ -529,10 +543,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
-        Validate.notNull(policy, "Cleanup policy must not be null.");
-        Validate.notNull(parentResult, "Operation result must not be null.");
+        Objects.requireNonNull(policy, "Cleanup policy must not be null.");
+        Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         // TODO review monitoring performance of these cleanup operations
         //  It looks like the attempts (and wasted time) are not counted correctly
@@ -540,6 +555,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         cleanupAuditMaxAge(policy, parentResult);
     }
 
+    // Hibernate-based
     private void cleanupAuditMaxAge(CleanupPolicyType policy, OperationResult parentResult) {
 
         if (policy.getMaxAge() == null) {
@@ -597,6 +613,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     private void cleanupAuditMaxRecords(CleanupPolicyType policy, OperationResult parentResult) {
 
         if (policy.getMaxRecords() == null) {
@@ -649,6 +666,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     private void checkTemporaryTablesSupport(Dialect dialect) {
         TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
 
@@ -660,6 +678,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     // deletes one batch of records (using recordsSelector to select records according to particular cleanup policy)
     private int batchDeletionAttempt(BiFunction<Session, String, Integer> recordsSelector, Holder<Integer> totalCountHolder,
             long batchStart, Dialect dialect, OperationResult subResult) {
@@ -715,6 +734,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    // Hibernate-based
     private int selectRecordsByMaxAge(Session session, String tempTable, Date minValue, Dialect dialect) {
 
         // fill temporary table, we don't need to join task on object on
@@ -744,6 +764,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         return query.executeUpdate();
     }
 
+    // Hibernate-based
     private int selectRecordsByNumberToKeep(Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
         CriteriaBuilder cb = session.getCriteriaBuilder();
         CriteriaQuery cq = cb.createQuery(RAuditEventRecord.class);
@@ -780,6 +801,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     /**
      * This method creates temporary table for cleanup audit method.
      */
+    // Hibernate-based
     private void createTemporaryTable(Session session, final Dialect dialect, final String tempTable) {
         session.doWork(connection -> {
             // check if table exists
@@ -884,5 +906,29 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @Override
     public void applyAuditConfiguration(SystemConfigurationAuditType configuration) {
         this.auditConfiguration = CloneUtil.clone(configuration);
+    }
+
+    @Override
+    public long countObjects(ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+        // TODO MID-6319
+        return 0;
+    }
+
+    @Override
+    @NotNull
+    public SearchResultList<AuditEventRecordType> searchObjects(
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult parentResult) {
+        // TODO MID-6319
+        // support for options, skipped for now
+        // do something with the OperationResult... skipped for now
+        try {
+            return sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
+        } catch (QueryException e) {
+            // TODO
+            throw new RuntimeException(e);
+        }
     }
 }

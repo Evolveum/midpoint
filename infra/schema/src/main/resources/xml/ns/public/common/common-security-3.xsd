@@ -236,7 +236,6 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <!-- TODO: Security questions validation policy: how many questions to present, how many need to be answered successfuly, randomize order, etc. -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -302,7 +301,16 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractPasswordAuthenticationModuleType">
                 <xsd:sequence>
-                    <!-- Nothing to add now. Maybe later. -->
+                    <xsd:element name="realm" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Realm which Midpoint use for WWW-Authentication header
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1093,7 +1101,16 @@
         <xsd:complexContent>
             <xsd:extension base="tns:AbstractSecurityQuestionsAuthenticationModuleType">
                 <xsd:sequence>
-                    <!-- Nothing to add now. Maybe later. -->
+                    <xsd:element name="realm" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Realm which Midpoint use for WWW-Authentication header
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1151,6 +1168,17 @@
                         have active assignment with this target (and relation). If the sequence is attempted on a user
                         that does not have this assignment then the authentication will fail.
                     </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="nodeGroup" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Required node group. This authentication sequence is applicable only to node group that
+                        have active assignment with this archetype.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <!-- later: prohibitAssignmentTarget -->

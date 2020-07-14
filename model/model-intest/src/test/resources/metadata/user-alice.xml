@@ -1,0 +1,201 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+      xmlns:m="http://midpoint.evolveum.com/xml/ns/public/common/extension-metadata-3"
+      oid="9fc389be-5b47-4e9d-90b5-33fffd87b3ca">
+    <_metadata>
+        <process>
+            <requestTimestamp>2020-03-20T15:11:40.936+01:00</requestTimestamp>
+        </process>
+    </_metadata>
+    <name>
+        <_value>alice</_value>
+        <_metadata>
+            <transformation>
+                <source>
+                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
+                    <name>Dummy Resource</name>
+                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
+                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
+                    <storage>name</storage>
+                </source>
+            </transformation>
+            <c:extension>
+                <m:assurance>
+                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
+                </m:assurance>
+            </c:extension>
+        </_metadata>
+    </name>
+    <assignment id="111">
+        <_metadata>
+            <c:extension>
+                <m:assurance>
+                    <m:levelOfAssurance>http://example.com/identity/loa#none</m:levelOfAssurance>
+                </m:assurance>
+            </c:extension>
+            <transformation>
+                <source>
+                    <kind>http://midpoint.evolveum.com/data-provenance/source#userAction</kind>
+                    <name>willTurner</name>
+                    <objectRef oid="c0c010c0-d34d-b33f-f00d-111111145118" type="UserType" /> <!-- willTurner -->
+                </source>
+            </transformation>
+        </_metadata>
+        <subtype>experimental</subtype>
+        <subtype>
+            <_value>manual</_value>
+            <_metadata>
+                <transformation>
+                    <source>
+                        <kind>http://midpoint.evolveum.com/data-provenance/source#userAction</kind>
+                        <name>willTurner</name>
+                        <objectRef oid="c0c010c0-d34d-b33f-f00d-111111145118" type="UserType" /> <!-- willTurner -->
+                    </source>
+                </transformation>
+            </_metadata>
+        </subtype>
+        <targetRef oid="12345678-d34d-b33f-f00d-555555556666" type="RoleType"/> <!-- pirate -->
+        <activation>
+            <administrativeStatus>
+                <_value>disabled</_value>
+                <_metadata>
+                    <process>
+                        <requestorRef oid="c0c010c0-d34d-b33f-f00d-111111145118" type="UserType" /> <!-- willTurner -->
+                        <requestorComment>Wait a moment, Alice!</requestorComment>
+                    </process>
+                </_metadata>
+            </administrativeStatus>
+        </activation>
+    </assignment>
+    <assignment id="222">
+        <subtype>autocratic</subtype>
+        <targetRef oid="12345678-d34d-b33f-f00d-55555555cccc" type="RoleType"/> <!-- captain -->
+        <activation>
+            <administrativeStatus>disabled</administrativeStatus>
+        </activation>
+    </assignment>
+    <givenName>
+        <_value>Alice</_value>
+        <_metadata>
+            <transformation>
+                <source>
+                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
+                    <name>Dummy Resource</name>
+                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
+                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
+                    <storage>givenName</storage>
+                </source>
+            </transformation>
+            <c:extension>
+                <m:assurance>
+                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
+                </m:assurance>
+            </c:extension>
+        </_metadata>
+    </givenName>
+    <familyName>
+        <_value>Green</_value>
+        <_metadata>
+            <transformation>
+                <source>
+                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
+                    <name>Dummy Resource</name>
+                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
+                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
+                    <storage>familyName</storage>
+                </source>
+            </transformation>
+            <c:extension>
+                <m:assurance>
+                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
+                </m:assurance>
+            </c:extension>
+        </_metadata>
+    </familyName>
+    <honorificSuffix>
+        <_value>Ph.D.</_value>
+        <_metadata>
+            <transformation>
+                <source>
+                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
+                    <name>Dummy Resource</name>
+                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
+                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
+                    <storage>honorificSuffix</storage>
+                </source>
+            </transformation>
+            <c:extension>
+                <m:assurance>
+                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
+                </m:assurance>
+            </c:extension>
+        </_metadata>
+    </honorificSuffix>
+    <fullName>
+        <_value>Alice Green, Ph.D.</_value>
+        <_metadata>
+            <transformation>
+                <source>
+                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
+                    <name>Dummy Resource</name>
+                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
+                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
+                    <storage>givenName</storage>
+                </source>
+                <source>
+                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
+                    <name>Dummy Resource</name>
+                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
+                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
+                    <storage>familyName</storage>
+                </source>
+                <source>
+                    <kind>http://midpoint.evolveum.com/data-provenance/source#resource</kind>
+                    <name>Dummy Resource</name>
+                    <objectRef oid="10000000-0000-0000-0000-000000000004" type="ResourceType" />
+                    <!--<specificInformation>alice</specificInformation> &lt;!&ndash; account name &ndash;&gt;-->
+                    <storage>honorificSuffix</storage>
+                </source>
+                <transformer>
+                    <kind>http://midpoint.evolveum.com/data-provenance/transformer#mapping</kind>
+                    <name>mapping-fullname</name>
+                    <objectRef oid="10000000-0000-0000-0000-000000000002" type="ObjectTemplateType" /> <!-- Default User Template -->
+                </transformer>
+            </transformation>
+            <c:extension>
+                <m:assurance>
+                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
+                </m:assurance>
+            </c:extension>
+        </_metadata>
+    </fullName>
+    <organizationalUnit>Operations</organizationalUnit>
+    <organizationalUnit>
+        <_value>Development</_value>
+        <_metadata>
+            <transformation>
+                <source>
+                    <kind>http://midpoint.evolveum.com/data-provenance/source#userAction</kind>
+                    <name>jack</name>
+                    <objectRef oid="c0c010c0-d34d-b33f-f00d-111111111111" type="UserType" /> <!-- jack -->
+                    <storage>organizationalUnit</storage>
+                </source>
+            </transformation>
+            <c:extension>
+                <m:assurance>
+                    <m:levelOfAssurance>http://example.com/identity/loa#absolute</m:levelOfAssurance>
+                </m:assurance>
+            </c:extension>
+        </_metadata>
+    </organizationalUnit>
+</user>

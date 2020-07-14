@@ -1,0 +1,18 @@
+model data {
+    namespace "https://example.org/data";
+
+    import "https://example.org/schema" {
+        prefix schema;
+    }
+
+    type Value {
+        item type {
+            type schema:TypeDefinition;
+        }
+
+        item value {
+            type Value;
+        }
+    }
+
+}

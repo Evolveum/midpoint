@@ -72,12 +72,12 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return object.asObjectable();
     }
 
-    public static <O extends ObjectType> PrismObjectAsserter<O,Void> forObject(PrismObject<O> shadow) {
-        return new PrismObjectAsserter<>(shadow);
+    public static <O extends ObjectType> PrismObjectAsserter<O,Void> forObject(PrismObject<O> object) {
+        return new PrismObjectAsserter<>(object);
     }
 
-    public static <O extends ObjectType> PrismObjectAsserter<O,Void> forObject(PrismObject<O> shadow, String details) {
-        return new PrismObjectAsserter<>(shadow, details);
+    public static <O extends ObjectType> PrismObjectAsserter<O,Void> forObject(PrismObject<O> object, String details) {
+        return new PrismObjectAsserter<>(object, details);
     }
 
     public PrismObjectAsserter<O,RA> assertOid() {
@@ -345,6 +345,28 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         ExtensionAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> asserter = new ExtensionAsserter<>(this, getDetails());
         copySetupTo(asserter);
         return asserter;
+    }
+
+    public ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>> valueMetadata(ItemPath path) throws SchemaException {
+        PrismContainerValue<ValueMetadataType> valueMetadata = getValueMetadata(path);
+        ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>> asserter =
+                new ValueMetadataAsserter<>(valueMetadata, this, String.valueOf(path)); // TODO details
+        copySetupTo(asserter);
+        return asserter;
+    }
+
+    private PrismContainerValue<ValueMetadataType> getValueMetadata(ItemPath path) throws SchemaException {
+        Item<?, ?> item = getObject().findItem(path);
+        if (item == null) {
+            throw new AssertionError("Item '" + path + "' not found in " + getObject());
+        }
+        if (item.size() == 1) {
+            //noinspection unchecked
+            return (PrismContainerValue<ValueMetadataType>) (PrismContainerValue<?>) item.getValue().getValueMetadata();
+        } else {
+            throw new AssertionError("Item '" + path + "' has not a single value in " + getObject() +
+                    ": " + item.size() + " values: " + item);
+        }
     }
 
     public TriggersAsserter<O, ? extends PrismObjectAsserter<O,RA>, RA> triggers() {

@@ -125,8 +125,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired private PrismContext prismContext;
     @Autowired private ProvisioningService provisioning;
     @Autowired private ModelObjectResolver objectResolver;
-    @Autowired private transient ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
-    @Autowired private transient ObjectImporter objectImporter;
+    @Autowired private ImportAccountsFromResourceTaskHandler importAccountsFromResourceTaskHandler;
+    @Autowired private ObjectImporter objectImporter;
     @Autowired private HookRegistry hookRegistry;
     @Autowired private TaskManager taskManager;
     @Autowired private ScriptingExpressionEvaluator scriptingExpressionEvaluator;
@@ -144,7 +144,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     @Autowired private ChangeNotificationDispatcher dispatcher;
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
+    private RepositoryService cacheRepositoryService;
 
     @Autowired(required = false)                        // not required in all circumstances
     private WorkflowManager workflowManager;
@@ -610,8 +610,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             auditRecord.setTimestamp(System.currentTimeMillis());
             auditRecord.setOutcome(result.getStatus());
             auditRecord.setEventStage(AuditEventStage.EXECUTION);
-            auditRecord.getDeltas().clear();
-            auditRecord.getDeltas().addAll(executedDeltas);
+            auditRecord.clearDeltas();
+            auditRecord.addDeltas(executedDeltas);
             auditHelper.audit(auditRecord, null, task, result);
 
             task.markObjectActionExecutedBoundary();
@@ -1962,7 +1962,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             delta = prismContext.deltaFactory().object().createEmptyModifyDelta(TaskType.class, taskRef.getOid());
         }
         ObjectDeltaOperation<TaskType> odo = new ObjectDeltaOperation<>(delta, parentResult);
-        auditRecord.getDeltas().add(odo);
+        auditRecord.addDelta(odo);
         if (AuditEventStage.EXECUTION == stage) {
             auditRecord.setOutcome(parentResult.getStatus());
         }

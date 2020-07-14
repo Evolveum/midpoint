@@ -7,15 +7,14 @@
 
 package com.evolveum.midpoint.repo.sql.helpers.mapper;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.repo.sql.helpers.modify.MapperContext;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperExportType;
-
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Created by Viliam Repan (lazyman).

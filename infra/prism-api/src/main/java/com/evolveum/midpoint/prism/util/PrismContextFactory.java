@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.prism.util;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -21,6 +22,6 @@ public interface PrismContextFactory {
     /**
      * Returns UNINITIALIZED prism context.
      */
-    PrismContext createPrismContext() throws SchemaException, FileNotFoundException;
+    PrismContext createPrismContext() throws SchemaException, IOException;
 
 }

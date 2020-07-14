@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.test.asserter;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
 import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
@@ -56,14 +57,14 @@ public class ExtensionAsserter<O extends ObjectType, OA extends PrismObjectAsser
     }
 
     @Override
-    public <T> ExtensionAsserter<O,OA,RA> assertPropertyValuesEqual(QName propName, T... expectedValues) {
-        super.assertPropertyValuesEqual(propName, expectedValues);
+    public <T> ExtensionAsserter<O,OA,RA> assertPropertyValuesEqual(ItemPath path, T... expectedValues) {
+        super.assertPropertyValuesEqual(path, expectedValues);
         return this;
     }
 
     @Override
-    public <T> ExtensionAsserter<O,OA,RA> assertPropertyValuesEqualRaw(QName attrName, T... expectedValues) {
-        super.assertPropertyValuesEqualRaw(attrName, expectedValues);
+    public <T> ExtensionAsserter<O,OA,RA> assertPropertyValuesEqualRaw(ItemPath path, T... expectedValues) {
+        super.assertPropertyValuesEqualRaw(path, expectedValues);
         return this;
     }
 
@@ -74,8 +75,8 @@ public class ExtensionAsserter<O extends ObjectType, OA extends PrismObjectAsser
     }
 
     @Override
-    public ExtensionAsserter<O,OA,RA> assertTimestampBetween(QName propertyName, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
-        super.assertTimestampBetween(propertyName, startTs, endTs);
+    public ExtensionAsserter<O,OA,RA> assertTimestampBetween(ItemPath path, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+        super.assertTimestampBetween(path, startTs, endTs);
         return this;
     }
 

@@ -29,6 +29,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -5849,6 +5851,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         PrismObject<UserType> user = getUser(oid);
         return assertUser(user, message)
                 .assertOid(oid);
+    }
+
+    protected <O extends ObjectType> PrismObjectAsserter<O, Void> assertObject(Class<O> clazz, String oid, String message) throws SchemaException, ObjectNotFoundException, ConfigurationException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
+        PrismObject<O> object = modelService.getObject(clazz, oid, null, getTestTask(), getTestOperationResult());
+        return assertObject(object, message)
+                .assertOid();
+    }
+
+    protected <O extends ObjectType> PrismObjectAsserter<O, Void> assertObject(PrismObject<O> object, String message) {
+        return PrismObjectAsserter.forObject(object, message);
     }
 
     protected TaskAsserter<Void> assertTask(String taskOid, String message) throws SchemaException, ObjectNotFoundException {

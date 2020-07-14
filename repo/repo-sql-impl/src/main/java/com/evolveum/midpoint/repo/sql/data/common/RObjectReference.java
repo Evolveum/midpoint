@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.repo.sql.util.RUtil.qnameToString;
 import java.util.Objects;
 import javax.persistence.*;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
 import org.hibernate.annotations.Persister;
@@ -22,7 +22,7 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RObjectReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
@@ -191,8 +191,8 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
     }
 
     public static void copyToJAXB(RObjectReference<?> repoObject, ObjectReferenceType jaxbObject) {
-        Validate.notNull(repoObject, "Repo object must not be null.");
-        Validate.notNull(jaxbObject, "JAXB object must not be null.");
+        Objects.requireNonNull(repoObject, "Repo object must not be null.");
+        Objects.requireNonNull(jaxbObject, "JAXB object must not be null.");
 
         jaxbObject.setType(ClassMapper.getQNameForHQLType(repoObject.getTargetType()));
         jaxbObject.setOid(repoObject.getTargetOid());
@@ -201,8 +201,8 @@ public class RObjectReference<T extends RObject> implements ObjectReference, Ent
 
     public static ObjectReference copyFromJAXB(
             ObjectReferenceType jaxbObject, ObjectReference repoObject, RelationRegistry relationRegistry) {
-        Validate.notNull(repoObject, "Repo object must not be null.");
-        Validate.notNull(jaxbObject, "JAXB object must not be null.");
+        Objects.requireNonNull(repoObject, "Repo object must not be null.");
+        Objects.requireNonNull(jaxbObject, "JAXB object must not be null.");
         Validate.notEmpty(jaxbObject.getOid(), "Target oid must not be null.");
 
         repoObject.setTargetType(ClassMapper.getHQLTypeForQName(jaxbObject.getType()));

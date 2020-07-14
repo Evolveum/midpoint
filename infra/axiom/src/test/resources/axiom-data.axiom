@@ -1,0 +1,52 @@
+model axiom-data {
+
+    import axiom;
+
+    type AxiomValue {
+        metadata type {
+            type axiom:AxiomTypeReference;
+        }
+        item metadata;
+    }
+    
+    type AxiomSimpleValue {
+        supertype AxiomValue;
+        argument value;
+        item value;
+    }
+    
+    type AxiomComplexValue {
+        supertype AxiomValue;
+
+        item item {
+            type AxiomItem;
+        }
+    }
+
+    type AxiomItem {
+        metadata definition {
+            type AxiomItemDefinition;
+            operational true;
+        }
+        item value {
+            type AxiomValue;
+        }
+    }
+
+    axiom ComplexValueHasDefinedItems {
+        // We have language Axioms
+        // Complex Value contains only items defined in its type.
+        target AxiomComplexValue;
+        all item/@definition {
+            subsetOf @type/item;
+        }
+    }
+
+    axiom ItemAllowsOnlyValuesOfSType {
+        // Item values must be of type.
+        target AxiomItem;
+        each value/@type/definition {
+            subsetOf @definition/type; // 
+        }
+    }
+}

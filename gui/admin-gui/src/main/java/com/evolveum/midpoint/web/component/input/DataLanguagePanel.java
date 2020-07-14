@@ -80,7 +80,7 @@ public abstract class DataLanguagePanel<T> extends MultiStateHorizontalButton {
                     @SuppressWarnings({ "unchecked", "raw" })
                     List<PrismObject<?>> list = (List<PrismObject<?>>) updatedObject;
                     if (list.size() != 1) {
-                        updatedObjectString = serializer.serializeObjects(list, null);
+                        updatedObjectString = serializer.serializeObjects(list);
                     } else {
                         updatedObjectString = serializer.serialize(list.get(0));
                     }

@@ -57,7 +57,7 @@ public class ReferenceConverter implements IConverter<ObjectReferenceType> {
         if (CollectionUtils.isNotEmpty(objectsList)){
             return ObjectTypeUtil.createObjectRefWithFullObject(objectsList.get(0), pageBase.getPrismContext());
         }
-        return originConverter.convertToObject(value, locale);
+        return null;
 
     }
 

@@ -158,15 +158,15 @@ public class Visualizer {
 
     @NotNull
     public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
-        return visualizeDelta(objectDelta, objectRef, false, task, parentResult);
+        return visualizeDelta(objectDelta, objectRef, false, true, task, parentResult);
     }
 
     @NotNull
     public SceneImpl visualizeDelta(ObjectDelta<? extends ObjectType> objectDelta, ObjectReferenceType objectRef,
-            boolean includeOperationalItems, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
+            boolean includeOperationalItems, boolean includeOriginalObject, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException {
         OperationResult result = parentResult.createSubresult(CLASS_DOT + "visualizeDelta");
         try {
-            resolver.resolve(objectDelta, task, result);
+            resolver.resolve(objectDelta, includeOriginalObject, task, result);
             VisualizationContext visualizationContext = new VisualizationContext();
             if (includeOperationalItems){
                 visualizationContext.setIncludeOperationalItems(includeOperationalItems);
@@ -675,7 +675,7 @@ public class Visualizer {
             property.addValues(CloneUtil.cloneCollectionMembers(delta.getEstimatedOldValues()));
         }
         try {
-            delta.applyToMatchingPath(property, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
+            delta.applyToMatchingPath(property);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't visualize property delta: " + delta + ": " + e.getMessage(), e);
         }
@@ -780,7 +780,7 @@ public class Visualizer {
             if (delta.getEstimatedOldValues() != null) {
                 reference.addAll(CloneUtil.cloneCollectionMembers(delta.getEstimatedOldValues()));
             }
-            delta.applyToMatchingPath(reference, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
+            delta.applyToMatchingPath(reference);
         } catch (SchemaException e) {
             throw new SystemException("Couldn't visualize reference delta: " + delta + ": " + e.getMessage(), e);
         }

@@ -89,7 +89,7 @@ public class IntegrationTestTools {
     private static final String OBJECT_TITLE_LOG_PREFIX = "*** ";
     private static final String LOG_MESSAGE_PREFIX = "";
     private static final String OBJECT_LIST_SEPARATOR = "---";
-    private static final long WAIT_FOR_LOOP_SLEEP_MILIS = 500;
+    private static final long WAIT_FOR_LOOP_SLEEP_MILLIS = 500;
 
     private static boolean silentConsole;
 
@@ -373,7 +373,7 @@ public class IntegrationTestTools {
     }
 
     public static void waitFor(String message, Checker checker, long timeoutInterval) throws CommonException {
-        waitFor(message, checker, timeoutInterval, WAIT_FOR_LOOP_SLEEP_MILIS);
+        waitFor(message, checker, timeoutInterval, WAIT_FOR_LOOP_SLEEP_MILLIS);
     }
 
     public static void waitFor(String message, Checker checker, long timeoutInterval, long sleepInterval) throws CommonException {

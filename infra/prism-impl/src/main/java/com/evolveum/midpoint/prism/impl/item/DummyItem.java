@@ -7,32 +7,13 @@
 package com.evolveum.midpoint.prism.impl.item;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
-import java.util.function.Function;
-
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.prism.CloneStrategy;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.PartiallyResolvedItem;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
@@ -129,19 +110,6 @@ public abstract class DummyItem<V extends PrismValue, D extends ItemDefinition<?
         return delegate().getValues();
     }
 
-    public final int size() {
-        return delegate().size();
-    }
-
-    public final V getAnyValue() {
-        return delegate().getAnyValue();
-    }
-
-    public final boolean isSingleValue() {
-        return delegate().isSingleValue();
-    }
-
-
     public final D getDefinition() {
         return delegate().getDefinition();
     }
@@ -152,10 +120,6 @@ public abstract class DummyItem<V extends PrismValue, D extends ItemDefinition<?
 
     public final void applyDefinition(D definition) throws SchemaException {
         delegate().applyDefinition(definition);
-    }
-
-    public final boolean add(@NotNull V newValue, boolean checkUniqueness) throws SchemaException {
-        return delegate().add(newValue, checkUniqueness);
     }
 
     public final boolean isEmpty() {
@@ -171,10 +135,6 @@ public abstract class DummyItem<V extends PrismValue, D extends ItemDefinition<?
         delegate().assertDefinitions(tolarateRaw, sourceDescription);
     }
 
-    public final boolean add(@NotNull V newValue) throws SchemaException {
-        return delegate().add(newValue);
-    }
-
     public final boolean add(@NotNull V newValue, @NotNull EquivalenceStrategy equivalenceStrategy)
             throws SchemaException {
         return delegate().add(newValue, equivalenceStrategy);
@@ -184,46 +144,32 @@ public abstract class DummyItem<V extends PrismValue, D extends ItemDefinition<?
         delegate().accept(visitor, path, recursive);
     }
 
-    public final boolean addAll(Collection<V> newValues) throws SchemaException {
-        return delegate().addAll(newValues);
-    }
-
     public final String toString() {
         return "Dummy" + delegate().toString();
     }
 
-    public final boolean addAll(Collection<V> newValues, EquivalenceStrategy strategy)
+    public final boolean addAll(Collection<V> newValues, @NotNull EquivalenceStrategy strategy)
             throws SchemaException {
         return delegate().addAll(newValues, strategy);
-    }
-
-    @Override
-    public final boolean addAll(Collection<V> newValues, boolean checkUniqueness, EquivalenceStrategy strategy)
-            throws SchemaException {
-        return delegate().addAll(newValues, checkUniqueness, strategy);
     }
 
     public final String debugDump(int indent) {
         return delegate().debugDump(indent);
     }
 
-    public final boolean remove(V value) {
-        return delegate().remove(value);
-    }
-
     public final boolean remove(V value, @NotNull EquivalenceStrategy strategy) {
         return delegate().remove(value, strategy);
     }
 
-    public final boolean removeAll(Collection<V> values) {
-        return delegate().removeAll(values);
+    public final boolean removeAll(Collection<V> values, @NotNull EquivalenceStrategy strategy) {
+        return delegate().removeAll(values, strategy);
     }
 
     public final void clear() {
         delegate().clear();
     }
 
-    public final void replaceAll(Collection<V> newValues, EquivalenceStrategy strategy)
+    public final void replaceAll(Collection<V> newValues, @NotNull EquivalenceStrategy strategy)
             throws SchemaException {
         delegate().replaceAll(newValues, strategy);
     }
@@ -256,45 +202,10 @@ public abstract class DummyItem<V extends PrismValue, D extends ItemDefinition<?
         return delegate().hashCode(equivalenceStrategy);
     }
 
-    public final boolean contains(V value) {
-        return delegate().contains(value);
-    }
-
-    public final boolean contains(V value, @NotNull EquivalenceStrategy strategy) {
-        return delegate().contains(value, strategy);
-    }
-
-    public final boolean contains(V value, EquivalenceStrategy strategy,
-            Comparator<V> comparator) {
-        return delegate().contains(value, strategy, comparator);
-    }
-
-    public final boolean containsEquivalentValue(V value) {
-        return delegate().containsEquivalentValue(value);
-    }
-
-    public final boolean containsEquivalentValue(V value,
-            Comparator<V> comparator) {
-        return delegate().containsEquivalentValue(value, comparator);
-    }
-
-    public final V findValue(V value, @NotNull EquivalenceStrategy strategy) {
-        return delegate().findValue(value, strategy);
-    }
-
-    public final boolean valuesEqual(Collection<V> matchValues,
-            Comparator<V> comparator) {
-        return delegate().valuesEqual(matchValues, comparator);
-    }
-
     public final ItemDelta<V, D> diff(
             Item<V, D> other,
             @NotNull ParameterizedEquivalenceStrategy strategy) {
         return delegate().diff(other, strategy);
-    }
-
-    public final Collection<V> getClonedValues() {
-        return delegate().getClonedValues();
     }
 
     public final void normalize() {
@@ -312,10 +223,6 @@ public abstract class DummyItem<V extends PrismValue, D extends ItemDefinition<?
 
     public final void recomputeAllValues() {
         delegate().recomputeAllValues();
-    }
-
-    public final void filterValues(Function<V, Boolean> function) {
-        delegate().filterValues(function);
     }
 
     public final void applyDefinition(D definition, boolean force)
@@ -354,22 +261,6 @@ public abstract class DummyItem<V extends PrismValue, D extends ItemDefinition<?
 
     public final void assertDefinitions(String sourceDescription) throws SchemaException {
         delegate().assertDefinitions(sourceDescription);
-    }
-
-    public final boolean isRaw() {
-        return delegate().isRaw();
-    }
-
-    public final boolean hasRaw() {
-        return delegate().hasRaw();
-    }
-
-    public final boolean hasNoValues() {
-        return delegate().hasNoValues();
-    }
-
-    public final boolean isOperational() {
-        return delegate().isOperational();
     }
 
     public final boolean isImmutable() {

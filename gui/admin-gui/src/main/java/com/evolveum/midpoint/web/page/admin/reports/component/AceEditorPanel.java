@@ -9,8 +9,10 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.web.component.AceEditor;
 
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 
@@ -20,6 +22,7 @@ import org.apache.wicket.model.IModel;
 public class AceEditorPanel extends BasePanel<String> {
 
     private static final String ID_TITLE = "title";
+    private static final String ID_TITLE_CONTAINER = "titleContainer";
     private static final String ID_EDITOR = "editor";
 
     private IModel<String> title;
@@ -40,14 +43,14 @@ public class AceEditorPanel extends BasePanel<String> {
 
 
     private void initLayout(int minSize) {
+        WebMarkupContainer titleContainer = new WebMarkupContainer(ID_TITLE_CONTAINER);
+        titleContainer.setOutputMarkupId(true);
+        titleContainer.add(new VisibleBehaviour(() -> title != null));
+        add(titleContainer);
+
         Label title = new Label(ID_TITLE, this.title);
-        title.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return title != null;
-            }
-        });
-        add(title);
+        title.setOutputMarkupId(true);
+        titleContainer.add(title);
 
         AceEditor editor = new AceEditor(ID_EDITOR, getModel());
         editor.setReadonly(false);

@@ -9,10 +9,11 @@ package com.evolveum.midpoint.repo.sql.data.common.container;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import javax.persistence.*;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NotFound;
 import org.hibernate.annotations.NotFoundAction;
@@ -22,7 +23,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RCertWorkItemReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.MidPointSingleTablePersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -147,7 +148,7 @@ public class RCertWorkItemReference extends RReference {
         if (reference == null) {
             return null;
         }
-        Validate.notNull(owner, "Owner of reference must not be null.");
+        Objects.requireNonNull(owner, "Owner of reference must not be null.");
         Validate.notEmpty(reference.getOid(), "Target oid reference must not be null.");
 
         RCertWorkItemReference repoRef = new RCertWorkItemReference();

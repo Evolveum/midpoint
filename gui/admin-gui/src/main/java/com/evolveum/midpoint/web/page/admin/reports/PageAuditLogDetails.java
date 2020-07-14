@@ -459,7 +459,12 @@ public class PageAuditLogDetails extends PageBase {
         RepeatingView deltaScene = new RepeatingView(ID_DELTA_LIST_PANEL);
 
         for(ObjectDeltaOperationType deltaOp :connectDeltas(deltas)){
-            ObjectDeltaOperationPanel deltaPanel = new ObjectDeltaOperationPanel(deltaScene.newChildId(), Model.of(deltaOp), this);
+            ObjectDeltaOperationPanel deltaPanel = new ObjectDeltaOperationPanel(deltaScene.newChildId(), Model.of(deltaOp), this) {
+                @Override
+                public boolean getIncludeOriginalObject() {
+                    return false;
+                }
+            };
             deltaPanel.setOutputMarkupId(true);
             deltaScene.add(deltaPanel);
 

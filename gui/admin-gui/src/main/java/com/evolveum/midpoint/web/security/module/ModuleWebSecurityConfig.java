@@ -135,11 +135,11 @@ public class ModuleWebSecurityConfig<C extends ModuleWebSecurityConfiguration> e
         http.headers().disable();
         http.headers().frameOptions().sameOrigin();
 
-        http.sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
-                .maximumSessions(-1)
-                .sessionRegistry(sessionRegistry)
-                .maxSessionsPreventsLogin(true);
+//        http.sessionManagement()
+//                .sessionCreationPolicy(SessionCreationPolicy.NEVER)
+//                .maximumSessions(-1)
+//                .sessionRegistry(sessionRegistry)
+//                .maxSessionsPreventsLogin(true);
     }
 
     @Override

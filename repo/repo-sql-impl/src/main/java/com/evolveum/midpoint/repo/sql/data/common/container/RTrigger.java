@@ -10,16 +10,15 @@ import java.util.Objects;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.GenericGenerator;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
+import com.evolveum.midpoint.repo.sql.query.definition.IdQueryProperty;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
-import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -30,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 @Entity
 @IdClass(RContainerId.class)
 @Table(indexes = { @Index(name = "iTriggerTimestamp", columnList = RTrigger.C_TIMESTAMP) })
-public class RTrigger implements Container {
+public class RTrigger implements Container<RObject> {
 
     public static final String F_OWNER = "owner";
     public static final String C_TIMESTAMP = "timestampValue";
@@ -102,6 +101,9 @@ public class RTrigger implements Container {
 
     public void setOwner(RObject owner) {
         this.owner = owner;
+        if (owner != null) {
+            setOwnerOid(owner.getOid());
+        }
     }
 
     public void setOwnerOid(String ownerOid) {
@@ -130,18 +132,18 @@ public class RTrigger implements Container {
         }
 
         RTrigger that = (RTrigger) o;
-        return Objects.equals(ownerOid, that.ownerOid)
+        return Objects.equals(getOwnerOid(), that.getOwnerOid())
                 && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerOid, id);
+        return Objects.hash(getOwnerOid(), id);
     }
 
     public static void copyToJAXB(RTrigger repo, TriggerType jaxb) {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
         jaxb.setId(RUtil.toLong(repo.getId()));
 
@@ -161,10 +163,11 @@ public class RTrigger implements Container {
         fromJaxb(jaxb, repo, repositoryContext, generatorResult);
     }
 
-    private static void fromJaxb(TriggerType jaxb, RTrigger repo, RepositoryContext repositoryContext,
-            IdGeneratorResult generatorResult) {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+    private static void fromJaxb(TriggerType jaxb, RTrigger repo,
+            RepositoryContext repositoryContext, IdGeneratorResult generatorResult) {
+
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
         if (generatorResult != null) {
             repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
@@ -180,5 +183,17 @@ public class RTrigger implements Container {
         TriggerType object = new TriggerType();
         RTrigger.copyToJAXB(this, object);
         return object;
+    }
+
+    @Override
+    public String toString() {
+        return "RTrigger{" +
+                "trans=" + trans +
+                ", owner=" + owner +
+                ", ownerOid='" + ownerOid + '\'' +
+                ", id=" + id +
+                ", handlerUri='" + handlerUri + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
     }
 }

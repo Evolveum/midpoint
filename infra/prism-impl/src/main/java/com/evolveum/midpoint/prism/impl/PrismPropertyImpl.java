@@ -435,6 +435,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
             if (multiline) {
                 for (PrismPropertyValue<T> value: getValues()) {
                     sb.append("\n");
+                    appendMetadata(sb, value, "", " ");
                     if (value.isRaw()) {
                         sb.append(formatRawValueForDump(value.getRawElement()));
                         sb.append(" (raw)");
@@ -492,6 +493,7 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
                         } else {
                             PrettyPrinter.shortDump(sb, realValue);
                         }
+                        appendMetadata(sb, value, " ", "");
                     }
                     if (iterator.hasNext()) {
                         sb.append(", ");
@@ -514,6 +516,15 @@ public class PrismPropertyImpl<T> extends ItemImpl<PrismPropertyValue<T>, PrismP
             sb.append(")");
         }
         return sb.toString();
+    }
+
+    private void appendMetadata(StringBuilder sb, PrismPropertyValue<T> value, String before, String after) {
+        ValueMetadata metadata = value.getValueMetadata();
+        if (!metadata.isEmpty()) {
+            sb.append(before).append("[meta: ")
+                    .append(metadata.shortDump())
+                    .append("]").append(after);
+        }
     }
 
     private String formatRawValueForDump(Object rawElement) {

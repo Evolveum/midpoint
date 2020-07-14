@@ -22,17 +22,16 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 
 /**
- * @author mederly
+ * "Null" processor that reads XNodes into XNodes and writes XNodes as XNodes.
  */
 public class NullLexicalProcessor implements LexicalProcessor<XNodeImpl> {
 
     @NotNull
     @Override
-    public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+    public RootXNodeImpl read(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) {
         if (!(source instanceof ParserXNodeSource)) {
             throw new IllegalStateException("Unsupported parser source: " + source.getClass().getName());
         }
@@ -41,18 +40,18 @@ public class NullLexicalProcessor implements LexicalProcessor<XNodeImpl> {
 
     @NotNull
     @Override
-    public List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) throws SchemaException, IOException {
+    public List<RootXNodeImpl> readObjects(@NotNull ParserSource source, @NotNull ParsingContext parsingContext) {
         throw new UnsupportedOperationException();
     }
 
     @Override
     public void readObjectsIteratively(@NotNull ParserSource source, @NotNull ParsingContext parsingContext,
-            RootXNodeHandler handler) throws SchemaException, IOException {
+            RootXNodeHandler handler) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public boolean canRead(@NotNull File file) throws IOException {
+    public boolean canRead(@NotNull File file) {
         return false;
     }
 
@@ -76,7 +75,7 @@ public class NullLexicalProcessor implements LexicalProcessor<XNodeImpl> {
 
     @NotNull
     @Override
-    public XNodeImpl write(@NotNull List<RootXNodeImpl> roots, @Nullable QName aggregateElementName,
+    public XNodeImpl write(@NotNull List<RootXNodeImpl> roots,
             @Nullable SerializationContext context) throws SchemaException {
         throw new UnsupportedOperationException("NullLexicalProcessor.write is not supported for a collection of objects");
     }

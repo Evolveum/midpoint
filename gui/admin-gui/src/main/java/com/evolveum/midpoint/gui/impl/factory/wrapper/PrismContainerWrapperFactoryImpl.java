@@ -66,7 +66,9 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
         containerValueWrapper.getItems().addAll((Collection) children);
         containerValueWrapper.setVirtualContainerItems(context.getVirtualItemSpecification());
-        parent.setVirtual(context.getVirtualItemSpecification() != null);
+        if (parent != null) {
+            parent.setVirtual(context.getVirtualItemSpecification() != null);
+        }
         return containerValueWrapper;
     }
 
@@ -79,6 +81,9 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     }
 
     protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<C> parent, PrismContainerValue<C> value) {
+        if (parent == null){
+            return new ArrayList<>();
+        }
         return parent.getDefinitions();
     }
 

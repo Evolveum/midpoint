@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017-2019 Evolveum and contributors
+ * Copyright (c) 2017-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -129,7 +129,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         inspector = new CountingInspector();
         InternalMonitor.setInspector(inspector);
-//        InternalMonitor.setTrace(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, true);
     }
 
     private String generateRoleOid(String format, int num) {
@@ -186,9 +185,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
 
         displayDumpable("Inspector", inspector);
 
-//        inspector.assertRead(RoleType.class, NUMBER_OF_CHEESE_ASSIGNMENTS);
-//        assertRepositoryReadCount(xxx); // may be influenced by tasks
-
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -227,7 +223,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, 1);
-//        assertRepositoryReadCount(4); // may be influenced by tasks
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -269,7 +264,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, 1);
-//        assertRepositoryReadCount(4); // may be influenced by tasks
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -457,7 +451,7 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
      * MID-3938 #8
      */
     @Test
-    public void test2124ReconcileBob() throws Exception {
+    public void test214ReconcileBob() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -488,7 +482,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
-//        assertRepositoryReadCount(xxx); // may be influenced by tasks
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 
@@ -496,7 +489,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     }
 
     private void assertBobRoleMembershipRef(PrismObject<UserType> user) {
-
         assertRoleMembershipRefs(user, GENERATED_DUMMY_ROLE_OID_FORMAT, null, 0, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
         assertRoleMembershipRefs(user, NUMBER_OF_BOB_DUMMY_ROLE_ASSIGNMENTS);
     }
@@ -638,7 +630,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         displayDumpable("Inspector", inspector);
 
         inspector.assertRead(RoleType.class, NUMBER_OF_GENERATED_DUMMY_GROUPS);
-//        assertRepositoryReadCount(xxx); // may be influenced by tasks
 
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
 
@@ -646,7 +637,6 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
     }
 
     private void assertAliceRoleMembershipRef(PrismObject<UserType> user) {
-
         assertRoleMembershipRefs(user, GENERATED_DUMMY_GROUP_ROLE_OID_FORMAT, null, 0, NUMBER_OF_GENERATED_DUMMY_GROUPS);
         assertRoleMembershipRefs(user, NUMBER_OF_GENERATED_DUMMY_GROUPS);
     }
@@ -688,5 +678,4 @@ public class TestPlentyOfAssignments extends AbstractStoryTest {
         }
         fail("Cannot find membership of role " + roleOid + " (" + relation.getLocalPart() + ") in " + user);
     }
-
 }

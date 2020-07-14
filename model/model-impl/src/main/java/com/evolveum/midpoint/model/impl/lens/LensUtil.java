@@ -37,6 +37,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 
@@ -166,9 +167,9 @@ public class LensUtil {
         return new LensProjectionContext(context, rsd);
     }
 
-    public static <V extends PrismValue, D extends ItemDefinition> V cloneAndApplyMetadata(V value, boolean isAssignment,
-            Collection<ItemValueWithOrigin<V, D>> origins) throws SchemaException {
-        return cloneAndApplyMetadata(value, isAssignment, () -> getAutoCreationIdentifier(origins));
+    public static <V extends PrismValue, D extends ItemDefinition> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
+            Collection<? extends ItemValueWithOrigin<V, D>> origins) throws SchemaException {
+        return cloneAndApplyAssignmentOrigin(value, isAssignment, () -> getAutoCreationIdentifier(origins));
     }
 
 //    public static <V extends PrismValue> Collection<V> cloneAndApplyMetadata(Collection<V> values, boolean isAssignment,
@@ -180,17 +181,17 @@ public class LensUtil {
 //        return rv;
 //    }
 
-    public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+    public static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
             PrismValueDeltaSetTripleProducer<?, ?> mapping) throws SchemaException {
-        return cloneAndApplyMetadata(value, isAssignment, mapping::getIdentifier);
+        return cloneAndApplyAssignmentOrigin(value, isAssignment, mapping::getIdentifier);
     }
 
-    public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+    public static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
             MappingType mapping) throws SchemaException {
-        return cloneAndApplyMetadata(value, isAssignment, mapping::getName);
+        return cloneAndApplyAssignmentOrigin(value, isAssignment, mapping::getName);
     }
 
-    private static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+    private static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
             Supplier<String> originMappingNameSupplier) throws SchemaException {
         //noinspection unchecked
         V cloned = (V) value.clone();
@@ -207,7 +208,8 @@ public class LensUtil {
         return cloned;
     }
 
-    private static <V extends PrismValue, D extends ItemDefinition> String getAutoCreationIdentifier(Collection<ItemValueWithOrigin<V, D>> origins) {
+    private static <V extends PrismValue, D extends ItemDefinition> String getAutoCreationIdentifier(
+            Collection<? extends ItemValueWithOrigin<V, D>> origins) {
         // let's ignore conflicts (name1 vs name2, named vs unnamed) for now
         for (ItemValueWithOrigin<V, D> origin : origins) {
             if (origin.getMapping() != null && origin.getMapping().getIdentifier() != null) {
@@ -1172,5 +1174,26 @@ public class LensUtil {
             }
         }
         return explicitArchetypeOid;
+    }
+
+    public static void setMappingTarget(MappingType mapping, ItemPathType path) {
+        VariableBindingDefinitionType target = mapping.getTarget();
+        if (target == null) {
+            target = new VariableBindingDefinitionType();
+            target.setPath(path);
+            mapping.setTarget(target);
+        } else if (target.getPath() == null) {
+            target = target.clone();
+            target.setPath(path);
+            mapping.setTarget(target);
+        }
+    }
+
+    public static void rejectNonTolerantSettingIfPresent(ObjectTemplateItemDefinitionType templateItemDefinition,
+            ItemPath itemPath, String contextDescription) {
+        if (templateItemDefinition != null && Boolean.FALSE.equals(templateItemDefinition.isTolerant())) {
+            throw new UnsupportedOperationException("The 'tolerant=false' setting on template items is no longer supported."
+                    + " Please use mapping range instead. In '" + itemPath + "' consolidation in " + contextDescription);
+        }
     }
 }

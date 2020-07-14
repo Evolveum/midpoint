@@ -195,7 +195,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
        return showUser(user).selectTabProjections()
                 .table()
                     .search()
-                        .byItem("Resource")
+                        .byItemName("Resource")
                             .inputRefOid(resourceOid)
                             .updateSearch()
                         .and()

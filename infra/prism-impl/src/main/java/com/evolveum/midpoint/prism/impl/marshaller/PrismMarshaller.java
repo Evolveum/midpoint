@@ -13,6 +13,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.impl.util.PrismUtilInternal;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MetadataAware;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -34,6 +36,8 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static java.util.Collections.emptySet;
 
 /**
  * @author semancik
@@ -145,14 +149,6 @@ public class PrismMarshaller {
         }
     }
 
-    public boolean canSerialize(Object object) {
-        if (object instanceof Item) {
-            return true;
-        } else {
-            return beanMarshaller.canProcess(object.getClass());
-        }
-    }
-
     /*
      *  TODO reconsider what to return for empty items
      *   1. null
@@ -206,7 +202,7 @@ public class PrismMarshaller {
         XNodeImpl xnode;
         if (definition == null && typeName == null && itemValue instanceof PrismPropertyValue) {
             warnIfItemsToSkip(itemValue, itemsToSkip);
-            return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
+            xnode = serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
         } else if (itemValue instanceof PrismReferenceValue) {
             warnIfItemsToSkip(itemValue, itemsToSkip);
             xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition, ctx);
@@ -224,7 +220,21 @@ public class PrismMarshaller {
             }
             xnode.setExplicitTypeDeclaration(true);
         }
+        marshalValueMetadata(itemValue, xnode, ctx);
         return xnode;
+    }
+
+    private void marshalValueMetadata(PrismValue itemValue, XNodeImpl xnode, SerializationContext ctx) throws SchemaException {
+        PrismContainerValue<?> valueMetadata = itemValue.getValueMetadata();
+        if (!valueMetadata.isEmpty()) {
+            if (xnode instanceof MetadataAware) {
+                MapXNode metadataNode = marshalContainerValue(valueMetadata,
+                        getSchemaRegistry().getValueMetadataDefinition(), ctx, emptySet());
+                ((MetadataAware) xnode).setMetadataNode(metadataNode);
+            } else {
+                throw new IllegalStateException("Couldn't marshal value metadata of " + itemValue + " to non-metadata-aware XNode: " + xnode);
+            }
+        }
     }
 
     private void warnIfItemsToSkip(@NotNull PrismValue itemValue, Collection<? extends QName> itemsToSkip) {
@@ -270,16 +280,17 @@ public class PrismMarshaller {
         }
     }
 
-    private <C extends Containerable> MapXNodeImpl marshalContainerValue(PrismContainerValue<C> containerVal,
-            PrismContainerDefinition<C> containerDefinition, SerializationContext ctx,
+    @NotNull
+    private MapXNodeImpl marshalContainerValue(PrismContainerValue<?> containerVal,
+            PrismContainerDefinition<?> containerDefinition, SerializationContext ctx,
             Collection<? extends QName> itemsToSkip) throws SchemaException {
         MapXNodeImpl xmap = new MapXNodeImpl();
         marshalContainerValue(xmap, containerVal, containerDefinition, ctx, itemsToSkip);
         return xmap;
     }
 
-    private <C extends Containerable> void marshalContainerValue(MapXNodeImpl xmap, PrismContainerValue<C> containerVal,
-            PrismContainerDefinition<C> containerDefinition, SerializationContext ctx,
+    private void marshalContainerValue(MapXNodeImpl xmap, PrismContainerValue<?> containerVal,
+            PrismContainerDefinition<?> containerDefinition, SerializationContext ctx,
             Collection<? extends QName> itemsToSkip) throws SchemaException {
         Long id = containerVal.getId();
         if (id != null) {

@@ -72,7 +72,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         importObjectFromFile(USER_ELAINE, initTask, initResult);
     }
 
-    @Test
+    @Test(enabled = false)
     public void test100modifyUserFullname() throws Exception {
         Task task = getTestTask();
 

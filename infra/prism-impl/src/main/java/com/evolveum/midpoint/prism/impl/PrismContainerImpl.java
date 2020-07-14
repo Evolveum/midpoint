@@ -22,7 +22,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.lang.reflect.Modifier;
@@ -204,12 +203,17 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     @Override
-    public boolean add(@NotNull PrismContainerValue newValue, boolean checkUniqueness) throws SchemaException {
+    protected boolean addInternal(@NotNull PrismContainerValue newValue, boolean checkEquivalents, EquivalenceStrategy strategy) throws SchemaException {
         checkMutable();
         // when a context-less item is added to a contextful container, it is automatically adopted
         if (newValue.getPrismContext() == null && this.prismContext != null) {
             prismContext.adopt(newValue);
         }
+        return super.addInternal(newValue, checkEquivalents, strategy);
+    }
+
+    @Override
+    protected boolean addInternalExecution(@NotNull PrismContainerValue<C> newValue) {
         if (newValue.getId() != null) {
             for (PrismContainerValue existingValue : getValues()) {
                 if (existingValue.getId() != null && existingValue.getId().equals(newValue.getId())) {
@@ -217,7 +221,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
                 }
             }
         }
-        return super.add(newValue, checkUniqueness);
+        return super.addInternalExecution(newValue);
     }
 
     private boolean canAssumeSingleValue() {
@@ -285,7 +289,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
             // it will change anyway and therefore the check is pointless.
             // However, the check is expensive (especially if there are many values).
             // So we are happy to avoid it.
-            add(pValue, false);
+            addIgnoringEquivalents(pValue);
         } catch (SchemaException e) {
             // This should not happen
             throw new SystemException("Internal Error: "+e.getMessage(),e);
@@ -393,7 +397,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     }
 
     /**
-     * Returns true if the object and all contained prisms have proper definition.
+     * Returns true if the object and all contained prisms have definitions.
      */
     @Override
     public boolean hasCompleteDefinition() {
@@ -723,7 +727,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
             try {
                 // No need to check for uniqueness here. If the value is unique in this object, it will also be unique in clone.
                 // Not comparing values makes clones faster.
-                clone.add(pval.cloneComplex(strategy), false, null);
+                clone.addInternal(pval.cloneComplex(strategy), false, null);
             } catch (SchemaException e) {
                 // This should not happen
                 throw new SystemException("Internal Error: "+e.getMessage(),e);
@@ -742,15 +746,6 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
     protected void propagateDeepCloneDefinition(boolean ultraDeep, PrismContainerDefinition<C> clonedDef, Consumer<ItemDefinition> postCloneAction) {
         for (PrismContainerValue<C> cval: getValues()) {
             ((PrismContainerValueImpl<C>) cval).deepCloneDefinition(ultraDeep, clonedDef, postCloneAction);
-        }
-    }
-
-    @Override
-    public boolean containsEquivalentValue(PrismContainerValue<C> value, @Nullable Comparator<PrismContainerValue<C>> comparator) {
-        if (value.isIdOnly()) {
-            return findValue(value.getId()) != null;
-        } else {
-            return contains(value, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS, comparator);
         }
     }
 
@@ -785,7 +780,7 @@ public class PrismContainerImpl<C extends Containerable> extends ItemImpl<PrismC
      * These methods compare the "meaningful" parts of the objects.
      */
     public boolean equivalent(Object obj) {
-        return equals(obj, EquivalenceStrategy.REAL_VALUE);
+        return equals(obj, ParameterizedEquivalenceStrategy.REAL_VALUE);
     }
 
     @Override

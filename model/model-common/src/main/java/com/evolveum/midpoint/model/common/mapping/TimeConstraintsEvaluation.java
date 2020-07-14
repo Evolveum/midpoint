@@ -32,7 +32,7 @@ class TimeConstraintsEvaluation {
     /**
      * "Parent" mapping evaluation.
      */
-    private final MappingImpl<?, ?> m;
+    private final AbstractMappingImpl<?, ?, ?> m;
 
     /**
      * Is the mapping valid regarding specified time constraint (timeFrom, timeTo)?
@@ -46,7 +46,7 @@ class TimeConstraintsEvaluation {
      */
     private XMLGregorianCalendar nextRecomputeTime;
 
-    TimeConstraintsEvaluation(MappingImpl<?, ?> m) {
+    TimeConstraintsEvaluation(AbstractMappingImpl<?, ?, ?> m) {
         this.m = m;
     }
 
@@ -127,7 +127,7 @@ class TimeConstraintsEvaluation {
                 time = (XMLGregorianCalendar) referenceTime.clone();
             }
         } else {
-            MutablePrismPropertyDefinition<XMLGregorianCalendar> timeDefinition = m.prismContext.definitionFactory().createPropertyDefinition(
+            MutablePrismPropertyDefinition<XMLGregorianCalendar> timeDefinition = m.beans.prismContext.definitionFactory().createPropertyDefinition(
                     ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.XSD_DATETIME);
             timeDefinition.setMaxOccurs(1);
 
@@ -136,7 +136,7 @@ class TimeConstraintsEvaluation {
             timeVariables.addVariableDefinition(ExpressionConstants.VAR_REFERENCE_TIME, referenceTime, timeDefinition);
 
             PrismPropertyValue<XMLGregorianCalendar> timePropVal = ExpressionUtil.evaluateExpression(m.sources, timeVariables, timeDefinition,
-                    expressionType, m.expressionProfile, m.expressionFactory, "time expression in " + m.getMappingContextDescription(), m.getTask(), result);
+                    expressionType, m.expressionProfile, m.beans.expressionFactory, "time expression in " + m.getMappingContextDescription(), m.getTask(), result);
 
             if (timePropVal == null) {
                 return null;
@@ -157,7 +157,7 @@ class TimeConstraintsEvaluation {
         ItemPath path = m.parser.getSourcePath(source);
 
         Object sourceObject = ExpressionUtil.resolvePathGetValue(path, m.variables, false,
-                m.getTypedSourceContext(), m.objectResolver, m.prismContext,
+                m.getTypedSourceContext(), m.beans.objectResolver, m.beans.prismContext,
                 "reference time definition in " + m.getMappingContextDescription(), m.getTask(), result);
         if (sourceObject == null) {
             return null;

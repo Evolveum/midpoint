@@ -1,21 +1,21 @@
 -- remove iAncestor and iDescendant index, they are the same as FK for that fields
 
 CREATE TABLE m_acc_cert_campaign (
-  definitionRef_relation  VARCHAR(157),
-  definitionRef_targetOid VARCHAR(36),
-  definitionRef_type      INTEGER,
-  endTimestamp            DATETIME(6),
-  handlerUri              VARCHAR(255),
-  iteration               INTEGER     NOT NULL,
-  name_norm               VARCHAR(255),
-  name_orig               VARCHAR(255),
-  ownerRef_relation       VARCHAR(157),
-  ownerRef_targetOid      VARCHAR(36),
-  ownerRef_type           INTEGER,
-  stageNumber             INTEGER,
-  startTimestamp          DATETIME(6),
-  state                   INTEGER,
-  oid                     VARCHAR(36) NOT NULL,
+  definitionRef_relation    VARCHAR(157),
+  definitionRef_targetOid   VARCHAR(36),
+  definitionRef_targetType  INTEGER,
+  endTimestamp              DATETIME(6),
+  handlerUri                VARCHAR(255),
+  iteration                 INTEGER     NOT NULL,
+  name_norm                 VARCHAR(255),
+  name_orig                 VARCHAR(255),
+  ownerRef_relation         VARCHAR(157),
+  ownerRef_targetOid        VARCHAR(36),
+  ownerRef_targetType       INTEGER,
+  stageNumber               INTEGER,
+  startTimestamp            DATETIME(6),
+  state                     INTEGER,
+  oid                       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
@@ -39,10 +39,10 @@ CREATE TABLE m_acc_cert_case (
   iteration                INTEGER     NOT NULL,
   objectRef_relation       VARCHAR(157),
   objectRef_targetOid      VARCHAR(36),
-  objectRef_type           INTEGER,
+  objectRef_targetType     INTEGER,
   orgRef_relation          VARCHAR(157),
   orgRef_targetOid         VARCHAR(36),
-  orgRef_type              INTEGER,
+  orgRef_targetType        INTEGER,
   outcome                  VARCHAR(255),
   remediedTimestamp        DATETIME(6),
   reviewDeadline           DATETIME(6),
@@ -50,10 +50,10 @@ CREATE TABLE m_acc_cert_case (
   stageNumber              INTEGER,
   targetRef_relation       VARCHAR(157),
   targetRef_targetOid      VARCHAR(36),
-  targetRef_type           INTEGER,
+  targetRef_targetType     INTEGER,
   tenantRef_relation       VARCHAR(157),
   tenantRef_targetOid      VARCHAR(36),
-  tenantRef_type           INTEGER,
+  tenantRef_ttargetType    INTEGER,
   PRIMARY KEY (owner_oid, id)
 )
   DEFAULT CHARACTER SET utf8
@@ -67,7 +67,7 @@ CREATE TABLE m_acc_cert_definition (
   name_orig                    VARCHAR(255),
   ownerRef_relation            VARCHAR(157),
   ownerRef_targetOid           VARCHAR(36),
-  ownerRef_type                INTEGER,
+  ownerRef_targetType          INTEGER,
   oid                          VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 )
@@ -75,17 +75,17 @@ CREATE TABLE m_acc_cert_definition (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 CREATE TABLE m_acc_cert_wi (
-  id                     INTEGER     NOT NULL,
-  owner_id               INTEGER     NOT NULL,
-  owner_owner_oid        VARCHAR(36) NOT NULL,
-  closeTimestamp         DATETIME(6),
-  iteration              INTEGER     NOT NULL,
-  outcome                VARCHAR(255),
-  outputChangeTimestamp  DATETIME(6),
-  performerRef_relation  VARCHAR(157),
-  performerRef_targetOid VARCHAR(36),
-  performerRef_type      INTEGER,
-  stageNumber            INTEGER,
+  id                        INTEGER     NOT NULL,
+  owner_id                  INTEGER     NOT NULL,
+  owner_owner_oid           VARCHAR(36) NOT NULL,
+  closeTimestamp            DATETIME(6),
+  iteration                 INTEGER     NOT NULL,
+  outcome                   VARCHAR(255),
+  outputChangeTimestamp     DATETIME(6),
+  performerRef_relation     VARCHAR(157),
+  performerRef_targetOid    VARCHAR(36),
+  performerRef_targetType   INTEGER,
+  stageNumber               INTEGER,
   PRIMARY KEY (owner_owner_oid, owner_id, id)
 )
   DEFAULT CHARACTER SET utf8
@@ -121,26 +121,26 @@ CREATE TABLE m_assignment (
   createTimestamp         DATETIME(6),
   creatorRef_relation     VARCHAR(157),
   creatorRef_targetOid    VARCHAR(36),
-  creatorRef_type         INTEGER,
+  creatorRef_targetType   INTEGER,
   lifecycleState          VARCHAR(255),
   modifierRef_relation    VARCHAR(157),
   modifierRef_targetOid   VARCHAR(36),
-  modifierRef_type        INTEGER,
+  modifierRef_targetType  INTEGER,
   modifyChannel           VARCHAR(255),
   modifyTimestamp         DATETIME(6),
   orderValue              INTEGER,
   orgRef_relation         VARCHAR(157),
   orgRef_targetOid        VARCHAR(36),
-  orgRef_type             INTEGER,
+  orgRef_targetType       INTEGER,
   resourceRef_relation    VARCHAR(157),
   resourceRef_targetOid   VARCHAR(36),
-  resourceRef_type        INTEGER,
+  resourceRef_targetType  INTEGER,
   targetRef_relation      VARCHAR(157),
   targetRef_targetOid     VARCHAR(36),
-  targetRef_type          INTEGER,
+  targetRef_targetType    INTEGER,
   tenantRef_relation      VARCHAR(157),
   tenantRef_targetOid     VARCHAR(36),
-  tenantRef_type          INTEGER,
+  tenantRef_targetType    INTEGER,
   extId                   INTEGER,
   extOid                  VARCHAR(36),
   PRIMARY KEY (owner_oid, id)
@@ -331,19 +331,19 @@ CREATE TABLE m_audit_resource (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 CREATE TABLE m_case_wi (
-  id                            INTEGER     NOT NULL,
-  owner_oid                     VARCHAR(36) NOT NULL,
-  closeTimestamp                DATETIME(6),
-  createTimestamp               DATETIME(6),
-  deadline                      DATETIME(6),
-  originalAssigneeRef_relation  VARCHAR(157),
-  originalAssigneeRef_targetOid VARCHAR(36),
-  originalAssigneeRef_type      INTEGER,
-  outcome                       VARCHAR(255),
-  performerRef_relation         VARCHAR(157),
-  performerRef_targetOid        VARCHAR(36),
-  performerRef_type             INTEGER,
-  stageNumber                   INTEGER,
+  id                                INTEGER     NOT NULL,
+  owner_oid                         VARCHAR(36) NOT NULL,
+  closeTimestamp                    DATETIME(6),
+  createTimestamp                   DATETIME(6),
+  deadline                          DATETIME(6),
+  originalAssigneeRef_relation      VARCHAR(157),
+  originalAssigneeRef_targetOid     VARCHAR(36),
+  originalAssigneeRef_targetType    INTEGER,
+  outcome                           VARCHAR(255),
+  performerRef_relation             VARCHAR(157),
+  performerRef_targetOid            VARCHAR(36),
+  performerRef_targetType           INTEGER,
+  stageNumber                       INTEGER,
   PRIMARY KEY (owner_oid, id)
 )
   DEFAULT CHARACTER SET utf8
@@ -394,26 +394,26 @@ CREATE TABLE m_focus_policy_situation (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 CREATE TABLE m_object (
-  oid                   VARCHAR(36) NOT NULL,
-  createChannel         VARCHAR(255),
-  createTimestamp       DATETIME(6),
-  creatorRef_relation   VARCHAR(157),
-  creatorRef_targetOid  VARCHAR(36),
-  creatorRef_type       INTEGER,
-  fullObject            LONGBLOB,
-  lifecycleState        VARCHAR(255),
-  modifierRef_relation  VARCHAR(157),
-  modifierRef_targetOid VARCHAR(36),
-  modifierRef_type      INTEGER,
-  modifyChannel         VARCHAR(255),
-  modifyTimestamp       DATETIME(6),
-  name_norm             VARCHAR(255),
-  name_orig             VARCHAR(255),
-  objectTypeClass       INTEGER,
-  tenantRef_relation    VARCHAR(157),
-  tenantRef_targetOid   VARCHAR(36),
-  tenantRef_type        INTEGER,
-  version               INTEGER     NOT NULL,
+  oid                       VARCHAR(36) NOT NULL,
+  createChannel             VARCHAR(255),
+  createTimestamp           DATETIME(6),
+  creatorRef_relation       VARCHAR(157),
+  creatorRef_targetOid      VARCHAR(36),
+  creatorRef_targetType     INTEGER,
+  fullObject                LONGBLOB,
+  lifecycleState            VARCHAR(255),
+  modifierRef_relation      VARCHAR(157),
+  modifierRef_targetOid     VARCHAR(36),
+  modifierRef_targetType    INTEGER,
+  modifyChannel             VARCHAR(255),
+  modifyTimestamp           DATETIME(6),
+  name_norm                 VARCHAR(255),
+  name_orig                 VARCHAR(255),
+  objectTypeClass           INTEGER,
+  tenantRef_relation        VARCHAR(157),
+  tenantRef_targetOid       VARCHAR(36),
+  tenantRef_targetType      INTEGER,
+  version                   INTEGER     NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
@@ -498,16 +498,16 @@ CREATE TABLE m_object_text_info (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 CREATE TABLE m_operation_execution (
-  id                     INTEGER     NOT NULL,
-  owner_oid              VARCHAR(36) NOT NULL,
-  initiatorRef_relation  VARCHAR(157),
-  initiatorRef_targetOid VARCHAR(36),
-  initiatorRef_type      INTEGER,
-  status                 INTEGER,
-  taskRef_relation       VARCHAR(157),
-  taskRef_targetOid      VARCHAR(36),
-  taskRef_type           INTEGER,
-  timestampValue         DATETIME(6),
+  id                        INTEGER     NOT NULL,
+  owner_oid                 VARCHAR(36) NOT NULL,
+  initiatorRef_relation     VARCHAR(157),
+  initiatorRef_targetOid    VARCHAR(36),
+  initiatorRef_targetType   INTEGER,
+  status                    INTEGER,
+  taskRef_relation          VARCHAR(157),
+  taskRef_targetOid         VARCHAR(36),
+  taskRef_targetType        INTEGER,
+  timestampValue            DATETIME(6),
   PRIMARY KEY (owner_oid, id)
 )
   DEFAULT CHARACTER SET utf8
@@ -562,7 +562,7 @@ CREATE TABLE m_shadow (
   primaryIdentifierValue       VARCHAR(255),
   resourceRef_relation         VARCHAR(157),
   resourceRef_targetOid        VARCHAR(36),
-  resourceRef_type             INTEGER,
+  resourceRef_targetType       INTEGER,
   status                       INTEGER,
   synchronizationSituation     INTEGER,
   synchronizationTimestamp     DATETIME(6),
@@ -586,10 +586,10 @@ CREATE TABLE m_task (
   node                     VARCHAR(255),
   objectRef_relation       VARCHAR(157),
   objectRef_targetOid      VARCHAR(36),
-  objectRef_type           INTEGER,
+  objectRef_targetType     INTEGER,
   ownerRef_relation        VARCHAR(157),
   ownerRef_targetOid       VARCHAR(36),
-  ownerRef_type            INTEGER,
+  ownerRef_targetType      INTEGER,
   parent                   VARCHAR(255),
   recurrence               INTEGER,
   status                   INTEGER,
@@ -633,17 +633,17 @@ CREATE TABLE m_user_organizational_unit (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 CREATE TABLE m_abstract_role (
-  approvalProcess    VARCHAR(255),
-  autoassign_enabled BIT,
-  displayName_norm   VARCHAR(255),
-  displayName_orig   VARCHAR(255),
-  identifier         VARCHAR(255),
-  ownerRef_relation  VARCHAR(157),
-  ownerRef_targetOid VARCHAR(36),
-  ownerRef_type      INTEGER,
-  requestable        BIT,
-  riskLevel          VARCHAR(255),
-  oid                VARCHAR(36) NOT NULL,
+  approvalProcess       VARCHAR(255),
+  autoassign_enabled    BIT,
+  displayName_norm      VARCHAR(255),
+  displayName_orig      VARCHAR(255),
+  identifier            VARCHAR(255),
+  ownerRef_relation     VARCHAR(157),
+  ownerRef_targetOid    VARCHAR(36),
+  ownerRef_targetType   INTEGER,
+  requestable           BIT,
+  riskLevel             VARCHAR(255),
+  oid                   VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
@@ -659,39 +659,39 @@ CREATE TABLE m_archetype (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 CREATE TABLE m_case (
-  closeTimestamp         DATETIME(6),
-  name_norm           VARCHAR(255),
-  name_orig           VARCHAR(255),
-  objectRef_relation  VARCHAR(157),
-  objectRef_targetOid VARCHAR(36),
-  objectRef_type      INTEGER,
-  parentRef_relation  VARCHAR(157),
-  parentRef_targetOid VARCHAR(36),
-  parentRef_type      INTEGER,
-  requestorRef_relation  VARCHAR(157),
-  requestorRef_targetOid VARCHAR(36),
-  requestorRef_type      INTEGER,
-  state               VARCHAR(255),
-  targetRef_relation  VARCHAR(157),
-  targetRef_targetOid VARCHAR(36),
-  targetRef_type      INTEGER,
-  oid                 VARCHAR(36) NOT NULL,
+  closeTimestamp            DATETIME(6),
+  name_norm                 VARCHAR(255),
+  name_orig                 VARCHAR(255),
+  objectRef_relation        VARCHAR(157),
+  objectRef_targetOid       VARCHAR(36),
+  objectRef_targetType      INTEGER,
+  parentRef_relation        VARCHAR(157),
+  parentRef_targetOid       VARCHAR(36),
+  parentRef_targetType      INTEGER,
+  requestorRef_relation     VARCHAR(157),
+  requestorRef_targetOid    VARCHAR(36),
+  requestorRef_targetType   INTEGER,
+  state                     VARCHAR(255),
+  targetRef_relation        VARCHAR(157),
+  targetRef_targetOid       VARCHAR(36),
+  targetRef_targetType      INTEGER,
+  oid                       VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
   COLLATE utf8_bin
   ENGINE = InnoDB;
 CREATE TABLE m_connector (
-  connectorBundle            VARCHAR(255),
-  connectorHostRef_relation  VARCHAR(157),
-  connectorHostRef_targetOid VARCHAR(36),
-  connectorHostRef_type      INTEGER,
-  connectorType              VARCHAR(255),
-  connectorVersion           VARCHAR(255),
-  framework                  VARCHAR(255),
-  name_norm                  VARCHAR(255),
-  name_orig                  VARCHAR(255),
-  oid                        VARCHAR(36) NOT NULL,
+  connectorBundle               VARCHAR(255),
+  connectorHostRef_relation     VARCHAR(157),
+  connectorHostRef_targetOid    VARCHAR(36),
+  connectorHostRef_targetType   INTEGER,
+  connectorType                 VARCHAR(255),
+  connectorVersion              VARCHAR(255),
+  framework                     VARCHAR(255),
+  name_norm                     VARCHAR(255),
+  name_orig                     VARCHAR(255),
+  oid                           VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
@@ -855,12 +855,12 @@ CREATE TABLE m_report (
   COLLATE utf8_bin
   ENGINE = InnoDB;
 CREATE TABLE m_report_output (
-  name_norm           VARCHAR(255),
-  name_orig           VARCHAR(255),
-  reportRef_relation  VARCHAR(157),
-  reportRef_targetOid VARCHAR(36),
-  reportRef_type      INTEGER,
-  oid                 VARCHAR(36) NOT NULL,
+  name_norm             VARCHAR(255),
+  name_orig             VARCHAR(255),
+  reportRef_relation    VARCHAR(157),
+  reportRef_targetOid   VARCHAR(36),
+  reportRef_targetType  INTEGER,
+  oid                   VARCHAR(36) NOT NULL,
   PRIMARY KEY (oid)
 )
   DEFAULT CHARACTER SET utf8
@@ -870,7 +870,7 @@ CREATE TABLE m_resource (
   administrativeState        INTEGER,
   connectorRef_relation      VARCHAR(157),
   connectorRef_targetOid     VARCHAR(36),
-  connectorRef_type          INTEGER,
+  connectorRef_targetType    INTEGER,
   name_norm                  VARCHAR(255),
   name_orig                  VARCHAR(255),
   o16_lastAvailabilityStatus INTEGER,
@@ -1406,7 +1406,7 @@ ALTER TABLE m_user
 ALTER TABLE m_value_policy
   ADD CONSTRAINT fk_value_policy FOREIGN KEY (oid) REFERENCES m_object (oid);
 
-INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.0');
+INSERT INTO m_global_metadata VALUES ('databaseSchemaVersion', '4.2');
 
 # By: Ron Cordell - roncordell
 #  I didn't see this anywhere, so I thought I'd post it here. This is the script from Quartz to create the tables in a MySQL database, modified to use INNODB instead of MYISAM.

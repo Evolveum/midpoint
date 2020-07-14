@@ -7,9 +7,11 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import com.evolveum.midpoint.util.exception.SystemException;
-import org.apache.commons.lang.Validate;
+import java.util.Objects;
+
 import org.hibernate.dialect.*;
+
+import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -73,7 +75,7 @@ public abstract class TemporaryTableDialect {
     }
 
     public static TemporaryTableDialect getTempTableDialect(Dialect dialect) {
-        Validate.notNull(dialect, "Dialect must not be null");
+        Objects.requireNonNull(dialect, "Dialect must not be null");
 
         if (dialect instanceof H2Dialect) {
             return new H2TempTableDialect();
@@ -161,7 +163,6 @@ public abstract class TemporaryTableDialect {
             final String name = super.generateTemporaryTableName(baseTableName);
             return name.length() > 30 ? name.substring(0, 30) : name;
         }
-
 
         @Override
         public String getCreateTemporaryTableString() {

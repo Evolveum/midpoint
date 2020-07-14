@@ -44,8 +44,7 @@ public class CredentialModuleAuthentication extends ModuleAuthentication {
 
     public ModuleAuthentication clone() {
         CredentialModuleAuthentication module = new CredentialModuleAuthentication(this.getNameOfModuleType());
-        module.setCredentialName(getCredentialName());
-        super.clone(module);
+        clone(module);
         return module;
     }
 
@@ -53,6 +52,7 @@ public class CredentialModuleAuthentication extends ModuleAuthentication {
     protected void clone(ModuleAuthentication module) {
         if (module instanceof CredentialModuleAuthentication) {
             ((CredentialModuleAuthentication)module).setCredentialName(getCredentialName());
+            ((CredentialModuleAuthentication)module).setCredentialType(getCredentialType());
         }
         super.clone(module);
     }

@@ -111,7 +111,7 @@ public class PrismConstants {
     public static final QName SCHEMA_APP_INFO = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo");
 
     public static final QName A_MAX_OCCURS = new QName(NS_ANNOTATION, "maxOccurs");
-    public static final String MULTIPLICITY_UNBONUNDED = "unbounded";
+    public static final String MULTIPLICITY_UNBOUNDED = "unbounded";
 
     public static final QName A_NAMESPACE = new QName(NS_ANNOTATION, "namespace");
     public static final String A_NAMESPACE_PREFIX = "prefix";

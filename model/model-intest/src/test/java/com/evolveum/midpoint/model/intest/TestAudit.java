@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2017 Evolveum and contributors
+ * Copyright (c) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -624,7 +624,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                                 .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("Hi" + iteration))
                                 .item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
                                 .asObjectDelta("oid" + index);
-                        record.getDeltas().add(new ObjectDeltaOperation(delta));
+                        record.addDelta(new ObjectDeltaOperation(delta));
                         modelAuditService.audit(record, threadTask, threadResult);
                         if (failed.get()) {
                             results.set(index, new IllegalStateException("Some other thread failed"));

@@ -30,6 +30,10 @@ public class Search<T> extends Component<T> {
     public SearchItemField<Search<T>> byName() {
         choiceBasicSearch();
         SelenideElement nameElement = getItemByName("Name");
+        if (nameElement == null){
+            addSearchItem("Name");
+            nameElement = getItemByName("Name");
+        }
         SelenideElement nameInput = nameElement.parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         return new SearchItemField(this, nameInput);
@@ -42,16 +46,16 @@ public class Search<T> extends Component<T> {
             addSearchItem(itemName);
             itemElement = getItemByName(itemName);
         }
-        if (itemElement == null){
-            return new SearchItemField(this, null);
-        }
-        SelenideElement itemElementInput = itemElement.parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
-                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new SearchItemField(this, itemElementInput);
+//        if (itemElement == null){
+//            return new SearchItemField(this, null);
+//        }
+//        SelenideElement itemElementInput = itemElement.parent().$x(".//input[@" + Schrodinger.DATA_S_ID + "='input']")
+//                .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
+        return new SearchItemField(this, itemElement);
     }
 
     public Search<T> updateSearch(){
-        SelenideElement simpleSearchButton = getParentElement().$(Schrodinger.byDataId("searchSimple"))
+        SelenideElement simpleSearchButton = getParentElement().$x(".//a[@" + Schrodinger.DATA_S_ID + "='searchSimple']")
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S);
         Actions builder = new Actions(WebDriverRunner.getWebDriver());
         builder.moveToElement(simpleSearchButton, 5, 5).click().build().perform();
@@ -89,6 +93,7 @@ public class Search<T> extends Component<T> {
         SelenideElement popover = getDisplayedPopover();
         popover.$(Schrodinger.byElementValue("a", name))
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
 //        popover.$x(".//input[@"+Schrodinger.DATA_S_ID+"='addText']").setValue(name);
 //        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -96,24 +101,24 @@ public class Search<T> extends Component<T> {
         return this;
     }
 
-    public Popover<Search<T>> byItem(String name) {
-
-        choiceBasicSearch();
-
-        SelenideElement item = getItemByName(name);
-        if (item == null) {
-            addSearchItem(name);
-            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        }
-        item = getItemByName(name);
-        if (item == null) {
-            throw new IllegalStateException("Couldn't find search item for name " + name);
-        }
-
-        item.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-        return new Popover<>(this, getDisplayedPopover());
-    }
+//    public Popover<Search<T>> byItem(String name) {
+//
+//        choiceBasicSearch();
+//
+//        SelenideElement item = getItemByName(name);
+//        if (item == null) {
+//            addSearchItem(name);
+//            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+//        }
+//        item = getItemByName(name);
+//        if (item == null) {
+//            throw new IllegalStateException("Couldn't find search item for name " + name);
+//        }
+//
+//        item.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+//        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+//        return new Popover<>(this, getDisplayedPopover());
+//    }
 
     public SelenideElement getItemByName(String name) {
         ElementsCollection items = getParentElement().findAll(By.className("search-item"));
@@ -142,20 +147,20 @@ public class Search<T> extends Component<T> {
 
     public Search<T> resetBasicSearch() {
         choiceBasicSearch();
-        SelenideElement nameItem = getItemByName("Name");
-        if (nameItem != null) {
-            nameItem.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-            new Popover<>(this, nameItem).inputValue("").updateSearch();
-        }
+//        SelenideElement nameItem = getItemByName("Name");
+//        if (nameItem != null) {
+//            nameItem.waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+//            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+//            new SearchItemField<>(this, nameItem).inputValue("").updateSearch();
+//        }
 
-        ElementsCollection deleteButtons = getParentElement().$$(Schrodinger.byDataId("deleteButton"));
+        ElementsCollection deleteButtons = getParentElement().$$(Schrodinger.byDataId("removeButton"));
         for (SelenideElement deleteButton : deleteButtons) {
             if (deleteButton.isDisplayed()) {
                 deleteButton.click();
             }
         }
-        Selenide.sleep(2000);
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
 }

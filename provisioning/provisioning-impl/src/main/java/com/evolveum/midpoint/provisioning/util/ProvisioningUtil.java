@@ -11,6 +11,7 @@ import static java.util.Collections.emptyList;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -277,7 +278,17 @@ public class ProvisioningUtil {
         }
         LOGGER.trace("Narrowing attr def={}, matchingRule={} ({})", propertyDef, matchingRule, matchingRuleQName);
 
-        PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, EquivalenceStrategy.IGNORE_METADATA, matchingRule, true);   // MID-5280
+        Comparator<PrismPropertyValue<T>> comparator = (o1, o2) -> {
+            if (o1.equals(o2, EquivalenceStrategy.REAL_VALUE, matchingRule)) {
+                return 0;
+            } else {
+                return 1;
+            }
+        };
+        // We can safely narrow delta using real values, because we are not interested in value metadata here.
+        // Because we are dealing with properties, container IDs are also out of questions, and operational items
+        // as well.
+        PropertyDelta<T> filteredDelta = propertyDelta.narrow(currentShadow, comparator, comparator, true); // MID-5280
         if (LOGGER.isTraceEnabled() && (filteredDelta == null || !filteredDelta.equals(propertyDelta))) {
             LOGGER.trace("Narrowed delta: {}", filteredDelta==null?null:filteredDelta.debugDump());
         }

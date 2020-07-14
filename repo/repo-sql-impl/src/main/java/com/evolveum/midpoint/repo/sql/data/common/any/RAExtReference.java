@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,17 +7,18 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
+import java.util.Objects;
+import javax.persistence.*;
+
+import org.hibernate.annotations.ForeignKey;
+
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.repo.sql.data.common.id.RAExtReferenceId;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import org.hibernate.annotations.ForeignKey;
-
-import javax.persistence.*;
-import java.util.Objects;
 
 /**
  * @author lazyman
@@ -101,9 +102,9 @@ public class RAExtReference extends RAExtBase<String> implements RAExtValue<Stri
     // TODO: Why value only? Why not targetType and relation?
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
         RAExtReference that = (RAExtReference) o;
         return Objects.equals(value, that.value);
     }

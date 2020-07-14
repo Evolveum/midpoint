@@ -46,11 +46,11 @@ public class JaxbDomHackImpl implements JaxbDomHack {
     private static final Trace LOGGER = TraceManager.getTrace(JaxbDomHack.class);
 
     private PrismContext prismContext;
-    private DomLexicalProcessor domParser;
+    private DomLexicalProcessor domLexicalProcessor;
 
-    public JaxbDomHackImpl(DomLexicalProcessor domParser, PrismContext prismContext) {
+    public JaxbDomHackImpl(DomLexicalProcessor domLexicalProcessor, PrismContext prismContext) {
         super();
-        this.domParser = domParser;
+        this.domLexicalProcessor = domLexicalProcessor;
         this.prismContext = prismContext;
     }
 
@@ -216,7 +216,7 @@ public class JaxbDomHackImpl implements JaxbDomHack {
             if (pval.isRaw() && parent.getDefinition() == null) {
                 XNodeImpl rawElement = (XNodeImpl) pval.getRawElement();
                 if (rawElement instanceof MapXNodeImpl) {
-                    return domParser.serializeXMapToElement((MapXNodeImpl)rawElement, elementName);
+                    return domLexicalProcessor.writeXMapToElement((MapXNodeImpl)rawElement, elementName);
                 } else if (rawElement instanceof PrimitiveXNodeImpl<?>) {
                     PrimitiveXNodeImpl<?> xprim = (PrimitiveXNodeImpl<?>)rawElement;
                     String stringValue = xprim.getStringValue();

@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.test.asserter.predicates.AssertionPredicate;
 import com.evolveum.midpoint.test.asserter.predicates.AssertionPredicateEvaluation;
@@ -91,8 +92,8 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         return sb.toString();
     }
 
-    private <T> PrismProperty<T> findProperty(QName attrName) {
-        return getPrismValue().findProperty(ItemName.fromQName(attrName));
+    private <T> PrismProperty<T> findProperty(ItemPath path) {
+        return getPrismValue().findProperty(path);
     }
 
     private <CC extends Containerable> PrismContainer<CC> findContainer(QName attrName) {
@@ -103,47 +104,47 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         return getPrismValue().findItem(ItemName.fromQName(itemName));
     }
 
-    public <T> PrismContainerValueAsserter<C,RA> assertPropertyEquals(QName propName, T expected) {
-        PrismProperty<T> prop = findProperty(propName);
+    public <T> PrismContainerValueAsserter<C,RA> assertPropertyEquals(ItemPath path, T expected) {
+        PrismProperty<T> prop = findProperty(path);
         if (prop == null && expected == null) {
             return this;
         }
-        assertNotNull("No property "+propName.getLocalPart()+" in "+desc(), prop);
+        assertNotNull("No property "+path+" in "+desc(), prop);
         T realValue = prop.getRealValue();
-        assertNotNull("No value in "+propName.getLocalPart()+" in "+desc(), realValue);
-        assertEquals("Wrong "+propName.getLocalPart()+" in "+desc(), expected, realValue);
+        assertNotNull("No value in "+path+" in "+desc(), realValue);
+        assertEquals("Wrong "+path+" in "+desc(), expected, realValue);
         return this;
     }
 
-    public <T> PrismContainerValueAsserter<C,RA> assertPropertyValueSatisfies(QName propName, AssertionPredicate<T> predicate) {
-        PrismProperty<T> prop = findProperty(propName);
+    public <T> PrismContainerValueAsserter<C,RA> assertPropertyValueSatisfies(ItemPath path, AssertionPredicate<T> predicate) {
+        PrismProperty<T> prop = findProperty(path);
         T value = prop != null ? prop.getRealValue() : null;
         AssertionPredicateEvaluation evaluation = predicate.evaluate(value);
         if (evaluation.hasFailed()) {
-            fail("Property " + propName + " value of '" + value + "' does not satisfy predicate: " + evaluation.getFailureDescription());
+            fail("Property " + path + " value of '" + value + "' does not satisfy predicate: " + evaluation.getFailureDescription());
         }
         return this;
     }
 
-    public <T> PrismContainerValueAsserter<C,RA> assertPropertyValuesEqual(QName propName, T... expectedValues) {
-        PrismProperty<T> property = findProperty(propName);
-        assertNotNull("No property "+propName+" in "+desc(), property);
+    public <T> PrismContainerValueAsserter<C,RA> assertPropertyValuesEqual(ItemPath path, T... expectedValues) {
+        PrismProperty<T> property = findProperty(path);
+        assertNotNull("No property "+ path +" in "+desc(), property);
         PrismAsserts.assertPropertyValueDesc(property, desc(), expectedValues);
         return this;
     }
 
-    public <T> PrismContainerValueAsserter<C,RA> assertPropertyValuesEqualRaw(QName attrName, T... expectedValues) {
-        PrismProperty<T> property = findProperty(attrName);
-        assertNotNull("No attribute "+attrName+" in "+desc(), property);
-        RawType[] expectedRaw = rawize(attrName, getPrismContext(), expectedValues);
+    public <T> PrismContainerValueAsserter<C,RA> assertPropertyValuesEqualRaw(ItemPath path, T... expectedValues) {
+        PrismProperty<T> property = findProperty(path);
+        assertNotNull("No attribute "+ path +" in "+desc(), property);
+        RawType[] expectedRaw = rawize(path, getPrismContext(), expectedValues);
         PrismAsserts.assertPropertyValueDesc(property, desc(), (T[])expectedRaw);
         return this;
     }
 
-    private <T> RawType[] rawize(QName attrName, PrismContext prismContext, T[] expectedValues) {
+    private <T> RawType[] rawize(ItemPath path, PrismContext prismContext, T[] expectedValues) {
         RawType[] raws = new RawType[expectedValues.length];
         for(int i = 0; i < expectedValues.length; i++) {
-            raws[i] = new RawType(prismContext.itemFactory().createPropertyValue(expectedValues[i]), attrName, prismContext);
+            raws[i] = new RawType(prismContext.itemFactory().createPropertyValue(expectedValues[i]), path.lastName(), prismContext);
         }
         return raws;
     }
@@ -173,12 +174,12 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         return this;
     }
 
-    public PrismContainerValueAsserter<C,RA> assertTimestampBetween(QName propertyName, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
-        PrismProperty<XMLGregorianCalendar> property = findProperty(propertyName);
-        assertNotNull("No property "+propertyName+" in "+desc(), property);
+    public PrismContainerValueAsserter<C,RA> assertTimestampBetween(ItemPath path, XMLGregorianCalendar startTs, XMLGregorianCalendar endTs) {
+        PrismProperty<XMLGregorianCalendar> property = findProperty(path);
+        assertNotNull("No property "+path+" in "+desc(), property);
         XMLGregorianCalendar timestamp = property.getRealValue();
-        assertNotNull("No value of property "+propertyName+" in "+desc(), timestamp);
-        TestUtil.assertBetween("Wrong value of property "+propertyName+" in "+desc(), startTs, endTs, timestamp);
+        assertNotNull("No value of property "+path+" in "+desc(), timestamp);
+        TestUtil.assertBetween("Wrong value of property "+path+" in "+desc(), startTs, endTs, timestamp);
         return this;
     }
 
@@ -199,10 +200,10 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         return asserter;
     }
 
-    public <T> PrismPropertyAsserter<T,? extends PrismContainerValueAsserter<C,RA>> property(QName propertyName) {
-        PrismProperty<T> property = findProperty(propertyName);
-        assertNotNull("No property "+propertyName+" in "+desc(), property);
-        PrismPropertyAsserter<T,? extends PrismContainerValueAsserter<C,RA>> asserter = new PrismPropertyAsserter<>(property, this, propertyName.getLocalPart() + " in " + desc());
+    public <T> PrismPropertyAsserter<T,? extends PrismContainerValueAsserter<C,RA>> property(ItemPath path) {
+        PrismProperty<T> property = findProperty(path);
+        assertNotNull("No property "+ path +" in "+desc(), property);
+        PrismPropertyAsserter<T,? extends PrismContainerValueAsserter<C,RA>> asserter = new PrismPropertyAsserter<>(property, this, path + " in " + desc());
         copySetupTo(asserter);
         return asserter;
     }

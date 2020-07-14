@@ -1,10 +1,12 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.util;
+
+import static java.util.Collections.*;
 
 import java.io.*;
 import java.lang.management.ManagementFactory;
@@ -18,6 +20,7 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -33,20 +36,17 @@ import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.TunnelException;
-
 import org.springframework.util.ClassUtils;
 
-import static java.util.Collections.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.TunnelException;
 
 /**
  * @author semancik
@@ -55,11 +55,11 @@ public class MiscUtil {
 
     private static final int BUFFER_SIZE = 2048;
 
-    private static DatatypeFactory df;
+    private static final DatatypeFactory DATATYPE_FACTORY;
 
     static {
         try {
-            df = DatatypeFactory.newInstance();
+            DATATYPE_FACTORY = DatatypeFactory.newInstance();
         } catch (DatatypeConfigurationException dce) {
             throw new IllegalStateException("Exception while obtaining Datatype Factory instance", dce);
         }
@@ -285,18 +285,24 @@ public class MiscUtil {
         } else {
             GregorianCalendar gc = new GregorianCalendar();
             gc.setTimeInMillis(date.getTime());
-            return df.newXMLGregorianCalendar(gc);
+            return DATATYPE_FACTORY.newXMLGregorianCalendar(gc);
         }
     }
 
-    public static XMLGregorianCalendar asXMLGregorianCalendar(Long timeInMilis) {
-        if (timeInMilis == null || timeInMilis == 0) {
+    public static XMLGregorianCalendar asXMLGregorianCalendar(Long timeInMillis) {
+        if (timeInMillis == null || timeInMillis == 0) {
             return null;
         } else {
             GregorianCalendar gc = new GregorianCalendar();
-            gc.setTimeInMillis(timeInMilis);
-            return df.newXMLGregorianCalendar(gc);
+            gc.setTimeInMillis(timeInMillis);
+            return DATATYPE_FACTORY.newXMLGregorianCalendar(gc);
         }
+    }
+
+    public static XMLGregorianCalendar asXMLGregorianCalendar(Instant instant) {
+        return instant != null
+                ? asXMLGregorianCalendar(instant.toEpochMilli())
+                : null;
     }
 
     /**
@@ -332,7 +338,7 @@ public class MiscUtil {
 
     /**
      * We have n dimensions (D1...Dn), each containing a number of values.
-     *
+     * <p>
      * This method sequentially creates all n-tuples of these values (one value from each dimension)
      * and invokes tupleProcessor on them.
      */
@@ -533,8 +539,8 @@ public class MiscUtil {
     public static String getObjectName(Object o) {
         return o != null ? "an instance of " + o.getClass().getName() : "null value";
     }
-
     // @pre: at least of o1, o2 is null
+
     public static Integer compareNullLast(Object o1, Object o2) {
         if (o1 == null && o2 == null) {
             return 0;
@@ -575,8 +581,8 @@ public class MiscUtil {
             throw exceptionSupplier.get();
         }
     }
-
     // similar to the above ... todo deduplicate
+
     public static <T> T getSingleValue(Collection<T> values, T defaultValue, String contextDescription) {
         if (values.size() == 0) {
             return defaultValue;
@@ -599,9 +605,9 @@ public class MiscUtil {
                 ? Stream.of(cls.cast(o))
                 : Stream.empty();
     }
-
     // CollectionUtils does not provide this
     // @pre: !list.isEmpty()
+
     public static <T> T last(List<T> list) {
         return list.get(list.size() - 1);
     }
@@ -699,6 +705,15 @@ public class MiscUtil {
         }
     }
 
+    public static <T> T unwrapTunnelledExceptionToRuntime(TunnelException te) {
+        Throwable cause = te.getCause();
+        if (cause instanceof RuntimeException) {
+            throw (RuntimeException) cause;
+        } else {
+            throw new SystemException(te);
+        }
+    }
+
     public static <T> Collection<T> filter(Collection<T> input, Predicate<? super T> predicate) {
         return input.stream().filter(predicate).collect(Collectors.toList());
     }
@@ -775,9 +790,9 @@ public class MiscUtil {
             zipOut.write(content.getBytes(charset));
         }
     }
-
     // More serious would be to read XML directly from the input stream -- fixme some day
     // We should probably implement reading from ZIP file directly in PrismContext
+
     @SuppressWarnings("unused")     // used externally
     public static String readZipFile(File file, Charset charset) throws IOException {
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
@@ -845,5 +860,37 @@ public class MiscUtil {
             // to preserve the stack trace.
             return original;
         }
+    }
+
+    public static XMLGregorianCalendar getEarliestTimeIgnoringNull(Collection<XMLGregorianCalendar> realValues) {
+        return realValues.stream()
+                .filter(Objects::nonNull)
+                .min(XMLGregorianCalendar::compare)
+                .orElse(null);
+    }
+
+    public static <V> V find(Collection<V> values, V value, @NotNull Comparator<V> comparator) {
+        for (V current : values) {
+            if (comparator.compare(value, current) == 0) {
+                return current;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Converts integer ordinal number to enum value of the defined enum type.
+     *
+     * @param enumType type of enum (class object)
+     * @param ordinal ordinal value
+     * @return enum value or null if ordinal is null
+     * @throws IndexOutOfBoundsException If the ordinal value is out of enum value range
+     */
+    public static <T extends Enum<T>> T enumFromOrdinal(Class<T> enumType, Integer ordinal) {
+        if (ordinal == null) {
+            return null;
+        }
+
+        return enumType.getEnumConstants()[ordinal];
     }
 }

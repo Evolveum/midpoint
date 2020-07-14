@@ -1,0 +1,17 @@
+model foaf-person {
+
+    namespace "http://xmlns.com/foaf/0.1/";
+
+    type Person {
+        item givenName {
+            type String;
+        }
+        item familyName {
+            type String;
+        }
+        item additionalName {
+            type String;
+        }
+    }
+
+}

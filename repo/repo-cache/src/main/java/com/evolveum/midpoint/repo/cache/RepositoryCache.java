@@ -18,7 +18,7 @@ import com.evolveum.midpoint.repo.cache.global.GlobalVersionCache;
 import com.evolveum.midpoint.repo.cache.handlers.*;
 import com.evolveum.midpoint.repo.cache.local.LocalRepoCacheCollection;
 import com.evolveum.midpoint.repo.cache.invalidation.Invalidator;
-import com.evolveum.midpoint.repo.cache.registry.CacheRegistry;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;

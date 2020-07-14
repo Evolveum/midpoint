@@ -8,10 +8,7 @@ package com.evolveum.midpoint.gui.api.prism.wrapper;
 
 import java.util.List;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -22,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItem
  * @author katka
  *
  */
-public interface PrismContainerValueWrapper<C extends Containerable> extends PrismValueWrapper<C, PrismContainerValue<C>>{
+public interface PrismContainerValueWrapper<C extends Containerable> extends PrismValueWrapper<C> {
 
     String getDisplayName();
     String getHelpText();
@@ -30,11 +27,6 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
     boolean isExpanded();
 
     void setExpanded(boolean expanded);
-
-    boolean hasMetadata();
-    boolean isShowMetadata();
-
-    void setShowMetadata(boolean showMetadata);
 
     boolean isSorted();
     void setSorted(boolean sorted);
@@ -46,9 +38,9 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     <T extends Containerable> List<PrismContainerWrapper<T>> getContainers();
 
-    List<? extends ItemWrapper<?,?>> getNonContainers();
+    List<? extends ItemWrapper<?, ?>> getNonContainers();
 
-    List<? extends ItemWrapper<?,?>> getItems();
+    List<? extends ItemWrapper<?, ?>> getItems();
 
     <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException;
     <X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException;
@@ -59,7 +51,6 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     boolean isSelected();
     boolean setSelected(boolean selected); //TODO why return boolean?
-
 
     boolean isReadOnly();
     void setReadOnly(boolean readOnly, boolean recursive);
@@ -83,4 +74,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     PrismContainerDefinition<C> getDefinition();
 
+    @Override
+    PrismContainerValue<C> getNewValue();
 }
+

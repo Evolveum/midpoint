@@ -7,35 +7,35 @@
 
 package com.evolveum.midpoint.web.security.provider;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.security.module.authentication.LdapAuthenticationToken;
 import com.evolveum.midpoint.web.security.module.authentication.LdapModuleAuthentication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.InternalAuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -43,7 +43,10 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.ldap.authentication.LdapAuthenticationProvider;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Collection;
 import java.util.List;
 
@@ -53,11 +56,11 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
 
     private LdapAuthenticationProvider authenticatorProvider;
 
-    @Autowired
-    private ModelAuditRecorder auditProvider;
+    @Autowired private ModelAuditRecorder auditProvider;
+    @Autowired private PrismContext prismContext;
+    @Autowired private Clock clock;
+    @Autowired private GuiProfiledPrincipalManager focusProfileService;
 
-    @Autowired
-    private PrismContext prismContext;
 
     public MidPointLdapAuthenticationProvider(LdapAuthenticator authenticator) {
         this.authenticatorProvider = createAuthenticatorProvider(authenticator);
@@ -107,22 +110,28 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
 
                 Object principal = authNCtx.getPrincipal();
                 if (!(principal instanceof MidPointPrincipal)) {
+                    recordPasswordAuthenticationFailure(authentication.getName(), "not contains required assignment");
                     throw new BadCredentialsException("LdapAuthentication.incorrect.value");
                 }
                 MidPointPrincipal midPointPrincipal = (MidPointPrincipal) principal;
                 FocusType focusType = midPointPrincipal.getFocus();
 
                 if (focusType == null) {
+                    recordPasswordAuthenticationFailure(authentication.getName(), "not contains required assignment");
                     throw new BadCredentialsException("LdapAuthentication.bad.user");
                 }
 
-                String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
                 Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
-                if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel() != null) {
-                    channel = ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel().getChannelId();
+                if (actualAuthentication instanceof MidpointAuthentication) {
+                    MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
+                    List<ObjectReferenceType> requireAssignment = mpAuthentication.getSequence().getRequireAssignmentTarget();
+                    if (!AuthenticationEvaluatorUtil.checkRequiredAssignment(focusType.getAssignment(), requireAssignment)) {
+                        recordPasswordAuthenticationFailure(midPointPrincipal.getUsername(), "not contains required assignment");
+                        throw new InternalAuthenticationServiceException("web.security.flexAuth.invalid.required.assignment");
+                    }
                 }
 
-                auditProvider.auditLoginSuccess(focusType, ConnectionEnvironment.create(channel));
+                recordPasswordAuthenticationSuccess(midPointPrincipal);
                 return authNCtx;
             }
         };
@@ -167,6 +176,7 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
                 token = this.authenticatorProvider.authenticate(authentication);
             } else {
                 LOGGER.error("Unsupported authentication {}", authentication);
+                recordPasswordAuthenticationFailure(authentication.getName(), "unavailable provider");
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
 
@@ -180,16 +190,16 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
             // This sometimes happens ... for unknown reasons the underlying libraries cannot
             // figure out correct exception. Which results to wrong error message (MID-4518)
             // So, be smart here and try to figure out correct error.
-            auditProvider.auditLoginFailure(authentication.getName(), null, connEnv, e.getMessage());
+            recordPasswordAuthenticationFailure(authentication.getName(), e.getMessage());
             throw processInternalAuthenticationException(e, e);
 
         } catch (IncorrectResultSizeDataAccessException e) {
             LOGGER.error("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
-            auditProvider.auditLoginFailure(authentication.getName(), null, connEnv, "bad user");
+            recordPasswordAuthenticationFailure(authentication.getName(), "bad user");
             throw new BadCredentialsException("LdapAuthentication.bad.user", e);
         } catch (RuntimeException e) {
             LOGGER.error("Failed to authenticate user {}. Error: {}", authentication.getName(), e.getMessage(), e);
-            auditProvider.auditLoginFailure(authentication.getName(), null, connEnv, "bad credentials");
+            recordPasswordAuthenticationFailure(authentication.getName(), "bad credentials");
             throw e;
         }
     }
@@ -220,5 +230,107 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
     @Override
     public boolean equals(Object obj) {
         return this.authenticatorProvider.equals(obj);
+    }
+
+    public void recordPasswordAuthenticationSuccess(@NotNull MidPointPrincipal principal) {
+        String channel = getChannel();
+        AuthenticationBehavioralDataType behavior = AuthenticationEvaluatorUtil.getBehavior(principal.getFocus());
+
+        FocusType focusBefore = principal.getFocus().clone();
+        Integer failedLogins = behavior.getFailedLogins();
+        if (failedLogins != null && failedLogins > 0) {
+            behavior.setFailedLogins(0);
+        }
+        LoginEventType event = new LoginEventType();
+        event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
+        event.setFrom(SecurityUtil.getCurrentConnectionInformation().getRemoteHostAddress());
+
+        behavior.setPreviousSuccessfulLogin(behavior.getLastSuccessfulLogin());
+        behavior.setLastSuccessfulLogin(event);
+
+        focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+        recordAuthenticationSuccess(principal.getFocus(), channel);
+    }
+
+    private Collection<? extends ItemDelta<?, ?>> computeModifications(@NotNull FocusType before, @NotNull FocusType after) {
+        ObjectDelta<? extends FocusType> delta = ((PrismObject<FocusType>)before.asPrismObject()).diff((PrismObject<FocusType>) after.asPrismObject(), ParameterizedEquivalenceStrategy.LITERAL);
+        assert delta.isModify();
+        return delta.getModifications();
+    }
+
+    private String getChannel() {
+        String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
+        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel() != null) {
+            channel = ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel().getChannelId();
+        }
+        return channel;
+    }
+
+    private void recordAuthenticationSuccess(@NotNull FocusType focusType, @NotNull String channel) {
+        auditProvider.auditLoginSuccess(focusType, createConnectEnviroment(channel));
+    }
+
+    private ConnectionEnvironment createConnectEnviroment(String channel) {
+        ConnectionEnvironment env = ConnectionEnvironment.create(channel);
+        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getSessionId() != null) {
+            env.setSessionIdOverride(((MidpointAuthentication) actualAuthentication).getSessionId());
+        }
+        return env;
+    }
+
+    public void recordPasswordAuthenticationFailure(String name, String reason) {
+
+        FocusType focus = null;
+        String channel = getChannel();
+        MidPointPrincipal principal = null;
+        try {
+            principal = focusProfileService.getPrincipal(name, getFocusType());
+            focus = principal.getFocus();
+        } catch (Exception e) {
+            //ignore if non-exist
+        }
+
+        if (principal != null && focus != null) {
+            AuthenticationBehavioralDataType behavior = AuthenticationEvaluatorUtil.getBehavior(focus);
+
+            FocusType focusBefore = focus.clone();
+            Integer failedLogins = behavior.getFailedLogins();
+
+            if (failedLogins == null) {
+                failedLogins = 1;
+            } else {
+                failedLogins++;
+            }
+
+            behavior.setFailedLogins(failedLogins);
+
+            LoginEventType event = new LoginEventType();
+            event.setTimestamp(clock.currentTimeXMLGregorianCalendar());
+            event.setFrom(SecurityUtil.getCurrentConnectionInformation().getRemoteHostAddress());
+
+            behavior.setLastFailedLogin(event);
+            focusProfileService.updateFocus(principal, computeModifications(focusBefore, principal.getFocus()));
+        }
+
+        recordAuthenticationFailure(name, focus, channel, reason);
+    }
+
+    private Class<? extends FocusType> getFocusType() {
+        Class<? extends FocusType> focusType = UserType.class;
+        Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
+        if (actualAuthentication instanceof MidpointAuthentication) {
+            MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
+            ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
+            if (moduleAuthentication != null && moduleAuthentication.getFocusType() != null) {
+                focusType = WebComponentUtil.qnameToClass(prismContext, moduleAuthentication.getFocusType(), FocusType.class);
+            }
+        }
+        return focusType;
+    }
+
+    protected void recordAuthenticationFailure(String name, FocusType focus, String channel, String reason) {
+        auditProvider.auditLoginFailure(name, focus, createConnectEnviroment(channel), "bad credentials");
     }
 }

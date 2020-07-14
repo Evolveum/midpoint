@@ -12,6 +12,7 @@
             <class name="com.evolveum.midpoint.web.TestUnitObjectWrapperFactory"/>
             <class name="com.evolveum.midpoint.web.TestDescriptorLoader"/>
             <class name="com.evolveum.midpoint.web.TestInitialObjects"/>
+            <class name="com.evolveum.midpoint.web.TestSecurityUtils"/>
         </classes>
     </test>
 </suite>

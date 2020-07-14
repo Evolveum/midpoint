@@ -1418,7 +1418,7 @@
             <xsd:extension base="tns:TraceType">
                 <xsd:sequence>
                     <xsd:element name="mappingKind" type="tns:MappingKindType" minOccurs="0"/>
-                    <xsd:element name="mapping" type="tns:MappingType" minOccurs="0"/>
+                    <xsd:element name="mapping" type="tns:AbstractMappingType" minOccurs="0"/>
                     <xsd:element name="containingObjectRef" type="tns:ObjectReferenceType" minOccurs="0"/>
                     <xsd:element name="timeFrom" type="xsd:dateTime" minOccurs="0"/>
                     <xsd:element name="timeTo" type="xsd:dateTime" minOccurs="0"/>

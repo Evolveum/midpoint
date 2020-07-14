@@ -70,7 +70,7 @@ public class SchemaTransformer {
     private static final String OP_APPLY_SCHEMAS_AND_SECURITY = SchemaTransformer.class.getName() + ".applySchemasAndSecurity";
     private static final String OP_APPLY_SCHEMAS_AND_SECURITY_TO_OBJECT = SchemaTransformer.class.getName() + ".applySchemasAndSecurityToObject";
 
-    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService cacheRepositoryService;
     @Autowired private SecurityEnforcer securityEnforcer;
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private ArchetypeManager archetypeManager;

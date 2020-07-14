@@ -19,9 +19,9 @@ import com.evolveum.midpoint.repo.sql.data.common.container.Container;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
+import com.evolveum.midpoint.repo.sql.query.definition.IdQueryProperty;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.query.definition.OwnerIdGetter;
-import com.evolveum.midpoint.repo.sql.query2.definition.IdQueryProperty;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -122,6 +122,9 @@ public class RLookupTableRow implements Container<RLookupTable> {
     @Override
     public void setOwner(RLookupTable owner) {
         this.owner = owner;
+        if (owner != null) {
+            setOwnerOid(owner.getOid());
+        }
     }
 
     @Override
@@ -191,13 +194,13 @@ public class RLookupTableRow implements Container<RLookupTable> {
         }
 
         RLookupTableRow that = (RLookupTableRow) o;
-        return Objects.equals(ownerOid, that.ownerOid)
+        return Objects.equals(getOwnerOid(), that.getOwnerOid())
                 && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerOid, id);
+        return Objects.hash(getOwnerOid(), id);
     }
 
     @Override
@@ -205,7 +208,7 @@ public class RLookupTableRow implements Container<RLookupTable> {
         return "RLookupTableRow{" +
                 "id=" + id +
                 ", owner=" + owner +
-                ", ownerOid='" + ownerOid + '\'' +
+                ", ownerOid='" + getOwnerOid() + '\'' +
                 ", key='" + key + '\'' +
                 ", value='" + value + '\'' +
                 ", label=" + label +

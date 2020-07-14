@@ -1,11 +1,20 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
+
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
+import javax.persistence.*;
+
+import org.hibernate.annotations.Cascade;
+import org.hibernate.annotations.ForeignKey;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -15,21 +24,11 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RAssignmentExtensionId;
 import com.evolveum.midpoint.repo.sql.data.common.type.RAssignmentExtensionType;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
-import com.evolveum.midpoint.repo.sql.query2.definition.NotQueryable;
+import com.evolveum.midpoint.repo.sql.query.definition.NotQueryable;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
-
-import org.apache.commons.lang.Validate;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.ForeignKey;
-
-import javax.persistence.*;
-
-import java.io.Serializable;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author lazyman
@@ -91,7 +90,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RAExtBoolean> getBooleans() {
         if (booleans == null) {
             booleans = new HashSet<>();
@@ -100,7 +99,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RAExtLong> getLongs() {
         if (longs == null) {
             longs = new HashSet<>();
@@ -109,7 +108,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RAExtString> getStrings() {
         if (strings == null) {
             strings = new HashSet<>();
@@ -118,7 +117,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RAExtDate> getDates() {
         if (dates == null) {
             dates = new HashSet<>();
@@ -127,7 +126,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RAExtReference> getReferences() {
         if (references == null) {
             references = new HashSet<>();
@@ -136,7 +135,7 @@ public class RAssignmentExtension implements Serializable, EntityState {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = RAExtValue.ANY_CONTAINER, orphanRemoval = true)
-    @Cascade({org.hibernate.annotations.CascadeType.ALL})
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RAExtPolyString> getPolys() {
         if (polys == null) {
             polys = new HashSet<>();
@@ -182,17 +181,17 @@ public class RAssignmentExtension implements Serializable, EntityState {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         RAssignmentExtension that = (RAssignmentExtension) o;
 
-        if (dates != null ? !dates.equals(that.dates) : that.dates != null) return false;
-        if (longs != null ? !longs.equals(that.longs) : that.longs != null) return false;
-        if (polys != null ? !polys.equals(that.polys) : that.polys != null) return false;
-        if (references != null ? !references.equals(that.references) : that.references != null) return false;
-        if (strings != null ? !strings.equals(that.strings) : that.strings != null) return false;
-        if (booleans != null ? !booleans.equals(that.booleans) : that.booleans != null) return false;
+        if (dates != null ? !dates.equals(that.dates) : that.dates != null) { return false; }
+        if (longs != null ? !longs.equals(that.longs) : that.longs != null) { return false; }
+        if (polys != null ? !polys.equals(that.polys) : that.polys != null) { return false; }
+        if (references != null ? !references.equals(that.references) : that.references != null) { return false; }
+        if (strings != null ? !strings.equals(that.strings) : that.strings != null) { return false; }
+        if (booleans != null ? !booleans.equals(that.booleans) : that.booleans != null) { return false; }
 
         return true;
     }
@@ -204,14 +203,14 @@ public class RAssignmentExtension implements Serializable, EntityState {
 
     public static void fromJaxb(ExtensionType jaxb, RAssignmentExtension repo, RAssignmentExtensionType type,
             RepositoryContext repositoryContext) throws DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
         fromJaxb(jaxb.asPrismContainerValue(), repo, type, repositoryContext);
     }
 
     private static void fromJaxb(PrismContainerValue<?> containerValue, RAssignmentExtension repo,
-                                     RAssignmentExtensionType type, RepositoryContext repositoryContext) throws
+            RAssignmentExtensionType type, RepositoryContext repositoryContext) throws
             DtoTranslationException {
         RAnyConverter converter = new RAnyConverter(repositoryContext.prismContext, repositoryContext.extItemDictionary);
 

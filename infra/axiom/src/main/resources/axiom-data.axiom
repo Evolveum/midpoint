@@ -1,0 +1,69 @@
+// Copyright (c) 2020 Evolveum and contributors
+//
+// This work is dual-licensed under the Apache License 2.0
+// and European Union Public License. See LICENSE file for details.
+model axiom-data {
+    namespace "https://schema.evolveum.com/ns/axiom/data";
+    
+    import "https://schema.evolveum.com/ns/axiom/model" {
+        prefix axiom;
+    }
+
+    type DynamicType; // FIXME: ADd definition
+    type ItemCompleteness; // FIXME: Add definition
+    type ValueSignificance; // FIXME: Add definition
+    type ValueMetadata; // FIXME: Add definition
+
+    // Axiom Infra Model
+
+
+    type ItemName {
+        supertype QName;
+    }
+
+    type AxiomItem {
+        item name {
+            type ItemName;
+        }
+        item definition {
+            type axiom:ItemDefinition;
+            operational true;
+        }
+        item value {
+            type AxiomValue;
+        }
+
+        item completeness {
+            type ItemCompleteness;
+        }
+    }
+
+    type AxiomValue {
+        item type {
+            type axiom:TypeReference;
+        }
+        item significance {
+            type ValueSignificance;
+        }
+        item metadata {
+            type ValueMetadata;
+        }
+    }
+
+    type AxiomSimpleValue {
+        supertype AxiomValue;
+        argument value;
+        
+        item value {
+            type DynamicType;
+        }
+    }
+
+    type AxiomComplexValue {
+        supertype AxiomValue;
+        item item {
+            type AxiomItem;
+        }
+    }
+
+}

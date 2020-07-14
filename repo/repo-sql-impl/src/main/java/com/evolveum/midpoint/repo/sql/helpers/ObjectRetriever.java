@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -39,11 +39,11 @@ import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
+import com.evolveum.midpoint.repo.sql.query.QueryEngine;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.query.RQuery;
-import com.evolveum.midpoint.repo.sql.query2.QueryEngine2;
-import com.evolveum.midpoint.repo.sql.query2.RQueryImpl;
-import com.evolveum.midpoint.repo.sql.query2.hqm.QueryParameterValue;
+import com.evolveum.midpoint.repo.sql.query.RQueryImpl;
+import com.evolveum.midpoint.repo.sql.query.hqm.QueryParameterValue;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
@@ -95,7 +95,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
 
-            objectType = getObjectInternal(session, type, oid, options, false, result);
+            objectType = getObjectInternal(session, type, oid, options, false);
 
             session.getTransaction().commit();
         } catch (ObjectNotFoundException ex) {
@@ -120,8 +120,7 @@ public class ObjectRetriever {
     }
 
     public <T extends ObjectType> PrismObject<T> getObjectInternal(Session session, Class<T> type, String oid,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            boolean lockForUpdate, OperationResult operationResult)
+            Collection<SelectorOptions<GetOperationOptions>> options, boolean lockForUpdate)
             throws ObjectNotFoundException, SchemaException, DtoTranslationException {
 
         boolean lockedForUpdateViaHibernate = false;
@@ -195,7 +194,7 @@ public class ObjectRetriever {
         }
 
         LOGGER.trace("Transforming data to JAXB type.");
-        PrismObject<T> prismObject = updateLoadedObject(fullObject, type, oid, options, null, session, operationResult);
+        PrismObject<T> prismObject = updateLoadedObject(fullObject, type, oid, options, null, session);
         validateObjectType(prismObject, type);
 
         // this was implemented to allow report parsing errors as warnings to upper layers;
@@ -244,7 +243,7 @@ public class ObjectRetriever {
             }
 
             GetObjectResult focus = focuses.get(0);
-            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, null, options, null, session, result);
+            owner = updateLoadedObject(focus, (Class<F>) FocusType.class, null, options, null, session);
 
             session.getTransaction().commit();
 
@@ -281,7 +280,7 @@ public class ObjectRetriever {
             }
 
             GetObjectResult user = users.get(0);
-            userType = updateLoadedObject(user, UserType.class, null, null, null, session, result);
+            userType = updateLoadedObject(user, UserType.class, null, null, null, session);
 
             session.getTransaction().commit();
         } catch (SchemaException | RuntimeException ex) {
@@ -314,7 +313,7 @@ public class ObjectRetriever {
                 longCount = (Number) sqlQuery.uniqueResult();
             } else {
                 RQuery rQuery;
-                QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
+                QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
                 rQuery = engine.interpret(query, type, options, true, session);
 
                 longCount = (Number) rQuery.uniqueResult();
@@ -363,7 +362,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
 
-            QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
+            QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
             RQuery rQuery = engine.interpret(query, type, options, true, session);
             Number longCount = (Number) rQuery.uniqueResult();
             LOGGER.trace("Found {} objects.", longCount);
@@ -387,7 +386,7 @@ public class ObjectRetriever {
             session = baseHelper.beginReadOnlyTransaction();
             RQuery rQuery;
 
-            QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
+            QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
             rQuery = engine.interpret(query, type, options, false, session);
 
             @SuppressWarnings({ "unchecked", "raw" })
@@ -417,7 +416,7 @@ public class ObjectRetriever {
                 Holder<PrismObject<T>> partialValueHolder = new Holder<>();
                 PrismObject<T> prismObject;
                 try {
-                    prismObject = updateLoadedObject(object, type, oid, options, partialValueHolder, session, result);
+                    prismObject = updateLoadedObject(object, type, oid, options, partialValueHolder, session);
                 } catch (Throwable t) {
                     if (!partialValueHolder.isEmpty()) {
                         prismObject = partialValueHolder.getValue();
@@ -451,7 +450,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
 
-            QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
+            QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
             RQuery rQuery = engine.interpret(query, type, options, false, session);
 
             if (cases) {
@@ -486,7 +485,7 @@ public class ObjectRetriever {
                 for (GetContainerableIdOnlyResult item : items) {
                     try {
                         @SuppressWarnings({ "raw", "unchecked" })
-                        C value = (C) caseManagementHelper.updateLoadedCaseWorkItem(item, casesCache, options, session, result);
+                        C value = (C) caseManagementHelper.updateLoadedCaseWorkItem(item, casesCache, session);
                         list.add(value);
                     } catch (ObjectNotFoundException | DtoTranslationException e) {
                         LoggingUtils.logUnexpectedException(LOGGER, "Couldn't retrieve case work item for {}", e, item);
@@ -510,10 +509,9 @@ public class ObjectRetriever {
     /**
      * This method provides object parsing from String and validation.
      */
-    private <T extends ObjectType> PrismObject<T> updateLoadedObject(GetObjectResult result, Class<T> type,
-            String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-            Holder<PrismObject<T>> partialValueHolder,
-            Session session, OperationResult operationResult) throws SchemaException {
+    private <T extends ObjectType> PrismObject<T> updateLoadedObject(GetObjectResult result,
+            Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+            Holder<PrismObject<T>> partialValueHolder, Session session) throws SchemaException {
 
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
         boolean raw = GetOperationOptions.isRaw(rootOptions);
@@ -743,7 +741,7 @@ public class ObjectRetriever {
     }
 
     private void applyShadowAttributeDefinitions(
-            Class<? extends RAnyValue> anyValueType, PrismObject object, Session session)
+            Class<? extends RAnyValue> anyValueType, PrismObject<?> object, Session session)
             throws SchemaException {
 
         PrismContainer<?> attributes = object.findContainer(ShadowType.F_ATTRIBUTES);
@@ -845,7 +843,7 @@ public class ObjectRetriever {
         try {
             session = baseHelper.beginReadOnlyTransaction();
             RQuery rQuery;
-            QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
+            QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
             rQuery = engine.interpret(query, type, options, false, session);
 
             try (ScrollableResults results = rQuery.scroll(ScrollMode.FORWARD_ONLY)) {
@@ -858,7 +856,7 @@ public class ObjectRetriever {
                     }
 
                     // TODO treat exceptions encountered within the next call
-                    PrismObject<T> prismObject = updateLoadedObject(object, type, null, options, null, session, result);
+                    PrismObject<T> prismObject = updateLoadedObject(object, type, null, options, null, session);
 
                     /*
                      *  We DO NOT store OIDs directly into retrievedOids, because this would mean that any duplicated results
@@ -1071,7 +1069,7 @@ public class ObjectRetriever {
             final org.hibernate.Query query;
             final boolean isMidpointQuery = request.getImplementationLevelQuery() == null;
             if (isMidpointQuery) {
-                QueryEngine2 engine = new QueryEngine2(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
+                QueryEngine engine = new QueryEngine(getConfiguration(), extItemDictionary, prismContext, relationRegistry);
                 RQueryImpl rQuery = (RQueryImpl) engine.interpret(request.getQuery(), request.getType(), request.getOptions(), false, session);
                 query = rQuery.getQuery();
                 implementationLevelQuery = query.getQueryString();

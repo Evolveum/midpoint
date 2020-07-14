@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,23 +12,19 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -40,10 +36,10 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author katka
- *
  */
 public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapper> implements ItemWrapper<I, VW>, Serializable {
 
@@ -70,12 +66,11 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     private boolean showInVirtualContainer;
 
-
     //consider
     private boolean readOnly;
     private UserInterfaceElementVisibilityType visibleOverwrite;
 
-    public ItemWrapperImpl(@Nullable PrismContainerValueWrapper<?> parent, I item, ItemStatus status) {
+    public ItemWrapperImpl(PrismContainerValueWrapper<?> parent, I item, ItemStatus status) {
         Validate.notNull(item, "Item must not be null.");
         Validate.notNull(status, "Item status must not be null.");
 
@@ -102,7 +97,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
 
         for (VW value : values) {
-            value.addToDelta((ItemDelta)delta);
+            value.addToDelta((ItemDelta) delta);
         }
 
         if (delta.isEmpty()) {
@@ -123,14 +118,12 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         return displayName;
     }
 
-
-
     @Override
     public String getHelp() {
         return WebPrismUtil.getHelpText(getItemDefinition());
     }
 
-        @Override
+    @Override
     public boolean isExperimental() {
         return getItemDefinition().isExperimental();
     }
@@ -263,7 +256,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         return ColumnUtils.createStringResource(nameKey, defaultString).getString();
     }
 
-
     @Override
     public ItemStatus findObjectStatus() {
         if (parent == null) {
@@ -304,7 +296,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         return null;
 
     }
-
 
     @Override
     public List<VW> getValues() {
@@ -444,7 +435,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
+    public boolean isValidFor(@NotNull QName elementQName, @NotNull Class<? extends ItemDefinition> clazz, boolean caseInsensitive) {
         return getItemDefinition().isValidFor(elementQName, clazz, caseInsensitive);
     }
 
@@ -466,7 +457,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
+    public <T extends ItemDefinition> T findItemDefinition(@NotNull ItemPath path, @NotNull Class<T> clazz) {
         return getItemDefinition().findItemDefinition(path, clazz);
     }
 
@@ -476,7 +467,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public ItemDefinition<I> clone() {
+    public @NotNull ItemDefinition<I> clone() {
         return getItemDefinition().clone();
     }
 
@@ -656,12 +647,10 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         return false;
     }
 
-
     protected boolean isVisibleByVisibilityHandler(boolean parentExpanded, ItemVisibilityHandler visibilityHandler) {
         if (!parentExpanded) {
             return false;
         }
-
 
         if (visibilityHandler != null) {
             ItemVisibility visible = visibilityHandler.isVisible(this);
@@ -705,8 +694,6 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
     }
 
-
-
     @Override
     public void removeAll(ModelServiceLocator locator) throws SchemaException {
         for (VW value : new ArrayList<>(values)) {
@@ -719,7 +706,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     private void removeValue(VW valueWrapper) {
-        switch(valueWrapper.getStatus()) {
+        switch (valueWrapper.getStatus()) {
             case ADDED:
                 values.remove(valueWrapper);
                 getItem().remove(valueWrapper.getOldValue());
@@ -757,7 +744,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     private boolean hasEmptyPlaceholder(List<VW> values) {
         for (VW value : values) {
-            if (ValueStatus.ADDED.equals(value.getStatus()) ) {//&& !value.hasValueChanged()) {
+            if (ValueStatus.ADDED.equals(value.getStatus())) {//&& !value.hasValueChanged()) {
                 return true;
             }
         }

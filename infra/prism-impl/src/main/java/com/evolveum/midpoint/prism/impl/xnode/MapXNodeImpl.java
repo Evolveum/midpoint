@@ -48,6 +48,8 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
 
     private boolean hasDefaultNamespaceMarkers;
 
+    private MapXNode metadata;
+
     public int size() {
         return subnodes.size();
     }
@@ -245,7 +247,8 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
             return false;
         }
         MapXNodeImpl other = (MapXNodeImpl) o;
-        return MiscUtil.unorderedCollectionEquals(this.subnodes.entrySet(), other.subnodes.entrySet());
+        return MiscUtil.unorderedCollectionEquals(this.subnodes.entrySet(), other.subnodes.entrySet()) &&
+                metadataEquals(this.metadata, other.metadata);
     }
 
     public int hashCode() {
@@ -262,6 +265,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpMapMultiLine(sb, this.toMap(), indent, true, dumpSuffix());
+        appendMetadata(sb, indent, metadata);
         return sb.toString();
     }
 
@@ -365,5 +369,16 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
 
     public void setHasDefaultNamespaceMarkers() {
         hasDefaultNamespaceMarkers = true;
+    }
+
+
+    @Override
+    public MapXNode getMetadataNode() {
+        return metadata;
+    }
+
+    @Override
+    public void setMetadataNode(MapXNode metadata) {
+        this.metadata = metadata;
     }
 }

@@ -1,13 +1,15 @@
 ---
-'@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-objects:
-- user:
+- '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  user:
     name: "u1"
-- user:
+- '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  user:
     name: "u2"
-- role:
+- '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  role:
     name: "r1"
-- objectCollection:
+- '@ns': "http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+  objectCollection:
     name: "oc"
     type: "http://midpoint.evolveum.com/xml/ns/public/common/common-3#UserType"
     filter:

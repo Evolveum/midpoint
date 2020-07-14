@@ -14,11 +14,13 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 import org.springframework.security.web.authentication.preauth.RequestHeaderAuthenticationFilter;
+import org.springframework.security.web.authentication.session.NullAuthenticatedSessionStrategy;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -37,6 +39,7 @@ public class MidpointRequestHeaderAuthenticationFilter extends RequestHeaderAuth
     private AuthenticationFailureHandler authenticationFailureHandler = null;
     private AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
     private AuthenticationManager authenticationManager = null;
+    private SessionRegistry sessionRegistry;
 
     @Override
     protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response, AuthenticationException failed) throws IOException, ServletException {
@@ -96,6 +99,9 @@ public class MidpointRequestHeaderAuthenticationFilter extends RequestHeaderAuth
                     principal, credentials);
             authRequest.setDetails(authenticationDetailsSource.buildDetails(request));
             authResult = authenticationManager.authenticate(authRequest);
+            if (sessionRegistry != null) {
+                sessionRegistry.registerNewSession(request.getSession().getId(), authResult.getPrincipal());
+            }
             successfulAuthentication(request, response, authResult);
         }
         catch (AuthenticationException failed) {
@@ -110,15 +116,19 @@ public class MidpointRequestHeaderAuthenticationFilter extends RequestHeaderAuth
         super.setAuthenticationManager(authenticationManager);
     }
 
-    @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) throws IOException, ServletException {
-
-        if (authResult instanceof MidpointAuthentication) {
-            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authResult;
-            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
-            moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
-        }
-
-        super.successfulAuthentication(request, response, authResult);
+    public void setSessionRegistry(SessionRegistry sessionRegistry) {
+        this.sessionRegistry = sessionRegistry;
     }
+
+//    @Override
+//    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, Authentication authResult) throws IOException, ServletException {
+//
+//        if (authResult instanceof MidpointAuthentication) {
+//            MidpointAuthentication mpAuthentication = (MidpointAuthentication) authResult;
+//            ModuleAuthentication moduleAuthentication = mpAuthentication.getProcessingModuleAuthentication();
+//            moduleAuthentication.setState(StateOfModule.SUCCESSFULLY);
+//        }
+//
+//        super.successfulAuthentication(request, response, authResult);
+//    }
 }

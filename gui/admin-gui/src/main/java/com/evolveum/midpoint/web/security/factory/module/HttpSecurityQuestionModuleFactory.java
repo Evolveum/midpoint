@@ -62,6 +62,7 @@ public class HttpSecurityQuestionModuleFactory extends AbstractCredentialModuleF
         moduleAuthentication.setCredentialName(((AbstractCredentialAuthenticationModuleType)moduleType).getCredentialName());
         moduleAuthentication.setCredentialType(supportedClass());
         moduleAuthentication.setNameOfModule(configuration.getNameOfModule());
+        moduleAuthentication.setRealm(((HttpSecQAuthenticationModuleType) moduleType).getRealm());
         return moduleAuthentication;
     }
 

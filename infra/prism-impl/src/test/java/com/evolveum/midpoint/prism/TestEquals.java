@@ -8,11 +8,15 @@ package com.evolveum.midpoint.prism;
 
 import static org.testng.AssertJUnit.*;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
+
+import java.util.Comparator;
 
 /**
  * @author semancik
@@ -20,7 +24,7 @@ import com.evolveum.midpoint.prism.foo.UserType;
  */
 public class TestEquals extends AbstractPrismTest {
 
-    @Test
+    @Test(enabled = false) // containsEquivalentValue was removed from Item because of weird contract
     public void testContainsEquivalentValue01() throws Exception {
         // GIVEN
 
@@ -39,10 +43,17 @@ public class TestEquals extends AbstractPrismTest {
 
         // WHEN, THEN
         when();
-        assertTrue(ASSIGNMENT_PATLAMA_ID + ":null", assignmentContainer.containsEquivalentValue(createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null)));
-        assertTrue("null:" + ASSIGNMENT_PATLAMA_DESCRIPTION, assignmentContainer.containsEquivalentValue(createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION)));
-        assertFalse("364576:null", assignmentContainer.containsEquivalentValue(createAssignmentValue(364576L, null)));
-        assertFalse("null:never ever never", assignmentContainer.containsEquivalentValue(createAssignmentValue(null, "never ever never")));
+        Comparator<PrismContainerValue<AssignmentType>> comparator =
+                EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.prismValueComparator();
+
+//        assertTrue(ASSIGNMENT_PATLAMA_ID + ":null",
+//                assignmentContainer.containsEquivalentValue(createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null), comparator));
+//        assertTrue("null:" + ASSIGNMENT_PATLAMA_DESCRIPTION,
+//                assignmentContainer.containsEquivalentValue(createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION), comparator));
+//        assertFalse("364576:null",
+//                assignmentContainer.containsEquivalentValue(createAssignmentValue(364576L, null), comparator));
+//        assertFalse("null:never ever never",
+//                assignmentContainer.containsEquivalentValue(createAssignmentValue(null, "never ever never"), comparator));
     }
 
     @Test(enabled = false)                // normalization no longer removes empty values
