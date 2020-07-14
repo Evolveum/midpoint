@@ -7,11 +7,11 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
@@ -30,13 +30,12 @@ import com.evolveum.midpoint.model.impl.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 
-import org.jetbrains.annotations.Nullable;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * Consolidate the mappings of a single item to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
@@ -218,8 +217,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
      * Simplified signature (exceptions thrown), assuming no value metadata computation is to be done.
      */
     @NotNull
-    public ItemDelta<V,D> consolidateToDeltaNoMetadata() throws ExpressionEvaluationException, PolicyViolationException,
-            SchemaException {
+    public ItemDelta<V,D> consolidateToDeltaNoMetadata() throws ExpressionEvaluationException, SchemaException {
         try {
             assert valueMetadataComputer == null;
             return consolidateToDelta();
@@ -229,7 +227,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     }
 
     @NotNull
-    public ItemDelta<V,D> consolidateToDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+    public ItemDelta<V,D> consolidateToDelta() throws ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
         try {
@@ -276,7 +274,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         }
     }
 
-    private void consolidate(EquivalenceClass equivalenceClass) throws PolicyViolationException, ExpressionEvaluationException, SchemaException,
+    private void consolidate(EquivalenceClass equivalenceClass) throws ExpressionEvaluationException, SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
         new ValueConsolidation(equivalenceClass).consolidate();
     }
@@ -372,10 +370,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             LOGGER.trace("Add-indicating IVwOs = {}", addingOrigins);
         }
 
-        private void consolidate() throws PolicyViolationException, ExpressionEvaluationException, SchemaException,
+        private void consolidate() throws ExpressionEvaluationException, SchemaException,
                 ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
-            checkDeletionOfStrongValue();
+//            checkDeletionOfStrongValue();
 
             if (!addingOrigins.isEmpty()) {
                 consolidateToAddSet();
@@ -464,7 +462,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             }
 
             LOGGER.trace("Decided to ADD value {} to delta for item {} in {}", equivalenceClass, itemPath, contextDescription);
-            computeValueMetadataOnDeltaValue(equivalenceClass, () -> selectNonWeakValuesFrom(addingOrigins));
+            computeValueMetadataOnDeltaValue(equivalenceClass, () -> selectNonWeakValuesFrom(addingOrigins), equivalenceClass::getPresenceInAprioriPlus);
             return true;
         }
 
@@ -553,32 +551,32 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             }
         }
 
-        private void checkDeletionOfStrongValue() throws PolicyViolationException {
-            if (aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(equivalenceClass.getRepresentative(), true)) {
-                checkIfStrong(equivalenceClass.zeroOrigins);
-                checkIfStrong(equivalenceClass.plusOrigins);
-            }
-        }
-
-        private void checkIfStrong(Collection<I> origins) throws PolicyViolationException {
-            PrismValueDeltaSetTripleProducer<V, D> strongMapping = findStrongMapping(origins);
-            if (strongMapping != null) {
-                throw new PolicyViolationException("Attempt to delete value " + equivalenceClass + " from item " + itemPath
-                        + " but that value is mandated by a strong " + strongMapping.toHumanReadableDescription()
-                        + " (for " + contextDescription + ")");
-            }
-        }
-
-        @Nullable
-        private PrismValueDeltaSetTripleProducer<V, D> findStrongMapping(Collection<I> ivwos) {
-            for (ItemValueWithOrigin<V,D> pvwo : MiscUtil.emptyIfNull(ivwos)) {
-                PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
-                if (mapping.getStrength() == MappingStrengthType.STRONG) {
-                    return mapping;
-                }
-            }
-            return null;
-        }
+//        private void checkDeletionOfStrongValue() throws PolicyViolationException {
+//            if (aprioriItemDelta != null && aprioriItemDelta.isValueToDelete(equivalenceClass.getRepresentative(), true)) {
+//                checkIfStrong(equivalenceClass.zeroOrigins);
+//                checkIfStrong(equivalenceClass.plusOrigins);
+//            }
+//        }
+//
+//        private void checkIfStrong(Collection<I> origins) throws PolicyViolationException {
+//            PrismValueDeltaSetTripleProducer<V, D> strongMapping = findStrongMapping(origins);
+//            if (strongMapping != null) {
+//                throw new PolicyViolationException("Attempt to delete value " + equivalenceClass + " from item " + itemPath
+//                        + " but that value is mandated by a strong " + strongMapping.toHumanReadableDescription()
+//                        + " (for " + contextDescription + ")");
+//            }
+//        }
+//
+//        @Nullable
+//        private PrismValueDeltaSetTripleProducer<V, D> findStrongMapping(Collection<I> ivwos) {
+//            for (ItemValueWithOrigin<V,D> pvwo : MiscUtil.emptyIfNull(ivwos)) {
+//                PrismValueDeltaSetTripleProducer<V,D> mapping = pvwo.getMapping();
+//                if (mapping.getStrength() == MappingStrengthType.STRONG) {
+//                    return mapping;
+//                }
+//            }
+//            return null;
+//        }
 
         private boolean hasZeroNonWeakMapping() {
             return equivalenceClass.zeroOrigins.stream()
@@ -632,45 +630,39 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     }
 
     private void categorizeValues() throws SchemaException {
-        categorizeFromTriple(ivwoTriple.getZeroSet(), PlusMinusZero.ZERO, false);
-        categorizeFromTriple(ivwoTriple.getPlusSet(), PlusMinusZero.PLUS, false);
-        categorizeFromTriple(ivwoTriple.getMinusSet(), PlusMinusZero.MINUS, true);
+        categorizeFromTriple(ivwoTriple.getPlusSet(), EquivalenceClass::getPlusOrigins, false);
+        categorizeFromTriple(ivwoTriple.getZeroSet(), EquivalenceClass::getZeroOrigins, false);
+        categorizeFromTriple(ivwoTriple.getMinusSet(), EquivalenceClass::getMinusOrigins, true);
         if (existingItem != null) {
-            categorizeFromExisting(existingItem.getValues());
+            categorizeFromCollection(existingItem.getValues(), EquivalenceClass::getPresenceInExistingItem);
+        }
+        if (aprioriItemDelta != null) {
+            categorizeFromCollection(aprioriItemDelta.getValuesToAdd(), EquivalenceClass::getPresenceInAprioriPlus);
+            categorizeFromCollection(aprioriItemDelta.getValuesToReplace(), EquivalenceClass::getPresenceInAprioriPlus);
+            categorizeFromCollection(aprioriItemDelta.getValuesToDelete(), EquivalenceClass::getPresenceInAprioriMinus);
         }
     }
 
-    private void categorizeFromExisting(List<V> values) throws SchemaException {
-        for (V value : values) {
+    private void categorizeFromCollection(Collection<V> values, Function<EquivalenceClass, List<V>> targetSet) throws SchemaException {
+        for (V value : emptyIfNull(values)) {
             EquivalenceClass equivalenceClass = findOrCreateEquivalenceClass(value);
-            equivalenceClass.presenceInExistingItem.add(value);
+            targetSet.apply(equivalenceClass).add(value);
         }
     }
 
-    private void categorizeFromTriple(Collection<I> ivwoSet, PlusMinusZero origin, boolean takeValidInvalid) throws SchemaException {
+    private void categorizeFromTriple(Collection<I> ivwoSet, Function<EquivalenceClass, List<I>> targetSet,
+            boolean takeValidInvalid) throws SchemaException {
         for (I ivwo : ivwoSet) {
-            categorizeFromTriple(ivwo, origin, takeValidInvalid);
+            categorizeFromTriple(ivwo, targetSet, takeValidInvalid);
         }
     }
 
-    private void categorizeFromTriple(I ivwo, PlusMinusZero origin, boolean takeValidInvalid) throws SchemaException {
+    private void categorizeFromTriple(I ivwo, Function<EquivalenceClass, List<I>> targetSet, boolean takeValidInvalid) throws SchemaException {
         if (shouldCategorize(ivwo, takeValidInvalid)) {
             EquivalenceClass equivalenceClass = findOrCreateEquivalenceClass(ivwo.getItemValue());
-            switch (origin) {
-                case ZERO:
-                    equivalenceClass.zeroOrigins.add(ivwo);
-                    return;
-                case PLUS:
-                    equivalenceClass.plusOrigins.add(ivwo);
-                    return;
-                case MINUS:
-                    equivalenceClass.minusOrigins.add(ivwo);
-                    return;
-                default:
-                    throw new AssertionError(origin);
-            }
+            targetSet.apply(equivalenceClass).add(ivwo);
         } else {
-            LOGGER.trace("Not categorizing {} (from {})", ivwo, origin);
+            LOGGER.trace("Not categorizing {} (to {})", ivwo, targetSet);
         }
     }
 
@@ -721,7 +713,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             LOGGER.trace("Skipping value metadata computation for existing value because the value is not present in existing item: {}", equivalenceClass);
         } else {
             V existingValue = equivalenceClass.presenceInExistingItem.get(0);
-            ValueMetadata metadata = computeValueMetadata(existingValue, additionalSourcesSupplier); // TODO
+            ValueMetadata metadata = computeValueMetadata(existingValue, additionalSourcesSupplier, equivalenceClass::getPresenceInAprioriPlus); // TODO
             LOGGER.trace("Computed value metadata for existing value {} ({}):\n{}", existingValue, itemPath,
                     DebugUtil.debugDumpLazily(metadata));
             applyMetadataIfChanged(existingValue, metadata);
@@ -744,11 +736,12 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         }
     }
 
-    private void computeValueMetadataOnDeltaValue(EquivalenceClass equivalenceClass, Supplier<List<V>> additionalSourcesSupplier)
+    @SafeVarargs
+    private final void computeValueMetadataOnDeltaValue(EquivalenceClass equivalenceClass, Supplier<List<V>>... additionalSourcesSuppliers)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         if (valueMetadataComputer != null) {
-            ValueMetadata metadata = computeValueMetadata(equivalenceClass.getExistingValue(), additionalSourcesSupplier);
+            ValueMetadata metadata = computeValueMetadata(equivalenceClass.getExistingValue(), additionalSourcesSuppliers);
             LOGGER.trace("Computed value metadata for delta value {} ({}):\n{}", equivalenceClass, itemPath, DebugUtil.debugDumpLazily(metadata));
             equivalenceClass.getRepresentative().setValueMetadata(metadata);
         } else {
@@ -769,14 +762,17 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         }
     }
 
-    private ValueMetadata computeValueMetadata(V existingValue, Supplier<List<V>> additionalSourcesSupplier)
+    @SafeVarargs
+    private final ValueMetadata computeValueMetadata(V existingValue, Supplier<List<V>>... additionalSourcesSuppliers)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         List<PrismValue> inputValues = new ArrayList<>();
         if (existingValue != null) {
             inputValues.add(existingValue);
         }
-        inputValues.addAll(additionalSourcesSupplier.get());
+        for (Supplier<List<V>> additionalSourcesSupplier : additionalSourcesSuppliers) {
+            inputValues.addAll(additionalSourcesSupplier.get());
+        }
         return valueMetadataComputer.compute(inputValues, result);
     }
 
@@ -839,7 +835,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         result.computeStatusIfUnknown();
     }
 
-
     private class EquivalenceClass implements DebugDumpable {
 
         private final List<V> members = new ArrayList<>();
@@ -849,14 +844,14 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
          * 1. Filtered according to strength selector, so some mappings may be omitted.
          * 2. Mappings from invalid constructions are also filtered out.
          */
-        private final Collection<I> plusOrigins = new ArrayList<>();
+        private final List<I> plusOrigins = new ArrayList<>();
 
         /**
          * IVwOs (origins) that have value0 in the zero set.
          * 1. Filtered according to strength selector, so some mappings may be omitted.
          * 2. Mappings from invalid constructions are also filtered out.
          */
-        private final Collection<I> zeroOrigins = new ArrayList<>();
+        private final List<I> zeroOrigins = new ArrayList<>();
 
         /**
          * IVwOs (origins) that have value0 in the minus set.
@@ -869,9 +864,13 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
          *
          * TODO Maybe we could employ value categorization when dealing with plus/zero/minus origins.
          */
-        private final Collection<I> minusOrigins = new ArrayList<>();
+        private final List<I> minusOrigins = new ArrayList<>();
 
         private final List<V> presenceInExistingItem = new ArrayList<>();
+
+        private final List<V> presenceInAprioriPlus = new ArrayList<>();
+
+        private final List<V> presenceInAprioriMinus = new ArrayList<>();
 
         private EquivalenceClass(V head) {
             members.add(head);
@@ -898,6 +897,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             DebugUtil.debugDumpWithLabelLn(sb, "Zero origins", zeroOrigins, indent);
             DebugUtil.debugDumpWithLabelLn(sb, "Minus origins", minusOrigins, indent);
             DebugUtil.debugDumpWithLabelLn(sb, "Presence in existing item", presenceInExistingItem, indent);
+            DebugUtil.debugDumpWithLabelLn(sb, "Presence in apriori plus", presenceInAprioriPlus, indent);
+            DebugUtil.debugDumpWithLabelLn(sb, "Presence in apriori minus", presenceInAprioriMinus, indent);
             return sb.toString();
         }
 
@@ -907,8 +908,32 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
         @Override
         public String toString() {
-            return String.format("%s (plus: %d, zero: %d, minus: %d, existing: %d",
+            return String.format("%s (plus: %d, zero: %d, minus: %d, existing: %d)",
                     members, plusOrigins.size(), zeroOrigins.size(), minusOrigins.size(), presenceInExistingItem.size());
+        }
+
+        private List<I> getPlusOrigins() {
+            return plusOrigins;
+        }
+
+        private List<I> getZeroOrigins() {
+            return zeroOrigins;
+        }
+
+        private List<I> getMinusOrigins() {
+            return minusOrigins;
+        }
+
+        private List<V> getPresenceInExistingItem() {
+            return presenceInExistingItem;
+        }
+
+        private List<V> getPresenceInAprioriPlus() {
+            return presenceInAprioriPlus;
+        }
+
+        private List<V> getPresenceInAprioriMinus() {
+            return presenceInAprioriMinus;
         }
 
         // TEMPORARY

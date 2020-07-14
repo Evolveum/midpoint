@@ -598,6 +598,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                     .timestamp(now)
                                     .channel(SchemaConstants.CHANNEL_GUI_USER_URI)
                                     .originRef(ORIGIN_ADMIN_ENTRY.ref())
+                                    .actorRef(USER_ADMINISTRATOR_OID, UserType.COMPLEX_TYPE)
                                 .<ProvenanceYieldType>end()
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
@@ -608,7 +609,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .asObjectDelta(blaise.getOid());
 
         when();
-        executeChanges(delta, null, task, result);
+        executeChanges(delta, ModelExecuteOptions.create(prismContext).reconcile(), task, result);
 
         then();
         assertUserAfterByUsername(USER_BLAISE_NAME)
@@ -643,25 +644,23 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
                 .assertFamilyName("Pascal")
 
-                // Fails because missing IVwO consolidation in inbound processor
-
-//                .valueMetadata(UserType.F_FAMILY_NAME)
-//                    .display()
-//                    .provenance()
-//                        .singleYield(ORIGIN_HR_FEED.oid)
-//                            .singleAcquisition()
-//                                .assertResourceRef(RESOURCE_HR.oid)
-//                                .assertOriginRef(ORIGIN_HR_FEED.oid)
-//                                .assertTimestampBetween(null, now)
-//                            .end()
-//                        .end()
-//                        .singleYield(ORIGIN_ADMIN_ENTRY.oid)
-//                            .singleAcquisition()
-//                                .assertTimestampBetween(now, now)
-//                            .end()
-//                        .end()
-//                    .end()
-//                .end()
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .display()
+                    .provenance()
+                        .singleYield(ORIGIN_HR_FEED.oid)
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertOriginRef(ORIGIN_HR_FEED.oid)
+                                .assertTimestampBetween(null, now)
+                            .end()
+                        .end()
+                        .singleYield(ORIGIN_ADMIN_ENTRY.oid)
+                            .singleAcquisition()
+                                .assertTimestampBetween(now, now)
+                            .end()
+                        .end()
+                    .end()
+                .end()
 
                 .assertFullName("Blaise Pascal")
                 .valueMetadata(UserType.F_FULL_NAME)
@@ -683,7 +682,115 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test940DeleteBlaiseAndReconcile() throws Exception {
+    public void test940ReinforceGivenNameByManualEntry() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
+
+        PrismObject<UserType> user = findUserByUsername(USER_BLAISE_NAME);
+
+        // @formatter:off
+        PrismPropertyValue<PolyString> blaise = prismContext.itemFactory().createPropertyValue();
+        blaise.setValue(PolyString.fromOrig("Blaise"));
+        blaise.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginProvenance()
+                            .beginYield()
+                                .beginAcquisition()
+                                    .timestamp(now)
+                                    .channel(SchemaConstants.CHANNEL_GUI_USER_URI)
+                                    .originRef(ORIGIN_ADMIN_ENTRY.ref())
+                                    .actorRef(USER_ADMINISTRATOR_OID, UserType.COMPLEX_TYPE)
+                                .<ProvenanceYieldType>end()
+                            .<ProvenanceMetadataType>end()
+                        .<ValueMetadataType>end());
+        // @formatter:on
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).add(blaise)
+                .asObjectDelta(user.getOid());
+
+        when();
+        executeChanges(delta, ModelExecuteOptions.create(prismContext).reconcile(), task, result);
+
+        then();
+        assertUserAfterByUsername(USER_BLAISE_NAME)
+                .displayXml()
+                .assertName("blaise")
+                .valueMetadata(UserType.F_NAME)
+                    .display()
+                    .provenance()
+                        .singleYield()
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertOriginRef(ORIGIN_HR_FEED.oid)
+                                .assertTimestampBetween(null, now)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .assertGivenName("Blaise")
+                .valueMetadata(UserType.F_GIVEN_NAME)
+                    .display()
+                    .provenance()
+                        .singleYield(ORIGIN_HR_FEED.oid)
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertOriginRef(ORIGIN_HR_FEED.oid)
+                                .assertTimestampBetween(null, now)
+                            .end()
+                        .end()
+                        .singleYield(ORIGIN_ADMIN_ENTRY.oid)
+                            .singleAcquisition()
+                                .assertTimestampBetween(now, now)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .assertFamilyName("Pascal")
+
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .display()
+                    .provenance()
+                        .singleYield(ORIGIN_HR_FEED.oid)
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertOriginRef(ORIGIN_HR_FEED.oid)
+                                .assertTimestampBetween(null, now)
+                            .end()
+                        .end()
+                        .singleYield(ORIGIN_ADMIN_ENTRY.oid)
+                            .singleAcquisition()
+                                .assertTimestampBetween(null, now)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .assertFullName("Blaise Pascal")
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .display()
+//                    .provenance()
+//                        .singleYield(ORIGIN_ADMIN_ENTRY.oid)
+//                            .singleAcquisition(ORIGIN_HR_FEED.oid)
+//                                .assertResourceRef(RESOURCE_HR.oid)
+//                                .assertOriginRef(ORIGIN_HR_FEED.oid)
+//                                .assertTimestampBetween(null, now)
+//                            .end()
+//                            .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+//                                .assertTimestampBetween(now, now)
+//                            .end()
+//                        .end()
+//                        //.assertSize(2)
+//                    .end()
+                .end();
+    }
+
+    @Test
+    public void test950DeleteBlaiseAndReconcile() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
