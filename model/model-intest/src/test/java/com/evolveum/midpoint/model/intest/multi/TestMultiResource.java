@@ -479,7 +479,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
      * MID-2134, MID-3093
      */
     @Test
-    public void test223JackKillDefaultDummyAccounAndRecompute() throws Exception {
+    public void test223JackKillDefaultDummyAccountAndRecompute() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

@@ -1495,9 +1495,7 @@ public class ContextLoader implements ProjectorProcessor {
 
             projCtx.recompute();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Loaded full resource object:\n{}", projCtx.debugDump(1));
-            }
+            LOGGER.trace("Loaded full resource object:\n{}", projCtx.debugDumpLazily(1));
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -1572,6 +1570,9 @@ public class ContextLoader implements ProjectorProcessor {
                                 provisioningService.applyDefinition(newLinkRepoShadow, task, result);
                                 projCtx.setObjectCurrent(newLinkRepoShadow);
                                 projCtx.setOid(newLinkRepoShadow.getOid());
+                                // The "exists" information in the projection context can be obsolete - reflecting the fact that
+                                // resource object couldn't be found.
+                                projCtx.setExists(ShadowUtil.isExists(newLinkRepoShadow));
                                 projCtx.recompute();
                                 compensated = true;
                                 break;
