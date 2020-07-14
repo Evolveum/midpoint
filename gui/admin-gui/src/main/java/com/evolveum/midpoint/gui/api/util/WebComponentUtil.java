@@ -22,6 +22,9 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.StringUtils;
@@ -2108,6 +2111,20 @@ public final class WebComponentUtil {
 
     public static String createObjectColletionIcon() {
         return getObjectNormalIconStyle(GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON);
+    }
+
+    public static ObjectFilter evaluateExpressionsInFilter(ObjectFilter objectFilter, OperationResult result, PageBase pageBase){
+        try {
+            ExpressionVariables variables = new ExpressionVariables();
+            return ExpressionUtil.evaluateFilterExpressions(objectFilter, variables, MiscSchemaUtil.getExpressionProfile(),
+                    pageBase.getExpressionFactory(), pageBase.getPrismContext(), "collection filter",
+                    pageBase.createSimpleTask(result.getOperation()), result);
+        } catch (SchemaException | ObjectNotFoundException | ExpressionEvaluationException | CommunicationException |
+                ConfigurationException | SecurityViolationException ex) {
+            result.recordPartialError("Unable to evaluate filter exception, " , ex);
+            pageBase.error("Unable to evaluate filter exception, " + ex.getMessage());
+        }
+        return objectFilter;
     }
 
     public static String createReportIcon() {

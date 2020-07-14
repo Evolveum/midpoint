@@ -398,7 +398,9 @@ public class DashboardServiceImpl implements DashboardService {
         CompiledObjectCollectionView compiledCollection = modelInteractionService.compileObjectCollectionView(
                 collectionConfig, type, task, task.getResult());
 
-        ObjectFilter filter = compiledCollection.getFilter();
+        ExpressionVariables variables = new ExpressionVariables();
+        ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(compiledCollection.getFilter(), variables, MiscSchemaUtil.getExpressionProfile(),
+                expressionFactory, prismContext, "collection filter", task, result);
         if (filter == null ) {
             LOGGER.error("Couldn't find filter");
             throw new ConfigurationException("Couldn't find filter");
