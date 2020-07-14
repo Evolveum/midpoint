@@ -12,6 +12,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.pure.AuditEventRecordSqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditPropertyValue;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -57,6 +58,12 @@ public class QAuditEventRecordMapping
         addItemMapping(F_TASK_IDENTIFIER, StringItemFilterProcessor.mapper(path(q -> q.taskIdentifier)));
         addItemMapping(F_TASK_OID, StringItemFilterProcessor.mapper(path(q -> q.taskOid)));
         addItemMapping(F_TIMESTAMP, TimestampItemFilterProcessor.mapper(path(q -> q.timestamp)));
+
+        addItemMapping(F_CHANGED_ITEM, DetailTableItemFilterProcessor.mapper(
+                QAuditItem.class,
+                joinOn((r, i) -> r.id.eq(i.recordId)),
+                CanonicalItemPathItemFilterProcessor.mapper(
+                        path(QAuditItem.class, ai -> ai.changedItemPath))));
 
         /*
          * No need to map initiatorName, initiatorType, attorneyName for query, OID should suffice.

@@ -11,10 +11,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_REST_URI;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Comparator;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -23,8 +27,11 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -38,10 +45,9 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPrope
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 @UnusedTestElement
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
@@ -57,6 +63,9 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     private String targetOid;
     private String targetOwnerOid;
     private String record1EventIdentifier;
+
+    @Autowired
+    private DataSourceFactory dataSourceFactory;
 
     @Override
     public void initSystem() throws Exception {
@@ -80,10 +89,14 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.setResult("result1");
         record1.setHostIdentifier("localhost");
         record1.setNodeIdentifier("node1");
-        record1.setRemoteHostAddress("192.168.10.10");
+        record1.setRemoteHostAddress("192.168.10.1");
         record1.setSessionIdentifier("session-1");
         record1.setTarget(target, prismContext);
         record1.setTargetOwner(targetOwner);
+        record1.addDelta(createDelta(UserType.F_FULL_NAME)); // values are not even necessary
+        record1.addDelta(createDelta(UserType.F_FAMILY_NAME));
+        record1.addDelta(createDelta(ItemPath.create(
+                ObjectType.F_METADATA, MetadataType.F_REQUEST_TIMESTAMP)));
         auditService.audit(record1, NullTaskImpl.INSTANCE);
         record1EventIdentifier = record1.getEventIdentifier();
 
@@ -97,10 +110,11 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.setOutcome(OperationResultStatus.UNKNOWN);
         record2.setInitiator(initiator);
         record2.setHostIdentifier("127.0.0.1");
-        record2.setRemoteHostAddress("192.168.10.10");
+        record2.setRemoteHostAddress("192.168.10.2");
         record2.setSessionIdentifier("session-1"); // session-1 on purpose
         record2.setAttorney(attorney);
         record2.setRequestIdentifier("req-id");
+        record2.addDelta(createDelta(UserType.F_FULL_NAME, PolyString.fromOrig("somePolyString")));
         auditService.audit(record2, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record3 = new AuditEventRecord();
@@ -118,6 +132,27 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record3.setTaskIdentifier("task-identifier");
         record3.setTaskOid("task-oid");
         auditService.audit(record3, NullTaskImpl.INSTANCE);
+
+        // TODO remove after done
+        try (Connection conn = dataSourceFactory.getDataSource().getConnection();
+                PreparedStatement stmt = conn.prepareStatement(
+                        "select RECORD_ID, CHANGEDITEMPATH from M_AUDIT_ITEM")) {
+
+            ResultSet res = stmt.executeQuery();
+            while (res.next()) {
+                System.out.println(res.getLong("RECORD_ID") + " - " + res.getString("CHANGEDITEMPATH"));
+            }
+        }
+    }
+
+    @NotNull
+    private ObjectDeltaOperation<UserType> createDelta(ItemPath itemPath, Object... values)
+            throws SchemaException {
+        ObjectDeltaOperation<UserType> delta = new ObjectDeltaOperation<>();
+        delta.setObjectDelta(deltaFor(UserType.class)
+                .item(itemPath).add(values)
+                .asObjectDelta("any-oid-we-don't-care-here"));
+        return delta;
     }
 
     private PrismObject<UserType> createUser(String userName)
@@ -532,12 +567,12 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         when("searching audit filtered by remote host address equal to value");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
-                .item(AuditEventRecordType.F_REMOTE_HOST_ADDRESS).eq("192.168.10.10")
+                .item(AuditEventRecordType.F_REMOTE_HOST_ADDRESS).eq("192.168.10.1")
                 .build());
 
         then("only audit events with exactly the same remote host address are returned");
-        assertThat(result).hasSize(2);
-        assertThat(result).allMatch(aer -> aer.getRemoteHostAddress().equals("192.168.10.10"));
+        assertThat(result).hasSize(1);
+        assertThat(result).allMatch(aer -> aer.getRemoteHostAddress().equals("192.168.10.1"));
     }
 
     @Test
@@ -630,8 +665,140 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result).allMatch(r -> r.getTaskOID().equals("task-oid"));
     }
 
+    /*
+     * Our NOT means "complement" and must include NULL values for NOT(EQ...).
+     * This is difference from SQL logic, where NOT x='value' does NOT return rows where x IS NULL.
+     * The solution is to use (x='value' AND x IS NOT NULL) for conditions inside the NOT filter.
+     */
+
     @Test
-    public void test200SearchReturnsMappedToManyAttributes() throws SchemaException {
+    public void test200SearchByRemoteHostAddressNotEqual() throws SchemaException {
+        when("searching audit filtered by remote host address NOT equal to value");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .not()
+                .item(AuditEventRecordType.F_REMOTE_HOST_ADDRESS).eq("192.168.10.1")
+                .build());
+
+        then("audit events with with remote host address not equal"
+                + " to the value are returned - including NULLs");
+        assertThat(result).hasSize(2);
+        assertThat(result).allMatch(aer -> !"192.168.10.1".equals(aer.getRemoteHostAddress()));
+    }
+
+    @Test
+    public void test250SearchByChangedItemsSimplePath() throws SchemaException {
+        when("searching audit by changed items equal to simple path");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_FULL_NAME))
+                .build());
+
+        then("audit events with the specified changed items are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2");
+    }
+
+    @Test
+    public void test252SearchByChangedItemsComplexPath() throws SchemaException {
+        when("searching audit by changed items equal to complex path");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(ItemPath.create(
+                                ObjectType.F_METADATA, MetadataType.F_REQUEST_TIMESTAMP)))
+                .build());
+
+        then("only audit events with the specified changed items are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1");
+    }
+
+    @Test
+    public void test253SearchByChangedItemsPrefixOfComplexPath() throws SchemaException {
+        when("searching audit by changed items equal to the prefix of complex path");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(ObjectType.F_METADATA))
+                .build());
+
+        then("only audit events with the specified changed items are returned");
+        // this is more the storing part than reading, but it is here to cover all the expectations
+        assertThat(result).hasSize(1);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1");
+    }
+
+    @Test
+    public void test255SearchByUnusedChangedItems() throws SchemaException {
+        when("searching audit by changed item path that is not there");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(ObjectType.F_DOCUMENTATION))
+                .build());
+
+        then("no audit records are returned");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void test260SearchByChangedItemsIsNull() throws SchemaException {
+        when("searching audit by null changed items");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_CHANGED_ITEM).isNull()
+                .build());
+
+        then("only audit events without any changed items are returned");
+        // technically, null path in existing changed item would also match, but we don't care
+        assertThat(result).hasSize(1);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("3");
+    }
+
+    @Test
+    public void test265SearchByChangedItemsIsNotNullWithDistinct() throws SchemaException {
+        when("searching audit by NOT null changed items with distinct option");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .not()
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).isNull()
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("audit events with some changed item(s) are returned - without duplications");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2");
+    }
+
+    @Test
+    public void test266SearchByChangedItemsIsNotNullWithDistinctAndPaging() throws SchemaException {
+        when("searching audit by NOT null changed items with distinct option and paging");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .not()
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).isNull()
+                        .asc(AuditEventRecordType.F_PARAMETER)
+                        .offset(1)
+                        .maxSize(1)
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("specified page of audit events with some changed item(s) is returned"
+                + " - not affected by duplications");
+        assertThat(result).hasSize(1);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("2");
+    }
+
+    @Test
+    public void test300SearchReturnsMappedToManyAttributes() throws SchemaException {
         when("searching audit with query without any conditions and paging");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class).build());
@@ -663,7 +830,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     @Test
     public void test500SearchByTwoTimestampConditions() throws SchemaException {
         when("searching audit filtered by timestamp AND timestamp condition");
-        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext.queryFor(AuditEventRecordType.class)
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
                 .item(AuditEventRecordType.F_TIMESTAMP)
                 .gt(MiscUtil.asXMLGregorianCalendar(TIMESTAMP_1)) // matches records 2 and 3
                 .and()

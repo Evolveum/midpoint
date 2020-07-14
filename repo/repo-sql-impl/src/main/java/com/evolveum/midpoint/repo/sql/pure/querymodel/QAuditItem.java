@@ -17,12 +17,13 @@ import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditItem;
 
 /**
  * Querydsl query type for M_AUDIT_ITEM table.
  */
 @SuppressWarnings("unused")
-public class QAuditItem extends FlexibleRelationalPathBase<QAuditItem> {
+public class QAuditItem extends FlexibleRelationalPathBase<MAuditItem> {
 
     private static final long serialVersionUID = -838572862;
 
@@ -36,7 +37,7 @@ public class QAuditItem extends FlexibleRelationalPathBase<QAuditItem> {
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final StringPath changedItemPath = createString("changedItemPath", CHANGED_ITEM_PATH);
 
-    public final PrimaryKey<QAuditItem> constraint1 = createPrimaryKey(changedItemPath, recordId);
+    public final PrimaryKey<MAuditItem> constraint1 = createPrimaryKey(changedItemPath, recordId);
     public final ForeignKey<QAuditEventRecord> auditItemFk = createForeignKey(recordId, "ID");
 
     public QAuditItem(String variable) {
@@ -44,6 +45,6 @@ public class QAuditItem extends FlexibleRelationalPathBase<QAuditItem> {
     }
 
     public QAuditItem(String variable, String schema, String table) {
-        super(QAuditItem.class, forVariable(variable), schema, table);
+        super(MAuditItem.class, forVariable(variable), schema, table);
     }
 }

@@ -9,8 +9,10 @@ package com.evolveum.midpoint.repo.sql.pure.querymodel.beans;
 import java.time.Instant;
 import java.util.*;
 
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
+
 /**
- * Querydsl "row bean" type related to {@code QAuditEventRecord}.
+ * Querydsl "row bean" type related to {@link QAuditEventRecord}.
  */
 @SuppressWarnings("unused")
 public class MAuditEventRecord {

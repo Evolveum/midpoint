@@ -12,6 +12,7 @@ import java.util.function.Function;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
@@ -20,24 +21,33 @@ import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 public class ItemSqlMapper {
 
     /**
-     * Some mappers can map to multiple query attributes (e.g. poly-strings), but one is primary.
      * Primary mapping is used for order by clauses (if they are comparable).
+     * Mappers can map to multiple query attributes (e.g. poly-string has orig and norm),
+     * so normally the mapping(s) are encapsulated there, but for order we need one exposed.
+     * Can be {@code null} which indicates that ordering is not possible.
      */
-    @NotNull private final Function<EntityPath<?>, Path<?>> primaryItemMapping;
+    @Nullable private final Function<EntityPath<?>, Path<?>> primaryItemMapping;
 
-    @NotNull private final Function<SqlPathContext, FilterProcessor<?>> filterProcessorFactory;
+    @NotNull private final Function<SqlPathContext<?, ?>, FilterProcessor<?>> filterProcessorFactory;
 
-    protected ItemSqlMapper(@NotNull Function<EntityPath<?>, Path<?>> primaryItemMapping,
-            @NotNull Function<SqlPathContext, FilterProcessor<?>> filterProcessorFactory) {
-        this.primaryItemMapping = Objects.requireNonNull(primaryItemMapping);
+    public ItemSqlMapper(
+            @NotNull Function<SqlPathContext<?, ?>, FilterProcessor<?>> filterProcessorFactory,
+            @Nullable Function<EntityPath<?>, Path<?>> primaryItemMapping) {
         this.filterProcessorFactory = Objects.requireNonNull(filterProcessorFactory);
+        this.primaryItemMapping = primaryItemMapping;
     }
 
-    public Path<?> itemPath(EntityPath<?> root) {
-        return primaryItemMapping.apply(root);
+    public ItemSqlMapper(
+            @NotNull Function<SqlPathContext<?, ?>, FilterProcessor<?>> filterProcessorFactory) {
+        this(filterProcessorFactory, null);
     }
 
-    public <T extends ObjectFilter> FilterProcessor<T> createFilterProcessor(SqlPathContext pathContext) {
+    public @Nullable Path<?> itemPath(EntityPath<?> root) {
+        return primaryItemMapping != null ? primaryItemMapping.apply(root) : null;
+    }
+
+    public <T extends ObjectFilter> FilterProcessor<T> createFilterProcessor(
+            SqlPathContext<?, ?> pathContext) {
         //noinspection unchecked
         return (FilterProcessor<T>) filterProcessorFactory.apply(pathContext);
     }

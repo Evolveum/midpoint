@@ -1,15 +1,19 @@
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
+import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -109,7 +113,7 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
     }
 
     /**
-     * Helping lambda "wrapper" that helps with type inference when mapping paths from entity path.
+     * Lambda "wrapper" that helps with type inference when mapping paths from entity path.
      * The returned types are ambiguous just as they are used in {@code mapper()} static methods
      * on item filter processors.
      */
@@ -119,14 +123,33 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
         return (Function) rootToQueryItem;
     }
 
+    /**
+     * Lambda "wrapper" but this time with explicit query type (otherwise unused by the method)
+     * for paths not starting on the Q parameter used for this mapping instance.
+     */
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    protected <OQ extends EntityPath<OR>, OR, A> Function<EntityPath<?>, Path<?>> path(
+            @SuppressWarnings("unused") Class<OQ> queryType,
+            Function<OQ, Path<A>> entityToQueryItem) {
+        return (Function) entityToQueryItem;
+    }
+
+    /**
+     * Helping lambda "wrapper" that helps with the type inference (namely the current Q type).
+     */
+    protected <DQ extends EntityPath<DR>, DR> BiFunction<Q, DQ, Predicate> joinOn(
+            BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
+        return joinOnPredicateFunction;
+    }
+
     // we want loose typing for client's sake, there is no other chance to get the right type here
     public <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
-            ItemName itemName, SqlPathContext context)
+            ItemName itemName, SqlPathContext<?, ?> context)
             throws QueryException {
         return itemMapping(itemName).createFilterProcessor(context);
     }
 
-    public @NotNull Path<?> primarySqlPath(ItemName itemName, SqlPathContext context)
+    public @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?> context)
             throws QueryException {
         return itemMapping(itemName).itemPath(context.path());
     }
@@ -181,7 +204,9 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
      * Returns collection of {@link SqlDetailFetchMapper}s that know how to fetch
      * to-many details related to this mapped entity (master) - fetcher per detail type/table.
      */
-    public abstract Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers();
+    public Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers() {
+        return Collections.emptyList();
+    }
 
     // TODO extension columns + null default alias after every change - synchronized!
 }

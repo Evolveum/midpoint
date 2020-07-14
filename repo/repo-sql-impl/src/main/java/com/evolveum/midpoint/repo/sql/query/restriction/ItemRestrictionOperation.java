@@ -12,6 +12,9 @@ package com.evolveum.midpoint.repo.sql.query.restriction;
  */
 public enum ItemRestrictionOperation {
 
+    // TODO: NULL and NOT_NULL are never assigned and probably useless here.
+    // Instead, RootHibernateQuery.createIs(Not)Null is used directly.
+
     EQ("="), GT(">"), GE(">="), LT("<"), LE("<="), NULL, NOT_NULL, SUBSTRING, STARTS_WITH, ENDS_WITH;
 
     private String symbol;

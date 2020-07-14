@@ -96,6 +96,7 @@ public class InboundProcessor implements ProjectorProcessor {
     @Autowired private Protector protector;
     @Autowired private ClockworkMedic medic;
     @Autowired private ProvisioningService provisioningService;
+    @Autowired private ProjectionValueMetadataCreator projectionValueMetadataCreator;
 
     private PrismContainerDefinition<ResourceObjectAssociationType> associationContainerDefinition;
 
@@ -675,6 +676,13 @@ public class InboundProcessor implements ProjectorProcessor {
             focusNewDef = context.getFocusContextRequired().getObjectDefinition();
         }
 
+        if (oldAccountProperty != null) {
+            projectionValueMetadataCreator.setValueMetadata(oldAccountProperty, projectionCtx);
+        }
+        if (attributeAPrioriDelta != null) {
+            projectionValueMetadataCreator.setValueMetadata(attributeAPrioriDelta, projectionCtx);
+        }
+
         Source<V,D> defaultSource = new Source<>(oldAccountProperty, attributeAPrioriDelta, null, ExpressionConstants.VAR_INPUT_QNAME, attributeDefinition);
         defaultSource.recompute();
 
@@ -745,7 +753,7 @@ public class InboundProcessor implements ProjectorProcessor {
      * We want to merge their values. Otherwise those mappings will overwrite each other.
      */
     private <F extends FocusType> void evaluateInboundMappings(
-            Map<UniformItemPath, List<InboundMappingStruct<?,?>>> mappingsToTarget, final LensContext<F> context, Task task, OperationResult result)
+            Map<UniformItemPath, List<InboundMappingStruct<?,?>>> mappingsToTarget, LensContext<F> context, Task task, OperationResult result)
                     throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, ConfigurationException, SecurityViolationException, CommunicationException {
 
         PrismObject<F> focusNew = context.getFocusContext().getObjectCurrent();
@@ -754,11 +762,11 @@ public class InboundProcessor implements ProjectorProcessor {
         }
 
         for (Entry<UniformItemPath, List<InboundMappingStruct<?, ?>>> mappingsToTargetEntry : mappingsToTarget.entrySet()) {
-            evaluateMappingsForItem(context, task, result, focusNew, mappingsToTargetEntry);
+            evaluateMappingsForTargetItem(context, task, result, focusNew, mappingsToTargetEntry);
         }
     }
 
-    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> void evaluateMappingsForItem(LensContext<F> context,
+    private <F extends FocusType, V extends PrismValue, D extends ItemDefinition> void evaluateMappingsForTargetItem(LensContext<F> context,
             Task task, OperationResult result, PrismObject<F> focusNew,
             Entry<UniformItemPath, List<InboundMappingStruct<?, ?>>> mappingsToTargetEntry)
             throws ExpressionEvaluationException,

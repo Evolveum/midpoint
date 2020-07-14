@@ -644,8 +644,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (resource == null) {
             return null;
         }
-        ResourceObjectTypeDefinitionType def = ResourceTypeUtil.getResourceObjectTypeDefinitionType(resource, discr.getKind(), discr.getIntent());
-        return def;
+        return ResourceTypeUtil.getResourceObjectTypeDefinitionType(resource, discr.getKind(), discr.getIntent());
     }
 
     private ResourceSchema getResourceSchema() throws SchemaException {
