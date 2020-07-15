@@ -9,7 +9,9 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.construction.Construction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
@@ -37,6 +39,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
@@ -49,6 +52,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
+ * TODO
  *
  * @author Radovan Semancik
  * @author lazyman
@@ -60,17 +64,20 @@ public class ConsolidationProcessor {
 
     private static final String OP_CONSOLIDATE_VALUES = ConsolidationProcessor.class.getName() + ".consolidateValues";
     private static final String OP_CONSOLIDATE_ITEM = ConsolidationProcessor.class.getName() + ".consolidateItem";
+    private static final String OP_CONSOLIDATE_FOCUS_PRIMARY_DELTA = ConsolidationProcessor.class.getName() + ".consolidateFocusPrimaryDelta";
 
     private PrismContainerDefinition<ShadowAssociationType> associationDefinition;
 
     @Autowired private ContextLoader contextLoader;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private PrismContext prismContext;
+    @Autowired private ModelBeans modelBeans;
 
     /**
      * Converts delta set triples to a secondary account deltas.
      */
-    <F extends FocusType> void consolidateValues(LensContext<F> context, LensProjectionContext accCtx, Task task,
+    <F extends FocusType>
+    void consolidateValues(LensContext<F> context, LensProjectionContext accCtx, Task task,
             OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
             //todo filter changes which were already in account sync delta
@@ -111,12 +118,7 @@ public class ConsolidationProcessor {
     }
 
     private boolean wasProjectionDeleted(LensProjectionContext accContext) {
-        ObjectDelta<ShadowType> delta = accContext.getSyncDelta();
-        if (delta != null && ChangeType.DELETE.equals(delta.getChangeType())) {
-            return true;
-        }
-
-        return false;
+        return ObjectDelta.isDelete(accContext.getSyncDelta());
     }
 
     private <F extends FocusType> ObjectDelta<ShadowType> consolidateValuesToModifyDelta(LensContext<F> context,
@@ -189,10 +191,7 @@ public class ConsolidationProcessor {
         for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> entry : squeezedAuxiliaryObjectClasses.entrySet()) {
             DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> ivwoTriple = entry.getValue();
 
-            LOGGER.trace("CONSOLIDATE auxiliary object classes ({})", discr);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Auxiliary object class triple:\n{}", ivwoTriple.debugDump());
-            }
+            LOGGER.trace("CONSOLIDATE auxiliary object classes ({}) from triple:\n{}", discr, ivwoTriple.debugDumpLazily());
 
             for (ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>> ivwo: ivwoTriple.getAllValues()) {
                 QName auxObjectClassName = ivwo.getItemValue().getValue();
@@ -293,7 +292,6 @@ public class ConsolidationProcessor {
         return (PropertyDelta<T>) consolidateItem(rOcDef, discr, existingDelta, projCtx, addUnchangedValues,
                 attributeDefinition.isExclusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, null, strengthSelector, "attribute "+itemName, result);
     }
-
 
     private <F extends FocusType> void consolidateAssociations(LensContext<F> context, LensProjectionContext projCtx,
             boolean addUnchangedValues, RefinedObjectClassDefinition rOcDef, ObjectDelta<ShadowType> objectDelta,
@@ -1057,6 +1055,9 @@ public class ConsolidationProcessor {
         return triple;
     }
 
+    /**
+     * TODO
+     */
     <F extends FocusType> void consolidateValuesPostRecon(LensContext<F> context, LensProjectionContext projCtx, Task task,
             OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
@@ -1099,6 +1100,58 @@ public class ConsolidationProcessor {
             accountSecondaryDelta.merge(objectDelta);
         } else {
             projCtx.setSecondaryDelta(objectDelta);
+        }
+    }
+
+    /**
+     * Consolidates focus primary delta against current focus object.
+     */
+    <F extends ObjectType> void consolidateFocusPrimaryDelta(LensContext<F> context, XMLGregorianCalendar now,
+            Task task, OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+
+        // pre-operation checks
+        LensFocusContext<F> focusContext = context.getFocusContext();
+        if (focusContext == null) {
+            return;
+        }
+
+        if (focusContext.isPrimaryDeltaConsolidated()) {
+            LOGGER.trace("Primary delta was already consolidated, skipping the consolidation.");
+            return;
+        }
+
+        ObjectDelta<F> primaryDelta = focusContext.getPrimaryDelta();
+        if (primaryDelta == null || !primaryDelta.isModify() || primaryDelta.getModifications().isEmpty()) {
+            LOGGER.trace("No MODIFY-type non-empty primary delta, no consolidation.");
+            return;
+        }
+
+        PrismObject<F> currentFocus = focusContext.getObjectCurrent();
+        if (currentFocus == null) {
+            LOGGER.trace("No current focus object, no consolidation.");
+            return;
+        }
+
+        // the consolidation
+        OperationResult result = parentResult.createMinorSubresult(OP_CONSOLIDATE_FOCUS_PRIMARY_DELTA);
+        try {
+            LOGGER.trace("Consolidating focus primary delta:\n{}", primaryDelta.debugDumpLazily());
+            MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
+                    "focus primary delta consolidation for " + currentFocus, now, task);
+            ObjectDelta<F> consolidatedPrimaryDelta =
+                    new DeltaConsolidation<>(context, currentFocus, primaryDelta.getModifications(), env, result, modelBeans)
+                            .consolidate();
+
+            focusContext.setPrimaryDelta(consolidatedPrimaryDelta);
+            focusContext.setPrimaryDeltaConsolidated(true);
+            LOGGER.trace("Focus primary delta consolidated to:\n{}", consolidatedPrimaryDelta.debugDumpLazily());
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 }

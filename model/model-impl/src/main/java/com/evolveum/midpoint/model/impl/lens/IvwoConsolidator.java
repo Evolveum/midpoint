@@ -38,10 +38,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingStrengthType;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
- * Consolidate the mappings of a single item to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
- * It produces the delta considering the mapping exclusion, authoritativeness and strength.
+ * Consolidate the output of mappings for a single item to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
+ * It produces the delta considering the mapping exclusion, authoritativeness and strength. See {@link #consolidateTriples()}.
  *
- * filterExistingValues: if true, then values that already exist in the item are not added (and those that don't exist are not removed)
+ * Additional (experimental) functionality: Consolidates apriori (assuming it was not applied yet) delta with the current state
+ * of the object. See {@link #consolidateAPrioriDelta()}.
  *
  * @author semancik
  */
@@ -142,6 +143,16 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     private final boolean deleteExistingValues;
 
     /**
+     * If true, "mapping is not strong and the item X already has a delta" exclusion rule is skipped.
+     * Currently to be used for inbound mappings, because in the original consolidation algorithm
+     * for these mappings there was no such rule.
+     *
+     * (The rule is a bit dubious anyway.)
+     */
+    @Experimental
+    private final boolean skipNormalMappingAPrioriDeltaCheck;
+
+    /**
      * Whether we should ignore values produced by normal-strength mappings.
      * This is the case if exclusiveStrong is true and there is at least one value produced by strong mapping.
      * TODO Currently checked for ADD values. Should we use the same approach for DELETE or unchanged values?
@@ -202,6 +213,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         strengthSelector = builder.strengthSelector;
         itemIsExclusiveStrong = builder.isExclusiveStrong;
         deleteExistingValues = builder.deleteExistingValues;
+        skipNormalMappingAPrioriDeltaCheck = builder.skipNormalMappingAPrioriDeltaCheck;
         ignoreNormalMappings = computeIgnoreNormalMappings();
 
         valueMetadataComputer = builder.valueMetadataComputer;
@@ -220,14 +232,14 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     public ItemDelta<V,D> consolidateToDeltaNoMetadata() throws ExpressionEvaluationException, SchemaException {
         try {
             assert valueMetadataComputer == null;
-            return consolidateToDelta();
+            return consolidateTriples();
         } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException e) {
             throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);
         }
     }
 
     @NotNull
-    public ItemDelta<V,D> consolidateToDelta() throws ExpressionEvaluationException, SchemaException,
+    public ItemDelta<V,D> consolidateTriples() throws ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 
         try {
@@ -237,7 +249,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             } else {
                 categorizeValues();
                 for (EquivalenceClass equivalenceClass : equivalenceClasses) {
-                    consolidate(equivalenceClass);
+                    new ValueConsolidation(equivalenceClass).consolidate();
                 }
 
                 // Experimental. Should be part of consolidate() method.
@@ -265,6 +277,40 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     }
 
     @Experimental
+    @NotNull
+    public ItemDelta<V,D> consolidateAPrioriDelta() throws ExpressionEvaluationException, SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+
+        try {
+            logStart();
+
+            initializeResultingDelta();
+
+            categorizeValues();
+            for (EquivalenceClass equivalenceClass : equivalenceClasses) {
+                new ValueConsolidation(equivalenceClass).consolidateAPrioriDelta();
+            }
+
+            setEstimatedOldValues();
+            logEnd();
+
+            return itemDelta;
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        }
+    }
+
+    private void initializeResultingDelta() {
+        // Currently we transform replace delta to a replace delta.
+        // Therefore, for deltas that have (or will have) no resulting values
+        // we need to correctly initialize the empty REPLACE set.
+        if (aprioriItemDelta.isReplace()) {
+            itemDelta.setValuesToReplace(new ArrayList<>());
+        }
+    }
+
+    @Experimental
     private void consolidateExistingValue(EquivalenceClass equivalenceClass) {
         if (equivalenceClass.presentInExistingItem() && equivalenceClass.plusOrigins.isEmpty() &&
                 equivalenceClass.zeroOrigins.isEmpty() && equivalenceClass.minusOrigins.isEmpty()) {
@@ -272,11 +318,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             //noinspection unchecked
             itemDelta.addValueToDelete((V) equivalenceClass.getRepresentative().clone());
         }
-    }
-
-    private void consolidate(EquivalenceClass equivalenceClass) throws ExpressionEvaluationException, SchemaException,
-            ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
-        new ValueConsolidation(equivalenceClass).consolidate();
     }
 
     private void setEstimatedOldValues() {
@@ -382,6 +423,62 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             }
         }
 
+        @Experimental
+        private void consolidateAPrioriDelta() throws CommunicationException, ObjectNotFoundException, SchemaException,
+                SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+            if (aprioriItemDelta.isReplace()) {
+                consolidateAPrioriReplaceDelta();
+            } else {
+                consolidateAPrioriAddDeleteDelta();
+            }
+        }
+
+        private void consolidateAPrioriReplaceDelta()
+                throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+                ConfigurationException, ExpressionEvaluationException {
+            if (equivalenceClass.presenceInAprioriPlus.isEmpty()) {
+                assert !equivalenceClass.presenceInExistingItem.isEmpty();
+                LOGGER.trace("Skipping existing value {} because it is not part of REPLACE delta. "
+                        + "Also, no metadata computation is required.", equivalenceClass);
+            } else {
+                LOGGER.trace("Adding value {} to REPLACE set of new delta, including metadata computation.", equivalenceClass);
+                computeValueMetadataOnDeltaValue(equivalenceClass,
+                        equivalenceClass::getPresenceInAprioriPlus,
+                        equivalenceClass::getPresenceInExistingItem);
+                addCurrentValueToDeltaReplaceSet();
+            }
+        }
+
+        private void consolidateAPrioriAddDeleteDelta()
+                throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+                ConfigurationException, ExpressionEvaluationException {
+            boolean inDeltaAdd = !equivalenceClass.presenceInAprioriPlus.isEmpty();
+            boolean inDeltaDelete = !equivalenceClass.presenceInAprioriMinus.isEmpty();
+            boolean inExisting = !equivalenceClass.presenceInExistingItem.isEmpty();
+
+            if (inDeltaAdd) {
+                // May or may not be in delta delete
+                if (!inExisting) {
+                    LOGGER.trace("Real addition of {} -- adding to delta with metadata computation.", equivalenceClass);
+                } else {
+                    LOGGER.trace("Phantom addition of {} -- adding to delta with metadata computation.", equivalenceClass);
+                }
+                computeValueMetadataOnDeltaValue(equivalenceClass,
+                        equivalenceClass::getPresenceInAprioriPlus,
+                        equivalenceClass::getPresenceInExistingItem);
+                addCurrentValueToDeltaAddSet();
+            } else if (inDeltaDelete) {
+                if (inExisting) {
+                    LOGGER.trace("Real deletion of {} -- adding to delta without metadata computation.", equivalenceClass);
+                    addCurrentValueToDeltaDeleteSet();
+                } else {
+                    LOGGER.trace("Phantom deletion of {} -- skipping the value. Also, no metadata computation.", equivalenceClass);
+                }
+            } else {
+                LOGGER.trace("Value {} not in delta add nor delete sets, keeping untouched", equivalenceClass);
+            }
+        }
+
         private Collection<I> findAddingOrigins() {
             Collection<I> addingOrigins = new HashSet<>(equivalenceClass.plusOrigins);
             if (addUnchangedValues) {
@@ -411,8 +508,21 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 ObjectNotFoundException, CommunicationException, SecurityViolationException {
             classifyMappings(addingOrigins, true);
             if (shouldAddValue()) {
-                itemDelta.addValueToAdd(LensUtil.cloneAndApplyAssignmentOrigin(equivalenceClass.getRepresentative(), isAssignment, addingOrigins));
+                addCurrentValueToDeltaAddSet();
             }
+        }
+
+        private void addCurrentValueToDeltaAddSet() throws SchemaException {
+            itemDelta.addValueToAdd(LensUtil.cloneAndApplyAssignmentOrigin(equivalenceClass.getRepresentative(), isAssignment, addingOrigins));
+        }
+
+        private void addCurrentValueToDeltaReplaceSet() throws SchemaException {
+            itemDelta.addValueToReplace(LensUtil.cloneAndApplyAssignmentOrigin(equivalenceClass.getRepresentative(), isAssignment, addingOrigins));
+        }
+
+        private void addCurrentValueToDeltaDeleteSet() {
+            //noinspection unchecked
+            itemDelta.addValueToDelete((V) equivalenceClass.getRepresentative().clone());
         }
 
         private boolean shouldAddValue() throws CommunicationException, ObjectNotFoundException, SchemaException,
@@ -453,7 +563,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                     // resource object items mappings, and we currently do not implement metadata computation for them.
                     return false;
                 }
-                if (!aprioriItemDeltaIsEmpty) {
+                if (!aprioriItemDeltaIsEmpty && !skipNormalMappingAPrioriDeltaCheck) {
                     LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta; " +
                                     "skipping adding in {} (also skipping value metadata computation)",
                             equivalenceClass, itemPath, contextDescription);
@@ -462,7 +572,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             }
 
             LOGGER.trace("Decided to ADD value {} to delta for item {} in {}", equivalenceClass, itemPath, contextDescription);
-            computeValueMetadataOnDeltaValue(equivalenceClass, () -> selectNonWeakValuesFrom(addingOrigins), equivalenceClass::getPresenceInAprioriPlus);
+            computeValueMetadataOnDeltaValue(equivalenceClass,
+                    () -> selectNonWeakValuesFrom(addingOrigins),
+                    equivalenceClass::getPresenceInAprioriPlus,
+                    equivalenceClass::getPresenceInExistingItem);
             return true;
         }
 
@@ -479,8 +592,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             } else if (!equivalenceClass.minusOrigins.isEmpty()) {
                 classifyMappings(equivalenceClass.minusOrigins, false);
                 if (shouldDeleteValue()) {
-                    //noinspection unchecked
-                    itemDelta.addValueToDelete((V) equivalenceClass.getRepresentative().clone());
+                    addCurrentValueToDeltaDeleteSet();
                 } else {
                     LOGGER.trace("Keeping the value {} for {} but have nothing to compute its metadata from"
                             + " (zero and plus origin sets are empty) in {}", equivalenceClass, itemPath, contextDescription);
@@ -511,7 +623,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 return false;
             }
 
-            if (!hasAtLeastOneStrongMapping && !aprioriItemDeltaIsEmpty) {
+            if (!hasAtLeastOneStrongMapping && !aprioriItemDeltaIsEmpty && !skipNormalMappingAPrioriDeltaCheck) {
                 LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta, skipping deletion in {}",
                         equivalenceClass, itemPath, contextDescription);
                 return false;
@@ -837,21 +949,21 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
     private class EquivalenceClass implements DebugDumpable {
 
-        private final List<V> members = new ArrayList<>();
+        @NotNull private final List<V> members = new ArrayList<>();
 
         /**
          * IVwOs (origins) that have value0 in the plus set.
          * 1. Filtered according to strength selector, so some mappings may be omitted.
          * 2. Mappings from invalid constructions are also filtered out.
          */
-        private final List<I> plusOrigins = new ArrayList<>();
+        @NotNull private final List<I> plusOrigins = new ArrayList<>();
 
         /**
          * IVwOs (origins) that have value0 in the zero set.
          * 1. Filtered according to strength selector, so some mappings may be omitted.
          * 2. Mappings from invalid constructions are also filtered out.
          */
-        private final List<I> zeroOrigins = new ArrayList<>();
+        @NotNull private final List<I> zeroOrigins = new ArrayList<>();
 
         /**
          * IVwOs (origins) that have value0 in the minus set.
@@ -864,13 +976,13 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
          *
          * TODO Maybe we could employ value categorization when dealing with plus/zero/minus origins.
          */
-        private final List<I> minusOrigins = new ArrayList<>();
+        @NotNull private final List<I> minusOrigins = new ArrayList<>();
 
-        private final List<V> presenceInExistingItem = new ArrayList<>();
+        @NotNull private final List<V> presenceInExistingItem = new ArrayList<>();
 
-        private final List<V> presenceInAprioriPlus = new ArrayList<>();
+        @NotNull private final List<V> presenceInAprioriPlus = new ArrayList<>();
 
-        private final List<V> presenceInAprioriMinus = new ArrayList<>();
+        @NotNull private final List<V> presenceInAprioriMinus = new ArrayList<>();
 
         private EquivalenceClass(V head) {
             members.add(head);
@@ -908,31 +1020,32 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
         @Override
         public String toString() {
-            return String.format("%s (plus: %d, zero: %d, minus: %d, existing: %d)",
-                    members, plusOrigins.size(), zeroOrigins.size(), minusOrigins.size(), presenceInExistingItem.size());
+            return String.format("%s (ivwo: %d+/%dz/%d-, existing: %d, apriori: %d/%d)",
+                    members, plusOrigins.size(), zeroOrigins.size(), minusOrigins.size(), presenceInExistingItem.size(),
+                    presenceInAprioriPlus.size(), presenceInAprioriMinus.size());
         }
 
-        private List<I> getPlusOrigins() {
+        private @NotNull List<I> getPlusOrigins() {
             return plusOrigins;
         }
 
-        private List<I> getZeroOrigins() {
+        private @NotNull List<I> getZeroOrigins() {
             return zeroOrigins;
         }
 
-        private List<I> getMinusOrigins() {
+        private @NotNull List<I> getMinusOrigins() {
             return minusOrigins;
         }
 
-        private List<V> getPresenceInExistingItem() {
+        private @NotNull List<V> getPresenceInExistingItem() {
             return presenceInExistingItem;
         }
 
-        private List<V> getPresenceInAprioriPlus() {
+        private @NotNull List<V> getPresenceInAprioriPlus() {
             return presenceInAprioriPlus;
         }
 
-        private List<V> getPresenceInAprioriMinus() {
+        private @NotNull List<V> getPresenceInAprioriMinus() {
             return presenceInAprioriMinus;
         }
 
@@ -942,8 +1055,16 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         }
     }
 
+    // TODO the relation defined here is not transitive:
+    //  Having container values V1, V2, V3 like this:
+    //   V1 (id=42) has content C
+    //   V2 (id=42) is empty
+    //   V3 (no id) has content C
+    //  Then V1 ~ V2, V1 ~ V3 but not V2 ~ V3.
     private boolean areEquivalent(V value1, V value2) throws SchemaException {
-        if (valueMatcher != null && value1 instanceof PrismPropertyValue && value2 instanceof PrismPropertyValue) {
+        if (containerIdentifiersPresentAndEqual(value1, value2)) {
+            return true;
+        } else if (valueMatcher != null && value1 instanceof PrismPropertyValue && value2 instanceof PrismPropertyValue) {
             //noinspection unchecked
             return valueMatcher.match(value1.getRealValue(), value2.getRealValue());
         } else if (comparator != null) {
@@ -952,6 +1073,16 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             return value1.equals(value2, EquivalenceStrategy.IGNORE_METADATA);
         } else {
             return value2 == null;
+        }
+    }
+
+    private boolean containerIdentifiersPresentAndEqual(V value1, V value2) {
+        if (value1 instanceof PrismContainerValue && value2 instanceof PrismContainerValue) {
+            Long id1 = ((PrismContainerValue) value1).getId();
+            Long id2 = ((PrismContainerValue) value2).getId();
+            return id1 != null && id1.equals(id2);
+        } else {
+            return false;
         }
     }
 

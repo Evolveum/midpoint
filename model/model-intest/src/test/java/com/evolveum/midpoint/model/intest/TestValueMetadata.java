@@ -683,7 +683,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .end();
     }
 
-    @Test(enabled = false)
+    @Test
     public void test940ReinforceGivenNameByManualEntry() throws Exception {
         given();
         Task task = getTestTask();

@@ -47,6 +47,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     private ObjectDeltaWaves<O> secondaryDeltas = new ObjectDeltaWaves<>();
 
+    private boolean primaryDeltaConsolidated;
+
     transient private ArchetypePolicyType archetypePolicyType;
     transient private ArchetypeType archetype;
 
@@ -600,5 +602,13 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
             OperationResult result) throws SchemaException, ConfigurationException {
         PrismObject<O> objectAny = getObjectAny();
         return objectAny != null ? linkManager.getTargetLinkTypeDefinition(linkTypeName, objectAny, result) : null;
+    }
+
+    public boolean isPrimaryDeltaConsolidated() {
+        return primaryDeltaConsolidated;
+    }
+
+    public void setPrimaryDeltaConsolidated(boolean primaryDeltaConsolidated) {
+        this.primaryDeltaConsolidated = primaryDeltaConsolidated;
     }
 }

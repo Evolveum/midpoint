@@ -246,7 +246,7 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
                     .result(result)
                     .build()) {
 
-            ItemDelta itemDelta = consolidator.consolidateToDelta();
+            ItemDelta itemDelta = consolidator.consolidateTriples();
             itemDelta.simplify();
 
             LOGGER.trace("Updating focus ODO with delta:\n{}", itemDelta.debugDumpLazily());

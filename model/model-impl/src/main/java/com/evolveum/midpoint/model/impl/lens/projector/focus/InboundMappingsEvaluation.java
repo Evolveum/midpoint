@@ -1001,8 +1001,10 @@ class InboundMappingsEvaluation<F extends FocusType> {
         ObjectDelta<F> focusAPrioriDelta = focusContext.getDelta();
 
         Consumer<IvwoConsolidatorBuilder> customizer = builder ->
-                builder.deleteExistingValues(builder.getItemDefinition().isSingleValue() &&
-                        !rangeIsCompletelyDefined(builder.getItemPath()));
+                builder
+                        .deleteExistingValues(builder.getItemDefinition().isSingleValue() &&
+                                !rangeIsCompletelyDefined(builder.getItemPath()))
+                        .skipNormalMappingAPrioriDeltaCheck(true);
 
         DeltaSetTripleMapConsolidation<F> consolidation = new DeltaSetTripleMapConsolidation<>(
                 outputTripleMap, focus, focusAPrioriDelta, true,

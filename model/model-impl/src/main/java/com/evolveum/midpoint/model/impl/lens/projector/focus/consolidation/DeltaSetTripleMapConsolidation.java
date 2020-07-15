@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.model.impl.lens.projector.focus.consolidation;
 
 import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingScopeType.CONSOLIDATION;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -23,8 +22,6 @@ import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataComputation;
-import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataProcessingSpec;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -133,7 +130,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
                 addUnchangedValuesOverride : targetAPrioriDelta != null && targetAPrioriDelta.isAdd();
     }
 
-    public void computeItemDeltas() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+    public void computeItemDeltas() throws ExpressionEvaluationException, SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
         try {
             this.result = parentResult.createMinorSubresult(OP_CONSOLIDATE);
@@ -144,7 +141,8 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
                 ItemDelta aprioriItemDelta = LensUtil.getAprioriItemDelta(targetAPrioriDelta, itemPath);
                 DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>> deltaSetTriple = entry.getValue();
 
-                ValueMetadataComputer valueMetadataComputer = createValueMetadataComputer(itemPath);
+                ValueMetadataComputer valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
+                        itemPath, lensContext, beans, env, result);
 
                 //noinspection unchecked
                 DeltaSetTripleConsolidation itemConsolidation =
@@ -158,30 +156,6 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
             result.computeStatusIfUnknown();
             result = null;
         }
-    }
-
-    private ValueMetadataComputer createValueMetadataComputer(ItemPath itemPath) throws CommunicationException,
-            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
-        ValueMetadataProcessingSpec processingSpec = createProcessingSpec(itemPath);
-        if (processingSpec.isEmpty()) {
-            return null;
-        } else {
-            return (inputValues, computationOpResult) ->
-                    ValueMetadataComputation
-                            .forConsolidation(inputValues, processingSpec, beans.commonBeans, env)
-                            .execute(computationOpResult);
-        }
-    }
-
-    private ValueMetadataProcessingSpec createProcessingSpec(ItemPath itemPath) throws CommunicationException,
-            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
-            ExpressionEvaluationException {
-        ValueMetadataProcessingSpec processingSpec = ValueMetadataProcessingSpec.forScope(CONSOLIDATION);
-        // TODO What about persona mappings? outbound mappings? We should not use object template for that.
-        processingSpec.populateFromCurrentFocusTemplate(lensContext, itemPath, beans.modelObjectResolver,
-                env.contextDescription, env.task, result);
-        return processingSpec;
     }
 
     public Collection<ItemDelta<?, ?>> getItemDeltas() {
@@ -232,7 +206,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
             this.valueMetadataComputer = valueMetadataComputer;
         }
 
-        private ItemDelta<?, ?> consolidateItem() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+        private ItemDelta<?, ?> consolidateItem() throws ExpressionEvaluationException, SchemaException,
                 ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
             LOGGER.trace("Computing delta for {} with the delta set triple:\n{}", itemPath, deltaSetTriple.debugDumpLazily());
 
@@ -242,7 +216,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
             return itemDelta;
         }
 
-        private void computeItemDelta() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+        private void computeItemDelta() throws ExpressionEvaluationException, SchemaException,
                 ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
             try (IvwoConsolidator<V, D, I> consolidator = new IvwoConsolidatorBuilder<V, D, I>()
                     .itemPath(itemPath)
@@ -261,7 +235,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
                     .result(result)
                     .customize(consolidatorBuilderCustomizer)
                     .build()) {
-                itemDelta = consolidator.consolidateToDelta();
+                itemDelta = consolidator.consolidateTriples();
             }
         }
 

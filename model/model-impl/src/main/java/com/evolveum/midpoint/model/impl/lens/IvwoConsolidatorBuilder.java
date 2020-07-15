@@ -37,6 +37,7 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     boolean addUnchangedValuesExceptForNormalMappings;
     boolean isExclusiveStrong;
     boolean deleteExistingValues;
+    boolean skipNormalMappingAPrioriDeltaCheck;
     ValueMetadataComputer valueMetadataComputer;
     String contextDescription;
     OperationResult result;
@@ -114,6 +115,11 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
 
     public IvwoConsolidatorBuilder<V, D, I> deleteExistingValues(boolean val) {
         deleteExistingValues = val;
+        return this;
+    }
+
+    public IvwoConsolidatorBuilder<V, D, I> skipNormalMappingAPrioriDeltaCheck(boolean val) {
+        skipNormalMappingAPrioriDeltaCheck = val;
         return this;
     }
 
