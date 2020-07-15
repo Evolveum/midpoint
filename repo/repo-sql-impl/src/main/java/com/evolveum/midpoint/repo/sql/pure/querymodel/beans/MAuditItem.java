@@ -8,8 +8,8 @@ import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem;
 @SuppressWarnings("unused")
 public class MAuditItem {
 
-    private Long recordId;
-    private String changedItemPath;
+    public Long recordId;
+    public String changedItemPath;
 
     @Override
     public String toString() {

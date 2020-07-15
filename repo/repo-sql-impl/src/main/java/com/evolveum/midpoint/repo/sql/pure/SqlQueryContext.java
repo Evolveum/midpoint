@@ -134,14 +134,14 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
         return new SQLQuery<>(conn, QUERYDSL_CONFIGURATION);
     }
 
-    public PageOf<R> executeQuery(Connection conn) {
+    public PageOf<R> executeQuery(Connection conn) throws QueryException {
         SQLQuery<R> query = this.query.clone(conn)
                 .select(root());
         if (query.getMetadata().getModifiers().getLimit() == null) {
             query.limit(NO_PAGINATION_LIMIT);
         }
         // TODO logging
-        System.out.println("SQL query = " + query);
+        System.out.println("SQL query: " + query);
 
         long count = query.fetchCount();
         List<R> data = query.fetch();
@@ -166,11 +166,13 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
             @NotNull DQ newPath,
             @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
         query.leftJoin(newPath).on(joinOnPredicateFunction.apply(path(), newPath));
-        return new SqlQueryContext<>(
-                newPath,
-                QueryModelMappingConfig.getByModelType(newPath.getClass()),
-                prismContext(),
-                query);
+
+        // getClass returns Class<?> but it is really Class<DQ>, just suppressing the warning here
+        //noinspection unchecked
+        QueryModelMapping<?, DQ, DR> mapping =
+                QueryModelMappingConfig.getByQueryType(newPath.getClass());
+
+        return new SqlQueryContext<>(newPath, mapping, prismContext(), query);
     }
 
     @Override

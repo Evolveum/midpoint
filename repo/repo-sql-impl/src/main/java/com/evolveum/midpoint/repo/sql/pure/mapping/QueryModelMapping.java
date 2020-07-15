@@ -1,7 +1,7 @@
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.BiFunction;
@@ -25,21 +25,17 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.util.QNameUtil;
 
 /**
- * Common supertype for mapping between Q-classes and model (prism) classes.
+ * Common supertype for mapping items/attributes between schema (prism) classes and query types.
  * See {@link #addItemMapping(ItemName, ItemSqlMapper)} for details about mapping mechanism.
+ * See {@link #addDetailFetchMapper(ItemName, SqlDetailFetchMapper)} for more about mapping
+ * related to-many detail tables.
  * <p>
- * Goals:
- * <ul>
- *     <li>Map object query conditions and ORDER BY to SQL.</li>
- * </ul>
+ * <b>Goal:</b> Map object query conditions and ORDER BY to SQL.
  * <p>
- * Non-goals:
- * <ul>
- *     <li>Map objects from Q-type to prism and back.
- *     This is done by code, possibly static method from a DTO "assembler" class.</li>
- * </ul>
+ * <b>Non-goal:</b> Map objects from Q-type to prism and back.
+ * This is done by code, possibly static method from a DTO "assembler" class.
  *
- * @param <M> model type
+ * @param <M> schema type
  * @param <Q> entity type (entity path or type R)
  * @param <R> row/bean type used by the Q-class
  */
@@ -47,17 +43,19 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
 
     private final String tableName;
     private final String defaultAliasName;
-    private final Class<M> modelType;
+    private final Class<M> schemaType;
     private final Class<Q> queryType;
 
+    // TODO MID-6319: support for extension columns + null default alias after every change (in synchronized block)
     private final Map<String, ColumnMetadata> columns = new LinkedHashMap<>();
 
     private final Map<QName, ItemSqlMapper> itemFilterProcessorMapping = new LinkedHashMap<>();
+    private final Map<QName, SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers = new HashMap<>();
 
     private Q defaultAlias;
 
     /**
-     * Creates metamodel for the table described by designated type (Q-class) related to model type.
+     * Creates metamodel for the table described by designated type (Q-class) related to schema type.
      * Allows registration of any number of columns - typically used for static properties
      * (non-extensions).
      *
@@ -68,25 +66,25 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
     protected QueryModelMapping(
             @NotNull String tableName,
             @NotNull String defaultAliasName,
-            @NotNull Class<M> modelType,
+            @NotNull Class<M> schemaType,
             @NotNull Class<Q> queryType,
             ColumnMetadata... columns) {
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
-        this.modelType = modelType;
+        this.schemaType = schemaType;
         this.queryType = queryType;
         for (ColumnMetadata column : columns) {
             this.columns.put(column.getName(), column);
         }
     }
 
-    public QueryModelMapping<M, Q, R> add(ColumnMetadata column) {
+    public final QueryModelMapping<M, Q, R> add(ColumnMetadata column) {
         columns.put(column.getName(), column);
         return this;
     }
 
     /**
-     * Adds information how item (attribute) from model type is mapped to query,
+     * Adds information how item (attribute) from schema type is mapped to query,
      * especially for condition creating purposes.
      * <p>
      * The {@link ItemSqlMapper} works as a factory for {@link FilterProcessor} that can process
@@ -108,8 +106,23 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
      * @param itemMapper mapper wrapping the information about column mappings working also
      * as a factory for {@link FilterProcessor}
      */
-    public void addItemMapping(ItemName itemName, ItemSqlMapper itemMapper) {
+    public final void addItemMapping(ItemName itemName, ItemSqlMapper itemMapper) {
         itemFilterProcessorMapping.put(itemName, itemMapper);
+    }
+
+    /**
+     * Fetcher/mappers for detail tables take care of loading to-many details related to
+     * this mapped entity (master).
+     * One fetcher per detail type/table is registered under the related item name.
+     *
+     * @param itemName item name from schema type that is mapped to detail table in the repository
+     * @param detailFetchMapper fetcher-mapper that handles loading of details
+     * @see SqlDetailFetchMapper
+     */
+    public final void addDetailFetchMapper(
+            ItemName itemName,
+            SqlDetailFetchMapper<R, ?, ?, ?> detailFetchMapper) {
+        detailFetchMappers.put(itemName, detailFetchMapper);
     }
 
     /**
@@ -143,19 +156,18 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
     }
 
     // we want loose typing for client's sake, there is no other chance to get the right type here
-    public <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
+    public final <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
             ItemName itemName, SqlPathContext<?, ?> context)
             throws QueryException {
         return itemMapping(itemName).createFilterProcessor(context);
     }
 
-    public @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?> context)
+    public final @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?> context)
             throws QueryException {
         return itemMapping(itemName).itemPath(context.path());
     }
 
-    @NotNull
-    public ItemSqlMapper itemMapping(ItemName itemName) throws QueryException {
+    public final @NotNull ItemSqlMapper itemMapping(ItemName itemName) throws QueryException {
         ItemSqlMapper itemMapping = QNameUtil.getByQName(itemFilterProcessorMapping, itemName);
         if (itemMapping == null) {
             throw new QueryException("Missing mapping for " + itemName
@@ -172,8 +184,11 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
         return defaultAliasName;
     }
 
-    public Class<M> modelType() {
-        return modelType;
+    /**
+     * This refers to midPoint schema, not DB schema.
+     */
+    public Class<M> schemaType() {
+        return schemaType;
     }
 
     public Class<Q> queryType() {
@@ -196,17 +211,31 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
     }
 
     /**
-     * Creates {@link SqlTransformer} of row bean to model/schema type.
+     * Creates {@link SqlTransformer} of row bean to schema type.
      */
     public abstract SqlTransformer<M, R> createTransformer(PrismContext prismContext);
 
     /**
-     * Returns collection of {@link SqlDetailFetchMapper}s that know how to fetch
-     * to-many details related to this mapped entity (master) - fetcher per detail type/table.
+     * Returns collection of all registered {@link SqlDetailFetchMapper}s.
      */
-    public Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers() {
-        return Collections.emptyList();
+    public final Collection<SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers() {
+        return detailFetchMappers.values();
     }
 
-    // TODO extension columns + null default alias after every change - synchronized!
+    /**
+     * Returns {@link SqlDetailFetchMapper} registered for the specified {@link ItemName}.
+     */
+    public final SqlDetailFetchMapper<R, ?, ?, ?> detailFetchMapper(ItemName itemName) {
+        return detailFetchMappers.get(itemName);
+    }
+
+    @Override
+    public String toString() {
+        return "QueryModelMapping{" +
+                "tableName='" + tableName + '\'' +
+                ", defaultAliasName='" + defaultAliasName + '\'' +
+                ", schemaType=" + schemaType +
+                ", queryType=" + queryType +
+                '}';
+    }
 }

@@ -15,10 +15,17 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.sql.SQLQuery;
 
+import com.evolveum.midpoint.repo.sql.query.QueryException;
+
 /**
  * Mapper/fetcher of many detail records for one master record.
- * This also takes care of the execution ({@link #execute(Supplier, List)} as it is easier
- * (and maybe nicer) to contain all the parametrized types in a single class.
+ * Detail fetch/mapper know hows to fetch to-many details related to a master entity.
+ * <p>
+ * To load the details for the provided list of data use {@link #execute(Supplier, List)}.
+ * To load the details for one master entity use {@link #execute(Supplier, R)}.
+ * <p>
+ * It is easier (and perhaps nicer) to contain all the parametrized types in a single class,
+ * that is why execution methods are here.
  *
  * @param <R> type of master row
  * @param <I> type of row-PK/detail-FK
@@ -28,46 +35,63 @@ import com.querydsl.sql.SQLQuery;
 public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
 
     private final Function<R, I> rowToId;
-    private final DQ detailAlias;
-    private final SimpleExpression<I> detailFkPath;
+    private final Class<DQ> detailQueryType;
+    private final Function<DQ, SimpleExpression<I>> detailFkPathFunction;
     private final Function<DR, I> detailToMasterId;
     private final BiConsumer<R, DR> masterDetailConsumer;
 
     // If used extensively we better add a builder for it as it has 5 complex arguments.
     public SqlDetailFetchMapper(
             Function<R, I> rowToId,
-            DQ detailAlias,
-            SimpleExpression<I> detailFkPath,
+            Class<DQ> detailQueryType,
+            Function<DQ, SimpleExpression<I>> detailFkPathFunction,
             Function<DR, I> detailToMasterId,
             BiConsumer<R, DR> masterDetailConsumer) {
         this.rowToId = rowToId;
-        this.detailAlias = detailAlias;
-        this.detailFkPath = detailFkPath;
+        this.detailQueryType = detailQueryType;
+        this.detailFkPathFunction = detailFkPathFunction;
         this.detailToMasterId = detailToMasterId;
         this.masterDetailConsumer = masterDetailConsumer;
     }
 
-    // following methods are provided as shortcuts and for readability of the client code
-
-    public void execute(Supplier<SQLQuery<?>> querySupplier, List<R> data) {
+    public void execute(Supplier<SQLQuery<?>> querySupplier, List<R> data) throws QueryException {
         // partitioning recursively calls the same method on sub-limit result lists
         if (data.size() > MAX_ID_IN_FOR_TO_MANY_FETCH) {
-            Lists.partition(data, MAX_ID_IN_FOR_TO_MANY_FETCH)
-                    .forEach(partition -> execute(querySupplier, partition));
+            for (List<R> partition : Lists.partition(data, MAX_ID_IN_FOR_TO_MANY_FETCH)) {
+                execute(querySupplier, partition);
+            }
         }
 
+        DQ dq = QueryModelMappingConfig.getByQueryType(detailQueryType).newAlias("_detail");
         Map<I, R> rowById = data.stream()
                 .collect(toMap(rowToId, row -> row));
+        SimpleExpression<I> detailFkPath = detailFkPathFunction.apply(dq);
         SQLQuery<DR> query = querySupplier.get()
-                .select(detailAlias)
-                .from(detailAlias)
+                .select(dq)
+                .from(dq)
                 .where(detailFkPath.in(rowById.keySet()));
-        System.out.println("SQL detail query = " + query);
+        // TODO logging
+        System.out.println("SQL detail query for list: " + query);
         List<DR> details = query.fetch();
         for (DR detail : details) {
             masterDetailConsumer.accept(
                     rowById.get(detailToMasterId.apply(detail)),
                     detail);
+        }
+    }
+
+    public void execute(Supplier<SQLQuery<?>> querySupplier, R masterRow) throws QueryException {
+        DQ dq = QueryModelMappingConfig.getByQueryType(detailQueryType).newAlias("_detail");
+        SimpleExpression<I> detailFkPath = detailFkPathFunction.apply(dq);
+        SQLQuery<DR> query = querySupplier.get()
+                .select(dq)
+                .from(dq)
+                .where(detailFkPath.eq(rowToId.apply(masterRow)));
+        // TODO logging
+        System.out.println("SQL detail query for one entity: " + query);
+        List<DR> details = query.fetch();
+        for (DR detail : details) {
+            masterDetailConsumer.accept(masterRow, detail);
         }
     }
 }

@@ -44,12 +44,12 @@ public class SqlQueryExecutor {
 
     public <M, Q extends EntityPath<R>, R>
     SearchResultList<M> list(
-            @NotNull Class<M> prismType,
+            @NotNull Class<M> schemaType,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws QueryException {
 
-        QueryModelMapping<M, Q, R> rootMapping = QueryModelMappingConfig.getByModelType(prismType);
+        QueryModelMapping<M, Q, R> rootMapping = QueryModelMappingConfig.getBySchemaType(schemaType);
         SqlQueryContext<Q, R> context = new SqlQueryContext<>(rootMapping, prismContext);
         // TODO: cover with tests, not relevant for Audit though (at least not yet without multiplying joins)
         context.setDistinct(

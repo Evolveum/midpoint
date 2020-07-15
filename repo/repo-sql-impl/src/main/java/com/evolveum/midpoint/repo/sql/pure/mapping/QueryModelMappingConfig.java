@@ -11,12 +11,13 @@ public class QueryModelMappingConfig {
 
     private static final QueryModelMappingRegistry REGISTRY = new QueryModelMappingRegistry()
             .register(AuditEventRecordType.COMPLEX_TYPE, QAuditEventRecordMapping.INSTANCE)
-            .register(QAuditItemMapping.INSTANCE);
+            .register(QAuditItemMapping.INSTANCE)
+            .register(QAuditPropertyValueMapping.INSTANCE);
 
     public static <M, Q extends EntityPath<R>, R>
-    QueryModelMapping<M, Q, R> getByModelType(Class<M> modelType) {
+    QueryModelMapping<M, Q, R> getBySchemaType(Class<M> schemaType) {
         //noinspection unchecked
-        return (QueryModelMapping<M, Q, R>) REGISTRY.getByModelType(modelType);
+        return (QueryModelMapping<M, Q, R>) REGISTRY.getBySchemaType(schemaType);
     }
 
     public static <M, Q extends EntityPath<R>, R>
