@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -183,7 +184,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 if (searchByName != null) {
                     for (SearchItem item : search.getItems()) {
                         if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
-                            item.setValues(Collections.singletonList(new SearchValue(searchByName)));
+                            List collection = new ArrayList<DisplayableValue>();
+                            collection.add(new SearchValue(searchByName));
+                            item.setValues(collection);
                         }
                     }
                 }

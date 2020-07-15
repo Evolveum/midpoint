@@ -95,4 +95,13 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
     protected MidpointFormLoginConfigurer getMidpointFormLoginConfiguration() {
         return new MidpointFormLoginConfigurer(new MidpointUsernamePasswordAuthenticationFilter());
     }
+
+    @Override
+    public C getConfiguration() {
+        return configuration;
+    }
+
+    protected SessionRegistry getSessionRegistry() {
+        return sessionRegistry;
+    }
 }

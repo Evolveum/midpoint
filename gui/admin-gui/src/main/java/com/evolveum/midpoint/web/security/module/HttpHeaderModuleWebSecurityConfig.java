@@ -7,7 +7,8 @@
 package com.evolveum.midpoint.web.security.module;
 
 import com.evolveum.midpoint.web.security.MidpointAuthenticationFauileHandler;
-import com.evolveum.midpoint.web.security.MidpointProviderManager;
+import com.evolveum.midpoint.web.security.MidPointAuthenticationSuccessHandler;
+import com.evolveum.midpoint.web.security.MidpointAuthenticationManager;
 import com.evolveum.midpoint.web.security.filter.MidpointRequestHeaderAuthenticationFilter;
 import com.evolveum.midpoint.web.security.module.configuration.HttpHeaderModuleWebSecurityConfiguration;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,8 +22,7 @@ import org.springframework.security.web.authentication.preauth.RequestHeaderAuth
 
 public class HttpHeaderModuleWebSecurityConfig<C extends HttpHeaderModuleWebSecurityConfiguration> extends LoginFormModuleWebSecurityConfig<C> {
 
-    @Autowired
-    private MidpointProviderManager authenticationManager;
+    @Autowired private MidpointAuthenticationManager authenticationManager;
 
     public HttpHeaderModuleWebSecurityConfig(C configuration) {
         super(configuration);
@@ -42,6 +42,9 @@ public class HttpHeaderModuleWebSecurityConfig<C extends HttpHeaderModuleWebSecu
         filter.setExceptionIfHeaderMissing(false);
         filter.setAuthenticationManager(authenticationManager);
         filter.setAuthenticationFailureHandler(new MidpointAuthenticationFauileHandler());
+        filter.setAuthenticationSuccessHandler(getObjectPostProcessor().postProcess(
+                new MidPointAuthenticationSuccessHandler().setPrefix(getConfiguration().getPrefix())));
+        filter.setSessionRegistry(getSessionRegistry());
 
         return filter;
     }
