@@ -585,7 +585,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
         PrismObject<UserType> blaise = findUserByUsername(USER_BLAISE_NAME);
 
-//        setGlobalTracingOverride(addRepositoryAndSqlLogging(createModelLoggingTracingProfile()));
+        setGlobalTracingOverride(addRepositoryAndSqlLogging(createModelLoggingTracingProfile()));
 
         // @formatter:off
         PrismPropertyValue<PolyString> pascal = prismContext.itemFactory().createPropertyValue();
@@ -609,6 +609,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .asObjectDelta(blaise.getOid());
 
         when();
+
+        // Reconcile option is to engage inbound processing.
         executeChanges(delta, ModelExecuteOptions.create(prismContext).reconcile(), task, result);
 
         then();
@@ -681,7 +683,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .end();
     }
 
-    @Test
+    @Test(enabled = false)
     public void test940ReinforceGivenNameByManualEntry() throws Exception {
         given();
         Task task = getTestTask();
@@ -701,7 +703,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                     .timestamp(now)
                                     .channel(SchemaConstants.CHANNEL_GUI_USER_URI)
                                     .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                    .actorRef(USER_ADMINISTRATOR_OID, UserType.COMPLEX_TYPE)
+                                    .actorRef(USER_JIM.oid, UserType.COMPLEX_TYPE)
                                 .<ProvenanceYieldType>end()
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
@@ -712,7 +714,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .asObjectDelta(user.getOid());
 
         when();
-        executeChanges(delta, ModelExecuteOptions.create(prismContext).reconcile(), task, result);
+        executeChanges(delta, null, task, result);
 
         then();
         assertUserAfterByUsername(USER_BLAISE_NAME)
