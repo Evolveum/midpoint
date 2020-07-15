@@ -665,7 +665,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             }
         }
         if (exportType != LensContext.ExportType.MINIMAL) {
-            lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta) : null);
+            lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta.clone()) : null);
             for (LensObjectDeltaOperation<?> executedDelta : executedDeltas) {
                 lensElementContextType.getExecutedDeltas()
                         .add(LensContext.simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());

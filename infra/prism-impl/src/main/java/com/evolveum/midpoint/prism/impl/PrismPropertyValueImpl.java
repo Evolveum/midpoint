@@ -499,7 +499,6 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         return toString();
     }
 
-
     @Override
     public String debugDump(int indent) {
         return debugDump(indent, false);
@@ -543,6 +542,11 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
                 DebugUtil.indentDebugDump(sb, indent);
             }
             sb.append("null");
+        }
+
+        ValueMetadata valueMetadata = getValueMetadata();
+        if (!valueMetadata.isEmpty()) {
+            sb.append(", meta: ").append(valueMetadata.shortDump());
         }
 
         return sb.toString();

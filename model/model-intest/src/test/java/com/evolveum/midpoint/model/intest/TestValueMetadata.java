@@ -397,6 +397,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         OperationResult result = task.getResult();
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
 
+        setGlobalTracingOverride(createModelLoggingTracingProfile());
+
         // @formatter:off
         PrismPropertyValue<PolyString> leonhard = prismContext.itemFactory().createPropertyValue();
         leonhard.setValue(PolyString.fromOrig("Leonhard"));

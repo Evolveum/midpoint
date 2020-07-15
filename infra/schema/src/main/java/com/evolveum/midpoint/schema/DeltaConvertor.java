@@ -217,7 +217,7 @@ public class DeltaConvertor {
         } else if (objectDelta.getChangeType() == ChangeType.DELETE) {
             // Nothing to do
         } else {
-            throw new SystemException("Unknown changetype "+objectDelta.getChangeType());
+            throw new SystemException("Unknown changeType "+objectDelta.getChangeType());
         }
         return objectDeltaType;
     }

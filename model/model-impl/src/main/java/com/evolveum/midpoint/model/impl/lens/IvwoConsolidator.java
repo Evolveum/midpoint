@@ -729,12 +729,13 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                         + "   - valueMatcher: {}\n"
                         + "   - comparator: {}\n"
                         + "   - deleteExistingValues (experimental): {}\n"
+                        + "   - skipNormalMappingAPrioriDeltaCheck (experimental): {}\n"
                         + "   - valueMetadataComputer: {}",
                 itemPath, ivwoTriple.debugDumpLazily(1),
                 DebugUtil.debugDumpLazily(aprioriItemDelta, 2),
                 DebugUtil.debugDumpLazily(existingItem, 2),
                 addUnchangedValues, existingItemKnown, itemIsExclusiveStrong, strengthSelector, valueMatcher, comparator,
-                deleteExistingValues, valueMetadataComputer);
+                deleteExistingValues, skipNormalMappingAPrioriDeltaCheck, valueMetadataComputer);
     }
 
     private void logEnd() {
@@ -1004,7 +1005,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         @Override
         public String debugDump(int indent) {
             StringBuilder sb = new StringBuilder();
-            DebugUtil.debugDumpWithLabelLn(sb, "Members", members, indent);
+            DebugUtil.debugDumpWithLabelLn(sb, "Equivalence class members", members, indent);
             DebugUtil.debugDumpWithLabelLn(sb, "Plus origins", plusOrigins, indent);
             DebugUtil.debugDumpWithLabelLn(sb, "Zero origins", zeroOrigins, indent);
             DebugUtil.debugDumpWithLabelLn(sb, "Minus origins", minusOrigins, indent);
@@ -1020,7 +1021,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
         @Override
         public String toString() {
-            return String.format("%s (ivwo: %d+/%dz/%d-, existing: %d, apriori: %d/%d)",
+            return String.format("%s (triple: %d+/%dz/%d-, existing: %d, apriori: %d/%d)",
                     members, plusOrigins.size(), zeroOrigins.size(), minusOrigins.size(), presenceInExistingItem.size(),
                     presenceInAprioriPlus.size(), presenceInAprioriMinus.size());
         }
@@ -1058,9 +1059,11 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     // TODO the relation defined here is not transitive:
     //  Having container values V1, V2, V3 like this:
     //   V1 (id=42) has content C
-    //   V2 (id=42) is empty
+    //   V2 (id=42) is empty (or has content C')
     //   V3 (no id) has content C
     //  Then V1 ~ V2, V1 ~ V3 but not V2 ~ V3.
+    //
+    // So, after all, is the concept of using equivalence classes OK? :)
     private boolean areEquivalent(V value1, V value2) throws SchemaException {
         if (containerIdentifiersPresentAndEqual(value1, value2)) {
             return true;
@@ -1070,7 +1073,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         } else if (comparator != null) {
             return comparator.compare(value1, value2) == 0;
         } else if (value1 != null) {
-            return value1.equals(value2, EquivalenceStrategy.IGNORE_METADATA);
+            return value1.equals(value2, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         } else {
             return value2 == null;
         }

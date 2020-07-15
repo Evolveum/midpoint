@@ -9,6 +9,8 @@ package com.evolveum.midpoint.schema;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static com.evolveum.midpoint.schema.DeltaConvertor.toObjectDeltaType;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertTrue;
@@ -140,6 +142,60 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         objectDelta.assertDefinitions();
     }
 
+    @Test
+    public void testModifyGivenNameWithMetadata() throws Exception {
+        System.out.println("===[ testModifyGivenNameWithMetadata ]====");
+
+        ObjectModificationType objectChange = PrismTestUtil.parseAtomicValue(new File(TEST_DIR, "user-modify-givenname-with-metadata.xml"),
+                ObjectModificationType.COMPLEX_TYPE);
+
+        // WHEN
+        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(objectChange, UserType.class, getPrismContext());
+
+        // THEN
+        assertNotNull("No object delta", objectDelta);
+        objectDelta.checkConsistence();
+        assertEquals("Wrong OID", "c0c010c0-d34d-b33f-f00d-111111111111", objectDelta.getOid());
+        PropertyDelta<PolyString> givenNameDelta = objectDelta.findPropertyDelta(UserType.F_GIVEN_NAME);
+        assertNotNull("No givenName delta", givenNameDelta);
+        Collection<PrismPropertyValue<PolyString>> valuesToReplace = givenNameDelta.getValuesToReplace();
+        assertEquals("Wrong number of values to replace", 1, valuesToReplace.size());
+        PrismPropertyValue<PolyString> newGivenName = valuesToReplace.iterator().next();
+        assertThat(newGivenName.getValue().getOrig()).isEqualTo("JACK");
+        assertAcquisitionChannel(newGivenName);
+
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
+        // apply to user
+        objectDelta.applyTo(user);
+
+        PrismProperty<PolyString> propertyAfter = user.findProperty(UserType.F_GIVEN_NAME);
+        assertThat(propertyAfter).isNotNull();
+        assertThat(propertyAfter.getValue()).isNotNull();
+        assertThat(propertyAfter.getValue().getRealValue()).isNotNull();
+        assertThat(propertyAfter.getValue().getRealValue().getOrig()).isEqualTo("JACK");
+        assertAcquisitionChannel(propertyAfter.getValue());
+
+        objectDelta.assertDefinitions();
+
+        ObjectDeltaType objectDeltaBean = toObjectDeltaType(objectDelta);
+        String xml = getPrismContext().xmlSerializer().serializeRealValue(objectDeltaBean, new QName("delta"));
+        displayValue("Serialized", xml);
+
+        LensElementContextType ctx = new LensElementContextType(getPrismContext());
+        ctx.setPrimaryDelta(objectDeltaBean);
+        String xml2 = getPrismContext().xmlSerializer().serializeRealValue(ctx, new QName("ctx"));
+        displayValue("Serialized context", xml2);
+    }
+
+    private void assertAcquisitionChannel(PrismPropertyValue<PolyString> newGivenName) {
+        ValueMetadataType metadata = (ValueMetadataType) newGivenName.getValueMetadata().asContainerable();
+        assertThat(metadata).isNotNull();
+        assertThat(metadata.getProvenance()).isNotNull();
+        assertThat(metadata.getProvenance().getYield()).hasSize(1);
+        assertThat(metadata.getProvenance().getYield().get(0)).isNotNull();
+        assertThat(metadata.getProvenance().getYield().get(0).getAcquisition()).hasSize(1);
+        assertThat(metadata.getProvenance().getYield().get(0).getAcquisition().get(0).getChannel()).isEqualTo("import");
+    }
 
     @Test
     public void testAddAssignment() throws Exception {

@@ -33,10 +33,11 @@ public class LensMetadataUtil {
         if (processingSpec.isEmpty()) {
             return null;
         } else {
-            return (inputValues, computationOpResult) ->
-                    ValueMetadataComputation
-                            .forConsolidation(inputValues, processingSpec, beans.commonBeans, env)
-                            .execute(computationOpResult);
+            return ValueMetadataComputer.named(() -> "Computer for consolidation of " + itemPath + " in " + env.contextDescription,
+                    (inputValues, computationOpResult) ->
+                            ValueMetadataComputation
+                                    .forConsolidation(inputValues, processingSpec, beans.commonBeans, env)
+                                    .execute(computationOpResult));
         }
     }
 
