@@ -1134,6 +1134,14 @@ public class ConsolidationProcessor {
             return;
         }
 
+        if (focusContext.isOfType(LookupTableType.class)) {
+            // Deltas for lookup table rows have very strange semantics. They cannot be consolidated using
+            // standard algorithms. See MID-6377.
+            LOGGER.trace("Focus primary delta consolidation on lookup table is not supported - skipping.");
+            focusContext.setPrimaryDeltaConsolidated(true);
+            return;
+        }
+
         // the consolidation
         OperationResult result = parentResult.createMinorSubresult(OP_CONSOLIDATE_FOCUS_PRIMARY_DELTA);
         try {

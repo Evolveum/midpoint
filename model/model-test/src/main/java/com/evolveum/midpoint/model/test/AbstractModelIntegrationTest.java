@@ -2998,7 +2998,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected ObjectDelta<UserType> createModifyUserUnlinkAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
-        String accountOid = getLinkRefOid(userOid, resource.getOid());
+        return createModifyUserUnlinkAccount(userOid, resource.getOid());
+    }
+
+    protected ObjectDelta<UserType> createModifyUserUnlinkAccount(String userOid, String resourceOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        String accountOid = getLinkRefOid(userOid, resourceOid);
 
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object().createEmptyModifyDelta(UserType.class, userOid
         );

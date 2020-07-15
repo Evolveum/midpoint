@@ -20,7 +20,13 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedByteArrayType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +38,8 @@ import java.util.List;
  * Consolidates delta against current object.
  */
 class DeltaConsolidation<F extends ObjectType>  {
+
+    private static final Trace LOGGER = TraceManager.getTrace(DeltaConsolidation.class);
 
     @NotNull private final LensContext<F> context;
     @NotNull private final PrismObject<F> currentObject;
@@ -57,10 +65,32 @@ class DeltaConsolidation<F extends ObjectType>  {
     ObjectDelta<F> consolidate() throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         for (ItemDelta<?, ?> itemDelta : itemDeltas) {
-            new ItemDeltaConsolidation<>(itemDelta).consolidate();
+            if (canConsolidate(itemDelta)) {
+                new ItemDeltaConsolidation<>(itemDelta).consolidate();
+            } else {
+                consolidatedItemDeltas.add(itemDelta.clone());
+            }
         }
         return beans.prismContext.deltaFactory().object().createModifyDelta(
                 currentObject.getOid(), consolidatedItemDeltas, currentObject.getCompileTimeClass());
+    }
+
+    /**
+     * Some deltas are unsafe to consolidate.
+     */
+    private boolean canConsolidate(ItemDelta<?, ?> itemDelta) {
+        if (itemDelta.getDefinition() == null) {
+            LOGGER.warn("Item delta with no definition -- skipping the consolidation: {}", itemDelta);
+            return false;
+        }
+        if (ProtectedStringType.COMPLEX_TYPE.equals(itemDelta.getDefinition().getTypeName()) ||
+                ProtectedByteArrayType.COMPLEX_TYPE.equals(itemDelta.getDefinition().getTypeName()) ||
+                ProtectedDataType.COMPLEX_TYPE.equals(itemDelta.getDefinition().getTypeName())) {
+            // See MID-6377. TODO what about deltas for containers that have protected values inside them?
+            LOGGER.trace("It is not safe to consolidate deltas with protected data -- skipping: {}", itemDelta);
+            return false;
+        }
+        return true;
     }
 
     private class ItemDeltaConsolidation<V extends PrismValue, D extends ItemDefinition> {
