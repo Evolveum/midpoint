@@ -5,9 +5,10 @@ import static org.testng.Assert.assertEquals;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.testng.annotations.Ignore;
 import org.testng.annotations.Test;
 
-import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
@@ -15,6 +16,7 @@ import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.stream.AxiomItemTarget;
 import com.evolveum.axiom.concepts.SourceLocation;
+import com.evolveum.axiom.lang.antlr.AntlrDecoderContext;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
@@ -60,7 +62,6 @@ public class TestAxiomInfra extends AbstractReactorTest {
         assertModel(result,"test");
     }
 
-    @Test
     void testInfraTypeApi() throws AxiomSemanticException, AxiomSyntaxException, FileNotFoundException, IOException {
         AxiomSchemaContext context = ModelReactorContext.defaultReactor()
                 .loadModelFromSource(source(PRISM))
@@ -85,13 +86,12 @@ public class TestAxiomInfra extends AbstractReactorTest {
         assertModel(result,"test");
     }
 
-    @Test
     void testInfraSerialized() throws AxiomSemanticException, AxiomSyntaxException, FileNotFoundException, IOException {
         AxiomSchemaContext context = ModelReactorContext.defaultReactor()
                 .loadModelFromSource(source(PRISM))
                 .computeSchemaContext();
         AxiomItemTarget t = new AxiomItemTarget(context);
-        source(PRISM_TEST).stream(t);
+        source(PRISM_TEST).stream(t, AntlrDecoderContext.BUILTIN_DECODERS);
 
         AxiomItem<?> result = t.get();
         AxiomTypeDefinition typeDef = t.get().onlyValue().type().get();
@@ -101,7 +101,7 @@ public class TestAxiomInfra extends AbstractReactorTest {
 
 
     private void assertModel(AxiomItem<?> result, Object name) {
-        AxiomComplexValue model = result.onlyValue().asComplex().get();
+        AxiomStructuredValue model = result.onlyValue().asComplex().get();
         assertEquals(model.item(Item.NAME).get().onlyValue().value(), name);
     }
 }

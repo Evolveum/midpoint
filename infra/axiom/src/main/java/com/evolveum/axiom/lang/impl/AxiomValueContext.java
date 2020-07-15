@@ -11,8 +11,9 @@ import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.lang.impl.AxiomStatementRule.ActionBuilder;
+import java.util.Optional;
 
 public interface AxiomValueContext<V> {
 
@@ -30,7 +31,7 @@ public interface AxiomValueContext<V> {
 
     void mergeItem(AxiomItem<?> axiomItem);
 
-    void register(AxiomName space, Scope scope, IdentifierSpaceKey key);
+    void register(AxiomName space, Scope scope, AxiomValueIdentifier key);
 
     AxiomRootContext root();
 
@@ -44,6 +45,10 @@ public interface AxiomValueContext<V> {
 
     <V> AxiomValueReference<V> asReference();
 
+    void valueIdentifier(AxiomValueIdentifier key);
+
+    void mergeCompletedIfEmpty(Optional<AxiomItem<?>> item);
+
     /*V requireValue() throws AxiomSemanticException;
 
     AxiomItemDefinition definition();
@@ -56,14 +61,14 @@ public interface AxiomValueContext<V> {
 
     AxiomValueContext<?> parent();
 
-    void register(AxiomIdentifier space, Scope scope, IdentifierSpaceKey key);
+    void register(AxiomIdentifier space, Scope scope, AxiomValueIdentifier key);
 
     V requireValue(Class<V> type);
 
 
     void importIdentifierSpace(NamespaceContext namespaceContext);
 
-    void exportIdentifierSpace(IdentifierSpaceKey namespace);
+    void exportIdentifierSpace(AxiomValueIdentifier namespace);
 
     void mergeItem(AxiomItem<?> children);
 

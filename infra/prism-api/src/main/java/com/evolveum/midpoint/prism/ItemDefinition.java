@@ -33,9 +33,15 @@ public interface ItemDefinition<I extends Item> extends Definition {
 
     int getMaxOccurs();
 
-    boolean isSingleValue();
+    default boolean isSingleValue() {
+        int maxOccurs = getMaxOccurs();
+        return maxOccurs >= 0 && maxOccurs <= 1;
+    }
 
-    boolean isMultiValue();
+    default boolean isMultiValue() {
+        int maxOccurs = getMaxOccurs();
+        return maxOccurs < 0 || maxOccurs > 1;
+    }
 
     boolean isMandatory();
 

@@ -9,16 +9,19 @@ package com.evolveum.axiom.lang.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
 
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget.ItemBuilder;
+import com.evolveum.axiom.lang.api.AxiomBuiltIn;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.reactor.Dependency;
 import com.google.common.base.Preconditions;
@@ -69,6 +72,10 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
                 if(!value.isSatisfied()) {
                     return false;
                 }
+            } else if(value instanceof ValueContext)  {
+                if(!value.isSatisfied()) {
+                    return false;
+                }
             }
         }
         return true;
@@ -97,6 +104,11 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
     }
 
     @Override
+    public void addOperationalValue(AxiomValueContext<?> value) {
+        values.add((ValueContext<V>) value);
+    }
+
+    @Override
     public void addOperationalValue(AxiomValueReference<V> value) {
         Preconditions.checkState(value instanceof ValueContext.Reference);
         values.add(((ValueContext.Reference) value).asDependency());
@@ -109,13 +121,9 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
     }
 
     @Override
-    public AxiomNameResolver itemResolver() {
-        return rootImpl().itemResolver();
-    }
-
-    @Override
-    public AxiomNameResolver valueResolver() {
-        return rootImpl().valueResolver();
+    public AxiomValueContext<V> only() {
+        Preconditions.checkState(values.size() == 1);
+        return (AxiomValueContext<V>) values.iterator().next();
     }
 
     public Dependency<AxiomValue<V>> onlyValue0() {
@@ -123,6 +131,38 @@ public class ItemContext<V> extends AbstractContext<ValueContext<?>> implements 
             return values.iterator().next();
         }
         return null;
+    }
+
+    public void merge(Collection<? extends AxiomValue<?>> values) {
+        for(AxiomValue<?> value : values) {
+            addCompletedValue(value);
+        }
+    }
+
+    @Override
+    public void addCompletedValue(AxiomValue<?> value) {
+        ValueContext<?> valueCtx = startValue(value.value(),SourceLocation.runtime());
+        valueCtx.replace(value);
+        valueCtx.endValue(SourceLocation.runtime());
+    }
+
+    @Override
+    public Optional<? extends AxiomValueContext<V>> value(AxiomValueIdentifier id) {
+        throw new IllegalStateException("Item is not indexed");
+    }
+
+    public void mergeCompleted(Collection<? extends AxiomValue<?>> values) {
+
+    }
+
+    @Override
+    public AxiomTypeDefinition currentType() {
+        return definition.typeDefinition();
+    }
+
+    @Override
+    public AxiomTypeDefinition currentInfra() {
+        return AxiomBuiltIn.Type.AXIOM_VALUE;
     }
 
 }

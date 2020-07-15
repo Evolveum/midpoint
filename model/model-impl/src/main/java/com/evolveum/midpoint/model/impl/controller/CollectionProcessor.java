@@ -207,8 +207,8 @@ public class CollectionProcessor {
     public <O extends ObjectType> CollectionStats determineCollectionStats(CompiledObjectCollectionView collectionView, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         CollectionStats stats = new CollectionStats();
         Class<O> targetClass = collectionView.getTargetClass();
-        stats.setObjectCount(countObjects(targetClass, collectionView.getFilter(), collectionView.getOptions(), task, result));
-        stats.setDomainCount(countObjects(targetClass, collectionView.getDomainFilter(), collectionView.getDomainOptions(), task, result));
+        stats.setObjectCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getFilter(), result, task), collectionView.getOptions(), task, result));
+        stats.setDomainCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getDomainFilter(), result, task), collectionView.getDomainOptions(), task, result));
         return stats;
     }
 
@@ -347,8 +347,7 @@ public class CollectionProcessor {
         SearchFilterType collectionFilterType = objectCollectionType.getFilter();
         ObjectFilter collectionFilter;
         if (collectionFilterType != null) {
-            ObjectFilter filterRaw = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
-            collectionFilter = evaluateExpressionsInFilter(filterRaw, result, task);
+            collectionFilter = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
         } else {
             collectionFilter = null;
         }

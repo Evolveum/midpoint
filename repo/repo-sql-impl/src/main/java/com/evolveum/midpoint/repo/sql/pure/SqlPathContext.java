@@ -1,6 +1,9 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
+import java.util.function.BiFunction;
+
 import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -11,16 +14,20 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 /**
  * SQL path context with mapping information.
+ *
+ * @param <S> schema type, used by encapsulated mapping
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
  */
-public class SqlPathContext<Q extends EntityPath<R>, R> {
+public abstract class SqlPathContext<S, Q extends EntityPath<R>, R> {
 
     private final Q path;
-    private final QueryModelMapping<?, Q, R> mapping;
+    private final QueryModelMapping<S, Q, R> mapping;
     private final PrismContext prismContext;
 
     private boolean notFilterUsed = false;
 
-    public SqlPathContext(Q path, QueryModelMapping<?, Q, R> mapping, PrismContext prismContext) {
+    public SqlPathContext(Q path, QueryModelMapping<S, Q, R> mapping, PrismContext prismContext) {
         this.path = path;
         this.mapping = mapping;
         this.prismContext = prismContext;
@@ -34,11 +41,10 @@ public class SqlPathContext<Q extends EntityPath<R>, R> {
         return pathType.cast(path);
     }
 
-    public QueryModelMapping<?, Q, R> mapping() {
+    public QueryModelMapping<S, Q, R> mapping() {
         return mapping;
     }
 
-    // TODO - will be necessary for mappers requiring model insight, e.g. path->CanonicalItemPath, etc.
     public PrismContext prismContext() {
         return prismContext;
     }
@@ -55,4 +61,10 @@ public class SqlPathContext<Q extends EntityPath<R>, R> {
     public boolean isNotFilterUsed() {
         return notFilterUsed;
     }
+
+    public abstract <DQ extends EntityPath<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
+            @NotNull DQ newPath,
+            @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicate);
+
+    public abstract String uniqueAliasName(String baseAliasName);
 }

@@ -11,24 +11,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomStructured;
 import com.evolveum.axiom.api.meta.Inheritance;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomComplexValue {
+public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomStructured {
 
     public final AxiomName IDENTIFIER_MEMBER = AxiomName.axiom("name");
     public final AxiomName SPACE = AxiomName.axiom("AxiomTypeDefinition");
     public final AxiomName NAME = AxiomName.axiom("name");
-
-
-
-    @Override
-    default Optional<AxiomTypeDefinition> type() {
-        return Optional.empty();
-    }
 
     Optional<AxiomItemDefinition> argument();
 
@@ -52,8 +46,8 @@ public interface AxiomTypeDefinition extends AxiomNamedDefinition, AxiomComplexV
         return superType().flatMap(s -> s.itemDefinition(child));
     }
 
-    static IdentifierSpaceKey identifier(AxiomName name) {
-        return IdentifierSpaceKey.from(ImmutableMap.of(IDENTIFIER_MEMBER, name));
+    static AxiomValueIdentifier identifier(AxiomName name) {
+        return AxiomValueIdentifier.from(ImmutableMap.of(IDENTIFIER_MEMBER, name));
     }
 
     default Collection<AxiomItemDefinition> requiredItems() {

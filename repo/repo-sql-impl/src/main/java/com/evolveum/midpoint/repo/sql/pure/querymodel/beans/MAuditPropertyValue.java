@@ -1,7 +1,9 @@
 package com.evolveum.midpoint.repo.sql.pure.querymodel.beans;
 
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditPropertyValue;
+
 /**
- * Querydsl "row bean" type related to {@code QAuditPropertyValue}.
+ * Querydsl "row bean" type related to {@link QAuditPropertyValue}.
  */
 public class MAuditPropertyValue {
 

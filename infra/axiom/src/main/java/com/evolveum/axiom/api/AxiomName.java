@@ -6,18 +6,34 @@
  */
 package com.evolveum.axiom.api;
 
+import java.util.Iterator;
+
 import org.jetbrains.annotations.NotNull;
 
+import com.google.common.base.CharMatcher;
 import com.google.common.base.Preconditions;
+import com.google.common.base.Splitter;
 import com.google.common.base.Strings;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 
 public class AxiomName {
 
     public static final String AXIOM_NAMESPACE = "https://schema.evolveum.com/ns/axiom/model";
+
+    public static final String MODEL_NAMESPACE = AXIOM_NAMESPACE;
+    public static final String TYPE_NAMESPACE = "https://schema.evolveum.com/ns/axiom/types";
+    public static final String DATA_NAMESPACE = "https://schema.evolveum.com/ns/axiom/data";
+
+
+    private static final Interner<AxiomName> INTERNER = Interners.newWeakInterner();
+
     private final String namespace;
     private final String localName;
 
-    public AxiomName(String namespace, String localName) {
+    private static final Splitter HASH_SYMBOL = Splitter.on('#');
+
+    AxiomName(String namespace, String localName) {
         this.namespace = Preconditions.checkNotNull(namespace, "namespace");
         this.localName = Preconditions.checkNotNull(localName, "localName");
     }
@@ -68,11 +84,11 @@ public class AxiomName {
     }
 
     public static AxiomName axiom(String identifier) {
-        return new AxiomName(AXIOM_NAMESPACE, identifier);
+        return from(AXIOM_NAMESPACE, identifier);
     }
 
     public static AxiomName from(String namespace, String localName) {
-        return new AxiomName(namespace, localName);
+        return INTERNER.intern(new AxiomName(namespace, localName));
     }
 
     public boolean sameNamespace(AxiomName other) {
@@ -93,6 +109,19 @@ public class AxiomName {
 
     public static AxiomName local(@NotNull String localName) {
         return from("", localName);
+    }
+
+    public static AxiomName parse(String item) {
+        Iterator<String> nsLocalName = HASH_SYMBOL.split("#").iterator();
+        return from(nsLocalName.next(), nsLocalName.next());
+    }
+
+    public static AxiomName builtIn(String localName) {
+        return from(TYPE_NAMESPACE, localName);
+    }
+
+    public static AxiomName data(String localName) {
+        return from(DATA_NAMESPACE, localName);
     }
 
 }

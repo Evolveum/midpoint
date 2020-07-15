@@ -9,13 +9,10 @@ model axiom-data {
         prefix axiom;
     }
 
-    type DynamicType; // FIXME: ADd definition
+    type DynamicType; // FIXME: Add definition
     type ItemCompleteness; // FIXME: Add definition
     type ValueSignificance; // FIXME: Add definition
     type ValueMetadata; // FIXME: Add definition
-
-    // Axiom Infra Model
-
 
     type ItemName {
         supertype QName;
@@ -48,18 +45,17 @@ model axiom-data {
         item metadata {
             type ValueMetadata;
         }
-    }
-
-    type AxiomSimpleValue {
-        supertype AxiomValue;
-        argument value;
-        
         item value {
             type DynamicType;
         }
     }
 
-    type AxiomComplexValue {
+    type AxiomSimpleValue {
+        supertype AxiomValue;
+        argument value;
+    }
+
+    type AxiomStructuredValue {
         supertype AxiomValue;
         item item {
             type AxiomItem;

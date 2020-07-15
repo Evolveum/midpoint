@@ -1,0 +1,205 @@
+model prism-model {
+
+    namespace "http://midpoint.evolveum.com/xml/ns/public/common/prism";
+
+    import "https://schema.evolveum.com/ns/axiom/model" {
+        prefix axiom;
+    }
+
+    root model {
+        type Model;
+    }
+
+    augmentation PrismItem {
+      target axiom:TypeDefinition;
+
+      // This definitions to be added via augmentation, so they are available
+      // to augmentations / valueMetadata definitions, without need to subtype
+      // them.
+
+      substitution property {
+        target axiom:item;
+        type PropertyItemDefinition;
+      }
+
+      substitution container {
+        target axiom:item;
+        type ContainerItemDefinition;
+      }
+
+      substitution reference {
+        target axiom:item;
+        type ReferenceItemDefinition;
+      }
+
+    }
+
+    type Model {
+      supertype axiom:Model;
+
+      item type { // {}:type
+        type TypeDefinition;
+      }
+
+      //item object {
+      //    type ObjectDefinition;
+      //}
+
+      substitution container {
+          target axiom:type;
+          type ContainerTypeDefinition;
+      }
+
+      //item reference {
+      //    type ReferenceTypeDefinition;
+      //}
+    }
+
+
+    mixin PrismItemAnnotation {
+
+
+      item displayName {
+        type String;
+      }
+    }
+
+    type TypeDefinition {
+      supertype axiom:TypeDefinition;
+      include PrismItemAnnotation;
+    }
+
+    type ItemDefinition {
+      supertype axiom:ItemDefinition;
+
+      include PrismItemAnnotation;
+
+      item indexOnly {
+        type Boolean;
+      }
+      item displayOrder {
+        type Integer;
+      }
+      item help {
+        type String;
+      }
+      item access {
+        type AccessAnnotation;
+      }
+      item ignore {
+        type Boolean;
+      }
+      item processing {
+        type ItemProcessing;
+      }
+    }
+
+    type ContainerItemDefinition {
+      supertype ItemDefinition;
+
+      item operational {
+        type Boolean;
+      }
+
+    }
+
+    type PropertyItemDefinition {
+      supertype ItemDefinition;
+
+      // Probably Mixin IndexingSpecification
+
+      item indexed {
+        type Boolean;
+        documentation """
+          Property marker annotation: indexed property. Property that has this
+          annotation should be indexed in the data store.
+
+          WARNING: Presence of this annotation may impose some restriction on the
+          property, usually a length restriction. E.g. database systems usually
+          restrict the length of a datatype that can be efficiently indexed.
+        """;
+      }
+
+      item indexOnly {
+        type Boolean;
+        documentation """
+          Property marker annotation: index-only property. Property that has this
+          annotation should be indexed in the data store but not stored in "full" object
+          representation. Its retrieval usually requires an explicit INCLUDE option.
+          This annotation implies indexed=true.
+          WARNING: Presence of this annotation may impose some restriction on the
+          property, usually a length restriction. E.g. database systems usually
+          restrict the length of a datatype that can be efficiently indexed.
+
+          BEWARE: EXPERIMENTAL. Almost no support of this for regular items
+          (only shadow attributes, as per MID-5558).
+        """;
+      }
+
+      item index {
+        type IndexType;
+        documentation """
+          Item annotation: Specifies type of index that is maintained for this
+          item. The data store maintains this type of index for the item.
+          This annotation may appear several times (maxOccurs=unbounded).
+          This annotation implies indexed=true.
+
+          WARNING: Presence of this annotation may impose some restriction on the
+          property, usually a length restriction. E.g. database systems usually
+          restrict the length of a datatype that can be efficiently indexed.
+        """;
+      }
+    }
+
+    type ReferenceItemDefinition {
+      supertype ItemDefinition;
+
+      item type {
+        type axiom:TypeReference;
+        const Reference;
+      }
+
+      item targetType {
+         // FIXME: this should be TypeReference, when we HAVE full visibility
+         // into
+        type QName;
+      }
+
+      substitution objectReferenceTargetType {
+        // Compatibility: Adds substitution to be compatible with current XSD schema?
+        type QName;
+        target targetType;
+      }
+    }
+
+    type IndexType {
+      supertype String;
+      documentation "Type of index maintained by the data store.";
+      //enumeration {
+      //  enum equality;
+      //  enum substring;
+      //  enum presence;
+      //}
+    }
+
+    type AccessAnnotation {
+      supertype String;
+      // enumeration {
+      //   enum read;
+      //   enum update;
+      //   enum create;
+      //}
+    }
+
+    type ItemProcessing {
+      supertype String;
+
+    }
+
+    type ContainerTypeDefinition {
+      supertype TypeDefinition;
+    }
+
+    type Reference;
+
+}

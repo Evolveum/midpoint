@@ -1,0 +1,28 @@
+model extension-and-use-complex {
+    namespace "https://example.org/extension/use";
+    
+    import "https://schema.evolveum.com/ns/axiom/model" {
+        prefix axiom;
+    }
+    
+    documentation """
+        Example of complicated modeling concept, we add substitution of type 
+        to model and
+    """;
+
+    augmentation ModelObjectKeyword {
+        target axiom:Model;
+        substitution cyclicType {
+            type CyclicTypeDefinition;
+        }
+    }
+
+    cyclicType CyclicTypeDefinition {
+        supertype axiom:TypeDefinition;
+        documentation """
+            Type defined via substitution, which is also required for
+            substitution to work. 
+        """;
+    }
+
+}

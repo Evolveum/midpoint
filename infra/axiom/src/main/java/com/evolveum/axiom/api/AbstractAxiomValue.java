@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
+import com.google.common.base.MoreObjects;
 
 public abstract class AbstractAxiomValue<V> implements AxiomValue<V> {
 
@@ -29,6 +30,14 @@ public abstract class AbstractAxiomValue<V> implements AxiomValue<V> {
     @Override
     public Optional<AxiomTypeDefinition> type() {
         return Optional.of(type);
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(AxiomValue.class)
+                .add("type", type().get().name())
+                .add("value", value())
+                .toString();
     }
 
 }

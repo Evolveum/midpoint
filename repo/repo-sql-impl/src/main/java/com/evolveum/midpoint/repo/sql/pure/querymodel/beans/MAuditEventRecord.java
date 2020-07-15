@@ -9,8 +9,10 @@ package com.evolveum.midpoint.repo.sql.pure.querymodel.beans;
 import java.time.Instant;
 import java.util.*;
 
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
+
 /**
- * Querydsl "row bean" type related to {@code QAuditEventRecord}.
+ * Querydsl "row bean" type related to {@link QAuditEventRecord}.
  */
 @SuppressWarnings("unused")
 public class MAuditEventRecord {
@@ -46,6 +48,7 @@ public class MAuditEventRecord {
 
     // "transient" fields not used by Querydsl
     public List<MAuditDelta> deltas;
+    public List<MAuditItem> changedItems;
     public Map<String, List<String>> properties;
 
     public void addProperty(MAuditPropertyValue propertyValue) {
@@ -95,6 +98,13 @@ public class MAuditEventRecord {
             deltas = new ArrayList<>();
         }
         deltas.add(mAuditDelta);
+    }
+
+    public void addChangedItem(MAuditItem mAuditItem) {
+        if (changedItems == null) {
+            changedItems = new ArrayList<>();
+        }
+        changedItems.add(mAuditItem);
     }
 
     @Override
