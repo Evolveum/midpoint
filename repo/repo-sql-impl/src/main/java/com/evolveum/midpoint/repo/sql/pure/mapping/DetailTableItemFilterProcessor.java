@@ -26,7 +26,7 @@ public class DetailTableItemFilterProcessor<Q extends EntityPath<?>, DQ extends 
     private final ItemSqlMapper nestedItemMapper;
 
     public DetailTableItemFilterProcessor(
-            SqlPathContext<?, ?> ctx,
+            SqlPathContext<?, ?, ?> ctx,
             Class<DQ> detailQueryType,
             BiFunction<Q, DQ, Predicate> joinOnPredicate,
             ItemSqlMapper nestedItemMapper) {
@@ -73,8 +73,8 @@ public class DetailTableItemFilterProcessor<Q extends EntityPath<?>, DQ extends 
                 QueryModelMappingConfig.getByQueryType(detailQueryType);
         DQ joinPath = mapping.newAlias(context.uniqueAliasName(mapping.defaultAliasName()));
         //noinspection unchecked
-        SqlQueryContext<DQ, DR> joinContext =
-                ((SqlPathContext<Q, ?>) context).leftJoin(joinPath, joinOnPredicate);
+        SqlQueryContext<?, DQ, DR> joinContext =
+                ((SqlPathContext<?, Q, ?>) context).leftJoin(joinPath, joinOnPredicate);
 
         // now we create the actual filter processor on the inner context
         FilterProcessor<ObjectFilter> filterProcessor =

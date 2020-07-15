@@ -77,18 +77,18 @@ public class QueryModelMappingRegistry {
         return this;
     }
 
-    public <M, Q extends EntityPath<R>, R>
-    QueryModelMapping<M, Q, R> getBySchemaType(Class<M> schemaType) {
+    public <S, Q extends EntityPath<R>, R>
+    QueryModelMapping<S, Q, R> getBySchemaType(Class<S> schemaType) {
         //noinspection unchecked
-        return (QueryModelMapping<M, Q, R>) Objects.requireNonNull(
+        return (QueryModelMapping<S, Q, R>) Objects.requireNonNull(
                 mappingBySchemaType.get(schemaType),
                 () -> "Missing mapping for schema type " + schemaType);
     }
 
-    public <M, Q extends EntityPath<R>, R>
-    QueryModelMapping<M, Q, R> getByQueryType(Class<Q> queryType) {
+    public <S, Q extends EntityPath<R>, R>
+    QueryModelMapping<S, Q, R> getByQueryType(Class<Q> queryType) {
         //noinspection unchecked
-        return (QueryModelMapping<M, Q, R>) Objects.requireNonNull(
+        return (QueryModelMapping<S, Q, R>) Objects.requireNonNull(
                 mappingByQueryType.get(queryType),
                 () -> "Missing mapping for query type " + queryType);
     }

@@ -7,9 +7,9 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 public class NotFilterProcessor implements FilterProcessor<NotFilter> {
 
-    private final SqlPathContext<?, ?> context;
+    private final SqlPathContext<?, ?, ?> context;
 
-    public NotFilterProcessor(SqlPathContext<?, ?> context) {
+    public NotFilterProcessor(SqlPathContext<?, ?, ?> context) {
         this.context = context;
     }
 

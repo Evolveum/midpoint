@@ -14,8 +14,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.DataSourceFactory;
-import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
-import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.support.InstantType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -29,7 +27,6 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 @Component
 public class SqlQueryExecutor {
 
-    // TODO configuration should reflect the used DB of course (if necessary)
     public static final Configuration QUERYDSL_CONFIGURATION =
             new Configuration(SQLTemplates.DEFAULT);
 
@@ -42,44 +39,52 @@ public class SqlQueryExecutor {
     @Autowired private PrismContext prismContext;
     @Autowired private DataSourceFactory dataSourceFactory;
 
-    public <M, Q extends EntityPath<R>, R>
-    SearchResultList<M> list(
-            @NotNull Class<M> schemaType,
+    public <S, Q extends EntityPath<R>, R> int count(
+            @NotNull Class<S> schemaType,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws QueryException {
 
-        QueryModelMapping<M, Q, R> rootMapping = QueryModelMappingConfig.getBySchemaType(schemaType);
-        SqlQueryContext<Q, R> context = new SqlQueryContext<>(rootMapping, prismContext);
-        // TODO: cover with tests, not relevant for Audit though (at least not yet without multiplying joins)
-        context.setDistinct(
-                GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options)));
-
-        // add conditions (with exists clauses as necessary)
+        SqlQueryContext<S, Q, R> context = SqlQueryContext.from(schemaType, prismContext);
         if (query != null) {
             context.process(query.getFilter());
-            context.processObjectPaging(query.getPaging());
         }
+        // TODO MID-6319: all options can be applied, just like for list?
+        context.processOptions(options);
 
-        PageOf<R> result = executeQuery(context);
-
-        SqlTransformer<M, R> transformer = rootMapping.createTransformer(prismContext);
-        PageOf<M> map = result
-                .map(transformer::toSchemaObject);
-        return createSearchResultList(map);
-    }
-
-    private <Q extends EntityPath<R>, R>
-    PageOf<R> executeQuery(SqlQueryContext<Q, R> context) throws QueryException {
         try (Connection conn = getConnection()) {
-            return context.executeQuery(conn);
+            return context.executeCount(conn);
         } catch (SQLException e) {
             throw new QueryException(e.toString(), e);
         }
     }
 
+    public <S, Q extends EntityPath<R>, R> SearchResultList<S> list(
+            @NotNull Class<S> schemaType,
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options)
+            throws QueryException {
+
+        SqlQueryContext<S, Q, R> context = SqlQueryContext.from(schemaType, prismContext);
+        if (query != null) {
+            context.process(query.getFilter());
+            context.processObjectPaging(query.getPaging());
+        }
+        context.processOptions(options);
+
+        PageOf<R> result;
+        try (Connection conn = getConnection()) {
+            result = context.executeQuery(conn);
+        } catch (SQLException e) {
+            throw new QueryException(e.toString(), e);
+        }
+
+        PageOf<S> map = context.transformToSchemaType(result);
+        return createSearchResultList(map);
+    }
+
     @NotNull
-    private <M> SearchResultList<M> createSearchResultList(PageOf<M> result) {
+    private <T> SearchResultList<T> createSearchResultList(PageOf<T> result) {
         SearchResultMetadata metadata = new SearchResultMetadata();
         metadata.setApproxNumberOfAllResults((int) result.totalCount());
         return new SearchResultList<>(result.content(), metadata);

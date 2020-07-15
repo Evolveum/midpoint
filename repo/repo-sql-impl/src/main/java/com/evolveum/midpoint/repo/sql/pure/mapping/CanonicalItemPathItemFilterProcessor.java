@@ -30,7 +30,7 @@ public class CanonicalItemPathItemFilterProcessor
     }
 
     private CanonicalItemPathItemFilterProcessor(
-            SqlPathContext<?, ?> context, Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+            SqlPathContext<?, ?, ?> context, Function<EntityPath<?>, Path<?>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }
 

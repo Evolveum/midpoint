@@ -19,7 +19,7 @@ public abstract class SinglePathItemFilterProcessor<O extends ObjectFilter>
     protected final Path<?> path;
 
     public SinglePathItemFilterProcessor(
-            SqlPathContext<?, ?> context, Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+            SqlPathContext<?, ?, ?> context, Function<EntityPath<?>, Path<?>> rootToQueryItem) {
         super(context);
         this.path = rootToQueryItem.apply(context.path());
     }

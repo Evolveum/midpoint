@@ -11,14 +11,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_REST_URI;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.Arrays;
 import java.util.Comparator;
 
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -63,9 +59,6 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     private String targetOid;
     private String targetOwnerOid;
     private String record1EventIdentifier;
-
-    @Autowired
-    private DataSourceFactory dataSourceFactory;
 
     @Override
     public void initSystem() throws Exception {
@@ -132,17 +125,6 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record3.setTaskIdentifier("task-identifier");
         record3.setTaskOid("task-oid");
         auditService.audit(record3, NullTaskImpl.INSTANCE);
-
-        // TODO remove after done
-        try (Connection conn = dataSourceFactory.getDataSource().getConnection();
-                PreparedStatement stmt = conn.prepareStatement(
-                        "select RECORD_ID, CHANGEDITEMPATH from M_AUDIT_ITEM")) {
-
-            ResultSet res = stmt.executeQuery();
-            while (res.next()) {
-                System.out.println(res.getLong("RECORD_ID") + " - " + res.getString("CHANGEDITEMPATH"));
-            }
-        }
     }
 
     @NotNull
@@ -901,7 +883,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test900SearchWithAllFilter() throws SchemaException {
+    public void test800SearchWithAllFilter() throws SchemaException {
         when("searching audit using ALL filter");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
@@ -913,7 +895,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test902SearchWithNoneFilter() throws SchemaException {
+    public void test802SearchWithNoneFilter() throws SchemaException {
         when("searching audit using NONE filter");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
@@ -926,7 +908,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
     // empty filter and no paging is covered by test100
     @Test
-    public void test920SearchWithOrderByOneItem() throws SchemaException {
+    public void test820SearchWithOrderByOneItem() throws SchemaException {
         when("searching audit with order by one item (no paging)");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
@@ -940,8 +922,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test950SearchWithOffsetAndMaxSize() throws SchemaException {
-        when("searching audit using no paging");
+    public void test850SearchWithOffsetAndMaxSize() throws SchemaException {
+        when("searching audit using paging");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
                 .queryFor(AuditEventRecordType.class)
                 .asc(AuditEventRecordType.F_TIMESTAMP)
@@ -952,6 +934,68 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("only the expected page is returned");
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getParameter()).isEqualTo("2");
+    }
+
+    @Test
+    public void test900CountWithAllFilter() throws SchemaException {
+        when("counting audit objects using ALL filter");
+        int result = countObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .all()
+                .build());
+
+        then("count of all audit records is returned");
+        assertThat(result).isEqualTo(3);
+    }
+
+    @Test
+    public void test902CountWithNoneFilter() throws SchemaException {
+        when("counting audit objects using NONE filter");
+        int result = countObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .none()
+                .build());
+
+        then("count of zero better be returned");
+        assertThat(result).isZero();
+    }
+
+    @Test
+    public void test910CountWithFilterOnOneItem() throws SchemaException {
+        when("counting audit objects filtered to one object");
+        int result = countObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_PARAMETER).eq("1")
+                .build());
+
+        then("count of 1 record is returned");
+        assertThat(result).isEqualTo(1);
+    }
+
+    @Test
+    public void test920CountWithOrderIsAllowedButMeaningless() throws SchemaException {
+        when("counting audit objects with order");
+        int result = countObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .asc(AuditEventRecordType.F_TIMESTAMP)
+                .build());
+
+        then("count all records is returned, order is ignored");
+        assertThat(result).isEqualTo(3);
+    }
+
+    @Test
+    public void test950CountWithOffsetAndMaxSize() throws SchemaException {
+        when("counting audit objects with paging");
+        int result = countObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .asc(AuditEventRecordType.F_TIMESTAMP)
+                .offset(1)
+                .maxSize(1)
+                .build());
+
+        then("count all records is returned, paging is ignored");
+        assertThat(result).isEqualTo(3);
     }
 
     @SafeVarargs
@@ -965,6 +1009,21 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 prismContext.xmlSerializer().serializeAnyData(
                         queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
         return auditService.searchObjects(
+                query,
+                Arrays.asList(selectorOptions),
+                createOperationResult());
+    }
+
+    @SafeVarargs
+    private final int countObjects(
+            ObjectQuery query,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
+        QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
+        System.out.println("queryType = " +
+                prismContext.xmlSerializer().serializeAnyData(
+                        queryType, SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY));
+        return auditService.countObjects(
                 query,
                 Arrays.asList(selectorOptions),
                 createOperationResult());

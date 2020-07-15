@@ -909,10 +909,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     @Override
-    public long countObjects(ObjectQuery query,
+    public int countObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
-        // TODO MID-6319
-        return 0;
+        try {
+            // TODO MID-6319
+            // do something with the OperationResult... skipped for now
+            return sqlQueryExecutor.count(AuditEventRecordType.class, query, options);
+        } catch (QueryException e) {
+            throw new SystemException(e);
+        }
     }
 
     @Override
@@ -922,13 +927,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             Collection<SelectorOptions<GetOperationOptions>> options,
             OperationResult parentResult) {
         // TODO MID-6319
-        // support for options, skipped for now
         // do something with the OperationResult... skipped for now
         try {
             return sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
         } catch (QueryException e) {
-            // TODO
-            throw new RuntimeException(e);
+            throw new SystemException(e);
         }
     }
 }

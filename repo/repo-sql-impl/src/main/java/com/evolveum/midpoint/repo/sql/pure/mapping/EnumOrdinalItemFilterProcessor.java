@@ -48,7 +48,7 @@ public class EnumOrdinalItemFilterProcessor<E extends Enum<E>>
     }
 
     private EnumOrdinalItemFilterProcessor(
-            SqlPathContext<?, ?> context,
+            SqlPathContext<?, ?, ?> context,
             Function<EntityPath<?>, Path<?>> rootToQueryItem,
             @Nullable Function<E, Enum<?>> valueFunction) {
         super(context, rootToQueryItem);

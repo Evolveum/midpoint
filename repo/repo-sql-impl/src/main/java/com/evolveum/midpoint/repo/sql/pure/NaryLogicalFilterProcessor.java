@@ -12,9 +12,9 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 public class NaryLogicalFilterProcessor implements FilterProcessor<NaryLogicalFilter> {
 
-    private final SqlPathContext<?, ?> context;
+    private final SqlPathContext<?, ?, ?> context;
 
-    public NaryLogicalFilterProcessor(SqlPathContext<?, ?> context) {
+    public NaryLogicalFilterProcessor(SqlPathContext<?, ?, ?> context) {
         this.context = context;
     }
 

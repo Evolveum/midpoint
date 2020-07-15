@@ -187,7 +187,7 @@ public class LoggerAuditServiceImpl implements AuditService {
     }
 
     @Override
-    public long countObjects(ObjectQuery query,
+    public int countObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         throw new UnsupportedOperationException("countObjects not supported");
     }

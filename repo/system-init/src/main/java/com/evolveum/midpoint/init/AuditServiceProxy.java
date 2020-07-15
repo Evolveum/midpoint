@@ -260,10 +260,10 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     }
 
     @Override
-    public long countObjects(ObjectQuery query,
+    public int countObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
-        long count = 0;
+        int count = 0;
         for (AuditService service : services) {
             if (service.supportsRetrieval()) {
                 long c = service.countObjects(query, options, parentResult);

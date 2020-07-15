@@ -9,9 +9,9 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 public class RefFilterProcessor implements FilterProcessor<RefFilter> {
 
-    private final SqlPathContext<?, ?> context;
+    private final SqlPathContext<?, ?, ?> context;
 
-    public RefFilterProcessor(SqlPathContext<?, ?> context) {
+    public RefFilterProcessor(SqlPathContext<?, ?, ?> context) {
         this.context = context;
     }
 

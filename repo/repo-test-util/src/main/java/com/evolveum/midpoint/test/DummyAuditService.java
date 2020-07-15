@@ -541,7 +541,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     }
 
     @Override
-    public long countObjects(ObjectQuery query,
+    public int countObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
         throw new UnsupportedOperationException("countObjects not supported");
     }

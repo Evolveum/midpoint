@@ -35,15 +35,15 @@ import com.evolveum.midpoint.util.QNameUtil;
  * <b>Non-goal:</b> Map objects from Q-type to prism and back.
  * This is done by code, possibly static method from a DTO "assembler" class.
  *
- * @param <M> schema type
- * @param <Q> entity type (entity path or type R)
- * @param <R> row/bean type used by the Q-class
+ * @param <S> schema type
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
  */
-public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
+public abstract class QueryModelMapping<S, Q extends EntityPath<R>, R> {
 
     private final String tableName;
     private final String defaultAliasName;
-    private final Class<M> schemaType;
+    private final Class<S> schemaType;
     private final Class<Q> queryType;
 
     // TODO MID-6319: support for extension columns + null default alias after every change (in synchronized block)
@@ -66,7 +66,7 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
     protected QueryModelMapping(
             @NotNull String tableName,
             @NotNull String defaultAliasName,
-            @NotNull Class<M> schemaType,
+            @NotNull Class<S> schemaType,
             @NotNull Class<Q> queryType,
             ColumnMetadata... columns) {
         this.tableName = tableName;
@@ -78,7 +78,7 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
         }
     }
 
-    public final QueryModelMapping<M, Q, R> add(ColumnMetadata column) {
+    public final QueryModelMapping<S, Q, R> add(ColumnMetadata column) {
         columns.put(column.getName(), column);
         return this;
     }
@@ -157,12 +157,12 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
 
     // we want loose typing for client's sake, there is no other chance to get the right type here
     public final <T extends ObjectFilter> @NotNull FilterProcessor<T> createItemFilterProcessor(
-            ItemName itemName, SqlPathContext<?, ?> context)
+            ItemName itemName, SqlPathContext<?, ?, ?> context)
             throws QueryException {
         return itemMapping(itemName).createFilterProcessor(context);
     }
 
-    public final @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?> context)
+    public final @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?, ?> context)
             throws QueryException {
         return itemMapping(itemName).itemPath(context.path());
     }
@@ -187,7 +187,7 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
     /**
      * This refers to midPoint schema, not DB schema.
      */
-    public Class<M> schemaType() {
+    public Class<S> schemaType() {
         return schemaType;
     }
 
@@ -213,7 +213,7 @@ public abstract class QueryModelMapping<M, Q extends EntityPath<R>, R> {
     /**
      * Creates {@link SqlTransformer} of row bean to schema type.
      */
-    public abstract SqlTransformer<M, R> createTransformer(PrismContext prismContext);
+    public abstract SqlTransformer<S, R> createTransformer(PrismContext prismContext);
 
     /**
      * Returns collection of all registered {@link SqlDetailFetchMapper}s.
