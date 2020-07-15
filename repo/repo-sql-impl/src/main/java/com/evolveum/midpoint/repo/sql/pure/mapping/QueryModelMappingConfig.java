@@ -11,17 +11,19 @@ public class QueryModelMappingConfig {
 
     private static final QueryModelMappingRegistry REGISTRY = new QueryModelMappingRegistry()
             .register(AuditEventRecordType.COMPLEX_TYPE, QAuditEventRecordMapping.INSTANCE)
-            .register(QAuditItemMapping.INSTANCE);
+            .register(QAuditItemMapping.INSTANCE)
+            .register(QAuditPropertyValueMapping.INSTANCE);
 
-    public static <M, Q extends EntityPath<R>, R>
-    QueryModelMapping<M, Q, R> getByModelType(Class<M> modelType) {
+    // see QueryModelMapping javadoc for type parameter explanation
+    public static <S, Q extends EntityPath<R>, R>
+    QueryModelMapping<S, Q, R> getBySchemaType(Class<S> schemaType) {
         //noinspection unchecked
-        return (QueryModelMapping<M, Q, R>) REGISTRY.getByModelType(modelType);
+        return (QueryModelMapping<S, Q, R>) REGISTRY.getBySchemaType(schemaType);
     }
 
-    public static <M, Q extends EntityPath<R>, R>
-    QueryModelMapping<M, Q, R> getByQueryType(Class<Q> queryType) {
+    public static <S, Q extends EntityPath<R>, R>
+    QueryModelMapping<S, Q, R> getByQueryType(Class<Q> queryType) {
         //noinspection unchecked
-        return (QueryModelMapping<M, Q, R>) REGISTRY.getByQueryType(queryType);
+        return (QueryModelMapping<S, Q, R>) REGISTRY.getByQueryType(queryType);
     }
 }

@@ -70,9 +70,10 @@ public interface AuditService {
     default void applyAuditConfiguration(SystemConfigurationAuditType configuration) {
     }
 
-    // TODO MID-6319 cleanup after done
-    // see com.evolveum.midpoint.repo.api.RepositoryService.countObjects for javadoc and rephrase it here
-    long countObjects(ObjectQuery query,
+    /**
+     * @see com.evolveum.midpoint.repo.api.RepositoryService#countObjects
+     */
+    int countObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException;
 

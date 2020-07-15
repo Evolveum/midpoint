@@ -22,7 +22,7 @@ public class RefItemFilterProcessor extends SinglePathItemFilterProcessor<RefFil
     }
 
     private RefItemFilterProcessor(
-            SqlPathContext<?, ?> context, Function<EntityPath<?>, Path<?>> rootToQueryItem) {
+            SqlPathContext<?, ?, ?> context, Function<EntityPath<?>, Path<?>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }
 

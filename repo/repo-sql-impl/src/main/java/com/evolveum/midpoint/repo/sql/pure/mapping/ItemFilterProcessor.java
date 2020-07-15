@@ -28,9 +28,9 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 public abstract class ItemFilterProcessor<O extends ObjectFilter>
         implements FilterProcessor<O> {
 
-    protected final SqlPathContext<?, ?> context;
+    protected final SqlPathContext<?, ?, ?> context;
 
-    protected ItemFilterProcessor(SqlPathContext<?, ?> context) {
+    protected ItemFilterProcessor(SqlPathContext<?, ?, ?> context) {
         this.context = context;
     }
 

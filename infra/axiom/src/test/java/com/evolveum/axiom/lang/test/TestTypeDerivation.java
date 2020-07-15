@@ -17,13 +17,14 @@ import java.util.Optional;
 import org.testng.annotations.Test;
 
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.meta.Inheritance;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.api.stream.AxiomItemTarget;
+import com.evolveum.axiom.lang.antlr.AntlrDecoderContext;
 import com.evolveum.axiom.lang.antlr.AxiomAntlrStatementSource;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
@@ -40,6 +41,7 @@ public class TestTypeDerivation extends AbstractReactorTest {
     private static final String DERIVED = DIR + "derived-person.axiom";
     private static final String JOHN_DOE_FILE = DIR + "john-doe.axiomd";
     private static final String JOHN_DOE_SUBSTITUTION_FILE = DIR + "john-doe-substitution.axiomd";
+    private static final AxiomNameResolver DERIVED_RESOLVER = AxiomNameResolver.defaultNamespace(DERIVED_PERSON.namespace());
 
 
     private AxiomSchemaContext loadModel() throws AxiomSyntaxException, IOException {
@@ -65,11 +67,11 @@ public class TestTypeDerivation extends AbstractReactorTest {
     public void axiomData() throws AxiomSyntaxException, FileNotFoundException, IOException {
         AxiomSchemaContext context = loadModel();
         AxiomAntlrStatementSource stream = dataSource(JOHN_DOE_FILE);
-        AxiomItemTarget target = new AxiomItemTarget(context, AxiomNameResolver.defaultNamespace(DERIVED_PERSON.namespace()));
-        stream.stream(target);
+        AxiomItemTarget target = new AxiomItemTarget(context);
+        stream.stream(target, AntlrDecoderContext.BUILTIN_DECODERS, DERIVED_RESOLVER);
         AxiomItem<?> root = target.get();
         assertEquals(root.name(), DERIVED_PERSON.localName("person"));
-        AxiomComplexValue person = root.onlyValue().asComplex().get();
+        AxiomStructuredValue person = root.onlyValue().asComplex().get();
         assertEquals(person.item(NAME).get().onlyValue().value(), "John Doe");
         assertEquals(person.item(FIRST_NAME).get().onlyValue().value(), "John");
     }
@@ -78,11 +80,13 @@ public class TestTypeDerivation extends AbstractReactorTest {
     public void axiomDataSubstitution() throws AxiomSyntaxException, FileNotFoundException, IOException {
         AxiomSchemaContext context = loadModel();
         AxiomAntlrStatementSource stream = dataSource(JOHN_DOE_SUBSTITUTION_FILE);
-        AxiomItemTarget target = new AxiomItemTarget(context, AxiomNameResolver.defaultNamespace(DERIVED_PERSON.namespace()));
-        stream.stream(target);
+
+        AxiomItemTarget target = new AxiomItemTarget(context);
+        stream.stream(target, AntlrDecoderContext.BUILTIN_DECODERS, DERIVED_RESOLVER);
+
         AxiomItem<?> root = target.get();
         assertEquals(root.name(), DERIVED_PERSON.localName("person"));
-        AxiomComplexValue person = root.onlyValue().asComplex().get();
+        AxiomStructuredValue person = root.onlyValue().asComplex().get();
         assertEquals(person.item(NAME).get().onlyValue().value(), "John Doe");
         assertEquals(person.item(FIRST_NAME).get().onlyValue().value(), "John");
     }

@@ -24,7 +24,9 @@ model axiom-model {
     }
 
 
-    // Axiom Schema
+    // Axiom Schema Basic structural concepts
+    // Definition, TypeDefinition, ItemDefinition, SubstitutionDefinition
+    // MixinDefinition and AugmentationDefinition
 
     type BaseDefinition {
         argument name;
@@ -59,6 +61,7 @@ model axiom-model {
 
     type TypeDefinition {
         supertype BaseDefinition;
+        augmentable true;
         documentation """
             Definition of value type.
 
@@ -84,23 +87,14 @@ model axiom-model {
             maxOccurs 1;
         }
 
-        // FIXME: should be use
-        item include {
-            type TypeReference;
-            documentation """
-                Reference to mixin, from which this type definition reuses item definitions.
-            """;
-            minOccurs 0;
-        }
-
-        // TODO reconsider this - strictly speaking this is part of "global type+item definition combo"
-        item itemName {
-            type QName;
-        }
 
         item namespaceSensitive {
             type Boolean;
             // default false;
+        }
+
+        item augmentable {
+          type Boolean;
         }
 
         item item {
@@ -111,13 +105,24 @@ model axiom-model {
             """;
             minOccurs 0;
             allowsSubstitution true;
+            augmentable true;
         }
 
         substitution substitution {
+            target item;
             type SubstitutionDefinition;
             identifier name;
             documentation """
                 Definition of Substitution;
+            """;
+            minOccurs 0;
+            augmentable true;
+        }
+
+        item include {
+            type TypeReference;
+            documentation """
+                Reference to mixin, from which this type definition reuses item definitions.
             """;
             minOccurs 0;
         }
@@ -126,7 +131,7 @@ model axiom-model {
 
     type ItemDefinition {
         supertype BaseDefinition;
-
+        augmentable true;
         item identifier {
             type IdentifierDefinition;
             documentation """
@@ -174,12 +179,23 @@ model axiom-model {
         }
 
         item default {
-          type data:DynamicType; // This should somehow be same type as value of type
+          type data:DynamicType { // This should somehow be same type as value of type
+            //path ../type;
+          }
           documentation """
             Declares default value for item.
           """;
           minOccurs 0;
           maxOccurs 1;
+        }
+
+        item const {
+            type data:DynamicType;
+            documentation """
+                Declares constant value for item. This is useful for subtyping special cases.
+            """;
+            minOccurs 0;
+            maxOccurs 1;
         }
 
         item infra {
@@ -193,6 +209,14 @@ model axiom-model {
         item allowsSubstitution {
           type Boolean;
         }
+
+        item augmentable {
+          type Boolean;
+          // default false;
+          documentation """
+            Allows addition of item values by augmentation.
+          """;
+        }
     }
 
     type SubstitutionDefinition {
@@ -202,19 +226,23 @@ model axiom-model {
         }
     }
 
-    type RootDefinition {
-        supertype ItemDefinition;
-        documentation """
-            Root item definition.
-
-            Root item is item which can be root of the serialized / deserialized document.
-        """;
+    type MixinDefinition {
+        supertype TypeDefinition;
     }
 
-    // Axiom Model?
+    type AugmentationDefinition {
+        supertype MixinDefinition;
+        item target {
+            type TypeReference;
+        }
+    }
+
+    // Axiom Model
+    // model introduces imports, roots, metadata
 
     type Model {
         supertype BaseDefinition;
+        augmentable true;
 
         item namespace {
             type String;
@@ -265,13 +293,12 @@ model axiom-model {
             """;
         }
 
-        // FIXME: should be augmentation
         item augmentation {
             type AugmentationDefinition;
             documentation """
-                Declaration of augmentation. Augmentation adds new items
-                to already existing type, which can be defined in other
-                models (namespaces).
+                Declaration of augmentation. Augmentation adds new items, substitutions
+                or other augmentable items to already existing type, which can be
+                defined in other models (namespaces).
             """;
         }
 
@@ -292,6 +319,16 @@ model axiom-model {
             type String;
         }
     }
+
+    type RootDefinition {
+        supertype ItemDefinition;
+        documentation """
+            Root item definition.
+
+            Root item is item which can be root of the serialized / deserialized document.
+        """;
+    }
+
 
     type InfraSpecification {
       item value {
@@ -336,23 +373,42 @@ model axiom-model {
         }
     }
 
-    type MixinDefinition {
-        supertype TypeDefinition;
-    }
-
-    type AugmentationDefinition {
-        supertype MixinDefinition;
-        item target {
-            type TypeReference;
-        }
-    }
-
     type MetadataDefinition {
       supertype AugmentationDefinition;
-      // TODO: Add limits for specific types
       item target {
-        default data:ValueMetadata;
+        const data:ValueMetadata;
       }
+    }
+
+
+    // Item specializations
+
+
+    // Type Specializations & restrictions
+
+    mixin StringRestriction {
+
+      item pattern {
+        type String; // FIXME: Should be REGEX?
+      }
+      item minLength {
+        type Integer;
+      }
+      item maxLength {
+        type Integer;
+      }
+    }
+
+    mixin NumberRestriction {
+
+      item minValue {
+        type Number;
+      }
+
+      item maxValue {
+        type Number;
+      }
+
     }
 
 }

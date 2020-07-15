@@ -11,9 +11,11 @@ model axiom-base-types {
     namespace "https://schema.evolveum.com/ns/axiom/types";
     version "0.1.0";
 
+
     type String;
     type Boolean;
     type Uri;
+    type Number;
     type Integer;
     type Binary;
     type DateTime;

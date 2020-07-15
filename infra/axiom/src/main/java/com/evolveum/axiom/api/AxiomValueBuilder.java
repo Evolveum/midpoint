@@ -69,7 +69,7 @@ public class AxiomValueBuilder<V> implements Lazy.Supplier<AxiomValue<V>> {
             return (AxiomValue) factory.createComplex(type, build(children), build(infra));
         }
         Preconditions.checkState(children.isEmpty(), "%s does not have items. Items found %s", type.name(), children.keySet());
-        return factory.createSimple(type, value, Collections.emptyMap());
+        return factory.createSimple(type, value, build(infra));
     }
 
     private static Map<AxiomName,AxiomItem<?>> build(Map<AxiomName, Supplier<? extends AxiomItem<?>>> children) {

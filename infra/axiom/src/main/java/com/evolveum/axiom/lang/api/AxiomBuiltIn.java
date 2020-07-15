@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
@@ -41,6 +42,8 @@ public class AxiomBuiltIn {
         public static final AxiomItemDefinition TYPE_REFERENCE = new Item("type", Type.TYPE_REFERENCE, true);
         public static final AxiomItemDefinition TYPE_DEFINITION = new Item("type", Type.TYPE_DEFINITION, false);
 
+        public static final AxiomItemDefinition MIXIN_DEFINITION = new Item("mixin", Type.TYPE_DEFINITION, false);
+
         public static final AxiomItemDefinition SUPERTYPE_REFERENCE = new Item("supertype", Type.TYPE_REFERENCE, false);
         public static final Item ROOT_DEFINITION = new Item("root", Type.ROOT_DEFINITION, false);
         public static final AxiomItemDefinition ITEM_DEFINITION = new Item("item", Type.ITEM_DEFINITION, false) {
@@ -63,21 +66,27 @@ public class AxiomBuiltIn {
             }
         };
         public static final Item MODEL_DEFINITION = new Item("model", Type.MODEL, false);
-        public static final AxiomItemDefinition MIN_OCCURS = new Item("minOccurs", Type.STRING, false);
-        public static final AxiomItemDefinition MAX_OCCURS = new Item("maxOccurs", Type.STRING, false);
-        public static final AxiomItemDefinition ALLOWS_SUBSTITUTION= new Item("allowsSubstitution", Type.STRING, false);
-        public static final AxiomItemDefinition OPERATIONAL = new Item("operational", Type.IDENTIFIER, true);
-        public static final AxiomItemDefinition IDENTIFIER_DEFINITION = new Item("identifier", Type.IDENTIFIER_DEFINITION, true);
-        public static final AxiomItemDefinition ID_MEMBER = new Item("key", Type.STRING, false);
-        public static final AxiomItemDefinition ID_SCOPE = new Item("scope", Type.STRING, false);
-        public static final AxiomItemDefinition ID_SPACE = new Item("space", Type.IDENTIFIER, false);
-        public static final AxiomItemDefinition TARGET = new Item("target", Type.TYPE_REFERENCE, true);
-        public static final AxiomItemDefinition REF_TARGET = new Item("target", Type.TYPE_DEFINITION, true);
-        public static final AxiomItemDefinition SUBSTITUTION_OF = new Item("target", Type.IDENTIFIER, true);
-        public static final AxiomItemDefinition USES = new Item("include", Type.TYPE_REFERENCE, true);
-        public static final AxiomItemDefinition VALUE = new Item("value", Type.STRING, true);
-        public static final AxiomItemDefinition IMPORT = new Item("import", Type.IMPORT, true);
-        public static final AxiomItemDefinition IMPORT_PREFIX = new Item("prefix", Type.STRING, true);
+        public static final Item MIN_OCCURS = new Item("minOccurs", Type.STRING, false);
+        public static final Item MAX_OCCURS = new Item("maxOccurs", Type.STRING, false);
+        public static final Item ALLOWS_SUBSTITUTION= new Item("allowsSubstitution", Type.STRING, false);
+        public static final Item ALLOWS_AUGMENTATION= new Item("augmentable", Type.STRING, false);
+        public static final Item OPERATIONAL = new Item("operational", Type.IDENTIFIER, true);
+        public static final Item IDENTIFIER_DEFINITION = new Item("identifier", Type.IDENTIFIER_DEFINITION, true);
+        public static final Item ID_MEMBER = new Item("key", Type.IDENTIFIER, false);
+        public static final Item ID_SCOPE = new Item("scope", Type.STRING, false);
+        public static final Item ID_SPACE = new Item("space", Type.IDENTIFIER, false);
+        public static final Item TARGET = new Item("target", Type.TYPE_REFERENCE, true);
+        public static final Item REF_TARGET = new Item("target", Type.TYPE_DEFINITION, true);
+        public static final Item SUBSTITUTION_OF = new Item("target", Type.IDENTIFIER, true);
+        public static final Item INCLUDE = new Item("include", Type.TYPE_REFERENCE, true);
+        public static final Item VALUE = new Item("value", Type.STRING, true);
+        public static final Item IMPORT = new Item("import", Type.IMPORT, true);
+        public static final Item IMPORT_PREFIX = new Item("prefix", Type.STRING, true);
+        public static final Item CONST = new Item("const", Type.DYNAMIC, true);
+
+        public static final Item INFRA_TYPE_REFERENCE = new Item(AxiomValue.TYPE, Type.TYPE_REFERENCE, true);
+        public static final Item INFRA_VALUE = new Item(AxiomValue.VALUE, Type.STRING, true);
+
 
         protected static final Lazy<AxiomIdentifierDefinition> NAME_IDENTIFIER = Lazy.from(
                 ()-> (AxiomIdentifierDefinition.parent(ITEM_DEFINITION.name(), Item.NAME.name())));
@@ -88,14 +97,13 @@ public class AxiomBuiltIn {
 
 
         private Item(String identifier, AxiomTypeDefinition type, boolean required) {
-            this.identifier = AxiomName.axiom(identifier);
-            this.type = type;
-            this.required = required;
+            this(AxiomName.axiom(identifier), type, required);
         }
 
-        @Override
-        public Optional<AxiomTypeDefinition> type() {
-            return Optional.of(type);
+        public Item(AxiomName name, AxiomTypeDefinition type, boolean required) {
+            this.identifier = name;
+            this.type = type;
+            this.required = required;
         }
 
         @Override
@@ -150,25 +158,25 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public Map<AxiomName, AxiomItem<?>> itemMap() {
-            return null;
-        }
-
-        @Override
-        public Map<AxiomName, AxiomItem<?>> infraItems() {
-            return null;
-        }
-
-        @Override
         public Optional<AxiomName> substitutionOf() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<AxiomValue<?>> constantValue() {
+            return Optional.empty();
+        }
+
+        @Override
+        public Optional<AxiomValue<?>> defaultValue() {
             return Optional.empty();
         }
     }
 
     public static class Type implements AxiomTypeDefinition {
-        public static final Type UUID = new Type("uuid");
-        public static final Type STRING = new Type("string");
-        public static final Type IDENTIFIER = new Type("QName");
+        public static final Type DYNAMIC = new Type(AxiomName.data("DynamicType"));
+        public static final Type STRING = new Type(AxiomName.builtIn("String"));
+        public static final Type IDENTIFIER = new Type(AxiomName.builtIn("QName"));
 
         public static final Type TYPE_REFERENCE = new Type("TypeReference", null, () -> Item.NAME, () -> itemDefs(
                     Item.NAME,
@@ -193,7 +201,8 @@ public class AxiomBuiltIn {
                     Item.VERSION,
                     Item.IMPORT,
                     Item.TYPE_DEFINITION,
-                    Item.ROOT_DEFINITION
+                    Item.ROOT_DEFINITION,
+                    Item.MIXIN_DEFINITION
                 ));
 
 
@@ -202,7 +211,8 @@ public class AxiomBuiltIn {
                     Item.ARGUMENT,
                     Item.SUPERTYPE_REFERENCE,
                     Item.ITEM_DEFINITION,
-                    Item.SUBSTITUTION_DEFINITION
+                    Item.SUBSTITUTION_DEFINITION,
+                    Item.ALLOWS_AUGMENTATION
                 ));
 
 
@@ -211,9 +221,11 @@ public class AxiomBuiltIn {
                     Item.TYPE_REFERENCE,
                     Item.IDENTIFIER_DEFINITION,
                     Item.ALLOWS_SUBSTITUTION,
+                    Item.ALLOWS_AUGMENTATION,
                     Item.MIN_OCCURS,
                     Item.MAX_OCCURS,
-                    Item.OPERATIONAL
+                    Item.OPERATIONAL,
+                    Item.CONST
                 ));
 
         public static final Type SUBSTITUTION_DEFINITION =
@@ -229,12 +241,12 @@ public class AxiomBuiltIn {
                     Item.ID_SCOPE,
                     Item.ID_SPACE
                 ));
-        public static final Type IMPORT_DEFINITION = new Type("ImportDeclaration");
+        public static final Type IMPORT_DEFINITION = new Type(AxiomName.axiom("ImportDeclaration"));
         public static final Type AUGMENTATION_DEFINITION = new Type("AugmentationDefinition",TYPE_DEFINITION);
 
-        public static final Type AXIOM_VALUE = new Type("Value", null, () -> itemDefs(
-                Item.TYPE_REFERENCE,
-                Item.VALUE
+        public static final Type AXIOM_VALUE = new Type(AxiomValue.AXIOM_VALUE, () -> itemDefs(
+                Item.INFRA_TYPE_REFERENCE,
+                Item.INFRA_VALUE
                 ));
 
         private final AxiomName identifier;
@@ -242,11 +254,15 @@ public class AxiomBuiltIn {
         private final Lazy<AxiomItemDefinition> argument;
         private final Lazy<Map<AxiomName, AxiomItemDefinition>> items;
 
-        private Type(String identifier) {
+        private Type(AxiomName identifier) {
             this(identifier, null, Lazy.nullValue(), EMPTY);
         }
 
         private Type(String identifier, Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {
+            this(identifier, null, Lazy.nullValue(), Lazy.from(items));
+        }
+
+        private Type(AxiomName identifier, Lazy.Supplier<Map<AxiomName, AxiomItemDefinition>> items) {
             this(identifier, null, Lazy.nullValue(), Lazy.from(items));
         }
 
@@ -267,6 +283,14 @@ public class AxiomBuiltIn {
         private Type(String identifier, AxiomTypeDefinition superType, Lazy<AxiomItemDefinition> argument,
                 Lazy<Map<AxiomName, AxiomItemDefinition>> items) {
             this.identifier = AxiomName.axiom(identifier);
+            this.argument = argument;
+            this.superType = superType;
+            this.items = items;
+        }
+
+        private Type(AxiomName identifier, AxiomTypeDefinition superType, Lazy<AxiomItemDefinition> argument,
+                Lazy<Map<AxiomName, AxiomItemDefinition>> items) {
+            this.identifier = identifier;
             this.argument = argument;
             this.superType = superType;
             this.items = items;
@@ -324,11 +348,6 @@ public class AxiomBuiltIn {
         }
 
         @Override
-        public Map<AxiomName, AxiomItem<?>> itemMap() {
-            return null;
-        }
-
-        @Override
         public boolean isComplex() {
             if(superType != null && superType.isComplex()) {
                 return true;
@@ -336,10 +355,6 @@ public class AxiomBuiltIn {
             return !itemDefinitions().isEmpty();
         }
 
-        @Override
-        public Map<AxiomName, AxiomItem<?>> infraItems() {
-            return null;
-        }
     }
 
 

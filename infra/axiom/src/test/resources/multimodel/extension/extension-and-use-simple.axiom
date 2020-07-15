@@ -1,0 +1,23 @@
+model extension-and-use-complex {
+    namespace "https://example.org/extension/use";
+
+    import "https://schema.evolveum.com/ns/axiom/model" {
+        prefix axiom;
+    }
+
+    documentation """
+        Example of complicated modeling concept, we add substitution of type 
+        to model and
+    """;
+
+    augmentation ModelObjectKeyword {
+        target axiom:Model;
+        item annotation {
+            type string;
+        }
+    }
+
+    annotation """
+        This annotation is used in same model as it was declared.
+    """;
+}

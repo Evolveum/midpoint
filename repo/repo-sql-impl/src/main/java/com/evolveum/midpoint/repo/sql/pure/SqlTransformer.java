@@ -9,8 +9,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Base class for SQL transformers translating from query beans or tuples to model types.
+ *
+ * @param <S> schema type
+ * @param <R> type of the transformed data, a row, typically a M-class
  */
-public abstract class SqlTransformer<M, R> {
+public abstract class SqlTransformer<S, R> {
 
     protected final PrismContext prismContext;
 
@@ -27,7 +30,7 @@ public abstract class SqlTransformer<M, R> {
      * Alternative would be dynamically generated list of select expressions and transforming
      * row to M object directly from {@link com.querydsl.core.Tuple}.
      */
-    public abstract M toSchemaObject(R row);
+    public abstract S toSchemaObject(R row);
 
     /**
      * Returns {@link ObjectReferenceType} with specified oid, proper type based on

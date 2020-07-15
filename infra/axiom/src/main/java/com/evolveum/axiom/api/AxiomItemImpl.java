@@ -15,7 +15,7 @@ class AxiomItemImpl<V> extends AbstractAxiomItem<V> {
 
     private final Collection<AxiomValue<V>> values;
 
-    private AxiomItemImpl(AxiomItemDefinition definition, Collection<? extends AxiomValue<V>> val) {
+    AxiomItemImpl(AxiomItemDefinition definition, Collection<? extends AxiomValue<V>> val) {
         super(definition);
         this.values = ImmutableList.copyOf(val);
     }
