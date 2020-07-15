@@ -4,12 +4,14 @@ import static com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor.QUERYDSL_CONF
 
 import java.sql.Connection;
 import java.util.List;
+import java.util.function.BiFunction;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.sql.SQLQuery;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -18,6 +20,7 @@ import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
 import com.evolveum.midpoint.repo.sql.pure.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
@@ -52,6 +55,13 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
             throws QueryException {
         super(rootMapping.defaultAlias(), rootMapping, prismContext);
         query = new SQLQuery<>(QUERYDSL_CONFIGURATION).from(root());
+    }
+
+    // private constructor for "derived" query contexts
+    private SqlQueryContext(
+            Q defaultAlias, QueryModelMapping<?, Q, R> mapping, PrismContext prismContext, SQLQuery<?> query) {
+        super(defaultAlias, mapping, prismContext);
+        this.query = query;
     }
 
     public Q root() {
@@ -141,5 +151,31 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
         }
 
         return new PageOf<>(data, PageOf.PAGE_NO_PAGINATION, 0, count);
+    }
+
+    /**
+     * Adds new LEFT JOIN to the query and returns {@link SqlQueryContext} for this join path.
+     *
+     * @param <DQ> query type for the JOINed table
+     * @param <DR> row type related to the {@link DQ}
+     * @param newPath entity path representing the JOIN (must be pre-created with unique alias)
+     * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
+     */
+    @Override
+    public <DQ extends EntityPath<DR>, DR> SqlQueryContext<DQ, DR> leftJoin(
+            @NotNull DQ newPath,
+            @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
+        query.leftJoin(newPath).on(joinOnPredicateFunction.apply(path(), newPath));
+        return new SqlQueryContext<>(
+                newPath,
+                QueryModelMappingConfig.getByModelType(newPath.getClass()),
+                prismContext(),
+                query);
+    }
+
+    @Override
+    public String uniqueAliasName(String baseAliasName) {
+        // TODO MID-6319 inspect query and resolve alias name
+        return baseAliasName;
     }
 }

@@ -10,7 +10,8 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 public class QueryModelMappingConfig {
 
     private static final QueryModelMappingRegistry REGISTRY = new QueryModelMappingRegistry()
-            .register(AuditEventRecordType.COMPLEX_TYPE, QAuditEventRecordMapping.INSTANCE);
+            .register(AuditEventRecordType.COMPLEX_TYPE, QAuditEventRecordMapping.INSTANCE)
+            .register(QAuditItemMapping.INSTANCE);
 
     public static <M, Q extends EntityPath<R>, R>
     QueryModelMapping<M, Q, R> getByModelType(Class<M> modelType) {
@@ -18,5 +19,9 @@ public class QueryModelMappingConfig {
         return (QueryModelMapping<M, Q, R>) REGISTRY.getByModelType(modelType);
     }
 
-    // TODO obtain by qname
+    public static <M, Q extends EntityPath<R>, R>
+    QueryModelMapping<M, Q, R> getByQueryType(Class<Q> queryType) {
+        //noinspection unchecked
+        return (QueryModelMapping<M, Q, R>) REGISTRY.getByQueryType(queryType);
+    }
 }

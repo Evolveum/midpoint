@@ -2,8 +2,10 @@ package com.evolveum.midpoint.repo.sql.pure.querymodel.beans;
 
 import java.sql.Blob;
 
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditDelta;
+
 /**
- * MAuditDelta is a Querydsl bean type
+ * Querydsl "row bean" type related to {@link QAuditDelta}.
  */
 @SuppressWarnings("unused")
 public class MAuditDelta {
