@@ -61,6 +61,7 @@ model axiom-model {
 
     type TypeDefinition {
         supertype BaseDefinition;
+        augmentable true;
         documentation """
             Definition of value type.
 
@@ -104,6 +105,7 @@ model axiom-model {
             """;
             minOccurs 0;
             allowsSubstitution true;
+            augmentable true;
         }
 
         substitution substitution {
@@ -114,6 +116,7 @@ model axiom-model {
                 Definition of Substitution;
             """;
             minOccurs 0;
+            augmentable true;
         }
 
         item include {
@@ -128,7 +131,7 @@ model axiom-model {
 
     type ItemDefinition {
         supertype BaseDefinition;
-
+        augmentable true;
         item identifier {
             type IdentifierDefinition;
             documentation """
@@ -206,6 +209,14 @@ model axiom-model {
         item allowsSubstitution {
           type Boolean;
         }
+
+        item augmentable {
+          type Boolean;
+          // default false;
+          documentation """
+            Allows addition of item values by augmentation.
+          """;
+        }
     }
 
     type SubstitutionDefinition {
@@ -231,6 +242,7 @@ model axiom-model {
 
     type Model {
         supertype BaseDefinition;
+        augmentable true;
 
         item namespace {
             type String;
@@ -281,13 +293,12 @@ model axiom-model {
             """;
         }
 
-        // FIXME: should be augmentation
         item augmentation {
             type AugmentationDefinition;
             documentation """
-                Declaration of augmentation. Augmentation adds new items
-                to already existing type, which can be defined in other
-                models (namespaces).
+                Declaration of augmentation. Augmentation adds new items, substitutions
+                or other augmentable items to already existing type, which can be
+                defined in other models (namespaces).
             """;
         }
 

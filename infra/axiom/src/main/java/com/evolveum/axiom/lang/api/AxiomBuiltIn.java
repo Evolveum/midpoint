@@ -69,6 +69,7 @@ public class AxiomBuiltIn {
         public static final Item MIN_OCCURS = new Item("minOccurs", Type.STRING, false);
         public static final Item MAX_OCCURS = new Item("maxOccurs", Type.STRING, false);
         public static final Item ALLOWS_SUBSTITUTION= new Item("allowsSubstitution", Type.STRING, false);
+        public static final Item ALLOWS_AUGMENTATION= new Item("augmentable", Type.STRING, false);
         public static final Item OPERATIONAL = new Item("operational", Type.IDENTIFIER, true);
         public static final Item IDENTIFIER_DEFINITION = new Item("identifier", Type.IDENTIFIER_DEFINITION, true);
         public static final Item ID_MEMBER = new Item("key", Type.IDENTIFIER, false);
@@ -210,7 +211,8 @@ public class AxiomBuiltIn {
                     Item.ARGUMENT,
                     Item.SUPERTYPE_REFERENCE,
                     Item.ITEM_DEFINITION,
-                    Item.SUBSTITUTION_DEFINITION
+                    Item.SUBSTITUTION_DEFINITION,
+                    Item.ALLOWS_AUGMENTATION
                 ));
 
 
@@ -219,6 +221,7 @@ public class AxiomBuiltIn {
                     Item.TYPE_REFERENCE,
                     Item.IDENTIFIER_DEFINITION,
                     Item.ALLOWS_SUBSTITUTION,
+                    Item.ALLOWS_AUGMENTATION,
                     Item.MIN_OCCURS,
                     Item.MAX_OCCURS,
                     Item.OPERATIONAL,
