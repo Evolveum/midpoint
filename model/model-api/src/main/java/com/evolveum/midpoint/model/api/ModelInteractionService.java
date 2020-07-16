@@ -411,6 +411,7 @@ public interface ModelInteractionService {
      */
     <O extends AssignmentHolderType> ArchetypePolicyType determineArchetypePolicy(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException;
 
+    ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result) throws SchemaException;
     /**
      * Returns data structure that contains information about possible assignment targets for a particular holder object.
      * <p>

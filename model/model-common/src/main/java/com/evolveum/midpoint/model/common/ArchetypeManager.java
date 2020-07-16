@@ -15,6 +15,7 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.CloneStrategy;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -136,23 +137,30 @@ public class ArchetypeManager {
         if (object == null) {
             return null;
         }
-        ArchetypePolicyType archetypePolicy = null;
+
+        PrismObject<ArchetypeType> archetype = null;
         if (object.canRepresent(AssignmentHolderType.class)) {
-            PrismObject<ArchetypeType> archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, explicitArchetypeOid, result);
-            if (archetype != null) {
-                archetypePolicy = mergeArchetypePolicies(archetype.asObjectable(), result);
-//                archetypePolicy = archetype.asObjectable().getArchetypePolicy();
-            }
+            archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, explicitArchetypeOid, result);
         }
+
+        ArchetypePolicyType archetypePolicy = mergeArchetypePolicies(archetype, result);
+
         // No archetype for this object. Try to find appropriate system configuration section for this object.
         ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
         // TODO: cache the result of the merge
         return merge(archetypePolicy, objectPolicy);
     }
 
+    public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result) throws SchemaException {
+        if (archetype == null) {
+            return null;
+        }
+        return mergeArchetypePolicies(archetype.asObjectable(), result);
+    }
+
     private ArchetypePolicyType mergeArchetypePolicies(ArchetypeType archetypeType, OperationResult result) throws SchemaException {
         ObjectReferenceType superArchetypeRef = archetypeType.getSuperArchetypeRef();
-        if (superArchetypeRef == null) {
+        if (superArchetypeRef == null || superArchetypeRef.getOid() == null) {
             return archetypeType.getArchetypePolicy();
         }
 
@@ -164,7 +172,6 @@ public class ArchetypeManager {
             return archetypeType.getArchetypePolicy();
         }
 
-        //TODO check null
         ArchetypePolicyType superPolicy = mergeArchetypePolicies(superArchetype.asObjectable(), result);
         ArchetypePolicyType currentPolicy = archetypeType.getArchetypePolicy();
 
@@ -173,6 +180,10 @@ public class ArchetypeManager {
                 return null;
             }
             return superPolicy;
+        }
+
+        if (superPolicy == null) {
+            return currentPolicy;
         }
 
         ArchetypePolicyType mergedPolicy = currentPolicy.clone();
@@ -280,13 +291,13 @@ public class ArchetypeManager {
                 VirtualContainersSpecificationType mergedContainer = mergeVirtualContainer(matchedContainer, superContainer);
                 mergedContainers.add(mergedContainer);
             } else {
-                mergedContainers.add(superContainer.clone());
+                mergedContainers.add(cloneComplex(superContainer));
             }
         }
 
         for (VirtualContainersSpecificationType currentContainer : currentContainers) {
-            if (!mergedContainers.stream().anyMatch(c -> Objects.equals(currentContainer.getIdentifier(), c.getIdentifier()))) {
-                mergedContainers.add(currentContainer.clone());
+            if (!mergedContainers.stream().anyMatch(c -> identifiersMatch(currentContainer.getIdentifier(), c.getIdentifier()))) {
+                mergedContainers.add(cloneComplex(currentContainer));
             }
         }
 
@@ -294,7 +305,8 @@ public class ArchetypeManager {
     }
 
     private VirtualContainersSpecificationType getMatchedVirtualContainer(List<VirtualContainersSpecificationType> currentContainers, VirtualContainersSpecificationType superContainer) {
-        List<VirtualContainersSpecificationType> matchedContainers = currentContainers.stream().filter(c -> Objects.equals(c.getIdentifier(), superContainer.getIdentifier())).collect(Collectors.toList());
+        List<VirtualContainersSpecificationType> matchedContainers = currentContainers.stream()
+                .filter(c -> identifiersMatch(c.getIdentifier(), superContainer.getIdentifier())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(matchedContainers)) {
             return null;
         }
@@ -304,6 +316,10 @@ public class ArchetypeManager {
         }
 
         return matchedContainers.iterator().next();
+    }
+
+    private boolean identifiersMatch(String id1, String id2) {
+        return id1 != null && id2 != null && id1.equals(id2);
     }
 
     private VirtualContainersSpecificationType mergeVirtualContainer(VirtualContainersSpecificationType currentContainer, VirtualContainersSpecificationType superContainer) {
@@ -325,11 +341,15 @@ public class ArchetypeManager {
 
         for (VirtualContainerItemSpecificationType virtualItem : superContainer.getItem()) {
             if (!currentContainer.getItem().stream().anyMatch(i -> i.getPath().equivalent(virtualItem.getPath()))) {
-                mergedContainer.getItem().add(virtualItem.clone());
+                mergedContainer.getItem().add(cloneComplex(virtualItem));
             }
         }
 
         return mergedContainer;
+    }
+
+    private <C extends Containerable> C cloneComplex(C containerable) {
+        return (C) containerable.asPrismContainerValue().cloneComplex(CloneStrategy.REUSE).asContainerable();
     }
 
     private ApplicablePoliciesType mergeApplicablePolicies(ArchetypePolicyType currentPolicy, ArchetypePolicyType superPolicy) {
@@ -421,11 +441,8 @@ public class ArchetypeManager {
             mergedDisplayType.setHelp(superDisplayType.getHelp());
         }
 
-        if (currentDisplayType.getIcon() == null) {
-            if (superDisplayType.getIcon() != null) {
-                mergedDisplayType.setIcon(superDisplayType.getIcon().clone());
-            }
-        }
+        IconType mergedIcon = mergeIcon(currentDisplayType.getIcon(), superDisplayType.getIcon());
+        mergedDisplayType.setIcon(mergedIcon);
 
         if (currentDisplayType.getPluralLabel() == null) {
             mergedDisplayType.setPluralLabel(superDisplayType.getPluralLabel());
@@ -440,6 +457,34 @@ public class ArchetypeManager {
         }
 
         return mergedDisplayType;
+    }
+
+    private IconType mergeIcon(IconType currentIcon, IconType superIcon) {
+        if (currentIcon == null) {
+            if (superIcon == null) {
+                return null;
+            }
+            return superIcon.clone();
+        }
+
+        if (superIcon == null) {
+            return currentIcon.clone();
+        }
+
+        IconType mergedIcon = currentIcon.clone();
+        if (currentIcon.getCssClass() == null) {
+            mergedIcon.setCssClass(superIcon.getCssClass());
+        }
+
+        if (currentIcon.getColor() == null) {
+            mergedIcon.setColor(superIcon.getColor());
+        }
+
+        if (currentIcon.getImageUrl() == null) {
+            mergedIcon.setImageUrl(superIcon.getImageUrl());
+        }
+
+        return mergedIcon;
     }
 
     private List<ItemConstraintType> mergeItemConstraints(List<ItemConstraintType> currentConstraints, List<ItemConstraintType> superConstraints) {

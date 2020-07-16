@@ -1738,6 +1738,11 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     }
 
     @Override
+    public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result) throws SchemaException {
+        return archetypeManager.mergeArchetypePolicies(archetype, result);
+    }
+
+    @Override
     public <O extends AssignmentHolderType> AssignmentCandidatesSpecification determineAssignmentTargetSpecification(PrismObject<O> object, OperationResult result) throws SchemaException {
         SearchResultList<PrismObject<ArchetypeType>> archetypes = systemObjectCache.getAllArchetypes(result);
         List<AssignmentObjectRelation> assignmentTargetRelations = new ArrayList<>();

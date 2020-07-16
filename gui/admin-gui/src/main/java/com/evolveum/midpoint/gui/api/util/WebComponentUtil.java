@@ -3340,17 +3340,22 @@ public final class WebComponentUtil {
     }
 
     public static <O extends ObjectType> ArchetypePolicyType getArchetypeSpecification(PrismObject<O> object, ModelServiceLocator locator){
-        if (object == null || object.asObjectable() == null){
+        if (object == null){
             return null;
         }
-        String objectName = object.asObjectable().getName() != null ? object.asObjectable().getName().getOrig() : "Unknown";
-        OperationResult result = new OperationResult("loadArchetypeSpecificationFor" + objectName);
+
+        OperationResult result = new OperationResult("loadArchetypeSpecificationFor" + getName(object));
+
         if (!object.canRepresent(AssignmentHolderType.class)) {
             return null;
         }
         ArchetypePolicyType spec = null;
         try {
-            spec = locator.getModelInteractionService().determineArchetypePolicy((PrismObject<? extends AssignmentHolderType>) object, result);
+            if (ArchetypeType.class.equals(object.getCompileTimeClass())) {
+                spec = locator.getModelInteractionService().mergeArchetypePolicies((PrismObject<ArchetypeType>) object, result);
+            } else {
+                spec = locator.getModelInteractionService().determineArchetypePolicy((PrismObject<? extends AssignmentHolderType>) object, result);
+            }
         } catch (SchemaException | ConfigurationException ex){
             result.recordPartialError(ex.getLocalizedMessage());
             LOGGER.error("Cannot load ArchetypeInteractionSpecification for object {}: {}", object, ex.getLocalizedMessage());
@@ -3382,9 +3387,6 @@ public final class WebComponentUtil {
     public static <O extends ObjectType> DisplayType getDisplayTypeForObject(O obj, OperationResult result, PageBase pageBase){
         if (obj == null){
             return null;
-        }
-        if (obj instanceof ArchetypeType && ((ArchetypeType)obj).getArchetypePolicy() != null) {
-            return ((ArchetypeType)obj).getArchetypePolicy().getDisplay();
         }
         DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(obj, pageBase);
 
