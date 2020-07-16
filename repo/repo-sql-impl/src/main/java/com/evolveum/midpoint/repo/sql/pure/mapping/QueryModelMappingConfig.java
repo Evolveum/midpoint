@@ -2,6 +2,9 @@ package com.evolveum.midpoint.repo.sql.pure.mapping;
 
 import com.querydsl.core.types.EntityPath;
 
+import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.QAuditEventRecordMapping;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.QAuditItemMapping;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.QAuditPropertyValueMapping;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 /**

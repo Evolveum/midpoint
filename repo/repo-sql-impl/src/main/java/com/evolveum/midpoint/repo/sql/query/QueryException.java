@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,11 +12,15 @@ package com.evolveum.midpoint.repo.sql.query;
  */
 public class QueryException extends Exception {
 
-    public QueryException(String s) {
-        super(s);
+    public QueryException(String message) {
+        super(message);
     }
 
-    public QueryException(String s, Throwable throwable) {
-        super(s, throwable);
+    public QueryException(Throwable cause) {
+        super(cause);
+    }
+
+    public QueryException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

@@ -2,6 +2,7 @@ package com.evolveum.midpoint.repo.sql.pure.querymodel.beans;
 
 import java.sql.Blob;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditDelta;
 
 /**
@@ -14,32 +15,39 @@ public class MAuditDelta {
     public Long recordId;
     public String checksum;
     public Blob delta;
-    public String deltaoid;
-    public Integer deltatype;
-    public Blob fullresult;
-    public String objectnameNorm;
-    public String objectnameOrig;
-    public String resourcenameNorm;
-    public String resourcenameOrig;
-    public String resourceoid;
+    public String deltaOid;
+    public Integer deltaType;
+    public Blob fullResult;
+    public String objectNameNorm;
+    public String objectNameOrig;
+    public String resourceNameNorm;
+    public String resourceNameOrig;
+    public String resourceOid;
     public Integer status;
+
+    public PolyString getObjectName() {
+        return new PolyString(objectNameOrig, objectNameNorm);
+    }
+
+    public PolyString getResourceName() {
+        return new PolyString(resourceNameOrig, resourceNameNorm);
+    }
 
     @Override
     public String toString() {
         return "MAuditDelta{" +
                 "recordId=" + recordId +
                 ", checksum='" + checksum + '\'' +
-//                ", delta=" + delta +
-//                ", deltaoid='" + deltaoid + '\'' +
-//                ", deltatype=" + deltatype +
-//                ", fullresult=" + fullresult +
-//                ", objectnameNorm='" + objectnameNorm + '\'' +
-//                ", objectnameOrig='" + objectnameOrig + '\'' +
-//                ", resourcenameNorm='" + resourcenameNorm + '\'' +
-//                ", resourcenameOrig='" + resourcenameOrig + '\'' +
-//                ", resourceoid='" + resourceoid + '\'' +
+                ", delta=" + delta +
+                ", deltaOid='" + deltaOid + '\'' +
+                ", deltaType=" + deltaType +
+                ", fullResult=" + fullResult +
+                ", objectNameNorm='" + objectNameNorm + '\'' +
+                ", objectNameOrig='" + objectNameOrig + '\'' +
+                ", resourceNameNorm='" + resourceNameNorm + '\'' +
+                ", resourceNameOrig='" + resourceNameOrig + '\'' +
+                ", resourceOid='" + resourceOid + '\'' +
                 ", status=" + status +
                 '}';
     }
 }
-

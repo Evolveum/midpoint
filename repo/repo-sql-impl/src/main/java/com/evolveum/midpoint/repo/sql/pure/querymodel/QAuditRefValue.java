@@ -17,12 +17,13 @@ import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
 import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditRefValue;
 
 /**
  * Querydsl query type for M_AUDIT_REF_VALUE table.
  */
 @SuppressWarnings("unused")
-public class QAuditRefValue extends FlexibleRelationalPathBase<QAuditRefValue> {
+public class QAuditRefValue extends FlexibleRelationalPathBase<MAuditRefValue> {
 
     private static final long serialVersionUID = 1173079757;
 
@@ -30,12 +31,12 @@ public class QAuditRefValue extends FlexibleRelationalPathBase<QAuditRefValue> {
 
     public static final ColumnMetadata ID =
             ColumnMetadata.named("ID").ofType(Types.BIGINT).withSize(19).notNull();
+    public static final ColumnMetadata RECORD_ID =
+            ColumnMetadata.named("RECORD_ID").ofType(Types.BIGINT).withSize(19);
     public static final ColumnMetadata NAME =
             ColumnMetadata.named("NAME").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata OID =
             ColumnMetadata.named("OID").ofType(Types.VARCHAR).withSize(36);
-    public static final ColumnMetadata RECORD_ID =
-            ColumnMetadata.named("RECORD_ID").ofType(Types.BIGINT).withSize(19);
     public static final ColumnMetadata TARGET_NAME_NORM =
             ColumnMetadata.named("TARGETNAME_NORM").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TARGET_NAME_ORIG =
@@ -44,14 +45,14 @@ public class QAuditRefValue extends FlexibleRelationalPathBase<QAuditRefValue> {
             ColumnMetadata.named("TYPE").ofType(Types.VARCHAR).withSize(255);
 
     public final NumberPath<Long> id = createLong("id", ID);
+    public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final StringPath name = createString("name", NAME);
     public final StringPath oid = createString("oid", OID);
-    public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final StringPath targetNameNorm = createString("targetNameNorm", TARGET_NAME_NORM);
     public final StringPath targetNameOrig = createString("targetNameOrig", TARGET_NAME_ORIG);
     public final StringPath type = createString("type", TYPE);
 
-    public final PrimaryKey<QAuditRefValue> constraint7 = createPrimaryKey(id);
+    public final PrimaryKey<MAuditRefValue> constraint7 = createPrimaryKey(id);
     public final ForeignKey<QAuditEventRecord> auditRefValueFk = createForeignKey(recordId, "ID");
 
     public QAuditRefValue(String variable) {
@@ -59,6 +60,6 @@ public class QAuditRefValue extends FlexibleRelationalPathBase<QAuditRefValue> {
     }
 
     public QAuditRefValue(String variable, String schema, String table) {
-        super(QAuditRefValue.class, forVariable(variable), schema, table);
+        super(MAuditRefValue.class, forVariable(variable), schema, table);
     }
 }
