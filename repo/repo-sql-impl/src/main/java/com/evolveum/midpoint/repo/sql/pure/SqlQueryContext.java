@@ -184,9 +184,8 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
 
         // getClass returns Class<?> but it is really Class<DQ>, just suppressing the warning here
         //noinspection unchecked
-        QueryModelMapping<?, DQ, DR> mapping =
-                QueryModelMappingConfig.getByQueryType(newPath.getClass());
-
+        Class<DQ> aClass = (Class<DQ>) newPath.getClass();
+        QueryModelMapping<?, DQ, DR> mapping = QueryModelMappingConfig.getByQueryType(aClass);
         return new SqlQueryContext<>(newPath, mapping, prismContext(), sqlQuery);
     }
 
