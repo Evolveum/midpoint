@@ -27,7 +27,7 @@ public class QAuditPropertyValue extends FlexibleRelationalPathBase<MAuditProper
 
     private static final long serialVersionUID = -1656131713;
 
-    public static final String TABLE_NAME = "M_AUDIT_PROP_VALUE";
+    public static final String TABLE_NAME = "m_audit_prop_value";
 
     public static final ColumnMetadata ID =
             ColumnMetadata.named("ID").ofType(Types.BIGINT).withSize(19).notNull();

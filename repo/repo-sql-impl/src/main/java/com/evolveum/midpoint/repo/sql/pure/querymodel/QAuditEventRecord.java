@@ -30,7 +30,7 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
 
     private static final long serialVersionUID = -229589301;
 
-    public static final String TABLE_NAME = "M_AUDIT_EVENT";
+    public static final String TABLE_NAME = "m_audit_event";
 
     // column metadata constants, we don't care about the indexes, better to remove them
     public static final ColumnMetadata ID =

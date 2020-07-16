@@ -27,7 +27,7 @@ public class QAuditResource extends FlexibleRelationalPathBase<MAuditResource> {
 
     private static final long serialVersionUID = 1568947773;
 
-    public static final String TABLE_NAME = "M_AUDIT_RESOURCE";
+    public static final String TABLE_NAME = "m_audit_resource";
 
     public static final ColumnMetadata RECORD_ID =
             ColumnMetadata.named("RECORD_ID").ofType(Types.BIGINT).withSize(19).notNull();

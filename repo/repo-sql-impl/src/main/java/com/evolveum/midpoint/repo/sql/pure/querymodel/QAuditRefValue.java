@@ -27,7 +27,7 @@ public class QAuditRefValue extends FlexibleRelationalPathBase<MAuditRefValue> {
 
     private static final long serialVersionUID = 1173079757;
 
-    public static final String TABLE_NAME = "M_AUDIT_REF_VALUE";
+    public static final String TABLE_NAME = "m_audit_ref_value";
 
     public static final ColumnMetadata ID =
             ColumnMetadata.named("ID").ofType(Types.BIGINT).withSize(19).notNull();

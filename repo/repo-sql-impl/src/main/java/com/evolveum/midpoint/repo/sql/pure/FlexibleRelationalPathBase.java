@@ -26,7 +26,7 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
  * <li>Rewrite path fields so they use {@code create*} methods from this super-class.</li>
  * <li>Now {@code addMetadata()} method can be removed, including usages from constructors.</li>
  * <li>Prune constructors, two should be enough (see existing Q-classes).</li>
- * <li>Introduce {@code TABLE_NAME} constant.</li>
+ * <li>Introduce {@code TABLE_NAME} constant - keep the names lowercase for MySQL (don't ask).</li>
  * <li>Rename path fields as needed (missing uppercase for words), also in related bean (M-class).</li>
  * <li>Unsuitable path types can be changed, e.g. date/time related.
  * The same changes must be done for the related field in the M-class.
