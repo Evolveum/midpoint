@@ -202,16 +202,6 @@
             <build>
                 <plugins>
                     <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${surefire.version}</version>
-                        <configuration>
-                            <suiteXmlFiles>
-                                <suiteXmlFile>testng-integration.xml</suiteXmlFile>
-                                <suiteXmlFile>testng-db-specific.xml</suiteXmlFile>
-                            </suiteXmlFiles>
-                        </configuration>
-                    </plugin>
-                    <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <version>${failsafe.version}</version>
                         <configuration>
