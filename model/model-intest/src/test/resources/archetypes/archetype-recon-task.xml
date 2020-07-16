@@ -1,0 +1,58 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+           oid="00000000-0000-0000-0000-000000000541" >
+    <name>Reconciliation task</name>
+    <superArchetypeRef oid="00000000-0000-0000-0000-000000000521" type="ArchetypeType"/>
+    <assignment>
+        <assignmentRelation>
+            <holderType>TaskType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Reconciliation task</label>
+            <pluralLabel>Reconciliation tasks</pluralLabel>
+            <icon>
+                <cssClass>fa fa-exchange</cssClass>
+            </icon>
+        </display>
+        <itemConstraint>
+            <c:path>extension/mext:objectQuery</c:path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <c:path>extension/mext:finishOperationsOnly</c:path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>c:TaskType</type>
+                <container>
+                    <identifier>resourceOptions</identifier>
+                    <display>
+                        <label>ReconciliationTask.resourceObjects</label>
+                    </display>
+                    <item>
+                        <c:path>extension/mext:objectQuery</c:path>
+                    </item>
+                </container>
+                <container>
+                    <identifier>resourceOperationOptions</identifier>
+                    <display>
+                        <label>ReconciliationTask.reconciliationOptions</label>
+                    </display>
+                    <item>
+                        <c:path>extension/mext:finishOperationsOnly</c:path>
+                    </item>
+                </container>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+</archetype>

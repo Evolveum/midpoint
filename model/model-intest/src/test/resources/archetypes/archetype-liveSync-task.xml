@@ -1,0 +1,69 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           xmlns:mext="http://midpoint.evolveum.com/xml/ns/public/model/extension-3"
+           xmlns:livesync="http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3"
+           oid="00000000-0000-0000-0000-000000000531" >
+    <name>Livesync task</name>
+    <superArchetypeRef oid="00000000-0000-0000-0000-000000000521" type="ArchetypeType"/>
+    <assignment>
+        <assignmentRelation>
+            <holderType>TaskType</holderType>
+        </assignmentRelation>
+    </assignment>
+    <archetypePolicy>
+        <display>
+            <label>Live synchronization task</label>
+            <pluralLabel>Live synchronization tasks</pluralLabel>
+            <icon>
+                <cssClass>fa fa-refresh</cssClass>
+            </icon>
+        </display>
+        <itemConstraint>
+            <c:path>extension/mext:synchronizationOptions</c:path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <c:path>extension/mext:retryLiveSyncErrors</c:path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <c:path>extension/mext:updateLiveSyncTokenInDryRun</c:path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <itemConstraint>
+            <c:path >extension/livesync:token</c:path>
+            <visibility>visible</visibility>
+        </itemConstraint>
+        <adminGuiConfiguration>
+            <objectDetails>
+                <type>TaskType</type>
+                <container>
+                    <identifier>resourceOperationOptions</identifier>
+                    <display>
+                        <label>LiveSynchronizationTask.synchronizationOptions</label>
+                    </display>
+                    <item>
+                        <c:path>extension/mext:retryLiveSyncErrors</c:path>
+                    </item>
+                    <item>
+                        <c:path>extension/mext:updateLiveSyncTokenInDryRun</c:path>
+                    </item>
+                </container>
+                <container>
+                    <display>
+                        <label>LiveSynchronizationTask.synchronizationState</label>
+                    </display>
+                    <item>
+                        <c:path>extension/livesync:token</c:path>
+                    </item>
+                </container>
+            </objectDetails>
+        </adminGuiConfiguration>
+    </archetypePolicy>
+</archetype>

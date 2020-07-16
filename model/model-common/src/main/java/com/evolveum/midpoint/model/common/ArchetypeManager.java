@@ -496,7 +496,7 @@ public class ArchetypeManager {
         for (ItemConstraintType superConstraint : superConstraints) {
             ItemConstraintType matchedConstraint = getContraintToMerge(currentConstraints, superConstraint);
             if (matchedConstraint == null) {
-                mergedConstraints.add(superConstraint.clone());
+                mergedConstraints.add(cloneComplex(superConstraint));
             } else {
                 ItemConstraintType mergedConstraint = mergeItemContraint(matchedConstraint, superConstraint);
                 mergedConstraints.add(mergedConstraint);
@@ -505,7 +505,7 @@ public class ArchetypeManager {
 
         for (ItemConstraintType currentConstraint : currentConstraints) {
             if (!mergedConstraints.stream().anyMatch(c -> currentConstraint.getPath().equivalent(c.getPath()))) {
-                mergedConstraints.add(currentConstraint.clone());
+                mergedConstraints.add(cloneComplex(currentConstraint));
             }
         }
         return mergedConstraints;
@@ -525,7 +525,7 @@ public class ArchetypeManager {
     }
 
     private ItemConstraintType mergeItemContraint(ItemConstraintType matchedConstraint, ItemConstraintType superConstraint) {
-        ItemConstraintType mergedConstraint = matchedConstraint.clone();
+        ItemConstraintType mergedConstraint = cloneComplex(matchedConstraint);
         if (matchedConstraint.getVisibility() == null) {
             mergedConstraint.setVisibility(superConstraint.getVisibility());
         }
