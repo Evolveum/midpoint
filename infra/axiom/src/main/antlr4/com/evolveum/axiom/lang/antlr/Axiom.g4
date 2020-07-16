@@ -16,6 +16,9 @@ fragment ESC : '\\';
 
 STRING_SINGLEQUOTE: SQOUTE ((ESC SQOUTE) | ~[\n'])* SQOUTE;
 STRING_DOUBLEQUOTE: DQOUTE ((ESC DQOUTE) | ~[\n"])* DQOUTE;
+STRING_MULTILINE_START: '"""' ('\r')? '\n';
+
+
 
 //statement : SEP* identifier SEP* (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (statement)* SEP* RIGHT_BRACE SEP*) SEP*;
 itemName: infraName | dataName;
@@ -35,11 +38,10 @@ string : singleQuoteString | doubleQuoteString | multilineString;
 
 singleQuoteString : STRING_SINGLEQUOTE;
 doubleQuoteString : STRING_DOUBLEQUOTE;
-multilineString: '"""\n' (~('"""'))*'"""';
+multilineString: STRING_MULTILINE_START (~('"""'))*'"""';
 
 path: pathComponent ( '/' pathComponent)*;
 pathComponent: itemName (pathValue)?;
 pathDataItem: prefixedName;
 pathInfraItem: '@' prefixedName;
 pathValue: '[' argument ']';
-
