@@ -92,7 +92,7 @@ public class TestProjector extends AbstractLensTest {
                 PrismTestUtil.createPolyString("Elaine LeChuck"));
         ObjectDelta<UserType> userDeltaSecondaryClone = userDeltaSecondary.clone();
         focusContext.setPrimaryDelta(userDeltaPrimary);
-        focusContext.setSecondaryDelta(userDeltaSecondary, 0);
+        focusContext.setWave0SecondaryDelta(userDeltaSecondary);
 
         // Account Deltas
         ObjectDelta<ShadowType> accountDeltaPrimary = createModifyAccountShadowReplaceAttributeDelta(

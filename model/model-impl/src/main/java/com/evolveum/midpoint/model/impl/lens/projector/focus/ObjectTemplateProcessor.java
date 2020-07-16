@@ -65,7 +65,7 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
             throws SchemaException {
         LensFocusContext<AH> focusContext = evaluation.getFocusContext();
         NextRecompute nextRecompute = evaluation.getNextRecompute();
-        focusContext.applyProjectionWaveSecondaryDeltas(evaluation.getItemDeltas());
+        focusContext.swallowToSecondaryDeltaChecked(evaluation.getItemDeltas());
         if (nextRecompute != null) {
             nextRecompute.createTrigger(focusContext);
         }

@@ -128,13 +128,6 @@ class IterationHelper<AH extends AssignmentHolderType> {
     }
 
     private void rememberIterationToken() {
-        // We have to remember the token and iteration in the context.
-        // The context can be recomputed several times. But we always want
-        // to use the same iterationToken if possible. If there is a random
-        // part in the iterationToken expression that we need to avoid recomputing
-        // the token otherwise the value can change all the time (even for the same inputs).
-        // Storing the token in the secondary delta is not enough because secondary deltas can be dropped
-        // if the context is re-projected.
         focusContext.setIteration(iteration);
         focusContext.setIterationToken(iterationToken);
     }

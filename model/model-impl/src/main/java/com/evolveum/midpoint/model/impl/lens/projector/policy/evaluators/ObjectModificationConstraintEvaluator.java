@@ -14,7 +14,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluati
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -129,13 +128,12 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
             LOGGER.trace("Rule {} operation not applicable", ctx.policyRule.getName());
             return false;
         }
-        if (!ctx.focusContext.hasAnyDelta()) {
+        if (ObjectDelta.isEmpty(ctx.focusContext.getDelta())) {
             LOGGER.trace("Focus context has no delta (primary nor secondary)");
             return false;
         }
         if (!constraint.getItem().isEmpty()) {
-            //noinspection unchecked
-            ObjectDelta<?> summaryDelta = ObjectDeltaCollectionsUtil.union(ctx.focusContext.getPrimaryDelta(), ctx.focusContext.getSecondaryDelta());
+            ObjectDelta<?> summaryDelta = ctx.focusContext.getDelta();
             if (summaryDelta == null) {
                 LOGGER.trace("Summary delta is null");
                 return false;

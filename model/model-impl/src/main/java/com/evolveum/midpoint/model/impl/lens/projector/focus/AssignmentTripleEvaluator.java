@@ -570,7 +570,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
      * But MID-2422 shows that we need to take deltas from waves 0..N (N=current execution wave) [that effectively means all the secondary deltas]
      */
     private ContainerDelta<AssignmentType> getExecutionWaveAssignmentDelta(LensFocusContext<AH> focusContext) throws SchemaException {
-        ObjectDelta<AH> focusDelta = focusContext.getAggregatedWaveDelta(focusContext.getLensContext().getExecutionWave());
+        ObjectDelta<AH> focusDelta = focusContext.getDelta();
         if (focusDelta == null) {
             return createEmptyAssignmentDelta(focusContext);
         }

@@ -713,9 +713,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         }
                         if (delta != null && !delta.isEmpty()) {
                             delta.setParentPath(targetPath.allExceptLast());
-                            if (!context.getFocusContext().alreadyHasDelta(delta)){
-                                context.getFocusContext().swallowToProjectionWaveSecondaryDelta(delta);
-                            }
+                            context.getFocusContext().swallowToSecondaryDeltaChecked(delta);
                         }
                         return false;
                     };

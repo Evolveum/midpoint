@@ -22,7 +22,7 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.impl.lens.construction.Construction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -43,9 +43,6 @@ import org.jvnet.jaxb2_commons.lang.Validate;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -825,24 +822,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Assuming that oldAccount is already set (or is null if it does not exist)
      */
     public void recompute() throws SchemaException {
-        ObjectDelta<ShadowType> accDelta = getDelta();
-
-        PrismObject<ShadowType> base = getObjectCurrent();
-        if (base == null) {
-            base = getObjectOld();
-        }
+        PrismObject<ShadowType> base = getObjectCurrentOrOld();
         ObjectDelta<ShadowType> syncDelta = getSyncDelta();
         if (base == null && syncDelta != null
                 && ChangeType.ADD.equals(syncDelta.getChangeType())) {
             PrismObject<ShadowType> objectToAdd = syncDelta.getObjectToAdd();
             if (objectToAdd != null) {
                 PrismObjectDefinition<ShadowType> objectDefinition = objectToAdd.getDefinition();
-                // TODO: remove constructor, use some factory method instead
                 base = getNotNullPrismContext().itemFactory().createObject(objectToAdd.getElementName(), objectDefinition);
                 base = syncDelta.computeChangedObject(base);
             }
         }
 
+        // TODO: Why we take _current_ object and apply _overall_ delta on it? (meaning primary + all secondary deltas)
+
+        ObjectDelta<ShadowType> accDelta = getDelta();
         if (accDelta == null) {
             // No change
             setObjectNew(base);
@@ -873,7 +867,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     public ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException {
         SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
-        ObjectDelta<ShadowType> origDelta = getFixedDelta();
+        //noinspection unchecked
+        ObjectDelta<ShadowType> origDelta = ObjectDeltaCollectionsUtil.union(getFixedPrimaryDelta(), getSecondaryDelta());
         if (policyDecision == SynchronizationPolicyDecision.ADD) {
             // let's try to retrieve original (non-fixed) delta. Maybe it's ADD delta so we spare fixing it.
             origDelta = getDelta();
@@ -918,6 +913,36 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return origDelta.clone();
         } else {
             return origDelta;
+        }
+    }
+
+    /**
+     * As getPrimaryDelta() but caters for the possibility that an object already exists.
+     * So, if the primary delta is ADD and object already exists, it should be changed somehow,
+     * e.g. to MODIFY delta or to null.
+     *
+     * Actually, the question is what to do with the attribute values if changed to MODIFY.
+     * (a) Should they become REPLACE item deltas? (b) ADD ones?
+     * (c) Or should we compute a difference from objectCurrent to objectToAdd, hoping that
+     * secondary deltas will re-add everything that might be unknowingly removed by this step?
+     * (d) Or should we simply ignore ADD delta altogether, hoping that it was executed
+     * so it need not be repeated?
+     *
+     * And, should not we report AlreadyExistingException instead?
+     *
+     * It seems that (c) i.e. reverting back to objectToAdd is not a good idea at all. For example, this
+     * may erase linkRefs for good.
+     *
+     * For the time being let us proceed with (d), i.e. ignoring such a delta.
+     *
+     * TODO is this OK???? [med]
+     */
+    private ObjectDelta<ShadowType> getFixedPrimaryDelta() {
+        if (ObjectDelta.isAdd(getPrimaryDelta()) && getObjectCurrent() != null) {
+            // Object does exist. Let's ignore the delta - see description above.
+            return null;
+        } else {
+            return getPrimaryDelta(); // nothing to do
         }
     }
 
@@ -1060,12 +1085,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     public LensProjectionContext clone(LensContext<? extends ObjectType> lensContext) {
         LensProjectionContext clone = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
-        copyValues(clone, lensContext);
+        copyValues(clone);
         return clone;
     }
 
-    protected void copyValues(LensProjectionContext clone, LensContext<? extends ObjectType> lensContext) {
-        super.copyValues(clone, lensContext);
+    private void copyValues(LensProjectionContext clone) {
+        super.copyValues(clone);
         // do NOT clone transient values such as accountConstructionDeltaSetTriple
         // these are not meant to be cloned and they are also not directly cloneable
         clone.dependencies = this.dependencies;

@@ -1415,7 +1415,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
     private static boolean recording = false;
 
-    private static MultiValuedMap<String,RunInfo> runs = new ArrayListValuedHashMap<>();
+    private static final MultiValuedMap<String,RunInfo> runs = new ArrayListValuedHashMap<>();
 
     private static RunInfo currentRun;
 

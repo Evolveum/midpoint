@@ -32,7 +32,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
     /**
      * Get merged deltas from all the waves.
      */
-    public ObjectDelta<O> getMergedDeltas() throws SchemaException {
+    ObjectDelta<O> getMergedDeltas() throws SchemaException {
         return getMergedDeltas(null, -1);
     }
 
@@ -40,23 +40,19 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
      * Get merged deltas from the waves up to maxWave (including). Optional initial delta may be supplied.
      * Negative maxWave means to merge all available waves.
      */
-    public ObjectDelta<O> getMergedDeltas(ObjectDelta<O> initialDelta, int maxWave) throws SchemaException {
-        ObjectDelta<O> merged = null;
-        if (initialDelta != null) {
-            merged = initialDelta.clone();
-        }
+    ObjectDelta<O> getMergedDeltas(ObjectDelta<O> initialDelta, int maxWave) throws SchemaException {
+        ObjectDelta<O> merged = initialDelta != null ? initialDelta.clone() : null;
         int waveNum = 0;
         for (ObjectDelta<O> delta: waves) {
-            if (delta == null) {
-                continue;
-            }
-            if (merged == null) {
-                merged = delta.clone();
-            } else {
-                merged.merge(delta);
-            }
-            if (maxWave >= 0 && waveNum >= maxWave) {
-                break;
+            if (delta != null) {
+                if (merged == null) {
+                    merged = delta.clone();
+                } else {
+                    merged.merge(delta);
+                }
+                if (maxWave >= 0 && waveNum >= maxWave) {
+                    break;
+                }
             }
         }
         return merged;

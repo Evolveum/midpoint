@@ -239,7 +239,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
         // We must NOT clean up activation computation. This has happened before, it will not happen again
         // and it does not depend on iteration
         LOGGER.trace("Cleaning up focus context");
-        focusContext.setProjectionWaveSecondaryDelta(null);
+        focusContext.clearProjectionWaveSecondaryDelta();
 
         focusContext.clearIntermediateResults();
         focusContext.recompute();

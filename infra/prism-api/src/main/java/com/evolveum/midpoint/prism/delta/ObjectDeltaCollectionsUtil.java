@@ -72,13 +72,13 @@ public class ObjectDeltaCollectionsUtil {
 
         }
 
-        if (deleteDelta != null && addDelta == null) {
-            // Merging DELETE with anything except ADD is still a DELETE
-            return deleteDelta.clone();
-        }
-
-        if (deleteDelta != null && addDelta != null) {
-            throw new IllegalArgumentException("Cannot merge add and delete deltas: " + addDelta + ", " + deleteDelta);
+        if (deleteDelta != null) {
+            if (addDelta == null) {
+                // Merging DELETE with anything except ADD is still a DELETE
+                return deleteDelta.clone();
+            } else {
+                throw new IllegalArgumentException("Cannot merge add and delete deltas: " + addDelta + ", " + deleteDelta);
+            }
         }
 
         if (addDelta != null) {

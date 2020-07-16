@@ -263,7 +263,7 @@ public class ClockworkMedic {
         }
     }
 
-    private boolean focusSecondaryDeletionCheckPasses(LensFocusContext<?> focusContext, String componentName) throws SchemaException {
+    private boolean focusSecondaryDeletionCheckPasses(LensFocusContext<?> focusContext, String componentName) {
         if (focusContext.isSecondaryDelete()) {
             LOGGER.trace("Skipping '{}' because focus is being deleted (secondary delta)", componentName);
             return false;

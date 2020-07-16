@@ -617,19 +617,13 @@ public class DependencyProcessor {
         return false;
     }
 
-    private boolean wasExecuted(LensProjectionContext accountContext){
+    private boolean wasExecuted(LensProjectionContext accountContext) {
         if (accountContext.isAdd()) {
-
-            if (accountContext.getOid() == null){
-                return false;
-            }
-
-            List<LensObjectDeltaOperation<ShadowType>> executedDeltas = accountContext.getExecutedDeltas();
-            if (executedDeltas.isEmpty()) {
-                return false;
-            }
+            return accountContext.getOid() != null &&
+                    !accountContext.getExecutedDeltas().isEmpty();
+        } else {
+            return true;
         }
-        return true;
     }
 
     static class DependencyAndSource {

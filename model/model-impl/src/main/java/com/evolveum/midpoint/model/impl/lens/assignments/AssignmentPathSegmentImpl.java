@@ -51,6 +51,8 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      * Source object for this assignment path.
      * This is the object holding the assignment or inducement.
      *
+     * If the source is the focus, we use NEW state of the object.
+     * TODO consider if that's correct.
      */
     final AssignmentHolderType source;
 

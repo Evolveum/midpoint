@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.apache.commons.collections4.CollectionUtils;
+
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.common.ActivationComputer;
@@ -252,7 +252,7 @@ public class LensUtil {
             ItemDelta projModification = iterator.next();
             LOGGER.trace("MOD: {}\n{}", projModification.getPath(), projModification.debugDumpLazily());
             if (projModification.getPath().equivalent(SchemaConstants.PATH_TRIGGER)) {
-                focusCtx.swallowToProjectionWaveSecondaryDelta(projModification);
+                focusCtx.swallowToSecondaryDelta(projModification);
                 iterator.remove();
             }
         }
@@ -908,16 +908,12 @@ public class LensUtil {
         return objectDeltaOp;
     }
 
-    public static void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers,
-            Collection<String> policySituations) {
-
-        LOGGER.debug("Policy rule {} triggered: {}", rule.getName(), triggers);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Policy rule {} triggered:\n{}", rule.getName(), DebugUtil.debugDump(triggers, 1));
-        }
+    public static void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        String ruleName = rule.getName();
+        LOGGER.debug("Policy rule {} triggered: {}", ruleName, triggers);
+        LOGGER.trace("Policy rule {} triggered:\n{}", ruleName, DebugUtil.debugDumpLazily(triggers, 1));
 
         ((EvaluatedPolicyRuleImpl) rule).addTriggers(triggers);
-        CollectionUtils.addIgnoreNull(policySituations, rule.getPolicySituation());
     }
 
     public static void processRuleWithException(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger <?>> triggers,

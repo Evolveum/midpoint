@@ -409,7 +409,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return projectionWave;
     }
 
-    public void setProjectionWave(int wave) {
+    private void setProjectionWave(int wave) {
         this.projectionWave = wave;
     }
 
@@ -540,7 +540,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             throws SchemaException {
         if (focusContext != null) {
             ObjectDelta<F> execDelta = focusContext.getWaveDelta(executionWave);
-            if (execDelta != null && !execDelta.isEmpty()) {
+            if (!ObjectDelta.isEmpty(execDelta)) {
                 LOGGER.debug("Context rot: context rotten because of focus execution delta {}", execDelta);
                 rotHolder.setValue(true);
             }
@@ -676,7 +676,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * changes are returned, but these are not merged. TODO: maybe it would be
      * better to merge them.
      */
-    public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException {
+    public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() {
         Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<>();
         if (focusContext != null) {
             addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
@@ -689,7 +689,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return allChanges;
     }
 
-    public boolean hasAnyPrimaryChange() throws SchemaException {
+    public boolean hasAnyPrimaryChange() {
         if (focusContext != null) {
             if (!ObjectDelta.isEmpty(focusContext.getPrimaryDelta())) {
                 return true;
@@ -719,21 +719,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         if (change != null) {
             changes.add(change);
         }
-    }
-
-    public void replacePrimaryFocusDelta(ObjectDelta<F> newDelta) {
-        focusContext.setPrimaryDelta(newDelta);
-        // todo any other changes have to be done?
-    }
-
-    public void replacePrimaryFocusDeltas(List<ObjectDelta<F>> deltas) throws SchemaException {
-        replacePrimaryFocusDelta(null);
-        if (deltas != null) {
-            for (ObjectDelta<F> delta : deltas) {
-                focusContext.addPrimaryDelta(delta);
-            }
-        }
-        // todo any other changes have to be done?
     }
 
     /**
@@ -1028,12 +1013,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
         sb.append(projectionContexts.size());
         sb.append(" projections, ");
-        try {
-            Collection<ObjectDelta<? extends ObjectType>> allChanges = getAllChanges();
-            sb.append(allChanges.size());
-        } catch (SchemaException e) {
-            sb.append("[ERROR]");
-        }
+        Collection<ObjectDelta<? extends ObjectType>> allChanges = getAllChanges();
+        sb.append(allChanges.size());
         sb.append(" changes, ");
         sb.append("fresh=").append(isFresh);
         sb.append(", reqAutz=").append(isRequestAuthorized);

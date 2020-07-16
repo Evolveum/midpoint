@@ -98,7 +98,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     private boolean wasValid;
     private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
     @NotNull private final AssignmentOrigin origin;
-    private final Collection<String> policySituations = new HashSet<>();
 
     private final PrismContext prismContext;
 
@@ -412,11 +411,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     @Override
-    public Collection<String> getPolicySituations() {
-        return policySituations;
-    }
-
-    @Override
     public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         boolean hasException = processRuleExceptions(this, rule, triggers);
 
@@ -432,7 +426,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
 
         if (!hasException) {
-            LensUtil.triggerRule(rule, triggers, policySituations);
+            LensUtil.triggerRule(rule, triggers);
         }
     }
 

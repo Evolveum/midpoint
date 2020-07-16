@@ -189,7 +189,6 @@ public class AssignmentProcessor implements ProjectorProcessor {
         // Initializing assignment evaluator. This will be used later to process all the assignments including the nested
         // assignments (roles).
         AssignmentEvaluator<AH> assignmentEvaluator = createAssignmentEvaluator(context, now);
-        AssignmentHolderType source = determineSource(focusContext);
 
         AssignmentTripleEvaluator<AH> assignmentTripleEvaluator = new AssignmentTripleEvaluator<>();
         assignmentTripleEvaluator.setActivationComputer(activationComputer);
@@ -199,7 +198,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         assignmentTripleEvaluator.setNow(now);
         assignmentTripleEvaluator.setPrismContext(prismContext);
         assignmentTripleEvaluator.setResult(result);
-        assignmentTripleEvaluator.setSource(source);
+        assignmentTripleEvaluator.setSource(determineSource(focusContext));
         assignmentTripleEvaluator.setTask(task);
 
         // Normal processing. The enforcement policy requires that assigned accounts should be added, so we need to figure out
@@ -259,7 +258,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 // Now we have complete focus with all the focusMappings so we can evaluate the constructions
                 evaluateConstructions(context, evaluatedAssignmentTriple, task, result);
 
-                processProjections((LensContext<F>) context, (DeltaSetTriple) evaluatedAssignmentTriple, task, result);
+                processProjections(context, (DeltaSetTriple) evaluatedAssignmentTriple, task, result);
 
                 LOGGER.trace("Projection processing done");
 
@@ -380,7 +379,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             Collection<ItemDelta<?, ?>> focusDeltas = consolidation.getItemDeltas();
 
             LOGGER.trace("Computed focus deltas: {}", focusDeltas);
-            focusContext.applyProjectionWaveSecondaryDeltas(focusDeltas);
+            focusContext.swallowToSecondaryDeltaChecked(focusDeltas);
             focusContext.recompute();
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
@@ -609,18 +608,21 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private <AH extends AssignmentHolderType> AssignmentHolderType determineSource(LensFocusContext<AH> focusContext)
-            throws SchemaException {
-        ObjectDelta<AH> delta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
-        if (delta != null && !delta.isEmpty()) {
-            return focusContext.getObjectNew().asObjectable();
-        }
-
-        if (focusContext.getObjectCurrent() != null) {
-            return focusContext.getObjectCurrent().asObjectable();
-        }
-
+    @Deprecated
+    private <AH extends AssignmentHolderType> AssignmentHolderType determineSource(LensFocusContext<AH> focusContext) {
+        // The existing algorithm was quite obscure. Let's do it in a simple way.
         return focusContext.getObjectNew().asObjectable();
+
+//        ObjectDelta<AH> delta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
+//        if (delta != null && !delta.isEmpty()) {
+//            return focusContext.getObjectNew().asObjectable();
+//        }
+//
+//        if (focusContext.getObjectCurrent() != null) {
+//            return focusContext.getObjectCurrent().asObjectable();
+//        }
+//
+//        return focusContext.getObjectNew().asObjectable();
     }
 
     private <AH extends AssignmentHolderType> void evaluateConstructions(LensContext<AH> context,
@@ -818,7 +820,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         assignmentDelta.addValueToAdd(assignment.asPrismContainerValue());
         PrismContainerDefinition<AssignmentType> containerDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
         assignmentDelta.applyDefinition(containerDefinition);
-        context.getFocusContext().swallowToProjectionWaveSecondaryDelta(assignmentDelta);
+        context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
 
     }
 
@@ -929,18 +931,18 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 LOGGER.trace("Setting tenantRef to {}", tenantOid);
                 ReferenceDelta tenantRefDelta = prismContext.deltaFactory().reference()
                         .createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
-                focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
+                focusContext.swallowToSecondaryDelta(tenantRefDelta);
             }
         } else {
             if (tenantOid == null) {
                 LOGGER.trace("Clearing tenantRef");
                 ReferenceDelta tenantRefDelta = prismContext.deltaFactory().reference().createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), (PrismReferenceValue)null);
-                focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
+                focusContext.swallowToSecondaryDelta(tenantRefDelta);
             } else {
                 if (!tenantOid.equals(currentTenantRef.getOid())) {
                     LOGGER.trace("Changing tenantRef to {}", tenantOid);
                     ReferenceDelta tenantRefDelta = prismContext.deltaFactory().reference().createModificationReplace(ObjectType.F_TENANT_REF, focusContext.getObjectDefinition(), tenantOid);
-                    focusContext.swallowToProjectionWaveSecondaryDelta(tenantRefDelta);
+                    focusContext.swallowToSecondaryDelta(tenantRefDelta);
                 }
             }
         }

@@ -21,7 +21,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -130,7 +129,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
     /**
      * Collected item definitions from the template and all included templates.
      */
-    private final Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = new HashMap<>();
+    private final PathKeyedMap<ObjectTemplateItemDefinitionType> itemDefinitionsMap = new PathKeyedMap<>();
 
     /**
      * Collected mappings:
@@ -238,7 +237,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         mappingSetEvaluation.evaluateMappingsToTriples();
     }
 
-    private void consolidateToItemDeltas() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+    private void consolidateToItemDeltas() throws ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
         LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLineLazily(outputTripleMap));
@@ -278,7 +277,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             LensUtil.rejectNonTolerantSettingIfPresent(def, itemPath, env.contextDescription);
 
             // TODO check for incompatible overrides
-            ItemPathCollectionsUtil.putToMap(itemDefinitionsMap, itemPath, def);
+            itemDefinitionsMap.put(itemPath, def);
         }
     }
 
@@ -311,7 +310,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         }
     }
 
-    Map<UniformItemPath, ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
+    PathKeyedMap<ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
         return itemDefinitionsMap;
     }
 
