@@ -848,7 +848,7 @@ public class TestProjector extends AbstractLensTest {
         assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.ADD);
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
-        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_DESCRIPTION, "Came from Monkey Island");
+        PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_DESCRIPTION, "Came from Monkey Island");
 
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 

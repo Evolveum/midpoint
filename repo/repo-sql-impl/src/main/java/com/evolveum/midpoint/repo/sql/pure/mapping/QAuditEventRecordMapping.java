@@ -3,15 +3,13 @@ package com.evolveum.midpoint.repo.sql.pure.mapping;
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.*;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
-import java.util.Collection;
-import java.util.Collections;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.pure.AuditEventRecordSqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditPropertyValue;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
@@ -58,6 +56,12 @@ public class QAuditEventRecordMapping
         addItemMapping(F_TASK_OID, StringItemFilterProcessor.mapper(path(q -> q.taskOid)));
         addItemMapping(F_TIMESTAMP, TimestampItemFilterProcessor.mapper(path(q -> q.timestamp)));
 
+        addItemMapping(F_CHANGED_ITEM, DetailTableItemFilterProcessor.mapper(
+                QAuditItem.class,
+                joinOn((r, i) -> r.id.eq(i.recordId)),
+                CanonicalItemPathItemFilterProcessor.mapper(
+                        path(QAuditItem.class, ai -> ai.changedItemPath))));
+
         /*
          * No need to map initiatorName, initiatorType, attorneyName for query, OID should suffice.
          * There is also no F_ATTORNEY_NAME and similar paths - unless these are "extension" columns?
@@ -67,26 +71,23 @@ public class QAuditEventRecordMapping
         addItemMapping(F_TARGET_REF, RefItemFilterProcessor.mapper(path(q -> q.targetOid)));
         addItemMapping(F_TARGET_OWNER_REF, RefItemFilterProcessor.mapper(path(q -> q.targetOwnerOid)));
 
-        // TODO rest of items/attrs/columns
-
+        // lambdas use lowercase names matching the type parameters from SqlDetailFetchMapper
+        addDetailFetchMapper(F_PROPERTY, new SqlDetailFetchMapper<>(
+                r -> r.id,
+                QAuditPropertyValue.class,
+                dq -> dq.recordId,
+                dr -> dr.recordId,
+                (r, dr) -> r.addProperty(dr)));
+        addDetailFetchMapper(F_CHANGED_ITEM, new SqlDetailFetchMapper<>(
+                r -> r.id,
+                QAuditItem.class,
+                dq -> dq.recordId,
+                dr -> dr.recordId,
+                (r, dr) -> r.addChangedItem(dr)));
     }
 
     @Override
     public AuditEventRecordSqlTransformer createTransformer(PrismContext prismContext) {
         return new AuditEventRecordSqlTransformer(prismContext);
-    }
-
-    @Override
-    public Collection<SqlDetailFetchMapper<MAuditEventRecord, ?, ?, ?>> detailFetchMappers() {
-        QAuditPropertyValue apv = new QAuditPropertyValue("apv");
-
-        return Collections.singletonList(
-                new SqlDetailFetchMapper<>(
-                        m -> m.id,
-                        apv,
-                        apv.recordId,
-                        row -> row.recordId,
-                        (r, row) -> r.addProperty(row))
-        );
     }
 }

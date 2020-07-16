@@ -39,10 +39,12 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
         if (processingSpec.isEmpty()) {
             return null;
         } else {
-            return (inputValues, computationOpResult) ->
-                    ValueMetadataComputation
-                            .forMapping(inputValues, processingSpec, this)
-                            .execute(computationOpResult);
+            return ValueMetadataComputer.named(() -> "Computer for " + getContextDescription(),
+                    (inputValues, computationOpResult) ->
+                            ValueMetadataComputation
+                                    .forMapping(inputValues, processingSpec, this)
+                                    .execute(computationOpResult));
+
         }
     }
 

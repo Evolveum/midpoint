@@ -15,11 +15,9 @@ import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 
-public class ComplexValueImpl implements AxiomComplexValue {
+public class StructuredValueImpl extends AbstractAxiomValue<Collection<AxiomItem<?>>> implements AxiomStructuredValue {
 
-    private final AxiomTypeDefinition type;
     private final Map<AxiomName, AxiomItem<?>> items;
-    private final Map<AxiomName, AxiomItem<?>> infraItems;
 
 
 
@@ -27,21 +25,14 @@ public class ComplexValueImpl implements AxiomComplexValue {
         return value.get();
     }
 
-    public ComplexValueImpl(AxiomTypeDefinition type, Map<AxiomName, AxiomItem<?>> items, Map<AxiomName,AxiomItem<?>> infraItems) {
-        super();
-        this.type = type;
+    public StructuredValueImpl(AxiomTypeDefinition type, Map<AxiomName, AxiomItem<?>> items, Map<AxiomName,AxiomItem<?>> infraItems) {
+        super(type, infraItems);
         this.items = ImmutableMap.copyOf(items);
-        this.infraItems = ImmutableMap.copyOf(infraItems);
-    }
-
-    @Override
-    public Optional<AxiomTypeDefinition> type() {
-        return Optional.ofNullable(type);
     }
 
     @Override
     public Optional<AxiomItem<?>> item(AxiomItemDefinition def) {
-        return AxiomComplexValue.super.item(def);
+        return AxiomStructuredValue.super.item(def);
     }
 
     @Override
@@ -60,11 +51,6 @@ public class ComplexValueImpl implements AxiomComplexValue {
     @Override
     public Map<AxiomName, AxiomItem<?>> itemMap() {
         return items;
-    }
-
-    @Override
-    public Map<AxiomName, AxiomItem<?>> infraItems() {
-        return infraItems;
     }
 
     @SuppressWarnings("unchecked")

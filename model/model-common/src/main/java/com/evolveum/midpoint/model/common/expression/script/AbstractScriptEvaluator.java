@@ -14,6 +14,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -30,6 +31,8 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptVariableEvaluationTraceType;
+
+import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 
@@ -112,7 +115,8 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
                 if (context.getTrace() != null && !variables.isAlias(variableName)) {
                     ScriptVariableEvaluationTraceType variableTrace = new ScriptVariableEvaluationTraceType(prismContext);
                     variableTrace.setName(new QName(variableName));
-                    variableTrace.getValue().addAll(TraceUtil.toAnyValueTypeList(variableTypedValue.getValue(), prismContext));
+                    Object clonedValue = cloneIfPossible(variableTypedValue.getValue());
+                    variableTrace.getValue().addAll(TraceUtil.toAnyValueTypeList(clonedValue, prismContext));
                     variables.getAliases(variableName).forEach(alias -> variableTrace.getAlias().add(new QName(alias)));
                     context.getTrace().getVariable().add(variableTrace);
                 }
@@ -126,4 +130,19 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
         return scriptVariableMap;
     }
 
+    /**
+     * Cloning here is important: otherwise we can get cyclic references in object.fetchResult (pointing
+     * to the object itself), preventing such object from being cloned.
+     *
+     * Some objects are not cloneable, though. Even if Serializable objects can be cloned, let us avoid
+     * that because of the performance. It can be added later, if needed.
+     */
+    @Nullable
+    private Object cloneIfPossible(Object value) {
+        if (value instanceof Cloneable) {
+            return CloneUtil.clone(value);
+        } else {
+            return value;
+        }
+    }
 }

@@ -71,7 +71,6 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
         }
 
         if (repositoryShadow != null) {
-
             if (ShadowUtil.isExists(repositoryShadow.asObjectable())) {
                 // This is some kind of reality mismatch. We obviously have shadow that is supposed
                 // to be alive (exists=true). But it does not exist on resource.
@@ -79,7 +78,7 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
                 // This may be "lost shadow" - shadow which exists but the resource object has disappeared without trace.
                 // Or this may be a corpse - quantum state that has just collapsed to to tombstone.
                 // Either way, it should be safe to set exists=false.
-                LOGGER.trace("Setting {} as tombstone. This may be a quntum state collapse. Or maybe a lost shadow.", repositoryShadow);
+                LOGGER.trace("Setting {} as tombstone. This may be a quantum state collapse. Or maybe a lost shadow.", repositoryShadow);
                 repositoryShadow = shadowManager.markShadowTombstone(repositoryShadow, parentResult);
             } else {
                 // We always want to return repository shadow it such shadow is available.
@@ -90,8 +89,9 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
             }
             parentResult.setStatus(OperationResultStatus.HANDLED_ERROR);
             return repositoryShadow;
+        } else {
+            return super.handleGetError(ctx, null, rootOptions, cause, task, parentResult);
         }
-        return super.handleGetError(ctx, repositoryShadow, rootOptions, cause, task, parentResult);
     }
 
     @Override
@@ -136,7 +136,7 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
         if (shadowState != ShadowState.LIFE) {
             // Do NOT do discovery of shadow that can legally not exist. This is no discovery.
             // We already know that the object are supposed not to exist yet or to dead already.
-            LOGGER.trace("Skipping discovery of shadow {} becasue it is {}, we expect that it might not exist", repositoryShadow, shadowState);
+            LOGGER.trace("Skipping discovery of shadow {} because it is {}, we expect that it might not exist", repositoryShadow, shadowState);
             return;
         }
 

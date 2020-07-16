@@ -1409,7 +1409,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
      * Attempt to make a change to a single-valued attribute or which there is already a strong mapping.
      * As it cannot have both values (from the delta and from the mapping) the preview should fail.
      */
-    @Test
+    @Test(enabled = false) // MID-6372
     public void test401ModifyElaineAccountDummyRedDeleteAdd() throws Exception {
         // GIVEN
         Task task = getTestTask();

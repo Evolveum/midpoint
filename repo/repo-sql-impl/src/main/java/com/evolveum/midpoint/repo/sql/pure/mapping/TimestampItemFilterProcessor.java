@@ -31,7 +31,7 @@ public class TimestampItemFilterProcessor
                 new TimestampItemFilterProcessor(context, rootToQueryItem), rootToQueryItem);
     }
 
-    private TimestampItemFilterProcessor(SqlPathContext<?, ?> context,
+    private TimestampItemFilterProcessor(SqlPathContext<?, ?, ?> context,
             Function<EntityPath<?>, Path<?>> rootToQueryItem) {
         super(context, rootToQueryItem);
     }

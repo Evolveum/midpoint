@@ -9,6 +9,13 @@ package com.evolveum.midpoint.model.impl;
 
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
+import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
+import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
+import com.evolveum.midpoint.model.impl.lens.projector.credentials.CredentialsProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.ProjectionValueMetadataCreator;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -40,5 +47,11 @@ public class ModelBeans {
     @Autowired public MappingEvaluator mappingEvaluator;
     @Autowired public MappingFactory mappingFactory;
     @Autowired public ModelCommonBeans commonBeans;
+    @Autowired public ContextLoader contextLoader;
+    @Autowired public CredentialsProcessor credentialsProcessor;
+    @Autowired public Protector protector;
+    @Autowired public ClockworkMedic medic;
+    @Autowired public ProvisioningService provisioningService;
+    @Autowired public ProjectionValueMetadataCreator projectionValueMetadataCreator;
 
 }

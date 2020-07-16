@@ -1,0 +1,11 @@
+person "John Doe" {
+    @metadata {
+        mymeta:modified "structure";
+    }
+    givenName "John" {
+        @metadata {
+            mymeta:modified "substitution";
+        }
+    }
+    familyName "Doe";
+}

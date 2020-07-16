@@ -153,12 +153,17 @@ public class ActivationProcessor implements ProjectorProcessor {
         }
     }
 
-    public <F extends FocusType> void processActivationUserCurrent(LensContext<F> context, LensProjectionContext projCtx,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <F extends FocusType> void processActivationUserCurrent(LensContext<F> context, LensProjectionContext projCtx,
+            XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
+            ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
 
         String projCtxDesc = projCtx.toHumanReadableString();
         SynchronizationPolicyDecision decision = projCtx.getSynchronizationPolicyDecision();
         SynchronizationIntent synchronizationIntent = projCtx.getSynchronizationIntent();
+
+        LOGGER.trace("processActivationUserCurrent starting for {}. Existing decision = {}, synchronization intent = {}",
+                projCtxDesc, decision, synchronizationIntent);
 
         if (decision == SynchronizationPolicyDecision.BROKEN) {
             LOGGER.trace("Broken projection {}, skipping further activation processing", projCtxDesc);
@@ -178,14 +183,13 @@ public class ActivationProcessor implements ProjectorProcessor {
             if (projCtx.isDelete() && ModelExecuteOptions.isForce(context.getOptions())) {
                 projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
                 LOGGER.trace("Evaluated decision for tombstone {} to {} (force), skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.DELETE);
-                return;
             } else {
-                // Let's keep thombstones linked until they expire. So we do not have shadows without owners.
+                // Let's keep tombstones linked until they expire. So we do not have shadows without owners.
                 // This is also needed for async delete operations.
                 projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
                 LOGGER.trace("Evaluated decision for {} to {} because it is tombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
-                return;
             }
+            return;
         }
 
         if (synchronizationIntent == SynchronizationIntent.DELETE || projCtx.isDelete()) {
@@ -355,12 +359,14 @@ public class ActivationProcessor implements ProjectorProcessor {
 
     }
 
-    public <F extends FocusType> void processActivationMetadata(LensContext<F> context, LensProjectionContext accCtx,
+    private <F extends FocusType> void processActivationMetadata(LensContext<F> context, LensProjectionContext accCtx,
             XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
         ObjectDelta<ShadowType> projDelta = accCtx.getDelta();
         if (projDelta == null) {
             return;
         }
+
+        LOGGER.trace("processActivationMetadata starting for {}", accCtx);
 
         PropertyDelta<ActivationStatusType> statusDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 
@@ -410,14 +416,14 @@ public class ActivationProcessor implements ProjectorProcessor {
                 }
             }
         }
-
     }
 
-    public <F extends FocusType> void processActivationUserFuture(LensContext<F> context, LensProjectionContext accCtx,
-            XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <F extends FocusType> void processActivationUserFuture(LensContext<F> context, LensProjectionContext accCtx,
+            XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         String accCtxDesc = accCtx.toHumanReadableString();
         SynchronizationPolicyDecision decision = accCtx.getSynchronizationPolicyDecision();
-        SynchronizationIntent synchronizationIntent = accCtx.getSynchronizationIntent();
+
+        LOGGER.trace("processActivationUserFuture starting for {}. Existing decision = {}", accCtx, decision);
 
         if (accCtx.isTombstone() || decision == SynchronizationPolicyDecision.BROKEN
                 || decision == SynchronizationPolicyDecision.IGNORE

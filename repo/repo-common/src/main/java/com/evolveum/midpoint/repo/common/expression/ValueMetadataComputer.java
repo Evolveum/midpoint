@@ -17,6 +17,7 @@ import com.evolveum.midpoint.util.exception.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Computes value metadata during expression evaluation or during consolidation.
@@ -31,4 +32,20 @@ public interface ValueMetadataComputer {
     ValueMetadata compute(@NotNull List<PrismValue> inputValues, @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException;
+
+    static ValueMetadataComputer named(Supplier<String> nameSupplier, ValueMetadataComputer computer) {
+        return new ValueMetadataComputer() {
+            @Override
+            public ValueMetadata compute(@NotNull List<PrismValue> inputValues, @NotNull OperationResult result)
+                    throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+                    ConfigurationException, ExpressionEvaluationException {
+                return computer.compute(inputValues, result);
+            }
+
+            @Override
+            public String toString() {
+                return nameSupplier.get();
+            }
+        };
+    }
 }

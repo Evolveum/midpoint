@@ -11,6 +11,7 @@ import java.util.LinkedList;
 import java.util.Optional;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.SourceLocation;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
@@ -18,7 +19,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 
 
-public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResolver {
+public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithContext {
 
     private final Deque<Builder> queue = new LinkedList<>();
 
@@ -88,9 +89,9 @@ public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResol
     private interface Builder {
         AxiomName name();
 
-        AxiomNameResolver itemResolver();
+        AxiomTypeDefinition currentInfra();
 
-        AxiomNameResolver valueResolver();
+        AxiomTypeDefinition currentType();
     }
 
     public interface ItemBuilder extends Builder {
@@ -120,13 +121,13 @@ public class AxiomBuilderStreamTarget implements AxiomItemStream.TargetWithResol
     }
 
     @Override
-    public AxiomNameResolver itemResolver() {
-        return current().itemResolver();
+    public AxiomTypeDefinition currentInfra() {
+        return current().currentInfra();
     }
 
     @Override
-    public AxiomNameResolver valueResolver() {
-        return current().valueResolver();
+    public AxiomTypeDefinition currentType() {
+        return current().currentType();
     }
 
 }

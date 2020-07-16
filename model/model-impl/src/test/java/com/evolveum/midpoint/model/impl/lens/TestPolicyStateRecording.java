@@ -392,7 +392,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         // THEN
         then();
         UserType eve = getUser(userEveOid).asObjectable();
-        display("alice", eve);
+        display("eve after", eve);
         assertSuccess(getTestOperationResult());
 
         assertAssignedRole(eve.asPrismObject(), roleATest2aOid);
@@ -400,7 +400,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertEquals("Wrong # of assignments", 2, eve.getAssignment().size());
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(1);
+        dummyAuditService.assertExecutionRecords(2); // MID-6375 (should be a single operation here)
 
         for (AssignmentType assignment : eve.getAssignment()) {
             assertExclusionViolationState(assignment);

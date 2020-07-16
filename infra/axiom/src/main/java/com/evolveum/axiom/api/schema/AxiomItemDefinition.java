@@ -8,22 +8,35 @@ package com.evolveum.axiom.api.schema;
 
 import java.util.Optional;
 
-import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomStructuredValue;
+import com.evolveum.axiom.api.AxiomValue;
+import com.evolveum.axiom.api.AxiomInfraName;
+import com.evolveum.axiom.api.AxiomItemName;
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomPath;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
+import com.evolveum.axiom.api.AxiomPath.Component;
+import com.evolveum.axiom.api.AxiomStructured;
+import com.evolveum.axiom.concepts.Navigable;
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableMap;
 
-public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomComplexValue {
+public interface AxiomItemDefinition extends AxiomNamedDefinition, Navigable<AxiomPath.Component<?>, AxiomItemDefinition>, AxiomStructured {
 
     AxiomName ROOT_SPACE = AxiomName.axiom("AxiomRootDefinition");
     AxiomName SPACE = AxiomName.axiom("AxiomItemDefinition");
     AxiomName NAME = AxiomName.axiom("name");
     AxiomName VALUE_SPACE = AxiomName.axiom("value");
+    AxiomName DEFAULT = SPACE.localName("default");
+    AxiomName CONSTANT = SPACE.localName("const");
+
 
     AxiomTypeDefinition typeDefinition();
 
     boolean operational();
+
+
+
 
     default boolean inherited() {
         return true;
@@ -41,7 +54,7 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomComplexV
     static String toString(AxiomItemDefinition def) {
         return MoreObjects.toStringHelper(AxiomItemDefinition.class)
                 .add("name", def.name())
-                .add("type", def.type())
+                .add("type", def.typeDefinition())
                 .toString();
     }
 
@@ -60,8 +73,8 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomComplexV
         };
     }
 
-    static IdentifierSpaceKey identifier(AxiomName name) {
-        return IdentifierSpaceKey.from(ImmutableMap.of(NAME, name));
+    static AxiomValueIdentifier identifier(AxiomName name) {
+        return AxiomValueIdentifier.from(ImmutableMap.of(NAME, name));
     }
 
     interface Inherited extends AxiomItemDefinition {
@@ -103,5 +116,24 @@ public interface AxiomItemDefinition extends AxiomNamedDefinition, AxiomComplexV
     Optional<AxiomIdentifierDefinition> identifierDefinition();
 
     Optional<AxiomName> substitutionOf();
+
+    Optional<AxiomValue<?>> constantValue();
+
+    Optional<AxiomValue<?>> defaultValue();
+
+    default boolean isStructured() {
+        return typeDefinition().isComplex();
+    }
+
+    @Override
+    default Optional<? extends AxiomItemDefinition> resolve(Component<?> key) {
+        if(key instanceof AxiomValueIdentifier) {
+            return Optional.of(this);
+        }
+        if(key instanceof AxiomItemName) {
+            return typeDefinition().itemDefinition((AxiomItemName) key);
+        }
+        return Optional.empty();
+    }
 
 }

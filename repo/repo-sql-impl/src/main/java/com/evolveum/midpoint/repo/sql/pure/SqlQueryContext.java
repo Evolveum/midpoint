@@ -3,13 +3,16 @@ package com.evolveum.midpoint.repo.sql.pure;
 import static com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor.QUERYDSL_CONFIGURATION;
 
 import java.sql.Connection;
+import java.util.Collection;
 import java.util.List;
+import java.util.function.BiFunction;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
 import com.querydsl.sql.SQLQuery;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -18,15 +21,22 @@ import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
 import com.evolveum.midpoint.repo.sql.pure.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 
 /**
  * Context information about SQL query.
  * Works as a kind of accumulator where information are added as the object query is interpreted.
  * It is also used as an entry point for {@link FilterProcessor} execution for this query.
+ *
+ * @param <S> schema type, used by encapsulated mapping
+ * @param <Q> type of entity path
+ * @param <R> row type related to the {@link Q}
  */
-public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<Q, R>
+public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathContext<S, Q, R>
         implements FilterProcessor<ObjectFilter> {
 
     /**
@@ -46,12 +56,26 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
      */
     public static final int MAX_ID_IN_FOR_TO_MANY_FETCH = 100;
 
-    private final SQLQuery<?> query;
+    private final SQLQuery<?> sqlQuery;
 
-    public SqlQueryContext(QueryModelMapping<?, Q, R> rootMapping, PrismContext prismContext)
+    public static <S, Q extends EntityPath<R>, R> SqlQueryContext<S, Q, R> from(
+            Class<S> schemaType, PrismContext prismContext) throws QueryException {
+
+        QueryModelMapping<S, Q, R> rootMapping = QueryModelMappingConfig.getBySchemaType(schemaType);
+        return new SqlQueryContext<>(rootMapping, prismContext);
+    }
+
+    private SqlQueryContext(QueryModelMapping<S, Q, R> rootMapping, PrismContext prismContext)
             throws QueryException {
         super(rootMapping.defaultAlias(), rootMapping, prismContext);
-        query = new SQLQuery<>(QUERYDSL_CONFIGURATION).from(root());
+        sqlQuery = new SQLQuery<>(QUERYDSL_CONFIGURATION).from(root());
+    }
+
+    // private constructor for "derived" query contexts
+    private SqlQueryContext(
+            Q defaultAlias, QueryModelMapping<S, Q, R> mapping, PrismContext prismContext, SQLQuery<?> query) {
+        super(defaultAlias, mapping, prismContext);
+        this.sqlQuery = query;
     }
 
     public Q root() {
@@ -69,7 +93,7 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
         }
 
         Predicate condition = new ObjectFilterProcessor(this).process(filter);
-        query.where(condition);
+        sqlQuery.where(condition);
         // probably not used after added to where, but let's respect the contract
         return condition;
     }
@@ -87,9 +111,9 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
         Integer offset = paging.getOffset();
         // we take null offset as no paging at all
         if (offset != null) {
-            query.offset(offset.longValue());
+            sqlQuery.offset(offset.longValue());
             Integer pageSize = paging.getMaxSize();
-            query.limit(pageSize != null ? pageSize.longValue() : DEFAULT_PAGE_SIZE);
+            sqlQuery.limit(pageSize != null ? pageSize.longValue() : DEFAULT_PAGE_SIZE);
         }
     }
 
@@ -107,16 +131,10 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
             }
 
             if (ordering.getDirection() == OrderDirection.DESCENDING) {
-                query.orderBy(((ComparableExpressionBase<?>) path).desc());
+                sqlQuery.orderBy(((ComparableExpressionBase<?>) path).desc());
             } else {
-                query.orderBy(((ComparableExpressionBase<?>) path).asc());
+                sqlQuery.orderBy(((ComparableExpressionBase<?>) path).asc());
             }
-        }
-    }
-
-    public void setDistinct(boolean distinct) {
-        if (distinct) {
-            query.distinct();
         }
     }
 
@@ -124,15 +142,16 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
         return new SQLQuery<>(conn, QUERYDSL_CONFIGURATION);
     }
 
-    public PageOf<R> executeQuery(Connection conn) {
-        SQLQuery<R> query = this.query.clone(conn)
+    public PageOf<R> executeQuery(Connection conn) throws QueryException {
+        SQLQuery<R> query = this.sqlQuery.clone(conn)
                 .select(root());
         if (query.getMetadata().getModifiers().getLimit() == null) {
             query.limit(NO_PAGINATION_LIMIT);
         }
-        // TODO logging
-        System.out.println("SQL query = " + query);
+        // TODO MID-6319: logging
+        System.out.println("SQL query: " + query);
 
+        // TODO MID-6319: make this optional (based on options)? We have explicit count now.
         long count = query.fetchCount();
         List<R> data = query.fetch();
 
@@ -141,5 +160,54 @@ public class SqlQueryContext<Q extends EntityPath<R>, R> extends SqlPathContext<
         }
 
         return new PageOf<>(data, PageOf.PAGE_NO_PAGINATION, 0, count);
+    }
+
+    public int executeCount(Connection conn) {
+        return (int) sqlQuery.clone(conn)
+                .select(root())
+                .fetchCount();
+    }
+
+    /**
+     * Adds new LEFT JOIN to the query and returns {@link SqlQueryContext} for this join path.
+     *
+     * @param <DQ> query type for the JOINed table
+     * @param <DR> row type related to the {@link DQ}
+     * @param newPath entity path representing the JOIN (must be pre-created with unique alias)
+     * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
+     */
+    @Override
+    public <DQ extends EntityPath<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
+            @NotNull DQ newPath,
+            @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
+        sqlQuery.leftJoin(newPath).on(joinOnPredicateFunction.apply(path(), newPath));
+
+        // getClass returns Class<?> but it is really Class<DQ>, just suppressing the warning here
+        //noinspection unchecked
+        Class<DQ> aClass = (Class<DQ>) newPath.getClass();
+        QueryModelMapping<?, DQ, DR> mapping = QueryModelMappingConfig.getByQueryType(aClass);
+        return new SqlQueryContext<>(newPath, mapping, prismContext(), sqlQuery);
+    }
+
+    @Override
+    public String uniqueAliasName(String baseAliasName) {
+        // TODO MID-6319 inspect query and resolve alias name
+        return baseAliasName;
+    }
+
+    public void processOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
+        if (options == null || options.isEmpty()) {
+            return;
+        }
+
+        // TODO MID-6319: what other options are here? can they all be processed after filter?
+        if (GetOperationOptions.isDistinct(SelectorOptions.findRootOptions(options))) {
+            sqlQuery.distinct();
+        }
+    }
+
+    public PageOf<S> transformToSchemaType(PageOf<R> result) {
+        SqlTransformer<S, R> transformer = mapping().createTransformer(prismContext());
+        return result.map(transformer::toSchemaObject);
     }
 }

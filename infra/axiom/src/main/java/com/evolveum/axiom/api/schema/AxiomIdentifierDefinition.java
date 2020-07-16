@@ -9,12 +9,12 @@ package com.evolveum.axiom.api.schema;
 import java.util.Collection;
 import java.util.Set;
 
-import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.AxiomValue;
 import com.google.common.collect.ImmutableSet;
 
-public interface AxiomIdentifierDefinition extends AxiomComplexValue {
+public interface AxiomIdentifierDefinition extends AxiomStructuredValue {
 
     Collection<AxiomName> components();
 

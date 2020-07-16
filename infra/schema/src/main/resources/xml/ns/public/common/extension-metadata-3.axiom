@@ -1,0 +1,42 @@
+prism:model extension-metadata {
+
+  namespace "http://midpoint.evolveum.com/xml/ns/public/common/extension-metadata-3";
+
+  import "http://midpoint.evolveum.com/xml/ns/public/common/prism" {
+      prefix prism;
+  }
+
+  metadata AssuranceMetadataExtension {
+    container assurance {
+      type AssuranceMetadata;
+      documentation "Assurance metadata: an example of deployment-specific metadata.";
+    }
+  }
+
+  container AssuranceMetadata {
+    operational true;
+    displayName "Assurance Metadata";
+
+    property levelOfAssurance {
+      type Uri;
+      documentation "Level of assurance."
+      maxOccurs "unbounded";
+    }
+
+    property levelOfAssuranceSource {
+      type Uri;
+      documentation "Source of Loa";
+      maxOccurs "unbounded";
+    }
+
+    container verificationData {
+      type VerificationData;
+      documentation "Verification data, e.g signature(s)."
+    }
+  }
+
+  container VerificationData {
+    augmentable true;
+    documentation "Verification Data";
+  }
+}

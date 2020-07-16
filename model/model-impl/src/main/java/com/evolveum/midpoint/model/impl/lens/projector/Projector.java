@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,7 @@ public class Projector {
     @Autowired private ProjectionCredentialsProcessor projectionCredentialsProcessor;
     @Autowired private ActivationProcessor activationProcessor;
     @Autowired private DependencyProcessor dependencyProcessor;
+    @Autowired private ConsolidationProcessor consolidationProcessor;
     @Autowired private Clock clock;
     @Autowired private ClockworkMedic medic;
 
@@ -168,6 +170,8 @@ public class Projector {
                         partialProcessingOptions::getLoad,
                         Projector.class, context, activityDescription, now, task, result);
             }
+
+            consolidationProcessor.consolidateFocusPrimaryDelta(context, now, task, result);
 
             LOGGER.trace("WAVE {} (executionWave={})", context.getProjectionWave(), context.getExecutionWave());
 

@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MetadataAware;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -326,7 +327,9 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     @NotNull
     @Override
     public MapXNodeImpl clone() {
-        return (MapXNodeImpl) super.clone();        // fixme brutal hack
+        MapXNodeImpl clone = (MapXNodeImpl) super.clone();        // fixme brutal hack
+        MetadataAware.cloneMetadata(clone, this);
+        return clone;
     }
 
     @Override

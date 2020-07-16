@@ -28,17 +28,17 @@ public class ItemSqlMapper {
      */
     @Nullable private final Function<EntityPath<?>, Path<?>> primaryItemMapping;
 
-    @NotNull private final Function<SqlPathContext<?, ?>, FilterProcessor<?>> filterProcessorFactory;
+    @NotNull private final Function<SqlPathContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory;
 
     public ItemSqlMapper(
-            @NotNull Function<SqlPathContext<?, ?>, FilterProcessor<?>> filterProcessorFactory,
+            @NotNull Function<SqlPathContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory,
             @Nullable Function<EntityPath<?>, Path<?>> primaryItemMapping) {
         this.filterProcessorFactory = Objects.requireNonNull(filterProcessorFactory);
         this.primaryItemMapping = primaryItemMapping;
     }
 
     public ItemSqlMapper(
-            @NotNull Function<SqlPathContext<?, ?>, FilterProcessor<?>> filterProcessorFactory) {
+            @NotNull Function<SqlPathContext<?, ?, ?>, FilterProcessor<?>> filterProcessorFactory) {
         this(filterProcessorFactory, null);
     }
 
@@ -47,7 +47,7 @@ public class ItemSqlMapper {
     }
 
     public <T extends ObjectFilter> FilterProcessor<T> createFilterProcessor(
-            SqlPathContext<?, ?> pathContext) {
+            SqlPathContext<?, ?, ?> pathContext) {
         //noinspection unchecked
         return (FilterProcessor<T>) filterProcessorFactory.apply(pathContext);
     }

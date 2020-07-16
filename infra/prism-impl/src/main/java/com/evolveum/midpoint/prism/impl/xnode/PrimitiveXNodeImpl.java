@@ -20,10 +20,7 @@ import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.impl.xml.XmlTypeConverterInternal;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.ValueParser;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.prism.xnode.*;
 import com.evolveum.midpoint.util.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -384,6 +381,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
 
         clone.isAttribute = this.isAttribute;
         clone.copyCommonAttributesFrom(this);
+        MetadataAware.cloneMetadata(clone, this);
         return clone;
     }
 

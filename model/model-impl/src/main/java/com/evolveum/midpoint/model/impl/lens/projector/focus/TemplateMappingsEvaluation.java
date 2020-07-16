@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -239,15 +240,15 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
 
     private void consolidateToItemDeltas() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-        Map<UniformItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
+        PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
         LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLineLazily(outputTripleMap));
 
         // TODO for chained mappings: what exactly should be the target object?
         //  What is used here is the original focus odo, which is maybe correct.
         PrismObject<T> targetObject = targetSpecification.getTargetObject();
 
-        consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap, targetObject, targetAPrioriDelta,
-                targetDefinition, env, beans, context, result);
+        consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap, targetObject, targetAPrioriDelta, null,
+                null, targetDefinition, env, beans, context, result);
         consolidation.computeItemDeltas();
     }
 
