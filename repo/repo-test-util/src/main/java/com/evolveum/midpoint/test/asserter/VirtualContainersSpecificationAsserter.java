@@ -30,7 +30,7 @@ public class VirtualContainersSpecificationAsserter<RA> extends AbstractAsserter
         return new VirtualContainersSpecificationFinder(this);
     }
 
-    public VirtualContainerSpecificationAsserter<VirtualContainerSpecificationAsserter<RA>> byIdentifier(String identifier) {
+    public VirtualContainerSpecificationAsserter<VirtualContainersSpecificationAsserter<RA>> byIdentifier(String identifier) {
         return by().identifier(identifier).find();
     }
 

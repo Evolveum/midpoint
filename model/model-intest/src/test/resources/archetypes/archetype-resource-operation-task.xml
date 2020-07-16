@@ -50,6 +50,9 @@
                 <type>c:TaskType</type>
                 <container>
                     <identifier>resourceOptions</identifier>
+                    <display>
+                        <label>resourceObjects</label>
+                    </display>
                     <item>
                         <c:path>objectRef</c:path>
                     </item>
@@ -65,6 +68,9 @@
                 </container>
                 <container>
                     <identifier>resourceOperationOptions</identifier>
+                    <display>
+                        <label>operationOptions</label>
+                    </display>
                     <item>
                         <c:path>extension/mext:workerThreads</c:path>
                     </item>

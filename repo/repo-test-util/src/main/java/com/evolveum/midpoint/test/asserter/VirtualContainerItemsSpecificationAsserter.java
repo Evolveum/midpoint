@@ -24,13 +24,24 @@ public class VirtualContainerItemsSpecificationAsserter<RA> extends AbstractAsse
     }
 
     public VirtualContainerItemsSpecificationAsserter<RA> item(ItemPath path) {
-        List<VirtualContainerItemSpecificationType> foundItems = containerItems.stream()
-                .filter(item -> item.getPath() != null && item.getPath().getItemPath().equivalent(path))
-                .collect(Collectors.toList());
+        List<VirtualContainerItemSpecificationType> foundItems = filterItems(path);
         Assertions.assertThat(foundItems).hasSize(1);
         return this;
         //TODO later
 //        return new VirtualContainerItemSpecificationAsserter(foundItems.iterator().next(), this, "from item list " + containerItems);
+    }
+
+    public VirtualContainerItemsSpecificationAsserter<RA> noItem(ItemPath path) {
+        List<VirtualContainerItemSpecificationType> foundItems = filterItems(path);
+        Assertions.assertThat(foundItems).isEmpty();
+        return this;
+    }
+
+    private List<VirtualContainerItemSpecificationType> filterItems(ItemPath path) {
+        return containerItems.stream()
+                .filter(item -> item.getPath() != null && item.getPath().getItemPath().equivalent(path))
+                .collect(Collectors.toList());
+
     }
 
     @Override

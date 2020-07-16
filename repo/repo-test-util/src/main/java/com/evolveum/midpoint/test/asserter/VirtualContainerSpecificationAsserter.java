@@ -30,6 +30,10 @@ public class VirtualContainerSpecificationAsserter<RA> extends AbstractAsserter<
         return this;
     }
 
+    public DisplayTypeAsserter<VirtualContainerSpecificationAsserter<RA>> displayType() {
+        return new DisplayTypeAsserter<>(virtualContainer.getDisplay(), this, "from virtual container " + virtualContainer);
+    }
+
     public VirtualContainerItemsSpecificationAsserter<VirtualContainerSpecificationAsserter<RA>> items() {
         return new VirtualContainerItemsSpecificationAsserter(virtualContainer.getItem(), this, "from virtual container " + virtualContainer);
     }

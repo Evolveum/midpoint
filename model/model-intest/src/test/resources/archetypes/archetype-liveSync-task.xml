@@ -25,10 +25,6 @@
             </icon>
         </display>
         <itemConstraint>
-            <c:path>extension/mext:synchronizationOptions</c:path>
-            <visibility>visible</visibility>
-        </itemConstraint>
-        <itemConstraint>
             <c:path>extension/mext:retryLiveSyncErrors</c:path>
             <visibility>visible</visibility>
         </itemConstraint>

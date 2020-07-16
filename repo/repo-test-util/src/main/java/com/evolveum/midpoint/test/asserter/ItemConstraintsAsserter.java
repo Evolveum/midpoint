@@ -30,10 +30,22 @@ public class ItemConstraintsAsserter<RA> extends AbstractAsserter<RA> {
 
     public ItemConstraintAsserter<ItemConstraintsAsserter<RA>> itemConstraint(ItemPath itemPath) {
         Assertions.assertThat(itemConstraintTypeList).isNotEmpty();
-        List<ItemConstraintType> foundItems = itemConstraintTypeList.stream().filter(i -> i.getPath() != null && i.getPath().getItemPath().equivalent(itemPath)).collect(Collectors.toList());
+        List<ItemConstraintType> foundItems =filterItems(itemPath);
         Assertions.assertThat(foundItems).isNotEmpty().hasSize(1);
         return new ItemConstraintAsserter<>(foundItems.iterator().next(), this, "for " + itemConstraintTypeList);
+    }
 
+    public ItemConstraintsAsserter<RA> noItemConstraint(ItemPath itemPath) {
+        Assertions.assertThat(itemConstraintTypeList).isNotEmpty();
+        List<ItemConstraintType> foundItems =filterItems(itemPath);
+        Assertions.assertThat(foundItems).isEmpty();
+        return this;
+    }
+
+    private List<ItemConstraintType> filterItems(ItemPath itemPath) {
+        return itemConstraintTypeList.stream()
+                .filter(i -> i.getPath() != null && i.getPath().getItemPath().equivalent(itemPath))
+                .collect(Collectors.toList());
     }
 
 
