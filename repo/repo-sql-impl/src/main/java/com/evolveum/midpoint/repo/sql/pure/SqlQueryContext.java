@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Context information about SQL query.
@@ -206,8 +207,20 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
         }
     }
 
-    public PageOf<S> transformToSchemaType(PageOf<R> result) {
-        SqlTransformer<S, R> transformer = mapping().createTransformer(prismContext());
-        return result.map(transformer::toSchemaObject);
+    public PageOf<S> transformToSchemaType(PageOf<R> result)
+            throws SchemaException, QueryException {
+        try {
+            SqlTransformer<S, R> transformer = mapping().createTransformer(prismContext());
+            return result.map(transformer::toSchemaObjectSafe);
+        } catch (SqlTransformer.SqlTransformationException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SchemaException) {
+                throw (SchemaException) cause;
+            } else if (cause instanceof QueryException) {
+                throw (QueryException) cause;
+            } else {
+                throw e;
+            }
+        }
     }
 }
