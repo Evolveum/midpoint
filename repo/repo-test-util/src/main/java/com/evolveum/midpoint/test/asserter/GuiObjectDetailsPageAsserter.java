@@ -20,7 +20,7 @@ public class GuiObjectDetailsPageAsserter<RA> extends AbstractAsserter<RA> {
         this.guiObjectDetailsPage = guiObjectDetailsPage;
     }
 
-    public GuiObjectDetailsPageAsserter<RA> type(QName type) {
+    public GuiObjectDetailsPageAsserter<RA> assertType(QName type) {
         Assertions.assertThat(QNameUtil.match(type, guiObjectDetailsPage.getType())).isTrue();
         return this;
     }

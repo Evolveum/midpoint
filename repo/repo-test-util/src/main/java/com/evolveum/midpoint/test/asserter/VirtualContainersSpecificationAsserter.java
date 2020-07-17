@@ -21,6 +21,11 @@ public class VirtualContainersSpecificationAsserter<RA> extends AbstractAsserter
         this.virtualContainers = virtualContainers;
     }
 
+    public VirtualContainersSpecificationAsserter<RA> assertSize(int expectedContainers) {
+        Assertions.assertThat(virtualContainers).hasSize(expectedContainers);
+        return this;
+    }
+
     List<VirtualContainersSpecificationType> getVirtualContainers() {
         Assertions.assertThat(virtualContainers).isNotEmpty();
         return virtualContainers;
@@ -32,6 +37,10 @@ public class VirtualContainersSpecificationAsserter<RA> extends AbstractAsserter
 
     public VirtualContainerSpecificationAsserter<VirtualContainersSpecificationAsserter<RA>> byIdentifier(String identifier) {
         return by().identifier(identifier).find();
+    }
+
+    public VirtualContainerSpecificationAsserter<VirtualContainersSpecificationAsserter<RA>> byDisplayName(String displayName) {
+        return by().displayName(displayName).find();
     }
 
     @Override

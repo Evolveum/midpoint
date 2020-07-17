@@ -23,7 +23,7 @@ public class VirtualContainerItemsSpecificationAsserter<RA> extends AbstractAsse
         this.containerItems = containerItems;
     }
 
-    public VirtualContainerItemsSpecificationAsserter<RA> item(ItemPath path) {
+    public VirtualContainerItemsSpecificationAsserter<RA> assertItem(ItemPath path) {
         List<VirtualContainerItemSpecificationType> foundItems = filterItems(path);
         Assertions.assertThat(foundItems).hasSize(1);
         return this;
@@ -31,7 +31,7 @@ public class VirtualContainerItemsSpecificationAsserter<RA> extends AbstractAsse
 //        return new VirtualContainerItemSpecificationAsserter(foundItems.iterator().next(), this, "from item list " + containerItems);
     }
 
-    public VirtualContainerItemsSpecificationAsserter<RA> noItem(ItemPath path) {
+    public VirtualContainerItemsSpecificationAsserter<RA> assertNoItem(ItemPath path) {
         List<VirtualContainerItemSpecificationType> foundItems = filterItems(path);
         Assertions.assertThat(foundItems).isEmpty();
         return this;

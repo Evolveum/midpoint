@@ -24,7 +24,7 @@ public class ItemConstraintAsserter<RA> extends AbstractAsserter<RA> {
         return descWithDetails("item constraint");
     }
 
-    public ItemConstraintAsserter<RA> hasVisibility(UserInterfaceElementVisibilityType visibility) {
+    public ItemConstraintAsserter<RA> assertVisibility(UserInterfaceElementVisibilityType visibility) {
         Assertions.assertThat(itemConstraint.getVisibility()).isEqualTo(visibility);
         return this;
     }

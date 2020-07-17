@@ -34,8 +34,18 @@ public class VirtualContainerSpecificationAsserter<RA> extends AbstractAsserter<
         return new DisplayTypeAsserter<>(virtualContainer.getDisplay(), this, "from virtual container " + virtualContainer);
     }
 
+    public VirtualContainerSpecificationAsserter<RA> assertDisplayOrder(int order) {
+        Assertions.assertThat(virtualContainer.getDisplayOrder()).isEqualTo(order);
+        return this;
+    }
+
     public VirtualContainerItemsSpecificationAsserter<VirtualContainerSpecificationAsserter<RA>> items() {
         return new VirtualContainerItemsSpecificationAsserter(virtualContainer.getItem(), this, "from virtual container " + virtualContainer);
+    }
+
+    public VirtualContainerSpecificationAsserter<RA> assertItems(int expectedSize) {
+        Assertions.assertThat(virtualContainer.getItem()).hasSize(expectedSize);
+        return this;
     }
 
 
