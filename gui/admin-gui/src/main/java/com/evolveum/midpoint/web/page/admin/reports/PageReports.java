@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectList;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
+import com.evolveum.midpoint.web.page.admin.reports.component.ImportReportPopupPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.RunReportPopupPanel;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -122,6 +123,32 @@ public class PageReports extends PageAdminObjectList<ReportType> {
                 return false;
             }
         });
+        menu.add(new ButtonInlineMenuItem(createStringResource("PageReports.button.import")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBeanImpl<ReportType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ReportType report = getRowModel().getObject().getValue();
+                        importReportPerformed(target, report);
+                    }
+                };
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder(){
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_UPLOAD);
+            }
+
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
+            }
+        });
         menu.add(new ButtonInlineMenuItem(createStringResource("PageReports.button.configure")) {
             private static final long serialVersionUID = 1L;
 
@@ -177,6 +204,36 @@ public class PageReports extends PageAdminObjectList<ReportType> {
             }
         });
         return menu;
+    }
+
+    private void importReportPerformed(AjaxRequestTarget target, ReportType report) {
+        ImportReportPopupPanel importReportPopupPanel = new ImportReportPopupPanel(getMainPopupBodyId(), report) {
+
+            private static final long serialVersionUID = 1L;
+
+            protected void importConfirmPerformed(AjaxRequestTarget target, ReportDataType reportImportData) {
+                PageReports.this.importConfirmPerformed(target, report, reportImportData);
+                hideMainPopup(target);
+
+            }
+        };
+        showMainPopup(importReportPopupPanel, target);
+    }
+
+    private void importConfirmPerformed(AjaxRequestTarget target, ReportType reportType, ReportDataType reportImportData) {
+        OperationResult result = new OperationResult(OPERATION_RUN_REPORT);
+        Task task = createSimpleTask(OPERATION_RUN_REPORT);
+
+        try {
+            getReportManager().importReport(reportType.asPrismObject(), reportImportData.asPrismObject(), task, result);
+        } catch (Exception ex) {
+            result.recordFatalError(ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        showResult(result);
+        target.add(getFeedbackPanel());
     }
 
     private void runConfirmPerformed(AjaxRequestTarget target, ReportType reportType, PrismContainer<ReportParameterType> reportParam) {

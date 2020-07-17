@@ -61,16 +61,17 @@
 
                                 assignments = new ArrayList();
 
-                                oids = input.split(",");
-                                for (String oid : oids) {
-                                    role = new ObjectReferenceType();
-                                    role.setOid(oid);
-                                    role.setType(RoleType.COMPLEX_TYPE);
+                                for (String oid : input) {
+                                    if (oid != null) {
+                                        role = new ObjectReferenceType();
+                                        role.setOid(oid);
+                                        role.setType(RoleType.COMPLEX_TYPE);
 
-                                    AssignmentType assignment = new AssignmentType();
-                                    assignment.asPrismContainerValue()
-                                    assignment.setTargetRef(role);
-                                    assignments.add(assignment)
+                                        AssignmentType assignment = new AssignmentType();
+                                        assignment.asPrismContainerValue()
+                                        assignment.setTargetRef(role);
+                                        assignments.add(assignment)
+                                    }
                                 }
                                 return assignments
                             </code>

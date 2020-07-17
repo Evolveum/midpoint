@@ -25,8 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.annotations.Test;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author skublik
@@ -148,9 +147,16 @@ public class TestCsvReport extends BasicNewReportTest {
         assertEquals("sub1", user.asObjectable().getSubtype().get(0));
         assertEquals("sub22", user.asObjectable().getSubtype().get(1));
         assertEquals("Test import: test_NICK", user.asObjectable().getNickName().getOrig());
-        assertEquals(ActivationStatusType.ENABLED, user.asObjectable().getActivation().getAdministrativeStatus());
         assertEquals("00000000-0000-0000-0000-000000000008", user.asObjectable().getAssignment().get(0).getTargetRef().getOid());
         assertEquals("00000000-0000-0000-0000-000000000004", user.asObjectable().getAssignment().get(1).getTargetRef().getOid());
+
+        user = searchObjectByName(UserType.class, "testUser02");
+        assertNotNull("User testUser02 was not created", user);
+        assertEquals(ActivationStatusType.ENABLED, user.asObjectable().getActivation().getAdministrativeStatus());
+        assertEquals("2020-07-07T00:00:00.000+02:00", user.asObjectable().getActivation().getValidFrom().toString());
+        assertTrue(user.asObjectable().getSubtype().isEmpty());
+        assertEquals("Test import: test_NICK2", user.asObjectable().getNickName().getOrig());
+        assertTrue(user.asObjectable().getAssignment().isEmpty());
     }
 
     @Test

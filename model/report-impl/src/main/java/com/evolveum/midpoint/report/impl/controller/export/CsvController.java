@@ -373,7 +373,11 @@ public class CsvController extends FileFormatController {
                                     Item newItem = null;
                                     Object objectFromExpression = null;
                                     if (column.getImport() != null && column.getImport().getExpression() != null) {
-                                        objectFromExpression = evaluateImportExpression(column.getImport().getExpression(), (String) item.getRealValue(), task, result);
+                                        if (newItemDefinition.isSingleValue()) {
+                                            objectFromExpression = evaluateImportExpression(column.getImport().getExpression(), (String) item.getRealValue(), task, result);
+                                        } else {
+                                            objectFromExpression = evaluateImportExpression(column.getImport().getExpression(), getImportStringValues((String) item.getRealValue(), false), task, result);
+                                        }
                                         if (objectFromExpression == null) {
                                             continue;
                                         }
@@ -388,9 +392,6 @@ public class CsvController extends FileFormatController {
                                         newItem = object.findOrCreateContainer(path);
                                         processContainerFromImportReport(objectFromExpression, item, newItem, column.getPath(), result);
                                     }
-//                                    if (newItem != null && !newItem.getValues().isEmpty()) {
-//                                        value.add(newItem);
-//                                    }
                                 } else {
                                     String message = "Path of column is null, skipping column " + columnName;
                                     LOGGER.error(message);
@@ -404,7 +405,7 @@ public class CsvController extends FileFormatController {
                 } catch (SchemaException e) {
                     String message = "Couldn't instantiate object of type " + type;
                     LOGGER.error(message);
-                    result.recordFatalError(message, new IllegalArgumentException(message));
+                    result.recordPartialError(message, new IllegalArgumentException(message));
                 }
             } else {
                 String message = "View is null";
@@ -567,7 +568,7 @@ public class CsvController extends FileFormatController {
 
     private ArrayList<String> getImportStringValues(String realValue, boolean isSingleValue) {
         ArrayList<String> stringValues = new ArrayList();
-        if (isSingleValue) {
+        if (isSingleValue || realValue == null) {
             stringValues.add(realValue);
         } else {
             String[] realValues = realValue.split(getMultivalueDelimiter());
@@ -625,11 +626,14 @@ public class CsvController extends FileFormatController {
             PrismContainerValue containerValue = container.createNewValue();
             for (String name : headers) {
                 PrismProperty property = itemFactory.createProperty(new QName(name));
-                Object value;
+                String value;
                 if (isHeader()) {
                     value = csvRecord.get(name);
                 } else {
                     value = csvRecord.get(headers.indexOf(name));
+                }
+                if (value != null && value.isEmpty()) {
+                    value = null;
                 }
                 property.getValues().add(itemFactory.createPropertyValue(value));
                 try {

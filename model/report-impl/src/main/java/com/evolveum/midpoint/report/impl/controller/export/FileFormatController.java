@@ -240,6 +240,16 @@ public abstract class FileFormatController {
     protected Object evaluateImportExpression(ExpressionType expression, String input, Task task, OperationResult result) {
         ExpressionVariables variables = new ExpressionVariables();
         variables.put(ExpressionConstants.VAR_INPUT, input, String.class);
+        return evaluateImportExpression(expression, variables, task, result);
+    }
+
+    protected Object evaluateImportExpression(ExpressionType expression, List<String> input, Task task, OperationResult result) {
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.put(ExpressionConstants.VAR_INPUT, input, List.class);
+        return evaluateImportExpression(expression, variables, task, result);
+    }
+
+    private Object evaluateImportExpression(ExpressionType expression, ExpressionVariables variables, Task task, OperationResult result) {
         Object value = null;
         try {
             value = ExpressionUtil.evaluateExpression(null ,variables, null, expression,

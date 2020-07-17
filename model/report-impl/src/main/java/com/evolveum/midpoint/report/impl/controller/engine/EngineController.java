@@ -52,7 +52,7 @@ public abstract class EngineController {
             }
         }
 
-        String fileNamePrefix = reportType.getName().getOrig() + " " + getDateTime();
+        String fileNamePrefix = reportType.getName().getOrig() + "-EXPORT " + getDateTime();
         String fileName = fileNamePrefix + fileFormatController.getTypeSuffix();
         return new File(getExportDir(), fileName).getPath();
     }
