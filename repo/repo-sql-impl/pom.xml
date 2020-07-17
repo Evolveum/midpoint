@@ -156,7 +156,6 @@
             <artifactId>cxf-core</artifactId>
         </dependency>
 
-        <!-- TODO MID-6319 -->
         <dependency>
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-sql</artifactId>
@@ -168,6 +167,7 @@
         </dependency>
         <!--
         Needed only for re-generation of Q-classes from tables
+        TODO: perhaps move to some tools or out of project completely including depManagement below.
         <dependency>
             <groupId>com.querydsl</groupId>
             <artifactId>querydsl-sql-codegen</artifactId>
@@ -176,6 +176,19 @@
         </dependency>
         -->
     </dependencies>
+
+    <!--
+    This pins the ecj version to avoid "Dependency convergence error" when querydsl-sql-codegen is used.
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.eclipse.jdt.core.compiler</groupId>
+                <artifactId>ecj</artifactId>
+                <version>4.4.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    -->
 
     <build>
         <plugins>

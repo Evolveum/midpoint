@@ -1525,12 +1525,6 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- TODO: Without this we'll get newer jsoup 1.11.3, isn't it better? If so, remove this. -->
-            <!--<dependency>-->
-            <!--    <groupId>org.jsoup</groupId>-->
-            <!--    <artifactId>jsoup</artifactId>-->
-            <!--    <version>1.10.2</version>-->
-            <!--</dependency>-->
             <dependency>
                 <groupId>dnsjava</groupId>
                 <artifactId>dnsjava</artifactId>
@@ -1552,13 +1546,6 @@
                 <groupId>com.evolveum.midpoint.infra</groupId>
                 <artifactId>test-util</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-
-            <!-- TODO MID-6319 -->
-            <dependency>
-                <groupId>org.eclipse.jdt.core.compiler</groupId>
-                <artifactId>ecj</artifactId>
-                <version>4.4.2</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
