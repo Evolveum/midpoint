@@ -10,6 +10,10 @@ import static com.evolveum.midpoint.model.api.util.DashboardUtils.*;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -375,11 +379,14 @@ public class DashboardServiceImpl implements DashboardService {
         Class<ObjectType> type = (Class<ObjectType>) prismContext.getSchemaRegistry()
                 .getCompileTimeClassForObjectType(collection.getType());
         SearchFilterType searchFilter = collection.getFilter();
-        // TODO evaluate filter expressions here (call CollectionProcessor.evaluateExpressionsInFilter)
         ObjectQuery query = prismContext.queryFactory().createQuery();
         if (searchFilter != null && usingFilter) {
             try {
-                query.setFilter(prismContext.getQueryConverter().parseFilter(searchFilter, type));
+                ExpressionVariables variables = new ExpressionVariables();
+                ObjectFilter rawFilter = prismContext.getQueryConverter().parseFilter(searchFilter, type);
+                ObjectFilter filter = ExpressionUtil.evaluateFilterExpressions(rawFilter, variables, MiscSchemaUtil.getExpressionProfile(),
+                        expressionFactory, prismContext, "collection filter", task, result);
+                query.setFilter(filter);
             } catch (Exception e) {
                 LOGGER.error("Filter couldn't parse in collection " + collection.toString(), e);
             }

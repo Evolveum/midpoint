@@ -160,6 +160,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     }
 
     public ObjectFilter getFilter() {
+        //be careful to use filter with expressions. Expression is not evaluated still
         return filter;
     }
 

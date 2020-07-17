@@ -834,7 +834,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         if (query == null) {
             query = getPrismContext().queryFactory().createQuery();
         }
-        query.addFilter(view.getFilter());
+        OperationResult result = new OperationResult(DOT_CLASS + "evaluateExpressionsInFilter");
+        query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, getPageBase()));
         return query;
 
     }

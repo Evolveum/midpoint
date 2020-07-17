@@ -464,7 +464,7 @@ public abstract class ResourceContentPanel extends Panel {
 
     private ObjectQuery createInTaskOidQuery(List<TaskType> tasksList){
         if (tasksList == null){
-            return null;
+            tasksList = new ArrayList<>();
         }
         List<String> taskOids = new ArrayList<>();
         tasksList.forEach(task -> taskOids.add(task.getOid()));
@@ -480,7 +480,8 @@ public abstract class ResourceContentPanel extends Panel {
             PageTasks pageTasks = new PageTasks(tasksQuery, pageParameters);
             getPageBase().setResponsePage(pageTasks);
         } else {
-            getPageBase().setResponsePage(PageTasks.class);
+            PageTasks pageTasks = new PageTasks(tasksQuery, pageParameters);
+            getPageBase().setResponsePage(pageTasks);
         }
 
     }
@@ -1188,6 +1189,8 @@ public abstract class ResourceContentPanel extends Panel {
 
     private ObjectQuery getExistingTasksQuery(String archetypeRefOid){
         return getPageBase().getPrismContext().queryFor(TaskType.class)
+                .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
+                .and()
                 .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRefOid)
                 .build();
     }
