@@ -1,2 +1,2 @@
-"Name"
-"testUser01"
+"Name (Collection)";"Administrative status";"Valid from";"Nick";"AssignmentOid";"Subtype"
+"testUser01";"enabled";"2020-07-07T00:00:00.000+02:00";"test_NICK";"00000000-0000-0000-0000-000000000008,00000000-0000-0000-0000-000000000004";"sub1,sub22"

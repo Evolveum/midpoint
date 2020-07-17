@@ -359,11 +359,18 @@ public class CsvController extends FileFormatController {
                     PrismContainerValue value = object.createNewValue();
                     List<GuiObjectColumnType> columns = compiledCollection.getColumns();
                     for (Item item : (Collection<Item>) containerValue.getItems()) {
+                        boolean isFound = false;
                         for (GuiObjectColumnType column : columns) {
+                            if (DisplayValueType.NUMBER.equals(column.getDisplayValue()) || isFound){
+                                continue;
+                            }
                             String columnName = getColumnLabel(column, def);
                             if (item.getElementName().getLocalPart().equals(columnName)) {
+                                isFound = true;
                                 if (column.getPath() != null) {
-                                    Item newItem = object.getDefinition().findItemDefinition(column.getPath().getItemPath()).instantiate();
+                                    ItemPath path = column.getPath().getItemPath();
+                                    ItemDefinition newItemDefinition = object.getDefinition().findItemDefinition(path);
+                                    Item newItem = null;
                                     Object objectFromExpression = null;
                                     if (column.getImport() != null && column.getImport().getExpression() != null) {
                                         objectFromExpression = evaluateImportExpression(column.getImport().getExpression(), (String) item.getRealValue(), task, result);
@@ -371,16 +378,19 @@ public class CsvController extends FileFormatController {
                                             continue;
                                         }
                                     }
-                                    if (newItem instanceof PrismProperty) {
-                                        processPropertyItemFromImportReport(objectFromExpression, item, newItem, result);
-                                    } else if (newItem instanceof PrismReference) {
-                                        processReferenceItemFromImportReport(objectFromExpression, item, newItem, type, task, result);
-                                    } else if (newItem instanceof PrismContainer) {
+                                    if (newItemDefinition instanceof PrismPropertyDefinition) {
+                                        newItem = object.findOrCreateProperty(path);
+                                        processPropertyFromImportReport(objectFromExpression, item, newItem, result);
+                                    } else if (newItemDefinition instanceof PrismReferenceDefinition) {
+                                        newItem = object.findOrCreateReference(path);
+                                        processReferenceFromImportReport(objectFromExpression, item, newItem, type, task, result);
+                                    } else if (newItemDefinition instanceof PrismContainerDefinition) {
+                                        newItem = object.findOrCreateContainer(path);
                                         processContainerFromImportReport(objectFromExpression, item, newItem, column.getPath(), result);
                                     }
-                                    if (!newItem.getValues().isEmpty()) {
-                                        value.add(newItem);
-                                    }
+//                                    if (newItem != null && !newItem.getValues().isEmpty()) {
+//                                        value.add(newItem);
+//                                    }
                                 } else {
                                     String message = "Path of column is null, skipping column " + columnName;
                                     LOGGER.error(message);
@@ -391,24 +401,20 @@ public class CsvController extends FileFormatController {
                         }
                     }
                     getReportService().getModelService().importObject((PrismObject) object, importOption, task, result);
-                    return;
                 } catch (SchemaException e) {
                     String message = "Couldn't instantiate object of type " + type;
                     LOGGER.error(message);
                     result.recordFatalError(message, new IllegalArgumentException(message));
-                    return;
                 }
             } else {
                 String message = "View is null";
                 LOGGER.error(message);
                 result.recordFatalError(message, new IllegalArgumentException(message));
-                return;
             }
         } else {
             String message = "CollectionRefSpecification is null";
             LOGGER.error(message);
             result.recordFatalError(message, new IllegalArgumentException(message));
-            return;
         }
     }
 
@@ -448,7 +454,7 @@ public class CsvController extends FileFormatController {
         }
     }
 
-    private void processReferenceItemFromImportReport(Object objectFromExpression, Item item, Item newItem, Class type, Task task, OperationResult result) {
+    private void processReferenceFromImportReport(Object objectFromExpression, Item item, Item newItem, Class type, Task task, OperationResult result) {
         if (objectFromExpression != null) {
             Collection realValues = new ArrayList();
             if (Collection.class.isAssignableFrom(objectFromExpression.getClass())) {
@@ -523,7 +529,7 @@ public class CsvController extends FileFormatController {
         }
     }
 
-    private void processPropertyItemFromImportReport(Object objectFromExpression, Item item, Item newItem, OperationResult result) {
+    private void processPropertyFromImportReport(Object objectFromExpression, Item item, Item newItem, OperationResult result) {
         if (objectFromExpression != null) {
             Collection realValues = new ArrayList();
             if (Collection.class.isAssignableFrom(objectFromExpression.getClass())) {

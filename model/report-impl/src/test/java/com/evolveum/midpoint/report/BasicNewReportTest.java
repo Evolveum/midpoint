@@ -233,7 +233,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     }
 
     protected PrismObject<TaskType> runReport(PrismObject<ReportType> report, boolean errorOk) throws Exception {
-        Task task = getTestTask();
+        Task task = createTask(OP_CREATE_REPORT);
         OperationResult result = task.getResult();
         PrismObject<ReportType> reportBefore = report.clone();
         report.asObjectable().setFileFormat(getFileFormatConfiguration());
@@ -259,7 +259,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     }
 
     protected PrismObject<TaskType> importReport(PrismObject<ReportType> report, String pathToImportFile, boolean errorOk) throws Exception {
-        Task task = getTestTask();
+        Task task = createTask(OP_IMPORT_REPORT);
         OperationResult result = task.getResult();
         PrismObject<ReportType> reportBefore = report.clone();
         report.asObjectable().setFileFormat(getFileFormatConfiguration());
@@ -282,7 +282,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
 
         display("Background task (running)", task);
 
-        waitForTaskFinish(task.getOid(), true, DEFAULT_TASK_WAIT_TIMEOUT, errorOk);
+        waitForTaskFinish(task.getOid(), false, DEFAULT_TASK_WAIT_TIMEOUT, errorOk);
 
         // THEN
         then();

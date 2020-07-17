@@ -8,21 +8,24 @@ package com.evolveum.midpoint.report;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.annotations.Test;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 /**
@@ -140,6 +143,46 @@ public class TestCsvReport extends BasicNewReportTest {
         importReport(report, IMPORT_USERS_FILE_PATH, false);
         PrismObject<UserType> user = searchObjectByName(UserType.class, "testUser01");
         assertNotNull("User testUser01 was not created", user);
+        assertEquals(ActivationStatusType.ENABLED, user.asObjectable().getActivation().getAdministrativeStatus());
+        assertEquals("2020-07-07T00:00:00.000+02:00", user.asObjectable().getActivation().getValidFrom().toString());
+        assertEquals("sub1", user.asObjectable().getSubtype().get(0));
+        assertEquals("sub22", user.asObjectable().getSubtype().get(1));
+        assertEquals("Test import: test_NICK", user.asObjectable().getNickName().getOrig());
+        assertEquals(ActivationStatusType.ENABLED, user.asObjectable().getActivation().getAdministrativeStatus());
+        assertEquals("00000000-0000-0000-0000-000000000008", user.asObjectable().getAssignment().get(0).getTargetRef().getOid());
+        assertEquals("00000000-0000-0000-0000-000000000004", user.asObjectable().getAssignment().get(1).getTargetRef().getOid());
+    }
+
+    @Test
+    public void test201ImportReportfromExportedReport() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_CONDITION_OID);
+        runReport(report, false);
+        File outputFile = findOutputFile(report);
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        PrismObject<ReportType> reportBefore = report.clone();
+        ReportBehaviorType behavior = new ReportBehaviorType();
+        behavior.setDirection(DirectionTypeType.IMPORT);
+        ImportOptionsType importOptions = new ImportOptionsType();
+        importOptions.setOverwrite(true);
+        behavior.setImportOptions(importOptions);
+        report.asObjectable().setBehavior(behavior);
+        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
+
+        PrismObject<UserType> oldWill = searchObjectByName(UserType.class, "will");
+
+        importReport(report, outputFile.getAbsolutePath(), false);
+        PrismObject<UserType> newWill = searchObjectByName(UserType.class, "will");
+
+        assertNotNull("User will was not created", newWill);
+        assertEquals(null, newWill.asObjectable().getTelephoneNumber());
+        assertEquals(oldWill.asObjectable().getGivenName(), newWill.asObjectable().getGivenName());
+        assertEquals(oldWill.asObjectable().getFamilyName(), newWill.asObjectable().getFamilyName());
+        assertEquals(oldWill.asObjectable().getFullName(), newWill.asObjectable().getFullName());
+        assertEquals(oldWill.asObjectable().getEmailAddress(), newWill.asObjectable().getEmailAddress());
+        outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName()));
     }
 
     private void setExpectedValueForDashboardReport() {

@@ -11,13 +11,77 @@
         <direction>import</direction>
     </behavior>
     <objectCollection>
+        <collection>
+            <collectionRef oid="11b1f98e-f587-4b9f-b92b-72e251dbb266" type="ObjectCollectionType"/>
+        </collection>
         <view>
             <column>
-                <name>nameColumn</name>
-                <path>name</path>
+                <name>activationColumn</name>
+                <path>activation/administrativeStatus</path>
+                <previousColumn>nameColumnCollection</previousColumn>
+            </column>
+            <column>
+                <name>validFromColumn</name>
+                <path>activation/validFrom</path>
+                <previousColumn>activationColumn</previousColumn>
+            </column>
+            <column>
+                <name>nickColumn</name>
+                <path>nickName</path>
                 <display>
-                    <label>Name</label>
+                    <label>Nick</label>
                 </display>
+                <previousColumn>validFromColumn</previousColumn>
+                <import>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                import com.evolveum.midpoint.prism.polystring.PolyString
+
+                                return new PolyString("Test import: " + input)
+                            </code>
+                        </script>
+                    </expression>
+                </import>
+            </column>
+            <column>
+                <name>assignmentColumn</name>
+                <path>assignment</path>
+                <display>
+                    <label>AssignmentOid</label>
+                </display>
+                <previousColumn>nickColumn</previousColumn>
+                <import>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
+                                assignments = new ArrayList();
+
+                                oids = input.split(",");
+                                for (String oid : oids) {
+                                    role = new ObjectReferenceType();
+                                    role.setOid(oid);
+                                    role.setType(RoleType.COMPLEX_TYPE);
+
+                                    AssignmentType assignment = new AssignmentType();
+                                    assignment.asPrismContainerValue()
+                                    assignment.setTargetRef(role);
+                                    assignments.add(assignment)
+                                }
+                                return assignments
+                            </code>
+                        </script>
+                    </expression>
+                </import>
+            </column>
+            <column>
+                <name>subtypeColumn</name>
+                <path>subtype</path>
+                <previousColumn>assignmentColumn</previousColumn>
             </column>
             <type>UserType</type>
         </view>

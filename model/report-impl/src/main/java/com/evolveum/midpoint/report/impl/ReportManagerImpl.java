@@ -205,8 +205,6 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         parentResult.setBackgroundTaskOid(task.getOid());
     }
 
-
-
     private boolean isJasperReport(PrismObject<ReportType> object) {
         if(object.getRealValue() != null && object.getRealValue().getJasper() != null) {
             return true;

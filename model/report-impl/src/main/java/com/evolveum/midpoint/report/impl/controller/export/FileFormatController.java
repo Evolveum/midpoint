@@ -240,21 +240,18 @@ public abstract class FileFormatController {
     protected Object evaluateImportExpression(ExpressionType expression, String input, Task task, OperationResult result) {
         ExpressionVariables variables = new ExpressionVariables();
         variables.put(ExpressionConstants.VAR_INPUT, input, String.class);
-        Collection<Object> values = null;
+        Object value = null;
         try {
-            values = ExpressionUtil.evaluateExpression(null ,variables, null, expression,
+            value = ExpressionUtil.evaluateExpression(null ,variables, null, expression,
                     null, getReportService().getExpressionFactory(), "value for column", task, result);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
                 | ConfigurationException | SecurityViolationException e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
         }
-        if (values == null || values.isEmpty()) {
-            return null;
+        if (value instanceof PrismPropertyValue) {
+            return ((PrismPropertyValue) value).getRealValue();
         }
-        if (values.size() != 1) {
-            throw new IllegalArgumentException("Expected collection with one value, but it is " + values);
-        }
-        return values.iterator().next();
+        return value;
     }
 
 
