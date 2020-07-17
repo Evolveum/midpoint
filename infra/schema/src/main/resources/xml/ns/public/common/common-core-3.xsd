@@ -23691,7 +23691,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:choice>
-                <xsd:element name="csv" type="tns:CsvExportType" minOccurs="0">
+                <xsd:element name="csv" type="tns:CsvFileFormatType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Configuration for CSV type.
@@ -23701,7 +23701,7 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="html" type="tns:HtmlExportType" minOccurs="0">
+                <xsd:element name="html" type="tns:HtmlFileFormatType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Configuration for HTML type.
@@ -23740,7 +23740,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="AbstractExportType">
+    <xsd:complexType name="AbstractFileFormatType">
         <xsd:annotation>
             <xsd:documentation>
                 Supertype of report export types.
@@ -23752,7 +23752,7 @@
         </xsd:annotation>
     </xsd:complexType>
 
-    <xsd:complexType name="CsvExportType">
+    <xsd:complexType name="CsvFileFormatType">
         <xsd:annotation>
             <xsd:documentation>
                 CSV export type for Report.
@@ -23763,7 +23763,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:AbstractExportType">
+            <xsd:extension base="c:AbstractFileFormatType">
                 <xsd:sequence>
                     <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1" default=",">
                         <xsd:annotation>
@@ -23945,7 +23945,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="HtmlExportType">
+    <xsd:complexType name="HtmlFileFormatType">
         <xsd:annotation>
             <xsd:documentation>
                 HTML export type for Report.
@@ -23955,7 +23955,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:AbstractExportType"/>
+            <xsd:extension base="c:AbstractFileFormatType"/>
         </xsd:complexContent>
     </xsd:complexType>
 

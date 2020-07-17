@@ -707,9 +707,9 @@ public class CsvController extends FileFormatController {
         return getCsvConfiguration().getFieldDelimiter() == null ? ";" : getCsvConfiguration().getFieldDelimiter();
     }
 
-    private CsvExportType getCsvConfiguration() {
+    private CsvFileFormatType getCsvConfiguration() {
         if (getFileFormatConfiguration().getCsv() == null) {
-            return new CsvExportType();
+            return new CsvFileFormatType();
         }
         return getFileFormatConfiguration().getCsv();
     }
