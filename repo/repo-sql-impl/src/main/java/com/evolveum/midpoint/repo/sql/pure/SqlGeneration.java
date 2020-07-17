@@ -25,7 +25,7 @@ import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
-// TODO MID-6319 must go after done
+// TODO MID-6318 can go after done, there are some ideas for column extensions + generation of beans
 @Deprecated
 public class SqlGeneration {
 
@@ -60,7 +60,7 @@ public class SqlGeneration {
 //                .select(aer.id, auditDelta)
                     .select(aer)
                     .from(aer)
-//                .leftJoin(M_AUDIT_EVENT._auditDeltaFk, M_AUDIT_DELTA)
+//                .leftJoin(M_AUDIT_EVENT.auditDeltaFk, M_AUDIT_DELTA)
                     .fetch();
 //        Map<Long, Collection<Map<Expression<?>, ?>>> mapResult =
 //                mapOneToMany(result, M_AUDIT_EVENT.id, auditDelta);
@@ -112,7 +112,7 @@ public class SqlGeneration {
 //                .select(M_AUDIT_EVENT.id, M_AUDIT_DELTA.checksum)
 //                .from(M_AUDIT_EVENT)
                     // leftJoin if we want also events without deltas
-//                .join(M_AUDIT_EVENT._auditDeltaFk, M_AUDIT_DELTA)
+//                .join(M_AUDIT_EVENT.auditDeltaFk, M_AUDIT_DELTA)
                     // alternatively:
                     // .join(M_AUDIT_DELTA).on(M_AUDIT_DELTA.recordId.eq(M_AUDIT_EVENT.id))
 //                .orderBy(M_AUDIT_EVENT.id.asc())
@@ -132,7 +132,7 @@ public class SqlGeneration {
             List<Tuple> plainResult = newQuery(conn)
                     .select(aer, ad)
                     .from(aer)
-                    .leftJoin(aer._auditDeltaFk, ad)
+                    .leftJoin(aer.auditDeltaFk, ad)
                     // alternatively:
                     // .leftJoin(M_AUDIT_DELTA).on(M_AUDIT_DELTA.recordId.eq(M_AUDIT_EVENT.id))
 //                .orderBy(M_AUDIT_EVENT.id.asc())

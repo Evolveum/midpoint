@@ -23,9 +23,6 @@
 
     <properties>
         <maven.test.skip>true</maven.test.skip>
-
-        <!-- TODO MID-6319 -->
-        <checkstyle.skip>true</checkstyle.skip>
     </properties>
 
     <dependencies>
