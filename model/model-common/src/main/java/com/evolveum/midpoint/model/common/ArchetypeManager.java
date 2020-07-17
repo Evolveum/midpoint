@@ -9,33 +9,29 @@ package com.evolveum.midpoint.model.common;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.CloneStrategy;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.VirtualAssignmenetSpecification;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * Component that can efficiently determine archetypes for objects.
@@ -57,7 +53,7 @@ public class ArchetypeManager {
         return systemObjectCache.getArchetype(oid, result);
     }
 
-    public <O extends AssignmentHolderType> ObjectReferenceType determineArchetypeRef(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
+    public <O extends AssignmentHolderType> ObjectReferenceType determineArchetypeRef(PrismObject<O> assignmentHolder) throws SchemaException {
         if (assignmentHolder == null) {
             return null;
         }
@@ -99,7 +95,7 @@ public class ArchetypeManager {
                     }
                     return QNameUtil.match(ArchetypeType.COMPLEX_TYPE, target.getType());
                 })
-                .map(archetypeAssignment -> archetypeAssignment.getTargetRef())
+                .map(AssignmentType::getTargetRef)
                 .collect(Collectors.toList());
     }
 
@@ -112,7 +108,7 @@ public class ArchetypeManager {
         if (explicitArchetypeOid != null) {
             archetypeOid = explicitArchetypeOid;
         } else {
-            ObjectReferenceType archetypeRef = determineArchetypeRef(assignmentHolder, result);
+            ObjectReferenceType archetypeRef = determineArchetypeRef(assignmentHolder);
             if (archetypeRef == null) {
                 return null;
             }
@@ -140,6 +136,7 @@ public class ArchetypeManager {
 
         PrismObject<ArchetypeType> archetype = null;
         if (object.canRepresent(AssignmentHolderType.class)) {
+            //noinspection unchecked
             archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, explicitArchetypeOid, result);
         }
 
@@ -179,11 +176,11 @@ public class ArchetypeManager {
             if (superPolicy == null) {
                 return null;
             }
-            return superPolicy;
+            return superPolicy.clone();
         }
 
         if (superPolicy == null) {
-            return currentPolicy;
+            return currentPolicy.clone();
         }
 
         ArchetypePolicyType mergedPolicy = currentPolicy.clone();
@@ -194,8 +191,8 @@ public class ArchetypeManager {
         ApplicablePoliciesType mergedApplicablePolicies = mergeApplicablePolicies(currentPolicy, superPolicy);
         mergedPolicy.setApplicablePolicies(mergedApplicablePolicies);
 
-        AssignmentRelationApproachType mergetRelationApproach = mergeRelationApproach(currentPolicy, superPolicy);
-        mergedPolicy.setAssignmentHolderRelationApproach(mergetRelationApproach);
+        AssignmentRelationApproachType mergedRelationApproach = mergeRelationApproach(currentPolicy, superPolicy);
+        mergedPolicy.setAssignmentHolderRelationApproach(mergedRelationApproach);
 
         ConflictResolutionType mergedConflictResolutionType = mergeConflictResolution(currentPolicy, superPolicy);
         mergedPolicy.setConflictResolution(mergedConflictResolutionType);
@@ -274,29 +271,31 @@ public class ArchetypeManager {
         return mergedObjectDetails;
     }
 
-    private List<VirtualContainersSpecificationType> mergeVirtualContainers(GuiObjectDetailsPageType currentObjectDetails, GuiObjectDetailsPageType superObjectDetails) {
-        List<VirtualContainersSpecificationType> currentContainers = currentObjectDetails.getContainer();
-        List<VirtualContainersSpecificationType> superContainers = superObjectDetails.getContainer();
+    private <C extends Containerable> List<C> mergeContainers(List<C> currentContainers, List<C> superContainers, Function<C, Predicate<C>> predicate, BiFunction<C, C, C> mergeFunction) {
         if (currentContainers.isEmpty()) {
             if (superContainers.isEmpty()) {
                 return Collections.EMPTY_LIST;
             }
-            return new ArrayList<>(superContainers);
+            return superContainers.stream().map(this::cloneComplex).collect(Collectors.toList());
         }
 
-        List<VirtualContainersSpecificationType> mergedContainers = new ArrayList<>();
-        for (VirtualContainersSpecificationType superContainer : superContainers) {
-            VirtualContainersSpecificationType matchedContainer = getMatchedVirtualContainer(currentContainers, superContainer);
+        if (superContainers.isEmpty()) {
+            return currentContainers.stream().map(this::cloneComplex).collect(Collectors.toList());
+        }
+
+        List<C> mergedContainers = new ArrayList<>();
+        for (C superContainer : superContainers) {
+            C matchedContainer = find(predicate.apply(superContainer), currentContainers);
             if (matchedContainer != null) {
-                VirtualContainersSpecificationType mergedContainer = mergeVirtualContainer(matchedContainer, superContainer);
+                C mergedContainer = mergeFunction.apply(matchedContainer, superContainer);
                 mergedContainers.add(mergedContainer);
             } else {
                 mergedContainers.add(cloneComplex(superContainer));
             }
         }
 
-        for (VirtualContainersSpecificationType currentContainer : currentContainers) {
-            if (!mergedContainers.stream().anyMatch(c -> identifiersMatch(currentContainer.getIdentifier(), c.getIdentifier()))) {
+        for (C currentContainer : currentContainers) {
+            if (!findAny(predicate.apply(currentContainer), mergedContainers)) {
                 mergedContainers.add(cloneComplex(currentContainer));
             }
         }
@@ -304,9 +303,21 @@ public class ArchetypeManager {
         return mergedContainers;
     }
 
-    private VirtualContainersSpecificationType getMatchedVirtualContainer(List<VirtualContainersSpecificationType> currentContainers, VirtualContainersSpecificationType superContainer) {
-        List<VirtualContainersSpecificationType> matchedContainers = currentContainers.stream()
-                .filter(c -> identifiersMatch(c.getIdentifier(), superContainer.getIdentifier())).collect(Collectors.toList());
+    private List<VirtualContainersSpecificationType> mergeVirtualContainers(GuiObjectDetailsPageType currentObjectDetails, GuiObjectDetailsPageType superObjectDetails) {
+        return mergeContainers(currentObjectDetails.getContainer(), superObjectDetails.getContainer(),
+                this::createVirtualContainersPredicate, this::mergeVirtualContainer);
+    }
+
+
+    private Predicate<VirtualContainersSpecificationType> createVirtualContainersPredicate(VirtualContainersSpecificationType superContainer) {
+        return c -> identifiersMatch(c.getIdentifier(), superContainer.getIdentifier());
+    }
+
+    private <C extends Containerable> C find(Predicate<C> predicate, List<C> currentContainers) {
+        List<C> matchedContainers = currentContainers.stream()
+                .filter(predicate)
+                .collect(Collectors.toList());
+
         if (CollectionUtils.isEmpty(matchedContainers)) {
             return null;
         }
@@ -318,8 +329,13 @@ public class ArchetypeManager {
         return matchedContainers.iterator().next();
     }
 
+    private <C extends Containerable> boolean findAny(Predicate<C> predicate, List<C> mergedContainers) {
+        return mergedContainers.stream().anyMatch(predicate);
+    }
+
+
     private boolean identifiersMatch(String id1, String id2) {
-        return id1 != null && id2 != null && id1.equals(id2);
+        return id1 != null && id1.equals(id2);
     }
 
     private VirtualContainersSpecificationType mergeVirtualContainer(VirtualContainersSpecificationType currentContainer, VirtualContainersSpecificationType superContainer) {
@@ -340,7 +356,7 @@ public class ArchetypeManager {
         }
 
         for (VirtualContainerItemSpecificationType virtualItem : superContainer.getItem()) {
-            if (!currentContainer.getItem().stream().anyMatch(i -> i.getPath().equivalent(virtualItem.getPath()))) {
+            if (currentContainer.getItem().stream().noneMatch(i -> pathsMatch(i.getPath(), virtualItem.getPath()))) {
                 mergedContainer.getItem().add(cloneComplex(virtualItem));
             }
         }
@@ -349,7 +365,8 @@ public class ArchetypeManager {
     }
 
     private <C extends Containerable> C cloneComplex(C containerable) {
-        return (C) containerable.asPrismContainerValue().cloneComplex(CloneStrategy.REUSE).asContainerable();
+        PrismContainerValue<C> pcv = containerable.asPrismContainerValue().cloneComplex(CloneStrategy.REUSE);
+        return pcv.asContainerable();
     }
 
     private ApplicablePoliciesType mergeApplicablePolicies(ArchetypePolicyType currentPolicy, ArchetypePolicyType superPolicy) {
@@ -488,40 +505,18 @@ public class ArchetypeManager {
     }
 
     private List<ItemConstraintType> mergeItemConstraints(List<ItemConstraintType> currentConstraints, List<ItemConstraintType> superConstraints) {
-        if (currentConstraints.isEmpty()) {
-            return superConstraints.stream().map(c -> c.clone()).collect(Collectors.toList());
-        }
-
-        List<ItemConstraintType> mergedConstraints = new ArrayList<>();
-        for (ItemConstraintType superConstraint : superConstraints) {
-            ItemConstraintType matchedConstraint = getContraintToMerge(currentConstraints, superConstraint);
-            if (matchedConstraint == null) {
-                mergedConstraints.add(cloneComplex(superConstraint));
-            } else {
-                ItemConstraintType mergedConstraint = mergeItemContraint(matchedConstraint, superConstraint);
-                mergedConstraints.add(mergedConstraint);
-            }
-        }
-
-        for (ItemConstraintType currentConstraint : currentConstraints) {
-            if (!mergedConstraints.stream().anyMatch(c -> currentConstraint.getPath().equivalent(c.getPath()))) {
-                mergedConstraints.add(cloneComplex(currentConstraint));
-            }
-        }
-        return mergedConstraints;
+        return mergeContainers(currentConstraints, superConstraints,
+                this::createItemConstraintPredicate,
+                this::mergeItemContraint);
     }
 
-    private ItemConstraintType getContraintToMerge(List<ItemConstraintType> currentConstraints, ItemConstraintType superConstraint) {
-        List<ItemConstraintType> matchedConstraints = currentConstraints.stream().filter(c -> superConstraint.getPath().equivalent(c.getPath())).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(matchedConstraints)) {
-            return null;
-        }
+    private Predicate<ItemConstraintType> createItemConstraintPredicate(ItemConstraintType constraint) {
+        return c -> pathsMatch(constraint.getPath(), c.getPath());
+    }
 
-        if (matchedConstraints.size() > 1) {
-            throw new IllegalStateException("More than one item constraint with smae path specified.");
-        }
-
-        return matchedConstraints.iterator().next();
+    // we want to merge according to path, but there might exist more than 1 def without path, so rather do nothing.
+    private boolean pathsMatch(ItemPathType supperPath, ItemPathType currentPath) {
+        return supperPath != null && currentPath != null && supperPath.equivalent(currentPath);
     }
 
     private ItemConstraintType mergeItemContraint(ItemConstraintType matchedConstraint, ItemConstraintType superConstraint) {
@@ -552,45 +547,13 @@ public class ArchetypeManager {
     }
 
     private List<LifecycleStateType> mergeLifecycleState(List<LifecycleStateType> currentState, List<LifecycleStateType> superLifecycleStates) {
-        List<LifecycleStateType> mergedLifecycleState = new ArrayList<>();
-
-        for (LifecycleStateType superLifecycleState : superLifecycleStates) {
-            LifecycleStateType currentLifecycleState = getMatchingLifecycleState(currentState, superLifecycleState);
-            if (currentLifecycleState != null) {
-                LifecycleStateType mergedLifecycle = mergeLifecycleState(currentLifecycleState, superLifecycleState);
-                mergedLifecycleState.add(mergedLifecycle);
-            } else {
-                mergedLifecycleState.add(superLifecycleState.clone());
-            }
-        }
-
-        for (LifecycleStateType currentLifecycle : currentState) {
-            if (!wasPreviouslyMerged(mergedLifecycleState, currentLifecycle)) {
-                mergedLifecycleState.add(currentLifecycle.clone());
-            }
-        }
-        return mergedLifecycleState;
+        return mergeContainers(currentState, superLifecycleStates,
+                this::createLifecycleStatePredicate,
+                this::mergeLifecycleState);
     }
 
-
-    private LifecycleStateType getMatchingLifecycleState(List<LifecycleStateType> currentState, LifecycleStateType superLifecycleState) {
-        List<LifecycleStateType> matchedLifecycle = currentState.stream()
-                .filter(s -> s.getName() != null && superLifecycleState != null && s.getName().equals(superLifecycleState.getName()))
-                .collect(Collectors.toList());
-
-        if (CollectionUtils.isEmpty(matchedLifecycle)) {
-            return null;
-        }
-
-        if (matchedLifecycle.size() > 1) {
-            throw new IllegalStateException("More than one lifecycle with the name " + superLifecycleState.getName() + " matched. Cannot merge them, probably wrong configuration");
-        }
-
-        return matchedLifecycle.iterator().next();
-    }
-
-    private boolean wasPreviouslyMerged(List<LifecycleStateType> mergedLifecycleState, LifecycleStateType currentLifecycle) {
-        return mergedLifecycleState.stream().anyMatch(s -> s.getName() != null && currentLifecycle.getName() != null && s.getName().equals(currentLifecycle.getName()));
+    private Predicate<LifecycleStateType> createLifecycleStatePredicate(LifecycleStateType currentState) {
+        return s -> s.getName() != null && currentState.getName() != null && s.getName().equals(currentState.getName());
     }
 
     private LifecycleStateType mergeLifecycleState(LifecycleStateType currentLifecycleState, LifecycleStateType superLifecycleState) {
@@ -616,7 +579,7 @@ public class ArchetypeManager {
         List<LifecycleStateActionType> mergedExitActions = mergeEntryAction(currentLifecycleState.getExitAction(), superLifecycleState.getExitAction());
         if (mergedExitActions != null) {
             mergedLifecycleState.getExitAction().clear();
-            mergedLifecycleState.getExitAction().addAll(mergedEntryActions);
+            mergedLifecycleState.getExitAction().addAll(mergedExitActions);
         }
 
         if (currentLifecycleState.getForcedActivationStatus() == null) {
@@ -658,44 +621,13 @@ public class ArchetypeManager {
     }
 
     private List<LifecycleStateActionType> mergeEntryAction(List<LifecycleStateActionType> currentActions, List<LifecycleStateActionType> superActions) {
-        if (currentActions.isEmpty()) {
-            if (superActions.isEmpty()) {
-                return null;
-            }
-            return superActions.stream().map(a -> a.clone()).collect(Collectors.toList());
-         }
-
-        List<LifecycleStateActionType> mergedActions = new ArrayList<>();
-        for (LifecycleStateActionType superAction : superActions) {
-            LifecycleStateActionType matchedAction = getMatchedAction(currentActions, superAction);
-            if (matchedAction != null) {
-                LifecycleStateActionType mergedAction = mergeAction(matchedAction, superAction);
-                mergedActions.add(mergedAction);
-            } else {
-                mergedActions.add(superAction.clone());
-            }
-        }
-
-        for (LifecycleStateActionType currentAction : currentActions) {
-            if (!mergedActions.stream().anyMatch(a -> a.getName() != null && a.getName().equals(currentAction.getName()))) {
-                mergedActions.add(currentAction);
-            }
-        }
-
-        return mergedActions;
+        return mergeContainers(currentActions, superActions,
+                this::createLifecycleStateActionPredicate,
+                this::mergeAction);
     }
 
-    private LifecycleStateActionType getMatchedAction(List<LifecycleStateActionType> currentActions, LifecycleStateActionType superAction) {
-        List<LifecycleStateActionType> matchedActions = currentActions.stream().filter(a -> a.getName() != null && a.equals(superAction.getName())).collect(Collectors.toList());
-        if (CollectionUtils.isEmpty(matchedActions)) {
-            return null;
-        }
-
-        if (matchedActions.size() > 1) {
-            throw new IllegalStateException("Cannot merge lifecycle actions, more then one matching action found with name " + superAction.getName() + ". Probably bad configuration");
-        }
-
-        return matchedActions.iterator().next();
+    private Predicate<LifecycleStateActionType> createLifecycleStateActionPredicate(LifecycleStateActionType action) {
+        return a -> a.getName() != null && a.getName().equals(action.getName());
     }
 
     private LifecycleStateActionType mergeAction(LifecycleStateActionType currentAction, LifecycleStateActionType superAction) {
@@ -837,11 +769,7 @@ public class ArchetypeManager {
                 }
             }
         }
-        if (applicablePolicyConfigurationType != null) {
-            return applicablePolicyConfigurationType;
-        }
-
-        return null;
+        return applicablePolicyConfigurationType;
     }
 
     // TODO take object's archetype into account
