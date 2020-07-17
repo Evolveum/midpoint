@@ -6,16 +6,23 @@
  */
 package com.evolveum.midpoint.model.common;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.CacheInvalidationContext;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
+import com.evolveum.midpoint.repo.api.Cacheable;
+
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,12 +48,26 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
  * @author Radovan Semancik
  */
 @Component
-public class ArchetypeManager {
+public class ArchetypeManager implements Cacheable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ArchetypeManager.class);
+    private static final Trace LOGGER_CONTENT = TraceManager.getTrace(ArchetypeManager.class.getName() + ".content");
 
     @Autowired private SystemObjectCache systemObjectCache;
     @Autowired private PrismContext prismContext;
+    @Autowired private CacheRegistry cacheRegistry;
+
+    private Map<String, ArchetypePolicyType> archetypePolicyCache = new ConcurrentHashMap<>();
+
+    @PostConstruct
+    public void registerCacheableService() {
+        cacheRegistry.registerCacheableService(this);
+    }
+
+    @PreDestroy
+    public void unregisterCacheableService() {
+        cacheRegistry.unregisterCacheableService(this);
+    }
 
     public PrismObject<ArchetypeType> getArchetype(String oid, OperationResult result) throws ObjectNotFoundException, SchemaException {
         // TODO: make this efficient (use cache)
@@ -140,18 +161,31 @@ public class ArchetypeManager {
             archetype = determineArchetype((PrismObject<? extends AssignmentHolderType>) object, explicitArchetypeOid, result);
         }
 
+        if (archetype != null) {
+            ArchetypePolicyType cachedArchetypePolicy = archetypePolicyCache.get(archetype.getOid());
+            if (cachedArchetypePolicy != null) {
+                return cachedArchetypePolicy;
+            }
+        }
+
         ArchetypePolicyType archetypePolicy = mergeArchetypePolicies(archetype, result);
+
 
         // No archetype for this object. Try to find appropriate system configuration section for this object.
         ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
         // TODO: cache the result of the merge
-        return merge(archetypePolicy, objectPolicy);
+        ArchetypePolicyType mergedPolicy = merge(archetypePolicy, objectPolicy);
+        if (archetype != null) {
+            archetypePolicyCache.put(archetype.getOid(), mergedPolicy);
+        }
+        return mergedPolicy;
     }
 
     public ArchetypePolicyType mergeArchetypePolicies(PrismObject<ArchetypeType> archetype, OperationResult result) throws SchemaException {
         if (archetype == null) {
             return null;
         }
+
         return mergeArchetypePolicies(archetype.asObjectable(), result);
     }
 
@@ -786,5 +820,26 @@ public class ArchetypeManager {
             return null;
         }
         return objectPolicyConfiguration.getLifecycleStateModel();
+    }
+
+    @Override
+    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+        if (type == null || ArchetypeType.class.equals(type)) {
+            archetypePolicyCache.clear();
+        }
+    }
+
+    @Override
+    public @NotNull Collection<SingleCacheStateInformationType> getStateInformation() {
+        return Collections.singleton(new SingleCacheStateInformationType(prismContext)
+                .name(ArchetypeManager.class.getName())
+                .size(archetypePolicyCache.size()));
+    }
+
+    @Override
+    public void dumpContent() {
+        if (LOGGER_CONTENT.isInfoEnabled()) {
+            archetypePolicyCache.forEach((k, v) -> LOGGER_CONTENT.info("Cached archetype policy: {}: {}", k, v));
+        }
     }
 }
