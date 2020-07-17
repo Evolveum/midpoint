@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
-import static com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor.QUERYDSL_CONFIGURATION;
-
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.List;
@@ -11,6 +9,7 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
+import com.querydsl.sql.Configuration;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
@@ -58,24 +57,35 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
     public static final int MAX_ID_IN_FOR_TO_MANY_FETCH = 100;
 
     private final SQLQuery<?> sqlQuery;
+    private final Configuration querydslConfiguration;
 
     public static <S, Q extends EntityPath<R>, R> SqlQueryContext<S, Q, R> from(
-            Class<S> schemaType, PrismContext prismContext) throws QueryException {
+            Class<S> schemaType, PrismContext prismContext, Configuration querydslConfiguration)
+            throws QueryException {
 
         QueryModelMapping<S, Q, R> rootMapping = QueryModelMappingConfig.getBySchemaType(schemaType);
-        return new SqlQueryContext<>(rootMapping, prismContext);
+        return new SqlQueryContext<>(rootMapping, prismContext, querydslConfiguration);
     }
 
-    private SqlQueryContext(QueryModelMapping<S, Q, R> rootMapping, PrismContext prismContext)
+    private SqlQueryContext(
+            QueryModelMapping<S, Q, R> rootMapping,
+            PrismContext prismContext,
+            Configuration querydslConfiguration)
             throws QueryException {
         super(rootMapping.defaultAlias(), rootMapping, prismContext);
-        sqlQuery = new SQLQuery<>(QUERYDSL_CONFIGURATION).from(root());
+        this.querydslConfiguration = querydslConfiguration;
+        sqlQuery = new SQLQuery<>(querydslConfiguration).from(root());
     }
 
     // private constructor for "derived" query contexts
     private SqlQueryContext(
-            Q defaultAlias, QueryModelMapping<S, Q, R> mapping, PrismContext prismContext, SQLQuery<?> query) {
+            Q defaultAlias,
+            QueryModelMapping<S, Q, R> mapping,
+            PrismContext prismContext,
+            Configuration querydslConfiguration,
+            SQLQuery<?> query) {
         super(defaultAlias, mapping, prismContext);
+        this.querydslConfiguration = querydslConfiguration;
         this.sqlQuery = query;
     }
 
@@ -140,7 +150,7 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
     }
 
     public SQLQuery<?> newQuery(Connection conn) {
-        return new SQLQuery<>(conn, QUERYDSL_CONFIGURATION);
+        return new SQLQuery<>(conn, querydslConfiguration);
     }
 
     public PageOf<R> executeQuery(Connection conn) throws QueryException {
@@ -185,7 +195,8 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
         //noinspection unchecked
         Class<DQ> aClass = (Class<DQ>) newPath.getClass();
         QueryModelMapping<?, DQ, DR> mapping = QueryModelMappingConfig.getByQueryType(aClass);
-        return new SqlQueryContext<>(newPath, mapping, prismContext(), sqlQuery);
+        return new SqlQueryContext<>(
+                newPath, mapping, prismContext(), querydslConfiguration, sqlQuery);
     }
 
     @Override

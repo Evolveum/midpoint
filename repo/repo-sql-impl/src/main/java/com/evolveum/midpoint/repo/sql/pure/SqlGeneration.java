@@ -13,8 +13,10 @@ import com.querydsl.core.types.Expression;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.QMap;
+import com.querydsl.sql.Configuration;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQuery;
+import com.querydsl.sql.SQLTemplates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -213,6 +215,6 @@ public class SqlGeneration {
 
     @NotNull
     public static SQLQuery<Object> newQuery(Connection connection) {
-        return new SQLQuery<>(connection, SqlQueryExecutor.QUERYDSL_CONFIGURATION);
+        return new SQLQuery<>(connection, new Configuration(SQLTemplates.DEFAULT));
     }
 }
