@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Component just under the service that orchestrates query transformation and execution.
@@ -63,7 +64,7 @@ public class SqlQueryExecutor {
             @NotNull Class<S> schemaType,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)
-            throws QueryException {
+            throws QueryException, SchemaException {
 
         SqlQueryContext<S, Q, R> context = SqlQueryContext.from(schemaType, prismContext);
         if (query != null) {

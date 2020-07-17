@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
@@ -30,7 +31,25 @@ public abstract class SqlTransformer<S, R> {
      * Alternative would be dynamically generated list of select expressions and transforming
      * row to M object directly from {@link com.querydsl.core.Tuple}.
      */
-    public abstract S toSchemaObject(R row);
+    public abstract S toSchemaObject(R row) throws SchemaException;
+
+    /**
+     * Version of {@link #toSchemaObject(Object)} rethrowing checked exceptions as unchecked
+     * {@link SqlTransformationException} - this is useful for lambda/method references usages.
+     */
+    public S toSchemaObjectSafe(R row) {
+        try {
+            return toSchemaObject(row);
+        } catch (SchemaException e) {
+            throw new SqlTransformationException(e);
+        }
+    }
+
+    public static class SqlTransformationException extends RuntimeException {
+        public SqlTransformationException(Throwable cause) {
+            super(cause);
+        }
+    }
 
     /**
      * Returns {@link ObjectReferenceType} with specified oid, proper type based on

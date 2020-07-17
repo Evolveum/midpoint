@@ -1,9 +1,10 @@
-package com.evolveum.midpoint.repo.sql.pure.mapping;
+package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditPropertyValue.*;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
+import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditPropertyValue;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditPropertyValue;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
@@ -27,6 +28,6 @@ public class QAuditPropertyValueMapping
     @Override
     public SqlTransformer<AuditEventRecordPropertyType, MAuditPropertyValue> createTransformer(
             PrismContext prismContext) {
-        throw new UnsupportedOperationException("TODO"); // TODO
+        throw new UnsupportedOperationException("handled by AuditEventRecordSqlTransformer");
     }
 }

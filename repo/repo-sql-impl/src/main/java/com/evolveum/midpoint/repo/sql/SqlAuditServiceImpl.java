@@ -925,7 +925,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     public SearchResultList<AuditEventRecordType> searchObjects(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult parentResult) {
+            OperationResult parentResult) throws SchemaException {
         // TODO MID-6319
         // do something with the OperationResult... skipped for now
         try {

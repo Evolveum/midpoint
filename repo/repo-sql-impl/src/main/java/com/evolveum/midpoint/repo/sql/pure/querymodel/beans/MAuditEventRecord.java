@@ -49,7 +49,31 @@ public class MAuditEventRecord {
     // "transient" fields not used by Querydsl
     public List<MAuditDelta> deltas;
     public List<MAuditItem> changedItems;
+    // see
+    public Map<String, List<MAuditRefValue>> refValues;
     public Map<String, List<String>> properties;
+
+    public void addDelta(MAuditDelta mAuditDelta) {
+        if (deltas == null) {
+            deltas = new ArrayList<>();
+        }
+        deltas.add(mAuditDelta);
+    }
+
+    public void addChangedItem(MAuditItem mAuditItem) {
+        if (changedItems == null) {
+            changedItems = new ArrayList<>();
+        }
+        changedItems.add(mAuditItem);
+    }
+
+    public void addRefValue(MAuditRefValue refValue) {
+        if (refValues == null) {
+            refValues = new TreeMap<>();
+        }
+        List<MAuditRefValue> values = refValues.computeIfAbsent(refValue.name, s -> new ArrayList<>());
+        values.add(refValue);
+    }
 
     public void addProperty(MAuditPropertyValue propertyValue) {
         if (properties == null) {
@@ -57,6 +81,20 @@ public class MAuditEventRecord {
         }
         List<String> values = properties.computeIfAbsent(propertyValue.name, s -> new ArrayList<>());
         values.add(propertyValue.value);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+
+        MAuditEventRecord that = (MAuditEventRecord) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 
     @Override
@@ -91,33 +129,5 @@ public class MAuditEventRecord {
                 ", taskIdentifier='" + taskIdentifier + '\'' +
                 ", taskOid='" + taskOid + '\'' +
                 '}';
-    }
-
-    public void addDelta(MAuditDelta mAuditDelta) {
-        if (deltas == null) {
-            deltas = new ArrayList<>();
-        }
-        deltas.add(mAuditDelta);
-    }
-
-    public void addChangedItem(MAuditItem mAuditItem) {
-        if (changedItems == null) {
-            changedItems = new ArrayList<>();
-        }
-        changedItems.add(mAuditItem);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) { return true; }
-        if (o == null || getClass() != o.getClass()) { return false; }
-
-        MAuditEventRecord that = (MAuditEventRecord) o;
-        return Objects.equals(id, that.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
     }
 }

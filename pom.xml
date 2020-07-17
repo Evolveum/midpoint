@@ -206,6 +206,7 @@
         <commons.csv.version>1.8</commons.csv.version>
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.64</bouncycastle.version>
+        <protobuf.version>3.12.2</protobuf.version>
 
         <!--
         Coming in different versions from org.glassfish.jaxb:xsom and from
@@ -1309,6 +1310,12 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- used by both wro4j-extensions/com.github.sommeri:less4j and mysql driver -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
@@ -1377,10 +1384,10 @@
                 <artifactId>bcpkix-jdk15on</artifactId>
                 <version>${bouncycastle.version}</version>
             </dependency>
-           <dependency>
+            <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk15on</artifactId>
-               <version>${bouncycastle.version}</version>
+                <version>${bouncycastle.version}</version>
             </dependency>
 
             <!-- webjars -->
