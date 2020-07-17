@@ -87,7 +87,9 @@ public class SqlQueryExecutor {
     @NotNull
     private <T> SearchResultList<T> createSearchResultList(PageOf<T> result) {
         SearchResultMetadata metadata = new SearchResultMetadata();
-        metadata.setApproxNumberOfAllResults((int) result.totalCount());
+        if (result.isKnownTotalCount()) {
+            metadata.setApproxNumberOfAllResults((int) result.totalCount());
+        }
         return new SearchResultList<>(result.content(), metadata);
     }
 

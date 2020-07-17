@@ -152,15 +152,13 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
         // TODO MID-6319: logging
         System.out.println("SQL query: " + query);
 
-        // TODO MID-6319: make this optional (based on options)? We have explicit count now.
-        long count = query.fetchCount();
         List<R> data = query.fetch();
 
         for (SqlDetailFetchMapper<R, ?, ?, ?> fetcher : mapping().detailFetchMappers()) {
             fetcher.execute(() -> newQuery(conn), data);
         }
 
-        return new PageOf<>(data, PageOf.PAGE_NO_PAGINATION, 0, count);
+        return new PageOf<>(data, PageOf.PAGE_NO_PAGINATION, 0);
     }
 
     public int executeCount(Connection conn) {
