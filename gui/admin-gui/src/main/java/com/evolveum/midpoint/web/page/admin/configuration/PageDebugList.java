@@ -1048,7 +1048,7 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
             searchForm.add(choiceContainer);
 
             DropDownChoicePanel choice = new DropDownChoicePanel<ObjectTypes>(ID_CHOICE,
-                    new PropertyModel(model, DebugSearchDto.F_TYPE), createChoiceModel(renderer), renderer);
+                    new PropertyModel(model, DebugSearchDto.F_TYPE), createChoiceModel(), renderer);
             choiceContainer.add(choice);
             choice.getBaseFormComponent().add(new OnChangeAjaxBehavior() {
                 private static final long serialVersionUID = 1L;
@@ -1167,15 +1167,13 @@ public class PageDebugList<O extends ObjectType> extends PageAdminConfiguration 
             return (AjaxCheckBox) get(ID_ZIP_CHECK);
         }
 
-        private IModel<List<ObjectTypes>> createChoiceModel(final IChoiceRenderer<ObjectTypes> renderer) {
+        private IModel<List<ObjectTypes>> createChoiceModel() {
             return new LoadableModel<List<ObjectTypes>>(false) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 protected List<ObjectTypes> load() {
-                    List<ObjectTypes> choices = new ArrayList<>();
-
-                    Collections.addAll(choices, ObjectTypes.values());
+                    List<ObjectTypes> choices = WebComponentUtil.createObjectTypesList();
                     choices.remove(ObjectTypes.OBJECT);
 
                     return choices;

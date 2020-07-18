@@ -45,33 +45,34 @@ public class PolicyRuleSuspendTaskExecutor {
 
         TaskType taskType = task.getUpdatedOrClonedTaskObject().asObjectable();
         for (EvaluatedPolicyRule policyRule : focusCtx.getPolicyRules()) {
-            CounterSpecification counterSpec = counterManager.getCounterSpec(taskType, policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
-            LOGGER.trace("Found counter specification {} for {}", counterSpec, DebugUtil.debugDumpLazily(policyRule));
+            // TEMPORARY fix for MID-6343; TODO implement seriously
+            if (policyRule.containsEnabledAction(SuspendTaskPolicyActionType.class)) {
+                CounterSpecification counterSpec = counterManager
+                        .getCounterSpec(taskType, policyRule.getPolicyRuleIdentifier(), policyRule.getPolicyRule());
+                LOGGER.trace("Found counter specification {} for {}", counterSpec, DebugUtil.debugDumpLazily(policyRule));
 
-            int counter = 1;
-            if (counterSpec != null) {
-                counter = counterSpec.getCount();
-            }
-            counter = checkEvaluatedPolicyRule(task, policyRule, counter, result);
+                int counter = 1;
+                if (counterSpec != null) {
+                    counter = counterSpec.getCount();
+                }
+                counter = checkEvaluatedPolicyRule(task, policyRule, counter, result);
 
-            if (counterSpec != null) {
-                LOGGER.trace("Setting new count = {} to counter spec", counter);
-                counterSpec.setCount(counter);
+                if (counterSpec != null) {
+                    LOGGER.trace("Setting new count = {} to counter spec", counter);
+                    counterSpec.setCount(counter);
+                }
             }
         }
 
     }
 
     private synchronized int checkEvaluatedPolicyRule(Task task, EvaluatedPolicyRule policyRule, int counter, OperationResult result) throws ThresholdPolicyViolationException, ObjectNotFoundException, SchemaException {
-        if (policyRule.containsEnabledAction(SuspendTaskPolicyActionType.class)) {
-            counter++;
-            LOGGER.trace("Suspend task action enabled for {}, checking threshold settings", DebugUtil.debugDumpLazily(policyRule));
-            PolicyThresholdType thresholdSettings = policyRule.getPolicyThreshold();
-            if (isOverThreshold(thresholdSettings, counter)) {
-                throw new ThresholdPolicyViolationException("Policy rule violation: " + policyRule.getPolicyRule());
-            }
+        counter++;
+        LOGGER.trace("Suspend task action enabled for {}, checking threshold settings", DebugUtil.debugDumpLazily(policyRule));
+        PolicyThresholdType thresholdSettings = policyRule.getPolicyThreshold();
+        if (isOverThreshold(thresholdSettings, counter)) {
+            throw new ThresholdPolicyViolationException("Policy rule violation: " + policyRule.getPolicyRule());
         }
-
         return counter;
     }
 

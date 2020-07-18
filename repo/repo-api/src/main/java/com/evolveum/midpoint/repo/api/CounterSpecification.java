@@ -21,12 +21,14 @@ public class CounterSpecification implements DebugDumpable {
     private int count = 0;
     private long counterStart;
 
-    private TaskType task;
+    private String taskOid;
+    private String taskName;
     private PolicyRuleType policyRule;
     private String policyRuleId;
 
     public CounterSpecification(TaskType task, String policyRuleId, PolicyRuleType policyRule) {
-        this.task = task;
+        this.taskOid = task.getOid();
+        this.taskName = task.getName().getOrig();
         this.policyRuleId = policyRuleId;
         this.policyRule = policyRule;
     }
@@ -49,7 +51,7 @@ public class CounterSpecification implements DebugDumpable {
     }
 
     public String getTaskName() {
-        return task.getName().getOrig();
+        return taskName;
     }
 
     public String getPolicyRuleName() {
@@ -57,7 +59,7 @@ public class CounterSpecification implements DebugDumpable {
     }
 
     public String getTaskOid() {
-        return task.getOid();
+        return taskOid;
     }
 
     public String getPolicyRuleId() {
@@ -73,12 +75,11 @@ public class CounterSpecification implements DebugDumpable {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Counter for: ").append(task).append(", policy rule: ").append(policyRule).append("\n");
+        sb.append("Counter for: ").append(taskName).append(" (").append(taskOid).append("), policy rule: ").append(policyRule).append("\n");
         sb.append("Current count: ").append(count).append("\n");
         sb.append("Counter start: ").append(XmlTypeConverter.createXMLGregorianCalendar(counterStart)).append("\n");
 
         sb.append("Thresholds: \n").append(getPolicyThreshold().toString());
         return sb.toString();
     }
-
 }

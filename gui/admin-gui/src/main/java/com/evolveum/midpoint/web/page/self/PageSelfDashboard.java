@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.page.self;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_CREATE_TIMESTAMP;
+import static java.util.Collections.emptyList;
 
 import java.util.*;
 
@@ -177,9 +178,8 @@ public class PageSelfDashboard extends PageSelf {
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            public CallableResult<List<CaseWorkItemType>> callWithContextPrepared() throws Exception {
-                                setupContext(application, session);    // TODO is this correct? [med]
-                                return loadWorkItems();
+                            public CallableResult<List<CaseWorkItemType>> callWithContextPrepared() {
+                                return new CallableResult<>(emptyList(), null); // it is ignored anyway - FIXME
                             }
                         };
                     }
@@ -229,9 +229,8 @@ public class PageSelfDashboard extends PageSelf {
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            public CallableResult<List<CaseType>> callWithContextPrepared() throws Exception {
-                                setupContext(application, session);
-                                return loadMyRequests();
+                            public CallableResult<List<CaseType>> callWithContextPrepared() {
+                                return new CallableResult<>(emptyList(), null); // it is ignored anyway - FIXME
                             }
                         };
                     }
@@ -273,99 +272,6 @@ public class PageSelfDashboard extends PageSelf {
         initMyAccounts(session);
         initAssignments();
     }
-
-    private CallableResult<List<CaseWorkItemType>> loadWorkItems() {
-
-        LOGGER.debug("Loading work items.");
-
-        AccountCallableResult callableResult = new AccountCallableResult();
-        List<CaseWorkItemType> list = new ArrayList<>();
-        callableResult.setValue(list);
-
-        if (!getWorkflowManager().isEnabled()) {
-            return callableResult;
-        }
-
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null) {
-            return callableResult;
-        }
-
-        Task task = createSimpleTask(OPERATION_LOAD_WORK_ITEMS);
-        OperationResult result = task.getResult();
-        callableResult.setResult(result);
-
-        try {
-            // TODO try to use current state (user) instead of potentially obsolete principal
-            // but this requires some computation (of deputy relation)
-            // (Note that the current code is consistent with the other places where work items are displayed.)
-            S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseWorkItemType.class);
-            ObjectQuery query = QueryUtils.filterForAssignees(q, SecurityUtils.getPrincipalUser(),
-                    OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
-                    .desc(F_CREATE_TIMESTAMP)
-                    .build();
-            Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-                    .item(T_PARENT, CaseType.F_OBJECT_REF).resolve()
-                    .item(T_PARENT, CaseType.F_TARGET_REF).resolve()
-                    .build();
-            List<CaseWorkItemType> workItems = getModelService().searchContainers(CaseWorkItemType.class, query, options, task, result);
-            callableResult.setValue(workItems);
-        } catch (Exception e) {
-            result.recordFatalError(getString("PageSelfDashboard.message.loadWorkItems.fatalError"), e);
-        }
-
-        result.recordSuccessIfUnknown();
-        result.recomputeStatus();
-
-        LOGGER.debug("Finished work items loading.");
-
-        return callableResult;
-    }
-
-    private CallableResult<List<CaseType>> loadMyRequests() {
-
-        LOGGER.debug("Loading requests.");
-
-        AccountCallableResult<List<CaseType>> callableResult = new AccountCallableResult<>();
-        List<CaseType> list = new ArrayList<>();
-        callableResult.setValue(list);
-
-        if (!getWorkflowManager().isEnabled()) {
-            return callableResult;
-        }
-
-        PrismObject<UserType> user = principalModel.getObject();
-        if (user == null) {
-            return callableResult;
-        }
-
-        Task task = createSimpleTask(OPERATION_LOAD_REQUESTS);
-        OperationResult result = task.getResult();
-        callableResult.setResult(result);
-
-        try {
-            S_FilterEntryOrEmpty q = getPrismContext().queryFor(CaseType.class);
-            ObjectQuery query = QueryUtils.filterForMyRequests(q, user.getOid())
-                    .build();
-            Collection<SelectorOptions<GetOperationOptions>> options = getOperationOptionsBuilder()
-                    .item(CaseType.F_OBJECT_REF).resolve()
-                    .item(CaseType.F_TARGET_REF).resolve()
-                    .build();
-            List<PrismObject<CaseType>> cases = getModelService().searchObjects(CaseType.class, query, options, task, result);
-            cases.forEach(caseObj -> list.add(caseObj.asObjectable()));
-            callableResult.setValue(list);
-        } catch (Exception e) {
-            result.recordFatalError(getString("PageSelfDashboard.message.loadWorkItems.fatalError"), e);
-        }
-
-        result.recordSuccessIfUnknown();
-        result.recomputeStatus();
-
-        LOGGER.debug("Finished requests loading.");
-
-        return callableResult;
-    }
-
 
     private PrismObject<UserType> loadUser() {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();

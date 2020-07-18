@@ -119,6 +119,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Autowired private CacheConfigurationManager cacheConfigurationManager;
     @Autowired private Tracer tracer;
     @Autowired private CacheDispatcher cacheDispatcher;
+    @Autowired private CounterManager counterManager;
 
     private GlobalTracingOverride globalTracingOverride;
 
@@ -2652,5 +2653,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     @Override
     public boolean isCheckingIn(NodeType node) {
         return clusterManager.isCheckingIn(node);
+    }
+
+    public CounterManager getCounterManager() {
+        return counterManager;
     }
 }
