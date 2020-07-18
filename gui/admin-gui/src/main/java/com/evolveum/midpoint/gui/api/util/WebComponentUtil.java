@@ -771,59 +771,44 @@ public final class WebComponentUtil {
         return (int) l.longValue();
     }
 
-    // TODO: move to schema component
-    public static List<QName> createObjectTypeList() {
+       public static List<ObjectTypes> createObjectTypesList() {
+                List<ObjectTypes> types = Arrays.asList(ObjectTypes.values());
 
-        List<QName> types = new ArrayList<>(ObjectTypes.values().length);
-        for (ObjectTypes t : ObjectTypes.values()) {
-            types.add(t.getTypeQName());
-        }
+            return types.stream().sorted((type1, type2) -> {
 
-        return types.stream().sorted((type1, type2) -> {
                 Validate.notNull(type1);
                 Validate.notNull(type2);
 
-                return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1), QNameUtil.qNameToUri(type2));
+                ObjectTypeGuiDescriptor decs1 = ObjectTypeGuiDescriptor.getDescriptor(type1);
+                ObjectTypeGuiDescriptor desc2 = ObjectTypeGuiDescriptor.getDescriptor(type2);
 
+                String localizedType1 = translate(decs1);
+                String localizedType2 = translate(desc2);
 
+                return String.CASE_INSENSITIVE_ORDER.compare(localizedType1, localizedType2);
         }).collect(Collectors.toList());
+    }
+
+    private static String translate(ObjectTypeGuiDescriptor descriptor) {
+        MidPointApplication app = MidPointApplication.get();
+        return app.getLocalizationService().translate(descriptor.getLocalizationKey(), null, getCurrentLocale());
+    }
+
+
+    // TODO: move to schema component
+    public static List<QName> createObjectTypeList() {
+        return createObjectTypesList().stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
 
     }
 
     public static List<QName> createAssignmentHolderTypeQnamesList() {
-
         List<ObjectTypes> objectTypes = createAssignmentHolderTypesList();
-        List<QName> types = new ArrayList<>();
-        objectTypes.forEach(objectType -> {
-            types.add(objectType.getTypeQName());
-        });
-
-        return types.stream().sorted((type1, type2) -> {
-                Validate.notNull(type1);
-                Validate.notNull(type2);
-
-                return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1), QNameUtil.qNameToUri(type2));
-
-
-        }).collect(Collectors.toList());
-
+        return objectTypes.stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
     }
 
     public static List<ObjectTypes> createAssignmentHolderTypesList(){
-        List<ObjectTypes> objectTypes = new ArrayList<>();
-        for (ObjectTypes t : ObjectTypes.values()) {
-            if (AssignmentHolderType.class.isAssignableFrom(t.getClassDefinition())) {
-                objectTypes.add(t);
-            }
-        }
-        return objectTypes.stream().sorted((type1, type2) -> {
-            Validate.notNull(type1);
-            Validate.notNull(type2);
+        return createObjectTypesList().stream().filter(type -> AssignmentHolderType.class.isAssignableFrom(type.getClassDefinition())).collect(Collectors.toList());
 
-            return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1.getTypeQName()), QNameUtil.qNameToUri(type2.getTypeQName()));
-
-
-        }).collect(Collectors.toList());
     }
 
     // TODO: move to schema component
