@@ -8,6 +8,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -265,11 +266,8 @@ public class DebugSearchFragment extends Fragment {
 
                 @Override
                 protected List<ObjectTypes> load() {
-                    List<ObjectTypes> choices = new ArrayList<>();
-
-                    Collections.addAll(choices, ObjectTypes.values());
+                    List<ObjectTypes> choices = WebComponentUtil.createObjectTypesList();
                     choices.remove(ObjectTypes.OBJECT);
-
                     return choices;
                 }
             };
