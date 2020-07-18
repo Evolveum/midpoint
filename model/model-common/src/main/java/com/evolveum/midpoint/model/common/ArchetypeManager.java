@@ -120,11 +120,11 @@ public class ArchetypeManager implements Cacheable {
                 .collect(Collectors.toList());
     }
 
-    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException, ConfigurationException {
+    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, OperationResult result) throws SchemaException {
         return determineArchetype(assignmentHolder, null, result);
     }
 
-    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, String explicitArchetypeOid, OperationResult result) throws SchemaException, ConfigurationException {
+    public <O extends AssignmentHolderType> PrismObject<ArchetypeType> determineArchetype(PrismObject<O> assignmentHolder, String explicitArchetypeOid, OperationResult result) throws SchemaException {
         String archetypeOid;
         if (explicitArchetypeOid != null) {
             archetypeOid = explicitArchetypeOid;
@@ -175,7 +175,7 @@ public class ArchetypeManager implements Cacheable {
         ObjectPolicyConfigurationType objectPolicy = determineObjectPolicyConfiguration(object, result);
         // TODO: cache the result of the merge
         ArchetypePolicyType mergedPolicy = merge(archetypePolicy, objectPolicy);
-        if (archetype != null) {
+        if (archetype != null && mergedPolicy != null) {
             archetypePolicyCache.put(archetype.getOid(), mergedPolicy);
         }
         return mergedPolicy;
