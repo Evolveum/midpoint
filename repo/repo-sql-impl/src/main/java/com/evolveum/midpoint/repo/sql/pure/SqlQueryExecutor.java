@@ -5,10 +5,8 @@ import java.sql.SQLException;
 import java.util.Collection;
 
 import com.querydsl.core.types.EntityPath;
-import com.querydsl.sql.Configuration;
-import com.querydsl.sql.SQLTemplates;
+import com.querydsl.sql.*;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -20,24 +18,52 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Component just under the service that orchestrates query transformation and execution.
+ * Sql query executor itself does hold the query state, it uses {@link SqlQueryContext} for that.
+ * Instead, this - as a Spring managed component - keeps configuration information.
  */
 @Component
 public class SqlQueryExecutor {
 
-    public static final Configuration QUERYDSL_CONFIGURATION =
-            new Configuration(SQLTemplates.DEFAULT);
+    private final PrismContext prismContext;
+    private final DataSourceFactory dataSourceFactory;
 
-    static {
+    private final Configuration querydslConfiguration;
+
+    public SqlQueryExecutor(PrismContext prismContext, DataSourceFactory dataSourceFactory) {
+        this.prismContext = prismContext;
+        this.dataSourceFactory = dataSourceFactory;
+
+        switch (dataSourceFactory.getConfiguration().getDatabase()) {
+            case H2:
+                querydslConfiguration = new Configuration(H2Templates.DEFAULT);
+                break;
+            case MYSQL:
+            case MARIADB:
+                querydslConfiguration = new Configuration(MySQLTemplates.DEFAULT);
+                break;
+            case POSTGRESQL:
+                querydslConfiguration = new Configuration(PostgreSQLTemplates.DEFAULT);
+                break;
+            case SQLSERVER:
+                querydslConfiguration = new Configuration(SQLServer2012Templates.DEFAULT);
+                break;
+            case ORACLE:
+                querydslConfiguration = new Configuration(OracleTemplates.DEFAULT);
+                break;
+            default:
+                // should not be used, but just in case
+                querydslConfiguration = new Configuration(SQLTemplates.DEFAULT);
+                break;
+        }
+
         // See InstantType javadoc for the reasons why we need this to support Instant.
-        QUERYDSL_CONFIGURATION.register(new InstantType());
+        querydslConfiguration.register(new InstantType());
         // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
     }
-
-    @Autowired private PrismContext prismContext;
-    @Autowired private DataSourceFactory dataSourceFactory;
 
     public <S, Q extends EntityPath<R>, R> int count(
             @NotNull Class<S> schemaType,
@@ -45,7 +71,8 @@ public class SqlQueryExecutor {
             Collection<SelectorOptions<GetOperationOptions>> options)
             throws QueryException {
 
-        SqlQueryContext<S, Q, R> context = SqlQueryContext.from(schemaType, prismContext);
+        SqlQueryContext<S, Q, R> context =
+                SqlQueryContext.from(schemaType, prismContext, querydslConfiguration);
         if (query != null) {
             context.process(query.getFilter());
         }
@@ -63,9 +90,10 @@ public class SqlQueryExecutor {
             @NotNull Class<S> schemaType,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)
-            throws QueryException {
+            throws QueryException, SchemaException {
 
-        SqlQueryContext<S, Q, R> context = SqlQueryContext.from(schemaType, prismContext);
+        SqlQueryContext<S, Q, R> context =
+                SqlQueryContext.from(schemaType, prismContext, querydslConfiguration);
         if (query != null) {
             context.process(query.getFilter());
             context.processObjectPaging(query.getPaging());
@@ -86,7 +114,9 @@ public class SqlQueryExecutor {
     @NotNull
     private <T> SearchResultList<T> createSearchResultList(PageOf<T> result) {
         SearchResultMetadata metadata = new SearchResultMetadata();
-        metadata.setApproxNumberOfAllResults((int) result.totalCount());
+        if (result.isKnownTotalCount()) {
+            metadata.setApproxNumberOfAllResults((int) result.totalCount());
+        }
         return new SearchResultList<>(result.content(), metadata);
     }
 

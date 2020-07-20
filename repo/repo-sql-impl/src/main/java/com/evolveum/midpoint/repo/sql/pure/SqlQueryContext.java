@@ -1,7 +1,5 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
-import static com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor.QUERYDSL_CONFIGURATION;
-
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.List;
@@ -11,6 +9,7 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
+import com.querydsl.sql.Configuration;
 import com.querydsl.sql.SQLQuery;
 import org.jetbrains.annotations.NotNull;
 
@@ -26,6 +25,7 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.SqlDetailFetchMapper;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Context information about SQL query.
@@ -57,24 +57,35 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
     public static final int MAX_ID_IN_FOR_TO_MANY_FETCH = 100;
 
     private final SQLQuery<?> sqlQuery;
+    private final Configuration querydslConfiguration;
 
     public static <S, Q extends EntityPath<R>, R> SqlQueryContext<S, Q, R> from(
-            Class<S> schemaType, PrismContext prismContext) throws QueryException {
+            Class<S> schemaType, PrismContext prismContext, Configuration querydslConfiguration)
+            throws QueryException {
 
         QueryModelMapping<S, Q, R> rootMapping = QueryModelMappingConfig.getBySchemaType(schemaType);
-        return new SqlQueryContext<>(rootMapping, prismContext);
+        return new SqlQueryContext<>(rootMapping, prismContext, querydslConfiguration);
     }
 
-    private SqlQueryContext(QueryModelMapping<S, Q, R> rootMapping, PrismContext prismContext)
+    private SqlQueryContext(
+            QueryModelMapping<S, Q, R> rootMapping,
+            PrismContext prismContext,
+            Configuration querydslConfiguration)
             throws QueryException {
         super(rootMapping.defaultAlias(), rootMapping, prismContext);
-        sqlQuery = new SQLQuery<>(QUERYDSL_CONFIGURATION).from(root());
+        this.querydslConfiguration = querydslConfiguration;
+        sqlQuery = new SQLQuery<>(querydslConfiguration).from(root());
     }
 
     // private constructor for "derived" query contexts
     private SqlQueryContext(
-            Q defaultAlias, QueryModelMapping<S, Q, R> mapping, PrismContext prismContext, SQLQuery<?> query) {
+            Q defaultAlias,
+            QueryModelMapping<S, Q, R> mapping,
+            PrismContext prismContext,
+            Configuration querydslConfiguration,
+            SQLQuery<?> query) {
         super(defaultAlias, mapping, prismContext);
+        this.querydslConfiguration = querydslConfiguration;
         this.sqlQuery = query;
     }
 
@@ -139,7 +150,7 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
     }
 
     public SQLQuery<?> newQuery(Connection conn) {
-        return new SQLQuery<>(conn, QUERYDSL_CONFIGURATION);
+        return new SQLQuery<>(conn, querydslConfiguration);
     }
 
     public PageOf<R> executeQuery(Connection conn) throws QueryException {
@@ -151,15 +162,13 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
         // TODO MID-6319: logging
         System.out.println("SQL query: " + query);
 
-        // TODO MID-6319: make this optional (based on options)? We have explicit count now.
-        long count = query.fetchCount();
         List<R> data = query.fetch();
 
         for (SqlDetailFetchMapper<R, ?, ?, ?> fetcher : mapping().detailFetchMappers()) {
             fetcher.execute(() -> newQuery(conn), data);
         }
 
-        return new PageOf<>(data, PageOf.PAGE_NO_PAGINATION, 0, count);
+        return new PageOf<>(data, PageOf.PAGE_NO_PAGINATION, 0);
     }
 
     public int executeCount(Connection conn) {
@@ -186,7 +195,8 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
         //noinspection unchecked
         Class<DQ> aClass = (Class<DQ>) newPath.getClass();
         QueryModelMapping<?, DQ, DR> mapping = QueryModelMappingConfig.getByQueryType(aClass);
-        return new SqlQueryContext<>(newPath, mapping, prismContext(), sqlQuery);
+        return new SqlQueryContext<>(
+                newPath, mapping, prismContext(), querydslConfiguration, sqlQuery);
     }
 
     @Override
@@ -206,8 +216,20 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
         }
     }
 
-    public PageOf<S> transformToSchemaType(PageOf<R> result) {
-        SqlTransformer<S, R> transformer = mapping().createTransformer(prismContext());
-        return result.map(transformer::toSchemaObject);
+    public PageOf<S> transformToSchemaType(PageOf<R> result)
+            throws SchemaException, QueryException {
+        try {
+            SqlTransformer<S, R> transformer = mapping().createTransformer(prismContext());
+            return result.map(transformer::toSchemaObjectSafe);
+        } catch (SqlTransformer.SqlTransformationException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SchemaException) {
+                throw (SchemaException) cause;
+            } else if (cause instanceof QueryException) {
+                throw (QueryException) cause;
+            } else {
+                throw e;
+            }
+        }
     }
 }

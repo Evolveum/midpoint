@@ -30,7 +30,7 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
 
     private static final long serialVersionUID = -229589301;
 
-    public static final String TABLE_NAME = "M_AUDIT_EVENT";
+    public static final String TABLE_NAME = "m_audit_event";
 
     // column metadata constants, we don't care about the indexes, better to remove them
     public static final ColumnMetadata ID =
@@ -125,11 +125,11 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public final DateTimePath<Instant> timestamp = createInstant("timestamp", TIMESTAMP);
 
     public final PrimaryKey<MAuditEventRecord> constraint85c = createPrimaryKey(id);
-    public final ForeignKey<QAuditItem> _auditItemFk = createInvForeignKey(id, "RECORD_ID");
-    public final ForeignKey<QAuditPropertyValue> _auditPropValueFk = createInvForeignKey(id, "RECORD_ID");
-    public final ForeignKey<MAuditDelta> _auditDeltaFk = createInvForeignKey(id, "RECORD_ID");
-    public final ForeignKey<QAuditRefValue> _auditRefValueFk = createInvForeignKey(id, "RECORD_ID");
-    public final ForeignKey<QAuditResource> _auditResourceFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<QAuditItem> auditItemFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<QAuditPropertyValue> auditPropValueFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<MAuditDelta> auditDeltaFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<QAuditRefValue> auditRefValueFk = createInvForeignKey(id, "RECORD_ID");
+    public final ForeignKey<QAuditResource> auditResourceFk = createInvForeignKey(id, "RECORD_ID");
 
     public QAuditEventRecord(String variable) {
         this(variable, "PUBLIC", TABLE_NAME);

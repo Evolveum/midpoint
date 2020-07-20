@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.repo.sql.pure.mapping;
+package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.*;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
@@ -7,7 +7,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
-import com.evolveum.midpoint.repo.sql.pure.AuditEventRecordSqlTransformer;
+import com.evolveum.midpoint.repo.sql.pure.mapping.*;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditPropertyValue;

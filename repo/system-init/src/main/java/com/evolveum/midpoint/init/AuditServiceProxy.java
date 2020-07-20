@@ -278,7 +278,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     public SearchResultList<AuditEventRecordType> searchObjects(ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
             throws SchemaException {
-        // TODO: MID-6319 - does it even make sense to merge multiple results for audit?
+        // does it even make sense to merge multiple results for audit?
         SearchResultList<AuditEventRecordType> result = new SearchResultList<>();
         for (AuditService service : services) {
             if (service.supportsRetrieval()) {

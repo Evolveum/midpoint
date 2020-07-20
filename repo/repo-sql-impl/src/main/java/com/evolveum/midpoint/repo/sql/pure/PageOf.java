@@ -18,6 +18,7 @@ public class PageOf<T> implements Iterable<T> {
 
     public static final int PAGE_NO_PAGINATION = 0;
     public static final int FIRST_PAGE = 1;
+    public static final int TOTAL_COUNT_UNKNOWN = -1;
 
     private final List<T> content;
 
@@ -37,6 +38,10 @@ public class PageOf<T> implements Iterable<T> {
         this.totalCount = totalCount;
     }
 
+    public PageOf(@NotNull List<T> content, int pageNumber, int pageSize) {
+        this(content, pageNumber, pageSize, TOTAL_COUNT_UNKNOWN);
+    }
+
     /**
      * Empty result.
      */
@@ -45,7 +50,7 @@ public class PageOf<T> implements Iterable<T> {
     }
 
     public PageOf(@NotNull List<T> content) {
-        this(content, PAGE_NO_PAGINATION, 0, content.size());
+        this(content, PAGE_NO_PAGINATION, 0, TOTAL_COUNT_UNKNOWN);
     }
 
     public <R> PageOf<R> map(Function<T, R> mappingFunction) {
@@ -86,6 +91,10 @@ public class PageOf<T> implements Iterable<T> {
 
     public boolean isPaginated() {
         return pageNumber != PAGE_NO_PAGINATION;
+    }
+
+    public boolean isKnownTotalCount() {
+        return totalCount != TOTAL_COUNT_UNKNOWN;
     }
 
     @Override

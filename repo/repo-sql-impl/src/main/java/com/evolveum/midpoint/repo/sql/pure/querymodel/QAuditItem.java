@@ -27,7 +27,7 @@ public class QAuditItem extends FlexibleRelationalPathBase<MAuditItem> {
 
     private static final long serialVersionUID = -838572862;
 
-    public static final String TABLE_NAME = "M_AUDIT_ITEM";
+    public static final String TABLE_NAME = "m_audit_item";
 
     public static final ColumnMetadata CHANGED_ITEM_PATH =
             ColumnMetadata.named("CHANGEDITEMPATH").ofType(Types.VARCHAR).withSize(255).notNull();

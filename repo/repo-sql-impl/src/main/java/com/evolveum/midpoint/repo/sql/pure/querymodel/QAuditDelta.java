@@ -28,7 +28,7 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
 
     private static final long serialVersionUID = -231012375;
 
-    public static final String TABLE_NAME = "M_AUDIT_DELTA";
+    public static final String TABLE_NAME = "m_audit_delta";
 
     public static final ColumnMetadata CHECKSUM =
             ColumnMetadata.named("CHECKSUM").ofType(Types.VARCHAR).withSize(32).notNull();

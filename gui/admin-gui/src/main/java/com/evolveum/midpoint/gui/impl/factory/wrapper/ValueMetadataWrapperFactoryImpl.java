@@ -19,6 +19,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
+import java.util.Collections;
 import java.util.List;
 
 public class ValueMetadataWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<Containerable> {
@@ -49,6 +50,9 @@ public class ValueMetadataWrapperFactoryImpl extends PrismContainerWrapperFactor
 
     @Override
     protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<Containerable> parent, PrismContainerValue<Containerable> value) {
+        if (value == null || value.getComplexTypeDefinition() == null) {
+            return Collections.emptyList();
+        }
         return value.getComplexTypeDefinition().getDefinitions();
     }
 

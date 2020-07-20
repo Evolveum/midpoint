@@ -371,9 +371,9 @@ public class RObjectDeltaOperation implements OperationResultFull, EntityState {
         try {
             if (resultSet.getBytes(DELTA_COLUMN_NAME) != null) {
                 byte[] data = resultSet.getBytes(DELTA_COLUMN_NAME);
-                String seralizedDelta = RUtil.getSerializedFormFromBytes(data, useUtf16);
+                String serializedDelta = RUtil.getSerializedFormFromBytes(data, useUtf16);
 
-                ObjectDeltaType delta = prismContext.parserFor(seralizedDelta)
+                ObjectDeltaType delta = prismContext.parserFor(serializedDelta)
                         .parseRealValue(ObjectDeltaType.class);
                 odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
             }

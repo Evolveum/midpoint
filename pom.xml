@@ -178,7 +178,7 @@
         <jdbc.postgres>42.2.2</jdbc.postgres>
         <jdbc.sqlserver>6.4.0.jre8</jdbc.sqlserver>
         <jdbc.mariadb>2.3.0</jdbc.mariadb>
-        <jdbc.mysql>6.0.6</jdbc.mysql>
+        <jdbc.mysql>8.0.21</jdbc.mysql>
         <wicket.version>8.6.0</wicket.version>
         <groovy.version>2.5.12</groovy.version>
         <xmlsec.version>2.1.4</xmlsec.version>
@@ -206,6 +206,7 @@
         <commons.csv.version>1.8</commons.csv.version>
         <j2html.version>1.4.0</j2html.version>
         <bouncycastle.version>1.64</bouncycastle.version>
+        <protobuf.version>3.12.2</protobuf.version>
 
         <!--
         Coming in different versions from org.glassfish.jaxb:xsom and from
@@ -1309,6 +1310,12 @@
                     </exclusion>
                 </exclusions>
             </dependency>
+            <!-- used by both wro4j-extensions/com.github.sommeri:less4j and mysql driver -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
             <dependency>
                 <groupId>joda-time</groupId>
                 <artifactId>joda-time</artifactId>
@@ -1377,10 +1384,10 @@
                 <artifactId>bcpkix-jdk15on</artifactId>
                 <version>${bouncycastle.version}</version>
             </dependency>
-           <dependency>
+            <dependency>
                 <groupId>org.bouncycastle</groupId>
                 <artifactId>bcprov-jdk15on</artifactId>
-               <version>${bouncycastle.version}</version>
+                <version>${bouncycastle.version}</version>
             </dependency>
 
             <!-- webjars -->
@@ -1518,12 +1525,6 @@
                     </exclusion>
                 </exclusions>
             </dependency>
-            <!-- TODO: Without this we'll get newer jsoup 1.11.3, isn't it better? If so, remove this. -->
-            <!--<dependency>-->
-            <!--    <groupId>org.jsoup</groupId>-->
-            <!--    <artifactId>jsoup</artifactId>-->
-            <!--    <version>1.10.2</version>-->
-            <!--</dependency>-->
             <dependency>
                 <groupId>dnsjava</groupId>
                 <artifactId>dnsjava</artifactId>
@@ -1545,13 +1546,6 @@
                 <groupId>com.evolveum.midpoint.infra</groupId>
                 <artifactId>test-util</artifactId>
                 <version>${project.version}</version>
-            </dependency>
-
-            <!-- TODO MID-6319 -->
-            <dependency>
-                <groupId>org.eclipse.jdt.core.compiler</groupId>
-                <artifactId>ecj</artifactId>
-                <version>4.4.2</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

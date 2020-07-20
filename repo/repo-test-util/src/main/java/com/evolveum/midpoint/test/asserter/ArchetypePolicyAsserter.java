@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (c) 2018-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,11 +8,16 @@ package com.evolveum.midpoint.test.asserter;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemConstraintType;
+
+import org.assertj.core.api.Assertions;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypePolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import java.util.List;
 
 /**
  * @author semancik
@@ -43,9 +48,23 @@ public class ArchetypePolicyAsserter<RA> extends AbstractAsserter<RA> {
         return displayAsserter;
     }
 
+    public ArchetypePolicyAsserter<RA> assertItemConstraints(int expectedCount) {
+        List<ItemConstraintType> itemConstraintTypeList = getArchetypePolicy().getItemConstraint();
+        Assertions.assertThat(itemConstraintTypeList).hasSize(expectedCount);
+        return this;
+    }
+
+    public ItemConstraintsAsserter<ArchetypePolicyAsserter<RA>> itemConstraints() {
+        return new ItemConstraintsAsserter<>(getArchetypePolicy().getItemConstraint(), this, "for archetypePolicy " + archetypePolicy);
+    }
+
     public ArchetypePolicyAsserter<RA> assertNoDisplay() {
         AssertJUnit.assertNull("Unexpected display specification in " + desc() + ": "+archetypePolicy.getDisplay(), archetypePolicy.getDisplay());
         return this;
+    }
+
+    public ArchetypeAdminGuiConfigurationAsserter<ArchetypePolicyAsserter<RA>> adminGuiConfig() {
+        return new ArchetypeAdminGuiConfigurationAsserter<>(getArchetypePolicy().getAdminGuiConfiguration(), this, "for archetypePolicy " + archetypePolicy);
     }
 
     public ArchetypePolicyAsserter<RA> assertObjectTemplate(String expectedOid) {
