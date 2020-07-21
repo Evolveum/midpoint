@@ -15117,6 +15117,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="superArchetypeRef" type="c:ObjectReferenceType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Super archetype from which is extended with this archetype.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>ArchetypeType.superArchetypeRef</a:displayName>
+                                <a:help>AssignmentType.superArchetypeRef.help</a:help>
+                                <a:objectReferenceTargetType>tns:ArchetypeType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
 
                 </xsd:sequence>
             </xsd:extension>

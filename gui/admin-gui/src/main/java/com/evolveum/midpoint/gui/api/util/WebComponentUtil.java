@@ -798,59 +798,42 @@ public final class WebComponentUtil {
 
     // TODO: move to schema component
     public static List<QName> createObjectTypeList() {
+        return createObjectTypesList().stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
 
-        List<QName> types = new ArrayList<>(ObjectTypes.values().length);
-        for (ObjectTypes t : ObjectTypes.values()) {
-            types.add(t.getTypeQName());
-        }
+    }
+
+    public static List<ObjectTypes> createObjectTypesList() {
+        List<ObjectTypes> types = Arrays.asList(ObjectTypes.values());
 
         return types.stream().sorted((type1, type2) -> {
-                Validate.notNull(type1);
-                Validate.notNull(type2);
+            Validate.notNull(type1);
+            Validate.notNull(type2);
 
-                return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1), QNameUtil.qNameToUri(type2));
+            ObjectTypeGuiDescriptor decs1 = ObjectTypeGuiDescriptor.getDescriptor(type1);
+            ObjectTypeGuiDescriptor desc2 = ObjectTypeGuiDescriptor.getDescriptor(type2);
 
+            String localizedType1 = translate(decs1);
+            String localizedType2 = translate(desc2);
 
+            return String.CASE_INSENSITIVE_ORDER.compare(localizedType1, localizedType2);
         }).collect(Collectors.toList());
+    }
 
+    private static String translate(ObjectTypeGuiDescriptor descriptor) {
+        MidPointApplication app = MidPointApplication.get();
+        return app.getLocalizationService().translate(descriptor.getLocalizationKey(), null, getCurrentLocale());
     }
 
     public static List<QName> createAssignmentHolderTypeQnamesList() {
 
         List<ObjectTypes> objectTypes = createAssignmentHolderTypesList();
-        List<QName> types = new ArrayList<>();
-        objectTypes.forEach(objectType -> {
-            types.add(objectType.getTypeQName());
-        });
-
-        return types.stream().sorted((type1, type2) -> {
-                Validate.notNull(type1);
-                Validate.notNull(type2);
-
-                return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1), QNameUtil.qNameToUri(type2));
-
-
-        }).collect(Collectors.toList());
-
+        return objectTypes.stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
     }
 
 
 
     public static List<ObjectTypes> createAssignmentHolderTypesList(){
-        List<ObjectTypes> objectTypes = new ArrayList<>();
-        for (ObjectTypes t : ObjectTypes.values()) {
-            if (AssignmentHolderType.class.isAssignableFrom(t.getClassDefinition())) {
-                objectTypes.add(t);
-            }
-        }
-        return objectTypes.stream().sorted((type1, type2) -> {
-            Validate.notNull(type1);
-            Validate.notNull(type2);
-
-            return String.CASE_INSENSITIVE_ORDER.compare(QNameUtil.qNameToUri(type1.getTypeQName()), QNameUtil.qNameToUri(type2.getTypeQName()));
-
-
-        }).collect(Collectors.toList());
+        return createObjectTypesList().stream().filter(type -> AssignmentHolderType.class.isAssignableFrom(type.getClassDefinition())).collect(Collectors.toList());
     }
 
     // TODO: move to schema component
@@ -3350,17 +3333,22 @@ public final class WebComponentUtil {
     }
 
     public static <O extends ObjectType> ArchetypePolicyType getArchetypeSpecification(PrismObject<O> object, ModelServiceLocator locator){
-        if (object == null || object.asObjectable() == null){
+        if (object == null){
             return null;
         }
-        String objectName = object.asObjectable().getName() != null ? object.asObjectable().getName().getOrig() : "Unknown";
-        OperationResult result = new OperationResult("loadArchetypeSpecificationFor" + objectName);
+
+        OperationResult result = new OperationResult("loadArchetypeSpecificationFor" + getName(object));
+
         if (!object.canRepresent(AssignmentHolderType.class)) {
             return null;
         }
         ArchetypePolicyType spec = null;
         try {
-            spec = locator.getModelInteractionService().determineArchetypePolicy((PrismObject<? extends AssignmentHolderType>) object, result);
+            if (ArchetypeType.class.equals(object.getCompileTimeClass())) {
+                spec = locator.getModelInteractionService().mergeArchetypePolicies((PrismObject<ArchetypeType>) object, result);
+            } else {
+                spec = locator.getModelInteractionService().determineArchetypePolicy((PrismObject<? extends AssignmentHolderType>) object, result);
+            }
         } catch (SchemaException | ConfigurationException ex){
             result.recordPartialError(ex.getLocalizedMessage());
             LOGGER.error("Cannot load ArchetypeInteractionSpecification for object {}: {}", object, ex.getLocalizedMessage());
@@ -3392,9 +3380,6 @@ public final class WebComponentUtil {
     public static <O extends ObjectType> DisplayType getDisplayTypeForObject(O obj, OperationResult result, PageBase pageBase){
         if (obj == null){
             return null;
-        }
-        if (obj instanceof ArchetypeType && ((ArchetypeType)obj).getArchetypePolicy() != null) {
-            return ((ArchetypeType)obj).getArchetypePolicy().getDisplay();
         }
         DisplayType displayType = WebComponentUtil.getArchetypePolicyDisplayType(obj, pageBase);
 
