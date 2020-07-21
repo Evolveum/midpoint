@@ -22,7 +22,6 @@ import javax.xml.transform.Source;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.midpoint.prism.*;
 
 import com.evolveum.midpoint.prism.impl.*;
@@ -330,6 +329,37 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
                 }
             }
         }
+    }
+
+    protected Collection<File> filesFromDirectory(File directory, String suffix, @NotNull Collection<String> extensionFilesToIgnore) {
+        List<File> result = new ArrayList<>();
+        File[] fileArray = directory.listFiles();
+        if (fileArray != null) {
+            List<File> files = Arrays.asList(fileArray);
+            // Sort the filenames so we have deterministic order of loading
+            // This is useful in tests but may come handy also during customization
+            Collections.sort(files);
+            for (File file: files) {
+                String name = file.getName();
+                if (name.startsWith(".")) {
+                    // skip dotfiles. this will skip SVN data and similar things
+                    continue;
+                }
+                if (!name.endsWith(suffix)) {
+                    continue;
+                }
+                if (extensionFilesToIgnore.contains(name)) {
+                    continue;
+                }
+                if (file.isDirectory()) {
+                    result.addAll(filesFromDirectory(file, suffix, extensionFilesToIgnore));
+                }
+                if (file.isFile()) {
+                    result.add(file);
+                }
+            }
+        }
+        return result;
     }
 
     public void loadPrismSchemaResource(String resourcePath) throws SchemaException {
@@ -1333,6 +1363,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
      *
      * By suitable we mean such that can be used to determine specific object type.
      */
+    @Override
     public boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName) {
         List<ItemDefinition> definitions = findItemDefinitionsByElementName(itemName, ItemDefinition.class);
         if (definitions.size() != 1) {

@@ -17,6 +17,7 @@ import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.prism.impl.schema.axiom.AxiomEnabledSchemaRegistry;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -87,6 +88,7 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
                 extensionDir = Paths.get(configuration.getMidpointHome(), "schema").toString();
             }
         }
+        File axiomDir = Paths.get(configuration.getMidpointHome(), "axiom").toFile();
 
         if (StringUtils.isNotEmpty(extensionDir)) {
             LOGGER.info("Loading extension schemas from folder '{}'.", extensionDir);
@@ -103,6 +105,10 @@ public class ConfigurablePrismContextFactory extends MidPointPrismContextFactory
             }
 
             schemaRegistry.registerPrismSchemasFromDirectory(file, extensionFilesToIgnore);
+
+            if(schemaRegistry instanceof AxiomEnabledSchemaRegistry) {
+                ((AxiomEnabledSchemaRegistry)  schemaRegistry).registerAxiomSchemasFromDirectory(axiomDir);
+            }
         } catch (Exception ex) {
             throw new SchemaException(ex.getMessage(), ex);
         }
