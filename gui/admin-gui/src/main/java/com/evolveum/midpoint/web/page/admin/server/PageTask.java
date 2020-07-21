@@ -5,6 +5,8 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.*;
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -64,6 +66,8 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/task", matchUrlForSecurity = "/admin/task")
@@ -90,6 +94,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private Boolean refreshEnabled;
 
     private TaskTabsVisibility taskTabsVisibility;
+    private List<ItemPath> rememberedShowEmptyState = new ArrayList<>();
 
     public PageTask() {
         initialize(null);
@@ -663,6 +668,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     public void refresh(AjaxRequestTarget target) {
+        rememberShowEmptyState();
+
         TaskTabsVisibility taskTabsVisibilityNew = new TaskTabsVisibility();
         taskTabsVisibilityNew.computeAll(this, getObjectWrapper());
 
@@ -677,5 +684,37 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     public TaskTabsVisibility getTaskTabVisibilty() {
         return taskTabsVisibility;
+    }
+
+    private void rememberShowEmptyState(){
+        rememberedShowEmptyState.clear();
+        PrismObjectWrapper<TaskType> objectWrapper = getObjectWrapper();
+        for (PrismContainerValueWrapper cv : objectWrapper.getValues()){
+            if (cv.isShowEmpty()){
+                rememberedShowEmptyState.add(cv.getPath());
+            }
+        }
+    }
+
+    @Override
+    protected PrismObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> org, boolean isReadonly) {
+        PrismObjectWrapper<TaskType> objectWrapper = super.loadObjectWrapper(org, true);
+        if (!rememberedShowEmptyState.isEmpty()) {
+            for (PrismContainerValueWrapper cv : objectWrapper.getValues()) {
+                if (isContainerShowEmpty(cv.getPath())){
+                    cv.setShowEmpty(true);
+                }
+            }
+        }
+        return objectWrapper;
+    }
+
+    private boolean isContainerShowEmpty(ItemPath containerPath){
+        for (ItemPath path : rememberedShowEmptyState){
+            if (QNameUtil.match(path.lastName(), containerPath.lastName())){
+                return true;
+            }
+        }
+        return false;
     }
 }
