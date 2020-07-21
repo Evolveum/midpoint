@@ -227,7 +227,15 @@ public class BasicPage {
     }
 
     public ListTasksPage listTasks() {
-        clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.serverTasks.list");
+        return listTasks("");
+    }
+
+    public ListTasksPage listTasks(String objectListMenuItemKey) {
+        if (StringUtils.isEmpty(objectListMenuItemKey)) {
+            clickAdministrationMenu("PageAdmin.menu.top.serverTasks", "PageAdmin.menu.top.serverTasks.list");
+        } else {
+            clickAdministrationMenu("PageAdmin.menu.top.serverTasks", objectListMenuItemKey);
+        }
         return new ListTasksPage();
     }
 
@@ -388,6 +396,7 @@ public class BasicPage {
         if (menuItemKey == null){
             return mainMenu;
         }
+
         SelenideElement menuItem = mainMenu.$(Schrodinger.byDataResourceKey(menuItemKey));
         menuItem.waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
 
