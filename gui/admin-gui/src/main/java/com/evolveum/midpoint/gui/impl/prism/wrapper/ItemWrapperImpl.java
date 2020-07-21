@@ -97,7 +97,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
 
         for (VW value : values) {
-            value.addToDelta((ItemDelta) delta);
+            value.addToDelta(delta);
         }
 
         if (delta.isEmpty()) {
