@@ -9,6 +9,7 @@ package com.evolveum.midpoint.schrodinger.page;
 import static com.codeborne.selenide.Selenide.$;
 
 import com.codeborne.selenide.Condition;
+import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
 import com.codeborne.selenide.WebDriverRunner;
 import com.codeborne.selenide.ex.ElementShould;
@@ -440,7 +441,7 @@ public class BasicPage {
         } catch (ElementShould e) {
             checkCssClass(mainMenuLi, mainMenu, "active"); //if doesn't exists, try for subitems, e.g All users, New user,...
         }
-
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return mainMenu;
     }
 
