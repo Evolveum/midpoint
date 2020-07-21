@@ -2855,13 +2855,6 @@ public final class WebComponentUtil {
         return relationsList;
     }
 
-    public static QName getCategoryDefaultRelation(AreaCategoryType category){
-        if (AreaCategoryType.GOVERNANCE.equals(category)) {
-            return RelationTypes.APPROVER.getRelation();
-        }
-        return null;
-    }
-
     public static List<QName> getAllRelations(ModelServiceLocator pageBase) {
         List<RelationDefinitionType> allRelationDefinitions = getRelationDefinitions(pageBase);
         List<QName> allRelationsQName = new ArrayList<>(allRelationDefinitions.size());
