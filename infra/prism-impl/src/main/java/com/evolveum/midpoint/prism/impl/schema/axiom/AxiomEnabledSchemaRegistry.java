@@ -1,9 +1,11 @@
 package com.evolveum.midpoint.prism.impl.schema.axiom;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Map.Entry;
+import java.util.function.Consumer;
 import java.util.Optional;
 
 import javax.xml.namespace.QName;
@@ -19,11 +21,9 @@ import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
 import com.evolveum.midpoint.prism.MutableItemDefinition;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
-import com.evolveum.midpoint.prism.MutableTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.TypeDefinition;
 import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
@@ -46,6 +46,7 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
     private static final String PRISM_TYPES = "http://prism.evolveum.com/xml/ns/public/types-3";
 
     private static final QName OBJECT_REFERENCE_TYPE = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "ObjectReferenceType");
+
     private static final AxiomName PROPERTY_ITEM = AxiomName.from(PRISM_NAMESPACE, "PropertyItemDefinition");
     private static final AxiomName CONTAINER_ITEM = AxiomName.from(PRISM_NAMESPACE, "ContainerItemDefinition");
     private static final AxiomName REFERENCE_ITEM = AxiomName.from(PRISM_NAMESPACE, "ReferenceItemDefinition");
@@ -60,6 +61,7 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
             .put(AxiomName.from(PRISM_NAMESPACE, "ItemPath"), new QName(PRISM_TYPES,"ItemPathType"))
             .build();
     private static final AxiomName DISPLAY_NAME = PROPERTY_ITEM.localName("displayName");
+    private static final String AXIOM_SUFFIX = ".axiom";
 
     AxiomSchemaContext currentContext;
     Collection<AxiomModelStatementSource> sources = new HashSet<>();
@@ -70,6 +72,7 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
         super();
     }
 
+    @Override
     protected void parseAdditionalSchemas() throws SchemaException {
         parseAxiomSchemas();
         enhanceMetadata();
@@ -149,16 +152,25 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
     }
 
     private MutableItemDefinition<?> fillDetails(MutableItemDefinition<?> target, AxiomItemDefinition source) {
-        target.setDisplayName(displayName(source));
+        set(target::setDisplayName, source, DISPLAY_NAME);
         target.setMinOccurs(source.minOccurs());
         target.setMaxOccurs(source.maxOccurs());
         target.setDocumentation(source.documentation());
+
+
         return target;
     }
 
 
     private String displayName(AxiomItemDefinition source) {
         return source.asComplex().flatMap(v -> v.item(DISPLAY_NAME)).map(v -> v.onlyValue().value().toString()).orElse("");
+    }
+
+    private void set(Consumer<String> target, AxiomItemDefinition source, AxiomName itemName) {
+        Optional<String> value = source.asComplex().flatMap(v -> v.item(DISPLAY_NAME)).map(v -> v.onlyValue().value().toString());
+        if(value.isPresent()) {
+            target.accept(value.get());
+        }
     }
 
     private MutablePrismPropertyDefinition<?> prismifyProperty(AxiomItemDefinition value) {
@@ -234,6 +246,16 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
 
     public void addAxiomSource(AxiomModelStatementSource source) {
         sources.add(source);
+    }
+
+
+    @Override
+    protected void loadPrismSchemaFileDescription(File file) throws SchemaException, IOException {
+        if(file.getName().endsWith(AXIOM_SUFFIX)) {
+            addAxiomSource(AxiomModelStatementSource.from(file));
+        } else {
+            super.loadPrismSchemaFileDescription(file);
+        }
     }
 
 }

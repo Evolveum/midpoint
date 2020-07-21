@@ -261,7 +261,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         loadPrismSchemaDescription(input, sourceDescription);
     }
 
-    private void loadPrismSchemaFileDescription(File file) throws SchemaException, IOException {
+    protected void loadPrismSchemaFileDescription(File file) throws SchemaException, IOException {
         if (!(file.getName().matches(".*\\.xsd$"))) {
             LOGGER.trace("Skipping registering {}, because it is not schema definition.", file.getAbsolutePath());
         } else {
@@ -1319,6 +1319,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
      * <p>
      * By suitable we mean such that can be used to determine specific object type.
      */
+    @Override
     public boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName) {
         List<ItemDefinition> definitions = findItemDefinitionsByElementName(itemName, ItemDefinition.class);
         if (definitions.size() != 1) {
