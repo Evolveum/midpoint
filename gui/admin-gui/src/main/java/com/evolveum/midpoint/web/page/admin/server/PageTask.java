@@ -3,6 +3,7 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.io.InputStream;
 import java.util.*;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -15,6 +16,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.prism.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -24,10 +26,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.gui.impl.prism.*;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -42,6 +41,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -91,6 +91,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private Boolean refreshEnabled;
 
     private TaskTabsVisibility taskTabsVisibility;
+    private List<ItemPath> rememberedShowEmptyState = new ArrayList<>();
+    private List<ItemPath> rememberedExpandedState = new ArrayList<>();
 
     public PageTask() {
         initialize(null);
@@ -448,7 +450,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 .asItemDelta();
 
     }
-    
+
     private void saveTaskChanges(AjaxRequestTarget target, ObjectDelta<TaskType> taskDelta){
         if (taskDelta.isEmpty()) {
             getSession().warn("Nothing to save, no changes were made.");
@@ -664,6 +666,10 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     public void refresh(AjaxRequestTarget target) {
+        rememberedShowEmptyState.clear();
+        rememberedExpandedState.clear();
+        rememberContainerWrappersShowEmptyState(Arrays.asList(getObjectWrapper()));
+
         TaskTabsVisibility taskTabsVisibilityNew = new TaskTabsVisibility();
         taskTabsVisibilityNew.computeAll(this, getObjectWrapper());
 
@@ -678,5 +684,90 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     public TaskTabsVisibility getTaskTabVisibilty() {
         return taskTabsVisibility;
+    }
+
+    private <IW extends ItemWrapper, VW extends PrismValueWrapper> void rememberContainerWrappersShowEmptyState(List<IW> iwList) {
+        for (IW iw : iwList) {
+            if (!(iw instanceof PrismContainerWrapper)){
+                continue;
+            }
+            List<VW> values = iw.getValues();
+            for (VW val : values) {
+                if (!(val instanceof PrismContainerValueWrapper)) {
+                    continue;
+                }
+                rememberContainerValueWrapperShowEmptyState((PrismContainerValueWrapper) val);
+            }
+        }
+    }
+
+    private void rememberContainerValueWrapperShowEmptyState(PrismContainerValueWrapper cvw) {
+        if (cvw == null){
+            return;
+        }
+        if (cvw.isShowEmpty()) {
+            rememberedShowEmptyState.add(cvw.getPath());
+        }
+        if (cvw.isExpanded()) {
+            rememberedExpandedState.add(cvw.getPath());
+        }
+        rememberContainerWrappersShowEmptyState(cvw.getItems());
+    }
+
+    @Override
+    protected PrismObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> org, boolean isReadonly) {
+        PrismObjectWrapper<TaskType> objectWrapper = super.loadObjectWrapper(org, isReadonly);
+        if (CollectionUtils.isNotEmpty(rememberedShowEmptyState) || CollectionUtils.isNotEmpty(rememberedExpandedState)) {
+            checkContainerWrappersShowEmptyState(Arrays.asList(objectWrapper));
+        }
+        return objectWrapper;
+    }
+
+    private <IW extends ItemWrapper, VW extends PrismValueWrapper> void checkContainerWrappersShowEmptyState(List<IW> iwList) {
+        for (IW iw : iwList) {
+            if (!(iw instanceof PrismContainerWrapper)){
+                continue;
+            }
+            List<VW> values = iw.getValues();
+            for (VW val : values) {
+                if (!(val instanceof PrismContainerValueWrapper)) {
+                    continue;
+                }
+                checkContainerValueWrapperShowEmptyState((PrismContainerValueWrapper) val);
+            }
+        }
+    }
+
+    private void checkContainerValueWrapperShowEmptyState(PrismContainerValueWrapper cvw) {
+        if (cvw == null){
+            return;
+        }
+        if (isContainerShowEmpty(cvw.getPath())){
+            cvw.setShowEmpty(true);
+        }
+        if (isContainerExpanded(cvw.getPath())){
+            cvw.setExpanded(true);
+        } else {
+            cvw.setExpanded(false);
+        }
+        checkContainerWrappersShowEmptyState(cvw.getItems());
+    }
+
+    private boolean isContainerShowEmpty(ItemPath containerPath){
+        for (ItemPath path : rememberedShowEmptyState){
+            if (path.equivalent(containerPath)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isContainerExpanded(ItemPath containerPath){
+        for (ItemPath path : rememberedExpandedState){
+            if (path.equivalent(containerPath)){
+                return true;
+            }
+        }
+        return false;
     }
 }
