@@ -6850,6 +6850,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <!-- Data protection "basis" may be specified here. -->
+            <xsd:element name="provenance" type="tns:ProvenanceFeedDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Specifies provenance properties that should be associated with data that originate here.
+                        Resource objects of the type that is defined here will be assumed to have the provenance specified in this data structure.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="attribute" minOccurs="0" maxOccurs="unbounded"
                          type="tns:ResourceAttributeDefinitionType">
                 <xsd:annotation>
@@ -8905,6 +8917,35 @@
              </xsd:element>
          </xsd:sequence>
      </xsd:complexType>
+
+    <xsd:complexType name="ProvenanceFeedDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Specifies data provenance properties for a particular data feed (source), such as resource.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="originRef" type="tns:ObjectReferenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Reference to the origin object.
+                        This object represent the business-wise origin of the data.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Expression that dynamically determines the origin may be here later.
+                 Or maybe we can use expression in the originRef instead. -->
+            <!-- Provenance metadata mappings/transformations might be here, maybe?
+                 E.g. we may be able to determine provenance timestamp from some kind of resoruce data/metadata? -->
+        </xsd:sequence>
+    </xsd:complexType>
 
      <xsd:complexType name="ResourceObjectReferenceType">
          <xsd:annotation>
@@ -16464,6 +16505,17 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="providedService" type="tns:ProvidedServiceConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Global configuration for services provided by midPoint, such as admin GUI or REST service.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="profilingConfiguration" type="tns:ProfilingConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -23127,6 +23179,45 @@
                         if the object being processed is a shadow of a resource object.
                         As for other similar attributes, it may become obsolete.
                         Useful for informational purposes, typically in audit records.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+
+    <xsd:complexType name="ProvidedServiceConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of a service provided by midPoint.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container>true</a:container>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string" minOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Short name of the service.
+                        It will be used as a short indentifier, e.g. in logfiles, item paths and so on.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="identifier" type="xsd:anyURI" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Exact identifier of the service (abstract URI).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="provenance" type="tns:ProvenanceFeedDefinitionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Definition of a provenance metadat for data that originate from this service.
+                        E.g. provenance definition for data that are entered in the user interface or that are supplied to REST service.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
