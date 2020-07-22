@@ -57,7 +57,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
     private void initLayout() {
         MainObjectListPanel<F> userListPanel =
                 new MainObjectListPanel<F>(ID_PERSONAS_TABLE,
-                (Class<F>) FocusType.class, null, null) {
+                (Class<F>) FocusType.class, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -121,7 +121,12 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             protected boolean isObjectDetailsEnabled(IModel<SelectableBean<F>> rowModel) {
                 return false;
             }
-        };
+
+                    @Override
+                    protected boolean enableSavePageSize() {
+                        return false;
+                    }
+                };
         userListPanel.setOutputMarkupId(true);
         add(userListPanel);
     }

@@ -115,7 +115,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     private void initLayout() {
 
         MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation>(ID_ASSIGNMENTS, AssignmentType.class, getModel() != null ? getModel() : Model.of(), getTableId()) {
+                new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation>(ID_ASSIGNMENTS, AssignmentType.class, getModel() != null ? getModel() : Model.of()) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -958,10 +958,6 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     @SuppressWarnings("unchecked")
     protected MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentCandidatesSpecification> getMultivalueContainerListPanel() {
         return ((MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentCandidatesSpecification>) get(ID_ASSIGNMENTS));
-    }
-
-    protected TableId getTableId() {
-        return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
     }
 
     protected PageBase getParentPage() {

@@ -212,7 +212,7 @@ public abstract class ResourceContentPanel extends Panel {
 
                 default:
                     return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
-//            }
+            }
 //        } else if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT)){
 //            switch (kind) {
 //                case ACCOUNT:

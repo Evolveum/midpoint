@@ -20,6 +20,8 @@ public interface Table {
 
     String getTableIdKey();
 
+    boolean enableSavePageSize();
+
     void setItemsPerPage(int size);
 
     int getItemsPerPage();

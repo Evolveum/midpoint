@@ -32,10 +32,10 @@ public class InducementsPanel extends AbstractRoleAssignmentPanel {
                 .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCEMENTS_TAB_TABLE))));
     }
 
-    @Override
-    protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.INDUCEMENTS_TAB_TABLE;
-    }
+//    @Override
+//    protected UserProfileStorage.TableId getTableId() {
+//        return UserProfileStorage.TableId.INDUCEMENTS_TAB_TABLE;
+//    }
 
     private ObjectTabStorage getInducementsTabStorage(){
         return getParentPage().getSessionStorage().getInducementsTabStorage();

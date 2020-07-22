@@ -39,7 +39,7 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
         setOutputMarkupId(true);
 
         CaseWorkItemListWithDetailsPanel caseWorkItems =
-                new CaseWorkItemListWithDetailsPanel(ID_WORKITEMS_TABLE, getModel(), getTableId()) {
+                new CaseWorkItemListWithDetailsPanel(ID_WORKITEMS_TABLE, getModel()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
@@ -62,6 +62,10 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
 //                        getCaseWorkItemsTablePanel().itemDetailsPerformed(target, model);
 //                    }
 
+                    @Override
+                    protected String getTableIdKeyValue() {
+                        return CaseWorkItemsTableWithDetailsPanel.this.getTableId().name();
+                    }
                 };
         caseWorkItems.setOutputMarkupId(true);
         add(caseWorkItems);

@@ -55,7 +55,7 @@ public class DecisionsPanel extends BasePanel<List<DecisionDto>> {
         columns.add(new PropertyColumn<>(createStringResource("DecisionsPanel.escalation"), DecisionDto.F_ESCALATION_LEVEL_NUMBER));
 
         ISortableDataProvider provider = new ListDataProvider<>(this, getModel());
-        BoxedTablePanel decisionsTable = new BoxedTablePanel<>(ID_DECISIONS_TABLE, provider, columns, tableId, pageSize);
+        BoxedTablePanel decisionsTable = new BoxedTablePanel<>(ID_DECISIONS_TABLE, provider, columns, tableId.name(), pageSize);
         add(decisionsTable);
     }
 

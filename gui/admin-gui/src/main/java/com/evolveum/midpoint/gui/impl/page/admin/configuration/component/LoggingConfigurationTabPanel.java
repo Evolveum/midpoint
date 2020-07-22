@@ -119,12 +119,10 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             getSession().error("Cannot create panle for logging");
         }
 
-        TableId tableIdLoggers = UserProfileStorage.TableId.LOGGING_TAB_LOGGER_TABLE;
-
         PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_CLASS_LOGGER);
 
         MultivalueContainerListPanel<ClassLoggerConfigurationType, S> loggersMultivalueContainerListPanel =
-                new MultivalueContainerListPanel<ClassLoggerConfigurationType, S>(ID_LOGGERS, ClassLoggerConfigurationType.class, loggerModel, tableIdLoggers) {
+                new MultivalueContainerListPanel<ClassLoggerConfigurationType, S>(ID_LOGGERS, ClassLoggerConfigurationType.class, loggerModel) {
 
             private static final long serialVersionUID = 1L;
 
@@ -178,12 +176,10 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         };
         add(loggersMultivalueContainerListPanel);
 
-        TableId tableIdAppenders = UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE;
-
         PrismContainerWrapperModel<LoggingConfigurationType, AppenderConfigurationType> appenderModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_APPENDER);
 
         MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appendersMultivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>(ID_APPENDERS, AppenderConfigurationType.class, appenderModel, tableIdAppenders) {
+                new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>(ID_APPENDERS, AppenderConfigurationType.class, appenderModel) {
 
             private static final long serialVersionUID = 1L;
 

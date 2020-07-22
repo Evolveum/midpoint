@@ -84,7 +84,7 @@ public class PageTasks extends PageAdmin {
     public PageTasks(ObjectQuery predefinedQuery, PageParameters params) {
         super(params);
 
-        TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE, UserProfileStorage.TableId.TABLE_TASKS, createOperationOptions()) {
+        TaskTablePanel tablePanel = new TaskTablePanel(ID_TABLE, createOperationOptions()) {
             private static final long serialVersionUID = 1L;
 
             @Override

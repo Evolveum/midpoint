@@ -65,7 +65,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
     public PopupObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
                                 boolean multiselect) {
-        super(id, defaultType, null, options);
+        super(id, defaultType, options);
         this.multiselect = multiselect;
     }
 
@@ -217,4 +217,8 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
         return multiselect;
     }
 
+    @Override
+    protected boolean enableSavePageSize() {
+        return false;
+    }
 }

@@ -62,7 +62,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
     private void initTable(Form mainForm) {
 //        StringValue collectionNameParameter = getCollectionNameParameterValue();
         MainObjectListPanel<O> userListPanel = new  MainObjectListPanel<O>(ID_TABLE,
-                getType(), getTableId(), getQueryOptions()) {
+                getType(), getQueryOptions()) {
             private static final long serialVersionUID = 1L;
 
             @Override

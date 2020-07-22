@@ -119,20 +119,14 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     }
 
     private void initLayout() {
-
-        TableId tableId = UserProfileStorage.TableId.FOCUS_PROJECTION_TABLE;
-        PageStorage pageStorage = getPageBase().getSessionStorage().getFocusProjectionTableStorage();
-
-
         MultivalueContainerListPanelWithDetailsPanel<ShadowType, F> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>(ID_SHADOW_TABLE, ShadowType.class, getShadowDefinition(),
-                        tableId) {
+                new MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>(ID_SHADOW_TABLE, ShadowType.class, getShadowDefinition()) {
 
             private static final long serialVersionUID = 1L;
 
                     @Override
                     protected PageStorage getPageStorage() {
-                        return pageStorage;
+                        return getPageBase().getSessionStorage().getFocusProjectionTableStorage();
                     }
 
                     @Override

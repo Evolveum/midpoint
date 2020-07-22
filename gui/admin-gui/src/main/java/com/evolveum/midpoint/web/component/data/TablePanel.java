@@ -80,7 +80,7 @@ public class TablePanel<T> extends Panel implements Table {
 
             @Override
             protected boolean isPageSizePopupVisible() {
-                return tableIdKey != null;
+                return tableIdKey != null && enableSavePageSize();
             }
 
         };
@@ -97,6 +97,11 @@ public class TablePanel<T> extends Panel implements Table {
     @Override
     public String getTableIdKey() {
         return tableIdKey;
+    }
+
+    @Override
+    public boolean enableSavePageSize() {
+        return true;
     }
 
     private void addVisibleBehaviour(Component comp, final IModel<Boolean> model) {

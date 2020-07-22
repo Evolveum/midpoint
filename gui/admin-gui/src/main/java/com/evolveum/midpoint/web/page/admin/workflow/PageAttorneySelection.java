@@ -91,8 +91,7 @@ public class PageAttorneySelection extends PageBase {
         add(mainForm);
 
 
-        ObjectListPanel<UserType> table = new ObjectListPanel<UserType>(ID_TABLE, UserType.class,
-                UserProfileStorage.TableId.PAGE_USER_SELECTION, Collections.emptyList()) {
+        ObjectListPanel<UserType> table = new ObjectListPanel<UserType>(ID_TABLE, UserType.class, Collections.emptyList()) {
 
 //            @Override
 //            protected boolean isRefreshEnabled() {

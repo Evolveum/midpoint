@@ -59,6 +59,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.lang.Classes;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
 
@@ -452,7 +453,13 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
     }
 
     protected String getTableIdKeyValue(){
-        String key = getPageBase().getClass().getSimpleName() + "." +getPageRelativePath();
+
+        String key;
+        if (getParent() == null) {
+            key = Classes.simpleName(getPageBase().getClass()) + "." + getId();
+        } else {
+            key = Classes.simpleName(getPageBase().getClass()) + "." + Classes.simpleName(getParent().getClass()) + "." + getId();
+        }
         if (!isCollectionViewPanelForCompiledView()) {
             return key;
         }

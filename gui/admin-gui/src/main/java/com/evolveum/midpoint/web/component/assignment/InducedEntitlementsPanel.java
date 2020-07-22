@@ -152,10 +152,10 @@ public class InducedEntitlementsPanel extends InducementsPanel {
                 .createPaging(0, ((int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE))));
     }
 
-    @Override
-    protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE;
-    }
+//    @Override
+//    protected UserProfileStorage.TableId getTableId() {
+//        return UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE;
+//    }
 
     private ObjectTabStorage getInducedEntitlementsTabStorage(){
         return getParentPage().getSessionStorage().getInducedEntitlementsTabStorage();

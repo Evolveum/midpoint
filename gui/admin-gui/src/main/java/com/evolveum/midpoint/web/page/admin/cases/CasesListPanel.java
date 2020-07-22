@@ -53,7 +53,7 @@ public class CasesListPanel extends BasePanel<CaseType> {
 
     private void initLayout(){
         MainObjectListPanel<CaseType> table = new MainObjectListPanel<CaseType>(ID_CASES_TABLE,
-                CaseType.class, UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB, Collections.emptyList()) {
+                CaseType.class, Collections.emptyList()) {
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, CaseType caseInstance) {

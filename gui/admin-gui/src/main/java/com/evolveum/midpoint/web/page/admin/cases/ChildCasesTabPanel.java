@@ -58,7 +58,7 @@ public class ChildCasesTabPanel extends AbstractObjectTabPanel<CaseType> {
         setOutputMarkupId(true);
 
         MainObjectListPanel<CaseType> table = new MainObjectListPanel<CaseType>(ID_CHILD_CASES_PANEL,
-                CaseType.class, UserProfileStorage.TableId.PAGE_CASE_CHILD_CASES_TAB, Collections.emptyList()) {
+                CaseType.class, Collections.emptyList()) {
 
 //            @Override
 //            protected IColumn<SelectableBean<CaseType>, String> createCheckboxColumn() {

@@ -64,8 +64,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
      */
-    public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId) {
-        this(id, defaultType, tableId, null);
+    public ObjectListPanel(String id, Class<? extends O> defaultType) {
+        this(id, defaultType, null);
     }
 
     /**

@@ -127,24 +127,24 @@ public class TableConfigurationPanel extends BasePanel {
             @Override
             public Integer getObject() {
                 Table tablePanel = findParent(Table.class);
-                UserProfileStorage.TableId tableId = tablePanel.getTableIdKey();
-                if (tableId == null) {
+                String tableIdKey = tablePanel.getTableIdKey();
+                if (tableIdKey == null || !tablePanel.enableSavePageSize()) {
                     return tablePanel.getItemsPerPage();
                 }
 
-                return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableId);
+                return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableIdKey);
             }
 
             @Override
             public void setObject(Integer o) {
                 Table tablePanel = findParent(Table.class);
-                UserProfileStorage.TableId tableId = tablePanel.getTableIdKey();
-                if (tableId == null) {
+                String tableIdKey = tablePanel.getTableIdKey();
+                if (tableIdKey == null || !tablePanel.enableSavePageSize()) {
                     tablePanel.setItemsPerPage(o);
                     return;
                 }
 
-                getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);
+                getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableIdKey, o);
             }
 
             @Override

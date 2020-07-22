@@ -98,7 +98,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
         MainObjectListPanel<AccessCertificationDefinitionType> mainPanel =
                 new MainObjectListPanel<AccessCertificationDefinitionType>(
-                ID_TABLE, AccessCertificationDefinitionType.class, TableId.PAGE_CERT_DEFINITIONS_PANEL, null) {
+                ID_TABLE, AccessCertificationDefinitionType.class, null) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -190,7 +190,7 @@ public class PageCertDefinitions extends PageAdminWorkItems {
 
             @Override
             public CompositedIconBuilder getIconCompositedBuilder() {
-                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_EDIT_MENU_ITEM);
+                return getDefaultCompositedIconBuilder("fa fa-files-o");
             }
 
             @Override

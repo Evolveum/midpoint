@@ -594,7 +594,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         }
         List<IColumn<AuditEventRecordType, String>> columns = initColumns();
         BoxedTablePanel<AuditEventRecordType> table = new BoxedTablePanel<AuditEventRecordType>(ID_TABLE, provider, columns,
-                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER, pageSize) {
+                UserProfileStorage.TableId.PAGE_AUDIT_LOG_VIEWER.name(), pageSize) {
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -33,6 +33,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.util.lang.Classes;
 
 import java.util.List;
 
@@ -169,6 +170,10 @@ public abstract class AbstractContainerListPanel<C extends Containerable> extend
                 return AbstractContainerListPanel.this.isRefreshEnabled();
             }
 
+            @Override
+            public boolean enableSavePageSize() {
+                return AbstractContainerListPanel.this.enableSavePageSize();
+            }
         };
         itemTable.setOutputMarkupId(true);
         ObjectPaging pageStorage = getPageStorage().getPaging();
@@ -179,7 +184,14 @@ public abstract class AbstractContainerListPanel<C extends Containerable> extend
     }
 
     protected String getTableIdKeyValue() {
-        return getPageRelativePath();
+        String key;
+        if (getParent() == null) {
+            key = Classes.simpleName(getPageBase().getClass()) + "." + getId();
+        } else {
+            key = Classes.simpleName(getParent().getClass()) + "." + getId();
+        }
+
+        return key;
 //
 //        if (tableId == null) {
 //            return null;
@@ -209,7 +221,7 @@ public abstract class AbstractContainerListPanel<C extends Containerable> extend
 
         String key = WebComponentUtil.getContainerListPageStorageKey(getType().getSimpleName());
         if (key == null) {
-            key = WebComponentUtil.getStorageKeyForTableId(tableIdKey);
+            key = getTableIdKeyValue();
         }
 
         return key;
@@ -293,4 +305,9 @@ public abstract class AbstractContainerListPanel<C extends Containerable> extend
     protected void setType(Class<? extends C> type) {
         this.type = type;
     }
+
+    protected boolean enableSavePageSize() {
+        return true;
+    }
+
 }

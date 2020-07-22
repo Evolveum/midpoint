@@ -73,10 +73,10 @@ public class PolicyRulesPanel extends AssignmentPanel {
 
     }
 
-    @Override
-    protected TableId getTableId() {
-        return UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE;
-    }
+//    @Override
+//    protected TableId getTableId() {
+//        return UserProfileStorage.TableId.POLICY_RULES_TAB_TABLE;
+//    }
 
     @Override
     protected void newAssignmentClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation assignmentTargetRelation) {

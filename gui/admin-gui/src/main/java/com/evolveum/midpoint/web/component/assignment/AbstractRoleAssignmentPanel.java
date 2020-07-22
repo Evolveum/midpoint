@@ -99,10 +99,10 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                 .createPaging(0, (int) getParentPage().getItemsPerPage(UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE)));
     }
 
-    @Override
-    protected UserProfileStorage.TableId getTableId() {
-        return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
-    }
+//    @Override
+//    protected UserProfileStorage.TableId getTableId() {
+//        return UserProfileStorage.TableId.ASSIGNMENTS_TAB_TABLE;
+//    }
 
     protected ObjectQuery createObjectQuery() {
         Collection<QName> delegationRelations = getParentPage().getRelationRegistry()

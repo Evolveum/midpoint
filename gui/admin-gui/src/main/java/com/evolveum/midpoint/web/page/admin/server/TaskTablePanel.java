@@ -97,8 +97,8 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
 
-    public TaskTablePanel(String id, UserProfileStorage.TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, TaskType.class, tableId, options);
+    public TaskTablePanel(String id, Collection<SelectorOptions<GetOperationOptions>> options) {
+        super(id, TaskType.class, options);
     }
 
 

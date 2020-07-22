@@ -180,6 +180,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     @Override
+    public boolean enableSavePageSize() {
+        return true;
+    }
+
+    @Override
     public void setItemsPerPage(int size) {
         getDataTable().setItemsPerPage(size);
     }
@@ -300,7 +305,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                     Table table = findParent(Table.class);
                     String tableIdKey = table.getTableIdKey();
 
-                    if (tableIdKey != null) {
+                    if (tableIdKey != null && table.enableSavePageSize()) {
                         PageBase page = (PageBase) getPage();
                         Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableIdKey);
 

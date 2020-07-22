@@ -55,7 +55,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
     }
 
     private void initLayout() {
-        MainObjectListPanel<F> table = new MainObjectListPanel(ID_TABLE, FocusType.class, null, null) {
+        MainObjectListPanel<F> table = new MainObjectListPanel(ID_TABLE, FocusType.class, null) {
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, ObjectType object) {
@@ -102,6 +102,11 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             @Override
             protected List<Component> createToolbarButtonsList(String buttonId) {
                 return new ArrayList<>();
+            }
+
+            @Override
+            protected boolean enableSavePageSize() {
+                return false;
             }
         };
 

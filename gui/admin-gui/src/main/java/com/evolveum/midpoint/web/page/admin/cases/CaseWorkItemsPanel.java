@@ -86,8 +86,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private void initLayout(){
-        ContainerListPanel workItemsPanel = new ContainerListPanel(ID_WORKITEMS_TABLE, CaseWorkItemType.class,
-                UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL) {
+        ContainerListPanel workItemsPanel = new ContainerListPanel(ID_WORKITEMS_TABLE, CaseWorkItemType.class) {
 
             @Override
             protected PageStorage getPageStorage() {

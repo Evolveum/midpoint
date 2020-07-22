@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.session.MemberPanelStorage;
+import com.evolveum.midpoint.web.session.SessionStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -85,7 +86,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.security.GuiAuthorizationConstants;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 
 import org.apache.wicket.model.StringResourceModel;
 
@@ -126,13 +126,13 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
 
     private static Map<QName, Map<String, String>> authorizations = new HashMap<>();
-    private static Map<QName, TableId> tablesId = new HashMap<>();
+    private static Map<QName, String> tablesIdKey = new HashMap<>();
 
     static {
-        tablesId.put(RoleType.COMPLEX_TYPE, TableId.ROLE_MEMEBER_PANEL);
-        tablesId.put(ServiceType.COMPLEX_TYPE, TableId.SERVICE_MEMEBER_PANEL);
-        tablesId.put(OrgType.COMPLEX_TYPE, TableId.ORG_MEMEBER_PANEL);
-        tablesId.put(ArchetypeType.COMPLEX_TYPE, TableId.ARCHETYPE_MEMEBER_PANEL);
+        tablesIdKey.put(RoleType.COMPLEX_TYPE, SessionStorage.KEY_ROLE_MEMEBER_PANEL);
+        tablesIdKey.put(ServiceType.COMPLEX_TYPE, SessionStorage.KEY_SERVICE_MEMEBER_PANEL);
+        tablesIdKey.put(OrgType.COMPLEX_TYPE, SessionStorage.KEY_ORG_MEMEBER_PANEL);
+        tablesIdKey.put(ArchetypeType.COMPLEX_TYPE, SessionStorage.KEY_SERVICE_ARCHETYPE_PANEL);
     }
 
     static {
@@ -200,7 +200,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 getMemberPanelStorage().getType().getClassDefinition() : ObjectType.class;
         //TODO QName defines a relation value which will be used for new member creation
         MainObjectListPanel<ObjectType> childrenListPanel = new MainObjectListPanel<ObjectType>(
-                ID_MEMBER_TABLE, type, getTableId(getComplexTypeQName()), getSearchOptions()) {
+                ID_MEMBER_TABLE, type, getSearchOptions()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -301,6 +301,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             protected boolean isTypeChanged(Class<ObjectType> newTypeClass){
                 return true;
             }
+
+            @Override
+            protected String getTableIdKeyValue() {
+                return getTableIdKey(getComplexTypeQName());
+            }
         };
         childrenListPanel.setOutputMarkupId(true);
         memberContainer.add(childrenListPanel);
@@ -392,8 +397,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     }
 
-    protected TableId getTableId(QName complextType) {
-        return tablesId.get(complextType);
+    protected String getTableIdKey(QName complextType) {
+        return tablesIdKey.get(complextType);
     }
 
     protected Map<String, String> getAuthorizations(QName complexType) {

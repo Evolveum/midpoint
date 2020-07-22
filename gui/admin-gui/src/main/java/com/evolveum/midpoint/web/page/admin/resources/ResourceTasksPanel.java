@@ -103,7 +103,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 
     private void initLayout(final ListModel<TaskType> tasks){
         final MainObjectListPanel<TaskType> tasksPanel =
-                new MainObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, TableId.PAGE_RESOURCE_TASKS_PANEL, null) {
+                new MainObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, null) {
                     private static final long serialVersionUID = 1L;
 
                     @Override

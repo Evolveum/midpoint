@@ -80,7 +80,7 @@ public class PageNodes extends PageAdmin {
 
 
     private void initLayout() {
-        MainObjectListPanel<NodeType> table = new MainObjectListPanel<NodeType>(ID_TABLE, NodeType.class, UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL, null) {
+        MainObjectListPanel<NodeType> table = new MainObjectListPanel<NodeType>(ID_TABLE, NodeType.class, null) {
 
             @Override
             protected void objectDetailsPerformed(AjaxRequestTarget target, NodeType object) {
