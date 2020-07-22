@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.impl.component.MultivalueContainerListPanelWith
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
 import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 import org.apache.wicket.model.IModel;
@@ -38,8 +39,13 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
         setOutputMarkupId(true);
 
         CaseWorkItemListWithDetailsPanel caseWorkItems =
-                new CaseWorkItemListWithDetailsPanel(ID_WORKITEMS_TABLE, getModel(), getTableId(), getWorkitemsTabStorage()) {
+                new CaseWorkItemListWithDetailsPanel(ID_WORKITEMS_TABLE, getModel(), getTableId()) {
                     private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected PageStorage getPageStorage() {
+                        return getPageBase().getSessionStorage().getCaseWorkitemsTabStorage();
+                    }
 
                     @Override
                     protected ObjectQuery createQuery() {
@@ -71,9 +77,4 @@ public abstract class CaseWorkItemsTableWithDetailsPanel extends BasePanel<Prism
     protected abstract ObjectQuery createQuery();
 
     protected abstract UserProfileStorage.TableId getTableId();
-
-    private ObjectTabStorage getWorkitemsTabStorage(){
-        return getPageBase().getSessionStorage().getCaseWorkitemsTabStorage();
-    }
-
 }

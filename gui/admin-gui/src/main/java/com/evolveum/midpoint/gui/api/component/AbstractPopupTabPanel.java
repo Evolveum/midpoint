@@ -63,7 +63,7 @@ public abstract class AbstractPopupTabPanel<O extends ObjectType> extends BasePa
 
     protected Component initObjectListPanel(){
         PopupObjectListPanel<O> listPanel = new PopupObjectListPanel<O>(ID_OBJECT_LIST_PANEL, (Class)getObjectType().getClassDefinition(),
-                true, getPageBase()) {
+                true) {
 
             private static final long serialVersionUID = 1L;
 

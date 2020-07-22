@@ -25,12 +25,14 @@ import org.apache.wicket.model.IModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+
+import org.apache.wicket.model.Model;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
  */
-public class SelectableListDataProvider<W extends Serializable, T extends Serializable>
+public class SelectableListDataProvider<W extends SelectableBean, T extends Serializable>
         extends BaseSortableDataProvider<W> {
 
     private IModel<List<T>> model;
@@ -40,6 +42,11 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
 
         Validate.notNull(model);
         this.model = model;
+    }
+
+    public SelectableListDataProvider(Component Component, boolean useCache, boolean useDefaultSortingField) {
+        super(Component, useCache, useDefaultSortingField);
+        this.model = Model.ofList(Collections.EMPTY_LIST);
     }
 
     @Override
@@ -54,14 +61,14 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
                     throw new ArrayIndexOutOfBoundsException(
                             "Trying to get item on index " + i + " but list size is " + list.size());
                 }
-                getAvailableData().add(createObjectWrapper(list.get(WebComponentUtil.safeLongToInteger(i))));
+                getAvailableData().add(createDataObjectWrapper(list.get(WebComponentUtil.safeLongToInteger(i))));
             }
         }
 
         return getAvailableData().iterator();
     }
 
-    protected W createObjectWrapper(T object) {
+    protected W createDataObjectWrapper(T object) {
         return (W) new SelectableBeanImpl<>(object);
     }
 
@@ -76,13 +83,13 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
     }
 
     @NotNull
-    public List<W> getSelectedObjects() {
-        List<W> allSelected = new ArrayList<>();
+    public List<T> getSelectedObjects() {
+        List<T> allSelected = new ArrayList<>();
         for (Serializable s : super.getAvailableData()) {
             if (s instanceof Selectable) {
-                Selectable<W> selectable = (Selectable<W>) s;
+                Selectable<SelectableBean<T>> selectable = (Selectable<SelectableBean<T>>) s;
                 if (selectable.isSelected() && selectable.getValue() != null) {
-                    allSelected.add(selectable.getValue());
+                    allSelected.add(selectable.getValue().getValue());
                 }
             }
         }
@@ -90,24 +97,24 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
         return allSelected;
     }
 
-    @SuppressWarnings("unchecked")
-    protected <V extends Comparable<V>> void sort(List<T> list) {
-        Collections.sort(list, new Comparator<T>() {
-            @Override
-            public int compare(T o1, T o2) {
-                SortParam<String> sortParam = getSort();
-                String propertyName = sortParam.getProperty();
-                V prop1, prop2;
-                try {
-                    prop1 = (V) PropertyUtils.getProperty(o1, propertyName);
-                    prop2 = (V) PropertyUtils.getProperty(o2, propertyName);
-                } catch (RuntimeException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
-                    throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
-                }
-                int comparison = ObjectUtils.compare(prop1, prop2, true);
-                return sortParam.isAscending() ? comparison : -comparison;
-            }
-        });
-    }
+//    @SuppressWarnings("unchecked")
+//    protected <V extends Comparable<V>> void sort(List<T> list) {
+//        Collections.sort(list, new Comparator<T>() {
+//            @Override
+//            public int compare(T o1, T o2) {
+//                SortParam<String> sortParam = getSort();
+//                String propertyName = sortParam.getProperty();
+//                V prop1, prop2;
+//                try {
+//                    prop1 = (V) PropertyUtils.getProperty(o1, propertyName);
+//                    prop2 = (V) PropertyUtils.getProperty(o2, propertyName);
+//                } catch (RuntimeException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
+//                    throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
+//                }
+//                int comparison = ObjectUtils.compare(prop1, prop2, true);
+//                return sortParam.isAscending() ? comparison : -comparison;
+//            }
+//        });
+//    }
 
 }

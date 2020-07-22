@@ -125,12 +125,17 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
 
         MultivalueContainerListPanelWithDetailsPanel<ShadowType, F> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>(ID_SHADOW_TABLE, getShadowDefinition(),
-                        tableId, pageStorage) {
+                new MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>(ID_SHADOW_TABLE, ShadowType.class, getShadowDefinition(),
+                        tableId) {
 
             private static final long serialVersionUID = 1L;
 
-            @Override
+                    @Override
+                    protected PageStorage getPageStorage() {
+                        return pageStorage;
+                    }
+
+                    @Override
             protected IModel<List<PrismContainerValueWrapper<ShadowType>>> loadValuesModel() {
                 return new IModel<List<PrismContainerValueWrapper<ShadowType>>>() {
 

@@ -4340,11 +4340,11 @@ public final class WebComponentUtil {
     }
 
 
-    public static String getObjectListPageStorageKey(String additionalKeyValue){
+    public static String getContainerListPageStorageKey(String additionalKeyValue){
         if (StringUtils.isEmpty(additionalKeyValue)){
-            return SessionStorage.KEY_OBJECT_LIST;
+            return SessionStorage.KEY_CONTAINER_LIST;
         }
-        return SessionStorage.KEY_OBJECT_LIST + "." + additionalKeyValue;
+        return SessionStorage.KEY_CONTAINER_LIST + "." + additionalKeyValue;
     }
 
     public static AssignmentHolderType getObjectFromAddDeltyForCase(CaseType aCase) {

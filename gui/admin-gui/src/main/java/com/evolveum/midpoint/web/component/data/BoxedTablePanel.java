@@ -50,7 +50,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private static final String ID_FOOTER_CONTAINER = "footerContainer";
     private static final String ID_BUTTON_TOOLBAR = "buttonToolbar";
 
-    private UserProfileStorage.TableId tableId;
+//    private UserProfileStorage.TableId tableId;
+    private String tableIdKey;
     private boolean showPaging;
     private String additionalBoxCssClasses = null;
     private boolean isRefreshEnabled;
@@ -63,19 +64,19 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId) {
-        this(id, provider, columns, tableId, UserProfileStorage.DEFAULT_PAGING_SIZE);
+            String tableIdKey) {
+        this(id, provider, columns, tableIdKey, UserProfileStorage.DEFAULT_PAGING_SIZE);
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-                           UserProfileStorage.TableId tableId, int pageSize) {
-        this(id, provider, columns, tableId, pageSize, false);
+            String tableIdKey, int pageSize) {
+        this(id, provider, columns, tableIdKey, pageSize, false);
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-            UserProfileStorage.TableId tableId, int pageSize, boolean isRefreshEnabled) {
+            String tableIdKey, int pageSize, boolean isRefreshEnabled) {
         super(id);
-        this.tableId = tableId;
+        this.tableIdKey = tableIdKey;
         this.isRefreshEnabled = isRefreshEnabled;
 
         initLayout(columns, provider, pageSize);
@@ -174,8 +175,8 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     @Override
-    public UserProfileStorage.TableId getTableId() {
-        return tableId;
+    public String getTableIdKey() {
+        return tableIdKey;
     }
 
     @Override
@@ -297,11 +298,11 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
                 @Override
                 protected void pageSizeChanged(AjaxRequestTarget target) {
                     Table table = findParent(Table.class);
-                    UserProfileStorage.TableId tableId = table.getTableId();
+                    String tableIdKey = table.getTableIdKey();
 
-                    if (tableId != null) {
+                    if (tableIdKey != null) {
                         PageBase page = (PageBase) getPage();
-                        Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableId);
+                        Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableIdKey);
 
                         table.setItemsPerPage(pageSize);
                     }

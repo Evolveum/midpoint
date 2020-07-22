@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.session.PageStorage;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -113,8 +115,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     private void initLayout() {
 
         MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation>(ID_ASSIGNMENTS, getModel() != null ? getModel() : Model.of(), getTableId(),
-                getAssignmentsTabStorage()) {
+                new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation>(ID_ASSIGNMENTS, AssignmentType.class, getModel() != null ? getModel() : Model.of(), getTableId()) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -156,8 +157,12 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
                         return newButtonDescription();
                     }
 
+                    @Override
+                    protected PageStorage getPageStorage() {
+                        return getAssignmentsTabStorage();
+                    }
 
-            @Override
+                    @Override
             protected boolean getNewObjectGenericButtonVisibility(){
                 AssignmentCandidatesSpecification spec = loadAssignmentHolderSpecification();
                 return spec == null || spec.isSupportGenericAssignment();

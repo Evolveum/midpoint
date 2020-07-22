@@ -13,7 +13,11 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.Containerable;
+
 import com.google.common.collect.ImmutableMap;
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -42,54 +46,31 @@ public class DefaultColumnUtils {
     private static final Trace LOGGER = TraceManager.getTrace(DefaultColumnUtils.class);
 
     // Maps need to preserve iteration order (like LinkedHashMap)
-    private static final Map<Class<? extends ObjectType>, List<ItemPath>> COLUMNS_DEF;
-    private static final List<ItemPath> OBJECT_COLUMNS_DEF;
+    private static final Map<Class<? extends ObjectType>, List<ColumnWrapper>> COLUMNS_DEF;
+    private static final List<ColumnWrapper> OBJECT_COLUMNS_DEF;
     private static final List<ItemPath> DEFAULT_AUDIT_COLUMNS_DEF;
-    private static final List<ItemPath> NUMBER_COLUMNS;
-    private static final Map<Class<?>, Map<ItemPath, String>> SPECIFIC_LOCALIZATION;
+    private static final Map<ItemPath, String> LOCALIZATION_FOR_AUDIT;
 
     static {
-        SPECIFIC_LOCALIZATION = ImmutableMap.<Class<?>, Map<ItemPath, String>>builder()
-                .put(UserType.class, ImmutableMap.<ItemPath, String>builder()
-                        .put(UserType.F_LINK_REF, "FocusType.accounts")
-                        .build())
-                .put(TaskType.class, ImmutableMap.<ItemPath, String>builder()
-                        .put(TaskType.F_COMPLETION_TIMESTAMP, "TaskType.currentRunTime")
-                        .put(TaskType.F_NODE_AS_OBSERVED, "pageTasks.task.executingAt")
-                        .put(TaskType.F_SCHEDULE, "pageTasks.task.scheduledToRunAgain")
-                        .put(ItemPath.create(TaskType.F_OPERATION_STATS, OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
-                                IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT),
-                                "pageTasks.task.errors")
-                        .build())
-                .put(ResourceType.class, ImmutableMap.<ItemPath, String>builder()
-                        .put(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_TYPE),
-                                "ConnectorType.connectorType")
-                        .put(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_VERSION),
-                                "ConnectorType.connectorVersion")
-                        .build())
-                .put(AuditEventRecordType.class, ImmutableMap.<ItemPath, String>builder()
-                        .put(new ItemName(AuditConstants.TIME_COLUMN), AuditConstants.TIME_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.INITIATOR_COLUMN), AuditConstants.INITIATOR_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.EVENT_STAGE_COLUMN), AuditConstants.EVENT_STAGE_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.EVENT_TYPE_COLUMN), AuditConstants.EVENT_TYPE_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.TARGET_COLUMN), AuditConstants.TARGET_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.OUTCOME_COLUMN), AuditConstants.OUTCOME_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.MESSAGE_COLUMN), AuditConstants.MESSAGE_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.DELTA_COLUMN), AuditConstants.DELTA_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.TARGET_OWNER_COLUMN), AuditConstants.TARGET_OWNER_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.CHANNEL_COLUMN), AuditConstants.CHANNEL_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.TASK_OID_COLUMN), AuditConstants.TASK_OID_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.NODE_IDENTIFIER_COLUMN), AuditConstants.NODE_IDENTIFIER_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.ATTORNEY_COLUMN), AuditConstants.ATTORNEY_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.RESULT_COLUMN), AuditConstants.RESULT_COLUMN_KEY)
-                        .put(new ItemName(AuditConstants.RESOURCE_OID_COLUMN), AuditConstants.RESOURCE_OID_COLUMN_KEY)
-                        .build())
+        LOCALIZATION_FOR_AUDIT = ImmutableMap.<ItemPath, String>builder()
+                .put(new ItemName(AuditConstants.TIME_COLUMN), AuditConstants.TIME_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.INITIATOR_COLUMN), AuditConstants.INITIATOR_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.EVENT_STAGE_COLUMN), AuditConstants.EVENT_STAGE_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.EVENT_TYPE_COLUMN), AuditConstants.EVENT_TYPE_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.TARGET_COLUMN), AuditConstants.TARGET_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.OUTCOME_COLUMN), AuditConstants.OUTCOME_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.MESSAGE_COLUMN), AuditConstants.MESSAGE_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.DELTA_COLUMN), AuditConstants.DELTA_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.TARGET_OWNER_COLUMN), AuditConstants.TARGET_OWNER_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.CHANNEL_COLUMN), AuditConstants.CHANNEL_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.TASK_OID_COLUMN), AuditConstants.TASK_OID_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.NODE_IDENTIFIER_COLUMN), AuditConstants.NODE_IDENTIFIER_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.ATTORNEY_COLUMN), AuditConstants.ATTORNEY_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.RESULT_COLUMN), AuditConstants.RESULT_COLUMN_KEY)
+                .put(new ItemName(AuditConstants.RESOURCE_OID_COLUMN), AuditConstants.RESOURCE_OID_COLUMN_KEY)
                 .build();
 
-        NUMBER_COLUMNS = Collections.singletonList(
-                FocusType.F_LINK_REF);
-
-        OBJECT_COLUMNS_DEF = Collections.singletonList(ObjectType.F_NAME);
+        OBJECT_COLUMNS_DEF = Collections.singletonList(new ColumnWrapper(ObjectType.F_NAME));
 
         DEFAULT_AUDIT_COLUMNS_DEF = Arrays.asList(
                 new ItemName(AuditConstants.TIME_COLUMN),
@@ -102,47 +83,50 @@ public class DefaultColumnUtils {
                 new ItemName(AuditConstants.DELTA_COLUMN)
         );
 
-        COLUMNS_DEF = ImmutableMap.<Class<? extends ObjectType>, List<ItemPath>>builder()
+        COLUMNS_DEF = ImmutableMap.<Class<? extends ObjectType>, List<ColumnWrapper>>builder()
                 .put(ResourceType.class, Arrays.asList(
-                        ResourceType.F_NAME,
-                        ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_TYPE),
-                        ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_VERSION)))
+                        new ColumnWrapper(ResourceType.F_NAME),
+                        new ColumnWrapper(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_TYPE), "ConnectorType.connectorType"),
+                        new ColumnWrapper(ItemPath.create(ResourceType.F_CONNECTOR_REF, ConnectorType.F_CONNECTOR_VERSION), "ConnectorType.connectorVersion")))
                 .put(UserType.class, Arrays.asList(
-                        UserType.F_NAME,
-                        UserType.F_GIVEN_NAME,
-                        UserType.F_FAMILY_NAME,
-                        UserType.F_FULL_NAME,
-                        UserType.F_EMAIL_ADDRESS,
-                        UserType.F_LINK_REF))
+                        new ColumnWrapper(UserType.F_NAME, true),
+                        new ColumnWrapper(UserType.F_GIVEN_NAME, true),
+                        new ColumnWrapper(UserType.F_FAMILY_NAME, true),
+                        new ColumnWrapper(UserType.F_FULL_NAME, true),
+                        new ColumnWrapper(UserType.F_EMAIL_ADDRESS),
+                        new ColumnWrapper(UserType.F_LINK_REF, "FocusType.accounts", DisplayValueType.NUMBER)))
                 .put(AbstractRoleType.class, Arrays.asList(
-                        AbstractRoleType.F_NAME,
-                        AbstractRoleType.F_DISPLAY_NAME,
-                        AbstractRoleType.F_DESCRIPTION,
-                        AbstractRoleType.F_IDENTIFIER,
-                        AbstractRoleType.F_LINK_REF))
+                        new ColumnWrapper(AbstractRoleType.F_NAME),
+                        new ColumnWrapper(AbstractRoleType.F_DISPLAY_NAME, true),
+                        new ColumnWrapper(AbstractRoleType.F_DESCRIPTION),
+                        new ColumnWrapper(AbstractRoleType.F_IDENTIFIER, true),
+                        new ColumnWrapper(AbstractRoleType.F_LINK_REF)))
                 .put(TaskType.class, Arrays.asList(
-                        TaskType.F_NAME,
-                        TaskType.F_CATEGORY,
-                        TaskType.F_EXECUTION_STATUS,
-                        TaskType.F_OBJECT_REF,
-                        TaskType.F_NODE_AS_OBSERVED,
-                        TaskType.F_COMPLETION_TIMESTAMP,
-                        TaskType.F_PROGRESS,
-                        TaskType.F_SCHEDULE,
-                        ItemPath.create(TaskType.F_OPERATION_STATS,
+                        new ColumnWrapper(TaskType.F_NAME),
+                        new ColumnWrapper(TaskType.F_CATEGORY),
+                        new ColumnWrapper(TaskType.F_EXECUTION_STATUS),
+                        new ColumnWrapper(TaskType.F_OBJECT_REF),
+                        new ColumnWrapper(TaskType.F_NODE_AS_OBSERVED, "pageTasks.task.executingAt"),
+                        new ColumnWrapper(TaskType.F_COMPLETION_TIMESTAMP, "TaskType.currentRunTime"),
+                        new ColumnWrapper(TaskType.F_PROGRESS),
+                        new ColumnWrapper(TaskType.F_SCHEDULE, "pageTasks.task.scheduledToRunAgain"),
+                        new ColumnWrapper(ItemPath.create(TaskType.F_OPERATION_STATS,
                                 OperationStatsType.F_ITERATIVE_TASK_INFORMATION,
-                                IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT),
-                        TaskType.F_RESULT_STATUS))
+                                IterativeTaskInformationType.F_TOTAL_FAILURE_COUNT), "pageTasks.task.errors"),
+                        new ColumnWrapper(TaskType.F_RESULT_STATUS)))
                 .put(ShadowType.class, Arrays.asList(
-                        ShadowType.F_NAME,
-                        ShadowType.F_RESOURCE_REF,
-                        ShadowType.F_KIND,
-                        ShadowType.F_INTENT,
-                        ShadowType.F_SYNCHRONIZATION_SITUATION))
+                        new ColumnWrapper(ShadowType.F_NAME),
+                        new ColumnWrapper(ShadowType.F_RESOURCE_REF),
+                        new ColumnWrapper(ShadowType.F_KIND),
+                        new ColumnWrapper(ShadowType.F_INTENT),
+                        new ColumnWrapper(ShadowType.F_SYNCHRONIZATION_SITUATION)))
+                .put(AccessCertificationDefinitionType.class, Arrays.asList(
+                        new ColumnWrapper(AccessCertificationDefinitionType.F_NAME),
+                        new ColumnWrapper(AccessCertificationDefinitionType.F_DESCRIPTION)))
                 .build();
     }
 
-    private static List<ItemPath> getColumnsForType(Class<? extends ObjectType> type) {
+    private static List<ColumnWrapper> getColumnsForType(Class<? extends ObjectType> type) {
         if (type.equals(RoleType.class)
                 || type.equals(OrgType.class)
                 || type.equals(ServiceType.class)) {
@@ -154,7 +138,7 @@ public class DefaultColumnUtils {
         return OBJECT_COLUMNS_DEF;
     }
 
-    public static <O extends ObjectType> GuiObjectListViewType getDefaultView(Class<? extends O> type) {
+    public static <C extends Containerable> GuiObjectListViewType getDefaultView(Class<? extends C> type) {
         if (type == null) {
             return getDefaultObjectView();
         }
@@ -173,9 +157,12 @@ public class DefaultColumnUtils {
             return getDefaultResourceView();
         } else if (ShadowType.class.equals(type)) {
             return getDefaultShadowView();
-        } else {
+        } else if (AccessCertificationDefinitionType.class.equals(type)) {
+            return getDefaultAccessCertificationDefinitionView();
+        } else if (ObjectType.class.isAssignableFrom(type)){
             return getDefaultObjectView();
         }
+        return null;
     }
 
     public static GuiObjectListViewType getDefaultAuditEventsView() {
@@ -206,11 +193,14 @@ public class DefaultColumnUtils {
     }
 
     public static String getLocalizationKeyForAuditColumn(ItemPath itemPath) {
-        if (SPECIFIC_LOCALIZATION.containsKey(AuditEventRecordType.class)
-                && SPECIFIC_LOCALIZATION.get(AuditEventRecordType.class).containsKey(itemPath)) {
-            return SPECIFIC_LOCALIZATION.get(AuditEventRecordType.class).get(itemPath);
+        if (LOCALIZATION_FOR_AUDIT.containsKey(itemPath)) {
+            return LOCALIZATION_FOR_AUDIT.get(itemPath);
         }
         return null;
+    }
+
+    private static GuiObjectListViewType getDefaultAccessCertificationDefinitionView() {
+        return getDefaultView(AccessCertificationDefinitionType.COMPLEX_TYPE, "default-accessCertificationDefinition", AccessCertificationDefinitionType.class);
     }
 
     public static GuiObjectListViewType getDefaultShadowView() {
@@ -257,22 +247,24 @@ public class DefaultColumnUtils {
     private static <O extends ObjectType> void createColumns(GuiObjectListViewType view, Class<? extends O> type) {
         view.createColumnList();
         List<GuiObjectColumnType> columns = view.getColumn();
-        List<ItemPath> defaultColumns = getColumnsForType(type);
+        List<ColumnWrapper> defaultColumns = getColumnsForType(type);
         String previousColumn = null;
-        for (ItemPath defaultColumn : defaultColumns) {
-            String columnName = defaultColumn.lastName().getLocalPart() + "Column";
+        for (ColumnWrapper defaultColumn : defaultColumns) {
+            String localPathPath = defaultColumn.getPath().lastName().getLocalPart();
+            String columnName = localPathPath + "Column";
             GuiObjectColumnType column = new GuiObjectColumnType();
             column.setName(columnName);
             column.setPreviousColumn(previousColumn);
             ItemPathType itemPathType = new ItemPathType();
-            itemPathType.setItemPath(defaultColumn);
+            itemPathType.setItemPath(defaultColumn.getPath());
             column.setPath(itemPathType);
-            if (NUMBER_COLUMNS.contains(defaultColumn)) {
-                column.setDisplayValue(DisplayValueType.NUMBER);
+            column.setDisplayValue(defaultColumn.getDisplayValue());
+            if (defaultColumn.isSortable()) {
+                column.setSortProperty(localPathPath);
             }
-            if (SPECIFIC_LOCALIZATION.containsKey(type) && SPECIFIC_LOCALIZATION.get(type).containsKey(defaultColumn)) {
+            if (!StringUtils.isEmpty(defaultColumn.getLabel())) {
                 DisplayType display = new DisplayType();
-                display.setLabel(new PolyStringType(SPECIFIC_LOCALIZATION.get(type).get(defaultColumn)));
+                display.setLabel(new PolyStringType(defaultColumn.getLabel()));
                 column.setDisplay(display);
             }
             columns.add(column);
@@ -405,5 +397,49 @@ public class DefaultColumnUtils {
         return getOperationOptionsBuilder
                 .items(propertiesToGet.toArray(new Object[0])).retrieve()
                 .build();
+    }
+
+    private static class ColumnWrapper {
+
+        private ItemPath path;
+        private String label = null;
+        private boolean isSortable = false;
+        private DisplayValueType displayValue = DisplayValueType.STRING;
+
+        ColumnWrapper(@NotNull ItemPath path) {
+            this.path = path;
+        }
+
+        ColumnWrapper(@NotNull ItemPath path, String label) {
+            this.path = path;
+            this.label = label;
+        }
+
+        ColumnWrapper(@NotNull ItemPath path, boolean isSortable) {
+            this.path = path;
+            this.isSortable = isSortable;
+        }
+
+        ColumnWrapper(@NotNull ItemPath path, String label, DisplayValueType displayValue) {
+            this.path = path;
+            this.label = label;
+            this.displayValue = displayValue;
+        }
+
+        public ItemPath getPath() {
+            return path;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public boolean isSortable() {
+            return isSortable;
+        }
+
+        public DisplayValueType getDisplayValue() {
+            return displayValue;
+        }
     }
 }

@@ -9,13 +9,9 @@ package com.evolveum.midpoint.gui.api.component;
 import java.util.*;
 import java.util.function.Supplier;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.ContainerListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
@@ -26,9 +22,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.*;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -41,9 +35,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
-import com.evolveum.midpoint.web.component.data.Table;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -51,8 +42,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 
 import static java.util.Collections.singleton;
 
@@ -68,31 +57,22 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
 
     private ObjectTypes type;
 
-    private Boolean manualRefreshEnabled;
-
     public Class<O> getType() {
         return (Class) type.getClassDefinition();
     }
 
-
-
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
      */
-    public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options) {
-        this(id, defaultType, tableId, options, false);
+    public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId) {
+        this(id, defaultType, tableId, null);
     }
 
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
      */
-    ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, boolean multiselect) {
-        this(id, defaultType, tableId, null, multiselect);
-    }
-
-    public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
-                           boolean multiselect) {
-        super(id, defaultType, tableId, options, multiselect);
+    public ObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
+        super(id, defaultType, options);
         this.type = defaultType  != null ? ObjectTypes.getObjectType(defaultType) : null;
     }
 
@@ -112,12 +92,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
     @Override
     public List<O> getSelectedObjects() {
         BaseSortableDataProvider<? extends SelectableBean<O>> dataProvider = getDataProvider();
-        if (dataProvider instanceof SelectableBeanObjectDataProvider) {
-            return ((SelectableBeanObjectDataProvider<O>) dataProvider).getSelectedData();
-        } else if (dataProvider instanceof SelectableListDataProvider) {
-            return ((SelectableListDataProvider) dataProvider).getSelectedObjects();
-        }
-        return new ArrayList<>();
+        return ((SelectableListDataProvider) dataProvider).getSelectedObjects();
     }
 
     protected Search createSearch() {
@@ -275,8 +250,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
         getPageBase().hideMainPopup(target);
     }
 
-    private List<GuiObjectColumnType> getGuiObjectColumnTypeList(){
-        CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
-        return guiObjectListViewType != null ? guiObjectListViewType.getColumns() : null;
+    @Override
+    protected List<IColumn> createDefaultColumns() {
+        return super.createDefaultColumns();
     }
+
+
 }

@@ -125,7 +125,10 @@ public class PageAttorneySelection extends PageBase {
 
             @Override
             protected List<IColumn> createDefaultColumns() {
-                return (List) PageAttorneySelection.this.initColumns();
+                List<IColumn> columns = new ArrayList<>();
+                columns.add(createNameColumn(null, null, null));
+                columns.addAll(PageAttorneySelection.this.initColumns());
+                return columns;
             }
 
             @Override

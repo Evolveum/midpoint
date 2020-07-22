@@ -85,11 +85,10 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
     protected void initLayout() {
 
         TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
-        PageStorage pageStorage = getPageBase().getSessionStorage().getObjectPoliciesConfigurationTabStorage();
 
         MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> multivalueContainerListPanel
-                = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>(ID_OBJECTS_POLICY, getModel(),
-                tableId, pageStorage) {
+                = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>(ID_OBJECTS_POLICY, ObjectPolicyConfigurationType.class, getModel(),
+                tableId) {
 
             private static final long serialVersionUID = 1L;
 

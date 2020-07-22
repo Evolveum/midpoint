@@ -148,7 +148,9 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     protected abstract Class<O> getType();
 
-    protected abstract List<IColumn<SelectableBean<O>, String>> initColumns();
+    protected List<IColumn<SelectableBean<O>, String>> initColumns(){
+        return null;
+    }
 
     protected abstract List<InlineMenuItem> createRowActions();
 

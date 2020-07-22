@@ -80,11 +80,10 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
     protected void initLayout() {
 
         TableId tableId = UserProfileStorage.TableId.OBJECT_POLICIES_TAB_TABLE;
-        PageStorage pageStorage = ((PageBase)GlobalPolicyRuleTabPanel.this.getPage()).getSessionStorage().getObjectPoliciesConfigurationTabStorage();
 
         MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>(ID_GLOBAL_POLICY_RULE, getModel(),
-                tableId, pageStorage) {
+                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>(ID_GLOBAL_POLICY_RULE, GlobalPolicyRuleType.class, getModel(),
+                tableId) {
 
             private static final long serialVersionUID = 1L;
 

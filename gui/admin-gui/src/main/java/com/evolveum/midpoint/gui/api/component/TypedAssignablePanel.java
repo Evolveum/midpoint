@@ -397,7 +397,7 @@ public class TypedAssignablePanel<T extends ObjectType> extends BasePanel<T> imp
     }
 
     private PopupObjectListPanel<T> createObjectListPanel(String id, final String countId, final ObjectTypes type) {
-        PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, (Class) type.getClassDefinition(), true, getPageBase()) {
+        PopupObjectListPanel<T> listPanel = new PopupObjectListPanel<T>(id, (Class) type.getClassDefinition(), true) {
 
             private static final long serialVersionUID = 1L;
 

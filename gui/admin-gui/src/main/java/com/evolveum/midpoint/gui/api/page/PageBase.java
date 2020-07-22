@@ -1674,8 +1674,12 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public long getItemsPerPage(UserProfileStorage.TableId tableId) {
+        return getItemsPerPage(tableId.name());
+    }
+
+    public long getItemsPerPage(String tableIdName) {
         UserProfileStorage userProfile = getSessionStorage().getUserProfile();
-        return userProfile.getPagingSize(tableId);
+        return userProfile.getPagingSize(tableIdName);
     }
 
     protected List<SideBarMenuItem> createMenuItems() {

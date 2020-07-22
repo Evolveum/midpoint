@@ -53,8 +53,8 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     private static final String ID_CANCEL_BUTTON = "cancelButton";
     private WorkItemDetailsPanel workItemDetails = null;
 
-    public CaseWorkItemListWithDetailsPanel(String id, IModel<PrismContainerWrapper<CaseWorkItemType>> model, UserProfileStorage.TableId tableId, PageStorage pageStorage){
-        super(id, model, tableId, pageStorage);
+    public CaseWorkItemListWithDetailsPanel(String id, IModel<PrismContainerWrapper<CaseWorkItemType>> model, UserProfileStorage.TableId tableId){
+        super(id, CaseWorkItemType.class, model, tableId);
     }
 
     @Override

@@ -9,6 +9,8 @@ package com.evolveum.midpoint.web.page.admin.cases;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.web.session.PageStorage;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -60,9 +62,8 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
         PrismContainerWrapperModel<CaseType, CaseEventType> eventsModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), CaseType.F_EVENT);
         MultivalueContainerListPanel<CaseEventType, String> multivalueContainerListPanel =
-                new MultivalueContainerListPanel<CaseEventType, String>(ID_EVENTS_PANEL,
-                        eventsModel, UserProfileStorage.TableId.PAGE_CASE_EVENTS_TAB,
-                        getEventsTabStorage()) {
+                new MultivalueContainerListPanel<CaseEventType, String>(ID_EVENTS_PANEL, CaseEventType.class,
+                        eventsModel, UserProfileStorage.TableId.PAGE_CASE_EVENTS_TAB) {
 
                     private static final long serialVersionUID = 1L;
 
@@ -115,6 +116,10 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
                         return defs;
                     }
 
+                    @Override
+                    protected PageStorage getPageStorage() {
+                        return getPageBase().getSessionStorage().getCaseEventsTabStorage();
+                    }
                 };
         multivalueContainerListPanel.setOutputMarkupId(true);
         add(multivalueContainerListPanel);
@@ -169,10 +174,6 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
         });
 
         return columns;
-    }
-
-    private ObjectTabStorage getEventsTabStorage(){
-        return getPageBase().getSessionStorage().getCaseEventsTabStorage();
     }
 
     private CaseEventType unwrapRowModel(IModel<PrismContainerValueWrapper<CaseEventType>> rowModel){

@@ -39,19 +39,20 @@ public class TablePanel<T> extends Panel implements Table {
     private IModel<Boolean> showPaging = new Model<>(true);
     private IModel<Boolean> showCount = new Model<>(true);
 
-    private UserProfileStorage.TableId tableId;
+//    private UserProfileStorage.TableId tableId;
+    private String tableIdKey;
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
         this(id, provider, columns, null, UserProfileStorage.DEFAULT_PAGING_SIZE);
     }
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
-                      UserProfileStorage.TableId tableId, long pageSize) {
+            String tableIdKey, long pageSize) {
         super(id);
         Validate.notNull(provider, "Object type must not be null.");
         Validate.notNull(columns, "Columns must not be null.");
 
-        this.tableId = tableId;
+        this.tableIdKey = tableIdKey;
 
         initLayout(columns, provider, pageSize);
     }
@@ -70,7 +71,7 @@ public class TablePanel<T> extends Panel implements Table {
             @Override
             protected void pageSizeChanged(AjaxRequestTarget target) {
                 PageBase page = (PageBase) getPage();
-                Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableId);
+                Integer pageSize = page.getSessionStorage().getUserProfile().getPagingSize(tableIdKey);
 
                 setItemsPerPage(pageSize);
                 target.add(getNavigatorPanel());
@@ -79,7 +80,7 @@ public class TablePanel<T> extends Panel implements Table {
 
             @Override
             protected boolean isPageSizePopupVisible() {
-                return tableId != null;
+                return tableIdKey != null;
             }
 
         };
@@ -94,8 +95,8 @@ public class TablePanel<T> extends Panel implements Table {
     }
 
     @Override
-    public UserProfileStorage.TableId getTableId() {
-        return tableId;
+    public String getTableIdKey() {
+        return tableIdKey;
     }
 
     private void addVisibleBehaviour(Component comp, final IModel<Boolean> model) {

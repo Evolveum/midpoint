@@ -53,17 +53,20 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
 
     private static final Trace LOGGER = TraceManager.getTrace(PopupObjectListPanel.class);
 
+    private boolean multiselect;
+
     /**
      * @param defaultType specifies type of the object that will be selected by default
      */
-    public PopupObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect, PageBase parentPage) {
-        super(id, defaultType, null, multiselect);
-
+    public PopupObjectListPanel(String id, Class<? extends O> defaultType, boolean multiselect) {
+        this(id, defaultType, null, multiselect);
+        this.multiselect = multiselect;
     }
 
     public PopupObjectListPanel(String id, Class<? extends O> defaultType, Collection<SelectorOptions<GetOperationOptions>> options,
-                                boolean multiselect, PageBase parentPage) {
-        super(id, defaultType, null, options, multiselect);
+                                boolean multiselect) {
+        super(id, defaultType, null, options);
+        this.multiselect = multiselect;
     }
 
     @Override
@@ -210,13 +213,8 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
         return Model.of(true);
     }
 
-//    @Override
-//    protected boolean isRefreshEnabled() {
-//        return false;
-//    }
-//
-//    @Override
-//    protected int getAutoRefreshInterval() {
-//        return 0;
-//    }
+    public boolean isMultiselect() {
+        return multiselect;
+    }
+
 }

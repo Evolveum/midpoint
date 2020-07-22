@@ -12,8 +12,6 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 
-import org.apache.wicket.Component;
-import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
@@ -129,7 +127,7 @@ public class TableConfigurationPanel extends BasePanel {
             @Override
             public Integer getObject() {
                 Table tablePanel = findParent(Table.class);
-                UserProfileStorage.TableId tableId = tablePanel.getTableId();
+                UserProfileStorage.TableId tableId = tablePanel.getTableIdKey();
                 if (tableId == null) {
                     return tablePanel.getItemsPerPage();
                 }
@@ -140,7 +138,7 @@ public class TableConfigurationPanel extends BasePanel {
             @Override
             public void setObject(Integer o) {
                 Table tablePanel = findParent(Table.class);
-                UserProfileStorage.TableId tableId = tablePanel.getTableId();
+                UserProfileStorage.TableId tableId = tablePanel.getTableIdKey();
                 if (tableId == null) {
                     tablePanel.setItemsPerPage(o);
                     return;

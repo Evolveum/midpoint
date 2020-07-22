@@ -120,14 +120,11 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         }
 
         TableId tableIdLoggers = UserProfileStorage.TableId.LOGGING_TAB_LOGGER_TABLE;
-        PageStorage pageStorageLoggers = getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage();
-
 
         PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_CLASS_LOGGER);
 
         MultivalueContainerListPanel<ClassLoggerConfigurationType, S> loggersMultivalueContainerListPanel =
-                new MultivalueContainerListPanel<ClassLoggerConfigurationType, S>(ID_LOGGERS, loggerModel,
-                tableIdLoggers, pageStorageLoggers) {
+                new MultivalueContainerListPanel<ClassLoggerConfigurationType, S>(ID_LOGGERS, ClassLoggerConfigurationType.class, loggerModel, tableIdLoggers) {
 
             private static final long serialVersionUID = 1L;
 
@@ -182,14 +179,11 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         add(loggersMultivalueContainerListPanel);
 
         TableId tableIdAppenders = UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE;
-        PageStorage pageStorageAppenders = getPageBase().getSessionStorage().getLoggingConfigurationTabAppenderTableStorage();
-
 
         PrismContainerWrapperModel<LoggingConfigurationType, AppenderConfigurationType> appenderModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_APPENDER);
 
         MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appendersMultivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>(ID_APPENDERS, appenderModel,
-                tableIdAppenders, pageStorageAppenders) {
+                new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>(ID_APPENDERS, AppenderConfigurationType.class, appenderModel, tableIdAppenders) {
 
             private static final long serialVersionUID = 1L;
 

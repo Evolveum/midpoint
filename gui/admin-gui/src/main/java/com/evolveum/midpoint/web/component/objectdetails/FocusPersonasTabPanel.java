@@ -66,11 +66,6 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
             }
 
             @Override
-            protected List<IColumn> createDefaultColumns() {
-                return new ArrayList<>();
-            }
-
-            @Override
             protected List<InlineMenuItem> createInlineMenu() {
                 List<InlineMenuItem> menuItems = new ArrayList<>();
                 menuItems.add(new ButtonInlineMenuItem(createStringResource("AssignmentPanel.viewTargetObject")) {

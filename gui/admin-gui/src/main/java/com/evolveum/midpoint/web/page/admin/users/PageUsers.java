@@ -133,51 +133,51 @@ public class PageUsers extends PageAdminObjectList<UserType> {
         };
     }
 
-    @Override
-    protected List<IColumn<SelectableBean<UserType>, String>> initColumns() {
-        List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
-
-        IColumn<SelectableBean<UserType>, String> column = new PolyStringPropertyColumn<SelectableBean<UserType>>(
-                createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
-                SelectableBeanImpl.F_VALUE + ".givenName");
-        columns.add(column);
-
-        column = new PolyStringPropertyColumn<SelectableBean<UserType>>(createStringResource("UserType.familyName"),
-                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
-        columns.add(column);
-
-        column = new PolyStringPropertyColumn<SelectableBean<UserType>>(createStringResource("UserType.fullName"),
-                UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
-        columns.add(column);
-
-        column = new PropertyColumn<SelectableBean<UserType>, String>(createStringResource("UserType.emailAddress"),
-                null, SelectableBeanImpl.F_VALUE + ".emailAddress");
-        columns.add(column);
-
-        column = new AbstractExportableColumn<SelectableBean<UserType>, String>(
-                createStringResource("pageUsers.accounts")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem,
-                    String componentId, IModel<SelectableBean<UserType>> model) {
-                cellItem.add(new Label(componentId,
-                        model.getObject().getValue() != null ?
-                                model.getObject().getValue().getLinkRef().size() : null));
-            }
-
-            @Override
-            public IModel<String> getDataModel(IModel<SelectableBean<UserType>> rowModel) {
-                return Model.of(rowModel.getObject().getValue() != null ?
-                        Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
-            }
-
-
-        };
-
-        columns.add(column);
-
-        return columns;
-    }
+//    @Override
+//    protected List<IColumn<SelectableBean<UserType>, String>> initColumns() {
+//        List<IColumn<SelectableBean<UserType>, String>> columns = new ArrayList<>();
+//
+//        IColumn<SelectableBean<UserType>, String> column = new PolyStringPropertyColumn<SelectableBean<UserType>>(
+//                createStringResource("UserType.givenName"), UserType.F_GIVEN_NAME.getLocalPart(),
+//                SelectableBeanImpl.F_VALUE + ".givenName");
+//        columns.add(column);
+//
+//        column = new PolyStringPropertyColumn<SelectableBean<UserType>>(createStringResource("UserType.familyName"),
+//                UserType.F_FAMILY_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".familyName");
+//        columns.add(column);
+//
+//        column = new PolyStringPropertyColumn<SelectableBean<UserType>>(createStringResource("UserType.fullName"),
+//                UserType.F_FULL_NAME.getLocalPart(), SelectableBeanImpl.F_VALUE + ".fullName");
+//        columns.add(column);
+//
+//        column = new PropertyColumn<SelectableBean<UserType>, String>(createStringResource("UserType.emailAddress"),
+//                null, SelectableBeanImpl.F_VALUE + ".emailAddress");
+//        columns.add(column);
+//
+//        column = new AbstractExportableColumn<SelectableBean<UserType>, String>(
+//                createStringResource("pageUsers.accounts")) {
+//
+//            @Override
+//            public void populateItem(Item<ICellPopulator<SelectableBean<UserType>>> cellItem,
+//                    String componentId, IModel<SelectableBean<UserType>> model) {
+//                cellItem.add(new Label(componentId,
+//                        model.getObject().getValue() != null ?
+//                                model.getObject().getValue().getLinkRef().size() : null));
+//            }
+//
+//            @Override
+//            public IModel<String> getDataModel(IModel<SelectableBean<UserType>> rowModel) {
+//                return Model.of(rowModel.getObject().getValue() != null ?
+//                        Integer.toString(rowModel.getObject().getValue().getLinkRef().size()) : "");
+//            }
+//
+//
+//        };
+//
+//        columns.add(column);
+//
+//        return columns;
+//    }
 
     @Override
     protected List<InlineMenuItem> createRowActions() {

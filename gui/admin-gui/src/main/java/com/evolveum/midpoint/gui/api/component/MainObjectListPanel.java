@@ -75,10 +75,8 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
 
 //    private Boolean manualRefreshEnabled;
 
-    public MainObjectListPanel(String id, Class<O> type, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options) {
-        super(id, type, tableId, options);
-
-
+    public MainObjectListPanel(String id, Class<O> type, Collection<SelectorOptions<GetOperationOptions>> options) {
+        super(id, type, options);
     }
 
     @Override

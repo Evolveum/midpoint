@@ -85,7 +85,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
                 return new SelectableListDataProvider<SelectableBean<F>, UserSessionManagementType>(InternalsLoggedInUsersPanel.this, principals) {
 
                     @Override
-                    protected SelectableBean<F> createObjectWrapper(UserSessionManagementType principal) {
+                    protected SelectableBean<F> createDataObjectWrapper(UserSessionManagementType principal) {
                         SelectableBeanImpl<F> user = new SelectableBeanImpl<>((F) principal.getFocus());
                         user.setActiveSessions(principal.getActiveSessions());
                         user.setNodes(principal.getNode());

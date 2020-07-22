@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMai
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -61,6 +62,8 @@ import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
+import org.apache.wicket.util.string.StringValue;
+
 /**
  * @author skublik
  */
@@ -69,19 +72,15 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = MultivalueContainerListPanel.class.getName() + ".";
-
     private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanel.class);
 
     private TableId tableId;
-    private PageStorage pageStorage;
 
     private LoadableModel<Search> searchModel = null;
 
-    public MultivalueContainerListPanel(String id, IModel<PrismContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
-        super(id, model, tableId);
+    public MultivalueContainerListPanel(String id, Class<? extends C> type, IModel<PrismContainerWrapper<C>> model, TableId tableId) {
+        super(id, type, model, tableId);
         this.tableId = tableId;
-        this.pageStorage = pageStorage;
 
         searchModel = new LoadableModel<Search>(false) {
 
@@ -102,10 +101,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
         };
     }
 
-    public MultivalueContainerListPanel(String id, PrismContainerDefinition<C> def, TableId tableId, PageStorage pageStorage) {
-        super(id, null, tableId);
+    public MultivalueContainerListPanel(String id, Class<? extends C> type, PrismContainerDefinition<C> def, TableId tableId) {
+        super(id, type, null, tableId);
         this.tableId = tableId;
-        this.pageStorage = pageStorage;
+//        this.pageStorage = pageStorage;
 
         searchModel = new LoadableModel<Search>(false) {
 
@@ -122,10 +121,10 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
         };
     }
 
-    @Override
-    public PageStorage getPageStorage() {
-        return pageStorage;
-    }
+//    @Override
+//    public PageStorage getPageStorage() {
+//        return pageStorage;
+//    }
 
     protected abstract List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef);
 
@@ -146,7 +145,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
             @Override
             protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
-                pageStorage.setPaging(paging);
+                getPageStorage().setPaging(paging);
             }
 
             @Override

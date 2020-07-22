@@ -87,11 +87,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
     private void initLayout(){
         ContainerListPanel workItemsPanel = new ContainerListPanel(ID_WORKITEMS_TABLE, CaseWorkItemType.class,
-                UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL, true) {
-            @Override
-            public Class getType() {
-                return CaseWorkItemType.class;
-            }
+                UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL) {
 
             @Override
             protected PageStorage getPageStorage() {
@@ -212,6 +208,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
     private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> createDefaultColumns(){
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
+        columns.add(createNameColumn());
         columns.addAll(ColumnUtils.getDefaultWorkItemColumns(getPageBase(), View.FULL_LIST.equals(view)));
         if (View.FULL_LIST.equals(view)) {
             columns.add(new InlineMenuButtonColumn<>(createRowActions(), getPageBase()));

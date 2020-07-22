@@ -21,9 +21,11 @@ import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -42,23 +44,18 @@ public abstract class AbstractContainerListPanel<C extends Containerable> extend
 
     private static final long serialVersionUID = 1L;
 
-    private static final String DOT_CLASS = AbstractContainerListPanel.class.getName() + ".";
-    private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
+    private static final Trace LOGGER = TraceManager.getTrace(AbstractContainerListPanel.class);
 
     public static final String ID_ITEMS = "items";
     private static final String ID_ITEMS_TABLE = "itemsTable";
-    public static final String ID_SEARCH_ITEM_PANEL = "search";
 
+//    private TableId tableId;
+    private Class<? extends C> type;
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractContainerListPanel.class);
-
-    private TableId tableId;
-
-//    private LoadableModel<Search> searchModel = null;
-
-    public AbstractContainerListPanel(String id, IModel<PrismContainerWrapper<C>> model, TableId tableId) {
+    public AbstractContainerListPanel(String id, Class<? extends C> type, IModel<PrismContainerWrapper<C>> model) {
         super(id, model);
-        this.tableId = tableId;
+//        this.tableId = tableId;
+        this.type = type;
     }
 
     @Override
@@ -116,10 +113,10 @@ public abstract class AbstractContainerListPanel<C extends Containerable> extend
     protected BoxedTablePanel initItemTable() {
 
         List<IColumn> columns = createColumns();
-        int itemPerPage = tableId == null ? 10 : (int) getPageBase().getItemsPerPage(tableId);
+        int itemPerPage = getTableIdKeyValue() == null ? UserProfileStorage.DEFAULT_PAGING_SIZE : (int) getPageBase().getItemsPerPage(getTableIdKeyValue());
         ISortableDataProvider provider = createProvider();
         BoxedTablePanel itemTable = new BoxedTablePanel(ID_ITEMS_TABLE,
-                provider, columns, tableId, itemPerPage) {
+                provider, columns, getTableIdKeyValue(), itemPerPage) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -181,6 +178,15 @@ public abstract class AbstractContainerListPanel<C extends Containerable> extend
         return itemTable;
     }
 
+    protected String getTableIdKeyValue() {
+        return getPageRelativePath();
+//
+//        if (tableId == null) {
+//            return null;
+//        }
+//        return tableId.name();
+    }
+
     protected abstract WebMarkupContainer initButtonToolbar(String id);
 
     protected boolean isRefreshEnabled(){
@@ -199,7 +205,31 @@ public abstract class AbstractContainerListPanel<C extends Containerable> extend
         return true;
     }
 
-    protected abstract PageStorage getPageStorage();
+    protected String getStorageKey(){
+
+        String key = WebComponentUtil.getContainerListPageStorageKey(getType().getSimpleName());
+        if (key == null) {
+            key = WebComponentUtil.getStorageKeyForTableId(tableIdKey);
+        }
+
+        return key;
+    }
+
+    protected PageStorage getPageStorage(String storageKey){
+        PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
+        if (storage == null) {
+            storage = getSession().getSessionStorage().initPageStorage(storageKey);
+        }
+        return storage;
+    }
+
+    protected PageStorage getPageStorage() {
+        String storageKey = getStorageKey();
+        if (StringUtils.isNotEmpty(storageKey)) {
+            return getPageStorage(storageKey);
+        }
+        return null;
+    }
 
     protected abstract ISortableDataProvider createProvider();
 
@@ -254,5 +284,13 @@ public abstract class AbstractContainerListPanel<C extends Containerable> extend
 
     public WebMarkupContainer getItemContainer() {
         return (WebMarkupContainer) get(ID_ITEMS);
+    }
+
+    public Class<C> getType() {
+        return (Class<C>) type;
+    }
+
+    protected void setType(Class<? extends C> type) {
+        this.type = type;
     }
 }

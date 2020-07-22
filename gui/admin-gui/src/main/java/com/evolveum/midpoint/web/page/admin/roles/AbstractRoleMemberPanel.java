@@ -164,11 +164,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private void initDefaultSearchParameters(){
-        GuiObjectListPanelConfigurationType additionalPanel = getAdditionalPanelConfig();
-        if (additionalPanel != null && additionalPanel.getSearchBoxConfiguration() != null) {
-            scopeDefaultValue = additionalPanel.getSearchBoxConfiguration().getDefaultScope();
-            objectTypeDefaultValue = additionalPanel.getSearchBoxConfiguration().getDefaultObjectType();
-        }
+//        GuiObjectListPanelConfigurationType additionalPanel = getAdditionalPanelConfig();
+//        if (additionalPanel != null && additionalPanel.getSearchBoxConfiguration() != null) {
+//            scopeDefaultValue = additionalPanel.getSearchBoxConfiguration().getDefaultScope();
+//            objectTypeDefaultValue = additionalPanel.getSearchBoxConfiguration().getDefaultObjectType();
+//        }
         if (scopeDefaultValue == null){
             scopeDefaultValue = SearchBoxScopeType.ONE_LEVEL;
         }
@@ -291,11 +291,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 } else {
                     return queryFactory.createQuery(queryFactory.createAnd(filters));
                 }
-            }
-
-            @Override
-            protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
-                return AbstractRoleMemberPanel.this.getAdditionalPanelConfig();
             }
 
             @Override
@@ -543,10 +538,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
 
     protected abstract AvailableRelationDto getSupportedRelations();
-
-    protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
-        return null;
-    }
 
     private boolean isAuthorized(String action) {
         Map<String, String> memeberAuthz = getAuthorizations(getComplexTypeQName());
@@ -1097,12 +1088,12 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 SelectableBean<ObjectType> bean = rowModel.getObject();
                 ObjectType object = bean.getValue();
                 cellItem.add(new Label(componentId,
-                            getMemberObjectDisplayName(object, true)));
+                            getMemberObjectDisplayName(object)));
             }
 
             @Override
             public IModel<String> getDataModel(IModel<SelectableBean<ObjectType>> rowModel) {
-                return Model.of(getMemberObjectDisplayName(rowModel.getObject().getValue(), true));
+                return Model.of(getMemberObjectDisplayName(rowModel.getObject().getValue()));
             }
 
         };
@@ -1157,12 +1148,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return false;
     }
 
-
     private String getMemberObjectDisplayName(ObjectType object){
-        return getMemberObjectDisplayName(object, false);
-    }
-
-    private String getMemberObjectDisplayName(ObjectType object, boolean translate){
         if (object == null){
             return "";
         }

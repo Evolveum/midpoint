@@ -18,7 +18,7 @@ public interface Table {
 
     DataTable getDataTable();
 
-    UserProfileStorage.TableId getTableId();
+    String getTableIdKey();
 
     void setItemsPerPage(int size);
 

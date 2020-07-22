@@ -96,17 +96,17 @@ public class PageSizePopover extends BasePanel {
             @Override
             public Integer getObject() {
                 TablePanel tablePanel = findParent(TablePanel.class);
-                UserProfileStorage.TableId tableId = tablePanel.getTableId();
+                String tableIdKey = tablePanel.getTableIdKey();
 
-                return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableId);
+                return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableIdKey);
             }
 
             @Override
             public void setObject(Integer o) {
                 TablePanel tablePanel = findParent(TablePanel.class);
-                UserProfileStorage.TableId tableId = tablePanel.getTableId();
+                String tableIdKey = tablePanel.getTableIdKey();
 
-                getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);
+                getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableIdKey, o);
             }
 
             @Override

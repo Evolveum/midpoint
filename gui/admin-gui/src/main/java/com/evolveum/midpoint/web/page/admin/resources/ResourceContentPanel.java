@@ -192,41 +192,41 @@ public abstract class ResourceContentPanel extends Panel {
 
     }
 
-    private TableId getTableId() {
+    private String getTableIdKey() {
         if (kind == null) {
-            return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+            return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
         }
 
         if (searchMode == null) {
             searchMode = SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT;
         }
 
-        if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT)) {
+//        if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT)) {
             switch (kind) {
                 case ACCOUNT:
-                    return TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE;
+                    return SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + searchMode;
                 case GENERIC:
-                    return TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE;
+                    return SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + searchMode;
                 case ENTITLEMENT:
-                    return TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE;
+                    return SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + searchMode;
 
                 default:
-                    return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
-            }
-        } else if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT)){
-            switch (kind) {
-                case ACCOUNT:
-                    return TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_RESOURCE_MODE;
-                case GENERIC:
-                    return TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE;
-                case ENTITLEMENT:
-                    return TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_RESOURCE_MODE;
-
-                default:
-                    return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
-            }
-        }
-        return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+                    return SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT;
+//            }
+//        } else if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT)){
+//            switch (kind) {
+//                case ACCOUNT:
+//                    return TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_RESOURCE_MODE;
+//                case GENERIC:
+//                    return TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE;
+//                case ENTITLEMENT:
+//                    return TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_RESOURCE_MODE;
+//
+//                default:
+//                    return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
+//            }
+//        }
+//        return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
     }
 
     private void initLayout() {
@@ -238,7 +238,7 @@ public abstract class ResourceContentPanel extends Panel {
 
         MainObjectListPanel<ShadowType> shadowListPanel =
                 new MainObjectListPanel<ShadowType>(ID_TABLE,
-                ShadowType.class, getTableId(), createSearchOptions()) {
+                ShadowType.class, createSearchOptions()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -248,9 +248,7 @@ public abstract class ResourceContentPanel extends Panel {
 
             @Override
             protected List<IColumn> createDefaultColumns() {
-                List<IColumn> columns = new ArrayList<>();
-                columns.addAll(ResourceContentPanel.this.initColumns());
-                return columns;
+                return (List) ResourceContentPanel.this.initColumns();
             }
 
             @Override
@@ -338,7 +336,11 @@ public abstract class ResourceContentPanel extends Panel {
 
             }
 
-        };
+                    @Override
+                    protected String getTableIdKeyValue() {
+                        return getTableIdKey();
+                    }
+                };
         shadowListPanel.setOutputMarkupId(true);
         shadowListPanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
