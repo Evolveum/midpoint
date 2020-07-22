@@ -698,7 +698,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     protected PrismObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> org, boolean isReadonly) {
-        PrismObjectWrapper<TaskType> objectWrapper = super.loadObjectWrapper(org, true);
+        PrismObjectWrapper<TaskType> objectWrapper = super.loadObjectWrapper(org, isReadonly);
         if (!rememberedShowEmptyState.isEmpty()) {
             for (PrismContainerValueWrapper cv : objectWrapper.getValues()) {
                 if (isContainerShowEmpty(cv.getPath())){
