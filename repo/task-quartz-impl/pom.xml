@@ -12,7 +12,7 @@
     <parent>
         <artifactId>repo</artifactId>
         <groupId>com.evolveum.midpoint.repo</groupId>
-        <version>4.2-SNAPSHOT</version>
+        <version>4.2-M2</version>
     </parent>
 
     <artifactId>task-quartz-impl</artifactId>
@@ -24,43 +24,43 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-impl</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>common</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-api</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-api</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
         </dependency>
         <dependency>
             <groupId>commons-lang</groupId>
@@ -135,7 +135,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
             <scope>provided</scope>
         </dependency>
 
@@ -164,7 +164,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>security-impl</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -175,7 +175,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-impl</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
@@ -192,7 +192,7 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-test-util</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -203,13 +203,13 @@
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>system-init</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl-test</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
