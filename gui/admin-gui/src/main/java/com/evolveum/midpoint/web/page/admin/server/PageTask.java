@@ -7,6 +7,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.*;
 import com.evolveum.midpoint.util.QNameUtil;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -95,6 +96,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     private TaskTabsVisibility taskTabsVisibility;
     private List<ItemPath> rememberedShowEmptyState = new ArrayList<>();
+    private List<ItemPath> rememberedExpandedState = new ArrayList<>();
 
     public PageTask() {
         initialize(null);
@@ -688,6 +690,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     private void rememberShowEmptyState(){
         rememberedShowEmptyState.clear();
+        rememberedExpandedState.clear();
+        rememberContainerWrappersShowEmptyState(Arrays.asList(getObjectWrapper()));
         PrismObjectWrapper<TaskType> objectWrapper = getObjectWrapper();
         for (PrismContainerValueWrapper cv : objectWrapper.getValues()){
             if (cv.isShowEmpty()){
@@ -696,22 +700,85 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         }
     }
 
+    private <IW extends ItemWrapper, VW extends PrismValueWrapper> void rememberContainerWrappersShowEmptyState(List<IW> iwList) {
+        for (IW iw : iwList) {
+            if (!(iw instanceof PrismContainerWrapper)){
+                continue;
+            }
+            List<VW> values = iw.getValues();
+            for (VW val : values) {
+                if (!(val instanceof PrismContainerValueWrapper)) {
+                    continue;
+                }
+                rememberContainerValueWrapperShowEmptyState((PrismContainerValueWrapper) val);
+            }
+        }
+    }
+
+    private void rememberContainerValueWrapperShowEmptyState(PrismContainerValueWrapper cvw) {
+        if (cvw == null){
+            return;
+        }
+        if (cvw.isShowEmpty()) {
+            rememberedShowEmptyState.add(cvw.getPath());
+        }
+        if (cvw.isExpanded()) {
+            rememberedExpandedState.add(cvw.getPath());
+        }
+        rememberContainerWrappersShowEmptyState(cvw.getItems());
+    }
+
     @Override
     protected PrismObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> org, boolean isReadonly) {
         PrismObjectWrapper<TaskType> objectWrapper = super.loadObjectWrapper(org, isReadonly);
-        if (!rememberedShowEmptyState.isEmpty()) {
-            for (PrismContainerValueWrapper cv : objectWrapper.getValues()) {
-                if (isContainerShowEmpty(cv.getPath())){
-                    cv.setShowEmpty(true);
-                }
-            }
+        if (CollectionUtils.isNotEmpty(rememberedShowEmptyState) || CollectionUtils.isNotEmpty(rememberedExpandedState)) {
+            checkContainerWrappersShowEmptyState(Arrays.asList(objectWrapper));
         }
         return objectWrapper;
     }
 
+    private <IW extends ItemWrapper, VW extends PrismValueWrapper> void checkContainerWrappersShowEmptyState(List<IW> iwList) {
+        for (IW iw : iwList) {
+            if (!(iw instanceof PrismContainerWrapper)){
+                continue;
+            }
+            List<VW> values = iw.getValues();
+            for (VW val : values) {
+                if (!(val instanceof PrismContainerValueWrapper)) {
+                    continue;
+                }
+                checkContainerValueWrapperShowEmptyState((PrismContainerValueWrapper) val);
+            }
+        }
+    }
+
+    private void checkContainerValueWrapperShowEmptyState(PrismContainerValueWrapper cvw) {
+        if (cvw == null){
+            return;
+        }
+        if (isContainerShowEmpty(cvw.getPath())){
+            cvw.setShowEmpty(true);
+        }
+        if (isContainerExpanded(cvw.getPath())){
+            cvw.setExpanded(true);
+        } else {
+            cvw.setExpanded(false);
+        }
+        checkContainerWrappersShowEmptyState(cvw.getItems());
+    }
+
     private boolean isContainerShowEmpty(ItemPath containerPath){
         for (ItemPath path : rememberedShowEmptyState){
-            if (QNameUtil.match(path.lastName(), containerPath.lastName())){
+            if (path.equivalent(containerPath)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isContainerExpanded(ItemPath containerPath){
+        for (ItemPath path : rememberedExpandedState){
+            if (path.equivalent(containerPath)){
                 return true;
             }
         }
