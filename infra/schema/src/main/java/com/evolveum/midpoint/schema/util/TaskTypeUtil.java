@@ -36,6 +36,9 @@ public class TaskTypeUtil {
     public static List<TaskType> getResolvedSubtasks(TaskType parent) {
         List<TaskType> rv = new ArrayList<>();
         for (ObjectReferenceType childRef : parent.getSubtaskRef()) {
+            if (childRef.getOid() == null && childRef.getObject() == null) {
+                continue;
+            }
             //noinspection unchecked
             PrismObject<TaskType> child = childRef.getObject();
             if (child != null) {
