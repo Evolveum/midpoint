@@ -71,6 +71,7 @@
                 <icfcps:winRmPort>5986</icfcps:winRmPort>
                 <icfcps:winRmUseHttps>true</icfcps:winRmUseHttps>
                 <icfcps:powershellArgumentStyle>variables</icfcps:powershellArgumentStyle>
+                <icfcps:disableCertificateChecks>true</icfcps:disableCertificateChecks>
             </icfc:configurationProperties>
             <icfc:resultsHandlerConfiguration>
                 <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
