@@ -2348,7 +2348,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String expected = "select\n" +
                     "  r.oid, r.fullObject\n" +
                     "from\n" +
-                    "  RReportOutput r\n" +
+                    "  RReportData r\n" +
                     "where\n" +
                     "  r.createTimestamp <= :createTimestamp";
 
