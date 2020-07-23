@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.search.SearchItem;
 import com.evolveum.midpoint.web.component.search.SearchValue;
@@ -263,7 +264,7 @@ public abstract class ResourceContentPanel extends Panel {
             }
 
             @Override
-            protected BaseSortableDataProvider<SelectableBean<ShadowType>> createProvider() {
+            protected ISelectableDataProvider<ShadowType, SelectableBean<ShadowType>> createProvider() {
                 provider = (SelectableBeanObjectDataProvider<ShadowType>) super.createProvider();
                 provider.setEmptyListOnNullQuery(true);
                 provider.setSort(null);

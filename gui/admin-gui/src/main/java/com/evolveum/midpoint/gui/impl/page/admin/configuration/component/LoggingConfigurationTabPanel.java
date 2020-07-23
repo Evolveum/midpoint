@@ -122,7 +122,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_CLASS_LOGGER);
 
         MultivalueContainerListPanel<ClassLoggerConfigurationType, S> loggersMultivalueContainerListPanel =
-                new MultivalueContainerListPanel<ClassLoggerConfigurationType, S>(ID_LOGGERS, ClassLoggerConfigurationType.class, loggerModel) {
+                new MultivalueContainerListPanel<ClassLoggerConfigurationType, S>(ID_LOGGERS, loggerModel) {
 
             private static final long serialVersionUID = 1L;
 
@@ -179,7 +179,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         PrismContainerWrapperModel<LoggingConfigurationType, AppenderConfigurationType> appenderModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_APPENDER);
 
         MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appendersMultivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>(ID_APPENDERS, AppenderConfigurationType.class, appenderModel) {
+                new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>(ID_APPENDERS, appenderModel) {
 
             private static final long serialVersionUID = 1L;
 

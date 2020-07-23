@@ -15,6 +15,7 @@ import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EX
 import java.io.Serializable;
 import java.util.*;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 
 import org.apache.commons.lang.Validate;
@@ -45,7 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * @author lazyman
  * @author semancik
  */
-public class SelectableBeanObjectDataProvider<O extends ObjectType> extends SelectableListDataProvider<SelectableBean<O>, O> {
+public class SelectableBeanObjectDataProvider<O extends ObjectType> extends BaseSortableDataProvider<SelectableBean<O>>
+        implements ISelectableDataProvider<O, SelectableBean<O>>{
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SelectableBeanObjectDataProvider.class);
@@ -83,16 +85,16 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Sele
         selected.clear();
     }
 
-//    @NotNull
-//    public List<O> getSelectedObjects() {
-//        preprocessSelectedDataInternal();
-//        for (SelectableBean<O> selectable : super.getAvailableData()) {
-//            if (selectable.isSelected() && selectable.getValue() != null) {
-//                ((Set) selected).add(selectable.getValue());
-//            }
-//        }
-//        return new ArrayList<>(selected);
-//    }
+    @Override
+    public List<O> getSelectedObjects() {
+        preprocessSelectedDataInternal();
+        for (SelectableBean<O> selectable : super.getAvailableData()) {
+            if (selectable.isSelected() && selectable.getValue() != null) {
+                ((Set) selected).add(selectable.getValue());
+            }
+        }
+        return new ArrayList<>(selected);
+    }
 
     private void preprocessSelectedData() {
         preprocessSelectedDataInternal();

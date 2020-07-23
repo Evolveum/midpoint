@@ -54,7 +54,7 @@ public abstract class CaseWorkItemListWithDetailsPanel extends MultivalueContain
     private WorkItemDetailsPanel workItemDetails = null;
 
     public CaseWorkItemListWithDetailsPanel(String id, IModel<PrismContainerWrapper<CaseWorkItemType>> model){
-        super(id, CaseWorkItemType.class, model);
+        super(id, model);
     }
 
     @Override

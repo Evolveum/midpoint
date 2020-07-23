@@ -15,6 +15,8 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.Validate;
@@ -32,8 +34,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * @author lazyman
  */
-public class SelectableListDataProvider<W extends SelectableBean, T extends Serializable>
-        extends BaseSortableDataProvider<W> {
+public class SelectableListDataProvider<W extends Serializable, T extends Serializable>
+        extends BaseSortableDataProvider<W> implements ISelectableDataProvider<W, W> {
 
     private IModel<List<T>> model;
 
@@ -61,14 +63,14 @@ public class SelectableListDataProvider<W extends SelectableBean, T extends Seri
                     throw new ArrayIndexOutOfBoundsException(
                             "Trying to get item on index " + i + " but list size is " + list.size());
                 }
-                getAvailableData().add(createDataObjectWrapper(list.get(WebComponentUtil.safeLongToInteger(i))));
+                getAvailableData().add(createObjectWrapper(list.get(WebComponentUtil.safeLongToInteger(i))));
             }
         }
 
         return getAvailableData().iterator();
     }
 
-    protected W createDataObjectWrapper(T object) {
+    protected W createObjectWrapper(T object) {
         return (W) new SelectableBeanImpl<>(object);
     }
 
@@ -82,14 +84,14 @@ public class SelectableListDataProvider<W extends SelectableBean, T extends Seri
         return list.size();
     }
 
-    @NotNull
-    public List<T> getSelectedObjects() {
-        List<T> allSelected = new ArrayList<>();
+    @Override
+    public List<W> getSelectedObjects() {
+        List<W> allSelected = new ArrayList<>();
         for (Serializable s : super.getAvailableData()) {
             if (s instanceof Selectable) {
-                Selectable<SelectableBean<T>> selectable = (Selectable<SelectableBean<T>>) s;
+                Selectable<W> selectable = (Selectable<W>) s;
                 if (selectable.isSelected() && selectable.getValue() != null) {
-                    allSelected.add(selectable.getValue().getValue());
+                    allSelected.add(selectable.getValue());
                 }
             }
         }

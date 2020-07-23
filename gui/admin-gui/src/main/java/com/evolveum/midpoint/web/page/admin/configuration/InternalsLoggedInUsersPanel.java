@@ -15,6 +15,7 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -73,7 +74,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
             }
 
             @Override
-            protected BaseSortableDataProvider<SelectableBean<F>> createProvider() {
+            protected ISelectableDataProvider<SelectableBean<F>, SelectableBean<F>> createProvider() {
                 LoadableModel<List<UserSessionManagementType>> principals = new LoadableModel<List<UserSessionManagementType>>(true) {
 
                     @Override
@@ -85,7 +86,7 @@ public class InternalsLoggedInUsersPanel<F extends FocusType> extends BasePanel<
                 return new SelectableListDataProvider<SelectableBean<F>, UserSessionManagementType>(InternalsLoggedInUsersPanel.this, principals) {
 
                     @Override
-                    protected SelectableBean<F> createDataObjectWrapper(UserSessionManagementType principal) {
+                    protected SelectableBean<F> createObjectWrapper(UserSessionManagementType principal) {
                         SelectableBeanImpl<F> user = new SelectableBeanImpl<>((F) principal.getFocus());
                         user.setActiveSessions(principal.getActiveSessions());
                         user.setNodes(principal.getNode());

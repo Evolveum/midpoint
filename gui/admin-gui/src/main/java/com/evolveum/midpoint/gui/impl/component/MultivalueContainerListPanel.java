@@ -19,6 +19,7 @@ import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.objectdetails.AssignmentHolderTypeMainPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -63,6 +64,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 
 import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author skublik
@@ -76,8 +78,8 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
 
     private LoadableModel<Search> searchModel = null;
 
-    public MultivalueContainerListPanel(String id, Class<? extends C> type, IModel<PrismContainerWrapper<C>> model) {
-        super(id, type, model);
+    public MultivalueContainerListPanel(String id, @NotNull IModel<PrismContainerWrapper<C>> model) {
+        super(id, model.getObject().getTypeClass(), model);
 
         searchModel = new LoadableModel<Search>(false) {
 
@@ -94,14 +96,11 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
                 search.setCanConfigure(true);
                 return search;
             }
-
         };
     }
 
-    public MultivalueContainerListPanel(String id, Class<? extends C> type, PrismContainerDefinition<C> def) {
-        super(id, type, null);
-//        this.tableId = tableId;
-//        this.pageStorage = pageStorage;
+    public MultivalueContainerListPanel(String id, @NotNull PrismContainerDefinition<C> def) {
+        super(id, def.getCompileTimeClass(), null);
 
         searchModel = new LoadableModel<Search>(false) {
 
@@ -118,11 +117,6 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
         };
     }
 
-//    @Override
-//    public PageStorage getPageStorage() {
-//        return pageStorage;
-//    }
-
     protected abstract List<SearchItemDefinition> initSearchableItems(PrismContainerDefinition<C> containerDef);
 
     protected abstract void initPaging();
@@ -136,7 +130,7 @@ public abstract class MultivalueContainerListPanel<C extends Containerable, S ex
     }
 
     @Override
-    protected ISortableDataProvider createProvider() {
+    protected ISelectableDataProvider<PrismContainerValueWrapper<C>, PrismContainerValueWrapper<C>> createProvider() {
         MultivalueContainerListDataProvider<C> containersProvider = new MultivalueContainerListDataProvider<C>(this, loadValuesModel()) {
             private static final long serialVersionUID = 1L;
 

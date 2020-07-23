@@ -79,7 +79,7 @@ public class GlobalPolicyRuleTabPanel<S extends Serializable> extends BasePanel<
 
     protected void initLayout() {
         MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>(ID_GLOBAL_POLICY_RULE, GlobalPolicyRuleType.class, getModel()) {
+                new MultivalueContainerListPanelWithDetailsPanel<GlobalPolicyRuleType, S>(ID_GLOBAL_POLICY_RULE, getModel()) {
 
             private static final long serialVersionUID = 1L;
 

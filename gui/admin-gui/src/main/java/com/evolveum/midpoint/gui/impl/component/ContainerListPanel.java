@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.component;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
@@ -41,7 +43,6 @@ import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.*;
 import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -79,8 +80,6 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
 
     private Collection<SelectorOptions<GetOperationOptions>> options;
 
-//    private TableId tableId;
-
     private String additionalBoxCssClasses;
 
     private Boolean manualRefreshEnabled;
@@ -97,8 +96,6 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
     public ContainerListPanel(String id, Class<? extends C> defaultType, Collection<SelectorOptions<GetOperationOptions>> options) {
         super(id, defaultType, null);
         this.options = options;
-//        this.tableId = tableId;
-
     }
 
     @Override
@@ -382,7 +379,7 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
         return initSearch(headerId);
     }
 
-    protected BaseSortableDataProvider createProvider() {
+    protected ISelectableDataProvider createProvider() {
         ContainerListDataProvider<C> provider = new ContainerListDataProvider<C>(this,
                 getType(), createOptions()) {
             private static final long serialVersionUID = 1L;
@@ -428,8 +425,8 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
     @SuppressWarnings("unchecked")
     @NotNull
     public List getSelectedObjects() {
-        BaseSortableDataProvider<SelectableBean<C>> dataProvider = getDataProvider();
-        return ((ContainerListDataProvider) dataProvider).getSelectedData();
+        ISelectableDataProvider dataProvider = getDataProvider();
+        return dataProvider.getSelectedObjects();
     }
 
     protected Collection<SelectorOptions<GetOperationOptions>> createOptions() {
@@ -636,9 +633,9 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
 
 
     @SuppressWarnings("unchecked")
-    protected BaseSortableDataProvider<SelectableBean<C>> getDataProvider() {
+    protected ISelectableDataProvider getDataProvider() {
         BoxedTablePanel<SelectableBean<C>> table = getTable();
-        BaseSortableDataProvider<SelectableBean<C>> provider = (BaseSortableDataProvider<SelectableBean<C>>) table
+        ISelectableDataProvider provider = (ISelectableDataProvider) table
                 .getDataTable().getDataProvider();
         return provider;
 
@@ -651,7 +648,7 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
     @SuppressWarnings("deprecation")
     private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 
-        BaseSortableDataProvider<SelectableBean<C>> provider = getDataProvider();
+        ISelectableDataProvider provider = getDataProvider();
 
         // note: we ignore 'query' parameter, as the 'customQuery' already contains its content (MID-3271)
         ObjectQuery customQuery = createQuery();
@@ -675,7 +672,7 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
         if (isTypeChanged(newTypeClass)) {
             Class<C> newType = newTypeClass;
 
-            BaseSortableDataProvider<SelectableBean<C>> provider = getDataProvider();
+            ISelectableDataProvider provider = getDataProvider();
             provider.setQuery(createQuery());
             if (newType != null && provider instanceof ContainerListDataProvider) {
                 ((ContainerListDataProvider) provider).setType(newTypeClass);

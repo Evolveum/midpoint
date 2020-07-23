@@ -84,7 +84,7 @@ public class ObjectPolicyConfigurationTabPanel<S extends Serializable> extends B
 
     protected void initLayout() {
         MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S> multivalueContainerListPanel
-                = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>(ID_OBJECTS_POLICY, ObjectPolicyConfigurationType.class, getModel()) {
+                = new MultivalueContainerListPanelWithDetailsPanel<ObjectPolicyConfigurationType, S>(ID_OBJECTS_POLICY, getModel()) {
 
             private static final long serialVersionUID = 1L;
 

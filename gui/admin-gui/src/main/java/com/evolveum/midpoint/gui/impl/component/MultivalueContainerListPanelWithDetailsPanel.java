@@ -51,12 +51,12 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     private List<PrismContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
     private boolean itemDetailsVisible;
 
-    public MultivalueContainerListPanelWithDetailsPanel(String id, Class<? extends C> type, IModel<PrismContainerWrapper<C>> model) {
-        super(id, type, model);
+    public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<PrismContainerWrapper<C>> model) {
+        super(id, model);
     }
 
-    public MultivalueContainerListPanelWithDetailsPanel(String id, Class<? extends C> type, PrismContainerDefinition<C> def) {
-        super(id, type, def);
+    public MultivalueContainerListPanelWithDetailsPanel(String id, PrismContainerDefinition<C> def) {
+        super(id, def);
     }
 
     @Override

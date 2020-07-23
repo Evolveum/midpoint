@@ -120,7 +120,7 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
     private void initLayout() {
         MultivalueContainerListPanelWithDetailsPanel<ShadowType, F> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>(ID_SHADOW_TABLE, ShadowType.class, getShadowDefinition()) {
+                new MultivalueContainerListPanelWithDetailsPanel<ShadowType, F>(ID_SHADOW_TABLE, getShadowDefinition()) {
 
             private static final long serialVersionUID = 1L;
 

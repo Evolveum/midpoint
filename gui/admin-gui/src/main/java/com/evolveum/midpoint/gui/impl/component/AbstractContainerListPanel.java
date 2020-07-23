@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.MultiFunctinalButtonDto;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -243,7 +244,7 @@ public abstract class AbstractContainerListPanel<C extends Containerable> extend
         return null;
     }
 
-    protected abstract ISortableDataProvider createProvider();
+    protected abstract ISelectableDataProvider createProvider();
 
     protected List<MultiFunctinalButtonDto> createNewButtonDescription() {
         return null;

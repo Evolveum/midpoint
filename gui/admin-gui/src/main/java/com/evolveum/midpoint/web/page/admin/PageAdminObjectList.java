@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
@@ -107,7 +108,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
-            protected BaseSortableDataProvider<SelectableBean<O>> createProvider() {
+            protected ISelectableDataProvider<O, SelectableBean<O>> createProvider() {
                 if (getCustomProvider() != null) {
                     return getCustomProvider();
                 }
@@ -142,7 +143,7 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         return true;
     }
 
-    protected BaseSortableDataProvider<SelectableBean<O>> getCustomProvider() {
+    protected ISelectableDataProvider<O, SelectableBean<O>> getCustomProvider() {
         return null;
     }
 

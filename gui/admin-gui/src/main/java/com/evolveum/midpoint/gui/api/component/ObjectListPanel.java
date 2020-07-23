@@ -12,16 +12,15 @@ import java.util.function.Supplier;
 import com.evolveum.midpoint.gui.impl.component.ContainerListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SerializableSupplier;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.markup.html.WebMarkupContainer;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -32,13 +31,10 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.session.PageStorage;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
+
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.util.string.StringValue;
 import org.jetbrains.annotations.NotNull;
@@ -59,6 +55,10 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
 
     public Class<O> getType() {
         return (Class) type.getClassDefinition();
+    }
+
+    public void setType(Class<? extends O> type) {
+        this.type = type  != null ? ObjectTypes.getObjectType(type) : null;
     }
 
     /**
@@ -91,8 +91,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
 
     @Override
     public List<O> getSelectedObjects() {
-        BaseSortableDataProvider<? extends SelectableBean<O>> dataProvider = getDataProvider();
-        return ((SelectableListDataProvider) dataProvider).getSelectedObjects();
+        ISelectableDataProvider dataProvider = getDataProvider();
+        return dataProvider.getSelectedObjects();
     }
 
     protected Search createSearch() {
@@ -100,7 +100,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
                 null, getPageBase(), true);
     }
 
-    protected BaseSortableDataProvider<SelectableBean<O>> createProvider() {
+    protected ISelectableDataProvider createProvider() {
         List<O> preSelectedObjectList = getPreselectedObjectList();
         SelectableBeanObjectDataProvider<O> provider = new SelectableBeanObjectDataProvider<O>(
                 getPageBase(), (Class) type.getClassDefinition(), preSelectedObjectList == null ? null : new HashSet<>(preSelectedObjectList)) {
@@ -176,32 +176,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
 
     protected List<CompiledObjectCollectionView> getAllApplicableArchetypeViews() {
         return getPageBase().getCompiledGuiProfile().findAllApplicableArchetypeViews(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()));
-    }
-
-    public void refreshTable(Class<O> newTypeClass, AjaxRequestTarget target) {
-        BoxedTablePanel<SelectableBean<O>> table = getTable();
-        if (isTypeChanged(newTypeClass)) {
-            ObjectTypes newType = newTypeClass != null ? ObjectTypes.getObjectType(newTypeClass) : null;
-
-            BaseSortableDataProvider<SelectableBean<O>> provider = getDataProvider();
-            provider.setQuery(createQuery());
-            if (newType != null && provider instanceof SelectableBeanObjectDataProvider) {
-                ((SelectableBeanObjectDataProvider<O>) provider).setType(newTypeClass);
-            }
-
-            ((WebMarkupContainer) table.get("box")).addOrReplace(initSearch("header"));
-            if (newType != null && !this.type.equals(newType)) {
-                this.type = newType;
-                resetSearchModel();
-                table.setCurrentPage(null);
-            } else {
-                saveSearchModel(getCurrentTablePaging());
-            }
-        }
-
-        target.add((Component) table);
-        target.add(getPageBase().getFeedbackPanel());
-
     }
 
     public void clearCache() {

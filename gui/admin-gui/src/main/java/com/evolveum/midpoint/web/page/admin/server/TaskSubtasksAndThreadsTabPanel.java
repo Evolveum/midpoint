@@ -15,6 +15,7 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
@@ -29,6 +30,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.*;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -111,7 +113,7 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
         TaskTablePanel workerThreadsTable = new TaskTablePanel(ID_WORKER_THREADS_TABLE, null) {
 
             @Override
-            protected BaseSortableDataProvider<SelectableBean<TaskType>> createProvider() {
+            protected ISelectableDataProvider<Serializable, Serializable> createProvider() {
                 return new SelectableListDataProvider<>(TaskSubtasksAndThreadsTabPanel.this, createWorkersModel());
             }
 

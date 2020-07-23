@@ -115,7 +115,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
     private void initLayout() {
 
         MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation> multivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation>(ID_ASSIGNMENTS, AssignmentType.class, getModel() != null ? getModel() : Model.of()) {
+                new MultivalueContainerListPanelWithDetailsPanel<AssignmentType, AssignmentObjectRelation>(ID_ASSIGNMENTS, getModel() != null ? getModel() : Model.of()) {
 
                     private static final long serialVersionUID = 1L;
 

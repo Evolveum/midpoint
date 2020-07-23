@@ -14,6 +14,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.Validate;
@@ -33,7 +35,8 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 /**
  * @author katkav
  */
-public class MultivalueContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<PrismContainerValueWrapper<C>> {
+public class MultivalueContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<PrismContainerValueWrapper<C>>
+        implements ISelectableDataProvider<PrismContainerValueWrapper<C>, PrismContainerValueWrapper<C>> {
 
     private IModel<List<PrismContainerValueWrapper<C>>> model;
 
@@ -104,7 +107,8 @@ public class MultivalueContainerListDataProvider<C extends Containerable> extend
         return list.size();
     }
 
-    public List<PrismContainerValueWrapper<C>> getSelectedData() {
+    @Override
+    public List<PrismContainerValueWrapper<C>> getSelectedObjects() {
         return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
     }
 

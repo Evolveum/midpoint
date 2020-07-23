@@ -22,6 +22,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -34,7 +35,8 @@ import java.util.stream.Collectors;
 /**
  * Created by honchar
  */
-public class ContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<PrismContainerValueWrapper<C>> {
+public class ContainerListDataProvider<C extends Containerable> extends BaseSortableDataProvider<PrismContainerValueWrapper<C>>
+        implements ISelectableDataProvider<PrismContainerValueWrapper<C>, PrismContainerValueWrapper<C>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerListDataProvider.class);
     private static final String DOT_CLASS = ObjectDataProvider.class.getName() + ".";
@@ -147,7 +149,8 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
         return count;
     }
 
-    public List<PrismContainerValueWrapper<C>> getSelectedData() {
+    @Override
+    public List<PrismContainerValueWrapper<C>> getSelectedObjects() {
         return getAvailableData().stream().filter(a -> a.isSelected()).collect(Collectors.toList());
     }
 

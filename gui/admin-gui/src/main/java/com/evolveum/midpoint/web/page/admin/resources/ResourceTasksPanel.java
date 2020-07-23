@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
@@ -107,7 +109,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected BaseSortableDataProvider<SelectableBean<TaskType>> createProvider() {
+                    protected ISelectableDataProvider<Serializable, Serializable> createProvider() {
                         return new SelectableListDataProvider<>(pageBase, tasks);
                     }
 

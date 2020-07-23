@@ -62,7 +62,7 @@ public class CaseEventsTabPanel extends AbstractObjectTabPanel<CaseType> {
 
         PrismContainerWrapperModel<CaseType, CaseEventType> eventsModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), CaseType.F_EVENT);
         MultivalueContainerListPanel<CaseEventType, String> multivalueContainerListPanel =
-                new MultivalueContainerListPanel<CaseEventType, String>(ID_EVENTS_PANEL, CaseEventType.class, eventsModel) {
+                new MultivalueContainerListPanel<CaseEventType, String>(ID_EVENTS_PANEL, eventsModel) {
 
                     private static final long serialVersionUID = 1L;
 

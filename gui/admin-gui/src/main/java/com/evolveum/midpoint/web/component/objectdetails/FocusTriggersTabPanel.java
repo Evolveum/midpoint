@@ -55,7 +55,7 @@ public class FocusTriggersTabPanel<F extends FocusType> extends AbstractObjectTa
                 getObjectWrapperModel(), FocusType.F_TRIGGER);
 
         MultivalueContainerListPanel<TriggerType, AssignmentObjectRelation> multivalueContainerListPanel =
-                new MultivalueContainerListPanel<TriggerType, AssignmentObjectRelation>(ID_TRIGGERS_PANEL, TriggerType.class, triggersModel) {
+                new MultivalueContainerListPanel<TriggerType, AssignmentObjectRelation>(ID_TRIGGERS_PANEL, triggersModel) {
 
                     private static final long serialVersionUID = 1L;
 
