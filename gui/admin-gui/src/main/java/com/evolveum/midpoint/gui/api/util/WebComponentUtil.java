@@ -813,7 +813,13 @@ public final class WebComponentUtil {
             ObjectTypeGuiDescriptor desc2 = ObjectTypeGuiDescriptor.getDescriptor(type2);
 
             String localizedType1 = translate(decs1);
+            if (localizedType1 == null) {
+                localizedType1 = decs1.getLocalizationKey();
+            }
             String localizedType2 = translate(desc2);
+            if (localizedType2 == null) {
+                localizedType2 = desc2.getLocalizationKey();
+            }
 
             return String.CASE_INSENSITIVE_ORDER.compare(localizedType1, localizedType2);
         }).collect(Collectors.toList());
