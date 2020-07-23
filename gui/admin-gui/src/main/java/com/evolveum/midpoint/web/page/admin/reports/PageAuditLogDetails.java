@@ -176,7 +176,7 @@ public class PageAuditLogDetails extends PageBase {
                 this::getAuditEventRecordProviderParameters);
 
         BoxedTablePanel<AuditEventRecordType> table = new BoxedTablePanel<AuditEventRecordType>(
-                ID_HISTORY_PANEL, provider, initColumns(), UserProfileStorage.TableId.TASK_EVENTS_TABLE.name(), TASK_EVENTS_TABLE_SIZE) {
+                ID_HISTORY_PANEL, provider, initColumns(), UserProfileStorage.TableId.TASK_EVENTS_TABLE, TASK_EVENTS_TABLE_SIZE) {
 
             @Override
             protected Item<AuditEventRecordType> customizeNewRowItem(final Item<AuditEventRecordType> item,

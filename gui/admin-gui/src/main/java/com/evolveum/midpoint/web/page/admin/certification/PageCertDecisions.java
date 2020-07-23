@@ -143,7 +143,7 @@ public class PageCertDecisions extends PageAdminCertification {
         CertWorkItemDtoProvider provider = createProvider();
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL);
         BoxedTablePanel<CertWorkItemDto> table = new BoxedTablePanel<CertWorkItemDto>(ID_DECISIONS_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL.name(), itemsPerPage) {
+                UserProfileStorage.TableId.PAGE_CERT_DECISIONS_PANEL, itemsPerPage) {
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -75,7 +75,7 @@ public class ProcessInstancesPanel extends BasePanel {
 
     private void initLayout(UserProfileStorage.TableId tableId, int pageSize, View view, final IModel<String> currentInstanceIdModel) {
         BoxedTablePanel<ProcessInstanceDto> table = new BoxedTablePanel<ProcessInstanceDto>(
-                ID_REQUESTS_TABLE, provider, initColumns(view), tableId.name(), pageSize) {
+                ID_REQUESTS_TABLE, provider, initColumns(view), tableId, pageSize) {
 
             @Override
             protected Item<ProcessInstanceDto> customizeNewRowItem(Item<ProcessInstanceDto> item,

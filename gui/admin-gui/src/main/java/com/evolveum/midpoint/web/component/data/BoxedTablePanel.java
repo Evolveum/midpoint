@@ -60,7 +60,7 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     private static final int DEFAULT_REFRESH_INTERVAL = 60;
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
-        this(id, provider, columns, null, UserProfileStorage.DEFAULT_PAGING_SIZE);
+        this(id, provider, columns, (String) null, UserProfileStorage.DEFAULT_PAGING_SIZE);
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
@@ -69,8 +69,18 @@ public class BoxedTablePanel<T> extends BasePanel<T> implements Table {
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
+            int pageSize) {
+        this(id, provider, columns, null, pageSize, false);
+    }
+
+    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
             String tableIdKey, int pageSize) {
         this(id, provider, columns, tableIdKey, pageSize, false);
+    }
+
+    public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,
+            UserProfileStorage.TableId tableId, int pageSize) {
+        this(id, provider, columns, tableId != null ? tableId.name() : null, pageSize, false);
     }
 
     public BoxedTablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns,

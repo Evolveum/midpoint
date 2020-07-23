@@ -226,7 +226,7 @@ public class ExportingPanel extends BasePanel implements Popupable {
                 };
 
         BoxedTablePanel<SelectableBean<Integer>> table =
-                new BoxedTablePanel<SelectableBean<Integer>>(id, provider, columns, null, 20) {
+                new BoxedTablePanel<SelectableBean<Integer>>(id, provider, columns, 20) {
             private static final long serialVersionUID = 1L;
 
             @Override

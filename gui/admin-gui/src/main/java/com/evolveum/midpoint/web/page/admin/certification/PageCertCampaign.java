@@ -263,7 +263,7 @@ public class PageCertCampaign extends PageAdminCertification {
         provider.setSort(AccessCertificationCaseType.F_OBJECT_REF.getLocalPart(), SortOrder.ASCENDING);        // default sorting
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGN_OUTCOMES_PANEL);
         BoxedTablePanel table = new BoxedTablePanel<>(ID_OUTCOMES_TABLE, provider, initColumns(),
-                UserProfileStorage.TableId.PAGE_CERT_CAMPAIGN_OUTCOMES_PANEL.name(), itemsPerPage);
+                UserProfileStorage.TableId.PAGE_CERT_CAMPAIGN_OUTCOMES_PANEL, itemsPerPage);
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
         table.setItemsPerPage(itemsPerPage);

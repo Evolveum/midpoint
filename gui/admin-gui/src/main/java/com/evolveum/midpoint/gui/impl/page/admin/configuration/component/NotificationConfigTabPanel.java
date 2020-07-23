@@ -271,7 +271,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         UserProfileStorage userProfile = getPageBase().getSessionStorage().getUserProfile();
         UserProfileStorage.TableId tableId = UserProfileStorage.TableId.NOTIFICATION_TAB_MAIL_SERVER_TABLE;
-        BoxedTablePanel<MailServerConfiguration> table = new BoxedTablePanel<MailServerConfiguration>(ID_MAIL_SERVERS_TABLE, provider, initMailServersColumns(), tableId.name(), userProfile.getPagingSize(tableId)) {
+        BoxedTablePanel<MailServerConfiguration> table = new BoxedTablePanel<MailServerConfiguration>(ID_MAIL_SERVERS_TABLE, provider, initMailServersColumns(), tableId, userProfile.getPagingSize(tableId)) {
 
             private static final long serialVersionUID = 1L;
 

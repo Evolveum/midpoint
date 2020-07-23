@@ -172,7 +172,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         provider.setQuery(createCampaignsQuery());
         int itemsPerPage = (int) getItemsPerPage(UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL);
         BoxedTablePanel<CertCampaignListItemDto> table = new BoxedTablePanel<CertCampaignListItemDto>(ID_CAMPAIGNS_TABLE, provider,
-                initColumns(), UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL.name(), itemsPerPage) {
+                initColumns(), UserProfileStorage.TableId.PAGE_CERT_CAMPAIGNS_PANEL, itemsPerPage) {
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
                 return new SearchFragment(headerId, ID_TABLE_HEADER, PageCertCampaigns.this, searchModel);

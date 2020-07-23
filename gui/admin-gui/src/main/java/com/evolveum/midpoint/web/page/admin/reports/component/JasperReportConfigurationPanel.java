@@ -79,7 +79,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
     private void initParametersTable() {
         ISortableDataProvider<JasperReportParameterDto, String> provider = new ListDataProvider<>(this,
             new PropertyModel<>(getModel(), "jasperReportDto.parameters"));
-        BoxedTablePanel<JasperReportParameterDto> table = new BoxedTablePanel<>(ID_PARAMETERS_TABLE, provider, initParameterColumns(), null, 10);
+        BoxedTablePanel<JasperReportParameterDto> table = new BoxedTablePanel<>(ID_PARAMETERS_TABLE, provider, initParameterColumns(), 10);
 //        table.setShowPaging(false);
         table.setOutputMarkupId(true);
         add(table);
@@ -111,7 +111,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
     private void initFiledsTable() {
         ISortableDataProvider<JasperReportFieldDto, String> provider = new ListDataProvider<>(this,
             new PropertyModel<>(getModel(), "jasperReportDto.fields"));
-        BoxedTablePanel<JasperReportFieldDto> table = new BoxedTablePanel<>(ID_FIELDS_TABLE, provider, initFieldColumns(), null, 10);
+        BoxedTablePanel<JasperReportFieldDto> table = new BoxedTablePanel<>(ID_FIELDS_TABLE, provider, initFieldColumns(), 10);
 //        table.setShowPaging(false);
         table.setOutputMarkupId(true);
         add(table);
