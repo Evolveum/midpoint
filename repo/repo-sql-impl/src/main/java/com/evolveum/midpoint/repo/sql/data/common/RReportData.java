@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
+import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
@@ -15,7 +16,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Persister;
@@ -25,10 +26,12 @@ import javax.persistence.*;
 @Entity
 @ForeignKey(name = "fk_report_output")
 @Persister(impl = MidPointJoinedPersister.class)
-@Table(indexes = {
+@Table(name = RReportData.TABLE_NAME, indexes = {
         @Index(name = "iReportOutputNameOrig", columnList = "name_orig"),
         @Index(name = "iReportOutputNameNorm", columnList = "name_norm")})
-public class RReportOutput extends RObject {
+public class RReportData extends RObject {
+
+    public static final String TABLE_NAME = "m_report_output";
 
     private RPolyString nameCopy;
     private REmbeddedReference reportRef;
@@ -64,7 +67,7 @@ public class RReportOutput extends RObject {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
 
-        RReportOutput object = (RReportOutput) o;
+        RReportData object = (RReportData) o;
 
         if (nameCopy != null ? !nameCopy.equals(object.nameCopy) : object.nameCopy != null)
             return false;
@@ -82,7 +85,7 @@ public class RReportOutput extends RObject {
     }
 
     // dynamically called
-    public static void copyFromJAXB(ReportOutputType jaxb, RReportOutput repo, RepositoryContext repositoryContext,
+    public static void copyFromJAXB(ReportDataType jaxb, RReportData repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
         copyAssignmentHolderInformationFromJAXB(jaxb, repo, repositoryContext, generatorResult);
 

@@ -4135,7 +4135,7 @@ public final class WebComponentUtil {
             if (sortParam.getProperty().equals(metadataProperty)) {
                 return Collections.singletonList(
                         prismContext.queryFactory().createOrdering(
-                                ItemPath.create(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), order));
+                                ItemPath.create(ReportDataType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), order));
             }
             return Collections.singletonList(
                     prismContext.queryFactory().createOrdering(

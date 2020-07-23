@@ -7,14 +7,19 @@
 package com.evolveum.midpoint.report.impl.controller.engine;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.controller.export.ExportController;
+import com.evolveum.midpoint.report.impl.controller.export.FileFormatController;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import java.io.File;
@@ -35,11 +40,11 @@ public abstract class EngineController {
         this.reportService = reportService;
     }
 
-    public abstract String createReport(ReportType parentReport, ExportController exportController, Task task, OperationResult result) throws Exception;
+    public abstract String createReport(ReportType parentReport, FileFormatController fileFormatController, Task task, OperationResult result) throws Exception;
 
-    public abstract ExportType getDefaultExport();
+    public abstract FileFormatTypeType getDefaultFileFormat();
 
-    String getDestinationFileName(ReportType reportType, ExportController exportController) {
+    String getDestinationFileName(ReportType reportType, FileFormatController fileFormatController) {
         File exportDir = getExportDir();
         if (!exportDir.exists() || !exportDir.isDirectory()) {
             if (!exportDir.mkdir()) {
@@ -47,8 +52,8 @@ public abstract class EngineController {
             }
         }
 
-        String fileNamePrefix = reportType.getName().getOrig() + " " + getDateTime();
-        String fileName = fileNamePrefix + exportController.getTypeSuffix();
+        String fileNamePrefix = reportType.getName().getOrig() + "-EXPORT " + getDateTime();
+        String fileName = fileNamePrefix + fileFormatController.getTypeSuffix();
         return new File(getExportDir(), fileName).getPath();
     }
 
@@ -68,5 +73,17 @@ public abstract class EngineController {
 
     protected ReportServiceImpl getReportService() {
         return reportService;
+    }
+
+    public abstract void importReport(ReportType report, PrismContainer container, FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception;
+
+    protected void recordProgress(Task task, long progress, OperationResult opResult, Trace logger) {
+        try {
+            task.setProgressImmediate(progress, opResult);
+        } catch (ObjectNotFoundException e) {             // these exceptions are of so little probability and harmless, so we just log them and do not report higher
+            LoggingUtils.logException(logger, "Couldn't record progress to task {}, probably because the task does not exist anymore", e, task);
+        } catch (SchemaException e) {
+            LoggingUtils.logException(logger, "Couldn't record progress to task {}, due to unexpected schema exception", e, task);
+        }
     }
 }

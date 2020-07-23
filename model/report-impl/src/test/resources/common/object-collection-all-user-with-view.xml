@@ -18,7 +18,6 @@
             <display>
                 <label>Name (Collection)</label>
             </display>
-            <previousColumn>nameColumnReport</previousColumn>
         </column>
     </defaultView>
 </objectCollection>
