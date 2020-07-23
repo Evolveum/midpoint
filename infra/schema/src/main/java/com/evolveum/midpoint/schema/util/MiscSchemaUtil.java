@@ -10,6 +10,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportOptionsType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemProcessing;
