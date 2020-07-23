@@ -207,6 +207,10 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
         return Model.of(true);
     }
 
+    protected String getStorageKey(){
+        return null;
+    }
+
 //    @Override
 //    protected boolean isRefreshEnabled() {
 //        return false;

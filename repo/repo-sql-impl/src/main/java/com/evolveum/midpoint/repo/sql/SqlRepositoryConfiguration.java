@@ -20,7 +20,7 @@ import java.util.List;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.h2.Driver;
 import org.hibernate.dialect.H2Dialect;
 import org.jetbrains.annotations.NotNull;
@@ -55,6 +55,7 @@ public class SqlRepositoryConfiguration {
     private static final String HBM2DDL_VALIDATE = "validate";
     private static final String HBM2DDL_NONE = "none";
 
+    @SuppressWarnings("deprecation")
     public enum Database {
 
         // order is important! (the first value is the default)
@@ -450,6 +451,7 @@ public class SqlRepositoryConfiguration {
             }
             database = guessedDatabase;
         }
+        // TODO: when JDK-8 is gone use Objects.requireNonNullElse
         driverClassName = defaultIfNull(configuredDriverClassName, getDefaultDriverClassName(dataSource, database));
         hibernateDialect = defaultIfNull(configuredHibernateDialect, getDefaultHibernateDialect(database));
         embedded = defaultIfNull(configuredEmbedded, getDefaultEmbedded(dataSource, database));

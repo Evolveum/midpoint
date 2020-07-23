@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.wf.impl.other;
 
+import static java.util.Collections.singletonList;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
@@ -273,9 +274,11 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
         OperationResult result = getTestOperationResult();
 
         // GIVEN
-        setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN.oid);
+        setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
         assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+
+        setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN.oid);
 
         // WHEN
         // some innocent change
@@ -292,13 +295,17 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
     public void test210GetRoleByTemplateAfterAssignments() throws Exception {
         login(userAdministrator);
 
+        taskManager.unsetGlobalTracingOverride();
+
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
         // GIVEN
-        setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_AFTER.oid);
+        setDefaultUserTemplate(null);
         unassignAllRoles(userJackOid);
         assertNotAssignedRole(userJackOid, ROLE_CAPTAIN.oid, result);
+
+        setDefaultUserTemplate(TEMPLATE_ASSIGNING_CAPTAIN_AFTER.oid);
 
         // WHEN
         // some innocent change
@@ -354,7 +361,7 @@ public class TestMiscellaneous extends AbstractWfTestPolicy {
                         .asObjectDelta(userJackOid);
         ModelExecuteOptions options = executeOptions().partialProcessing(
                 new PartialProcessingOptionsType().approvals(PartialProcessingTypeType.SKIP));
-        modelService.executeChanges(Collections.singletonList(delta), options, task, result);
+        modelService.executeChanges(singletonList(delta), options, task, result);
 
         // THEN
         result.computeStatus();

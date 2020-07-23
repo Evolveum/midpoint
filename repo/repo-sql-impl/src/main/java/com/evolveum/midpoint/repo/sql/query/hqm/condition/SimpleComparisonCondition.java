@@ -12,21 +12,17 @@ import java.util.Objects;
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
-import org.apache.commons.lang.Validate;
-
-/**
- * @author mederly
- */
 public class SimpleComparisonCondition extends PropertyCondition {
 
-    private Object value;
-    private String operator;
-    private boolean ignoreCase;
+    private final Object value;
+    private final String operator;
+    private final boolean ignoreCase;
 
     public SimpleComparisonCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, Object value, String operator, boolean ignoreCase) {
         super(rootHibernateQuery, propertyPath);
-        Validate.notNull(value, "value");
-        Validate.notNull(operator, "operator");
+        Objects.requireNonNull(value, "value");
+        Objects.requireNonNull(operator, "operator");
+
         this.value = value;
         this.operator = operator;
         this.ignoreCase = ignoreCase;

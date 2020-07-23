@@ -1,19 +1,20 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 
 import java.util.*;
 import javax.xml.datatype.Duration;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.*;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -22,13 +23,18 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -201,7 +207,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     public void assertAnyRequestDeltas() {
         AuditEventRecord requestRecord = getRequestRecord();
         Collection<ObjectDeltaOperation<? extends ObjectType>> requestDeltas = requestRecord.getDeltas();
-        assert requestDeltas != null && !requestDeltas.isEmpty() : "Expected some deltas in audit request record but found none";
+        assert !requestDeltas.isEmpty() : "Expected some deltas in audit request record but found none";
     }
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutionDeltas() {
@@ -453,7 +459,9 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assertEquals("Wrong outcome of last audit record: " + lastRecord.getOutcome(), OperationResultStatus.SUCCESS, lastRecord.getOutcome());
         // TODO fix "login" "logout" auditing
         assertEquals("Audit session ID does not match", firstRecord.getSessionIdentifier(), lastRecord.getSessionIdentifier());
-        assertFalse("Same login and logout event IDs", firstRecord.getEventIdentifier().equals(lastRecord.getEventIdentifier()));
+        assertThat(firstRecord.getEventIdentifier())
+                .withFailMessage("Same login and logout event IDs")
+                .isNotEqualTo(lastRecord.getEventIdentifier());
         if (expectedChannel != null) {
             assertEquals("Wrong channel in first audit record", expectedChannel, firstRecord.getChannel());
             assertEquals("Wrong channel in last audit record", expectedChannel, lastRecord.getChannel());
@@ -530,5 +538,18 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @Override
+    public int countObjects(ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+        throw new UnsupportedOperationException("countObjects not supported");
+    }
+
+    @Override
+    @NotNull
+    public SearchResultList<AuditEventRecordType> searchObjects(ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+        throw new UnsupportedOperationException("searchObjects not supported");
     }
 }

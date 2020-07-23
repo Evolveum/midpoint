@@ -7,7 +7,10 @@
 package com.evolveum.midpoint.prism.impl.xnode;
 
 import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.MetadataAware;
 import com.evolveum.midpoint.prism.xnode.SchemaXNode;
+
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Visitor;
@@ -97,5 +100,12 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
     @Override
     public void setMetadataNode(MapXNode metadata) {
         this.metadata = metadata;
+    }
+
+    @Override
+    public @NotNull XNodeImpl clone() {
+        SchemaXNodeImpl clone = (SchemaXNodeImpl) super.clone();
+        MetadataAware.cloneMetadata(clone, this);
+        return clone;
     }
 }

@@ -54,7 +54,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceResolutionFrequencyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ReadCapabilityType;
 
@@ -137,7 +136,7 @@ public class ResourceObjectReferenceResolver {
     Collection<? extends ResourceAttribute<?>> resolvePrimaryIdentifier(ProvisioningContext ctx,
             Collection<? extends ResourceAttribute<?>> identifiers, final String desc, OperationResult result)
                     throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-                    SecurityViolationException, ExpressionEvaluationException {
+                    ExpressionEvaluationException {
         if (identifiers == null) {
             return null;
         }
@@ -168,16 +167,66 @@ public class ResourceObjectReferenceResolver {
         return primaryIdentifiers;
     }
 
+    PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
+            Collection<? extends ResourceAttribute<?>> identifiers,
+            AttributesToReturn attributesToReturn,
+            OperationResult parentResult) throws ObjectNotFoundException,
+            CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
+        RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
+
+        try {
+
+            ReadCapabilityType readCapability = ctx.getEffectiveCapability(ReadCapabilityType.class);
+            if (readCapability == null) {
+                throw new UnsupportedOperationException("Resource does not support 'read' operation: " + ctx.toHumanReadableDescription());
+            }
+
+            if (Boolean.TRUE.equals(readCapability.isCachingOnly())) {
+                return ctx.getOriginalShadow();
+            }
+
+            ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiers);
+            ResourceObjectIdentification resolvedIdentification = resolvePrimaryIdentifiers(ctx, identification, parentResult);
+            resolvedIdentification.validatePrimaryIdenfiers();
+            return connector.fetchObject(resolvedIdentification, attributesToReturn, ctx, parentResult);
+        } catch (ObjectNotFoundException e) {
+            parentResult.recordFatalError(
+                    "Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
+            throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
+                        PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName())+": "
+                    + e.getMessage(), e);
+        } catch (CommunicationException e) {
+            parentResult.recordFatalError("Error communication with the connector " + connector
+                    + ": " + e.getMessage(), e);
+            throw e;
+        } catch (GenericFrameworkException e) {
+            parentResult.recordFatalError(
+                    "Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
+            throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
+                    + e.getMessage(), e);
+        } catch (SchemaException ex) {
+            parentResult.recordFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
+            throw ex;
+        } catch (ExpressionEvaluationException ex) {
+            parentResult.recordFatalError("Can't get resource object, expression error: " + ex.getMessage(), ex);
+            throw ex;
+        } catch (ConfigurationException e) {
+            parentResult.recordFatalError(e);
+            throw e;
+        }
+    }
+
     /**
      * Resolve primary identifier from a collection of identifiers that may contain only secondary identifiers.
      */
     @SuppressWarnings("unchecked")
     private ResourceObjectIdentification resolvePrimaryIdentifiers(ProvisioningContext ctx,
             ResourceObjectIdentification identification, OperationResult result)
-                    throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-                    SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
         if (identification == null) {
-            return identification;
+            return null;
         }
         if (identification.hasPrimaryIdentifiers()) {
             return identification;
@@ -211,59 +260,4 @@ public class ResourceObjectReferenceResolver {
         return new ResourceObjectIdentification(identification.getObjectClassDefinition(), primaryIdentifiers,
                 identification.getSecondaryIdentifiers());
     }
-
-
-    public PrismObject<ShadowType> fetchResourceObject(ProvisioningContext ctx,
-            Collection<? extends ResourceAttribute<?>> identifiers,
-            AttributesToReturn attributesToReturn,
-            OperationResult parentResult) throws ObjectNotFoundException,
-            CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        ResourceType resource = ctx.getResource();
-        ConnectorInstance connector = ctx.getConnector(ReadCapabilityType.class, parentResult);
-        RefinedObjectClassDefinition objectClassDefinition = ctx.getObjectClassDefinition();
-
-        try {
-
-            ReadCapabilityType readCapability = ctx.getEffectiveCapability(ReadCapabilityType.class);
-            if (readCapability == null) {
-                throw new UnsupportedOperationException("Resource does not support 'read' operation: " + ctx.toHumanReadableDescription());
-            }
-
-            if (Boolean.TRUE.equals(readCapability.isCachingOnly())) {
-                return ctx.getOriginalShadow();
-            }
-
-            ResourceObjectIdentification identification = ResourceObjectIdentification.create(objectClassDefinition, identifiers);
-            identification = resolvePrimaryIdentifiers(ctx, identification, parentResult);
-            identification.validatePrimaryIdenfiers();
-            return connector.fetchObject(identification, attributesToReturn, ctx,
-                    parentResult);
-        } catch (ObjectNotFoundException e) {
-            parentResult.recordFatalError(
-                    "Object not found. Identifiers: " + identifiers + ". Reason: " + e.getMessage(), e);
-            throw new ObjectNotFoundException("Object not found. identifiers=" + identifiers + ", objectclass="+
-                        PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName())+": "
-                    + e.getMessage(), e);
-        } catch (CommunicationException e) {
-            parentResult.recordFatalError("Error communication with the connector " + connector
-                    + ": " + e.getMessage(), e);
-            throw e;
-        } catch (GenericFrameworkException e) {
-            parentResult.recordFatalError(
-                    "Generic error in the connector " + connector + ". Reason: " + e.getMessage(), e);
-            throw new GenericConnectorException("Generic error in the connector " + connector + ". Reason: "
-                    + e.getMessage(), e);
-        } catch (SchemaException ex) {
-            parentResult.recordFatalError("Can't get resource object, schema error: " + ex.getMessage(), ex);
-            throw ex;
-        } catch (ExpressionEvaluationException ex) {
-            parentResult.recordFatalError("Can't get resource object, expression error: " + ex.getMessage(), ex);
-            throw ex;
-        } catch (ConfigurationException e) {
-            parentResult.recordFatalError(e);
-            throw e;
-        }
-
-    }
-
 }

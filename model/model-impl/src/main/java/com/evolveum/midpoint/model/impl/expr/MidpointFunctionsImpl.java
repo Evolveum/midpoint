@@ -1908,7 +1908,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return null;
         }
         //noinspection unchecked
-        ObjectReferenceType archetypeRef = archetypeManager.determineArchetypeRef((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
+        ObjectReferenceType archetypeRef = archetypeManager.determineArchetypeRef((PrismObject<? extends AssignmentHolderType>) object.asPrismObject());
         if (archetypeRef == null) {
             return null;
         }

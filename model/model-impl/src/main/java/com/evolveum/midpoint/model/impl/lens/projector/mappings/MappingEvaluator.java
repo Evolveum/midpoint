@@ -621,7 +621,7 @@ public class MappingEvaluator {
         variables.put(ExpressionConstants.VAR_SOURCE, originObject, ObjectType.class);
 
         TypedValue<PrismObject<T>> defaultTargetContext = new TypedValue<>(targetContext);
-        Collection<V> targetValues = ExpressionUtil. computeTargetValues(mappingBean.getTarget(), defaultTargetContext, variables, mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
+        Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingBean.getTarget(), defaultTargetContext, variables, mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
 
         MappingBuilder<V, D> mappingBuilder = mappingFactory.<V, D>createMappingBuilder(mappingBean, contextDesc)
                 .sourceContext(focusOdo)

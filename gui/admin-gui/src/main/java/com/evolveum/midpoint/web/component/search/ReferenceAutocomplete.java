@@ -13,7 +13,8 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
@@ -28,6 +29,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
@@ -57,6 +59,7 @@ public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<Object
                 .containsPoly(realInput)
                 .matchingNorm()
                 .build();
+        query.setPaging(pageBase.getPrismContext().queryFactory().createPaging(0, getMaxRowsCount()));
         List<PrismObject<AbstractRoleType>> objectsList = WebModelServiceUtils.searchObjects(AbstractRoleType.class, query,
                 new OperationResult("searchObjects"), pageBase);
         return ObjectTypeUtil.objectListToReferences(objectsList).iterator();
@@ -70,4 +73,7 @@ public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<Object
 
     protected abstract <O extends ObjectType> Class<O> getReferenceTargetObjectType();
 
+    protected int getMaxRowsCount(){
+        return 20;
+    }
 }

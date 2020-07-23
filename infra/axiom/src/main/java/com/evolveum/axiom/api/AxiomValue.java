@@ -12,18 +12,22 @@ import java.util.Optional;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 
 
-public interface AxiomValue<V> extends AxiomInfraValue {
+public interface AxiomValue<V> extends AxiomInfraValue, AxiomStructured {
 
-    AxiomName TYPE = AxiomName.axiom("type");
-    AxiomName VALUE = AxiomName.axiom("value");
-    AxiomName METADATA = AxiomName.axiom("metadata");
+    AxiomName AXIOM_VALUE = AxiomName.from(AxiomName.DATA_NAMESPACE, "AxiomValue");
+    AxiomName TYPE = AXIOM_VALUE.localName("type");
+    AxiomName VALUE = AXIOM_VALUE.localName("value");
+    AxiomName METADATA = AXIOM_VALUE.localName("metadata");
+
+    AxiomName METADATA_TYPE = AXIOM_VALUE.localName("ValueMetadata");
+
 
     Optional<AxiomTypeDefinition> type();
 
     V value();
 
 
-    default Optional<? extends AxiomComplexValue> metadata() {
+    default Optional<? extends AxiomStructuredValue> metadata() {
         return infraItem(METADATA).flatMap(v -> v.onlyValue().asComplex());
     }
 
@@ -31,12 +35,6 @@ public interface AxiomValue<V> extends AxiomInfraValue {
         return metadata().flatMap(m -> m.item(name));
     }
 
-    default Optional<AxiomComplexValue> asComplex() {
-        if(this instanceof AxiomComplexValue)  {
-            return Optional.of((AxiomComplexValue) this);
-        }
-        return Optional.empty();
-    }
 
     interface Factory<V,T extends AxiomValue<V>> extends AxiomInfraValue.Factory<T> {
 

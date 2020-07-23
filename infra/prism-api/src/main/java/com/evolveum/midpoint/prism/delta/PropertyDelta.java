@@ -7,11 +7,12 @@
 package com.evolveum.midpoint.prism.delta;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
-import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collection;
+import java.util.Comparator;
 
 /**
  * Relative difference (delta) of a property values.
@@ -72,13 +73,17 @@ public interface PropertyDelta<T> extends ItemDelta<PrismPropertyValue<T>, Prism
      */
     PrismProperty<T> getPropertyNewMatchingPath(PrismProperty<T> propertyOld) throws SchemaException;
 
-    @Override
-    PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems);
-
-    PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule,
+    /**
+     * Returns the narrowed delta that will have the same effect on the object as the current one.
+     * Expects that the delta executor (can be e.g. the connector!) considers values equivalent if
+     * they are equal according to the specified comparator.
+     */
+    PropertyDelta<T> narrow(PrismObject<? extends Objectable> object,
+            @NotNull Comparator<PrismPropertyValue<T>> plusComparator,
+            @NotNull Comparator<PrismPropertyValue<T>> minusComparator,
             boolean assumeMissingItems);
 
-    boolean isRedundant(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule, boolean assumeMissingItems);
+//    boolean isRedundant(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule, boolean assumeMissingItems);
 
     // convenience method
     void setRealValuesToReplace(T... newValues);

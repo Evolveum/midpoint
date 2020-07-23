@@ -7,10 +7,15 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.any;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
-import org.apache.commons.lang.Validate;
+import java.util.Objects;
+
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 
 /**
  * @author lazyman
@@ -52,7 +57,7 @@ public enum RItemKind {
     }
 
     public static RItemKind getTypeFromItemClass(Class<? extends Item> clazz) {
-        Validate.notNull(clazz, "Class must not be null.");
+        Objects.requireNonNull(clazz, "Class must not be null.");
         for (RItemKind value : RItemKind.values()) {
             if (value.getItemClass().isAssignableFrom(clazz)) {
                 return value;
@@ -72,7 +77,7 @@ public enum RItemKind {
     }
 
     public static RItemKind getTypeFromValueClass(Class<? extends PrismValue> clazz) {
-        Validate.notNull(clazz, "Class must not be null.");
+        Objects.requireNonNull(clazz, "Class must not be null.");
         for (RItemKind value : RItemKind.values()) {
             if (value.getValueClass().isAssignableFrom(clazz)) {
                 return value;
@@ -83,7 +88,7 @@ public enum RItemKind {
     }
 
     public static RItemKind getTypeFromDeltaClass(Class<? extends ItemDelta> clazz) {
-        Validate.notNull(clazz, "Class must not be null.");
+        Objects.requireNonNull(clazz, "Class must not be null.");
         for (RItemKind value : RItemKind.values()) {
             if (value.getDeltaClass() != null && value.getDeltaClass().isAssignableFrom(clazz)) {
                 return value;

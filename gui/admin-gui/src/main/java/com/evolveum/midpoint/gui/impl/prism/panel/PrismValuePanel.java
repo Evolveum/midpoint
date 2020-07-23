@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -109,7 +110,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             }
         };
         buttonContainer.add(showMetadataButton);
-        showMetadataButton.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getValueMetadata() != null));
+        showMetadataButton.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getValueMetadata() != null && CollectionUtils.isNotEmpty(getModelObject().getValueMetadata().getItems())));
 
         addToHeader(buttonContainer);
         return buttonContainer;

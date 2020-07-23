@@ -8,7 +8,10 @@
 package com.evolveum.midpoint.test;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.File;
@@ -43,5 +46,9 @@ public class TestResource<T extends ObjectType> {
     @Override
     public String toString() {
         return object != null ? object.toString() : file + " (" + oid + ")";
+    }
+
+    public ObjectReferenceType ref() {
+        return ObjectTypeUtil.createObjectRef(object, SchemaConstants.ORG_DEFAULT);
     }
 }

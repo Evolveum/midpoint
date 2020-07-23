@@ -3,18 +3,18 @@ package com.evolveum.axiom.lang.spi;
 import java.util.Collection;
 import java.util.Map;
 import com.evolveum.axiom.api.AxiomName;
-import com.evolveum.axiom.api.AxiomComplexValue;
+import com.evolveum.axiom.api.AxiomStructuredValue;
 import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
-import com.evolveum.axiom.api.ComplexValueImpl;
+import com.evolveum.axiom.api.StructuredValueImpl;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Item;
 import com.google.common.collect.ImmutableList;
 
-public class AxiomIdentifierDefinitionImpl extends ComplexValueImpl implements AxiomIdentifierDefinition {
+public class AxiomIdentifierDefinitionImpl extends StructuredValueImpl implements AxiomIdentifierDefinition {
 
-    public static final AxiomComplexValue.Factory FACTORY = AxiomIdentifierDefinitionImpl::new;
+    public static final AxiomStructuredValue.Factory FACTORY = AxiomIdentifierDefinitionImpl::new;
     private final Collection<AxiomName> components;
 
     public AxiomIdentifierDefinitionImpl(AxiomTypeDefinition axiomItemDefinition, Map<AxiomName, AxiomItem<?>> items, Map<AxiomName, AxiomItem<?>> infraItems) {

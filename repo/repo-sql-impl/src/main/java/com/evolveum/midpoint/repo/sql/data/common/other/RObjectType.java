@@ -1,15 +1,16 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
-import com.evolveum.midpoint.repo.sql.data.common.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
@@ -62,6 +63,11 @@ public enum RObjectType {
 
     public Class<? extends ObjectType> getJaxbClass() {
         return jaxbClass;
+    }
+
+    @NotNull
+    public static RObjectType fromOrdinal(int ordinal) {
+        return values()[ordinal];
     }
 
     @NotNull

@@ -609,8 +609,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             auditRecord.setTimestamp(System.currentTimeMillis());
             auditRecord.setOutcome(result.getStatus());
             auditRecord.setEventStage(AuditEventStage.EXECUTION);
-            auditRecord.getDeltas().clear();
-            auditRecord.getDeltas().addAll(executedDeltas);
+            auditRecord.clearDeltas();
+            auditRecord.addDeltas(executedDeltas);
             auditHelper.audit(auditRecord, null, task, result);
 
             task.markObjectActionExecutedBoundary();
@@ -1981,7 +1981,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             delta = prismContext.deltaFactory().object().createEmptyModifyDelta(TaskType.class, taskRef.getOid());
         }
         ObjectDeltaOperation<TaskType> odo = new ObjectDeltaOperation<>(delta, parentResult);
-        auditRecord.getDeltas().add(odo);
+        auditRecord.addDelta(odo);
         if (AuditEventStage.EXECUTION == stage) {
             auditRecord.setOutcome(parentResult.getStatus());
         }

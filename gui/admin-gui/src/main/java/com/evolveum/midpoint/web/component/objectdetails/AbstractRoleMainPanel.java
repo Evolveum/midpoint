@@ -247,9 +247,9 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
             @Override
             protected AvailableRelationDto getSupportedRelations() {
-                AvailableRelationDto avariableRelations = getSupportedGovernanceTabRelations();
-                avariableRelations.setDefaultRelation(getDefaultGovernanceRelation());
-                return avariableRelations;
+                AvailableRelationDto availableRelations = getSupportedGovernanceTabRelations();
+                availableRelations.setDefaultRelation(null);
+                return availableRelations;
             }
 
             @Override
@@ -269,10 +269,6 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
 
     protected AvailableRelationDto getSupportedGovernanceTabRelations(){
         return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage()));
-    }
-
-    protected QName getDefaultGovernanceRelation(){
-        return WebComponentUtil.getCategoryDefaultRelation(AreaCategoryType.GOVERNANCE);
     }
 
     protected Map<String, String> getGovernanceTabAuthorizations(){

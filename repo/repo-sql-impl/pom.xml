@@ -7,7 +7,7 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -84,10 +84,6 @@
             <artifactId>annotations</artifactId>
         </dependency>
         <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
         </dependency>
@@ -159,7 +155,40 @@
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-core</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-sql</artifactId>
+            <version>${querydsl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-core</artifactId>
+        </dependency>
+        <!--
+        Needed only for re-generation of Q-classes from tables
+        TODO: perhaps move to some tools or out of project completely including depManagement below.
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-sql-codegen</artifactId>
+            <version>${querydsl.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        -->
     </dependencies>
+
+    <!--
+    This pins the ecj version to avoid "Dependency convergence error" when querydsl-sql-codegen is used.
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.eclipse.jdt.core.compiler</groupId>
+                <artifactId>ecj</artifactId>
+                <version>4.4.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    -->
 
     <build>
         <plugins>

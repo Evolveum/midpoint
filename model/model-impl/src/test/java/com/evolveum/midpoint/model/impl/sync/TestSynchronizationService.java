@@ -170,7 +170,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getExecutedDeltas().iterator().next().getObjectDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
         assertEquals("Unexpected number of modifications in user secondary delta", 7, userSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_COST_CENTER, "999");
+        PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_COST_CENTER, "999");
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
         LensProjectionContext accCtx = context.findProjectionContext(rat);
@@ -226,7 +226,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 //        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
         assertEquals("Unexpected number of modifications in user secondary delta", 7, userSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_COST_CENTER);
+        PrismAsserts.assertPropertyDelete(userSecondaryDelta, UserType.F_COST_CENTER, "999");
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
         LensProjectionContext accCtx = context.findProjectionContext(rat);

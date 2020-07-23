@@ -7,7 +7,7 @@
 package com.evolveum.midpoint.repo.sql.util;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.HibernateException;
 import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.id.IdentifierGenerator;

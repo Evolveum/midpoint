@@ -12,7 +12,7 @@ import java.util.Set;
 
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 
 class CompositeIdentifierSpace implements IdentifierSpaceHolder, NamespaceContext {
 
@@ -30,7 +30,7 @@ class CompositeIdentifierSpace implements IdentifierSpaceHolder, NamespaceContex
     }
 
     @Override
-    public ValueContext<?> lookup(AxiomName space, IdentifierSpaceKey key) {
+    public ValueContext<?> lookup(AxiomName space, AxiomValueIdentifier key) {
         for (IdentifierSpaceHolder delegate : delegates) {
             ValueContext<?>  maybe = delegate.lookup(space, key);
             if(maybe != null) {
@@ -41,12 +41,12 @@ class CompositeIdentifierSpace implements IdentifierSpaceHolder, NamespaceContex
     }
 
     @Override
-    public void register(AxiomName space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
+    public void register(AxiomName space, Scope scope, AxiomValueIdentifier key, ValueContext<?> context) {
         export.register(space, scope, key, context);
     }
 
     @Override
-    public Map<IdentifierSpaceKey, ValueContext<?>> space(AxiomName space) {
+    public Map<AxiomValueIdentifier, ValueContext<?>> space(AxiomName space) {
         throw new UnsupportedOperationException();
     }
 

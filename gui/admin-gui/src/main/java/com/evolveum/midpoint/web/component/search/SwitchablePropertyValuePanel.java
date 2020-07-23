@@ -108,9 +108,12 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (isExpressionMode){
-                    SwitchablePropertyValuePanel.this.getModelObject().getValue().getFilter().setExpression(null);
+                    SwitchablePropertyValuePanel.this.getModelObject().getValue().setExpression(null);
+                    if (isReferenceFilterValue()){
+                        SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(new ObjectReferenceType());
+                    }
                 } else {
-                    SwitchablePropertyValuePanel.this.getModelObject().getValue().getFilter().setValue(null);
+                    SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(null);
                 }
                 isExpressionMode = !isExpressionMode;
                 target.add(SwitchablePropertyValuePanel.this);
@@ -135,9 +138,15 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
         if (propertyDef != null) {
             PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(propertyDef, getPageBase());
             if (propertyDef instanceof PrismReferenceDefinition) {
-                ObjectReferenceType propertyValue = (ObjectReferenceType) valueSearchFilter.getValue();
-                searchItemField = new ReferenceValueSearchPanel(id, Model.of(propertyValue),
-                        (PrismReferenceDefinition) propertyDef);
+                 searchItemField = new ReferenceValueSearchPanel(id, new PropertyModel<>(getModel(), "value.value"),
+                        (PrismReferenceDefinition) propertyDef){
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    protected void referenceValueUpdated(ObjectReferenceType ort){
+                        SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(ort);
+                    }
+                };
             } else if (propertyDef instanceof PrismPropertyDefinition) {
                 List<DisplayableValue> allowedValues = new ArrayList<>();
                 if (((PrismPropertyDefinition) propertyDef).getAllowedValues() != null) {
@@ -194,12 +203,18 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
         return searchItemField != null ? searchItemField : new WebMarkupContainer(id);
     }
 
+    private boolean isReferenceFilterValue(){
+        ValueSearchFilterItem valueSearchFilter = getModelObject().getValue();
+        ItemDefinition propertyDef = valueSearchFilter.getPropertyDef();
+        return propertyDef instanceof PrismReferenceDefinition;
+    }
+
     private ExpressionWrapper getExpressionWrapper(){
         SelectableBean<ValueSearchFilterItem> filterModelObj = getModelObject();
-        if (filterModelObj == null || filterModelObj.getValue() == null || filterModelObj.getValue().getFilter() == null){
+        if (filterModelObj == null || filterModelObj.getValue() == null || filterModelObj.getValue().getExpression() == null){
             return null;
         }
-        return filterModelObj.getValue().getFilter().getExpression();
+        return filterModelObj.getValue().getExpression();
     }
 
 }

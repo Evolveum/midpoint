@@ -7,23 +7,23 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm;
 
-import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
-import org.apache.commons.lang.Validate;
-
 import java.util.List;
+import java.util.Objects;
+
+import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 
 /**
  * @author mederly
  */
 public class JoinSpecification {
 
-    private String alias;
-    private String path;
-    private Condition condition;
+    private final String alias;
+    private final String path;
+    private final Condition condition;
 
     public JoinSpecification(String alias, String path, Condition condition) {
-        Validate.notNull(alias);
-        Validate.notNull(path);
+        Objects.requireNonNull(alias);
+        Objects.requireNonNull(path);
 
         this.alias = alias;
         this.path = path;

@@ -7,33 +7,19 @@
 package com.evolveum.midpoint.prism.impl.item;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
-
-import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.CloneStrategy;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PartiallyResolvedItem;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitor;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
-import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -59,6 +45,11 @@ public class DummyPropertyImpl<T> extends DummyItem<PrismPropertyValue<T>, Prism
     @NotNull
     public Collection<T> getRealValues() {
         return delegate().getRealValues();
+    }
+
+    @Override
+    public void addIgnoringEquivalents(@NotNull PrismPropertyValue<T> newValue) throws SchemaException {
+        delegate().addIgnoringEquivalents(newValue);
     }
 
     public <X> Collection<X> getRealValues(Class<X> type) {

@@ -145,6 +145,10 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
     boolean isEmpty();
 
+    static boolean isEmpty(ItemDelta<?, ?> itemDelta) {
+        return itemDelta == null || itemDelta.isEmpty();
+    }
+
     // TODO merge with isEmpty
     boolean isInFactEmpty();
 
@@ -187,39 +191,31 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
     void clear();
 
     /**
-     * Filters out all delta values that are meaningless to apply. E.g. removes all values to add that the property already has,
-     * removes all values to delete that the property does not have, etc.
-     * Returns null if the delta is not needed at all.
+     * Returns the narrowed delta that will have the same effect on the object as the current one.
      *
-     * @param assumeMissingItems Assumes that some items in the object may be missing. So replacing them by null or deleting some
-     *                           values from them cannot be narrowed out.
-     */
-    ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems);
-
-    /**
-     * Filters out all delta values that are meaningless to apply. E.g. removes all values to add that the property already has,
-     * removes all values to delete that the property does not have, etc.
-     * Returns null if the delta is not needed at all.
+     * @param plusComparator Comparator we want to use when determining skippability of values being added.
+     * @param minusComparator Comparator we want to use when determining skippability of values being deleted.
      *
-     * @param assumeMissingItems Assumes that some items in the object may be missing. So replacing them by null or deleting some
-     *                           values from them cannot be narrowed out.
+     * We can skip deletion of vDel if there is no vEx ~ vDel (under minusComparator).
+     *
+     * We can skip addition of vAdd if there is existing vEx ~ vAdd (under plusComparator). But if we do that we must be sure
+     * to skip deletion of all vDel ~ vAdd (under minusComparator). Otherwise we would delete vDel but fail to add equivalent vAdd.
+     *
+     * We can skip replacing of a set of values if and only if existing item has equivalent values under plusComparator.
+     *
+     * This reasoning is bound to the actual application algorithm in ItemDeltaImpl.
+     * But we should be aware that there are deltas that are applied by other code, e.g. those than are applied on a resource.
      */
-    ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object, Comparator<V> comparator, boolean assumeMissingItems);
+    ItemDelta<V,D> narrow(PrismObject<? extends Objectable> object,
+            @NotNull Comparator<V> plusComparator, @NotNull Comparator<V> minusComparator, boolean assumeMissingItems);
 
     /**
      * Checks if the delta is redundant w.r.t. current state of the object.
      * I.e. if it changes the current object state.
      *
      * @param assumeMissingItems Assumes that some items in the object may be missing. So delta that replaces them by null
-     *                           or deletes some values from them cannot be considered redundant.
      */
-    boolean isRedundant(PrismObject<? extends Objectable> object, boolean assumeMissingItems);
-
-    /**
-     * @param assumeMissingItems Assumes that some items in the object may be missing. So delta that replaces them by null
-     *                           or deletes some values from them cannot be considered redundant.
-     */
-    boolean isRedundant(PrismObject<? extends Objectable> object, Comparator<V> comparator, boolean assumeMissingItems);
+    boolean isRedundant(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy, boolean assumeMissingItems);
 
     void validate() throws SchemaException;
 
@@ -259,15 +255,14 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
     void simplify();
 
     void applyTo(PrismContainerValue containerValue) throws SchemaException;
-    void applyTo(PrismContainerValue containerValue, ParameterizedEquivalenceStrategy strategy) throws SchemaException;
 
     void applyTo(Item item) throws SchemaException;
-    void applyTo(Item item, ParameterizedEquivalenceStrategy strategy) throws SchemaException;
 
     /**
-     * Applies delta to item were path of the delta and path of the item matches (skips path checks).
+     * Applies delta to item. Assumes that path of the delta and path of the item matches
+     * (does not do path checks).
      */
-    void applyToMatchingPath(Item item, ParameterizedEquivalenceStrategy strategy) throws SchemaException;
+    void applyToMatchingPath(Item item) throws SchemaException;
 
     ItemDelta<?,?> getSubDelta(ItemPath path);
 

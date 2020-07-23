@@ -1493,7 +1493,7 @@ public class TestMapping extends AbstractMappingTest {
 
         // THEN
         then();
-        assertPartialError(result);
+        assertSuccess(result); // MID-6372
 
         userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -1506,8 +1506,8 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
+        dummyAuditService.assertExecutionDeltas(2); // MID-6372
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.SUCCESS); // MID-6372
     }
 
     /**
@@ -1870,7 +1870,7 @@ public class TestMapping extends AbstractMappingTest {
 
         // THEN
         then();
-        assertPartialError(result);
+        assertSuccess(result); // MID-6372
 
         userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
@@ -1883,8 +1883,8 @@ public class TestMapping extends AbstractMappingTest {
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(1);
-        dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
+        dummyAuditService.assertExecutionDeltas(2); // MID-6372
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.SUCCESS); // MID-6372
     }
 
     @Test

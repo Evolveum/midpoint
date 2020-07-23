@@ -514,39 +514,40 @@ public class ContextLoader implements ProjectorProcessor {
     }
 
     private <F extends ObjectType> ArchetypePolicyType determineArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
-        PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
-        if (systemConfiguration == null) {
-            return null;
-        }
-        if (context.getFocusContext() == null) {
+        if (!canProcessArchetype(context)) {
             return null;
         }
         PrismObject<F> object = context.getFocusContext().getObjectAny();
-        String explicitArchetypeOid = LensUtil.determineExplicitArchetypeOid(context.getFocusContext().getObjectAny());
+        String explicitArchetypeOid = LensUtil.determineExplicitArchetypeOid(object);
         return archetypeManager.determineArchetypePolicy(object, explicitArchetypeOid, result);
     }
 
-    public <F extends AssignmentHolderType> ArchetypeType updateArchetype(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
+    private <O extends ObjectType> boolean canProcessArchetype(LensContext<O> context) {
         PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
         if (systemConfiguration == null) {
-            return null;
+            return false;
         }
         if (context.getFocusContext() == null) {
-            return null;
+            return false;
+        }
+        return true;
+    }
+
+    public <F extends AssignmentHolderType> void updateArchetype(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
+        if (!canProcessArchetype(context)) {
+            return;
         }
 
         PrismObject<F> object = context.getFocusContext().getObjectAny();
 
-        String explicitArchetypeOid = LensUtil.determineExplicitArchetypeOid(context.getFocusContext().getObjectAny());
-        PrismObject<ArchetypeType> archetype =  archetypeManager.determineArchetype(object, explicitArchetypeOid, result);
-        ArchetypeType archetypeType = null;
-        if (archetype != null) {
-            archetypeType = archetype.asObjectable();
+        String explicitArchetypeOid = LensUtil.determineExplicitArchetypeOid(object);
+        PrismObject<ArchetypeType> archetype = archetypeManager.determineArchetype(object, explicitArchetypeOid, result);
+
+        if (archetype == null) {
+            return;
         }
 
-        context.getFocusContext().setArchetype(archetypeType);
-
-        return archetypeType;
+        context.getFocusContext().setArchetype(archetype.asObjectable());
     }
 
     public <F extends ObjectType> void updateArchetypePolicy(LensContext<F> context, Task task, OperationResult result) throws SchemaException, ConfigurationException {
@@ -1495,9 +1496,7 @@ public class ContextLoader implements ProjectorProcessor {
 
             projCtx.recompute();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Loaded full resource object:\n{}", projCtx.debugDump(1));
-            }
+            LOGGER.trace("Loaded full resource object:\n{}", projCtx.debugDumpLazily(1));
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
@@ -1572,6 +1571,9 @@ public class ContextLoader implements ProjectorProcessor {
                                 provisioningService.applyDefinition(newLinkRepoShadow, task, result);
                                 projCtx.setObjectCurrent(newLinkRepoShadow);
                                 projCtx.setOid(newLinkRepoShadow.getOid());
+                                // The "exists" information in the projection context can be obsolete - reflecting the fact that
+                                // resource object couldn't be found.
+                                projCtx.setExists(ShadowUtil.isExists(newLinkRepoShadow));
                                 projCtx.recompute();
                                 compensated = true;
                                 break;

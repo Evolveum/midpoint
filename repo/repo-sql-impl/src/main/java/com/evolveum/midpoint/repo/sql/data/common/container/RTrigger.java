@@ -10,7 +10,6 @@ import java.util.Objects;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.GenericGenerator;
 
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
@@ -102,6 +101,9 @@ public class RTrigger implements Container<RObject> {
 
     public void setOwner(RObject owner) {
         this.owner = owner;
+        if (owner != null) {
+            setOwnerOid(owner.getOid());
+        }
     }
 
     public void setOwnerOid(String ownerOid) {
@@ -130,18 +132,18 @@ public class RTrigger implements Container<RObject> {
         }
 
         RTrigger that = (RTrigger) o;
-        return Objects.equals(ownerOid, that.ownerOid)
+        return Objects.equals(getOwnerOid(), that.getOwnerOid())
                 && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerOid, id);
+        return Objects.hash(getOwnerOid(), id);
     }
 
     public static void copyToJAXB(RTrigger repo, TriggerType jaxb) {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
         jaxb.setId(RUtil.toLong(repo.getId()));
 
@@ -164,8 +166,8 @@ public class RTrigger implements Container<RObject> {
     private static void fromJaxb(TriggerType jaxb, RTrigger repo,
             RepositoryContext repositoryContext, IdGeneratorResult generatorResult) {
 
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
         if (generatorResult != null) {
             repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));
@@ -181,5 +183,17 @@ public class RTrigger implements Container<RObject> {
         TriggerType object = new TriggerType();
         RTrigger.copyToJAXB(this, object);
         return object;
+    }
+
+    @Override
+    public String toString() {
+        return "RTrigger{" +
+                "trans=" + trans +
+                ", owner=" + owner +
+                ", ownerOid='" + ownerOid + '\'' +
+                ", id=" + id +
+                ", handlerUri='" + handlerUri + '\'' +
+                ", timestamp=" + timestamp +
+                '}';
     }
 }

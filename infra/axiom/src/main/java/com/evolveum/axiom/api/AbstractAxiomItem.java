@@ -9,6 +9,8 @@ package com.evolveum.axiom.api;
 import java.util.Optional;
 
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.MoreObjects.ToStringHelper;
 
 public abstract class AbstractAxiomItem<V> implements AxiomItem<V> {
 
@@ -27,5 +29,13 @@ public abstract class AbstractAxiomItem<V> implements AxiomItem<V> {
     @Override
     public AxiomName name() {
         return definition.name();
+    }
+
+    @Override
+    public String toString() {
+        return MoreObjects.toStringHelper(AxiomItem.class)
+                .add("name", name())
+                .add("values", values())
+                .toString();
     }
 }

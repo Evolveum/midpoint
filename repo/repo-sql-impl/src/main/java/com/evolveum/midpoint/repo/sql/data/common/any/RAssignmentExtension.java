@@ -9,10 +9,10 @@ package com.evolveum.midpoint.repo.sql.data.common.any;
 
 import java.io.Serializable;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import javax.persistence.*;
 
-import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
@@ -203,8 +203,8 @@ public class RAssignmentExtension implements Serializable, EntityState {
 
     public static void fromJaxb(ExtensionType jaxb, RAssignmentExtension repo, RAssignmentExtensionType type,
             RepositoryContext repositoryContext) throws DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
         fromJaxb(jaxb.asPrismContainerValue(), repo, type, repositoryContext);
     }

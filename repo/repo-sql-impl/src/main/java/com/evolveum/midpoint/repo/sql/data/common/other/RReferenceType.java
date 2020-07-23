@@ -7,9 +7,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.common.other;
 
+import java.util.Objects;
 import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -29,7 +28,7 @@ public enum RReferenceType {
     RESOURCE_BUSINESS_CONFIGURATION_APPROVER(ResourceType.class, ResourceBusinessConfigurationType.F_APPROVER_REF),    // 2
 
     @Deprecated // REMOVED from schema in 4.0
-    ROLE_APPROVER(AbstractRoleType.class, null /* was: AbstractRoleType.F_APPROVER_REF */),              // 3
+            ROLE_APPROVER(AbstractRoleType.class, null /* was: AbstractRoleType.F_APPROVER_REF */),              // 3
 
     @Deprecated
     SYSTEM_CONFIGURATION_ORG_ROOT(SystemConfigurationType.class, null),                 // 4
@@ -65,8 +64,8 @@ public enum RReferenceType {
     }
 
     public static RReferenceType getOwnerByQName(Class<? extends ObjectType> typeClass, QName qname) {
-        Validate.notNull(typeClass, "Jaxb type class must not be null");
-        Validate.notNull(qname, "QName must not be null");
+        Objects.requireNonNull(typeClass, "Jaxb type class must not be null");
+        Objects.requireNonNull(qname, "QName must not be null");
 
         for (RReferenceType owner : values()) {
             if (QNameUtil.match(qname, owner.getElementName()) && owner.getTypeClass().isAssignableFrom(typeClass)) {

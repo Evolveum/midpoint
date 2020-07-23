@@ -373,7 +373,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     }
 
     @Override
-    public boolean equals(PrismPropertyValue<?> other, ParameterizedEquivalenceStrategy strategy, MatchingRule<T> matchingRule) {
+    public boolean equals(PrismPropertyValue<?> other, @NotNull ParameterizedEquivalenceStrategy strategy, @Nullable MatchingRule<T> matchingRule) {
         if (!super.equals(other, strategy)) {
             return false;
         }
@@ -499,7 +499,6 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         return toString();
     }
 
-
     @Override
     public String debugDump(int indent) {
         return debugDump(indent, false);
@@ -545,6 +544,11 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
             sb.append("null");
         }
 
+        ValueMetadata valueMetadata = getValueMetadata();
+        if (!valueMetadata.isEmpty()) {
+            sb.append(", meta: ").append(valueMetadata.shortDump());
+        }
+
         return sb.toString();
     }
 
@@ -571,6 +575,10 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 
     private void dumpSuffix(StringBuilder builder) {
         appendOriginDump(builder);
+        ValueMetadata valueMetadata = getValueMetadata();
+        if (!valueMetadata.isEmpty()) {
+            builder.append(", meta: ").append(valueMetadata.shortDump());
+        }
         if (getRawElement() != null) {
             builder.append(", raw element: ");
             builder.append(PrettyPrinter.prettyPrint(getRawElement()));
@@ -583,6 +591,15 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 
     @Override
     public String toHumanReadableString() {
+        ValueMetadata valueMetadata = getValueMetadata();
+        if (valueMetadata.isEmpty()) {
+            return toHumanReadableStringInternal();
+        } else {
+            return toHumanReadableStringInternal() + " [meta: " + valueMetadata.shortDump() + "]";
+        }
+    }
+
+    private String toHumanReadableStringInternal() {
         if (value == null && expression != null) {
             return ("expression("+expression+")");
         } else if (value instanceof PolyString) {
@@ -591,18 +608,17 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
             PolyString ps = (PolyString) this.value;
             StringBuilder sb = new StringBuilder();
             if (MapUtils.isNotEmpty(ps.getLang()) || ps.getTranslation() != null && StringUtils.isNotEmpty(ps.getTranslation().getKey())){
-                sb.append("orig=" + ps.getOrig());
+                sb.append("orig=").append(ps.getOrig());
             } else {
                 sb.append(ps.getOrig());
             }
             if (ps.getTranslation() != null) {
-                sb.append(", translation.key=" + ps.getTranslation().getKey());
+                sb.append(", translation.key=").append(ps.getTranslation().getKey());
             }
             if (MapUtils.isNotEmpty(ps.getLang())) {
                 sb.append("; lang:");
-                ps.getLang().keySet().forEach(langKey -> {
-                    sb.append(" " + langKey + "=" + ps.getLang().get(langKey) + ",");
-                });
+                ps.getLang().keySet().forEach(langKey ->
+                        sb.append(" ").append(langKey).append("=").append(ps.getLang().get(langKey)).append(","));
             }
             return sb.toString();
         } else {

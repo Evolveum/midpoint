@@ -144,13 +144,6 @@ public class ItemDeltaCollectionsUtil {
         }
     }
 
-    public static void applyToMatchingPath(Collection<? extends ItemDelta> deltas, PrismContainer propertyContainer)
-            throws SchemaException {
-        for (ItemDelta delta : deltas) {
-            delta.applyToMatchingPath(propertyContainer, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
-        }
-    }
-
     public static void accept(Collection<? extends ItemDelta> modifications, Visitor visitor, ItemPath path,
             boolean recursive) {
         for (ItemDelta modification: modifications) {

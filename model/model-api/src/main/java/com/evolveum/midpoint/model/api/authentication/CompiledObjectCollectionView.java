@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.jetbrains.annotations.NotNull;
@@ -159,6 +160,7 @@ public class CompiledObjectCollectionView implements DebugDumpable, Serializable
     }
 
     public ObjectFilter getFilter() {
+        //be careful to use filter with expressions. Expression is not evaluated still
         return filter;
     }
 

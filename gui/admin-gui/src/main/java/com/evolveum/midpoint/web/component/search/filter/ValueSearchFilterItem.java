@@ -111,7 +111,8 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     private String propertyName;
     private QName propertyPath;
     private Object value;
-    ItemDefinition propertyDef;
+    private ExpressionWrapper expression;
+    private ItemDefinition propertyDef;
 
     public ValueSearchFilterItem(ValueFilter filter, boolean applyNegation) {
         this.filter = filter;
@@ -120,6 +121,7 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         propertyPath = filter.getElementName();
         propertyDef = filter.getDefinition();
         value = CollectionUtils.isNotEmpty(filter.getValues()) ? filter.getValues().get(0) : null;
+        this.expression = filter.getExpression();
         parseFilterName();
     }
 
@@ -150,12 +152,11 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         this.filter = filter;
     }
 
-    //todo which filter types do we want to support here
     public Object getValue() {
         if (value instanceof PrismValue) {
             return ((PrismValue) value).getRealValue();
         }
-        return null;
+        return value;
     }
 
     public FilterName getFilterTypeName() {
@@ -202,6 +203,14 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         this.propertyDef = propertyDef;
     }
 
+    public ExpressionWrapper getExpression() {
+        return expression;
+    }
+
+    public void setExpression(ExpressionWrapper expression) {
+        this.expression = expression;
+    }
+
     public ObjectFilter buildFilter(PrismContext prismContext, Class<O> type){
         S_ConditionEntry conditionEntry = prismContext.queryFor(type).item(propertyPath);
         ObjectFilter builtFilter = null;
@@ -217,7 +226,12 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
             builtFilter = conditionEntry.le(value).buildFilter();
         } else if (FilterName.REF.equals(filterTypeName)) {
             if (value != null) {
-                PrismReferenceValue refVal = (PrismReferenceValue) value;
+                PrismReferenceValue refVal = null;
+                if (value instanceof PrismReferenceValue){
+                    refVal = (PrismReferenceValue) value;
+                } else if (value instanceof ObjectReferenceType){
+                    refVal = ((ObjectReferenceType) value).asReferenceValue();
+                }
                 if (refVal.getParent() instanceof RefFilter) {
                     builtFilter = (RefFilter) refVal.getParent();
                 } else {
@@ -236,8 +250,8 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         if (builtFilter instanceof ValueFilter && matchingRule != null){
             ((ValueFilter) builtFilter).setMatchingRule(matchingRule.getMatchingRuleName());
         }
-        if (builtFilter instanceof ValueFilter && filter.getExpression() != null){
-            ((ValueFilter) builtFilter).setExpression(filter.getExpression());
+        if (builtFilter instanceof ValueFilter && expression != null){
+            ((ValueFilter) builtFilter).setExpression(expression);
         }
         if (isApplyNegation()){
             builtFilter = prismContext.queryFactory().createNot(builtFilter);

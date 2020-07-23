@@ -20,11 +20,12 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import javax.xml.namespace.QName;
 
+import com.google.common.base.Strings;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.metadata.ClassMetadata;
@@ -133,8 +134,8 @@ public final class RUtil {
         if (reference == null) {
             return null;
         }
-        Validate.notNull(owner, "Owner of reference must not be null.");
-        Validate.notNull(refType, "Reference owner of reference must not be null.");
+        Objects.requireNonNull(owner, "Owner of reference must not be null.");
+        Objects.requireNonNull(refType, "Reference owner of reference must not be null.");
         Validate.notEmpty(reference.getOid(), "Target oid reference must not be null.");
 
         RObjectReference<T> repoRef = new RObjectReference<>();
@@ -298,7 +299,7 @@ public final class RUtil {
     }
 
     public static ItemName stringToQName(String text) {
-        if (StringUtils.isEmpty(text)) {
+        if (Strings.isNullOrEmpty(text)) {
             return null;
         }
 
@@ -306,7 +307,7 @@ public final class RUtil {
         String namespace = StringUtils.left(text, index);
         String localPart = StringUtils.right(text, text.length() - index - 1);
 
-        if (StringUtils.isEmpty(localPart)) {
+        if (Strings.isNullOrEmpty(localPart)) {
             return null;
         }
 

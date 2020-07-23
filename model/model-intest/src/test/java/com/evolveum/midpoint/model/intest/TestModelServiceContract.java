@@ -1243,7 +1243,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0);         // no deltas, as the operation is idempotent
+        dummyAuditService.assertExecutionDeltas(1); // operation changes the metadata (but idempotent from the business point of view) -- MID-6370
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
@@ -1255,8 +1255,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
-        checkDummyTransportMessages("simpleUserNotifier", 0);           // op is idempotent
-        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+        // MID-6370
+//        checkDummyTransportMessages("simpleUserNotifier", 0);           // op is idempotent
+//        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         assertSteadyResources();
     }

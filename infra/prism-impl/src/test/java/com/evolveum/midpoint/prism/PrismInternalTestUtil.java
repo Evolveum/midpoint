@@ -25,11 +25,13 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.midpoint.prism.crypto.KeyStoreBasedProtectorBuilder;
 import com.evolveum.midpoint.prism.foo.*;
 
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
 import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.impl.schema.axiom.AxiomEnabledSchemaRegistry;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import org.xml.sax.SAXException;
 
@@ -236,7 +238,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
     }
 
     public static PrismContextImpl constructPrismContext(File extraSchema) throws SchemaException, IOException {
-        SchemaRegistryImpl schemaRegistry = new SchemaRegistryImpl();
+        AxiomEnabledSchemaRegistry schemaRegistry = new AxiomEnabledSchemaRegistry();
         schemaRegistry.setCatalogResourceName(TEST_CATALOG_RESOURCE_NAME);
         schemaRegistry.setDefaultNamespace(NS_FOO);
         DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
@@ -250,6 +252,10 @@ public class PrismInternalTestUtil implements PrismContextFactory {
         if (extraSchema != null) {
             schemaRegistry.registerPrismSchemaFile(extraSchema);
         }
+
+        AxiomModelStatementSource source = AxiomModelStatementSource.fromResource("xml/ns/test/foo-metadata.axiom");
+        schemaRegistry.addAxiomSource(source);
+
         prefixMapper.registerPrefix(XMLConstants.W3C_XML_SCHEMA_NS_URI, DOMUtil.NS_W3C_XML_SCHEMA_PREFIX, false);
         prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
         prefixMapper.registerPrefix(PrismInternalTestUtil.NS_WEAPONS, PrismInternalTestUtil.NS_WEAPONS_PREFIX, false);

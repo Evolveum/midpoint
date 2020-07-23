@@ -2006,6 +2006,16 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 .end();
     }
 
+    protected TracingProfileType addRepositoryAndSqlLogging(TracingProfileType profile) {
+        return profile.getLoggingOverride()
+                .beginLevelOverride()
+                    .logger("com.evolveum.midpoint.repo")
+                    .logger("org.hibernate.SQL")
+                    .level(LoggingLevelType.TRACE)
+                .<LoggingOverrideType>end()
+                .end();
+    }
+
     protected TracingProfileType createHibernateLoggingTracingProfile() {
         return createDefaultTracingProfile()
                 .beginLoggingOverride()

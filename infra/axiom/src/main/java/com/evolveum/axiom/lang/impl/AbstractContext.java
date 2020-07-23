@@ -13,7 +13,7 @@ import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.concepts.SourceLocation;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 
 abstract class AbstractContext<P extends AbstractContext<?>> implements IdentifierSpaceHolder {
 
@@ -47,7 +47,7 @@ abstract class AbstractContext<P extends AbstractContext<?>> implements Identifi
     }
 
     @Override
-    public ValueContext<?> lookup(AxiomName space, IdentifierSpaceKey key) {
+    public ValueContext<?> lookup(AxiomName space, AxiomValueIdentifier key) {
         ValueContext<?> maybe = localSpace.lookup(space, key);
         if(maybe != null) {
             return maybe;
@@ -56,7 +56,7 @@ abstract class AbstractContext<P extends AbstractContext<?>> implements Identifi
     }
 
     @Override
-    public void register(AxiomName space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
+    public void register(AxiomName space, Scope scope, AxiomValueIdentifier key, ValueContext<?> context) {
         switch (scope) {
             case GLOBAL:
                 rootImpl().register(space, scope, key, context);
@@ -73,7 +73,7 @@ abstract class AbstractContext<P extends AbstractContext<?>> implements Identifi
     }
 
     @Override
-    public Map<IdentifierSpaceKey, ValueContext<?>> space(AxiomName space) {
+    public Map<AxiomValueIdentifier, ValueContext<?>> space(AxiomName space) {
         return localSpace.space(space);
     }
 }

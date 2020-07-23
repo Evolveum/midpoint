@@ -1,0 +1,44 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                oid="bf0cf9b7-4c38-4ff4-afc6-c9cc9bc08490">
+    <name>user-template</name>
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>description</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    String.valueOf((description != null ? Integer.parseInt(description) : 0) + 1)
+                </code>
+            </script>
+        </expression>
+        <target>
+            <path>description</path>
+        </target>
+        <evaluationPhase>beforeAssignments</evaluationPhase>
+    </mapping>
+
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>description</path>
+        </source>
+        <expression>
+            <script>
+                <code>"O${description}"</code>
+            </script>
+        </expression>
+        <target>
+            <path>organization</path>
+        </target>
+        <evaluationPhase>afterAssignments</evaluationPhase>
+    </mapping>
+</objectTemplate>

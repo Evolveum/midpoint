@@ -16,23 +16,32 @@ fragment ESC : '\\';
 
 STRING_SINGLEQUOTE: SQOUTE ((ESC SQOUTE) | ~[\n'])* SQOUTE;
 STRING_DOUBLEQUOTE: DQOUTE ((ESC DQOUTE) | ~[\n"])* DQOUTE;
+STRING_MULTILINE_START: '"""' ('\r')? '\n';
+
+
 
 //statement : SEP* identifier SEP* (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (statement)* SEP* RIGHT_BRACE SEP*) SEP*;
+itemName: infraName | dataName;
+dataName: prefixedName;
+infraName: '@' prefixedName;
 
+item: SEP* itemName SEP* itemValue;
+itemValue: (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (item)* SEP* RIGHT_BRACE SEP*) SEP*;
 
-itemBody: identifier SEP* value;
-item : SEP* itemBody; 
-value: (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (item | metadata)* SEP* RIGHT_BRACE SEP*) SEP*;
-metadata : SEP* '@' itemBody;
+prefixedName : (prefix COLON)? localName;
 
-identifier : (prefix COLON)? localIdentifier;
 prefix : IDENTIFIER;
-localIdentifier : IDENTIFIER;
+localName : IDENTIFIER;
 
-argument : identifier | string;
+argument : prefixedName | string;
 string : singleQuoteString | doubleQuoteString | multilineString;
 
 singleQuoteString : STRING_SINGLEQUOTE;
 doubleQuoteString : STRING_DOUBLEQUOTE;
-multilineString: '"""\n' (~('"""'))*'"""';
+multilineString: STRING_MULTILINE_START (~('"""'))*'"""';
 
+path: pathComponent ( '/' pathComponent)*;
+pathComponent: itemName (pathValue)?;
+pathDataItem: prefixedName;
+pathInfraItem: '@' prefixedName;
+pathValue: '[' argument ']';
