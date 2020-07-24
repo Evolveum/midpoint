@@ -55,7 +55,7 @@ public class HeterogenousContainerWrapperFactory<C extends Containerable> implem
         PrismContainer<C> childItem = parent.getNewValue().findContainer(name);
         ItemStatus status = ItemStatus.NOT_CHANGED;
         if (childItem == null) {
-            childItem = (PrismContainer<C>) def.instantiate();
+            childItem = parent.getNewValue().findOrCreateContainer(name);
             status = ItemStatus.ADDED;
         }
 
