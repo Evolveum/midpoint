@@ -821,7 +821,8 @@ public final class WebComponentUtil {
 
     private static String translate(ObjectTypeGuiDescriptor descriptor) {
         MidPointApplication app = MidPointApplication.get();
-        return app.getLocalizationService().translate(descriptor.getLocalizationKey(), null, getCurrentLocale());
+        String translatedValue = app.getLocalizationService().translate(descriptor.getLocalizationKey(), null, getCurrentLocale());
+        return translatedValue != null ? translatedValue : descriptor.getLocalizationKey();
     }
 
     public static List<QName> createAssignmentHolderTypeQnamesList() {
