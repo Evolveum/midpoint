@@ -33,6 +33,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.ArrayList;
@@ -97,7 +99,7 @@ public class PageReports extends PageAdminObjectList<ReportType> {
 
     private List<InlineMenuItem> createInlineMenu(){
         List<InlineMenuItem> menu = new ArrayList<>();
-        menu.add(new ButtonInlineMenuItem(createStringResource("PageReports.button.run")) {
+        ButtonInlineMenuItem runButton = new ButtonInlineMenuItem(createStringResource("PageReports.button.run")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -114,16 +116,21 @@ public class PageReports extends PageAdminObjectList<ReportType> {
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_START_MENU_ITEM);
             }
 
             @Override
-            public boolean isHeaderMenuItem(){
+            public boolean isHeaderMenuItem() {
                 return false;
             }
-        });
-        menu.add(new ButtonInlineMenuItem(createStringResource("PageReports.button.import")) {
+        };
+
+        runButton.setVisibilityChecker((rowModel, isHeader) -> !isImportReport((IModel<SelectableBean<ReportType>>)rowModel));
+
+        menu.add(runButton);
+
+        ButtonInlineMenuItem importButton = new ButtonInlineMenuItem(createStringResource("PageReports.button.import")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -140,15 +147,19 @@ public class PageReports extends PageAdminObjectList<ReportType> {
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_UPLOAD);
             }
 
             @Override
-            public boolean isHeaderMenuItem(){
+            public boolean isHeaderMenuItem() {
                 return false;
             }
-        });
+        };
+
+        importButton.setVisibilityChecker((rowModel, isHeader) -> isImportReport((IModel<SelectableBean<ReportType>>)rowModel));
+
+        menu.add(importButton);
         menu.add(new ButtonInlineMenuItem(createStringResource("PageReports.button.configure")) {
             private static final long serialVersionUID = 1L;
 
@@ -204,6 +215,11 @@ public class PageReports extends PageAdminObjectList<ReportType> {
             }
         });
         return menu;
+    }
+
+    private boolean isImportReport(IModel<SelectableBean<ReportType>> rowModel) {
+        ReportBehaviorType behavior = rowModel.getObject().getValue().getBehavior();
+        return behavior != null && DirectionTypeType.IMPORT.equals(behavior.getDirection());
     }
 
     private void importReportPerformed(AjaxRequestTarget target, ReportType report) {

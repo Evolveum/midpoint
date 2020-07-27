@@ -8,7 +8,7 @@ package com.evolveum.midpoint.report.impl.controller.engine;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.controller.export.FileFormatController;
+import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
