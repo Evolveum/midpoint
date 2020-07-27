@@ -62,7 +62,7 @@ public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
             }
         }
 
-        DQ dq = QueryModelMappingConfig.getByQueryType(detailQueryType).newAlias("_detail");
+        DQ dq = QueryModelMappingConfig.getByQueryType(detailQueryType).newAlias("det_");
         Map<I, R> rowById = data.stream()
                 .collect(toMap(rowToId, row -> row));
         SimpleExpression<I> detailFkPath = detailFkPathFunction.apply(dq);
@@ -81,7 +81,7 @@ public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
     }
 
     public void execute(Supplier<SQLQuery<?>> querySupplier, R masterRow) throws QueryException {
-        DQ dq = QueryModelMappingConfig.getByQueryType(detailQueryType).newAlias("_detail");
+        DQ dq = QueryModelMappingConfig.getByQueryType(detailQueryType).newAlias("det_");
         SimpleExpression<I> detailFkPath = detailFkPathFunction.apply(dq);
         SQLQuery<DR> query = querySupplier.get()
                 .select(dq)
