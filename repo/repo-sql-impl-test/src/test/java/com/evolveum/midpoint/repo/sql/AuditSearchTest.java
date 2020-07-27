@@ -108,6 +108,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.setAttorney(attorney);
         record2.setRequestIdentifier("req-id");
         record2.addDelta(createDelta(UserType.F_FULL_NAME, PolyString.fromOrig("somePolyString")));
+        record2.addDelta(createDelta(UserType.F_GIVEN_NAME));
         auditService.audit(record2, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record3 = new AuditEventRecord();
@@ -449,12 +450,11 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     @Test
     public void test152SearchByInitiatorIsNotNull() throws SchemaException {
         when("searching audit filtered by NOT NULL initiator");
-        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
                 .not()
                 .item(AuditEventRecordType.F_INITIATOR_REF).isNull()
-                .build();
-        SearchResultList<AuditEventRecordType> result =
-                auditService.searchObjects(query, null, null);
+                .build());
 
         then("only audit events with some (NOT NULL) initiator are returned");
         assertThat(result).hasSize(1);
@@ -728,6 +728,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result).isEmpty();
     }
 
+    // TODO changedItems.eq(multiple values) - should be implemented as SQL IN (pagination must be fixed with distinct)
+
     @Test
     public void test260SearchByChangedItemsIsNull() throws SchemaException {
         when("searching audit by null changed items");
@@ -864,7 +866,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     @Test
     public void test515SearchByMessageNorTimestamp() throws SchemaException {
         when("searching audit filtered by negated (NOT) timestamp OR message condition");
-        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
                 .not()
                 .block()
                 .item(AuditEventRecordType.F_TIMESTAMP)
@@ -873,13 +876,49 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 .item(AuditEventRecordType.F_MESSAGE)
                 .endsWith("three").matchingCaseIgnore() // matches only record 3
                 .endBlock()
-                .build();
-        SearchResultList<AuditEventRecordType> result =
-                auditService.searchObjects(query, null, null);
+                .build());
 
         then("only audit events matching neither of conditions are returned");
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getParameter()).isEqualTo("2");
+    }
+
+    @Test
+    public void test520SearchByChangedItemOrAnotherChangedItem() throws SchemaException {
+        // result should be similar to changedItem.eq(multiple values)
+        when("searching audit filtered by changed item OR another changed item");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_GIVEN_NAME))
+                        .or()
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_FAMILY_NAME))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("only audit events having either of (and/or) specified changed items are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2");
+    }
+
+    @Test
+    public void test521SearchByChangedItemAndAnotherChangedItem() throws SchemaException {
+        // result should be similar to changedItem.eq(multiple values)
+        when("searching audit filtered by changed item AND another changed item");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_GIVEN_NAME))
+                        .and()
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_FAMILY_NAME))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("only audit events having both specified changed items are returned");
+        assertThat(result).isEmpty();
     }
 
     @Test

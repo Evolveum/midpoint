@@ -3,7 +3,9 @@ package com.evolveum.midpoint.repo.sql.pure;
 import java.sql.Connection;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.stream.Collectors;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
@@ -79,6 +81,10 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
         super(rootMapping.defaultAlias(), rootMapping, prismContext);
         this.querydslConfiguration = querydslConfiguration;
         sqlQuery = new SQLQuery<>(querydslConfiguration).from(root());
+
+        // Turns on validations of aliases, does not ignore duplicate JOIN expressions,
+        // we must take care of unique alias names for JOINs, which is what we want.
+        sqlQuery.getMetadata().setValidate(true);
     }
 
     // private constructor for "derived" query contexts
@@ -154,6 +160,7 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
     }
 
     public SQLQuery<?> newQuery(Connection conn) {
+        // We don't need validation here, this is for other (non-interpreted) queries.
         return new SQLQuery<>(conn, querydslConfiguration);
     }
 
@@ -204,8 +211,19 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
 
     @Override
     public String uniqueAliasName(String baseAliasName) {
-        // TODO MID-6319 inspect query and resolve alias name
-        return baseAliasName;
+        Set<String> joinAliasNames =
+                sqlQuery.getMetadata().getJoins().stream()
+                        .map(j -> j.getTarget().toString())
+                        .collect(Collectors.toSet());
+
+        // number the alias if not unique (starting with 2, implicit 1 is without number)
+        String aliasName = baseAliasName;
+        int sequence = 1;
+        while (joinAliasNames.contains(aliasName)) {
+            sequence += 1;
+            aliasName = baseAliasName + sequence;
+        }
+        return aliasName;
     }
 
     public void processOptions(Collection<SelectorOptions<GetOperationOptions>> options) {
