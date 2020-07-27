@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.groupingBy;
 
 import static com.evolveum.midpoint.repo.sql.pure.SqlQueryContext.MAX_ID_IN_FOR_TO_MANY_FETCH;
 
@@ -67,8 +67,9 @@ public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
         }
 
         DQ dq = QueryModelMappingConfig.getByQueryType(detailQueryType).newAlias("det_");
-        Map<I, R> rowById = data.stream()
-                .collect(toMap(rowToId, row -> row));
+        // it is possible we don't have distinct rows, we don't want to fail on it here
+        Map<I, List<R>> rowById = data.stream()
+                .collect(groupingBy(rowToId));
         SimpleExpression<I> detailFkPath = detailFkPathFunction.apply(dq);
         SQLQuery<DR> query = querySupplier.get()
                 .select(dq)
@@ -77,9 +78,9 @@ public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
         LOGGER.debug("SQL detail query for list: {}", query);
         List<DR> details = query.fetch();
         for (DR detail : details) {
-            masterDetailConsumer.accept(
-                    rowById.get(detailToMasterId.apply(detail)),
-                    detail);
+            for (R row : rowById.get(detailToMasterId.apply(detail))) {
+                masterDetailConsumer.accept(row, detail);
+            }
         }
     }
 
