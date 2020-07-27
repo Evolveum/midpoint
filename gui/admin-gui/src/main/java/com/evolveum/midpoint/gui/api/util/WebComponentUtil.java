@@ -180,6 +180,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Predicate;
@@ -816,7 +817,10 @@ public final class WebComponentUtil {
             String localizedType1 = translate(decs1);
             String localizedType2 = translate(desc2);
 
-            return String.CASE_INSENSITIVE_ORDER.compare(localizedType1, localizedType2);
+            Collator collator = Collator.getInstance(getCurrentLocale());
+            collator.setStrength(Collator.PRIMARY);
+
+            return collator.compare(localizedType1, localizedType2);
         }).collect(Collectors.toList());
     }
 
