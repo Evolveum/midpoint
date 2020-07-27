@@ -16,6 +16,8 @@ import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Mapper/fetcher of many detail records for one master record.
@@ -33,6 +35,8 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
  * @param <DR> detail row type (from result)
  */
 public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SqlDetailFetchMapper.class);
 
     private final Function<R, I> rowToId;
     private final Class<DQ> detailQueryType;
@@ -70,8 +74,7 @@ public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
                 .select(dq)
                 .from(dq)
                 .where(detailFkPath.in(rowById.keySet()));
-        // TODO logging
-        System.out.println("SQL detail query for list: " + query);
+        LOGGER.debug("SQL detail query for list: {}", query);
         List<DR> details = query.fetch();
         for (DR detail : details) {
             masterDetailConsumer.accept(
@@ -87,8 +90,7 @@ public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
                 .select(dq)
                 .from(dq)
                 .where(detailFkPath.eq(rowToId.apply(masterRow)));
-        // TODO logging
-        System.out.println("SQL detail query for one entity: " + query);
+        LOGGER.debug("SQL detail query for one entity: {}", query);
         List<DR> details = query.fetch();
         for (DR detail : details) {
             masterDetailConsumer.accept(masterRow, detail);

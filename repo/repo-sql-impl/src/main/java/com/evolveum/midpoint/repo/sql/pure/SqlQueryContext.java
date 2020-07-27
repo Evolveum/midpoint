@@ -26,6 +26,8 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Context information about SQL query.
@@ -38,6 +40,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathContext<S, Q, R>
         implements FilterProcessor<ObjectFilter> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SqlQueryContext.class);
 
     /**
      * Default page size if pagination is requested, that is offset is set, but maxSize is not.
@@ -159,8 +163,7 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
         if (query.getMetadata().getModifiers().getLimit() == null) {
             query.limit(NO_PAGINATION_LIMIT);
         }
-        // TODO MID-6319: logging
-        System.out.println("SQL query: " + query);
+        LOGGER.debug("SQL query: {}", query);
 
         List<R> data = query.fetch();
 
