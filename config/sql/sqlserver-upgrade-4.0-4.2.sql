@@ -8,6 +8,8 @@ GO
 
 -- 2020-06-25 11:35
 
+sp_rename 'm_acc_cert_campaign.definitionRef_type', 'definitionRef_targetType', 'COLUMN';
+GO
 sp_rename 'm_acc_cert_campaign.ownerRef_type', 'ownerRef_targetType', 'COLUMN';
 GO
 sp_rename 'm_acc_cert_definition.ownerRef_type', 'ownerRef_targetType', 'COLUMN';
