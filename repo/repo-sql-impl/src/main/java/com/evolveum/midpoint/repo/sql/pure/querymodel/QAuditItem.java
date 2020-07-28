@@ -37,7 +37,7 @@ public class QAuditItem extends FlexibleRelationalPathBase<MAuditItem> {
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final StringPath changedItemPath = createString("changedItemPath", CHANGED_ITEM_PATH);
 
-    public final PrimaryKey<MAuditItem> constraint1 = createPrimaryKey(changedItemPath, recordId);
+    public final PrimaryKey<MAuditItem> constraint1 = createPrimaryKey(recordId, changedItemPath);
     public final ForeignKey<QAuditEventRecord> auditItemFk = createForeignKey(recordId, "ID");
 
     public QAuditItem(String variable) {
