@@ -709,7 +709,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 .build());
 
         then("only audit events with the specified changed items are returned");
-        // this is more the storing part than reading, but it is here to cover all the expectations
+        // this is more about the audit writing than reading, but it is here to cover all the expectations
         assertThat(result).hasSize(1);
         assertThat(result).extracting(aer -> aer.getParameter())
                 .containsExactlyInAnyOrder("1");
@@ -727,8 +727,6 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("no audit records are returned");
         assertThat(result).isEmpty();
     }
-
-    // TODO changedItems.eq(multiple values) - should be implemented as SQL IN (pagination must be fixed with distinct)
 
     @Test
     public void test260SearchByChangedItemsIsNull() throws SchemaException {
@@ -779,6 +777,71 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result).hasSize(1);
         assertThat(result).extracting(aer -> aer.getParameter())
                 .containsExactlyInAnyOrder("2");
+    }
+
+    @Test
+    public void test270SearchByChangedItemsMultipleValues() throws SchemaException {
+        // this tests multiple values for JOIN path
+        when("searching audit by changed items equal to multiple values");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_GIVEN_NAME),
+                        new ItemPathType(UserType.F_FAMILY_NAME))
+                .build());
+
+        then("audit events with changed items equal to any of the specified values are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2");
+    }
+
+    @Test
+    public void test271SearchByParameterMultipleValues() throws SchemaException {
+        // this tests multiple values for strings
+        when("searching audit by parameter equal to multiple values");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_PARAMETER).eq("1", "2", "4") // 4 is unused, it's OK
+                .build());
+
+        then("audit events with parameter equal to any of the specified values are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2");
+    }
+
+    @Test
+    public void test272SearchByEventTypeMultipleValues() throws SchemaException {
+        // this tests multiple values for enums
+        when("searching audit by event type equal to multiple values");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_EVENT_TYPE).eq(
+                        AuditEventTypeType.ADD_OBJECT, AuditEventTypeType.MODIFY_OBJECT)
+                .build());
+
+        then("audit events with event type equal to any of the specified values are returned");
+        assertThat(result).hasSize(3);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2", "3");
+    }
+
+    @Test
+    public void test273SearchByTimestampMultipleValues() throws SchemaException {
+        // this tests multiple values for timestamps
+        when("searching audit by timestamp equal to multiple values");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TIMESTAMP).eq(
+                        MiscUtil.asXMLGregorianCalendar(TIMESTAMP_1),
+                        MiscUtil.asXMLGregorianCalendar(TIMESTAMP_3))
+                .build());
+
+        then("audit events with timestamp equal to any of the specified values are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "3");
     }
 
     @Test
