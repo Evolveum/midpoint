@@ -93,7 +93,7 @@ public class ReportTaskHandler implements TaskHandler {
                 try {
                     ExecuteScriptType script = null;
                     if (behaviour != null) {
-                        script = behaviour.getImportExecuteScript();
+                        script = behaviour.getImportScript();
                     }
                     if (script == null) {
                         EngineController engineController = resolveEngine(report);

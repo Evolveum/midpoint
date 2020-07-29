@@ -194,18 +194,38 @@ public class TestCsvReport extends BasicNewReportTest {
 
     @Test
     public void test202ImportReportWithImportScript() throws Exception {
-        PrismObject<UserType> user = searchObjectByName(UserType.class, "testUser02");
-        assertNotNull("User testUser02 was not created", user);
-        assertTrue(user.asObjectable().getAssignment().isEmpty());
+        PrismObject<UserType> testUser02 = searchObjectByName(UserType.class, "testUser02");
+        assertNotNull("User testUser02 was not created", testUser02);
+        assertTrue(testUser02.asObjectable().getAssignment().isEmpty());
+
+        PrismObject<UserType> testUser01 = searchObjectByName(UserType.class, "testUser01");
+        assertNotNull("User testUser01 was not created", testUser01);
+        assertTrue(testUser01.asObjectable().getAssignment().size() == 2);
+
+        PrismObject<UserType> jack = searchObjectByName(UserType.class, "jack");
+        assertNotNull("User jack was not created", jack);
+        assertNull(jack.asObjectable().getAssignment().get(0).getActivation().getValidFrom());
+        assertNull(jack.asObjectable().getAssignment().get(0).getActivation().getValidTo());
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_WITH_IMPORT_SCRIPT_OID);
         importReport(report, IMPORT_MODIFY_FILE_PATH, false);
 
-        user = searchObjectByName(UserType.class, "testUser02");
-        assertNotNull("User testUser02 was not created", user);
-        assertEquals("00000000-0000-0000-0000-000000000004", user.asObjectable().getAssignment().get(0).getTargetRef().getOid());
-        assertEquals("2018-01-01T00:00:00.000+01:00", user.asObjectable().getAssignment().get(0).getActivation().getValidFrom().toString());
-        assertEquals("2018-05-01T00:00:00.000+02:00", user.asObjectable().getAssignment().get(0).getActivation().getValidTo().toString());
+        testUser02 = searchObjectByName(UserType.class, "testUser02");
+        assertNotNull("User testUser02 was not created", testUser02);
+        assertEquals("00000000-0000-0000-0000-000000000004", testUser02.asObjectable().getAssignment().get(0).getTargetRef().getOid());
+        assertEquals("2018-01-01T00:00:00.000+01:00", testUser02.asObjectable().getAssignment().get(0).getActivation().getValidFrom().toString());
+        assertEquals("2018-05-01T00:00:00.000+02:00", testUser02.asObjectable().getAssignment().get(0).getActivation().getValidTo().toString());
+
+        testUser01 = searchObjectByName(UserType.class, "testUser01");
+        assertNotNull("User testUser01 was not created", testUser01);
+        assertTrue(testUser01.asObjectable().getAssignment().size() == 1);
+        assertEquals("00000000-0000-0000-0000-000000000008", testUser01.asObjectable().getAssignment().get(0).getTargetRef().getOid());
+
+        jack = searchObjectByName(UserType.class, "jack");
+        assertNotNull("User jack was not created", jack);
+        assertEquals("00000000-0000-0000-0000-000000000004", jack.asObjectable().getAssignment().get(0).getTargetRef().getOid());
+        assertEquals("2018-01-01T00:00:00.000+01:00", jack.asObjectable().getAssignment().get(0).getActivation().getValidFrom().toString());
+        assertEquals("2018-05-01T00:00:00.000+02:00", jack.asObjectable().getAssignment().get(0).getActivation().getValidTo().toString());
     }
 
     private void setExpectedValueForDashboardReport() {

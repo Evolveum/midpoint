@@ -23744,7 +23744,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="importExecuteScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="importScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
                         <p>
