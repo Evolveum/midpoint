@@ -29,10 +29,10 @@ public class QAuditItem extends FlexibleRelationalPathBase<MAuditItem> {
 
     public static final String TABLE_NAME = "m_audit_item";
 
-    public static final ColumnMetadata CHANGED_ITEM_PATH =
-            ColumnMetadata.named("CHANGEDITEMPATH").ofType(Types.VARCHAR).withSize(255).notNull();
     public static final ColumnMetadata RECORD_ID =
-            ColumnMetadata.named("RECORD_ID").ofType(Types.BIGINT).withSize(19).notNull();
+            ColumnMetadata.named("record_id").ofType(Types.BIGINT).withSize(19).notNull();
+    public static final ColumnMetadata CHANGED_ITEM_PATH =
+            ColumnMetadata.named("changedItemPath").ofType(Types.VARCHAR).withSize(255).notNull();
 
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final StringPath changedItemPath = createString("changedItemPath", CHANGED_ITEM_PATH);
