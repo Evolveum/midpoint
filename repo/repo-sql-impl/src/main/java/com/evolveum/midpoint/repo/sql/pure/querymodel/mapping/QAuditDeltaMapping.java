@@ -5,28 +5,30 @@ import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditRefValue;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditDelta;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditRefValue;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 
 /**
- * Mapping between {@link QAuditRefValue} and {@link AuditEventRecordReferenceType}.
+ * Mapping between {@link QAuditDelta} and {@link ObjectDeltaOperationType}.
  */
-public class QAuditRefValueMapping
-        extends QueryModelMapping<AuditEventRecordReferenceType, QAuditRefValue, MAuditRefValue> {
+public class QAuditDeltaMapping
+        extends QueryModelMapping<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
 
-    public static final String DEFAULT_ALIAS_NAME = "aref";
+    public static final String DEFAULT_ALIAS_NAME = "ad";
 
-    public static final QAuditRefValueMapping INSTANCE = new QAuditRefValueMapping();
+    public static final QAuditDeltaMapping INSTANCE = new QAuditDeltaMapping();
 
-    private QAuditRefValueMapping() {
+    private QAuditDeltaMapping() {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AuditEventRecordReferenceType.class, QAuditRefValue.class,
+                ObjectDeltaOperationType.class, QAuditDelta.class,
                 RECORD_ID, CHANGED_ITEM_PATH);
     }
 
     @Override
-    public SqlTransformer<AuditEventRecordReferenceType, MAuditRefValue> createTransformer(
+    public SqlTransformer<ObjectDeltaOperationType, MAuditDelta> createTransformer(
             PrismContext prismContext) {
         throw new UnsupportedOperationException("handled by AuditEventRecordSqlTransformer");
     }

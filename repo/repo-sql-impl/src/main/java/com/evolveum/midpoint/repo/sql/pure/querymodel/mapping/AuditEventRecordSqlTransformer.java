@@ -14,7 +14,6 @@ import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditItem;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditRefValue;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -37,9 +36,10 @@ public class AuditEventRecordSqlTransformer
     public AuditEventRecordType toSchemaObject(MAuditEventRecord row) throws SchemaException {
         AuditEventRecordType record = mapSimpleAttributes(row);
         mapDeltas(record, row.deltas);
-        mapChangedItems(record, row.changedItems);
+        mapChangedItems(record, row.changedItemPaths);
         mapRefValues(record, row.refValues);
         mapProperties(record, row.properties);
+        mapResourceOids(record, row.resourceOids);
         return record;
     }
 
@@ -92,14 +92,13 @@ public class AuditEventRecordSqlTransformer
     }
 
     // the rest of sub-entities do not deserve the dedicated transformer classes (yet)
-
-    private void mapChangedItems(AuditEventRecordType record, List<MAuditItem> changedItems) {
-        if (changedItems == null) {
+    private void mapChangedItems(AuditEventRecordType record, List<String> changedItemPaths) {
+        if (changedItemPaths == null) {
             return;
         }
 
-        for (MAuditItem changedItem : changedItems) {
-            ItemPath itemPath = ItemPath.create(changedItem.changedItemPath);
+        for (String changedItemPath : changedItemPaths) {
+            ItemPath itemPath = ItemPath.create(changedItemPath);
             record.getChangedItem().add(new ItemPathType(itemPath));
         }
     }
@@ -116,9 +115,11 @@ public class AuditEventRecordSqlTransformer
             for (MAuditRefValue refValue : entry.getValue()) {
                 AuditEventRecordReferenceValueType value = new AuditEventRecordReferenceValueType()
                         .oid(refValue.oid)
-                        .targetName(new PolyStringType(
-                                new PolyString(refValue.targetNameOrig, refValue.targetNameNorm)))
                         .type(QName.valueOf(refValue.type));
+                if (refValue.targetNameOrig != null) {
+                    value.targetName(new PolyStringType(
+                            new PolyString(refValue.targetNameOrig, refValue.targetNameNorm)));
+                }
                 referenceValues.value(value);
             }
             record.reference(referenceValues);
@@ -136,6 +137,15 @@ public class AuditEventRecordSqlTransformer
             propType.getValue().addAll(entry.getValue());
             record.property(propType);
         }
+    }
+
+    private void mapResourceOids(
+            AuditEventRecordType record, List<String> resourceOids) {
+        if (resourceOids == null) {
+            return;
+        }
+
+        record.getResourceOid().addAll(resourceOids);
     }
 
     private AuditEventTypeType auditEventTypeTypeFromRepo(Integer ordinal) {

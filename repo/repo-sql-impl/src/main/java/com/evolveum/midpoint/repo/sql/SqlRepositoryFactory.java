@@ -256,10 +256,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             removeFile(traceFile);
 
             File[] tempFiles = file.listFiles((parent, name) -> {
-                if (name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$")) {
-                    return true;
-                }
-                return false;
+                return name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$");
             });
             if (tempFiles != null) {
                 for (File temp : tempFiles) {
@@ -269,7 +266,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
             File lobDir = new File(file, fileName + ".lobs.db");
             if (lobDir.exists() && lobDir.isDirectory()) {
-                LOGGER.info("Deleting directory '{}'", new Object[] { lobDir.getAbsolutePath() });
+                LOGGER.info("Deleting directory '{}'", lobDir.getAbsolutePath());
                 FileUtils.deleteDirectory(lobDir);
             }
         } catch (Exception ex) {
@@ -278,11 +275,11 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
     }
 
-    private void removeFile(File file) throws IOException {
+    private void removeFile(File file) {
         if (file.exists()) {
-            LOGGER.info("Deleting file '{}', result: {}", new Object[] { file.getAbsolutePath(), file.delete() });
+            LOGGER.info("Deleting file '{}', result: {}", file.getAbsolutePath(), file.delete());
         } else {
-            LOGGER.info("File '{}' doesn't exist: delete status {}", new Object[] { file.getAbsolutePath(), file.delete() });
+            LOGGER.info("File '{}' doesn't exist: delete status {}", file.getAbsolutePath(), file.delete());
         }
     }
 

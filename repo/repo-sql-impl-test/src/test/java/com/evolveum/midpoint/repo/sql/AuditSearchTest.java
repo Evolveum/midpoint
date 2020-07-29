@@ -30,8 +30,10 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -90,6 +92,14 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.addDelta(createDelta(UserType.F_FAMILY_NAME));
         record1.addDelta(createDelta(ItemPath.create(
                 ObjectType.F_METADATA, MetadataType.F_REQUEST_TIMESTAMP)));
+        // just want to see two values, that's all
+        record1.addReferenceValue("ref1",
+                ObjectTypeUtil.createObjectRef(targetOid, ObjectTypes.USER).asReferenceValue());
+        record1.addReferenceValue("ref2",
+                ObjectTypeUtil.createObjectRef(targetOid, ObjectTypes.USER).asReferenceValue());
+        record1.addResourceOid("res-oid-1");
+        record1.addResourceOid("res-oid-2");
+        record1.addResourceOid("res-oid-3");
         auditService.audit(record1, NullTaskImpl.INSTANCE);
         record1EventIdentifier = record1.getEventIdentifier();
 
@@ -848,7 +858,9 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     public void test300SearchReturnsMappedToManyAttributes() throws SchemaException {
         when("searching audit with query without any conditions and paging");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
-                .queryFor(AuditEventRecordType.class).build());
+                .queryFor(AuditEventRecordType.class)
+                .asc(AuditEventRecordType.F_PARAMETER)
+                .build());
 
         then("all audit events are returned");
         assertThat(result).hasSize(3);
@@ -859,6 +871,11 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         AuditEventRecordPropertyType prop1 = record1.getProperty().get(0);
         assertThat(prop1.getName()).isEqualTo("prop1");
         assertThat(prop1.getValue()).containsExactly("val1");
+        // for other attributes we just use the size check, fetch mechanism is similar
+        assertThat(record1.getChangedItem()).hasSize(4);
+        assertThat(record1.getDelta()).hasSize(1);
+        assertThat(record1.getReference()).hasSize(2);
+        assertThat(record1.getResourceOid()).hasSize(3);
 
         AuditEventRecordType record3 = result.get(2);
         assertThat(record3.getProperty()).as("two different property keys").hasSize(2);
