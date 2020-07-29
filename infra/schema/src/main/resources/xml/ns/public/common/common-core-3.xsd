@@ -13,6 +13,7 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
@@ -23,6 +24,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" />
@@ -23739,6 +23741,18 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:displayName>ReportBehaviorType.importOptions</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="importExecuteScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Script used for processing lines from file.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ReportBehaviorType.importExecuteScript</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

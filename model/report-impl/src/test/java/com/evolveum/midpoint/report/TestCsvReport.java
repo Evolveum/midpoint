@@ -36,6 +36,7 @@ public class TestCsvReport extends BasicNewReportTest {
     public static final File REPORT_IMPORT_OBJECT_COLLECTION_WITH_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-import-object-collection-with-view.xml");
 
     public static final String IMPORT_USERS_FILE_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/import/import-users.csv";
+    public static final String IMPORT_MODIFY_FILE_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/import/import-modify-user.csv";
 
     public static final String REPORT_IMPORT_OBJECT_COLLECTION_WITH_CONDITION_OID = "2b77aa2e-dd86-4842-bcf5-762c8a9a85de";
 
@@ -189,6 +190,22 @@ public class TestCsvReport extends BasicNewReportTest {
         assertEquals(oldWill.asObjectable().getFullName(), newWill.asObjectable().getFullName());
         assertEquals(oldWill.asObjectable().getEmailAddress(), newWill.asObjectable().getEmailAddress());
         outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName()));
+    }
+
+    @Test
+    public void test202ImportReportWithImportScript() throws Exception {
+        PrismObject<UserType> user = searchObjectByName(UserType.class, "testUser02");
+        assertNotNull("User testUser02 was not created", user);
+        assertTrue(user.asObjectable().getAssignment().isEmpty());
+
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_WITH_IMPORT_SCRIPT_OID);
+        importReport(report, IMPORT_MODIFY_FILE_PATH, false);
+
+        user = searchObjectByName(UserType.class, "testUser02");
+        assertNotNull("User testUser02 was not created", user);
+        assertEquals("00000000-0000-0000-0000-000000000004", user.asObjectable().getAssignment().get(0).getTargetRef().getOid());
+        assertEquals("2018-01-01T00:00:00.000+01:00", user.asObjectable().getAssignment().get(0).getActivation().getValidFrom().toString());
+        assertEquals("2018-05-01T00:00:00.000+02:00", user.asObjectable().getAssignment().get(0).getActivation().getValidTo().toString());
     }
 
     private void setExpectedValueForDashboardReport() {

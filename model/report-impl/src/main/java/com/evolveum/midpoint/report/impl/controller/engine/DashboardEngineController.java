@@ -9,6 +9,7 @@ package com.evolveum.midpoint.report.impl.controller.engine;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
+import java.util.List;
 
 /**
  * @author skublik
@@ -52,7 +54,7 @@ public class DashboardEngineController extends EngineController {
     }
 
     @Override
-    public void importReport(ReportType report, PrismContainer container, FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception {
+    public void importReport(ReportType report, List<VariablesMap> listOfVariables, FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception {
         throw new UnsupportedOperationException("Unsupported operation import for dashboard engine");
     }
 }

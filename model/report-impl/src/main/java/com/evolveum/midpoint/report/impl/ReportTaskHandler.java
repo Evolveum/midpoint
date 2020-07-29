@@ -20,9 +20,11 @@ import com.evolveum.midpoint.report.impl.controller.fileformat.CsvController;
 import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
 import com.evolveum.midpoint.report.impl.controller.fileformat.HtmlController;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.io.FilenameUtils;
@@ -80,8 +82,6 @@ public class ReportTaskHandler implements TaskHandler {
             }
 
             String reportDataFilePath;
-            EngineController engineController = resolveEngine(report);
-            FileFormatController fileFormatController = resolveExport(report, engineController);
             if (DirectionTypeType.IMPORT.equals(direction)) {
                 ReportDataType reportData;
 
@@ -91,8 +91,19 @@ public class ReportTaskHandler implements TaskHandler {
                 reportDataFilePath = reportData.getFilePath();
 
                 try {
-                    PrismContainer container = fileFormatController.createContainerFromFile(report, reportData, task, result);
-                    engineController.importReport(report, container, fileFormatController, task, result);
+                    ExecuteScriptType script = null;
+                    if (behaviour != null) {
+                        script = behaviour.getImportExecuteScript();
+                    }
+                    if (script == null) {
+                        EngineController engineController = resolveEngine(report);
+                        FileFormatController fileFormatController = resolveExport(report, engineController.getDefaultFileFormat());
+                        List<VariablesMap> variables = fileFormatController.createVariablesFromFile(report, reportData, false, task, result);
+                        engineController.importReport(report, variables, fileFormatController, task, result);
+                    } else {
+                        FileFormatController fileFormatController = resolveExport(report, FileFormatTypeType.CSV);
+                        importScriptProcessing(report, reportData, script, fileFormatController, task, result);
+                    }
                 } catch (IOException e) {
                     String message = "Couldn't create virtual container from file path " + reportData.getFilePath();
                     LOGGER.error(message, e);
@@ -107,10 +118,8 @@ public class ReportTaskHandler implements TaskHandler {
                     throw new SecurityViolationException("Not authorized");
                 }
 
-//            if (report.getReportEngine() == null) {
-//                throw new IllegalArgumentException("Report Object doesn't have ReportEngine attribute");
-//            }
-
+                EngineController engineController = resolveEngine(report);
+                FileFormatController fileFormatController = resolveExport(report, engineController.getDefaultFileFormat());
                 reportDataFilePath = engineController.createReport(report, fileFormatController, task, result);
 
                 saveReportDataType(reportDataFilePath, report, fileFormatController, task, result);
@@ -136,6 +145,24 @@ public class ReportTaskHandler implements TaskHandler {
         return runResult;
     }
 
+    private void importScriptProcessing(ReportType report, ReportDataType reportData, ExecuteScriptType script,
+            FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception {
+        List<VariablesMap> listOfVariables = fileFormatController.createVariablesFromFile(report, reportData, true, task, result);
+
+        if (listOfVariables == null || listOfVariables.isEmpty()) {
+            throw new IllegalArgumentException("Variables for import report is null or empty");
+        }
+        long i = 0;
+        task.setExpectedTotal((long) listOfVariables.size());
+        task.setProgressImmediate(i, result);
+        for (VariablesMap variales : listOfVariables) {
+            reportService.getScriptingService().evaluateExpression(script, variales, false, task, result);
+            i++;
+            task.setProgressImmediate(i, result);
+        }
+
+    }
+
     private EngineController resolveEngine(ReportType parentReport) {
         if (parentReport.getDashboard() != null) {
             return new DashboardEngineController(reportService);
@@ -143,15 +170,15 @@ public class ReportTaskHandler implements TaskHandler {
         if (parentReport.getObjectCollection() != null) {
             return new CollectionEngineController(reportService);
         }
-        LOGGER.error("Report don't contains ");
-        throw new IllegalArgumentException("Dashboard or DashboardRef is null");
+        LOGGER.error("Report don't contains engine");
+        throw new IllegalArgumentException("Report don't contains engine");
     }
 
-    private FileFormatController resolveExport(ReportType parentReport, EngineController engine) {
+    private FileFormatController resolveExport(ReportType parentReport, FileFormatTypeType defaultType) {
         FileFormatConfigurationType fileFormat;
         if (parentReport.getFileFormat() == null || parentReport.getFileFormat().getType() == null) {
             fileFormat = new FileFormatConfigurationType();
-            fileFormat.setType(engine.getDefaultFileFormat());
+            fileFormat.setType(defaultType);
         } else {
             fileFormat = parentReport.getFileFormat();
         }

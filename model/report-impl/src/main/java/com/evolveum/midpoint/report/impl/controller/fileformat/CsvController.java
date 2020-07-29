@@ -17,6 +17,8 @@ import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.expression.TypedValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -141,7 +143,8 @@ public class CsvController extends FileFormatController {
         return csvFile;
     }
 
-    private CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private CompiledObjectCollectionView createCompiledView(ObjectCollectionReportEngineConfigurationType collectionConfig, boolean useDefaultView, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         CollectionRefSpecificationType collectionRefSpecification = collectionConfig.getCollection();
         ObjectReferenceType ref = null;
         if (collectionRefSpecification != null) {
@@ -156,8 +159,12 @@ public class CsvController extends FileFormatController {
         }
         CompiledObjectCollectionView compiledCollection = createCompiledView(collectionConfig, collection);
         if (compiledCollection.getColumns().isEmpty()) {
-            Class<ObjectType> type = resolveType(collectionRefSpecification, compiledCollection);
-            getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
+            if (useDefaultView) {
+                Class<ObjectType> type = resolveType(collectionRefSpecification, compiledCollection);
+                getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
+            } else {
+                return null;
+            }
         }
         return compiledCollection;
     }
@@ -333,12 +340,12 @@ public class CsvController extends FileFormatController {
     }
 
     @Override
-    public void importCollectionReport(ReportType report, PrismContainerValue containerValue, RunningTask task, OperationResult result) {
+    public void importCollectionReport(ReportType report, VariablesMap variables, RunningTask task, OperationResult result) {
         if (report.getObjectCollection() != null) {
             ObjectCollectionReportEngineConfigurationType collectionConfig = report.getObjectCollection();
             CompiledObjectCollectionView compiledCollection;
             try {
-                compiledCollection = createCompiledView(collectionConfig, task, result);
+                compiledCollection = createCompiledView(collectionConfig, true, task, result);
             } catch (Exception e) {
                 LOGGER.error("Couldn't define compiled collection for report", e);
                 return;
@@ -358,25 +365,28 @@ public class CsvController extends FileFormatController {
                     @NotNull PrismContainer object = def.instantiate();
                     PrismContainerValue value = object.createNewValue();
                     List<GuiObjectColumnType> columns = compiledCollection.getColumns();
-                    for (Item item : (Collection<Item>) containerValue.getItems()) {
+                    for (String name : variables.keySet()) {
                         boolean isFound = false;
                         for (GuiObjectColumnType column : columns) {
                             if (DisplayValueType.NUMBER.equals(column.getDisplayValue()) || isFound){
                                 continue;
                             }
                             String columnName = getColumnLabel(column, def);
-                            if (item.getElementName().getLocalPart().equals(columnName)) {
+                            if (name.equals(columnName)) {
                                 isFound = true;
                                 if (column.getPath() != null) {
                                     ItemPath path = column.getPath().getItemPath();
                                     ItemDefinition newItemDefinition = object.getDefinition().findItemDefinition(path);
                                     Item newItem = null;
                                     Object objectFromExpression = null;
+                                    TypedValue typedValue = variables.get(name);
                                     if (column.getImport() != null && column.getImport().getExpression() != null) {
                                         if (newItemDefinition.isSingleValue()) {
-                                            objectFromExpression = evaluateImportExpression(column.getImport().getExpression(), (String) item.getRealValue(), task, result);
+                                            objectFromExpression = evaluateImportExpression(column.getImport().getExpression(),
+                                                    (String) typedValue.getValue(), task, result);
                                         } else {
-                                            objectFromExpression = evaluateImportExpression(column.getImport().getExpression(), getImportStringValues((String) item.getRealValue(), false), task, result);
+                                            objectFromExpression = evaluateImportExpression(column.getImport().getExpression(),
+                                                    getImportStringValues(typedValue.getValue(), false), task, result);
                                         }
                                         if (objectFromExpression == null) {
                                             continue;
@@ -384,13 +394,13 @@ public class CsvController extends FileFormatController {
                                     }
                                     if (newItemDefinition instanceof PrismPropertyDefinition) {
                                         newItem = object.findOrCreateProperty(path);
-                                        processPropertyFromImportReport(objectFromExpression, item, newItem, result);
+                                        processPropertyFromImportReport(objectFromExpression, typedValue, newItem, result);
                                     } else if (newItemDefinition instanceof PrismReferenceDefinition) {
                                         newItem = object.findOrCreateReference(path);
-                                        processReferenceFromImportReport(objectFromExpression, item, newItem, type, task, result);
+                                        processReferenceFromImportReport(objectFromExpression, typedValue, newItem, type, task, result);
                                     } else if (newItemDefinition instanceof PrismContainerDefinition) {
                                         newItem = object.findOrCreateContainer(path);
-                                        processContainerFromImportReport(objectFromExpression, item, newItem, column.getPath(), result);
+                                        processContainerFromImportReport(objectFromExpression, newItem, column.getPath(), result);
                                     }
                                 } else {
                                     String message = "Path of column is null, skipping column " + columnName;
@@ -419,7 +429,7 @@ public class CsvController extends FileFormatController {
         }
     }
 
-    private void processContainerFromImportReport(Object objectFromExpression, Item item, Item newItem, ItemPathType path, OperationResult result) {
+    private void processContainerFromImportReport(Object objectFromExpression, Item newItem, ItemPathType path, OperationResult result) {
         if (objectFromExpression != null) {
             Collection realValues = new ArrayList();
             if (Collection.class.isAssignableFrom(objectFromExpression.getClass())) {
@@ -455,7 +465,7 @@ public class CsvController extends FileFormatController {
         }
     }
 
-    private void processReferenceFromImportReport(Object objectFromExpression, Item item, Item newItem, Class type, Task task, OperationResult result) {
+    private void processReferenceFromImportReport(Object objectFromExpression, TypedValue typedValue, Item newItem, Class type, Task task, OperationResult result) {
         if (objectFromExpression != null) {
             Collection realValues = new ArrayList();
             if (Collection.class.isAssignableFrom(objectFromExpression.getClass())) {
@@ -487,7 +497,7 @@ public class CsvController extends FileFormatController {
                 }
             }
         } else {
-            ArrayList<String> stringValues = getImportStringValues((String) item.getRealValue(), newItem.isSingleValue());
+            ArrayList<String> stringValues = getImportStringValues(typedValue.getValue(), newItem.isSingleValue());
             for (String stringValue : stringValues) {
 
                 QName targetType = ((PrismReference) newItem).getDefinition().getTargetTypeName();
@@ -530,7 +540,7 @@ public class CsvController extends FileFormatController {
         }
     }
 
-    private void processPropertyFromImportReport(Object objectFromExpression, Item item, Item newItem, OperationResult result) {
+    private void processPropertyFromImportReport(Object objectFromExpression, TypedValue typedValue, Item newItem, OperationResult result) {
         if (objectFromExpression != null) {
             Collection realValues = new ArrayList();
             if (Collection.class.isAssignableFrom(objectFromExpression.getClass())) {
@@ -545,7 +555,7 @@ public class CsvController extends FileFormatController {
                 }
             }
         } else {
-            ArrayList<String> stringValues = getImportStringValues((String) item.getRealValue(), newItem.isSingleValue());
+            ArrayList<String> stringValues = getImportStringValues(typedValue.getValue(), newItem.isSingleValue());
             for (String stringValue : stringValues) {
 
                 if (StringUtils.isEmpty(stringValue)) {
@@ -566,13 +576,12 @@ public class CsvController extends FileFormatController {
         }
     }
 
-    private ArrayList<String> getImportStringValues(String realValue, boolean isSingleValue) {
+    private ArrayList<String> getImportStringValues(Object realValue, boolean isSingleValue) {
         ArrayList<String> stringValues = new ArrayList();
         if (isSingleValue || realValue == null) {
-            stringValues.add(realValue);
+            stringValues.add((String) realValue);
         } else {
-            String[] realValues = realValue.split(getMultivalueDelimiter());
-            stringValues.addAll(Arrays.asList(realValues));
+            stringValues.addAll((List<String>) realValue);
         }
         return stringValues;
     }
@@ -583,49 +592,62 @@ public class CsvController extends FileFormatController {
         return parsed;
     }
 
-    public PrismContainer createContainerFromFile(ReportType report, ReportDataType reportData, Task task, OperationResult result) throws IOException {
+    public List<VariablesMap> createVariablesFromFile(ReportType report, ReportDataType reportData, boolean useImportScript, Task task, OperationResult result) throws IOException {
         ObjectCollectionReportEngineConfigurationType collectionEngineConf = report.getObjectCollection();
-        if (collectionEngineConf == null) {
-            throw new IllegalArgumentException("Report of 'import' direction support only object collection engine."
+        if (collectionEngineConf == null && !useImportScript) {
+            throw new IllegalArgumentException("Report of 'import' direction without import script support only object collection engine."
                     + " Please define ObjectCollectionReportEngineConfigurationType in report type.");
         }
-        CompiledObjectCollectionView compiledCollection;
+        CompiledObjectCollectionView compiledCollection = null;
         try {
-            compiledCollection = createCompiledView(collectionEngineConf, task, result);
+            if (collectionEngineConf != null) {
+                compiledCollection = createCompiledView(collectionEngineConf, !useImportScript, task, result);
+            }
         } catch (Exception e) {
             LOGGER.error("Couldn't define compiled collection for report", e);
             return null;
         }
-        List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
-        Class<ObjectType> type = compiledCollection.getTargetClass();
-        if (type == null) {
-            throw new IllegalArgumentException("Couldn't define type of imported objects");
-        }
-        PrismObjectDefinition<ObjectType> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(type, PrismObjectDefinition.class);
         List<String> headers = new ArrayList<>();
-        columns.forEach(column -> {
-            Validate.notNull(column.getName(), "Name of column is null");
-            String label = getColumnLabel(column, def);
-            headers.add(label);
-        });
         Reader reader = Files.newBufferedReader(Paths.get(reportData.getFilePath()));
         CSVFormat csvFormat = createCsvFormat();
-        if (Boolean.TRUE.equals(isHeader())) {
-            String[] arrayHeader = new String[headers.size()];
-            arrayHeader = headers.toArray(arrayHeader);
-            csvFormat = csvFormat.withHeader(arrayHeader)
-                    .withSkipHeaderRecord(true);
+        if (compiledCollection != null) {
+            List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
+            Class<ObjectType> type = compiledCollection.getTargetClass();
+            if (type == null) {
+                throw new IllegalArgumentException("Couldn't define type of imported objects");
+            }
+            PrismObjectDefinition<ObjectType> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(type, PrismObjectDefinition.class);
+            for (GuiObjectColumnType column : columns) {
+                Validate.notNull(column.getName(), "Name of column is null");
+                String label = getColumnLabel(column, def);
+                headers.add(label);
+            }
         } else {
+            csvFormat = csvFormat.withFirstRecordAsHeader();
+        }
+        if (Boolean.TRUE.equals(isHeader())) {
+            if (!headers.isEmpty()) {
+                String[] arrayHeader = new String[headers.size()];
+                arrayHeader = headers.toArray(arrayHeader);
+                csvFormat = csvFormat.withHeader(arrayHeader);
+            }
+            csvFormat = csvFormat.withSkipHeaderRecord(true);
+        } else {
+            if (headers.isEmpty()) {
+                throw new IllegalArgumentException("Couldn't find headers please "
+                        + "define them via view element or write them to csv file and set "
+                        + "header element in file format configuration to true.");
+            }
             csvFormat = csvFormat.withSkipHeaderRecord(false);
         }
         CSVParser csvParser = new CSVParser(reader, csvFormat);
-        ItemFactory itemFactory = getReportService().getPrismContext().itemFactory();
-        PrismContainer container = itemFactory.createContainer(new QName("Object"));
-
+        if (headers.isEmpty()) {
+            headers = csvParser.getHeaderNames();
+        }
+        List<VariablesMap> listOfVariables = new ArrayList();
         for (CSVRecord csvRecord : csvParser) {
-            PrismContainerValue containerValue = container.createNewValue();
+            VariablesMap variables = new VariablesMap();
             for (String name : headers) {
-                PrismProperty property = itemFactory.createProperty(new QName(name));
                 String value;
                 if (isHeader()) {
                     value = csvRecord.get(name);
@@ -635,15 +657,16 @@ public class CsvController extends FileFormatController {
                 if (value != null && value.isEmpty()) {
                     value = null;
                 }
-                property.getValues().add(itemFactory.createPropertyValue(value));
-                try {
-                    containerValue.add(property);
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't add property " + property, e);
+                if (value != null && value.contains(getMultivalueDelimiter())) {
+                    String[] realValues = value.split(getMultivalueDelimiter());
+                    variables.put(name, Arrays.asList(realValues), List.class);
+                } else {
+                    variables.put(name, value, String.class);
                 }
             }
+            listOfVariables.add(variables);
         }
-        return container;
+        return listOfVariables;
     }
 
     private String removeNewLine(String value) {

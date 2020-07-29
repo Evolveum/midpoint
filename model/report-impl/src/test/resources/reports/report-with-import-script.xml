@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report oid="2b44aa2e-dd86-4842-bcf5-762c8c4a851a">
+    <name>Report with import script</name>
+    <behavior>
+        <importExecuteScript>
+                <execute>
+                    <forWholeInput>true</forWholeInput>
+                    <script>
+                        <code>
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+                            import java.text.SimpleDateFormat;
+                            import java.util.GregorianCalendar;
+                            import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+                            import javax.xml.datatype.DatatypeFactory;
+
+                            System.out.println("-----------START-----------");
+                            System.out.println("username: " + username);
+                            System.out.println("role_name: " + role_name);
+                            System.out.println("action: " + action);
+                            System.out.println("valid_from: " + valid_from);
+                            System.out.println("valid_to: " + valid_to);
+
+                            user = midpoint.searchObjectByName(UserType.class, username);
+                            userBefore = user.clone();
+
+                            if (action.equals("A")) {
+                                role = midpoint.searchObjectByName(RoleType.class, role_name);
+                                roleRef = new ObjectReferenceType();
+                                roleRef.setOid(role.getOid());
+                                roleRef.setType(RoleType.COMPLEX_TYPE);
+                                AssignmentType assignment = new AssignmentType();
+                                assignment.setTargetRef(roleRef);
+
+                                activation = new ActivationType();
+
+                                format = new SimpleDateFormat("yyyy-MM-dd");
+                                date = format.parse(valid_from);
+                                cal = new GregorianCalendar();
+                                cal.setTime(date);
+                                xmlGregCal =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                activation.setValidFrom(xmlGregCal);
+
+                                date = format.parse(valid_to);
+                                cal.setTime(date);
+                                xmlGregCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                activation.setValidTo(xmlGregCal);
+
+                                assignment.setActivation(activation);
+                                user.getAssignment().add(assignment);
+                            }
+                            delta = userBefore.asPrismObject().diff(user.asPrismObject(), EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+                            midpoint.modifyObject(delta);
+                            System.out.println("-----------FINISH-----------");
+                        </code>
+                    </script>
+                </execute>
+        </importExecuteScript>
+        <direction>import</direction>
+    </behavior>
+</report>

@@ -10,6 +10,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -54,15 +55,15 @@ public class CollectionEngineController extends EngineController {
     }
 
     @Override
-    public void importReport(ReportType report, PrismContainer container, FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception {
-        if (container == null) {
-            throw new IllegalArgumentException("Virtual container for import report is null");
+    public void importReport(ReportType report, List<VariablesMap> listOfVariables, FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception {
+        if (listOfVariables == null || listOfVariables.isEmpty()) {
+            throw new IllegalArgumentException("Variables for import report is null or empty");
         }
         int i = 0;
-        task.setExpectedTotal((long) container.getValues().size());
+        task.setExpectedTotal((long) listOfVariables.size());
         recordProgress(task, i, result, LOGGER);
-        for (PrismContainerValue value : (List<PrismContainerValue>) container.getValues()) {
-            fileFormatController.importCollectionReport(report, value, task, result);
+        for (VariablesMap variales : listOfVariables) {
+            fileFormatController.importCollectionReport(report, variales, task, result);
             i++;
             recordProgress(task, i, result, LOGGER);
         }
