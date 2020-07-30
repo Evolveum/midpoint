@@ -160,7 +160,7 @@ public class TestCsvReport extends BasicNewReportTest {
         assertTrue(user.asObjectable().getAssignment().isEmpty());
     }
 
-    @Test
+    @Test(dependsOnMethods = {"test115CreateObjectCollectionReportWithCondition"})
     public void test201ImportReportfromExportedReport() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_CONDITION_OID);
         runReport(report, false);
@@ -192,7 +192,7 @@ public class TestCsvReport extends BasicNewReportTest {
         outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName()));
     }
 
-    @Test
+    @Test(dependsOnMethods = {"test200ImportReportForUser"})
     public void test202ImportReportWithImportScript() throws Exception {
         PrismObject<UserType> testUser02 = searchObjectByName(UserType.class, "testUser02");
         assertNotNull("User testUser02 was not created", testUser02);
@@ -208,7 +208,7 @@ public class TestCsvReport extends BasicNewReportTest {
         assertNull(jack.asObjectable().getAssignment().get(0).getActivation().getValidTo());
 
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_WITH_IMPORT_SCRIPT_OID);
-        importReport(report, IMPORT_MODIFY_FILE_PATH, false);
+        importReport(report, IMPORT_MODIFY_FILE_PATH, true);
 
         testUser02 = searchObjectByName(UserType.class, "testUser02");
         assertNotNull("User testUser02 was not created", testUser02);

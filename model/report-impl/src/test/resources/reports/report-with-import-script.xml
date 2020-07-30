@@ -8,90 +8,147 @@
 <report oid="2b44aa2e-dd86-4842-bcf5-762c8c4a851a">
     <name>Report with import script</name>
     <behavior>
-        <importScript>
-                <execute>
-                    <forWholeInput>true</forWholeInput>
-                    <script>
-                        <code>
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-                            import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-                            import java.text.SimpleDateFormat;
-                            import java.util.GregorianCalendar;
-                            import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-                            import javax.xml.datatype.DatatypeFactory;
-
-                            System.out.println("-----------START-----------");
-                            System.out.println("username: " + username);
-                            System.out.println("role_name: " + role_name);
-                            System.out.println("action: " + action);
-                            System.out.println("valid_from: " + valid_from);
-                            System.out.println("valid_to: " + valid_to);
-
-                            user = midpoint.searchObjectByName(UserType.class, username);
-                            userBefore = user.clone();
-
-                            if (action.equals("A")) {
-                                role = midpoint.searchObjectByName(RoleType.class, role_name);
-                                roleRef = new ObjectReferenceType();
-                                roleRef.setOid(role.getOid());
-                                roleRef.setType(RoleType.COMPLEX_TYPE);
-                                AssignmentType assignment = new AssignmentType();
-                                assignment.setTargetRef(roleRef);
-
-                                activation = new ActivationType();
-
-                                format = new SimpleDateFormat("yyyy-MM-dd");
-                                date = format.parse(valid_from);
-                                cal = new GregorianCalendar();
-                                cal.setTime(date);
-                                xmlGregCal =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-                                activation.setValidFrom(xmlGregCal);
-
-                                date = format.parse(valid_to);
-                                cal.setTime(date);
-                                xmlGregCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-                                activation.setValidTo(xmlGregCal);
-
-                                assignment.setActivation(activation);
-                                user.getAssignment().add(assignment);
-                            } else if (action.equals("M")) {
-                                role = midpoint.searchObjectByName(RoleType.class, role_name);
-                                for (AssignmentType assignment : user.getAssignment()) {
-                                    if (assignment.getTargetRef() != null &amp;&amp; role.getOid().equals(assignment.getTargetRef().getOid())) {
-                                        activation = new ActivationType();
-                                        format = new SimpleDateFormat("yyyy-MM-dd");
-                                        date = format.parse(valid_from);
-                                        cal = new GregorianCalendar();
-                                        cal.setTime(date);
-                                        xmlGregCal =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-                                        activation.setValidFrom(xmlGregCal);
-
-                                        date = format.parse(valid_to);
-                                        cal.setTime(date);
-                                        xmlGregCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
-                                        activation.setValidTo(xmlGregCal);
-
-                                        assignment.setActivation(activation);
-                                    }
-                                }
-                            } else if (action.equals("D")) {
-                                role = midpoint.searchObjectByName(RoleType.class, role_name);
-                                for (AssignmentType assignment : user.getAssignment()) {
-                                    if (assignment.getTargetRef() != null &amp;&amp; role.getOid().equals(assignment.getTargetRef().getOid())) {
-                                        user.getAssignment().remove(assignment);
-                                        break;
-                                    }
-                                }
+        <importScript xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+            <s:options>
+                <s:continueOnAnyError>true</s:continueOnAnyError>
+            </s:options>
+            <s:pipeline>
+                <s:search  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                    <s:type>UserType</s:type>
+                    <s:searchFilter>
+                        <q:equal>
+                            <q:path>name</q:path>
+                            <c:expression>
+                                <c:script>
+                                    <c:code>username</c:code>
+                                </c:script>
+                            </c:expression>
+                        </q:equal>
+                    </s:searchFilter>
+                </s:search>
+                <s:execute>
+                    <s:forWholeInput>true</s:forWholeInput>
+                    <s:script>
+                        <s:code>
+                            System.out.println("input: " + input);
+                            if (input == null || input.getData().isEmpty()){
+                                log.error("Couldn't find user with name" + username + ". Skip this line.")
                             }
-                            delta = userBefore.asPrismObject().diff(user.asPrismObject(), EquivalenceStrategy.LITERAL_IGNORE_METADATA);
-                            midpoint.modifyObject(delta);
-                            System.out.println("-----------FINISH-----------");
-                        </code>
-                    </script>
-                </execute>
+                        </s:code>
+                    </s:script>
+                </s:execute>
+                <s:modify>
+                    <s:parameter>
+                        <s:name>delta</s:name>
+                        <s:execute>
+                            <s:script>
+                                <s:code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+                                    import java.text.SimpleDateFormat;
+                                    import java.util.GregorianCalendar;
+                                    import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+                                    import javax.xml.datatype.DatatypeFactory;
+                                    import com.evolveum.midpoint.schema.DeltaConvertor;
+
+                                    System.out.println("-----------START-----------");
+                                    System.out.println("username: " + username);
+                                    System.out.println("role_name: " + role_name);
+                                    System.out.println("action: " + action);
+                                    System.out.println("valid_from: " + valid_from);
+                                    System.out.println("valid_to: " + valid_to);
+                                    System.out.println("input: " + input);
+
+                                    user = input;
+                                    userBefore = user.clone();
+                                    role = midpoint.searchObjectByName(RoleType.class, role_name);
+                                    if (role == null) {
+                                        log.error("Couldn't find role with name " + role_name);
+                                        return null;
+                                    }
+                                    if (action.equals("A")) {
+                                        roleRef = new ObjectReferenceType();
+                                        roleRef.setOid(role.getOid());
+                                        roleRef.setType(RoleType.COMPLEX_TYPE);
+                                        AssignmentType assignment = new AssignmentType();
+                                        assignment.setTargetRef(roleRef);
+
+                                        if (valid_from != null || valid_to != null) {
+                                            activation = new ActivationType();
+                                            format = new SimpleDateFormat("yyyy-MM-dd");
+                                            if (valid_from != null) {
+                                                date = format.parse(valid_from);
+                                                cal = new GregorianCalendar();
+                                                cal.setTime(date);
+                                                xmlGregCal =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                activation.setValidFrom(xmlGregCal);
+                                            }
+
+                                            if (valid_to != null) {
+                                                date = format.parse(valid_to);
+                                                cal = new GregorianCalendar();
+                                                cal.setTime(date);
+                                                xmlGregCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                activation.setValidTo(xmlGregCal);
+                                            }
+                                            assignment.setActivation(activation);
+                                        }
+                                        user.getAssignment().add(assignment);
+                                    } else if (action.equals("M")) {
+                                        for (AssignmentType assignment : user.getAssignment()) {
+                                            if (assignment.getTargetRef() != null &amp;&amp; role.getOid().equals(assignment.getTargetRef().getOid())) {
+                                                if (valid_from != null || valid_to != null) {
+                                                    activation = new ActivationType();
+                                                    format = new SimpleDateFormat("yyyy-MM-dd");
+                                                    if (valid_from != null) {
+                                                        date = format.parse(valid_from);
+                                                        cal = new GregorianCalendar();
+                                                        cal.setTime(date);
+                                                        xmlGregCal =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                        activation.setValidFrom(xmlGregCal);
+                                                    }
+
+                                                    if (valid_to != null) {
+                                                        date = format.parse(valid_to);
+                                                        cal = new GregorianCalendar();
+                                                        cal.setTime(date);
+                                                        xmlGregCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                        activation.setValidTo(xmlGregCal);
+                                                    }
+                                                    assignment.setActivation(activation);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    } else if (action.equals("D")) {
+                                        for (AssignmentType assignment : user.getAssignment()) {
+                                            if (assignment.getTargetRef() != null &amp;&amp; role.getOid().equals(assignment.getTargetRef().getOid())) {
+                                                user.getAssignment().remove(assignment);
+                                                break;
+                                            }
+                                        }
+                                    } else {
+                                    log.error("Action column have unexpected value '" + action + "'")
+                                    return null;
+                                    }
+                                    if (userBefore.equals(user)) {
+                                        log.error("Couldn't create delta, because user before executing of script is same as after executing of script.")
+                                        return null;
+                                    }
+                                    delta = userBefore.asPrismObject().diff(user.asPrismObject(), EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+                                    System.out.println("delta: " + delta);
+                                    System.out.println("-----------FINISH-----------");
+                                    return DeltaConvertor.toObjectDeltaType(delta);
+                                </s:code>
+                            </s:script>
+                        </s:execute>
+                </s:parameter>
+                </s:modify>
+            </s:pipeline>
         </importScript>
         <direction>import</direction>
     </behavior>

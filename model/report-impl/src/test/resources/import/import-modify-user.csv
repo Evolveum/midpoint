@@ -1,4 +1,7 @@
 "username";"role_name";"action";"valid_from";"valid_to"
 "testUser02";"Superuser";"A";"2018-01-01";"2018-05-01"
 "testUser01";"Superuser";"D";;
+"fakeUser";"Superuser";"M";"2018-01-01";"2018-05-01"
 "jack";"Superuser";"M";"2018-01-01";"2018-05-01"
+"jack";"FakeRole";"M";"2018-01-01";"2018-05-01"
+"jack";"Superuser";;"2018-01-01";"2018-05-01"

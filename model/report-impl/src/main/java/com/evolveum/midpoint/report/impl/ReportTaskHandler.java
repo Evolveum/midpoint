@@ -155,8 +155,8 @@ public class ReportTaskHandler implements TaskHandler {
         long i = 0;
         task.setExpectedTotal((long) listOfVariables.size());
         task.setProgressImmediate(i, result);
-        for (VariablesMap variales : listOfVariables) {
-            reportService.getScriptingService().evaluateExpression(script, variales, false, task, result);
+        for (VariablesMap variables : listOfVariables) {
+            reportService.getScriptingService().evaluateExpression(script, variables, false, task, result);
             i++;
             task.setProgressImmediate(i, result);
         }
