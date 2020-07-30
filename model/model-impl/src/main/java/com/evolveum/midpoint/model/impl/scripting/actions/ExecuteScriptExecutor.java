@@ -114,14 +114,14 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
         try {
             TypedValue<PipelineData> inputTypedValue = new TypedValue<>(input, PipelineData.class);
             Object outObject = executeScript(parameters.scriptExpression, inputTypedValue, context.getInitialVariables(), context, result);
-            if (outObject == null || (outObject instanceof PrismPropertyValue && ((PrismPropertyValue) outObject).getRealValue() == null)) {
+            if (outObject != null ) {
+                addToData(outObject, PipelineData.newOperationResult(), output);
+            } else {
                 // no definition means we don't plan to provide any output - so let's just copy the input item to the output
                 // (actually, null definition with non-null outObject should not occur)
                 if (parameters.outputDefinition == null) {
                     output.addAllFrom(input);
                 }
-            } else {
-                addToData(outObject, PipelineData.newOperationResult(), output);
             }
             if (!parameters.quiet) {
                 context.println("Executed script on the pipeline");
