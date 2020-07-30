@@ -72,7 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationA
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * @author lazyman
+ * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}.
  */
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
 
@@ -383,7 +383,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     result.computeStatus();
                 }
 
-//
                 LOGGER.trace("List records iterative attempt processed {} records", count);
             });
             session.getTransaction().commit();
@@ -909,11 +908,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     @Override
-    public int countObjects(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+    public int countObjects(
+            ObjectQuery query,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult parentResult) {
+
         try {
-            // TODO MID-6319
-            // do something with the OperationResult... skipped for now
+            // TODO MID-6319 do something with the OperationResult... skipped for now
             return sqlQueryExecutor.count(AuditEventRecordType.class, query, options);
         } catch (QueryException e) {
             throw new SystemException(e);
@@ -925,9 +926,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     public SearchResultList<AuditEventRecordType> searchObjects(
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult parentResult) throws SchemaException {
-        // TODO MID-6319
-        // do something with the OperationResult... skipped for now
+            OperationResult parentResult)
+            throws SchemaException {
+
+        // TODO MID-6319 do something with the OperationResult... skipped for now
         try {
             return sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
         } catch (QueryException e) {
