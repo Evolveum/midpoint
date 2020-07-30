@@ -51,7 +51,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     }
 
     @Override
-    public synchronized void destroy() throws RepositoryServiceFactoryException {
+    public synchronized void destroy() {
         if (!initialized) {
             LOGGER.info("SQL repository was not initialized, nothing to destroy.");
             return;
@@ -94,7 +94,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     }
 
     @Override
-    public void destroyService(RepositoryService service) throws RepositoryServiceFactoryException {
+    public void destroyService(RepositoryService service) {
         //we don't need destroying service objects, they will be GC correctly
     }
 
@@ -255,9 +255,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             File traceFile = new File(file, fileName + ".trace.db");
             removeFile(traceFile);
 
-            File[] tempFiles = file.listFiles((parent, name) -> {
-                return name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$");
-            });
+            File[] tempFiles = file.listFiles(
+                    (parent, name) -> name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$"));
             if (tempFiles != null) {
                 for (File temp : tempFiles) {
                     removeFile(temp);

@@ -42,13 +42,9 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
     }
 
     @Override
-    public synchronized void destroy() throws AuditServiceFactoryException {
+    public synchronized void destroy() {
         LOGGER.info("Destroying Sql audit service factory.");
-        try {
-            repositoryFactory.destroy();
-        } catch (RepositoryServiceFactoryException ex) {
-            throw new AuditServiceFactoryException(ex.getMessage(), ex);
-        }
+        repositoryFactory.destroy();
         LOGGER.info("Sql audit service factory destroy complete.");
     }
 
@@ -58,7 +54,8 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         try {
             repositoryFactory.init(config);
             auditService = new SqlAuditServiceImpl(repositoryFactory);
-            List<HierarchicalConfiguration<ImmutableNode>> subConfigColumns = ((BaseHierarchicalConfiguration) config).configurationsAt(CONF_AUDIT_SERVICE_COLUMNS);
+            List<HierarchicalConfiguration<ImmutableNode>> subConfigColumns =
+                    ((BaseHierarchicalConfiguration) config).configurationsAt(CONF_AUDIT_SERVICE_COLUMNS);
             for (Configuration subConfigColumn : subConfigColumns) {
                 String columnName = getStringFromConfig(subConfigColumn, CONF_AUDIT_SERVICE_COLUMN_NAME);
                 String eventRecordPropertyName = getStringFromConfig(subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
@@ -74,7 +71,7 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         String value = config.getString(key);
         if (Strings.isNullOrEmpty(value)) {
             LOGGER.error("Property with key ({}) not found in configuration. " +
-                    "Provided configuration:\n{}", new Object[] { key, config });
+                    "Provided configuration:\n{}", key, config);
             throw new SystemException("Property with key (" + key
                     + ") not found in configuration. Provided configuration:\n"
                     + config);
