@@ -242,7 +242,7 @@ public class LensUtil {
     }
 
     public static <F extends ObjectType> void moveTriggers(LensProjectionContext projCtx, LensFocusContext<F> focusCtx) throws SchemaException {
-        ObjectDelta<ShadowType> projSecondaryDelta = projCtx.getSecondaryDelta();
+        ObjectDelta<ShadowType> projSecondaryDelta = projCtx.getCurrentDelta();
         if (projSecondaryDelta == null) {
             return;
         }
@@ -300,28 +300,28 @@ public class LensUtil {
         return idi;
     }
 
-    /**
-     * Extracts the delta from this projection context and also from all other projection contexts that have
-     * equivalent discriminator.
-     */
-    public static <F extends ObjectType, T> PropertyDelta<T> findAPrioriDelta(LensContext<F> context,
-            LensProjectionContext projCtx, ItemPath projectionPropertyPath) throws SchemaException {
-        PropertyDelta<T> aPrioriDelta = null;
-        for (LensProjectionContext aProjCtx: findRelatedContexts(context, projCtx)) {
-            ObjectDelta<ShadowType> aProjDelta = aProjCtx.getDelta();
-            if (aProjDelta != null) {
-                PropertyDelta<T> aPropProjDelta = aProjDelta.findPropertyDelta(projectionPropertyPath);
-                if (aPropProjDelta != null) {
-                    if (aPrioriDelta == null) {
-                        aPrioriDelta = aPropProjDelta.clone();
-                    } else {
-                        aPrioriDelta.merge(aPropProjDelta);
-                    }
-                }
-            }
-        }
-        return aPrioriDelta;
-    }
+//    /**
+//     * Extracts the delta from this projection context and also from all other projection contexts that have
+//     * equivalent discriminator.
+//     */
+//    public static <F extends ObjectType, T> PropertyDelta<T> findAPrioriDelta(LensContext<F> context,
+//            LensProjectionContext projCtx, ItemPath projectionPropertyPath) throws SchemaException {
+//        PropertyDelta<T> aPrioriDelta = null;
+//        for (LensProjectionContext aProjCtx: findRelatedContexts(context, projCtx)) {
+//            ObjectDelta<ShadowType> aProjDelta = aProjCtx.getSummaryDelta(); // TODO check this
+//            if (aProjDelta != null) {
+//                PropertyDelta<T> aPropProjDelta = aProjDelta.findPropertyDelta(projectionPropertyPath);
+//                if (aPropProjDelta != null) {
+//                    if (aPrioriDelta == null) {
+//                        aPrioriDelta = aPropProjDelta.clone();
+//                    } else {
+//                        aPrioriDelta.merge(aPropProjDelta);
+//                    }
+//                }
+//            }
+//        }
+//        return aPrioriDelta;
+//    }
 
     /**
      * Extracts the delta from this projection context and also from all other projection contexts that have
@@ -331,7 +331,7 @@ public class LensUtil {
             LensProjectionContext projCtx) throws SchemaException {
         ObjectDelta<ShadowType> aPrioriDelta = null;
         for (LensProjectionContext aProjCtx: findRelatedContexts(context, projCtx)) {
-            ObjectDelta<ShadowType> aProjDelta = aProjCtx.getDelta();
+            ObjectDelta<ShadowType> aProjDelta = aProjCtx.getSummaryDelta(); // todo check this
             if (aProjDelta != null) {
                 if (aPrioriDelta == null) {
                     aPrioriDelta = aProjDelta.clone();
@@ -409,8 +409,8 @@ public class LensUtil {
         ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
         for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
             ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
-            if (refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() > aDiscr.getOrder())) {
-                if (minOrder < 0 || (aDiscr.getOrder() < minOrder)) {
+            if (refDiscr.equivalent(aDiscr) && aDiscr.getOrder() < refDiscr.getOrder()) {
+                if (minOrder < 0 || aDiscr.getOrder() < minOrder) {
                     minOrder = aDiscr.getOrder();
                     foundCtx = aProjCtx;
                 }
@@ -572,24 +572,24 @@ public class LensUtil {
         return isValid(assignment.getLifecycleState(), assignment.getActivation(), now, activationComputer, focusStateModel);
     }
 
+    @NotNull
     public static <R extends AbstractRoleType> Collection<AssignmentType> getForcedAssignments(LifecycleStateModelType lifecycleModel, String targetLifecycle,
             ObjectResolver objectResolver, PrismContext prismContext, Task task, OperationResult result) throws SchemaException,
-    ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        VirtualAssignmenetSpecification<R> virtualAssignmenetSpecification = LifecycleUtil.getForcedAssignmentSpecification(lifecycleModel, targetLifecycle, prismContext);
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         Collection<AssignmentType> forcedAssignments = new HashSet<>();
-        if (virtualAssignmenetSpecification != null) {
+
+        VirtualAssignmenetSpecification<R> virtualAssignmentSpecification = LifecycleUtil.getForcedAssignmentSpecification(lifecycleModel, targetLifecycle, prismContext);
+        if (virtualAssignmentSpecification != null) {
 
             ResultHandler<R> handler = (object, parentResult)  -> {
                 AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object, prismContext);
                 return forcedAssignments.add(assignment);
             };
 
-            objectResolver.searchIterative(virtualAssignmenetSpecification.getType(),
-                   prismContext.queryFactory().createQuery(virtualAssignmenetSpecification.getFilter()), null, handler, task, result);
-
+            objectResolver.searchIterative(virtualAssignmentSpecification.getType(),
+                   prismContext.queryFactory().createQuery(virtualAssignmentSpecification.getFilter()), null, handler, task, result);
         }
-
         return forcedAssignments;
     }
 
@@ -752,7 +752,7 @@ public class LensUtil {
             return;
         }
         PrismObject<F> focusObjectNew = focusContext.getObjectNew();
-        ObjectDelta<F> focusDelta = focusContext.getDelta();
+        ObjectDelta<F> focusDelta = focusContext.getSummaryDelta(); // todo check this
 
         for (ItemConstraintType itemConstraintType : archetypePolicy.getItemConstraint()) {
             processItemConstraint(focusContext, focusDelta, focusObjectNew, itemConstraintType);
@@ -1149,7 +1149,7 @@ public class LensUtil {
         String explicitArchetypeOid = null;
         // Used in cases where archetype assignment haven't had the change to be processed yet.
         // E.g. in case that we are creating a new object with archetype assignment
-        if (object.canRepresent(AssignmentHolderType.class)) {
+        if (object != null && object.canRepresent(AssignmentHolderType.class)) {
             AssignmentHolderType assignmentHolderType = (AssignmentHolderType)object.asObjectable();
             List<ObjectReferenceType> archetypeRefs = assignmentHolderType.getArchetypeRef();
             if (archetypeRefs.isEmpty()) {

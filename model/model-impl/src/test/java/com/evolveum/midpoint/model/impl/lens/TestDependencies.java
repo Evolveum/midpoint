@@ -100,7 +100,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context);
+        dependencyProcessor.sortProjectionsToWaves(context, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -127,7 +127,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context);
+        dependencyProcessor.sortProjectionsToWaves(context, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -157,7 +157,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context);
+        dependencyProcessor.sortProjectionsToWaves(context, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -187,7 +187,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 
         try {
             // WHEN
-            dependencyProcessor.sortProjectionsToWaves(context);
+            dependencyProcessor.sortProjectionsToWaves(context, result);
 
             displayDumpable("Context after", context);
             AssertJUnit.fail("Unexpected success");
@@ -213,7 +213,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context);
+        dependencyProcessor.sortProjectionsToWaves(context, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -244,7 +244,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context);
+        dependencyProcessor.sortProjectionsToWaves(context, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -272,7 +272,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context);
+        dependencyProcessor.sortProjectionsToWaves(context, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -300,7 +300,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context);
+        dependencyProcessor.sortProjectionsToWaves(context, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -331,7 +331,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         context.checkConsistence();
 
         // WHEN
-        dependencyProcessor.sortProjectionsToWaves(context);
+        dependencyProcessor.sortProjectionsToWaves(context, result);
 
         // THEN
         displayDumpable("Context after", context);
@@ -345,8 +345,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 
     private void setDelete(LensProjectionContext accountContext) {
         accountContext.setPrimaryDelta(
-                prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, accountContext.getOid()
-                ));
+                prismContext.deltaFactory().object().createDeleteDelta(ShadowType.class, accountContext.getOid()));
     }
 
     @Test
@@ -368,7 +367,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 
         try {
             // WHEN
-            dependencyProcessor.sortProjectionsToWaves(context);
+            dependencyProcessor.sortProjectionsToWaves(context, result);
 
             AssertJUnit.fail("Unexpected success");
         } catch (PolicyViolationException e) {

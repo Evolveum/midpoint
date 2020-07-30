@@ -12,10 +12,9 @@ import static com.evolveum.midpoint.model.api.ProgressInformation.ActivityType.R
 import static com.evolveum.midpoint.model.api.ProgressInformation.StateType.ENTERING;
 import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerables;
 import static com.evolveum.midpoint.schema.internals.InternalsConfig.consistencyChecks;
+import static com.evolveum.midpoint.util.DebugUtil.lazy;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -154,10 +153,10 @@ public class ChangeExecutor {
 
         LensFocusContext<O> focusContext = context.getFocusContext();
         if (focusContext != null) {
-            ObjectDelta<O> focusDelta = focusContext.getWaveDelta(context.getExecutionWave());
+            applyPendingObjectPolicyStateModifications(focusContext);
+            applyPendingAssignmentPolicyStateModificationsSwallowable(focusContext);
 
-            focusDelta = applyPendingObjectPolicyStateModifications(focusContext, focusDelta);
-            focusDelta = applyPendingAssignmentPolicyStateModifications(focusContext, focusDelta);
+            ObjectDelta<O> focusDelta = applyPendingAssignmentPolicyStateModificationsNotSwallowable(focusContext);
 
             if (focusDelta == null && !context.hasProjectionChange()) {
                 LOGGER.trace("Skipping focus change execute, because user delta is null");
@@ -245,6 +244,11 @@ public class ChangeExecutor {
                 continue;
             }
 
+            if (projCtx.isCompleted()) {
+                LOGGER.trace("Skipping projection context {} because it's already completed", projCtx.toHumanReadableString());
+                continue;
+            }
+
             if (!projCtx.isCanProject()) {
                 LOGGER.trace("Skipping projection context {} because canProject is false", projCtx.toHumanReadableString());
                 continue;
@@ -261,6 +265,7 @@ public class ChangeExecutor {
                     .addArbitraryObjectAsContext("discriminator", projCtx.getResourceShadowDiscriminator())
                     .build();
 
+            boolean completed = true;
             PrismObject<ShadowType> shadowAfterModification = null;
             try {
                 LOGGER.trace("Executing projection context {}", projCtx.toHumanReadableString());
@@ -281,8 +286,7 @@ public class ChangeExecutor {
 
                 if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
                     if (context.getFocusContext() != null
-                            && context.getFocusContext().getDelta() != null
-                            && context.getFocusContext().getDelta().isDelete()
+                            && context.getFocusContext().isDelete()
                             && context.getOptions() != null
                             && ModelExecuteOptions.isForce(context.getOptions())) {
                         if (projDelta == null) {
@@ -364,7 +368,7 @@ public class ChangeExecutor {
                 // Or this may be attempt to create account that already exists and just needs
                 // to be linked. Which is no big deal and consistency mechanism (discovery) will
                 // easily handle that. In that case it is done in "another task" which is
-                // quasi-asynchornously executed from provisioning by calling notifyChange.
+                // quasi-asynchronously executed from provisioning by calling notifyChange.
                 // Once that is done then the account is already linked. And all we need to do
                 // is to restart this whole operation.
 
@@ -374,7 +378,7 @@ public class ChangeExecutor {
                 // - in such case, mark the context as broken
                 if (isRepeatedAlreadyExistsException(projCtx)) {
                     // This is the bad case. Currently we do not do anything more intelligent than to look for
-                    // repeated error. If we get OAEE twice then this is bad and we thow up.
+                    // repeated error. If we get OAEE twice then this is bad and we give up.
                     // TODO: do something smarter here
                     LOGGER.debug("Repeated ObjectAlreadyExistsException detected, marking projection {} as broken", projCtx.toHumanReadableString());
                     recordProjectionExecutionException(e, projCtx, subResult,
@@ -382,83 +386,108 @@ public class ChangeExecutor {
                     continue;
                 }
 
-                // in his case we do not need to set account context as
-                // broken, instead we need to restart projector for this
-                // context to recompute new account or find out if the
-                // account was already linked..
+                // In his case we do not need to set account context as broken, instead we need to restart projector for this
+                // context to recompute new account or find out if the account was already linked.
                 // and also do not set fatal error to the operation result, this
                 // is a special case
                 // if it is fatal, it will be set later
                 // but we need to set some result
                 subResult.recordSuccess();
                 restartRequested = true;
+                completed = false;
                 LOGGER.debug("ObjectAlreadyExistsException for projection {}, requesting projector restart", projCtx.toHumanReadableString());
-                // we will process remaining projections when retrying the wave
-                break;
-
+                projCtx.setFresh(false); // todo
+                projCtx.setSecondaryDelta(null); // todo
+                projCtx.setObjectNew(null); // todo
             } finally {
                 context.reportProgress(new ProgressInformation(RESOURCE_OBJECT_OPERATION,
                         projCtx.getResourceShadowDiscriminator(), subResult));
+
+                LOGGER.trace("Setting completed flag for {} to {}", projCtx.toHumanReadableString(), completed);
+                projCtx.setCompleted(completed);
             }
+        }
+        LOGGER.trace("Restart requested = {}", restartRequested);
+        if (restartRequested && focusContext != null) {
+            focusContext.setFresh(false); // will run activation again (hopefully)
         }
         return restartRequested;
     }
 
-    private <O extends ObjectType> ObjectDelta<O> applyPendingObjectPolicyStateModifications(LensFocusContext<O> focusContext,
-            ObjectDelta<O> focusDelta) throws SchemaException {
-        for (ItemDelta<?, ?> itemDelta : focusContext.getPendingObjectPolicyStateModifications()) {
-            focusDelta = focusContext.swallowToDelta(focusDelta, itemDelta);
-        }
+    private <O extends ObjectType> void applyPendingObjectPolicyStateModifications(LensFocusContext<O> focusContext) throws SchemaException {
+        focusContext.swallowToSecondaryDelta(focusContext.getPendingObjectPolicyStateModifications());
         focusContext.clearPendingObjectPolicyStateModifications();
-        return focusDelta;
     }
 
-    private <O extends ObjectType> ObjectDelta<O> applyPendingAssignmentPolicyStateModifications(LensFocusContext<O> focusContext, ObjectDelta<O> focusDelta)
+    private <O extends ObjectType> void applyPendingAssignmentPolicyStateModificationsSwallowable(LensFocusContext<O> focusContext)
             throws SchemaException {
-        for (Map.Entry<AssignmentSpec, List<ItemDelta<?, ?>>> entry : focusContext
-                .getPendingAssignmentPolicyStateModifications().entrySet()) {
+        for (Iterator<Map.Entry<AssignmentSpec, List<ItemDelta<?, ?>>>> iterator = focusContext
+                .getPendingAssignmentPolicyStateModifications().entrySet().iterator(); iterator.hasNext(); ) {
+            Map.Entry<AssignmentSpec, List<ItemDelta<?, ?>>> entry = iterator.next();
             PlusMinusZero mode = entry.getKey().mode;
-            if (mode == PlusMinusZero.MINUS) {
-                continue;       // this assignment is being thrown out anyway, so let's ignore it (at least for now)
-            }
             AssignmentType assignmentToFind = entry.getKey().assignment;
             List<ItemDelta<?, ?>> modifications = entry.getValue();
+            LOGGER.trace("Applying policy state modifications for {} ({}): {} mods", assignmentToFind, mode, modifications.size());
             if (modifications.isEmpty()) {
+                iterator.remove();
                 continue;
             }
-            LOGGER.trace("Applying policy state modifications for {} ({}):\n{}", assignmentToFind, mode,
-                    DebugUtil.debugDumpLazily(modifications));
+            if (mode == PlusMinusZero.MINUS) {
+                LOGGER.trace("This assignment is being thrown out anyway, so let's ignore it. Mods:\n{}",
+                        DebugUtil.debugDumpLazily(modifications));
+                iterator.remove();
+                continue;
+            }
             if (mode == PlusMinusZero.ZERO) {
                 if (assignmentToFind.getId() == null) {
                     throw new IllegalStateException("Existing assignment with null id: " + assignmentToFind);
                 }
-                for (ItemDelta<?, ?> modification : modifications) {
-                    focusDelta = focusContext.swallowToDelta(focusDelta, modification);
-                }
+                LOGGER.trace("Swallowing mods:\n{}", DebugUtil.debugDumpLazily(modifications));
+                focusContext.swallowToSecondaryDelta(modifications);
+                iterator.remove();
             } else {
                 assert mode == PlusMinusZero.PLUS;
-                if (focusDelta != null && focusDelta.isAdd()) {
-                    swallowIntoValues(((FocusType) focusDelta.getObjectToAdd().asObjectable()).getAssignment(),
-                            assignmentToFind, modifications);
+                LOGGER.trace("Cannot apply this one, postponing.");
+                // Cannot apply this one, so will not remove it
+            }
+        }
+    }
+
+    /**
+     * The following modifications cannot be (generally) applied by simply swallowing them to secondary deltas.
+     * They require modifying primary ADD delta or modifying values in specific assignment-related item deltas.
+     */
+    private <O extends ObjectType> ObjectDelta<O> applyPendingAssignmentPolicyStateModificationsNotSwallowable(LensFocusContext<O> focusContext)
+            throws SchemaException {
+        ObjectDelta<O> focusDelta = focusContext.getCurrentDelta();
+        Map<AssignmentSpec, List<ItemDelta<?, ?>>> pendingModifications = focusContext.getPendingAssignmentPolicyStateModifications();
+        for (Map.Entry<AssignmentSpec, List<ItemDelta<?, ?>>> entry : pendingModifications.entrySet()) {
+            PlusMinusZero mode = entry.getKey().mode;
+            AssignmentType assignmentToFind = entry.getKey().assignment;
+            List<ItemDelta<?, ?>> modifications = entry.getValue();
+            LOGGER.trace("Applying postponed policy state modifications for {} ({}):\n{}", assignmentToFind, mode,
+                    DebugUtil.debugDumpLazily(modifications));
+
+            assert mode == PlusMinusZero.PLUS;
+            if (focusDelta != null && focusDelta.isAdd()) {
+                swallowIntoValues(((FocusType) focusDelta.getObjectToAdd().asObjectable()).getAssignment(),
+                        assignmentToFind, modifications);
+            } else {
+                ContainerDelta<AssignmentType> assignmentDelta = focusDelta != null ?
+                        focusDelta.findContainerDelta(FocusType.F_ASSIGNMENT) : null;
+                if (assignmentDelta == null) {
+                    throw new IllegalStateException(
+                            "We have 'plus' assignment to modify but there's no assignment delta. Assignment="
+                                    + assignmentToFind + ", objectDelta=" + focusDelta);
+                }
+                if (assignmentDelta.isReplace()) {
+                    swallowIntoValues(asContainerables(assignmentDelta.getValuesToReplace()), assignmentToFind, modifications);
+                } else if (assignmentDelta.isAdd()) {
+                    swallowIntoValues(asContainerables(assignmentDelta.getValuesToAdd()), assignmentToFind, modifications);
                 } else {
-                    ContainerDelta<AssignmentType> assignmentDelta = focusDelta != null ?
-                            focusDelta.findContainerDelta(FocusType.F_ASSIGNMENT) : null;
-                    if (assignmentDelta == null) {
-                        throw new IllegalStateException(
-                                "We have 'plus' assignment to modify but there's no assignment delta. Assignment="
-                                        + assignmentToFind + ", objectDelta=" + focusDelta);
-                    }
-                    if (assignmentDelta.isReplace()) {
-                        swallowIntoValues(asContainerables(assignmentDelta.getValuesToReplace()), assignmentToFind,
-                                modifications);
-                    } else if (assignmentDelta.isAdd()) {
-                        swallowIntoValues(asContainerables(assignmentDelta.getValuesToAdd()), assignmentToFind,
-                                modifications);
-                    } else {
-                        throw new IllegalStateException(
-                                "We have 'plus' assignment to modify but there're no values to add or replace in assignment delta. Assignment="
-                                        + assignmentToFind + ", objectDelta=" + focusDelta);
-                    }
+                    throw new IllegalStateException(
+                            "We have 'plus' assignment to modify but there're no values to add or replace in assignment delta. Assignment="
+                                    + assignmentToFind + ", objectDelta=" + focusDelta);
                 }
             }
         }
@@ -953,9 +982,7 @@ public class ChangeExecutor {
                 }
                 LensObjectDeltaOperation<T> objectDeltaOp = LensUtil.createObjectDeltaOperation(
                         objectDelta.clone(), result, objectContext, null, resource);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Recording executed delta:\n{}", objectDeltaOp.shorterDebugDump(1));
-                }
+                LOGGER.trace("Recording executed delta:\n{}", lazy(() -> objectDeltaOp.shorterDebugDump(1)));
                 objectContext.addToExecutedDeltas(objectDeltaOp);
                 if (result.isTracingNormal(ModelExecuteDeltaTraceType.class)) {
                     TraceType trace = new ModelExecuteDeltaTraceType(prismContext)
@@ -1652,7 +1679,7 @@ public class ChangeExecutor {
         ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(user, shadow, discr,
                 resource.asPrismObject(), context.getSystemConfiguration(), objectContext, prismContext);
         // Having delta in provisioning scripts may be very useful. E.g. the script can optimize execution of expensive operations.
-        variables.put(ExpressionConstants.VAR_DELTA, projectionCtx.getDelta(), ObjectDelta.class);
+        variables.put(ExpressionConstants.VAR_DELTA, projectionCtx.getCurrentDelta(), ObjectDelta.class);
         ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(context, (LensProjectionContext) objectContext, task, result));
         try {

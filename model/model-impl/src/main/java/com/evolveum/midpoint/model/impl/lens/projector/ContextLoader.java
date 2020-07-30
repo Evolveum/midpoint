@@ -370,7 +370,7 @@ public class ContextLoader implements ProjectorProcessor {
                 return;
             }
 
-            ObjectDelta<O> objectDelta = focusContext.getDelta();
+            ObjectDelta<O> objectDelta = focusContext.getSummaryDelta(); // TODO check this
             if (ObjectDelta.isAdd(objectDelta) && focusContext.getExecutedDeltas().isEmpty()) {
                 //we're adding the focal object. No need to load it, it is in the delta
                 focusContext.setFresh(true);
@@ -1126,14 +1126,14 @@ public class ContextLoader implements ProjectorProcessor {
         ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
         String accountIntent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
         ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, accountIntent, shadowType.getTag(), false);
-        LensProjectionContext accountSyncContext = context.findProjectionContext(rsd);
-        if (accountSyncContext != null) {
+        LensProjectionContext existingProjectionContext = context.findProjectionContext(rsd);
+        if (existingProjectionContext != null) {
             throw new SchemaException("Attempt to add "+account+" to a focus that already contains projection of type '"+accountIntent+"' on "+resource);
         }
-        accountSyncContext = context.createProjectionContext(rsd);
-        accountSyncContext.setResource(resource);
-        accountSyncContext.setOid(account.getOid());
-        return accountSyncContext;
+        LensProjectionContext newProjectionContext = context.createProjectionContext(rsd);
+        newProjectionContext.setResource(resource);
+        newProjectionContext.setOid(account.getOid());
+        return newProjectionContext;
     }
 
     private <F extends ObjectType> LensProjectionContext findAccountContext(String accountOid, LensContext<F> context) {

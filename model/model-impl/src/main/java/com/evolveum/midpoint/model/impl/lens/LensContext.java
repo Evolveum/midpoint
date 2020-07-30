@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
@@ -48,6 +49,7 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * @author semancik
@@ -122,12 +124,22 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /*
      * Executed deltas from rotten contexts.
      */
-    private List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
+    private final List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
 
     transient private ObjectTemplateType focusTemplate;
     private boolean focusTemplateExternallySet;       // todo serialize this
     transient private ProjectionPolicyType accountSynchronizationSettings;
 
+    /**
+     * Delta set triple (plus, minus, zero) for evaluated assignments.
+     * Relativity is determined by looking at current delta (i.e. objectCurrent -> objectNew).
+     *
+     * If you want to know whether the assignment was added or deleted with regards to objectOld,
+     * please check evaluatedAssignment.origin property -
+     * {@link com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin}.
+     *
+     * TODO verify if this is really true
+     */
     transient private DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple;
 
     /**
@@ -539,7 +551,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     private void rotFocusContextIfNeeded(Holder<Boolean> rotHolder)
             throws SchemaException {
         if (focusContext != null) {
-            ObjectDelta<F> execDelta = focusContext.getWaveDelta(executionWave);
+            ObjectDelta<F> execDelta = focusContext.getCurrentDelta(); // TODO!!!
             if (!ObjectDelta.isEmpty(execDelta)) {
                 LOGGER.debug("Context rot: context rotten because of focus execution delta {}", execDelta);
                 rotHolder.setValue(true);
@@ -547,6 +559,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             if (rotHolder.getValue()) {
                 // It is OK to refresh focus all the time there was any change. This is cheap.
                 focusContext.setFresh(false);
+                // This would be nice but break some tests ... TODO check it
+//                focusContext.setObjectCurrent(null);
+//                focusContext.setObjectNew(null);
             }
         }
     }
@@ -585,6 +600,32 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public DeltaSetTriple<EvaluatedAssignmentImpl<?>> getEvaluatedAssignmentTriple() {
         return evaluatedAssignmentTriple;
+    }
+
+    @NotNull
+    @Override
+    public Stream<EvaluatedAssignmentImpl<?>> getEvaluatedAssignmentsStream() {
+        return evaluatedAssignmentTriple != null ? evaluatedAssignmentTriple.stream() : Stream.empty();
+    }
+
+    @NotNull
+    @Override
+    public Collection<EvaluatedAssignmentImpl<?>> getNonNegativeEvaluatedAssignments() {
+        if (evaluatedAssignmentTriple != null) {
+            return evaluatedAssignmentTriple.getNonNegativeValues();
+        } else {
+            return Collections.emptySet();
+        }
+    }
+
+    @NotNull
+    @Override
+    public Collection<EvaluatedAssignmentImpl<?>> getAllEvaluatedAssignments() {
+        if (evaluatedAssignmentTriple != null) {
+            return evaluatedAssignmentTriple.getAllValues();
+        } else {
+            return Collections.emptySet();
+        }
     }
 
     public void setEvaluatedAssignmentTriple(
@@ -672,11 +713,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     /**
-     * Returns all changes, user and all accounts. Both primary and secondary
-     * changes are returned, but these are not merged. TODO: maybe it would be
-     * better to merge them.
+     * Number of all changes. TODO reconsider this.
      */
-    public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() {
+    public int getAllChanges() {
         Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<>();
         if (focusContext != null) {
             addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
@@ -686,7 +725,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             addChangeIfNotNull(allChanges, projCtx.getPrimaryDelta());
             addChangeIfNotNull(allChanges, projCtx.getSecondaryDelta());
         }
-        return allChanges;
+        return allChanges.size();
     }
 
     public boolean hasAnyPrimaryChange() {
@@ -1013,8 +1052,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
         sb.append(projectionContexts.size());
         sb.append(" projections, ");
-        Collection<ObjectDelta<? extends ObjectType>> allChanges = getAllChanges();
-        sb.append(allChanges.size());
+        sb.append(getAllChanges());
         sb.append(" changes, ");
         sb.append("fresh=").append(isFresh);
         sb.append(", reqAutz=").append(isRequestAuthorized);
@@ -1533,15 +1571,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return false;
     }
 
-    public void deleteSecondaryDeltas() {
-        if (focusContext != null) {
-            focusContext.deleteSecondaryDeltas();
-        }
-        for (LensProjectionContext projectionContext : projectionContexts) {
-            projectionContext.deleteSecondaryDeltas();
-        }
-    }
-
     public SecurityPolicyType getGlobalSecurityPolicy() {
         return globalSecurityPolicy;
     }
@@ -1675,5 +1704,26 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public boolean hasFocusOfType(Class<? extends ObjectType> type) {
         return focusContext != null && focusContext.isOfType(type);
+    }
+
+    public void resetDeltasAfterExecution() {
+        if (focusContext != null) {
+            focusContext.resetDeltasAfterExecution();
+        }
+        // nothing like this for projections (yet)
+    }
+
+    // TEMPORARY!!!
+    public boolean itemDeltaExists(ItemPath path) {
+        return focusContext != null && focusContext.itemDeltaExists(path);
+    }
+
+    public void deleteSecondaryDeltas() {
+        if (focusContext != null) {
+            focusContext.deleteSecondaryDeltas();
+        }
+        for (LensProjectionContext projectionContext : projectionContexts) {
+            projectionContext.deleteSecondaryDeltas();
+        }
     }
 }

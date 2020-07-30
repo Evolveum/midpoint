@@ -14,6 +14,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -95,11 +96,12 @@ public class ClockworkAuditHelper {
         PrismObject<? extends ObjectType> primaryObject;
         ObjectDelta<? extends ObjectType> primaryDelta;
         if (context.getFocusContext() != null) {
-            primaryObject = context.getFocusContext().getObjectOld();
-            if (primaryObject == null) {
+            if (context.getFocusContext().getObjectOld() != null) {
+                primaryObject = context.getFocusContext().getObjectOld();
+            } else {
                 primaryObject = context.getFocusContext().getObjectNew();
             }
-            primaryDelta = context.getFocusContext().getDelta();
+            primaryDelta = context.getFocusContext().getSummaryDelta();
         } else {
             Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
             if (projectionContexts == null || projectionContexts.isEmpty()) {
@@ -109,25 +111,15 @@ public class ClockworkAuditHelper {
                 throw new IllegalStateException("No focus and more than one projection in " + context);
             }
             LensProjectionContext projection = projectionContexts.iterator().next();
-            primaryObject = projection.getObjectOld();
-            if (primaryObject == null) {
+            if (projection.getObjectOld() != null) {
+                primaryObject = projection.getObjectOld();
+            } else {
                 primaryObject = projection.getObjectNew();
             }
-            primaryDelta = projection.getDelta();
+            primaryDelta = projection.getCurrentDelta();
         }
 
-        AuditEventType eventType;
-        if (primaryDelta == null) {
-            eventType = AuditEventType.SYNCHRONIZATION;
-        } else if (primaryDelta.isAdd()) {
-            eventType = AuditEventType.ADD_OBJECT;
-        } else if (primaryDelta.isModify()) {
-            eventType = AuditEventType.MODIFY_OBJECT;
-        } else if (primaryDelta.isDelete()) {
-            eventType = AuditEventType.DELETE_OBJECT;
-        } else {
-            throw new IllegalStateException("Unknown state of delta " + primaryDelta);
-        }
+        AuditEventType eventType = determineEventType(primaryDelta);
 
         AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
         auditRecord.setRequestIdentifier(context.getRequestIdentifier());
@@ -235,6 +227,23 @@ public class ClockworkAuditHelper {
             assert stage == AuditEventStage.REQUEST;
             context.setRequestAudited(true);
         }
+    }
+
+    @NotNull
+    private AuditEventType determineEventType(ObjectDelta<? extends ObjectType> primaryDelta) {
+        AuditEventType eventType;
+        if (primaryDelta == null) {
+            eventType = AuditEventType.SYNCHRONIZATION;
+        } else if (primaryDelta.isAdd()) {
+            eventType = AuditEventType.ADD_OBJECT;
+        } else if (primaryDelta.isModify()) {
+            eventType = AuditEventType.MODIFY_OBJECT;
+        } else if (primaryDelta.isDelete()) {
+            eventType = AuditEventType.DELETE_OBJECT;
+        } else {
+            throw new IllegalStateException("Unknown state of delta " + primaryDelta);
+        }
+        return eventType;
     }
 
     private void checkNamesArePresent(Collection<ObjectDeltaOperation<? extends ObjectType>> deltas, PrismObject<? extends ObjectType> primaryObject) {

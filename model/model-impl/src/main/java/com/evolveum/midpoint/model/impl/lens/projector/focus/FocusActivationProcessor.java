@@ -16,7 +16,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
-import com.evolveum.midpoint.model.impl.lens.projector.util.SkipWhenFocusDeleted;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -54,7 +53,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 @Component
 // shouldn't we skip on "secondary delete" as well?
-@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = SkipWhenFocusDeleted.PRIMARY)
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = true)
 public class FocusActivationProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusActivationProcessor.class);
@@ -93,7 +92,7 @@ public class FocusActivationProcessor implements ProjectorProcessor {
     }
 
     private <F extends AssignmentHolderType> void processAssignmentActivation(LensContext<F> context) throws SchemaException {
-        DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple(); // TODO
         if (evaluatedAssignmentTriple == null) {
             // Code path that should not normally happen. But is used in some tests and may
             // happen during partial processing.
@@ -324,7 +323,7 @@ public class FocusActivationProcessor implements ProjectorProcessor {
         PropertyDelta<ActivationStatusType> effectiveStatusDelta
                 = effectiveStatusDef.createEmptyDelta(PATH_ACTIVATION_EFFECTIVE_STATUS);
         effectiveStatusDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(effectiveStatusNew, OriginType.USER_POLICY, null));
-        focusContext.swallowToSecondaryDeltaChecked(effectiveStatusDelta);
+        focusContext.swallowToSecondaryDelta(effectiveStatusDelta);
 
         // It is not enough to check alreadyHasDelta(). The change may happen in previous waves
         // and the secondary delta may no longer be here. When it comes to disableTimestamp we even
@@ -342,7 +341,7 @@ public class FocusActivationProcessor implements ProjectorProcessor {
         PropertyDelta<XMLGregorianCalendar> timestampDelta =
                 LensUtil.createActivationTimestampDelta(effectiveStatusNew, now, activationDefinition, OriginType.USER_POLICY,
                 prismContext);
-        focusContext.swallowToSecondaryDeltaChecked(timestampDelta);
+        focusContext.swallowToSecondaryDelta(timestampDelta);
     }
 
 

@@ -18,7 +18,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -35,9 +34,9 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 
     private static final String CLONE_START_TIMESTAMP_KEY = InternalMonitor.class.getName()+".cloneStartTimestamp";
 
-    private static Map<InternalCounters,Long> counterMap = new HashMap<>();
-    private static Map<InternalOperationClasses,Boolean> traceClassMap = new HashMap<>();
-    private static Map<InternalCounters,Boolean> traceCounterMap = new HashMap<>();
+    private static final Map<InternalCounters,Long> counterMap = new HashMap<>();
+    private static final Map<InternalOperationClasses,Boolean> traceClassMap = new HashMap<>();
+    private static final Map<InternalCounters,Boolean> traceCounterMap = new HashMap<>();
 
     private static CachingStatistics resourceCacheStats = new CachingStatistics();
     private static CachingStatistics connectorCacheStats = new CachingStatistics();
@@ -125,10 +124,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
                 sb.append(stackElement.toString());
                 sb.append("\n");
             }
-            String params = "";
-            if (paramsSupplier != null) {
-                params = paramsSupplier.get();
-            }
+            String params = paramsSupplier != null ? paramsSupplier.get() : "";
             if (traceAndDebug) {
                 LOGGER.debug("MONITOR {}({}) ({}): {} {}", opName, params, count, immediateClass, immediateMethod);
             }
@@ -214,14 +210,14 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
             }
         }
         if (isTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT)) {
-            traceOperation("prism object clone", null, count, false);
+            traceOperation("prism object clone", orig::toString, count, false); // Consider setting traceAndDebug as necessary
         }
     }
 
     public static <F extends AssignmentHolderType> void recordRoleEvaluation(F target, boolean fullEvaluation) {
         long count = recordCountInternal(InternalCounters.ROLE_EVALUATION_COUNT);
         if (isTrace(InternalCounters.ROLE_EVALUATION_COUNT)) {
-            traceOperation("roleEvaluation", () -> target.toString() , count, true);
+            traceOperation("roleEvaluation", target::toString, count, true);
         }
         if (inspector != null) {
             inspector.inspectRoleEvaluation(target, fullEvaluation);
@@ -231,7 +227,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     public static <F extends AssignmentHolderType> void recordRoleEvaluationSkip(F target, boolean fullEvaluation) {
         long count = recordCountInternal(InternalCounters.ROLE_EVALUATION_SKIP_COUNT);
         if (isTrace(InternalCounters.ROLE_EVALUATION_SKIP_COUNT)) {
-            traceOperation("roleEvaluationSkip", () -> target.toString() , count, true);
+            traceOperation("roleEvaluationSkip", target::toString, count, true);
         }
     }
 

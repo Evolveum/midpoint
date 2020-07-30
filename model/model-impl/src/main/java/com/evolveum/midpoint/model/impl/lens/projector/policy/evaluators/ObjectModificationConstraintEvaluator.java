@@ -128,16 +128,12 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
             LOGGER.trace("Rule {} operation not applicable", ctx.policyRule.getName());
             return false;
         }
-        if (ObjectDelta.isEmpty(ctx.focusContext.getDelta())) {
+        ObjectDelta<?> summaryDelta = ctx.focusContext.getSummaryDelta();
+        if (ObjectDelta.isEmpty(summaryDelta)) {
             LOGGER.trace("Focus context has no delta (primary nor secondary)");
             return false;
         }
         if (!constraint.getItem().isEmpty()) {
-            ObjectDelta<?> summaryDelta = ctx.focusContext.getDelta();
-            if (summaryDelta == null) {
-                LOGGER.trace("Summary delta is null");
-                return false;
-            }
             boolean exactPathMatch = isTrue(constraint.isExactPathMatch());
             for (ItemPathType path : constraint.getItem()) {
                 if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), prismContext.toPath(path), exactPathMatch)) {

@@ -735,12 +735,8 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 return null;
             }
 
-            DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = modelContext.getEvaluatedAssignmentTriple();
-            Collection<? extends EvaluatedAssignment<?>> evaluatedAssignments = null;
-            if (evaluatedAssignmentTriple != null) {
-                evaluatedAssignments = evaluatedAssignmentTriple.getNonNegativeValues();
-            }
-            if (evaluatedAssignments == null || evaluatedAssignments.isEmpty()) {
+            Collection<? extends EvaluatedAssignment<?>> evaluatedAssignments = modelContext.getNonNegativeEvaluatedAssignments();
+            if (evaluatedAssignments.isEmpty()) {
                 info(getString("pageAdminFocus.message.noAssignmentsAvailable"));
                 ajaxRequestTarget.add(getFeedbackPanel());
                 return null;

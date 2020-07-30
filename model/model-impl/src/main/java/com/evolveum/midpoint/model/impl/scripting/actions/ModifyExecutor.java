@@ -60,7 +60,7 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
                 (object, item, result) ->
                         modify(object, dryRun, options, deltaBean, context, result),
                 (object, exception) ->
-                        context.println("Failed to recompute " + object + drySuffix(dryRun) + exceptionSuffix(exception))
+                        context.println("Failed to modify " + object + drySuffix(dryRun) + exceptionSuffix(exception))
         );
 
         return input;

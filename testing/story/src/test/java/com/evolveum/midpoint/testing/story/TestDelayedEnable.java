@@ -487,7 +487,7 @@ public class TestDelayedEnable extends AbstractStoryTest {
         then();
         assertSuccess(result);
 
-        waitForTaskStart(TASK_DUMMY_HR_OID, true);
+        waitForTaskNextRunAssertSuccess(TASK_DUMMY_HR_OID, true);
 
         assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
     }

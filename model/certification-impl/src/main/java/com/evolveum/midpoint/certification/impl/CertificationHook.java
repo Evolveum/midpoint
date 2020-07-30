@@ -83,14 +83,9 @@ public class CertificationHook implements ChangeHook {
     }
 
     private Collection<CertificationPolicyActionType> getAssignmentCertificationActions(ModelContext<?> context) {
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-        if (evaluatedAssignmentTriple == null) {
-            return Collections.emptyList();
-        } else {
-            return evaluatedAssignmentTriple.stream()
-                    .flatMap(ea -> getCertificationActions(ea.getAllTargetsPolicyRules()).stream())
-                    .collect(Collectors.toList());
-        }
+        return context.getEvaluatedAssignmentsStream()
+                .flatMap(ea -> getCertificationActions(ea.getAllTargetsPolicyRules()).stream())
+                .collect(Collectors.toList());
     }
 
     private Collection<CertificationPolicyActionType> getCertificationActions(Collection<? extends EvaluatedPolicyRule> policyRules) {

@@ -92,10 +92,9 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
         fillContextWithFocus(context, user);
     }
 
-    protected void fillContextWithEmtptyAddUserDelta(LensContext<UserType> context) throws SchemaException {
+    protected void fillContextWithEmptyAddUserDelta(LensContext<UserType> context) throws SchemaException {
         ObjectDelta<UserType> userDelta = prismContext.deltaFactory().object()
-                .createEmptyAddDelta(UserType.class, null
-                );
+                .createEmptyAddDelta(UserType.class, null);
         LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
         focusContext.setPrimaryDelta(userDelta);
     }
@@ -305,17 +304,39 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
     }
 
     @NotNull
+    protected <F extends FocusType> LensContext<F> createContextForRoleAssignment(Class<F> focusClass,
+            String userOid, String roleOid,
+            QName relation, Consumer<AssignmentType> modificationBlock,
+            Consumer<ObjectDelta<F>> deltaModifier, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+        return createContextForAssignment(focusClass, userOid, RoleType.class, roleOid, relation, modificationBlock,
+                deltaModifier, result);
+    }
+
+    @NotNull
     protected <F extends FocusType> LensContext<F> createContextForAssignment(Class<F> focusClass,
             String focusOid, Class<? extends FocusType> targetClass, String targetOid,
             QName relation, Consumer<AssignmentType> modificationBlock, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, ConfigurationException {
+        return createContextForAssignment(focusClass, focusOid, targetClass, targetOid, relation, modificationBlock, null, result);
+    }
+
+    @NotNull
+    protected <F extends FocusType> LensContext<F> createContextForAssignment(Class<F> focusClass,
+            String focusOid, Class<? extends FocusType> targetClass, String targetOid,
+            QName relation, Consumer<AssignmentType> modificationBlock,
+            Consumer<ObjectDelta<F>> deltaModifier, OperationResult result)
             throws SchemaException, ObjectNotFoundException, ConfigurationException {
         LensContext<F> context = createLensContext(focusClass);
         fillContextWithFocus(context, focusClass, focusOid, result);
         QName targetType = prismContext.getSchemaRegistry().determineTypeForClass(targetClass);
         assertNotNull("Unknown target class " + targetClass, targetType);
-        addFocusDeltaToContext(context, createAssignmentFocusDelta(focusClass, focusOid, targetOid, targetType, relation,
-                modificationBlock, true));
-        context.recompute();
+        ObjectDelta<F> primaryDelta = createAssignmentFocusDelta(focusClass, focusOid, targetOid, targetType, relation, modificationBlock, true);
+        if (deltaModifier != null) {
+            deltaModifier.accept(primaryDelta);
+        }
+        addFocusDeltaToContext(context, primaryDelta);
+        recompute(context);
         displayDumpable("Input context", context);
         assertFocusModificationSanity(context);
         return context;
@@ -330,4 +351,7 @@ public class AbstractModelImplementationIntegrationTest extends AbstractModelInt
 
     }
 
+    protected <F extends FocusType> void recompute(LensContext<F> context) throws SchemaException {
+        context.recompute();
+    }
 }

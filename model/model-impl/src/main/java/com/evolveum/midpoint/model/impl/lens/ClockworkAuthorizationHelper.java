@@ -115,7 +115,6 @@ public class ClockworkAuthorizationHelper {
         if (origPrimaryDelta != null) {
 
             ObjectDelta<O> primaryDeltaClone = origPrimaryDelta.clone();
-            ObjectDeltaObject<O> odo = elementContext.getObjectDeltaObject();
             PrismObject<O> object = elementContext.getObjectCurrent();
             if (object == null) {
                 // This may happen when object is being added.

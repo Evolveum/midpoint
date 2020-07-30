@@ -30,9 +30,6 @@ public class DeleteFocusAction implements Action {
 
     private static final Trace LOGGER = TraceManager.getTrace(DeleteFocusAction.class);
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.sync.Action#handle(com.evolveum.midpoint.model.lens.LensContext, com.evolveum.midpoint.model.sync.SynchronizationSituation, java.util.Map, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation,
             Map<QName, Object> parameters, Task task, OperationResult parentResult) {

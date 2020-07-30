@@ -583,6 +583,17 @@ public class MiscUtil {
     }
     // similar to the above ... todo deduplicate
 
+    @NotNull
+    public static <T, E extends Throwable> T extractSingletonRequired(Collection<T> collection,
+            Supplier<E> multiExceptionSupplier, Supplier<E> noneExceptionSupplier) throws E {
+        T singleton = extractSingleton(collection, multiExceptionSupplier);
+        if (singleton != null) {
+            return singleton;
+        } else {
+            throw noneExceptionSupplier.get();
+        }
+    }
+
     public static <T> T getSingleValue(Collection<T> values, T defaultValue, String contextDescription) {
         if (values.size() == 0) {
             return defaultValue;

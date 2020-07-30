@@ -14,6 +14,7 @@ import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -88,6 +89,11 @@ class IterationHelper<AH extends AssignmentHolderType> {
      */
     private String reIterationReason;
 
+    /**
+     * Secondary delta at the time of iteration process start.
+     */
+    private final ObjectDelta<AH> initialSecondaryDelta;
+
     private static final boolean RESET_ON_RENAME = true; // make configurable some day
 
     IterationHelper(@NotNull AssignmentHolderProcessor assignmentHolderProcessor, @NotNull LensContext<AH> context,
@@ -105,6 +111,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
             }
             iterationToken = focusCurrent.asObjectable().getIterationToken();
         }
+        initialSecondaryDelta = CloneUtil.clone(focusContext.getSecondaryDelta());
     }
 
     void onIterationStart(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,
@@ -275,7 +282,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
     }
 
     private boolean willResetIterationCounter() throws SchemaException {
-        ObjectDelta<AH> focusDelta = focusContext.getDelta();
+        ObjectDelta<AH> focusDelta = focusContext.getSummaryDelta(); // TODO check this
         if (focusDelta == null) {
             return false;
         }
@@ -291,7 +298,7 @@ class IterationHelper<AH extends AssignmentHolderType> {
     }
 
     private boolean hasNameDelta() throws SchemaException {
-        ObjectDelta<AH> focusDelta = focusContext.getDelta();
+        ObjectDelta<AH> focusDelta = focusContext.getSummaryDelta(); // TODO check this
         return focusDelta != null && hasNameDelta(focusDelta);
     }
 
@@ -349,5 +356,13 @@ class IterationHelper<AH extends AssignmentHolderType> {
         PropertyDelta<String> iterationTokenDelta = prismContext.deltaFactory().property().createReplaceDelta(objDef,
                 FocusType.F_ITERATION_TOKEN, iterationTokenVal);
         focusContext.swallowToSecondaryDelta(iterationTokenDelta);
+    }
+
+    /**
+     * Remove the intermediate results of values processing such as secondary deltas.
+     */
+    void cleanupContext() throws SchemaException {
+        LOGGER.trace("Cleaning up focus context");
+        focusContext.resetDeltas(CloneUtil.clone(initialSecondaryDelta));
     }
 }

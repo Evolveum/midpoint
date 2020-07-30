@@ -6,54 +6,50 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.common.ObjectResolver;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.SmartAssignmentCollection;
 import com.evolveum.midpoint.model.impl.lens.projector.SmartAssignmentElement;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ValuesEntry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
- * Evaluates all assignments and sorts them to triple: added, removed and untouched assignments.
+ * Evaluates all assignments and sorts them to triple: added, removed and "kept" assignments.
  *
  * @author semancik
  */
@@ -63,102 +59,63 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     private static final String OP_EVALUATE_ASSIGNMENT = AssignmentTripleEvaluator.class.getName()+".evaluateAssignment";
 
-    private LensContext<AH> context;
-    private AssignmentHolderType source;
-    private AssignmentEvaluator<AH> assignmentEvaluator;
-    private ActivationComputer activationComputer;
-    private ObjectResolver objectResolver;
-    private PrismContext prismContext;
-    private XMLGregorianCalendar now;
-    private Task task;
-    private OperationResult result;
+    private final LensContext<AH> context;
+    private final LensFocusContext<AH> focusContext;
 
-    private LifecycleStateModelType focusStateModel;
+    /**
+     * TODO explain this
+     */
+    private final AssignmentHolderType source;
 
-    public LensContext<AH> getContext() {
-        return context;
-    }
+    private final AssignmentEvaluator<AH> assignmentEvaluator;
+    private final ModelBeans beans;
+    private final XMLGregorianCalendar now;
+    private final Task task;
+    private final OperationResult result;
 
-    public void setContext(LensContext<AH> context) {
-        this.context = context;
-        LensFocusContext<AH> focusContext = context.getFocusContext();
+    private final LifecycleStateModelType focusStateModel;
+
+    private final DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple;
+
+    private ContainerDelta<AssignmentType> currentAssignmentDelta;
+
+    private AssignmentTripleEvaluator(Builder<AH> builder) throws SchemaException {
+        context = builder.context;
+        focusContext = context.getFocusContext();
         if (focusContext != null) {
             focusStateModel = focusContext.getLifecycleModel();
         } else {
             focusStateModel = null;
         }
+
+        source = builder.source;
+        assignmentEvaluator = builder.assignmentEvaluator;
+        beans = builder.beans;
+        now = builder.now;
+        task = builder.task;
+        result = builder.result;
+
+        evaluatedAssignmentTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
+        computeCurrentAssignmentDelta();
     }
 
-    public AssignmentHolderType getSource() {
-        return source;
-    }
-
-    public void setSource(AssignmentHolderType source) {
-        this.source = source;
-    }
-
-    public void setAssignmentEvaluator(AssignmentEvaluator<AH> assignmentEvaluator) {
-        this.assignmentEvaluator = assignmentEvaluator;
-    }
-
-    public void setObjectResolver(ObjectResolver objectResolver) {
-        this.objectResolver = objectResolver;
-    }
-
-    public void setActivationComputer(ActivationComputer activationComputer) {
-        this.activationComputer = activationComputer;
-    }
-
-    public void setPrismContext(PrismContext prismContext) {
-        this.prismContext = prismContext;
-    }
-
-    public void setNow(XMLGregorianCalendar now) {
-        this.now = now;
-    }
-
-    public void setTask(Task task) {
-        this.task = task;
-    }
-
-    public void setResult(OperationResult result) {
-        this.result = result;
-    }
-
-    public void reset(boolean alsoMemberOfInvocations) {
+    public void reset(boolean alsoMemberOfInvocations) throws SchemaException {
         assignmentEvaluator.reset(alsoMemberOfInvocations);
+        evaluatedAssignmentTriple.clear();
+        computeCurrentAssignmentDelta();
     }
 
     DeltaSetTriple<EvaluatedAssignmentImpl<AH>> processAllAssignments() throws ObjectNotFoundException, SchemaException,
             ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException,
             CommunicationException {
 
-        LensFocusContext<AH> focusContext = context.getFocusContext();
+        LOGGER.trace("Assignment current delta (i.e. from current to new object):\n{}", currentAssignmentDelta.debugDumpLazily());
 
-        ObjectDelta<AH> focusDelta = focusContext.getDelta();
-
-        ContainerDelta<AssignmentType> assignmentDelta = getExecutionWaveAssignmentDelta(focusContext);
-        assignmentDelta.expand(focusContext.getObjectCurrent(), LOGGER);
-
-        LOGGER.trace("Assignment delta:\n{}", assignmentDelta.debugDumpLazily());
+        Collection<AssignmentType> virtualAssignments = getVirtualAssignments();
 
         SmartAssignmentCollection<AH> assignmentCollection = new SmartAssignmentCollection<>();
-
-        Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(focusContext.getLifecycleModel(),
-                getNewObjectLifecycleState(focusContext), objectResolver,
-                prismContext, task, result);
-
-        LOGGER.trace("Task for process: {}", task.debugDumpLazily());
-
-        Collection<Task> allTasksToRoot = task.getPathToRootTask(result);
-        Collection<AssignmentType> taskAssignments = allTasksToRoot.stream()
-                .filter(taskPath -> taskPath.hasAssignments())
-                .map(taskPath -> createTaskAssignment(taskPath))
-                .collect(Collectors.toList());
-
-        LOGGER.trace("Task assignment: {}", taskAssignments);
-
-        assignmentCollection.collect(focusContext.getObjectCurrent(), focusContext.getObjectOld(), assignmentDelta, forcedAssignments, taskAssignments);
+        assignmentCollection.collectAndFreeze(focusContext.getObjectCurrent(), focusContext.getObjectOld(), currentAssignmentDelta,
+                virtualAssignments, beans.prismContext);
 
         LOGGER.trace("Assignment collection:\n{}", assignmentCollection.debugDumpLazily(1));
 
@@ -169,16 +126,37 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         // account type (intent). Therefore several constructions for the same resource and intent may appear in the resulting
         // sets. This is not good as we want only a single account for each resource/intent combination. But that will be
         // sorted out later.
-        DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple = prismContext.deltaFactory().createDeltaSetTriple();
         for (SmartAssignmentElement assignmentElement : assignmentCollection) {
-            processAssignment(evaluatedAssignmentTriple, focusDelta, assignmentDelta, assignmentElement);
+            processAssignment(assignmentElement);
         }
 
         return evaluatedAssignmentTriple;
     }
 
+    @NotNull
+    private Collection<AssignmentType> getVirtualAssignments() throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        Collection<AssignmentType> forcedAssignments = LensUtil.getForcedAssignments(focusContext.getLifecycleModel(),
+                getNewObjectLifecycleState(focusContext), beans.modelObjectResolver,
+                beans.prismContext, task, result);
+        LOGGER.trace("Forced assignments: {}", forcedAssignments);
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Task for process: {}", task.getUpdatedOrClonedTaskObject().debugDump());
+        }
+        Collection<Task> allTasksToRoot = task.getPathToRootTask(result);
+        Collection<AssignmentType> taskAssignments = allTasksToRoot.stream()
+                .filter(Task::hasAssignments)
+                .map(this::createTaskAssignment)
+                .collect(Collectors.toList());
+        LOGGER.trace("Task assignment: {}", taskAssignments);
+
+        List<AssignmentType> virtualAssignments = new ArrayList<>(forcedAssignments);
+        virtualAssignments.addAll(taskAssignments);
+        return virtualAssignments;
+    }
+
     private AssignmentType createTaskAssignment(Task fromTask) {
-        AssignmentType taskAssignment = new AssignmentType(prismContext);
+        AssignmentType taskAssignment = new AssignmentType(beans.prismContext);
         ObjectReferenceType targetRef = new ObjectReferenceType();
         targetRef.asReferenceValue().setObject(fromTask.getUpdatedOrClonedTaskObject());
         taskAssignment.setTargetRef(targetRef);
@@ -191,24 +169,20 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         return focusTypeNew.getLifecycleState();
     }
 
-    private void processAssignment(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
-            ObjectDelta<AH> focusDelta, ContainerDelta<AssignmentType> assignmentDelta, SmartAssignmentElement assignmentElement)
-                    throws SchemaException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
+    private void processAssignment(SmartAssignmentElement assignmentElement) throws SchemaException, ExpressionEvaluationException,
+            PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
 
-        final LensFocusContext<AH> focusContext = context.getFocusContext();
-        final PrismContainerValue<AssignmentType> assignmentCVal = assignmentElement.getAssignmentCVal();
-        final PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
-        PrismContainerValue<AssignmentType> assignmentCValNew = assignmentCVal;        // refined later
+        PrismContainerValue<AssignmentType> assignmentCVal = assignmentElement.getAssignmentCVal();
+        PrismContainerValue<AssignmentType> assignmentCValOld = assignmentCVal;
+        PrismContainerValue<AssignmentType> assignmentCValNew = assignmentCVal; // refined later
 
-//        final boolean presentInCurrent = assignmentElement.isCurrent();
-//        final boolean presentInOld = assignmentElement.isOld();
         // This really means whether the WHOLE assignment was changed (e.g. added/deleted/replaced). It tells nothing
         // about "micro-changes" inside assignment, these will be processed later.
-        boolean isAssignmentChanged = assignmentElement.isChanged();            // refined later
+        boolean isAssignmentChanged = assignmentElement.isCurrent() != assignmentElement.isNew();
         // TODO what about assignments that are present in old or current objects, and also changed?
         // TODO They seem to have "old"/"current" flag, not "changed" one. Is that OK?
         boolean forceRecon = false;
-        final String assignmentPlacementDesc;
+        String assignmentPlacementDesc;
 
         Collection<? extends ItemDelta<?,?>> subItemDeltas = null;
 
@@ -217,7 +191,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             assignmentPlacementDesc = "delta for "+source;
         } else {
             assignmentPlacementDesc = source.toString();
-            Collection<? extends ItemDelta<?,?>> assignmentItemDeltas = getExecutionWaveAssignmentItemDeltas(focusContext, assignmentCVal.getId());
+            Collection<? extends ItemDelta<?,?>> assignmentItemDeltas = getAssignmentItemDeltas(focusContext, assignmentCVal.getId());
             if (assignmentItemDeltas != null && !assignmentItemDeltas.isEmpty()) {
                 // Small changes inside assignment, but otherwise the assignment stays as it is (not added or deleted)
                 subItemDeltas = assignmentItemDeltas;
@@ -237,14 +211,12 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         // sets (zero, plus, minus). It is handling several situations that needs to be handled specially.
         // It is also collecting assignments to evaluatedAssignmentTriple.
 
-        if (focusDelta != null && focusDelta.isDelete()) {
+        if (focusContext.isDelete()) {
 
             // USER DELETE
             // If focus (user) is being deleted that all the assignments are to be gone. Including those that
             // were not changed explicitly.
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Processing focus delete for: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
-            }
+            LOGGER.trace("Processing focus delete for: {}", SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiDelete(assignmentCVal), PlusMinusZero.MINUS, false, assignmentPlacementDesc, assignmentElement);
             if (evaluatedAssignment == null) {
                 return;
@@ -253,19 +225,19 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
             collectToMinus(evaluatedAssignmentTriple, evaluatedAssignment, forceRecon);
 
         } else {
-            if (assignmentDelta.isReplace()) {
+            if (currentAssignmentDelta.isReplace()) {
 
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Processing replace of all assignments for: {}", SchemaDebugUtil.prettyPrint(assignmentCVal));
-                }
+                LOGGER.trace("Processing replace of all assignments for: {}", SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
                 // ASSIGNMENT REPLACE
                 // Handling assignment replace delta. This needs to be handled specially as all the "old"
                 // assignments should be considered deleted - except those that are part of the new value set
                 // (remain after replace). As account delete and add are costly operations (and potentially dangerous)
                 // we optimize here are consider the assignments that were there before replace and still are there
                 // after it as unchanged.
+                //
+                // TODO consider using augmented origin here (isOld / isCurrent / isNew values) -- MID-6404
                 boolean hadValue = assignmentElement.isCurrent();
-                boolean willHaveValue = assignmentDelta.isValueToReplace(assignmentCVal, true);
+                boolean willHaveValue = currentAssignmentDelta.isValueToReplace(assignmentCVal, true);
                 if (hadValue && willHaveValue) {
                     // No change
                     EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(createAssignmentIdiNoChange(assignmentCVal), PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
@@ -306,8 +278,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 if (isAssignmentChanged) {
                     // There was some change
 
-                    boolean isAdd = assignmentDelta.isValueToAdd(assignmentCVal, true);
-                    boolean isDelete = assignmentDelta.isValueToDelete(assignmentCVal, true);
+                    boolean isAdd = currentAssignmentDelta.isValueToAdd(assignmentCVal, true);
+                    boolean isDelete = currentAssignmentDelta.isValueToDelete(assignmentCVal, true);
                     if (isAdd & !isDelete) {
                         // Entirely new assignment is added
                         if (assignmentElement.isCurrent() && assignmentElement.isOld()) {
@@ -344,27 +316,29 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                         // The only thing that we need to worry about is assignment validity change. That is a cause
                         // of provisioning/deprovisioning of the projections. So check that explicitly. Other changes are
                         // not significant, i.e. reconciliation can handle them.
-                        boolean isValidOld = focusContext.getObjectOld() != null &&
+                        boolean wasActive = focusContext.getObjectOld() != null &&
                                 LensUtil.isAssignmentValid(focusContext.getObjectOld().asObjectable(),
-                                        assignmentCValOld.asContainerable(), now, activationComputer, focusStateModel);
-                        boolean isValid = focusContext.getObjectNew() != null &&
+                                        assignmentCValOld.asContainerable(), now, beans.activationComputer, focusStateModel);
+                        boolean isActive = focusContext.getObjectNew() != null &&
                                 LensUtil.isAssignmentValid(focusContext.getObjectNew().asObjectable(),
-                                        assignmentCValNew.asContainerable(), now, activationComputer, focusStateModel);
+                                        assignmentCValNew.asContainerable(), now, beans.activationComputer, focusStateModel);
                         ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
                                 createAssignmentIdiInternalChange(assignmentCVal, subItemDeltas);
-                        if (isValid == isValidOld) {
-                            // No change in validity -> right to the zero set
+                        if (isActive == wasActive) {
+                            // No change in activation -> right to the zero set
                             // The change is not significant for assignment applicability. Recon will sort out the details.
                             LOGGER.trace("Processing changed assignment, minor change (add={}, delete={}, valid={}): {}",
-                                    isAdd, isDelete, isValid, SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
+                                    isAdd, isDelete, isActive, SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
                             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.ZERO, false, assignmentPlacementDesc, assignmentElement);
                             if (evaluatedAssignment == null) {
                                 return;
                             }
+                            // TODO what about the condition state change?! MID-6404
                             evaluatedAssignment.setWasValid(evaluatedAssignment.isValid());
                             collectToZero(evaluatedAssignmentTriple, evaluatedAssignment, true);
-                        } else if (isValid) {
-                            // Assignment became valid. We need to place it in plus set to initiate provisioning
+                        } else if (isActive) {
+                            // Assignment became active. We need to place it in plus set to initiate provisioning
+                            // TODO change this! We should keep it in the zero set, and determine plus/minus according to validity change. MID-6403
                             LOGGER.trace("Processing changed assignment, assignment becomes valid (add={}, delete={}): {}",
                                     isAdd, isDelete, SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
                             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.PLUS, false, assignmentPlacementDesc, assignmentElement);
@@ -375,6 +349,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                             collectToPlus(evaluatedAssignmentTriple, evaluatedAssignment, true);
                         } else {
                             // Assignment became invalid. We need to place is in minus set to initiate deprovisioning
+                            // TODO change this! We should keep it in the zero set, and determine plus/minus according to validity change. MID-6403
                             LOGGER.trace("Processing changed assignment, assignment becomes invalid (add={}, delete={}): {}",
                                     isAdd, isDelete, SchemaDebugUtil.prettyPrintLazily(assignmentCVal));
                             EvaluatedAssignmentImpl<AH> evaluatedAssignment = evaluateAssignment(assignmentIdi, PlusMinusZero.MINUS, false, assignmentPlacementDesc, assignmentElement);
@@ -415,7 +390,7 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         PrismContainerDefinition<AssignmentType> definition = cval.getDefinition();
         if (definition == null) {
             // TODO: optimize
-            definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
+            definition = beans.prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
         }
         return new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(cval.asContainerable()), definition);
     }
@@ -437,12 +412,12 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         PrismContainerDefinition<AssignmentType> definition = cval.getParent() != null ? cval.getParent().getDefinition() : null;
         if (definition == null) {
             // we use custom definition, if available; if not, we find the standard one
-            definition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
+            definition = beans.prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
                     .findItemDefinition(AssignmentHolderType.F_ASSIGNMENT);
         }
         definition = definition.clone();
         definition.toMutable().setMaxOccurs(1);
-        return prismContext.deltaFor(AssignmentHolderType.class)
+        return beans.prismContext.deltaFor(AssignmentHolderType.class)
                 .item(AssignmentHolderType.F_ASSIGNMENT, definition);
     }
 
@@ -471,8 +446,8 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         return idi;
     }
 
-    private Collection<? extends ItemDelta<?,?>> getExecutionWaveAssignmentItemDeltas(LensFocusContext<AH> focusContext, Long id) throws SchemaException {
-        ObjectDelta<AH> focusDelta = focusContext.getWaveDelta(focusContext.getLensContext().getExecutionWave());
+    private Collection<? extends ItemDelta<?,?>> getAssignmentItemDeltas(LensFocusContext<AH> focusContext, Long id) {
+        ObjectDelta<AH> focusDelta = focusContext.getCurrentDelta();  // TODO is this correct?
         if (focusDelta == null) {
             return null;
         }
@@ -562,27 +537,27 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
         }
     }
 
+    private void computeCurrentAssignmentDelta() throws SchemaException {
+        currentAssignmentDelta = getCurrentAssignmentDelta(focusContext);
+        currentAssignmentDelta.expand(focusContext.getObjectCurrent(), LOGGER);
+    }
+
     /**
-     * Returns delta of user assignments, both primary and secondary (merged together).
-     * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
-     *
-     * Originally we took only the delta related to current execution wave, to avoid re-processing of already executed assignments.
-     * But MID-2422 shows that we need to take deltas from waves 0..N (N=current execution wave) [that effectively means all the secondary deltas]
+     * Returns delta of user assignments - for the current wave i.e. the one that transforms current to new object.
      */
-    private ContainerDelta<AssignmentType> getExecutionWaveAssignmentDelta(LensFocusContext<AH> focusContext) throws SchemaException {
-        ObjectDelta<AH> focusDelta = focusContext.getDelta();
-        if (focusDelta == null) {
+    private ContainerDelta<AssignmentType> getCurrentAssignmentDelta(LensFocusContext<AH> focusContext) {
+        ObjectDelta<AH> focusDelta = focusContext.getCurrentDelta();
+        ContainerDelta<AssignmentType> assignmentDelta = focusDelta != null ?
+                focusDelta.findContainerDelta(AssignmentHolderType.F_ASSIGNMENT) : null;
+        if (assignmentDelta != null) {
+            return assignmentDelta;
+        } else {
             return createEmptyAssignmentDelta(focusContext);
         }
-        ContainerDelta<AssignmentType> assignmentDelta = focusDelta.findContainerDelta(AssignmentHolderType.F_ASSIGNMENT);
-        if (assignmentDelta == null) {
-            return createEmptyAssignmentDelta(focusContext);
-        }
-        return assignmentDelta;
     }
 
     private ContainerDelta<AssignmentType> createEmptyAssignmentDelta(LensFocusContext<AH> focusContext) {
-        return prismContext.deltaFactory().container().create(getAssignmentContainerDefinition(focusContext));
+        return beans.prismContext.deltaFactory().container().create(getAssignmentContainerDefinition(focusContext));
     }
 
     private PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition(LensFocusContext<AH> focusContext) {
@@ -591,5 +566,54 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
 
     boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
         return assignmentEvaluator.isMemberOfInvocationResultChanged(evaluatedAssignmentTriple);
+    }
+
+    public static final class Builder<AH extends AssignmentHolderType> {
+        private LensContext<AH> context;
+        private AssignmentHolderType source;
+        private AssignmentEvaluator<AH> assignmentEvaluator;
+        private ModelBeans beans;
+        private XMLGregorianCalendar now;
+        private Task task;
+        private OperationResult result;
+
+        public Builder<AH> context(LensContext<AH> val) {
+            context = val;
+            return this;
+        }
+
+        public Builder<AH> source(AssignmentHolderType val) {
+            source = val;
+            return this;
+        }
+
+        public Builder<AH> assignmentEvaluator(AssignmentEvaluator<AH> val) {
+            assignmentEvaluator = val;
+            return this;
+        }
+
+        public Builder<AH> beans(ModelBeans val) {
+            beans = val;
+            return this;
+        }
+
+        public Builder<AH> now(XMLGregorianCalendar val) {
+            now = val;
+            return this;
+        }
+
+        public Builder<AH> task(Task val) {
+            task = val;
+            return this;
+        }
+
+        public Builder<AH> result(OperationResult val) {
+            result = val;
+            return this;
+        }
+
+        public AssignmentTripleEvaluator<AH> build() throws SchemaException {
+            return new AssignmentTripleEvaluator<>(this);
+        }
     }
 }

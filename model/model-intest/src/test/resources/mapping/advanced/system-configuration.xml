@@ -20,6 +20,7 @@
     <name>SystemConfiguration</name>
     <defaultObjectPolicyConfiguration>
         <type>UserType</type>
-        <objectTemplateRef oid="bf0cf9b7-4c38-4ff4-afc6-c9cc9bc08490" /> <!-- user-template -->
+        <subtype>incrementing</subtype>
+        <objectTemplateRef oid="bf0cf9b7-4c38-4ff4-afc6-c9cc9bc08490" /> <!-- user-template-incrementing -->
     </defaultObjectPolicyConfiguration>
 </systemConfiguration>

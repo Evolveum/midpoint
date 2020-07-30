@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
-import com.evolveum.midpoint.model.impl.lens.assignments.TargetEvaluation.TargetValidity;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -40,26 +38,26 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
 
     private static final Trace LOGGER = TraceManager.getTrace(TargetInducementEvaluation.class);
 
-    private final PlusMinusZero targetRelativityMode;
-    @NotNull private final TargetValidity targetValidity;
+    @NotNull private final ConditionState targetOverallConditionState;
+    @NotNull private final TargetEvaluation.TargetActivation targetActivation;
     private final OperationResult result;
     private final AssignmentType inducement;
 
     TargetInducementEvaluation(AssignmentPathSegmentImpl segment,
-            PlusMinusZero targetRelativityMode, @NotNull TargetValidity targetValidity,
+            @NotNull ConditionState targetOverallConditionState, @NotNull TargetEvaluation.TargetActivation targetActivation,
             EvaluationContext<AH> ctx, OperationResult result, AssignmentType inducement) {
         super(segment, ctx);
-        this.targetRelativityMode = targetRelativityMode;
-        this.targetValidity = targetValidity;
+        this.targetOverallConditionState = targetOverallConditionState;
+        this.targetActivation = targetActivation;
         this.result = result;
         this.inducement = inducement;
     }
 
     void evaluate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         assert ctx.assignmentPath.last() == segment;
-        assert segment.isAssignmentValid() || segment.direct;
-        assert targetRelativityMode != null;
-        assert targetValidity.targetValid;
+        assert segment.isAssignmentActive() || segment.direct;
+        assert targetOverallConditionState.isNotAllFalse();
+        assert targetActivation.targetActive;
 
         checkIfAlreadyEvaluated();
 
@@ -91,8 +89,8 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .relationRegistry(ctx.ae.relationRegistry)
                 .prismContext(ctx.ae.prismContext)
                 .varThisObject(orderOneObject)
-                .pathToSourceValid(targetValidity.pathAndTargetValid)
-                .sourceRelativityMode(targetRelativityMode)
+                .pathToSourceValid(targetActivation.pathAndTargetActive)
+                .pathToSourceConditionState(targetOverallConditionState)
                 .evaluationOrder(adjustment.evaluationOrder)
                 .evaluationOrderForTarget(adjustment.targetEvaluationOrder)
                 .isMatchingOrder(nextIsMatchingOrder)

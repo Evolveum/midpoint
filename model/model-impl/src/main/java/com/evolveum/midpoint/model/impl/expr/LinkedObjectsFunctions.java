@@ -40,7 +40,6 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.RelationRegistry;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -206,12 +205,9 @@ public class LinkedObjectsFunctions {
     @NotNull
     private Set<PrismReferenceValue> getMembershipNew() {
         LensContext<?> lensContext = (LensContext<?>) ModelExpressionThreadLocalHolder.getLensContextRequired();
-        DeltaSetTriple<EvaluatedAssignmentImpl<?>> assignmentTriple = lensContext.getEvaluatedAssignmentTriple();
         Set<PrismReferenceValue> assigned = new HashSet<>();
-        if (assignmentTriple != null) {
-            for (EvaluatedAssignmentImpl<?> evaluatedAssignment : assignmentTriple.getNonNegativeValues()) {
-                assigned.addAll(evaluatedAssignment.getMembershipRefVals());
-            }
+        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : lensContext.getNonNegativeEvaluatedAssignments()) {
+            assigned.addAll(evaluatedAssignment.getMembershipRefVals());
         }
         return assigned;
     }

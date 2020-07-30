@@ -1253,8 +1253,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             modifications.add((createAssignmentModification(assignmentType.getId(), false)));
         }
         return prismContext.deltaFactory().object()
-                .createModifyDelta(focusBefore.getOid(), modifications, focusBefore.getCompileTimeClass()
-                );
+                .createModifyDelta(focusBefore.getOid(), modifications, focusBefore.getCompileTimeClass());
     }
 
     /**

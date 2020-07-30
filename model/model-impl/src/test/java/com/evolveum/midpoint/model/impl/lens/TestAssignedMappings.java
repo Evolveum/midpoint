@@ -551,7 +551,7 @@ public class TestAssignedMappings extends AbstractLensTest {
                 .assertExtensionValue("p111a", "null:mmr1.1.1")
                 .assertExtensionValue("p111b", "null:mmr1.1.1")
                 .assertExtensionValue("p111c", "null:mmr1.1.1")
-                .assertExtensionValue("p112a", "null:mmr1.1.2")         // further processing is disabled, so no b,c here
+                .assertExtensionValue("p112a", "null:mmr1.1.2") // further processing is disabled, so no b,c here
                 .assertExtensionItems(4)
                 .assertExtensionValues(4);
     }

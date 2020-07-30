@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
 
 import org.jetbrains.annotations.NotNull;
@@ -50,11 +51,19 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition, E ext
 
     PrismValueDeltaSetTriple<V> evaluate() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        if (context.hasDeltas()) {
+        if (context.hasDeltas() || expressionDependsOnSystemState()) {
             return evaluateAbsoluteExpressionWithDeltas();
         } else {
             return evaluateAbsoluteExpressionWithoutDeltas();
         }
+    }
+
+    // FIXME remove this temporary hack - MID-6406
+    private boolean expressionDependsOnSystemState() {
+        E evaluatorBean = evaluator.getExpressionEvaluatorBean();
+        return evaluatorBean instanceof ScriptExpressionEvaluatorType &&
+                ((ScriptExpressionEvaluatorType) evaluatorBean).getCode() != null &&
+                ((ScriptExpressionEvaluatorType) evaluatorBean).getCode().contains("hasLinkedAccount");
     }
 
     private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpressionWithDeltas() throws ExpressionEvaluationException,

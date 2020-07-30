@@ -6,9 +6,7 @@
   -->
 
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      oid="ac42084a-d780-4d32-ac02-bcc49bdc747b">
-    <name>franz</name>
-    <subtype>incrementing</subtype>
-    <description>0</description>
-    <organization>O0</organization>
+      oid="849d540c-d052-43c0-937a-1ca1cda0679e">
+    <name>frederic</name>
+    <fullName>Frederic Chopin</fullName>
 </user>

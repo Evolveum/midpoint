@@ -92,7 +92,7 @@ public class TestProjector extends AbstractLensTest {
                 PrismTestUtil.createPolyString("Elaine LeChuck"));
         ObjectDelta<UserType> userDeltaSecondaryClone = userDeltaSecondary.clone();
         focusContext.setPrimaryDelta(userDeltaPrimary);
-        focusContext.setWave0SecondaryDelta(userDeltaSecondary);
+        focusContext.setSecondaryDelta(userDeltaSecondary);
 
         // Account Deltas
         ObjectDelta<ShadowType> accountDeltaPrimary = createModifyAccountShadowReplaceAttributeDelta(
@@ -828,7 +828,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
-        fillContextWithEmtptyAddUserDelta(context);
+        fillContextWithEmptyAddUserDelta(context);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
         context.recompute();
@@ -883,7 +883,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
-        fillContextWithEmtptyAddUserDelta(context);
+        fillContextWithEmptyAddUserDelta(context);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
         context.recompute();

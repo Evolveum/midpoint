@@ -228,8 +228,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
             return biDirectionalMapping != null ? biDirectionalMapping.getInbound() : Collections.emptyList();
         }
 
-        private boolean isDeleteProjectionDelta() throws SchemaException {
-            return ObjectDelta.isDelete(projectionContext.getSyncDelta()) || ObjectDelta.isDelete(projectionContext.getDelta());
+        private boolean isDeleteProjectionDelta() {
+            return ObjectDelta.isDelete(projectionContext.getSyncDelta()) || ObjectDelta.isDelete(projectionContext.getPrimaryDelta());
         }
 
         private <V extends PrismValue, D extends ItemDefinition> void collectAttributeInbounds(QName attributeName)
@@ -606,14 +606,15 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 }
             }
 
-            ObjectDelta<F> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
-            if (userSecondaryDelta != null) {
-                PropertyDelta<?> secondaryPropDelta = userSecondaryDelta.findPropertyDelta(targetPath);
-                if (secondaryPropDelta != null) {
-                    LOGGER.trace("There is a secondary delta in the current wave. Removing it. New value will be handled by inbounds: {}", secondaryPropDelta);
-                    userSecondaryDelta.getModifications().remove(secondaryPropDelta);
-                }
-            }
+            // TODO
+//            ObjectDelta<F> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
+//            if (userSecondaryDelta != null) {
+//                PropertyDelta<?> secondaryPropDelta = userSecondaryDelta.findPropertyDelta(targetPath);
+//                if (secondaryPropDelta != null) {
+//                    LOGGER.trace("There is a secondary delta in the current wave. Removing it. New value will be handled by inbounds: {}", secondaryPropDelta);
+//                    userSecondaryDelta.getModifications().remove(secondaryPropDelta);
+//                }
+//            }
 
             MappingInitializer<PrismValue, ItemDefinition> initializer =
                     (builder) -> {
@@ -673,14 +674,15 @@ class InboundMappingsEvaluation<F extends FocusType> {
                             return false;
                         }
 
-                        ObjectDelta<F> userSecondaryDeltaInt = context.getFocusContext().getProjectionWaveSecondaryDelta();
-                        if (userSecondaryDeltaInt != null) {
-                            PropertyDelta<?> delta = userSecondaryDeltaInt.findPropertyDelta(targetPath);
-                            if (delta != null) {
-                                //remove delta if exists, it will be handled by inbound
-                                userSecondaryDeltaInt.getModifications().remove(delta);
-                            }
-                        }
+                        // TODO
+//                        ObjectDelta<F> userSecondaryDeltaInt = context.getFocusContext().getProjectionWaveSecondaryDelta();
+//                        if (userSecondaryDeltaInt != null) {
+//                            PropertyDelta<?> delta = userSecondaryDeltaInt.findPropertyDelta(targetPath);
+//                            if (delta != null) {
+//                                //remove delta if exists, it will be handled by inbound
+//                                userSecondaryDeltaInt.getModifications().remove(delta);
+//                            }
+//                        }
 
                         PrismObjectDefinition<F> focusDefinition = context.getFocusContext().getObjectDefinition();
                         PrismProperty result = focusDefinition.findPropertyDefinition(targetPath).instantiate();
@@ -713,7 +715,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         }
                         if (delta != null && !delta.isEmpty()) {
                             delta.setParentPath(targetPath.allExceptLast());
-                            context.getFocusContext().swallowToSecondaryDeltaChecked(delta);
+                            context.getFocusContext().swallowToSecondaryDelta(delta);
                         }
                         return false;
                     };
@@ -767,11 +769,11 @@ class InboundMappingsEvaluation<F extends FocusType> {
             Source<V,D> defaultSource = new Source<>(currentProjectionItem, itemAPrioriDelta, null, ExpressionConstants.VAR_INPUT_QNAME, itemDefinition);
             defaultSource.recompute();
 
-            MappingBuilder<V,D> builder = beans.mappingFactory.<V,D>createMappingBuilder()
+            MappingBuilder<V, D> builder = beans.mappingFactory.<V, D>createMappingBuilder()
                     .mappingBean(inboundMappingBean)
                     .mappingKind(MappingKindType.INBOUND)
                     .implicitSourcePath(ShadowType.F_ATTRIBUTES.append(projectionItemName))
-                    .contextDescription("inbound expression for "+projectionItemName+" in "+resource)
+                    .contextDescription("inbound expression for " + projectionItemName + " in " + resource)
                     .defaultSource(defaultSource)
                     .targetContext(LensUtil.getFocusDefinition(context))
                     .addVariableDefinition(ExpressionConstants.VAR_USER, focus, focusDef)
@@ -788,7 +790,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
                     .variableResolver(variableProducer)
                     .valuePolicySupplier(createValuePolicySupplier())
                     .originType(OriginType.INBOUND)
-                    .originObject(resource);
+                    .originObject(resource)
+                    .now(env.now);
 
             if (!context.getFocusContext().isDelete()) {
                 assert focus != null;
@@ -919,7 +922,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
             if (!executed.isEmpty()) {
                 return executed.get(executed.size()-1).getObjectDelta();
             } else {
-                return accountContext.getDelta();
+                return accountContext.getSummaryDelta(); // TODO check this
             }
         }
         return null;
@@ -991,12 +994,12 @@ class InboundMappingsEvaluation<F extends FocusType> {
     //region Consolidating triples to deltas
 
     private void consolidateTriples() throws CommunicationException, ObjectNotFoundException, ConfigurationException,
-            SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+            SchemaException, SecurityViolationException, ExpressionEvaluationException {
 
         PrismObject<F> focus = getCurrentFocus();
         PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focus);
         LensFocusContext<F> focusContext = context.getFocusContextRequired();
-        ObjectDelta<F> focusAPrioriDelta = focusContext.getDelta();
+        ObjectDelta<F> focusAPrioriDelta = focusContext.getCurrentDelta();
 
         Consumer<IvwoConsolidatorBuilder> customizer = builder ->
                 builder
@@ -1005,16 +1008,12 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         .skipNormalMappingAPrioriDeltaCheck(true);
 
         DeltaSetTripleMapConsolidation<F> consolidation = new DeltaSetTripleMapConsolidation<>(
-                outputTripleMap, focus, focusAPrioriDelta, true,
-                customizer, focusDefinition,
+                outputTripleMap, focus, focusAPrioriDelta, context::itemDeltaExists,
+                true, customizer, focusDefinition,
                 env, beans, context, result);
         consolidation.computeItemDeltas();
 
-        for (ItemDelta<?, ?> itemDelta : consolidation.getItemDeltas()) {
-            if (!itemDelta.isEmpty()) {
-                focusContext.swallowToSecondaryDelta(itemDelta);
-            }
-        }
+        focusContext.swallowToSecondaryDelta(consolidation.getItemDeltas());
     }
 
     private boolean rangeIsCompletelyDefined(ItemPath itemPath) {

@@ -240,32 +240,13 @@ public class ClockworkMedic {
             // If we are OK with no focus context, then the deletion is irrelevant
             return true;
         }
-        SkipWhenFocusDeleted skipWhenFocusDeleted = processorExecution.skipWhenFocusDeleted();
-        switch (skipWhenFocusDeleted) {
-            case NONE:
-                return true;
-            case PRIMARY_OR_SECONDARY:
-                return focusPrimaryDeletionCheckPasses(focusContext, componentName)
-                        && focusSecondaryDeletionCheckPasses(focusContext, componentName);
-            case PRIMARY:
-                return focusPrimaryDeletionCheckPasses(focusContext, componentName);
-            default:
-                throw new AssertionError(skipWhenFocusDeleted);
-        }
-    }
 
-    private boolean focusPrimaryDeletionCheckPasses(LensFocusContext<?> focusContext, String componentName) {
-        if (focusContext.isDelete()) {
-            LOGGER.trace("Skipping '{}' because focus is being deleted (primary delta)", componentName);
-            return false;
-        } else {
+        if (!processorExecution.skipWhenFocusDeleted()) {
             return true;
         }
-    }
 
-    private boolean focusSecondaryDeletionCheckPasses(LensFocusContext<?> focusContext, String componentName) {
-        if (focusContext.isSecondaryDelete()) {
-            LOGGER.trace("Skipping '{}' because focus is being deleted (secondary delta)", componentName);
+        if (focusContext.isDelete()) {
+            LOGGER.trace("Skipping '{}' because focus is being deleted (primary delta)", componentName);
             return false;
         } else {
             return true;

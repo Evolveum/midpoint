@@ -116,7 +116,6 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
         try {
             CompiledTracingProfile compiledTracingProfile = result.getTracingProfile();
             TracingProfileType tracingProfile = compiledTracingProfile.getDefinition();
-            result.clearTracingProfile();
 
             if (!Boolean.FALSE.equals(tracingProfile.isCreateTraceFile())) {
                 boolean zip = !Boolean.FALSE.equals(tracingProfile.isCompressOutput());
