@@ -94,11 +94,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     }
 
     @Override
-    public void destroyService(RepositoryService service) {
-        //we don't need destroying service objects, they will be GC correctly
-    }
-
-    @Override
     public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
         if (initialized) {
             LOGGER.info("SQL repository already initialized.");
@@ -139,7 +134,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     }
 
     @Override
-    public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
+    public RepositoryService getRepositoryService() {
         return new SqlRepositoryServiceImpl(this);
     }
 
