@@ -24,7 +24,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * @author lazyman
+ * {@link AuditServiceFactory} for {@link SqlAuditServiceImpl}, that is DB-based auditing.
  */
 public class SqlAuditServiceFactory implements AuditServiceFactory {
 
@@ -78,11 +78,6 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
         }
 
         return value;
-    }
-
-    @Override
-    public void destroyService(AuditService service) {
-        //we don't need destroying service objects, they will be GC correctly
     }
 
     @Override
