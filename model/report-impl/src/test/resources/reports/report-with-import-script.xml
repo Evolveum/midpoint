@@ -31,7 +31,6 @@
                     <s:forWholeInput>true</s:forWholeInput>
                     <s:script>
                         <s:code>
-                            System.out.println("input: " + input);
                             if (input == null || input.getData().isEmpty()){
                                 log.error("Couldn't find user with name" + username + ". Skip this line.")
                             }
@@ -42,6 +41,10 @@
                     <s:parameter>
                         <s:name>delta</s:name>
                         <s:execute>
+                            <s:parameter>
+                                <s:name>outputItem</s:name>
+                                <c:value>ObjectDeltaType</c:value>
+                            </s:parameter>
                             <s:script>
                                 <s:code>
                                     import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -55,13 +58,13 @@
                                     import javax.xml.datatype.DatatypeFactory;
                                     import com.evolveum.midpoint.schema.DeltaConvertor;
 
-                                    System.out.println("-----------START-----------");
-                                    System.out.println("username: " + username);
-                                    System.out.println("role_name: " + role_name);
-                                    System.out.println("action: " + action);
-                                    System.out.println("valid_from: " + valid_from);
-                                    System.out.println("valid_to: " + valid_to);
-                                    System.out.println("input: " + input);
+                                    log.info("-----------START-----------");
+                                    log.info("username: " + username);
+                                    log.info("role_name: " + role_name);
+                                    log.info("action: " + action);
+                                    log.info("valid_from: " + valid_from);
+                                    log.info("valid_to: " + valid_to);
+                                    log.info("input: " + input);
 
                                     user = input;
                                     userBefore = user.clone();
@@ -132,16 +135,16 @@
                                             }
                                         }
                                     } else {
-                                    log.error("Action column have unexpected value '" + action + "'")
-                                    return null;
+                                        log.error("Action column have unexpected value '" + action + "'")
+                                        return null;
                                     }
                                     if (userBefore.equals(user)) {
                                         log.error("Couldn't create delta, because user before executing of script is same as after executing of script.")
                                         return null;
                                     }
                                     delta = userBefore.asPrismObject().diff(user.asPrismObject(), EquivalenceStrategy.LITERAL_IGNORE_METADATA);
-                                    System.out.println("delta: " + delta);
-                                    System.out.println("-----------FINISH-----------");
+                                    log.info("delta: " + delta);
+                                    log.info("-----------FINISH-----------");
                                     return DeltaConvertor.toObjectDeltaType(delta);
                                 </s:code>
                             </s:script>
