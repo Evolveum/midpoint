@@ -125,7 +125,7 @@ public class MappingEvaluator {
         MappingInitializer<PrismPropertyValue<T>, PrismPropertyDefinition<T>> internalInitializer =
                 builder -> {
 
-                    builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx));
+                    builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx, true));
 
                     builder.mappingKind(MappingKindType.OUTBOUND);
                     builder.originType(OriginType.OUTBOUND);
@@ -149,7 +149,7 @@ public class MappingEvaluator {
         params.setTargetContext(projCtx);
         params.setDefaultTargetItemPath(projectionPropertyPath);
         if (context.getFocusContext() != null) {
-            params.setSourceContext(context.getFocusContext().getObjectDeltaObject());
+            params.setSourceContext(context.getFocusContext().getObjectDeltaObjectAbsolute());
         }
         params.setEvaluateCurrent(evaluateCurrent);
         params.setEvaluateWeak(evaluateWeak);

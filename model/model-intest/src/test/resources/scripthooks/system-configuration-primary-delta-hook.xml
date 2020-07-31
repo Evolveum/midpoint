@@ -33,6 +33,7 @@
                     }
                     if (changed) {
                         modelContext.focusContext.secondaryDeltas?.clear() // workaround for MID-6122
+                        modelContext.focusContext.secondaryDelta = null // workaround for MID-6122
                         modelContext.evaluatedAssignmentTriple = null // workaround for MID-6122
                         modelContext.rot()
                     }

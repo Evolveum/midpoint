@@ -109,7 +109,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
                                 Projector.class, context, activityDescription, now, task, result);
 
                 if (inboundRun && !focusContext.isDelete() && iterationHelper.didIterationSpecificationChange()) {
-                    cleanupContext(focusContext);
+                    iterationHelper.cleanupContext();
                     continue;
                 }
 
@@ -197,7 +197,7 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
                 // Processing done, check for success
 
                 if (iterationHelper.didResetOnRenameOccur()) {
-                    cleanupContext(focusContext);
+                    iterationHelper.cleanupContext();
                     continue;
                 }
 
@@ -212,13 +212,13 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
                 }
 
                 if (iterationHelper.shouldResetOnConflict()) {
-                    cleanupContext(focusContext);
+                    iterationHelper.cleanupContext();
                     continue;
                 }
             }
 
             iterationHelper.incrementIterationCounter();
-            cleanupContext(focusContext);
+            iterationHelper.cleanupContext();
         }
 
         iterationHelper.createIterationTokenDeltas();
@@ -230,19 +230,6 @@ public class AssignmentHolderProcessor implements ProjectorProcessor {
 
         medic.traceContext(LOGGER, activityDescription, "focus processing", false, context, false);
         LensUtil.checkContextSanity(context, "focus processing", result);
-    }
-
-    /**
-     * Remove the intermediate results of values processing such as secondary deltas.
-     */
-    private <AH extends AssignmentHolderType> void cleanupContext(LensFocusContext<AH> focusContext) throws SchemaException, ConfigurationException {
-        // We must NOT clean up activation computation. This has happened before, it will not happen again
-        // and it does not depend on iteration
-        LOGGER.trace("Cleaning up focus context");
-        focusContext.setProjectionWaveSecondaryDelta(null);
-
-        focusContext.clearIntermediateResults();
-        focusContext.recompute();
     }
 
     ExpressionFactory getExpressionFactory() {

@@ -16,7 +16,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
-import com.evolveum.midpoint.model.impl.lens.projector.util.SkipWhenFocusDeleted;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -54,7 +53,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 @Component
 // shouldn't we skip on "secondary delete" as well?
-@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = SkipWhenFocusDeleted.PRIMARY)
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = true)
 public class FocusActivationProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusActivationProcessor.class);
@@ -93,7 +92,7 @@ public class FocusActivationProcessor implements ProjectorProcessor {
     }
 
     private <F extends AssignmentHolderType> void processAssignmentActivation(LensContext<F> context) throws SchemaException {
-        DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
+        DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple(); // TODO
         if (evaluatedAssignmentTriple == null) {
             // Code path that should not normally happen. But is used in some tests and may
             // happen during partial processing.
@@ -271,7 +270,7 @@ public class FocusActivationProcessor implements ProjectorProcessor {
                 PropertyDelta<XMLGregorianCalendar> lockoutExpirationTimestampDelta
                         = lockoutExpirationTimestampDef.createEmptyDelta(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP));
                 lockoutExpirationTimestampDelta.setValueToReplace();
-                focusContext.swallowToProjectionWaveSecondaryDelta(lockoutExpirationTimestampDelta);
+                focusContext.swallowToSecondaryDelta(lockoutExpirationTimestampDelta);
             }
         }
     }
@@ -284,7 +283,7 @@ public class FocusActivationProcessor implements ProjectorProcessor {
                 PrismPropertyDefinition<Integer> failedLoginsDef = getFailedLoginsDefinition();
                 PropertyDelta<Integer> failedLoginsDelta = failedLoginsDef.createEmptyDelta(path);
                 failedLoginsDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(0, OriginType.USER_POLICY, null));
-                focusContext.swallowToProjectionWaveSecondaryDelta(failedLoginsDelta);
+                focusContext.swallowToSecondaryDelta(failedLoginsDelta);
             }
         }
     }
@@ -301,13 +300,13 @@ public class FocusActivationProcessor implements ProjectorProcessor {
         } else {
             validityStatusDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(validityStatusNew, OriginType.USER_POLICY, null));
         }
-        focusContext.swallowToProjectionWaveSecondaryDelta(validityStatusDelta);
+        focusContext.swallowToSecondaryDelta(validityStatusDelta);
 
         PrismPropertyDefinition<XMLGregorianCalendar> validityChangeTimestampDef = activationDefinition.findPropertyDefinition(ActivationType.F_VALIDITY_CHANGE_TIMESTAMP);
         PropertyDelta<XMLGregorianCalendar> validityChangeTimestampDelta
                 = validityChangeTimestampDef.createEmptyDelta(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_VALIDITY_CHANGE_TIMESTAMP));
         validityChangeTimestampDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(now, OriginType.USER_POLICY, null));
-        focusContext.swallowToProjectionWaveSecondaryDelta(validityChangeTimestampDelta);
+        focusContext.swallowToSecondaryDelta(validityChangeTimestampDelta);
     }
 
     private <F extends ObjectType> void recordEffectiveStatusDelta(LensFocusContext<F> focusContext,
@@ -324,9 +323,7 @@ public class FocusActivationProcessor implements ProjectorProcessor {
         PropertyDelta<ActivationStatusType> effectiveStatusDelta
                 = effectiveStatusDef.createEmptyDelta(PATH_ACTIVATION_EFFECTIVE_STATUS);
         effectiveStatusDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(effectiveStatusNew, OriginType.USER_POLICY, null));
-        if (!focusContext.alreadyHasDelta(effectiveStatusDelta)){
-            focusContext.swallowToProjectionWaveSecondaryDelta(effectiveStatusDelta);
-        }
+        focusContext.swallowToSecondaryDelta(effectiveStatusDelta);
 
         // It is not enough to check alreadyHasDelta(). The change may happen in previous waves
         // and the secondary delta may no longer be here. When it comes to disableTimestamp we even
@@ -341,11 +338,10 @@ public class FocusActivationProcessor implements ProjectorProcessor {
             }
         }
 
-        PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(effectiveStatusNew, now, activationDefinition, OriginType.USER_POLICY,
+        PropertyDelta<XMLGregorianCalendar> timestampDelta =
+                LensUtil.createActivationTimestampDelta(effectiveStatusNew, now, activationDefinition, OriginType.USER_POLICY,
                 prismContext);
-        if (!focusContext.alreadyHasDelta(timestampDelta)) {
-            focusContext.swallowToProjectionWaveSecondaryDelta(timestampDelta);
-        }
+        focusContext.swallowToSecondaryDelta(timestampDelta);
     }
 
 

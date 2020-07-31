@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -37,6 +37,7 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.*;
+import java.util.function.Function;
 
 import static com.evolveum.midpoint.model.impl.lens.LensUtil.setMappingTarget;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS;
@@ -126,11 +127,16 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
      */
     private final ObjectDelta<T> targetAPrioriDelta;
 
+    /**
+     * Whether item delta exists for a given target item.
+     */
+    private final Function<ItemPath, Boolean> itemDeltaExistsProvider;
+
     //region Intermediary data
     /**
      * Collected item definitions from the template and all included templates.
      */
-    private final Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = new HashMap<>();
+    private final PathKeyedMap<ObjectTemplateItemDefinitionType> itemDefinitionsMap = new PathKeyedMap<>();
 
     /**
      * Collected mappings:
@@ -159,6 +165,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             ObjectTemplateType template,
             int iteration, String iterationToken,
             TargetObjectSpecification<T> targetSpecification, ObjectDelta<T> targetAPrioriDelta,
+            Function<ItemPath, Boolean> itemDeltaExistsProvider,
             PrismObjectDefinition<T> targetDefinition,
             String parentContextDesc, XMLGregorianCalendar now, Task task, OperationResult result) {
         this.beans = beans;
@@ -171,6 +178,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         this.iterationToken = iterationToken;
         this.targetSpecification = targetSpecification;
         this.targetAPrioriDelta = targetAPrioriDelta;
+        this.itemDeltaExistsProvider = itemDeltaExistsProvider;
         this.targetDefinition = targetDefinition;
         this.env = new MappingEvaluationEnvironment(getContextDescription(parentContextDesc), now, task);
         this.result = result;
@@ -182,30 +190,33 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         LensFocusContext<AH> focusContext = context.getFocusContextRequired();
         TargetObjectSpecification<AH> targetSpecification = new FixedTargetSpecification<>(focusContext.getObjectNew(), true);
         return new TemplateMappingsEvaluation<>(beans, context,
-                focusContext.getObjectDeltaObject(),
+                focusContext.getObjectDeltaObjectRelative(),
                 phase,
                 context.getFocusTemplate(),
                 focusContext.getIteration(), focusContext.getIterationToken(),
-                targetSpecification, focusContext.getDelta(),
-                 focusContext.getObjectDefinition(),
-                 "focus " + focusContext.getObjectAny(), now, task, result);
+                targetSpecification, focusContext.getCurrentDelta(),
+                context::itemDeltaExists,
+                focusContext.getObjectDefinition(),
+                "focus " + focusContext.getObjectAny(), now, task, result);
     }
 
     public static <F extends AssignmentHolderType, T extends AssignmentHolderType>
     TemplateMappingsEvaluation<F, T> createForPersonaTemplate(
             ModelBeans beans, LensContext<F> context,
-            ObjectDeltaObject<F> focusOdo,
+            ObjectDeltaObject<F> focusOdoAbsolute,
             ObjectTemplateType template,
             @NotNull PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta,
             String contextDescription,
             XMLGregorianCalendar now, Task task, OperationResult result) {
         TargetObjectSpecification<T> targetSpecification = new FixedTargetSpecification<>(targetObject, false);
         return new TemplateMappingsEvaluation<>(beans, context,
-                focusOdo,
+                focusOdoAbsolute,
                 BEFORE_ASSIGNMENTS,
                 template,
                 0, null,
-                targetSpecification, targetAPrioriDelta, targetObject.getDefinition(),
+                targetSpecification, targetAPrioriDelta,
+                itemPath -> targetAPrioriDelta != null && targetAPrioriDelta.findItemDelta(itemPath) != null,
+                targetObject.getDefinition(),
                 contextDescription, now, task, result);
     }
 
@@ -238,7 +249,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         mappingSetEvaluation.evaluateMappingsToTriples();
     }
 
-    private void consolidateToItemDeltas() throws ExpressionEvaluationException, PolicyViolationException, SchemaException,
+    private void consolidateToItemDeltas() throws ExpressionEvaluationException, SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap = mappingSetEvaluation.getOutputTripleMap();
         LOGGER.trace("outputTripleMap before item delta computation:\n{}", DebugUtil.debugDumpMapMultiLineLazily(outputTripleMap));
@@ -247,8 +258,8 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         //  What is used here is the original focus odo, which is maybe correct.
         PrismObject<T> targetObject = targetSpecification.getTargetObject();
 
-        consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap, targetObject, targetAPrioriDelta, null,
-                null, targetDefinition, env, beans, context, result);
+        consolidation = new DeltaSetTripleMapConsolidation<>(outputTripleMap, targetObject, targetAPrioriDelta, itemDeltaExistsProvider,
+                null, null, targetDefinition, env, beans, context, result);
         consolidation.computeItemDeltas();
     }
 
@@ -278,7 +289,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
             LensUtil.rejectNonTolerantSettingIfPresent(def, itemPath, env.contextDescription);
 
             // TODO check for incompatible overrides
-            ItemPathCollectionsUtil.putToMap(itemDefinitionsMap, itemPath, def);
+            itemDefinitionsMap.put(itemPath, def);
         }
     }
 
@@ -311,7 +322,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
         }
     }
 
-    Map<UniformItemPath, ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
+    PathKeyedMap<ObjectTemplateItemDefinitionType> getItemDefinitionsMap() {
         return itemDefinitionsMap;
     }
 

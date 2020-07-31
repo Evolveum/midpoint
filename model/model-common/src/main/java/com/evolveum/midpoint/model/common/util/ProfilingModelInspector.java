@@ -157,15 +157,11 @@ public class ProfilingModelInspector implements DiagnosticContext, ClockworkInsp
                 }
             }
         }
-        int changes = 0;
-        Collection<ObjectDelta<? extends ObjectType>> allDeltas = null;
+        int changes;
         try {
-            allDeltas = context.getAllChanges();
+            changes = context.getAllChanges();
         } catch (SchemaException e) {
             changes = -1;
-        }
-        if (allDeltas != null) {
-            changes = allDeltas.size();
         }
         long projectorEtime = projectorTimes.get(context.getState()).etime();
         LOGGER.trace("Projector {} finished ({}), {} changes, etime: {} ms ({} mapping evaluated, {} ms total)",

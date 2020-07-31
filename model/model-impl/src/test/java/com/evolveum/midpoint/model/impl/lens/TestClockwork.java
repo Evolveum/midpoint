@@ -93,7 +93,7 @@ public class TestClockwork extends AbstractLensTest {
         LensContext<?> context2 = LensContext.fromLensContextType(
                 unmarshalledContainer, context.getPrismContext(), provisioningService, task, result);
 
-        displayDumpable("Context after deserialization", context);
+        displayDumpable("Context after deserialization", context2);
 
         // THEN
         then();
@@ -101,10 +101,10 @@ public class TestClockwork extends AbstractLensTest {
         for (int i = 0; i < context.getFocusContext().getSecondaryDeltas().size(); i++) {
             assertEquals(
                     "Secondary delta #" + i + " is not preserved correctly, "
-                            + "expected:\n" + context.getFocusContext().getSecondaryDelta(i).debugDump()
-                            + "but was\n" + context2.getFocusContext().getSecondaryDelta(i).debugDump(),
-                    context2.getFocusContext().getSecondaryDelta(i),
-                    context.getFocusContext().getSecondaryDelta(i));
+                            + "expected:\n" + context.getFocusContext().getSecondaryDeltas().get(i).debugDump()
+                            + "but was\n" + context2.getFocusContext().getSecondaryDeltas().get(i).debugDump(),
+                    context2.getFocusContext().getSecondaryDeltas().get(i),
+                    context.getFocusContext().getSecondaryDeltas().get(i));
         }
     }
 

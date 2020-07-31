@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
@@ -57,6 +58,15 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     DeltaSetTriple<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentTriple();
 
+    @NotNull
+    Stream<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentsStream();
+
+    @NotNull
+    Collection<? extends EvaluatedAssignment<?>> getNonNegativeEvaluatedAssignments();
+
+    @NotNull
+    Collection<? extends EvaluatedAssignment<?>> getAllEvaluatedAssignments();
+
     PrismContext getPrismContext();       // use with care
 
     ObjectTemplateType getFocusTemplate();
@@ -65,7 +75,7 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     String getChannel();
 
-    Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException;
+    int getAllChanges() throws SchemaException;
 
     // For diagnostic purposes (this is more detailed than rule-related part of LensContext debugDump,
     // while less detailed than that part of detailed LensContext debugDump).

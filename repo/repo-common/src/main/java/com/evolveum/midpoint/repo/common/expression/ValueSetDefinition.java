@@ -37,7 +37,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
     private final String shortDesc;
     private final Task task;
     private final OperationResult result;
-    private ValueSetDefinitionPredefinedType pre;
+    private ValueSetDefinitionPredefinedType predefinedRange;
     private final String additionalVariableName;
     private ExpressionVariables additionalVariables;
     private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> condition;
@@ -55,7 +55,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
     }
 
     public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        pre = setDefinitionType.getPredefined();
+        predefinedRange = setDefinitionType.getPredefined();
         ExpressionType conditionType = setDefinitionType.getCondition();
         if (conditionType != null) {
             condition = ExpressionUtil.createCondition(conditionType, expressionProfile, expressionFactory, shortDesc, task, result);
@@ -67,14 +67,14 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
     }
 
     public boolean contains(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        if (pre != null) {
-            switch (pre) {
+        if (predefinedRange != null) {
+            switch (predefinedRange) {
                 case NONE:
                     return false;
                 case ALL:
                     return true;
                 default:
-                    throw new IllegalStateException("Unknown pre value: "+pre);
+                    throw new IllegalStateException("Unknown pre value: "+ predefinedRange);
             }
         } else {
             return evalCondition(pval);
@@ -92,7 +92,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
         }
     }
 
-    private <IV extends PrismValue> boolean evalCondition(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private boolean evalCondition(IV pval) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionVariables variables = new ExpressionVariables();
         Object value = getInputValue(pval);
         variables.addVariableDefinition(ExpressionConstants.VAR_INPUT, value, itemDefinition);
@@ -113,7 +113,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
         }
     }
 
-    private <IV extends PrismValue> Object getInputValue(IV pval) {
+    private Object getInputValue(IV pval) {
         if (pval instanceof PrismContainerValue) {
             PrismContainerValue<?> pcv = (PrismContainerValue<?>) pval;
             if (pcv.getCompileTimeClass() != null) {

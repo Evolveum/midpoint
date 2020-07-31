@@ -33,6 +33,7 @@
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingInbound"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAutoInbound"/>
             <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingChaining"/>
+            <class name="com.evolveum.midpoint.model.intest.mapping.TestMappingAdvanced"/>
             <class name="com.evolveum.midpoint.model.intest.TestInbounds"/>
             <class name="com.evolveum.midpoint.model.intest.TestVolatility"/>
             <class name="com.evolveum.midpoint.model.intest.TestTriggerTask"/>

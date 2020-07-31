@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  * @author Radovan Semancik
  */
 @Component
-@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = PRIMARY_OR_SECONDARY)
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = true)
 public class InboundProcessor implements ProjectorProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(InboundProcessor.class);
@@ -53,6 +53,7 @@ public class InboundProcessor implements ProjectorProcessor {
             CommunicationException, SecurityViolationException, PolicyViolationException {
 
         MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(activityDescription, now, task);
+
         InboundMappingsEvaluation<F> evaluation = new InboundMappingsEvaluation<>(context, beans, env, result);
         evaluation.collectAndEvaluateMappings();
 

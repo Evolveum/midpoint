@@ -111,7 +111,7 @@ abstract class ScriptingTaskCreator {
     }
 
     private ExpressionVariables createVariables() throws SchemaException {
-        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(actx.context, null);
+        ExpressionVariables variables = ModelImplUtils.getDefaultExpressionVariables(actx.context, null, true);
         actx.putIntoVariables(variables);
         return variables;
     }

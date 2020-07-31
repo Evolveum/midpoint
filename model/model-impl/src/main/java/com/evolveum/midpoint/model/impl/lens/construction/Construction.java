@@ -51,15 +51,17 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 /**
  * Live class that contains "construction" - a definition how to construct a
  * resource object. It in fact reflects the definition of ConstructionType but
  * it also contains "live" objects and can evaluate the construction. It also
  * contains intermediary and side results of the evaluation.
  *
- * This class represents the definiton of a construction.
+ * This class represents the definition of a construction.
  * Single definition may produce many "evaluated" constructions,
- * e.g. in case that multiaccouts (tags) are used.
+ * e.g. in case that multiaccounts (tags) are used.
  * Evaluated constructions are represented by evaluatedConstructionTriple.
  *
  * @author Radovan Semancik
@@ -76,7 +78,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
 
     private ObjectType orderOneObject;
     private ResolvedResource resolvedResource;
-    private ExpressionProfile expressionProfile;
+    private final ExpressionProfile expressionProfile;
     private MappingFactory mappingFactory;
     private MappingEvaluator mappingEvaluator;
     private ContextLoader contextLoader;
@@ -87,10 +89,15 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
     private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
     private PrismObject<SystemConfigurationType> systemConfiguration; // only to provide $configuration variable (MID-2372)
 
+    /**
+     * Delta set triple for evaluated constructions. These correspond to tags triple:
+     * - if tags are not used then there is a single zero-set evaluated construction;
+     * - if tags are used then the evaluated constructions are modeled after tag triple (plus/minus/zero).
+     */
     private DeltaSetTriple<EC> evaluatedConstructionTriple;
 
-    public Construction(ConstructionType constructionType, ObjectType source) {
-        super(constructionType, source);
+    public Construction(ConstructionType constructionBean, ObjectType source) {
+        super(constructionBean, source);
         // TODO: this is wrong. It should be set up during the evaluation process.
         this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
     }
@@ -199,14 +206,14 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionVariables variables = ModelImplUtils
-                .getDefaultExpressionVariables(getFocusOdo().getNewObject().asObjectable(), null, null, null, mappingEvaluator.getPrismContext());
+                .getDefaultExpressionVariables(getFocusOdoAbsolute().getNewObject().asObjectable(), null, null, null, mappingEvaluator.getPrismContext());
         if (assignmentPathVariables == null) {
-            assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
+            assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
         }
         ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, getPrismContext());
         LOGGER.debug("Expression variables for filter evaluation: {}", variables);
 
-        ObjectFilter origFilter = getPrismContext().getQueryConverter().parseFilter(getConstructionType().getResourceRef().getFilter(),
+        ObjectFilter origFilter = getPrismContext().getQueryConverter().parseFilter(constructionBean.getResourceRef().getFilter(),
                 ResourceType.class);
         LOGGER.debug("Orig filter {}", origFilter);
         ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables,
@@ -263,7 +270,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         if (resolvedResource != null) {
             throw new IllegalStateException("Resolving the resource twice? In: " + getSource());
         } else {
-            ObjectReferenceType resourceRef = getConstructionType().getResourceRef();
+            ObjectReferenceType resourceRef = constructionBean.getResourceRef();
             if (resourceRef != null) {
                 @NotNull ResourceType resource;
                 //noinspection unchecked
@@ -305,7 +312,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
                                 e);
                     }
                 }
-                getConstructionType().getResourceRef().setOid(resource.getOid());
+                constructionBean.getResourceRef().setOid(resource.getOid());
                 resolvedResource = new ResolvedResource(resource);
                 return resource;
             } else {
@@ -329,7 +336,9 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         // AssignmentProcessor.processAssignments. Otherwise partial error won't be propagated properly.
         OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
         try {
-            assignmentPathVariables = LensUtil.computeAssignmentPathVariables(getAssignmentPath());
+            LOGGER.trace("Evaluating construction '{}' in {}", this, this.getSource());
+
+            assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
             ResourceType resource = resolveResource(task, result);
             if (resource != null) {
                 evaluateObjectClassDefinition(resource, task, result);
@@ -353,8 +362,8 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
     }
 
     private void evaluateObjectClassDefinition(ResourceType resource, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
-        if (getConstructionType().getResourceRef() != null) {
-            String resourceOid = getConstructionType().getResourceRef().getOid();
+        if (constructionBean.getResourceRef() != null) {
+            String resourceOid = constructionBean.getResourceRef().getOid();
             if (resourceOid != null && !resource.getOid().equals(resourceOid)) {
                 throw new IllegalStateException(
                         "The specified resource and the resource in construction does not match");
@@ -368,16 +377,14 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
             throw new SchemaException("No (refined) schema for " + resource);
         }
 
-        ShadowKindType kind = getConstructionType().getKind();
-        if (kind == null) {
-            kind = ShadowKindType.ACCOUNT;
-        }
-        refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, getConstructionType().getIntent());
+        ShadowKindType kind = defaultIfNull(constructionBean.getKind(), ShadowKindType.ACCOUNT);
+
+        refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, constructionBean.getIntent());
 
         if (refinedObjectClassDefinition == null) {
-            if (getConstructionType().getIntent() != null) {
+            if (constructionBean.getIntent() != null) {
                 throw new SchemaException(
-                        "No " + kind + " type '" + getConstructionType().getIntent() + "' found in "
+                        "No " + kind + " type '" + constructionBean.getIntent() + "' found in "
                                 + resource + " as specified in construction in " + getSource());
             } else {
                 throw new SchemaException("No default " + kind + " type found in " + resource
@@ -385,8 +392,8 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
             }
         }
 
-        auxiliaryObjectClassDefinitions = new ArrayList<>(getConstructionType().getAuxiliaryObjectClass().size());
-        for (QName auxiliaryObjectClassName : getConstructionType().getAuxiliaryObjectClass()) {
+        auxiliaryObjectClassDefinitions = new ArrayList<>(constructionBean.getAuxiliaryObjectClass().size());
+        for (QName auxiliaryObjectClassName : constructionBean.getAuxiliaryObjectClass()) {
             RefinedObjectClassDefinition auxOcDef = refinedSchema
                     .getRefinedDefinition(auxiliaryObjectClassName);
             if (auxOcDef == null) {
@@ -402,9 +409,9 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
     protected void createEvaluatedConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         evaluatedConstructionTriple = getPrismContext().deltaFactory().createDeltaSetTriple();
 
-        PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTripe(task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTriple(task, result);
         if (tagTriple == null) {
-            // Singleaccount case (not multiaccount). We just create a simple EvaluatedConstruction
+            // Single-account case (not multi-account). We just create a simple EvaluatedConstruction
             EC evaluatedConstruction = createEvaluatedConstruction((String)null);
             evaluatedConstructionTriple.addToZeroSet(evaluatedConstruction);
 
@@ -415,7 +422,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
     }
 
 
-    private PrismValueDeltaSetTriple<PrismPropertyValue<String>> evaluateTagTripe(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private PrismValueDeltaSetTriple<PrismPropertyValue<String>> evaluateTagTriple(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         ResourceObjectMultiplicityType multiplicity = refinedObjectClassDefinition.getMultiplicity();
         if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
             return null;
@@ -434,7 +441,6 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder = mappingFactory.createMappingBuilder(
                 outboundMappingSpec,
                 "for outbound tag mapping in " + getSource());
-
 
         MutablePrismPropertyDefinition<String> outputDefinition = mappingFactory.getExpressionFactory().getPrismContext().definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
@@ -461,25 +467,20 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         // This code may seem primitive and old-fashioned.
         // But equivalent functional code (using foreach()) is just insane due to nextRecompute and exception handling.
         for (EvaluatedConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getZeroSet()) {
-            NextRecompute construcionNextRecompute = evaluateConstruction(evaluatedConstruction, task, result);
-            nextRecompute = NextRecompute.update(construcionNextRecompute, nextRecompute);
+            NextRecompute constructionNextRecompute = evaluatedConstruction.evaluate(task, result);
+            nextRecompute = NextRecompute.update(constructionNextRecompute, nextRecompute);
         }
         for (EvaluatedConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getPlusSet()) {
-            NextRecompute construcionNextRecompute = evaluateConstruction(evaluatedConstruction, task, result);
-            nextRecompute = NextRecompute.update(construcionNextRecompute, nextRecompute);
+            NextRecompute constructionNextRecompute = evaluatedConstruction.evaluate(task, result);
+            nextRecompute = NextRecompute.update(constructionNextRecompute, nextRecompute);
         }
         for (EvaluatedConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getMinusSet()) {
-            NextRecompute construcionNextRecompute = evaluateConstruction(evaluatedConstruction, task, result);
-            nextRecompute = NextRecompute.update(construcionNextRecompute, nextRecompute);
+            NextRecompute constructionNextRecompute = evaluatedConstruction.evaluate(task, result);
+            nextRecompute = NextRecompute.update(constructionNextRecompute, nextRecompute);
         }
 
         return nextRecompute;
     }
-
-    protected NextRecompute evaluateConstruction(EvaluatedConstructionImpl<AH> evaluatedConstruction, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        return evaluatedConstruction.evaluate(task, result);
-    }
-
 
     public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attributeName) {
         if (refinedObjectClassDefinition == null) {
@@ -510,11 +511,11 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         return associationContainerDefinition;
     }
 
-    @SuppressWarnings("ConstantConditions")
     <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> initializeMappingBuilder(
             MappingBuilder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
             RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result) {
 
+        // TODO Wow. We are not prepared for this. This will bring some NPEs.
         if (!builder.isApplicableToChannel(getChannel())) {
             return null;
         }
@@ -522,14 +523,14 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         builder = builder.mappingQName(mappingQName)
                 .mappingKind(MappingKindType.CONSTRUCTION)
                 .implicitTargetPath(implicitTargetPath)
-                .sourceContext(getFocusOdo())
+                .sourceContext(getFocusOdoAbsolute())
                 .defaultTargetDefinition(outputDefinition)
                 .originType(getOriginType())
                 .originObject(getSource())
                 .refinedObjectClassDefinition(getRefinedObjectClassDefinition())
-                .rootNode(getFocusOdo())
-                .addVariableDefinition(ExpressionConstants.VAR_USER, getFocusOdo())
-                .addVariableDefinition(ExpressionConstants.VAR_FOCUS, getFocusOdo())
+                .rootNode(getFocusOdoAbsolute())
+                .addVariableDefinition(ExpressionConstants.VAR_USER, getFocusOdoAbsolute())
+                .addVariableDefinition(ExpressionConstants.VAR_FOCUS, getFocusOdoAbsolute())
                 .addAliasRegistration(ExpressionConstants.VAR_USER, null)
                 .addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
                 .addVariableDefinition(ExpressionConstants.VAR_SOURCE, getSource(), ObjectType.class)
@@ -551,10 +552,10 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         // to nonsense values in case user is not present
         // (e.g. in old values in ADD situations and new values in DELETE
         // situations).
-        if (getFocusOdo().getOldObject() == null) {
+        if (getFocusOdoAbsolute().getOldObject() == null) {
             builder = builder.conditionMaskOld(false);
         }
-        if (getFocusOdo().getNewObject() == null) {
+        if (getFocusOdoAbsolute().getNewObject() == null) {
             builder = builder.conditionMaskNew(false);
         }
 
@@ -566,7 +567,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
             RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
-        initializeMappingBuilder(builder, implicitTargetPath, mappingQName, outputDefinition, assocTargetObjectClassDefinition, task, result);
+        builder = initializeMappingBuilder(builder, implicitTargetPath, mappingQName, outputDefinition, assocTargetObjectClassDefinition, task, result);
 
         MappingImpl<V, D> mapping = builder.build();
         getMappingEvaluator().evaluateMapping(mapping, getLensContext(), null, task, result);
@@ -699,30 +700,25 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         DebugUtil.debugDumpLabel(sb, this.getClass().getSimpleName(), indent);
         if (refinedObjectClassDefinition == null) {
             sb.append(" (no object class definition)");
-            if (getConstructionType() != null && getConstructionType().getResourceRef() != null) { // should
-                // be
-                // always
-                // the
-                // case
+            if (constructionBean != null && constructionBean.getResourceRef() != null) { // should be always the case
                 sb.append("\n");
                 DebugUtil.debugDumpLabel(sb, "resourceRef / kind / intent", indent + 1);
                 sb.append(" ");
-                sb.append(ObjectTypeUtil.toShortString(getConstructionType().getResourceRef()));
+                sb.append(ObjectTypeUtil.toShortString(constructionBean.getResourceRef()));
                 sb.append(" / ");
-                sb.append(getConstructionType().getKind());
+                sb.append(constructionBean.getKind());
                 sb.append(" / ");
-                sb.append(getConstructionType().getIntent());
+                sb.append(constructionBean.getIntent());
             }
         } else {
             sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
         }
-        if (getConstructionType() != null && getConstructionType().getStrength() == ConstructionStrengthType.WEAK) {
+        if (constructionBean != null && constructionBean.getStrength() == ConstructionStrengthType.WEAK) {
             sb.append(" weak");
         }
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "isValid", isValid(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "valid", isValid(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "wasValid", getWasValid(), indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "relativityMode", getRelativityMode(), indent + 1);
         DebugUtil.debugDumpLabel(sb, "auxiliary object classes", indent + 1);
         if (auxiliaryObjectClassDefinitions == null) {
             sb.append(" (null)");
@@ -735,15 +731,15 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
                 sb.append(auxiliaryObjectClassDefinition.getTypeName());
             }
         }
-        if (getConstructionType() != null && getConstructionType().getDescription() != null) {
+        if (constructionBean != null && constructionBean.getDescription() != null) {
             sb.append("\n");
             DebugUtil.debugDumpLabel(sb, "description", indent + 1);
-            sb.append(" ").append(getConstructionType().getDescription());
+            sb.append(" ").append(constructionBean.getDescription());
         }
 
-        if (getAssignmentPath() != null) {
+        if (assignmentPath != null) {
             sb.append("\n");
-            sb.append(getAssignmentPath().debugDump(indent + 1));
+            sb.append(assignmentPath.debugDump(indent + 1));
         }
         sb.append("\n");
         DebugUtil.debugDumpLabel(sb, "evaluated constructions", indent + 1);
@@ -762,7 +758,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
     public String toString() {
         StringBuilder sb = new StringBuilder("Construction(");
         if (refinedObjectClassDefinition == null) {
-            sb.append(getConstructionType());
+            sb.append(constructionBean);
         } else {
             sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
         }

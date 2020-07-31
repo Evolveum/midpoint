@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.assignments.ConditionState;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -115,7 +116,7 @@ public class CollectionProcessor {
                 .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
                 .direct(true) // to be reconsidered - but assignment path is empty, so we consider this to be directly assigned
                 .pathToSourceValid(true)
-                .sourceRelativityMode(PlusMinusZero.ZERO)
+                .pathToSourceConditionState(ConditionState.allTrue())
                 .build();
         assignmentPath.add(assignmentPathSegment);
 

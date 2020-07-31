@@ -11,7 +11,7 @@ import com.evolveum.midpoint.model.impl.lens.LensFocusContext;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
+import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
@@ -37,12 +37,12 @@ public class ItemLimitationsChecker {
      * @pre Focus context is recomputed.
      */
     <O extends ObjectType> void checkItemsLimitations(LensFocusContext<O> focusContext) throws SchemaException {
-        Map<UniformItemPath, ObjectTemplateItemDefinitionType> itemDefinitionsMap = focusContext.getItemDefinitionsMap();
+        PathKeyedMap<ObjectTemplateItemDefinitionType> itemDefinitionsMap = focusContext.getItemDefinitionsMap();
         PrismObject<O> objectNew = focusContext.getObjectNew();
         if (objectNew == null) {
             return; // nothing to check on DELETE operation
         }
-        for (Map.Entry<UniformItemPath, ObjectTemplateItemDefinitionType> entry : itemDefinitionsMap.entrySet()) {
+        for (Map.Entry<ItemPath, ObjectTemplateItemDefinitionType> entry : itemDefinitionsMap.entrySet()) {
             for (PropertyLimitationsType limitation : entry.getValue().getLimitations()) {
                 if (!limitation.getLayer().contains(LayerType.MODEL)) { // or should we apply SCHEMA-layer limitations as well?
                     continue;

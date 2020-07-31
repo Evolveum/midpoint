@@ -170,6 +170,11 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
     }
 
     @Override
+    public ObjectDelta<?> getFocusSummaryDelta() {
+        return focusContext.getSummaryDelta();
+    }
+
+    @Override
     public List<ObjectDelta<AssignmentHolderType>> getFocusDeltas() {
         List<ObjectDelta<AssignmentHolderType>> retval = new ArrayList<>();
         Class c = modelContext.getFocusClass();
@@ -292,29 +297,20 @@ public class ModelEventImpl extends BaseEventImpl implements ModelEvent {
         }
 
         //noinspection unchecked
-        ObjectDelta<FocusType> focusPrimaryDelta = (ObjectDelta) getFocusPrimaryDelta();
-        //noinspection unchecked
-        ObjectDelta<FocusType> focusSecondaryDelta = (ObjectDelta) getFocusSecondaryDelta();
-        if (focusPrimaryDelta == null && focusSecondaryDelta == null) {
+        ObjectDelta<FocusType> focusDelta = (ObjectDelta) getFocusSummaryDelta();
+        if (focusDelta == null) {
             LOGGER.trace("getFocusPasswordFromEvent: No password in executed delta(s) and no primary/secondary deltas");
             return null;
-        }
-        if (focusPrimaryDelta != null) {
-            String password = getPasswordFromDeltas(singletonList(focusPrimaryDelta));
+        } else {
+            String password = getPasswordFromDeltas(singletonList(focusDelta));
             if (password != null) {
-                LOGGER.trace("getFocusPasswordFromEvent: Found password in user primary delta, continuing");
+                LOGGER.trace("getFocusPasswordFromEvent: Found password in user summary delta, continuing");
                 return password;
+            } else {
+                LOGGER.trace("getFocusPasswordFromEvent: Summary delta present but no password there.");
+                return null;
             }
         }
-        if (focusSecondaryDelta != null) {
-            String password = getPasswordFromDeltas(singletonList(focusSecondaryDelta));
-            if (password != null) {
-                LOGGER.trace("getFocusPasswordFromEvent: Found password in user secondary delta(s)");
-                return password;
-            }
-        }
-        LOGGER.trace("getFocusPasswordFromEvent: No password in executed delta(s) nor in primary/secondary deltas");
-        return null;
     }
 
     private String getPasswordFromDeltas(List<ObjectDelta<? extends FocusType>> deltas) {

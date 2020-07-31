@@ -6,9 +6,7 @@
   -->
 
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      oid="ac42084a-d780-4d32-ac02-bcc49bdc747b">
-    <name>franz</name>
-    <subtype>incrementing</subtype>
-    <description>0</description>
-    <organization>O0</organization>
+      oid="25fa06c6-04e2-4f9e-97c4-87fa5613bb15">
+    <name>johann</name>
+    <fullName>Johann Sebastian Bach</fullName>
 </user>
