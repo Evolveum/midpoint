@@ -56,6 +56,7 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
             Throwable ex = new SchemaException("Found no delta to be applied");
             processActionException(ex, NAME, null, context); // TODO value for error reporting (3rd parameter)
             context.println("Found no delta to be applied");
+            return input;
         }
 
         iterateOverObjects(input, context, globalResult,
