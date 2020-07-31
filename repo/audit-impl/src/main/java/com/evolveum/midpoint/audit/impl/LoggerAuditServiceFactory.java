@@ -7,15 +7,11 @@
 
 package com.evolveum.midpoint.audit.impl;
 
-import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.audit.api.AuditServiceFactory;
-import com.evolveum.midpoint.audit.api.AuditServiceFactoryException;
 import org.apache.commons.configuration2.Configuration;
 
-/**
- * @author lazyman
- */
-@SuppressWarnings("RedundantThrows")
+import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.audit.api.AuditServiceFactory;
+
 public class LoggerAuditServiceFactory implements AuditServiceFactory {
 
     @Override
@@ -24,14 +20,10 @@ public class LoggerAuditServiceFactory implements AuditServiceFactory {
     }
 
     @Override
-    public void destroy() throws AuditServiceFactoryException {
+    public void destroy() {
     }
 
     @Override
-    public void init(Configuration config) throws AuditServiceFactoryException {
-    }
-
-    @Override
-    public void destroyService(AuditService service) throws AuditServiceFactoryException {
+    public void init(Configuration config) {
     }
 }

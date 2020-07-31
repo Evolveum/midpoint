@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.dialect.Dialect;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hibernate.jdbc.Work;
 import org.jetbrains.annotations.NotNull;
@@ -54,7 +55,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -178,6 +178,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <RV> RV executeAttemptsNoSchemaException(
             String oid, String operationName, Class<?> type, String operationVerb,
             OperationResult subResult, ResultSupplier<RV> supplier) throws ObjectNotFoundException {
@@ -188,6 +189,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <RV> RV executeQueryAttemptsNoSchemaException(ObjectQuery query,
             String operationName, Class<?> type, String operationVerb, OperationResult subResult,
             Supplier<RV> emptyQueryResultSupplier, ResultQueryBasedSupplier<RV> supplier) {
@@ -658,17 +660,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             SessionFactoryImpl sessionFactoryImpl = (SessionFactoryImpl) sessionFactory;
             // we try to override configuration which was read from sql repo configuration with
             // real configuration from session factory
-            if (sessionFactoryImpl.getDialect() != null) {
+            Dialect dialect = sessionFactoryImpl.getJdbcServices().getDialect();
+            if (dialect != null) {
                 for (int i = 0; i < details.size(); i++) {
                     if (details.get(i).getLabel().equals(DETAILS_HIBERNATE_DIALECT)) {
                         details.remove(i);
                         break;
                     }
                 }
-                String dialect = sessionFactoryImpl.getDialect().getClass().getName();
-                details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, dialect));
+                String dialectClassName = dialect.getClass().getName();
+                details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, dialectClassName));
             }
-
         } catch (Throwable th) {
             //nowhere to report error (no operation result available)
             session.getTransaction().rollback();
@@ -723,13 +725,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException {
+    public <T extends ObjectType> String getVersion(
+            Class<T> type, String oid, OperationResult parentResult)
+            throws ObjectNotFoundException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(oid, "Object oid must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
-        LOGGER.debug("Getting version for {} with oid '{}'.", new Object[] { type.getSimpleName(), oid });
+        LOGGER.debug("Getting version for {} with oid '{}'.", type.getSimpleName(), oid);
 
         OperationResult subResult = parentResult.subresult(GET_VERSION)
                 .addQualifier(type.getSimpleName())
@@ -864,9 +867,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Nullable
-    private <T extends ObjectType> SearchResultMetadata searchObjectsIterativeBySingleTransaction(Class<T> type,
-            ObjectQuery query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult subResult)
-            throws SchemaException {
+    private <T extends ObjectType> SearchResultMetadata searchObjectsIterativeBySingleTransaction(
+            Class<T> type,
+            ObjectQuery query,
+            ResultHandler<T> handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult subResult) {
         /*
          * Here we store OIDs that were already sent to the client during previous attempts.
          */
@@ -903,7 +909,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(lowerObjectOids, "lowerObjectOids must not be null.");
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Querying for subordination upper {}, lower {}", new Object[] { upperOrgOid, lowerObjectOids });
+            LOGGER.trace("Querying for subordination upper {}, lower {}", upperOrgOid, lowerObjectOids);
         }
 
         if (lowerObjectOids.isEmpty()) {
@@ -1203,8 +1209,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     getVersion(ObjectType.class, watcher.getOid(), result);
                 } catch (ObjectNotFoundException e) {
                     // just ignore this
-                } catch (SchemaException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check conflicts for {}", e, watcher.getOid());
                 }
                 rv = watcher.hasConflict();
             }
