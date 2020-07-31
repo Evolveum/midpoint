@@ -417,6 +417,9 @@ public class ReportServiceImpl implements ReportService {
         if (expressionResult.size() > 1) {
             throw new ExpressionEvaluationException("Too many results from expression "+context.getContextDescription());
         }
+        if (expressionResult.get(0) == null ) {
+            return null;
+        }
         return expressionResult.get(0).getRealValue();
     }
 
