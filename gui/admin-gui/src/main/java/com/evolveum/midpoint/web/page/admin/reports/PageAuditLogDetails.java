@@ -315,7 +315,7 @@ public class PageAuditLogDetails extends PageBase {
         Label taskOidLabel = new Label(ID_PARAMETERS_TASK_OID_LABEL, new PropertyModel(recordModel, "taskOID"));
 
         PrismObject<TaskType> finalTask = task;
-        LinkPanel taskOidLink = new LinkPanel(ID_PARAMETERS_TASK_OID_LINK, Model.of(finalTask ==null ? " " : (" " + finalTask.getName().getOrig()))) {
+        LinkPanel taskOidLink = new LinkPanel(ID_PARAMETERS_TASK_OID_LINK, Model.of(finalTask == null ? "" : (" " + finalTask.getName().getOrig()))) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
