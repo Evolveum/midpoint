@@ -13,6 +13,7 @@ import java.io.StringWriter;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URI;
+import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.function.Predicate;
@@ -813,15 +814,26 @@ public final class WebComponentUtil {
             ObjectTypeGuiDescriptor desc2 = ObjectTypeGuiDescriptor.getDescriptor(type2);
 
             String localizedType1 = translate(decs1);
+            if (localizedType1 == null) {
+                localizedType1 = decs1.getLocalizationKey();
+            }
             String localizedType2 = translate(desc2);
+            if (localizedType2 == null) {
+                localizedType2 = desc2.getLocalizationKey();
+            }
 
-            return String.CASE_INSENSITIVE_ORDER.compare(localizedType1, localizedType2);
+            Collator collator = Collator.getInstance(getCurrentLocale());
+            collator.setStrength(Collator.PRIMARY);
+
+            return collator.compare(localizedType1, localizedType2);
+
         }).collect(Collectors.toList());
     }
 
     private static String translate(ObjectTypeGuiDescriptor descriptor) {
         MidPointApplication app = MidPointApplication.get();
-        return app.getLocalizationService().translate(descriptor.getLocalizationKey(), null, getCurrentLocale());
+        String translatedValue = app.getLocalizationService().translate(descriptor.getLocalizationKey(), null, getCurrentLocale());
+        return translatedValue != null ? translatedValue : descriptor.getLocalizationKey();
     }
 
     public static List<QName> createAssignmentHolderTypeQnamesList() {
@@ -2838,13 +2850,6 @@ public final class WebComponentUtil {
         return relationsList;
     }
 
-    public static QName getCategoryDefaultRelation(AreaCategoryType category){
-        if (AreaCategoryType.GOVERNANCE.equals(category)) {
-            return RelationTypes.APPROVER.getRelation();
-        }
-        return null;
-    }
-
     public static List<QName> getAllRelations(ModelServiceLocator pageBase) {
         List<RelationDefinitionType> allRelationDefinitions = getRelationDefinitions(pageBase);
         List<QName> allRelationsQName = new ArrayList<>(allRelationDefinitions.size());
@@ -4142,7 +4147,7 @@ public final class WebComponentUtil {
             if (sortParam.getProperty().equals(metadataProperty)) {
                 return Collections.singletonList(
                         prismContext.queryFactory().createOrdering(
-                                ItemPath.create(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), order));
+                                ItemPath.create(ReportDataType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), order));
             }
             return Collections.singletonList(
                     prismContext.queryFactory().createOrdering(

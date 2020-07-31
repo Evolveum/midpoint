@@ -31,6 +31,10 @@
     <employeeType>CAPTAIN</employeeType>
     <locality>Caribbean</locality>
 
+    <assignment>
+        <targetRef oid="00000000-0000-0000-0000-000000000004" type="RoleType"/>
+    </assignment>
+
     <credentials>
         <password>
             <value>

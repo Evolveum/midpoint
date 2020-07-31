@@ -104,6 +104,7 @@ public abstract class SchemaConstants {
 
     public static final ItemName C_REPORT = new ItemName(NS_C, "report");
     public static final ItemName C_REPORT_OUTPUT = new ItemName(NS_C, "reportOutput");
+    public static final ItemName C_REPORT_DATA = new ItemName(NS_C, "reportData");
     public static final ItemName C_ITEM_PATH_FIELD = new ItemName(NS_C, "itemPathField");
     public static final QName C_ACTIVATION_STATUS_TYPE = new QName(NS_C, "ActivationStatusType");
     public static final ItemName C_SECURITY_POLICY = new ItemName(NS_C, "securityPolicy");

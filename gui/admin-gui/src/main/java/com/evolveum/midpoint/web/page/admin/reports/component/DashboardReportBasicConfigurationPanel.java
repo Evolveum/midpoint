@@ -83,12 +83,12 @@ public class DashboardReportBasicConfigurationPanel extends BasePanel<ReportDto>
 
             IModel<PrismObjectWrapper<ReportType>> objectWrapperModel = Model.of(objectWrapper);
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(this::getBasicTabVisibity);
-            add (getPageBase().initItemPanel(ID_PANEL, ExportConfigurationType.COMPLEX_TYPE,
+            add (getPageBase().initItemPanel(ID_PANEL, FileFormatConfigurationType.COMPLEX_TYPE,
                     objectWrapperModel, builder.build()));
             getModel().getObject().setNewReportModel(objectWrapperModel);
-            Panel export = getPageBase().initItemPanel(ID_EXPORT, ExportConfigurationType.COMPLEX_TYPE,
-                PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel, ReportType.F_EXPORT), new ItemPanelSettingsBuilder().build());
-            add(export);
+            Panel fileFormat = getPageBase().initItemPanel(ID_EXPORT, FileFormatConfigurationType.COMPLEX_TYPE,
+                PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel, ReportType.F_FILE_FORMAT), new ItemPanelSettingsBuilder().build());
+            add(fileFormat);
             Panel dashboard = getPageBase().initItemPanel(ID_DASHBOARD, DashboardReportEngineConfigurationType.COMPLEX_TYPE,
                 PrismContainerWrapperModel.fromContainerWrapper(objectWrapperModel, ItemPath.create(ReportType.F_DASHBOARD)), new ItemPanelSettingsBuilder().build());
             add(dashboard);

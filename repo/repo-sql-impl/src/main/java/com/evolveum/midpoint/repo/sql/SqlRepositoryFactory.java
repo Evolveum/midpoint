@@ -51,7 +51,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     }
 
     @Override
-    public synchronized void destroy() throws RepositoryServiceFactoryException {
+    public synchronized void destroy() {
         if (!initialized) {
             LOGGER.info("SQL repository was not initialized, nothing to destroy.");
             return;
@@ -91,11 +91,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         LOGGER.info("Shutdown complete.");
 
         initialized = false;
-    }
-
-    @Override
-    public void destroyService(RepositoryService service) throws RepositoryServiceFactoryException {
-        //we don't need destroying service objects, they will be GC correctly
     }
 
     @Override
@@ -139,7 +134,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     }
 
     @Override
-    public RepositoryService getRepositoryService() throws RepositoryServiceFactoryException {
+    public RepositoryService getRepositoryService() {
         return new SqlRepositoryServiceImpl(this);
     }
 
@@ -255,12 +250,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             File traceFile = new File(file, fileName + ".trace.db");
             removeFile(traceFile);
 
-            File[] tempFiles = file.listFiles((parent, name) -> {
-                if (name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$")) {
-                    return true;
-                }
-                return false;
-            });
+            File[] tempFiles = file.listFiles(
+                    (parent, name) -> name.matches("^" + fileName + "\\.[0-9]*\\.temp\\.db$"));
             if (tempFiles != null) {
                 for (File temp : tempFiles) {
                     removeFile(temp);
@@ -269,7 +260,7 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
             File lobDir = new File(file, fileName + ".lobs.db");
             if (lobDir.exists() && lobDir.isDirectory()) {
-                LOGGER.info("Deleting directory '{}'", new Object[] { lobDir.getAbsolutePath() });
+                LOGGER.info("Deleting directory '{}'", lobDir.getAbsolutePath());
                 FileUtils.deleteDirectory(lobDir);
             }
         } catch (Exception ex) {
@@ -278,11 +269,11 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
     }
 
-    private void removeFile(File file) throws IOException {
+    private void removeFile(File file) {
         if (file.exists()) {
-            LOGGER.info("Deleting file '{}', result: {}", new Object[] { file.getAbsolutePath(), file.delete() });
+            LOGGER.info("Deleting file '{}', result: {}", file.getAbsolutePath(), file.delete());
         } else {
-            LOGGER.info("File '{}' doesn't exist: delete status {}", new Object[] { file.getAbsolutePath(), file.delete() });
+            LOGGER.info("File '{}' doesn't exist: delete status {}", file.getAbsolutePath(), file.delete());
         }
     }
 

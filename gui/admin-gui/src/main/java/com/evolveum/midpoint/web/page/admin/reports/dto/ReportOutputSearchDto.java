@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.page.admin.reports.dto;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 
 import java.util.*;
 
@@ -27,7 +27,7 @@ public class ReportOutputSearchDto extends Selectable implements DebugDumpable {
     public static final String F_REPORT_TYPES = "reportTypes";
 
     private Map<String, String> reportTypeMap = new HashMap<>();
-    private ExportType fileType;
+    private FileFormatTypeType fileType;
     private String reportType = "Report Type";
     private String text;
 
@@ -58,11 +58,11 @@ public class ReportOutputSearchDto extends Selectable implements DebugDumpable {
         this.text = text;
     }
 
-    public ExportType getFileType() {
+    public FileFormatTypeType getFileType() {
         return fileType;
     }
 
-    public void setFileType(ExportType fileType) {
+    public void setFileType(FileFormatTypeType fileType) {
         this.fileType = fileType;
     }
 

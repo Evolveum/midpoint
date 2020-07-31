@@ -47,7 +47,6 @@ public class SqlGeneration {
         try (Connection conn = getConnection()) {
             QAuditEventRecord aer = new QAuditEventRecord("aer");
             System.out.println("M_AUDIT_EVENT.meta.size = " + aer.all().length);
-            System.out.println("M_AUDIT_DELTA.meta.size = " + aer.all().length);
 
             QMap auditDelta = Projections.map(aer.all());
             QMap auditEvent = Projections.map(aer.all());

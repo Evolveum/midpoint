@@ -226,7 +226,11 @@ public class AssignmentsUtil {
                 StringBuilder sb = new StringBuilder();
                 PolicyConstraintsType constraints = policyRuleContainer.getPolicyConstraints();
                 if (constraints != null && constraints.getExclusion() != null && constraints.getExclusion().size() > 0){
-                    sb.append(pageBase.createStringResource("PolicyConstraintsType.exclusion").getString()).append(": ");
+                    if (pageBase == null) {
+                        sb.append(PageBase.createStringResourceStatic(null, "PolicyConstraintsType.exclusion").getString()).append(": ");
+                    } else {
+                        sb.append(pageBase.createStringResource("PolicyConstraintsType.exclusion").getString()).append(": ");
+                    }
                     constraints.getExclusion().forEach(exclusion -> {
                         sb.append(WebComponentUtil.getName(exclusion.getTargetRef(), true));
                         sb.append("; ");

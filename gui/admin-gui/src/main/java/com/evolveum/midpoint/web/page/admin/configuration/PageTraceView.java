@@ -264,7 +264,7 @@ public class PageTraceView extends PageAdminConfiguration {
             getSecurityEnforcer().authorize(ModelAuthorizationAction.READ_TRACE.getUrl(), null,
                     AuthorizationParameters.EMPTY, null, task, result);
 
-            PrismObject<ReportOutputType> reportOutput = getModelService().getObject(ReportOutputType.class,
+            PrismObject<ReportDataType> reportOutput = getModelService().getObject(ReportDataType.class,
                     oid, null, task, result);
             String filePath = reportOutput.asObjectable().getFilePath();
             if (filePath != null) {

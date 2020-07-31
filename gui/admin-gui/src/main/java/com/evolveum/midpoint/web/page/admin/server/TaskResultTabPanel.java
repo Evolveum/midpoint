@@ -128,7 +128,7 @@ public class TaskResultTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
                 Label label = new Label(componentId, (IModel<String>) () -> {
                     Long resultEndTime = rowModel.getObject().getValue().getEnd();
                     return resultEndTime != null && resultEndTime > 0 ?
-                            WebComponentUtil.getShortDateTimeFormattedValue(new Date(), getPageBase()) : "";
+                            WebComponentUtil.getShortDateTimeFormattedValue(new Date(resultEndTime), getPageBase()) : "";
                 });
                 cellItem.add(label);
             }

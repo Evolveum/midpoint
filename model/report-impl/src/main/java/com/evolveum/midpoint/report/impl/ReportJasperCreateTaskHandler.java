@@ -538,15 +538,15 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
         JasperExportType export = getExport(reportType, jasperConfig);
         String reportOutputName = fileName + " - " + export.value();
 
-        ReportOutputType reportOutputType = new ReportOutputType();
-        prismContext.adopt(reportOutputType);
+        ReportDataType reportDataType = new ReportDataType();
+        prismContext.adopt(reportDataType);
 
-        reportOutputType.setFilePath(filePath);
-        reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
-        reportOutputType.setName(new PolyStringType(reportOutputName));
-        reportOutputType.setDescription(reportType.getDescription() + " - " + export.value());
-        if (reportType.getExport() != null) {
-            reportOutputType.setExportType(reportType.getExport().getType());
+        reportDataType.setFilePath(filePath);
+        reportDataType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
+        reportDataType.setName(new PolyStringType(reportOutputName));
+        reportDataType.setDescription(reportType.getDescription() + " - " + export.value());
+        if (reportType.getFileFormat() != null) {
+            reportDataType.setFileFormat(reportType.getFileFormat().getType());
         }
 
 
@@ -562,15 +562,15 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
             throw new IllegalStateException("Found more than one node with ID " + task.getNode());
         }
 
-        reportOutputType.setNodeRef(ObjectTypeUtil.createObjectRef(nodes.iterator().next(), prismContext));
+        reportDataType.setNodeRef(ObjectTypeUtil.createObjectRef(nodes.iterator().next(), prismContext));
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ReportOutputType> objectDelta = DeltaFactory.Object.createAddDelta(reportOutputType.asPrismObject());
+        ObjectDelta<ReportDataType> objectDelta = DeltaFactory.Object.createAddDelta(reportDataType.asPrismObject());
         deltas.add(objectDelta);
         OperationResult subResult = parentResult.createSubresult(OP_CREATE_REPORT_OUTPUT);
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = modelService.executeChanges(deltas, null, task, subResult);
-        String reportOutputOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, reportOutputType.asPrismObject());
+        String reportOutputOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, reportDataType.asPrismObject());
 
         LOGGER.debug("Created report output with OID {}", reportOutputOid);
         //noinspection unchecked
@@ -617,10 +617,10 @@ public class ReportJasperCreateTaskHandler implements TaskHandler {
     }
 
     protected JasperExportType getExport(ReportType report, JasperReportEngineConfigurationType jasperConfig) {
-        if (report.getExport() != null && report.getExport().getType() != null) {
-            if (report.getExport().getType().equals(ExportType.CSV)) {
+        if (report.getFileFormat() != null && report.getFileFormat().getType() != null) {
+            if (report.getFileFormat().getType().equals(FileFormatTypeType.CSV)) {
                 return JasperExportType.CSV;
-            } else if (report.getExport().getType().equals(ExportType.HTML)) {
+            } else if (report.getFileFormat().getType().equals(FileFormatTypeType.HTML)) {
                 return JasperExportType.HTML;
             }
         }

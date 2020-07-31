@@ -85,6 +85,7 @@ public enum ModelAuthorizationAction implements DisplayableValue<String> {
     GET_EXTENSION_SCHEMA("getExtensionSchema", "Get extension schema", "GET_EXTENSION_SCHEMA_HELP"),
 
     RUN_REPORT("runReport", "Run report", "RUN_REPORT_HELP"),
+    IMPORT_REPORT("importReport", "Import report", "IMPORT_REPORT_HELP"),
 
     @Experimental
     RECORD_TRACE("recordTrace", "Record trace", "RECORD_TRACE_HELP"),

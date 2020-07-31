@@ -8,6 +8,8 @@ package com.evolveum.midpoint.report;
 
 import java.io.File;
 
+import com.evolveum.midpoint.report.impl.ReportTaskHandler;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
@@ -81,6 +83,9 @@ public class AbstractReportIntegrationTest extends AbstractModelIntegrationTest 
     protected final static File ROLE_READER_FILE = new File(TEST_DIR_COMMON, "role-reader.xml");
     protected final static File ROLE_RUNNER_FILE = new File(TEST_DIR_COMMON, "role-runner.xml");
     public static final File ARCHETYPE_TASK_FILE = new File(COMMON_DIR, "archetype-task-report.xml");
+
+    protected static final String OP_CREATE_REPORT = ReportTaskHandler.class.getName() + "createReport";
+    protected static final String OP_IMPORT_REPORT = ReportTaskHandler.class.getName() + "importReport";
 
     @Autowired protected ReportManager reportManager;
     @Autowired

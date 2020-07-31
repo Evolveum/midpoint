@@ -5,6 +5,9 @@ import java.util.*;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.*;
+import com.evolveum.midpoint.prism.*;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -23,10 +26,6 @@ import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -64,6 +63,8 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import javax.xml.namespace.QName;
+
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/task", matchUrlForSecurity = "/admin/task")
@@ -90,6 +91,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private Boolean refreshEnabled;
 
     private TaskTabsVisibility taskTabsVisibility;
+    private List<ItemPath> rememberedShowEmptyState = new ArrayList<>();
+    private List<ItemPath> rememberedExpandedState = new ArrayList<>();
 
     public PageTask() {
         initialize(null);
@@ -253,7 +256,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
             @Override
             protected InputStream initStream() {
-                ReportOutputType reportObject = getReportOutput();
+                ReportDataType reportObject = getReportData();
                 if (reportObject != null) {
                     return PageCreatedReports.createReport(reportObject, this, PageTask.this);
                 } else {
@@ -264,7 +267,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
             @Override
             public String getFileName() {
-                ReportOutputType reportObject = getReportOutput();
+                ReportDataType reportObject = getReportData();
                 return PageCreatedReports.getReportFileName(reportObject);
             }
         };
@@ -286,19 +289,19 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     private boolean isDownloadReportVisible() {
         return WebComponentUtil.isReport(getTask())
-                && getReportOutputProperty() != null;
+                && getReportDataOid() != null;
     }
 
-    private ReportOutputType getReportOutput() {
-        String reportOutput = getReportOutputProperty();
-        if (reportOutput == null) {
+    private ReportDataType getReportData() {
+        String reportData = getReportDataOid();
+        if (reportData == null) {
             return null;
         }
 
         Task opTask = createSimpleTask(OPERATION_LOAD_REPORT_OUTPUT);
         OperationResult result = opTask.getResult();
 
-        PrismObject<ReportOutputType> report = WebModelServiceUtils.loadObject(ReportOutputType.class, reportOutput, this, opTask, result);
+        PrismObject<ReportDataType> report = WebModelServiceUtils.loadObject(ReportDataType.class, reportData, this, opTask, result);
         if (report == null) {
             return null;
         }
@@ -309,14 +312,18 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     }
 
-    private String getReportOutputProperty() {
+    private String getReportDataOid() {
         PrismObject<TaskType> task = getTask().asPrismObject();
-        PrismProperty<String> reportOutput = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
-        if (reportOutput == null) {
-            return null;
+        PrismReference reportData = task.findReference(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_DATA_PROPERTY_NAME));
+        if (reportData == null && reportData.getRealValue() == null) {
+            PrismProperty<String> reportOutputOid = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
+            if (reportOutputOid == null){
+                return null;
+            }
+            return reportOutputOid.getRealValue();
         }
 
-        return reportOutput.getRealValue();
+        return reportData.getRealValue().getOid();
     }
 
     private void createRefreshNowIconButton(RepeatingView repeatingView) {
@@ -663,6 +670,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     @Override
     public void refresh(AjaxRequestTarget target) {
+        rememberShowEmptyState();
+
         TaskTabsVisibility taskTabsVisibilityNew = new TaskTabsVisibility();
         taskTabsVisibilityNew.computeAll(this, getObjectWrapper());
 
@@ -677,5 +686,102 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     public TaskTabsVisibility getTaskTabVisibilty() {
         return taskTabsVisibility;
+    }
+
+    private void rememberShowEmptyState(){
+        rememberedShowEmptyState.clear();
+        rememberedExpandedState.clear();
+        rememberContainerWrappersShowEmptyState(Arrays.asList(getObjectWrapper()));
+        PrismObjectWrapper<TaskType> objectWrapper = getObjectWrapper();
+        for (PrismContainerValueWrapper cv : objectWrapper.getValues()){
+            if (cv.isShowEmpty()){
+                rememberedShowEmptyState.add(cv.getPath());
+            }
+        }
+    }
+
+    private <IW extends ItemWrapper, VW extends PrismValueWrapper> void rememberContainerWrappersShowEmptyState(List<IW> iwList) {
+        for (IW iw : iwList) {
+            if (!(iw instanceof PrismContainerWrapper)){
+                continue;
+            }
+            List<VW> values = iw.getValues();
+            for (VW val : values) {
+                if (!(val instanceof PrismContainerValueWrapper)) {
+                    continue;
+                }
+                rememberContainerValueWrapperShowEmptyState((PrismContainerValueWrapper) val);
+            }
+        }
+    }
+
+    private void rememberContainerValueWrapperShowEmptyState(PrismContainerValueWrapper cvw) {
+        if (cvw == null){
+            return;
+        }
+        if (cvw.isShowEmpty()) {
+            rememberedShowEmptyState.add(cvw.getPath());
+        }
+        if (cvw.isExpanded()) {
+            rememberedExpandedState.add(cvw.getPath());
+        }
+        rememberContainerWrappersShowEmptyState(cvw.getItems());
+    }
+
+    @Override
+    protected PrismObjectWrapper<TaskType> loadObjectWrapper(PrismObject<TaskType> org, boolean isReadonly) {
+        PrismObjectWrapper<TaskType> objectWrapper = super.loadObjectWrapper(org, isReadonly);
+        if (CollectionUtils.isNotEmpty(rememberedShowEmptyState) || CollectionUtils.isNotEmpty(rememberedExpandedState)) {
+            checkContainerWrappersShowEmptyState(Arrays.asList(objectWrapper));
+        }
+        return objectWrapper;
+    }
+
+    private <IW extends ItemWrapper, VW extends PrismValueWrapper> void checkContainerWrappersShowEmptyState(List<IW> iwList) {
+        for (IW iw : iwList) {
+            if (!(iw instanceof PrismContainerWrapper)){
+                continue;
+            }
+            List<VW> values = iw.getValues();
+            for (VW val : values) {
+                if (!(val instanceof PrismContainerValueWrapper)) {
+                    continue;
+                }
+                checkContainerValueWrapperShowEmptyState((PrismContainerValueWrapper) val);
+            }
+        }
+    }
+
+    private void checkContainerValueWrapperShowEmptyState(PrismContainerValueWrapper cvw) {
+        if (cvw == null){
+            return;
+        }
+        if (isContainerShowEmpty(cvw.getPath())){
+            cvw.setShowEmpty(true);
+        }
+        if (isContainerExpanded(cvw.getPath())){
+            cvw.setExpanded(true);
+        } else {
+            cvw.setExpanded(false);
+        }
+        checkContainerWrappersShowEmptyState(cvw.getItems());
+    }
+
+    private boolean isContainerShowEmpty(ItemPath containerPath){
+        for (ItemPath path : rememberedShowEmptyState){
+            if (path.equivalent(containerPath)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isContainerExpanded(ItemPath containerPath){
+        for (ItemPath path : rememberedExpandedState){
+            if (path.equivalent(containerPath)){
+                return true;
+            }
+        }
+        return false;
     }
 }

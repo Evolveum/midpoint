@@ -73,17 +73,29 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
 
     @NotNull
     protected Predicate createBinaryCondition(
-            ValueFilter<?, ?> filter, Path<?> path, Object value) throws QueryException {
+            ValueFilter<?, ?> filter, Path<?> path, ValueFilterValues<?> values)
+            throws QueryException {
         Ops operator = operation(filter);
-        if (value == null) {
+        if (values.isEmpty()) {
             if (operator == Ops.EQ || operator == Ops.EQ_IGNORE_CASE) {
                 return ExpressionUtils.predicate(Ops.IS_NULL, path);
             } else {
                 throw new QueryException("Null value for other than EQUAL filter: " + filter);
             }
         }
+        if (values.isMultiValue()) {
+            // TODO do we want Ops.EQ_IGNORE_CASE too? For one value, Querydsl takes care of
+            //  ignore-case. For IN, we would have to do it ourselves.
+            if (operator == Ops.EQ) {
+                return ExpressionUtils.predicate(Ops.IN, path,
+                        ConstantImpl.create(values.allValues()));
+            } else {
+                throw new QueryException("Null value for other than EQUAL filter: " + filter);
+            }
+        }
 
-        Predicate predicate = ExpressionUtils.predicate(operator, path, ConstantImpl.create(value));
+        Predicate predicate = ExpressionUtils.predicate(operator, path,
+                ConstantImpl.create(values.singleValue()));
         return context.isNotFilterUsed()
                 ? ExpressionUtils.and(predicate, ExpressionUtils.predicate(Ops.IS_NOT_NULL, path))
                 : predicate;

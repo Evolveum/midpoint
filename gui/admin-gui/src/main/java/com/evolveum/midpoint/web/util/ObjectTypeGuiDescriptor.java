@@ -53,7 +53,7 @@ public enum ObjectTypeGuiDescriptor {
 
     REPORT(ObjectTypes.REPORT, "ObjectTypeGuiDescriptor.report", "", ""),
 
-    REPORT_OUTPUT(ObjectTypes.REPORT_OUTPUT, "ObjectTypeGuiDescriptor.reportOutput", "", ""),
+    REPORT_DATA(ObjectTypes.REPORT_DATA, "ObjectTypeGuiDescriptor.reportData", "", ""),
 
     SECURITY_POLICY(ObjectTypes.SECURITY_POLICY, "ObjectTypeGuiDescriptor.securityPolicy", "", ""),
 

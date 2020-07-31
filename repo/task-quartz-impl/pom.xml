@@ -62,6 +62,13 @@
             <artifactId>task-api</artifactId>
             <version>4.2-SNAPSHOT</version>
         </dependency>
+        <!-- this one is needed to get SQL configuration from the repository -->
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-sql-impl</artifactId>
+            <version>4.2-SNAPSHOT</version>
+        </dependency>
+
         <dependency>
             <groupId>commons-lang</groupId>
             <artifactId>commons-lang</artifactId>
@@ -131,20 +138,7 @@
             <artifactId>spring-context</artifactId>
         </dependency>
 
-        <!-- this one is needed to get SQL configuration from the repository -->
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-sql-impl</artifactId>
-            <version>4.2-SNAPSHOT</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!--  Testing dependencies  -->
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <scope>test</scope>
-        </dependency>
+        <!-- Testing dependencies -->
         <dependency>
             <groupId>com.evolveum.midpoint</groupId>
             <artifactId>midpoint-localization</artifactId>
@@ -168,36 +162,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-test</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>audit-impl</artifactId>
             <version>4.2-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aspects</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-aop</artifactId>
-            <scope>test</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.evolveum.midpoint.repo</groupId>
-            <artifactId>repo-test-util</artifactId>
-            <version>4.2-SNAPSHOT</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.forgerock.opendj</groupId>
-            <artifactId>opendj</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -210,6 +177,38 @@
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-sql-impl-test</artifactId>
             <version>4.2-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-test-util</artifactId>
+            <version>4.2-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aspects</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency> <!-- needed as runtime dependency otherwise spring won't start -->
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-aop</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.forgerock.opendj</groupId>
+            <artifactId>opendj</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

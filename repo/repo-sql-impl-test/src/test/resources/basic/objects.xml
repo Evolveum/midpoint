@@ -1038,7 +1038,7 @@
         <title>Governor</title>
     </user>
 
-    <object xsi:type="ReportOutputType" oid="1122334455" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+    <object xsi:type="ReportDataType" oid="1122334455" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
         <name>report1.pdf</name>
         <filePath>${midpointhome}/reports/report1.pdf</filePath>
@@ -1122,9 +1122,9 @@
                 <r:type>c:UserType</r:type>
             </configuration>
         </jasper>
-        <export>
+        <fileFormat>
             <type>csv</type>
-        </export>
+        </fileFormat>
     </report>
 
     <valuePolicy oid="SECURITY-0000-0000-0000-000000000003"

@@ -23,6 +23,8 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
  * <li>Extend from this class instead of {@code RelationalPathBase}.</li>
  * <li>Extract constants for all column metadata from {@code addMetadata()} method.
  * Remove index information from them (column order, nothing to do with DB indexes).</li>
+ * <li>Rename the column name to conform with SQL Server (if still relevant), because it is
+ * case-sensitive even about column names if *_CS_* collation is used!</li>
  * <li>Rewrite path fields so they use {@code create*} methods from this super-class.</li>
  * <li>Now {@code addMetadata()} method can be removed, including usages from constructors.</li>
  * <li>Prune constructors, two should be enough (see existing Q-classes).</li>

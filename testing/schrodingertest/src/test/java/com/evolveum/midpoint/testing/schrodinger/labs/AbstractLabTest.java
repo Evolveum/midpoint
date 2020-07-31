@@ -177,8 +177,8 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
                         .and();
     }
 
-    protected TaskPage showTask(String name) {
-        return basicPage.listTasks()
+    protected TaskPage showTask(String name, String menuKey) {
+        return basicPage.listTasks(menuKey)
                 .table()
                     .search()
                         .byName()
@@ -186,5 +186,9 @@ public class AbstractLabTest extends AbstractSchrodingerTest {
                         .updateSearch()
                     .and()
                     .clickByName(name);
+    }
+
+    protected TaskPage showTask(String name) {
+        return showTask(name, "");
     }
 }

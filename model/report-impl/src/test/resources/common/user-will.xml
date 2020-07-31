@@ -21,6 +21,7 @@
     <fullName>Will Turner</fullName>
     <givenName>Will</givenName>
     <familyName>Turner</familyName>
+    <nickName>will_turner</nickName>
 
     <emailAddress>will.turner@evolveum.com</emailAddress>
     <telephoneNumber>555-1235</telephoneNumber>

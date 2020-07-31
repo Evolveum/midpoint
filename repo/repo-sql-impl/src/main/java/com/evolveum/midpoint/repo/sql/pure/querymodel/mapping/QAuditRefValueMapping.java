@@ -15,7 +15,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordRefer
 public class QAuditRefValueMapping
         extends QueryModelMapping<AuditEventRecordReferenceType, QAuditRefValue, MAuditRefValue> {
 
-    public static final String DEFAULT_ALIAS_NAME = "ai";
+    public static final String DEFAULT_ALIAS_NAME = "aref";
 
     public static final QAuditRefValueMapping INSTANCE = new QAuditRefValueMapping();
 

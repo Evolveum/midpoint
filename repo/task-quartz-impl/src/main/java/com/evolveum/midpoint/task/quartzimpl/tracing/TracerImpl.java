@@ -142,12 +142,12 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
                         }
                     }
                     if (!Boolean.FALSE.equals(tracingProfile.isCreateRepoObject())) {
-                        ReportOutputType reportOutputObject = new ReportOutputType(prismContext)
+                        ReportDataType reportDataObject = new ReportDataType(prismContext)
                                 .name(createObjectName(tracingProfile, templateParameters))
                                 .archetypeRef(SystemObjectsType.ARCHETYPE_TRACE.value(), ArchetypeType.COMPLEX_TYPE)
                                 .filePath(file.getAbsolutePath())
                                 .nodeRef(ObjectTypeUtil.createObjectRef(taskManager.getLocalNode(), prismContext));
-                        repositoryService.addObject(reportOutputObject.asPrismObject(), null, thisOpResult);
+                        repositoryService.addObject(reportDataObject.asPrismObject(), null, thisOpResult);
                     }
                 } catch (IOException | SchemaException | ObjectAlreadyExistsException | RuntimeException e) {
                     LoggingUtils.logUnexpectedException(LOGGER, "Couldn't write trace ({})", e, file);
