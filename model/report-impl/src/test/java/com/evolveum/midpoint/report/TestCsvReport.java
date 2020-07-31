@@ -25,6 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -210,11 +213,20 @@ public class TestCsvReport extends BasicNewReportTest {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_WITH_IMPORT_SCRIPT_OID);
         importReport(report, IMPORT_MODIFY_FILE_PATH, true);
 
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = format.parse("2018-01-01");
+        GregorianCalendar cal = new GregorianCalendar();
+        cal.setTime(date);
+        XMLGregorianCalendar validFrom = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+        date = format.parse("2018-05-01");
+        cal.setTime(date);
+        XMLGregorianCalendar validTo = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+
         testUser02 = searchObjectByName(UserType.class, "testUser02");
         assertNotNull("User testUser02 was not created", testUser02);
         assertEquals("00000000-0000-0000-0000-000000000004", testUser02.asObjectable().getAssignment().get(0).getTargetRef().getOid());
-        assertEquals("2018-01-01T00:00:00.000+01:00", testUser02.asObjectable().getAssignment().get(0).getActivation().getValidFrom().toString());
-        assertEquals("2018-05-01T00:00:00.000+02:00", testUser02.asObjectable().getAssignment().get(0).getActivation().getValidTo().toString());
+        assertEquals(validFrom, testUser02.asObjectable().getAssignment().get(0).getActivation().getValidFrom());
+        assertEquals(validTo, testUser02.asObjectable().getAssignment().get(0).getActivation().getValidTo());
 
         testUser01 = searchObjectByName(UserType.class, "testUser01");
         assertNotNull("User testUser01 was not created", testUser01);
@@ -224,8 +236,8 @@ public class TestCsvReport extends BasicNewReportTest {
         jack = searchObjectByName(UserType.class, "jack");
         assertNotNull("User jack was not created", jack);
         assertEquals("00000000-0000-0000-0000-000000000004", jack.asObjectable().getAssignment().get(0).getTargetRef().getOid());
-        assertEquals("2018-01-01T00:00:00.000+01:00", jack.asObjectable().getAssignment().get(0).getActivation().getValidFrom().toString());
-        assertEquals("2018-05-01T00:00:00.000+02:00", jack.asObjectable().getAssignment().get(0).getActivation().getValidTo().toString());
+        assertEquals(validFrom, jack.asObjectable().getAssignment().get(0).getActivation().getValidFrom());
+        assertEquals(validTo, jack.asObjectable().getAssignment().get(0).getActivation().getValidTo());
     }
 
     private void setExpectedValueForDashboardReport() {
