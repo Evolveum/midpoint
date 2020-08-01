@@ -9,16 +9,22 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import java.util.*;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordItemValueDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -84,7 +90,8 @@ public class PageAuditLogDetails extends PageBase {
     private static final String ID_PARAMETERS_SESSION_IDENTIFIER = "sessionIdentifier";
     private static final String ID_PARAMETERS_TASK_IDENTIFIER = "taskIdentifier";
     private static final String ID_PARAMETERS_REQUEST_IDENTIFIER = "requestIdentifier";
-    private static final String ID_PARAMETERS_TASK_OID = "taskOID";
+    private static final String ID_PARAMETERS_TASK_OID_LABEL = "taskOIDLabel";
+    private static final String ID_PARAMETERS_TASK_OID_LINK = "taskOIDLink";
     private static final String ID_PARAMETERS_HOST_IDENTIFIER = "hostIdentifier";
     private static final String ID_PARAMETERS_NODE_IDENTIFIER = "nodeIdentifier";
     private static final String ID_PARAMETERS_REMOTE_HOST_ADDRESS = "remoteHostAddress";
@@ -295,9 +302,40 @@ public class PageAuditLogDetails extends PageBase {
         taskIdentifier.setOutputMarkupId(true);
         eventDetailsPanel.add(taskIdentifier);
 
-        final Label taskOID = new Label(ID_PARAMETERS_TASK_OID, new PropertyModel(recordModel,ID_PARAMETERS_TASK_OID));
-        taskOID.setOutputMarkupId(true);
-        eventDetailsPanel.add(taskOID);
+        PrismObject<TaskType> task = null;
+        if (recordModel != null && recordModel.getObject() != null && StringUtils.isNotEmpty(recordModel.getObject().getTaskOID())) {
+            List<PrismObject<TaskType>> tasks = WebModelServiceUtils.searchObjects(TaskType.class,
+                    getPrismContext().queryFor(TaskType.class).id(recordModel.getObject().getTaskOID())
+                            .build(),
+                    new OperationResult("search task by oid"), this);
+            if (tasks != null || !tasks.isEmpty()) {
+                task = tasks.get(0);
+            }
+        }
+        Label taskOidLabel = new Label(ID_PARAMETERS_TASK_OID_LABEL, new PropertyModel(recordModel, "taskOID"));
+
+        PrismObject<TaskType> finalTask = task;
+        LinkPanel taskOidLink = new LinkPanel(ID_PARAMETERS_TASK_OID_LINK, Model.of(finalTask == null ? "" : (" " + finalTask.getName().getOrig()))) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+
+                if (finalTask != null) {
+                    WebComponentUtil.dispatchToObjectDetailsPage(ObjectTypeUtil.createObjectRef(finalTask, getPrismContext()), this, false);
+                }
+            }
+        };
+
+        taskOidLabel.setOutputMarkupId(true);
+        eventDetailsPanel.add(taskOidLabel);
+        taskOidLink.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return finalTask != null;
+            }
+        });
+        taskOidLink.setOutputMarkupId(true);
+        eventDetailsPanel.add(taskOidLink);
 
         final Label requestIdentifier = new Label(ID_PARAMETERS_REQUEST_IDENTIFIER, new PropertyModel(recordModel,ID_PARAMETERS_REQUEST_IDENTIFIER));
         requestIdentifier.setOutputMarkupId(true);
