@@ -16,7 +16,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
+import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.api.AuditServiceFactory;
@@ -28,16 +28,33 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * @author lazyman
+ * Audit factory is a managed component that hides multiple actual {@link AuditServiceFactory}
+ * components - and {@link AuditService}s they create - behind a single proxy implementation.
+ * This is actually "Audit Service Proxy Factory", the service is returned by {@link #getAuditService()}.
+ * This component takes care of "midpoint/audit" part of the config XML and "auditService" elements there.
+ * <p>
+ * Initialization process uses configured managed components (Spring beans) of type {@link AuditServiceFactory}.
+ * Audit service factory declared in the config is used, the rest is not.
+ * This means the factory class can't do anything disruptive as part of its bean initialization.
+ * Actual {@link AuditService} is created as non-managed component but Spring is asked to autowire
+ * its dependencies, this means that there is no Spring way how to say the dependencies in advance.
+ * This means that at this time all the used dependencies must be initialized already, which can be
+ * taken care of by the service's factory, e.g. factory autowiring the field needed by the service,
+ * even if the factory itself doesn't need it.
+ * <p>
+ * While technically this creates {@link AuditService}, hence it is a factory (see its Spring
+ * configuration), it is NOT part of {@link AuditServiceFactory} hierarchy.
  */
 public class AuditFactory implements RuntimeConfiguration {
 
-    private static final String CONF_AUDIT_SERVICE = "auditService";
-    private static final String CONF_AUDIT_SERVICE_FACTORY = "auditServiceFactoryClass";
     private static final Trace LOGGER = TraceManager.getTrace(AuditFactory.class);
 
-    @Autowired private ApplicationContext applicationContext;
+    private static final String CONF_AUDIT_SERVICE = "auditService";
+    private static final String CONF_AUDIT_SERVICE_FACTORY = "auditServiceFactoryClass";
+
+    @Autowired private AutowireCapableBeanFactory autowireCapableBeanFactory;
     @Autowired private MidpointConfiguration midpointConfiguration;
+    @Autowired private List<AuditServiceFactory> availableServiceFactories;
 
     private final List<AuditServiceFactory> serviceFactories = new ArrayList<>();
 
@@ -56,7 +73,6 @@ public class AuditFactory implements RuntimeConfiguration {
                 factory.init(serviceConfig);
 
                 serviceFactories.add(factory);
-
             } catch (Exception ex) {
                 LoggingUtils.logException(LOGGER, "AuditServiceFactory implementation class {} failed to " +
                         "initialize.", ex, getFactoryClassName(serviceConfig));
@@ -67,15 +83,21 @@ public class AuditFactory implements RuntimeConfiguration {
     }
 
     private AuditServiceFactory getFactory(Class<AuditServiceFactory> clazz) {
-        LOGGER.info("Getting factory '{}'", new Object[] { clazz.getName() });
-        return applicationContext.getBean(clazz);
+        for (AuditServiceFactory candidate : availableServiceFactories) {
+            // class equality or == is not enough to match subclasses (e.g. in test)
+            if (clazz.isAssignableFrom(candidate.getClass())) {
+                LOGGER.info("Getting factory '{}'", clazz.getName());
+                return candidate;
+            }
+        }
+        throw new SystemException("Couldn't find AuditServiceFactory for class " + clazz);
     }
 
     private String getFactoryClassName(Configuration config) {
         String className = config.getString(CONF_AUDIT_SERVICE_FACTORY);
         if (StringUtils.isEmpty(className)) {
             LOGGER.error("AuditServiceFactory implementation class name ({}) not found in configuration. " +
-                    "Provided configuration:\n{}", new Object[] { CONF_AUDIT_SERVICE_FACTORY, config });
+                    "Provided configuration:\n{}", CONF_AUDIT_SERVICE_FACTORY, config);
             throw new SystemException("AuditServiceFactory implementation class name ("
                     + CONF_AUDIT_SERVICE_FACTORY + ") not found in configuration. Provided configuration:\n"
                     + config);
@@ -87,18 +109,17 @@ public class AuditFactory implements RuntimeConfiguration {
     public void destroy() {
     }
 
-    public AuditService getAuditService() {
+    public synchronized AuditService getAuditService() {
         if (auditService == null) {
             AuditServiceProxy proxy = new AuditServiceProxy();
             for (AuditServiceFactory factory : serviceFactories) {
                 try {
                     AuditService service = factory.getAuditService();
-                    //todo check this autowiring (check logs) how it's done
-                    applicationContext.getAutowireCapableBeanFactory().autowireBean(service);
-
+                    autowireCapableBeanFactory.autowireBean(service);
                     proxy.registerService(service);
                 } catch (Exception ex) {
-                    LoggingUtils.logException(LOGGER, "Couldn't get audit service from factory '{}'", ex, factory);
+                    LoggingUtils.logException(LOGGER,
+                            "Couldn't get audit service from factory '{}'", ex, factory);
                     throw new SystemException(ex.getMessage(), ex);
                 }
             }
