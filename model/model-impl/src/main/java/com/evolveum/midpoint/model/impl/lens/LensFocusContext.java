@@ -125,13 +125,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     @NotNull
     public ObjectDeltaObject<O> getObjectDeltaObjectAbsolute() {
-        try {
-            ObjectDeltaObject<O> objectDeltaObject = new ObjectDeltaObject<>(objectOld, getSummaryDelta(), null, getObjectDefinition());
-            objectDeltaObject.recompute(); // TODO is this really needed? MID-6402
-            return objectDeltaObject;
-        } catch (SchemaException e) {
-            throw new SystemException("Unexpected schema exception: " + e.getMessage(), e);
-        }
+        return new ObjectDeltaObject<>(objectOld, getSummaryDelta(), objectNew, getObjectDefinition());
     }
 
     // This method may be useful for hooks. E.g. if a hook wants to insert a special secondary delta to avoid
