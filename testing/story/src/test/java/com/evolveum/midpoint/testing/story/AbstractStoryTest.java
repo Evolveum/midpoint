@@ -83,7 +83,7 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
     @Autowired protected MatchingRuleRegistry matchingRuleRegistry;
 
     @Autowired
-    @Qualifier("sqlRepositoryServiceImpl")
+    @Qualifier("repositoryService") // we're downcasting here to known subtype
     protected SqlRepositoryServiceImpl sqlRepositoryService;
 
     protected PrismObject<UserType> userAdministrator;

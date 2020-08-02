@@ -26,7 +26,6 @@ import org.hibernate.internal.SessionFactoryImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
@@ -63,7 +62,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Main implementation of the {@link RepositoryService}, based on SQL database using ORM/Hibernate.
  * Don't autowire by this class, use {@link RepositoryService} class instead.
  */
-@Repository
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";

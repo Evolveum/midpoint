@@ -173,7 +173,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected RepositoryService repositoryService;
 
     @Autowired
-    @Qualifier("sqlRepositoryServiceImpl")
+    @Qualifier("repositoryService")
     protected RepositoryService plainRepositoryService;
 
     @Autowired protected ReferenceResolver referenceResolver;
