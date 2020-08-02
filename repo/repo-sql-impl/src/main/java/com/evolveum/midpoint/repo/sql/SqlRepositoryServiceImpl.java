@@ -66,10 +66,6 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @Repository
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
 
-    // experimental (currently some tests fail when using JSON)
-    @Deprecated
-    public static final String DATA_LANGUAGE = PrismContext.LANG_XML;
-
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
     public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
     public static final int CONTENTION_LOG_DEBUG_THRESHOLD = 3;
@@ -423,7 +419,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         emptyIfNull(conflictWatchersThreadLocal.get()).forEach(consumer);
     }
 
-    private void  validateName(PrismObject<?> object) throws SchemaException {
+    private void validateName(PrismObject<?> object) throws SchemaException {
         PrismProperty<?> name = object.findProperty(ObjectType.F_NAME);
         //noinspection ConstantConditions
         if (name == null || ((PolyString) name.getRealValue()).isEmpty()) {
