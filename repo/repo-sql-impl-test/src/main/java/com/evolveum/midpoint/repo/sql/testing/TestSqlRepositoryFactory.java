@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,8 +24,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * This repository factory should be used for testing purposes only. It behaves like {@link com.evolveum.midpoint.repo.sql.SqlRepositoryFactory},
- * but during configuration initialization it checks system properties and overrides loaded configuration
+ * This repository factory should be used for testing purposes only.
+ * It behaves like {@link com.evolveum.midpoint.repo.sql.SqlRepositoryFactory}, but during
+ * configuration initialization it checks system properties and overrides loaded configuration
  * ({@link com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration}).
  *
  * @author lazyman
