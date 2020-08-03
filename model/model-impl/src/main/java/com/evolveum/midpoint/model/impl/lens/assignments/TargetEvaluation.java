@@ -37,26 +37,26 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
     @NotNull private final AssignmentHolderType target;
 
     /**
-     * Relativity mode of this segment. It is modified by target (role) condition
-     * into targetRelativityMode.
+     * Overall condition state of this segment. It is composed later with target (role) condition
+     * state into targetOverallConditionState.
      */
-    private final PlusMinusZero assignmentRelativityMode;
+    private final ConditionState assignmentOverallConditionState;
 
     /**
-     * Relativity mode after application of target (role) condition.
+     * Condition state after application of target (role) condition.
      */
-    private PlusMinusZero targetRelativityMode;
+    private ConditionState targetOverallConditionState;
 
     /**
      * Aggregated validity of target and the whole path.
      */
-    private TargetValidity targetValidity;
+    private TargetActivation targetActivation;
 
     TargetEvaluation(AssignmentPathSegmentImpl segment, EvaluationContext<AH> ctx, OperationResult result) {
         super(segment, ctx);
         this.result = result;
 
-        this.assignmentRelativityMode = segment.getAssignmentRelativityMode();
+        this.assignmentOverallConditionState = segment.getOverallConditionState();
         this.target = (AssignmentHolderType) segment.getTarget();
     }
 
@@ -64,8 +64,8 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
             SecurityViolationException, ConfigurationException, CommunicationException {
 
         assert ctx.assignmentPath.last() == segment;
-        assert assignmentRelativityMode != null;
-        assert segment.isAssignmentValid() || segment.direct;
+        assert assignmentOverallConditionState.isNotAllFalse();
+        assert segment.isAssignmentActive() || segment.direct;
         checkIfAlreadyEvaluated();
 
         if (ctx.ae.evaluatedAssignmentTargetCache.canSkip(segment, ctx.primaryAssignmentMode)) {
@@ -83,7 +83,7 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
         InternalMonitor.recordRoleEvaluation(target, true);
 
         AssignmentTargetEvaluationInformation targetEvaluationInformation;
-        if (targetValidity.pathAndTargetValid) {
+        if (targetActivation.pathAndTargetActive) {
             // Cache it immediately, even before evaluation. So if there is a cycle in the role path
             // then we can detect it and skip re-evaluation of aggressively idempotent roles.
             targetEvaluationInformation = ctx.ae.evaluatedAssignmentTargetCache.recordProcessing(segment, ctx.primaryAssignmentMode);
@@ -93,14 +93,15 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
 
         int targetPolicyRulesOnEntry = ctx.evalAssignment.getAllTargetsPolicyRulesCount();
         try {
-            if (targetValidity.targetValid) {
+            if (targetActivation.targetActive) {
                 // TODO why only for valid targets? This is how it was implemented in original AssignmentEvaluator.
-                targetRelativityMode = determineTargetRelativityMode();
+                targetOverallConditionState = ConditionState.merge(
+                        assignmentOverallConditionState, determineTargetConditionState());
             } else {
-                targetRelativityMode = assignmentRelativityMode;
+                targetOverallConditionState = assignmentOverallConditionState;
             }
 
-            if (targetRelativityMode != null) {
+            if (targetOverallConditionState.isNotAllFalse()) {
                 evaluateInternal();
             }
         } finally {
@@ -116,28 +117,28 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
     private void evaluateInternal()
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException, PolicyViolationException {
-        assert targetRelativityMode != null;
+        assert targetOverallConditionState.isNotAllFalse();
 
         collectEvaluatedAssignmentTarget();
 
         // we need to evaluate assignments also for non-valid targets, because of target policy rules
         // ... but only for direct ones!
-        if (targetValidity.targetValid || segment.direct) {
+        if (targetActivation.targetActive || segment.direct) {
             evaluateAssignments();
         }
 
         // We need to collect membership also for disabled targets (provided the assignment itself is enabled): MID-4127.
         // It is quite logical: if a user is member of a disabled role, it still needs to have roleMembershipRef
         // pointing to that role.
-        if (isNonNegative(targetRelativityMode) && Util.shouldCollectMembership(segment)) {
+        if (targetOverallConditionState.isNewTrue() && Util.shouldCollectMembership(segment)) {
             ctx.membershipCollector.collect(target, segment.relation);
         }
 
-        if (targetValidity.targetValid) {
+        if (targetActivation.targetActive) {
 
             // TODO In a way analogous to the membership info above: shouldn't we collect tenantRef information
             //  also for disabled tenants?
-            if (isNonNegative(targetRelativityMode)) {
+            if (targetOverallConditionState.isNewTrue()) {
                 collectTenantRef(target, ctx);
             }
 
@@ -156,7 +157,7 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
     private void evaluateAssignments() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
             PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         for (AssignmentType assignment : target.getAssignment()) {
-            new TargetAssignmentEvaluation<>(segment, targetRelativityMode, targetValidity, ctx, result, assignment)
+            new TargetAssignmentEvaluation<>(segment, targetOverallConditionState, targetActivation, ctx, result, assignment)
                     .evaluate();
         }
     }
@@ -165,25 +166,25 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
             PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         if (target instanceof AbstractRoleType) {
             for (AssignmentType inducement : ((AbstractRoleType) target).getInducement()) {
-                new TargetInducementEvaluation<>(segment, targetRelativityMode, targetValidity, ctx, result, inducement)
+                new TargetInducementEvaluation<>(segment, targetOverallConditionState, targetActivation, ctx, result, inducement)
                         .evaluate();
             }
         }
     }
 
     private void evaluateTargetPayload() {
-        new TargetPayloadEvaluation<>(segment, targetRelativityMode, targetValidity, ctx).evaluate();
+        new TargetPayloadEvaluation<>(segment, targetOverallConditionState, targetActivation, ctx).evaluate();
     }
 
-    private PlusMinusZero determineTargetRelativityMode()
+    private ConditionState determineTargetConditionState()
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         MappingType condition = target instanceof AbstractRoleType ? ((AbstractRoleType) target).getCondition() : null;
         // TODO why we use "segment.source" as source object for condition evaluation even if
         //  we evaluate condition in target role? We should probably use the role itself as the source here.
         AssignmentHolderType source = segment.source;
-        return ctx.conditionEvaluator.computeModeFromCondition(
-                assignmentRelativityMode, condition,
+        return ctx.conditionEvaluator.computeConditionState(
+                condition,
                 source,
                 "condition in " + segment.getTargetDescription(), target,
                 result);
@@ -195,16 +196,16 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
                 segment.isMatchingOrder, // evaluateConstructions: exact meaning of this is to be revised
                 ctx.assignmentPath.clone(),
                 segment.assignment,
-                targetValidity.pathAndTargetValid);
-        ctx.evalAssignment.addRole(evalAssignmentTarget, targetRelativityMode);
+                targetActivation.pathAndTargetActive);
+        ctx.evalAssignment.addRole(evalAssignmentTarget, targetOverallConditionState.getAbsoluteRelativityMode()); // TODO absolute or relative?
     }
 
     private void determineValidity() throws ConfigurationException {
         // FIXME Target state model does not reflect its archetype!
         LifecycleStateModelType targetStateModel = ArchetypeManager.determineLifecycleModel(target.asPrismObject(), ctx.ae.systemConfiguration);
         boolean targetValid = LensUtil.isFocusValid(target, ctx.ae.now, ctx.ae.activationComputer, targetStateModel);
-        boolean pathAndTargetValid = segment.isFullPathValid() && targetValid;
-        targetValidity = new TargetValidity(targetValid, pathAndTargetValid);
+        boolean pathAndTargetValid = segment.isFullPathActive() && targetValid;
+        targetActivation = new TargetActivation(targetValid, pathAndTargetValid);
     }
 
     private void checkRelationWithTarget(AssignmentHolderType target)
@@ -230,13 +231,13 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
         }
     }
 
-    static class TargetValidity {
-        final boolean targetValid;
-        final boolean pathAndTargetValid;
+    static class TargetActivation {
+        final boolean targetActive;
+        final boolean pathAndTargetActive;
 
-        private TargetValidity(boolean targetValid, boolean pathAndTargetValid) {
-            this.targetValid = targetValid;
-            this.pathAndTargetValid = pathAndTargetValid;
+        private TargetActivation(boolean targetActive, boolean pathAndTargetActive) {
+            this.targetActive = targetActive;
+            this.pathAndTargetActive = pathAndTargetActive;
         }
     }
 }

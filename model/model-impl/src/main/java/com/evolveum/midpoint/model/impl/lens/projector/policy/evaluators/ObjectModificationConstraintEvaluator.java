@@ -14,7 +14,6 @@ import com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleEvaluati
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -129,17 +128,12 @@ public class ObjectModificationConstraintEvaluator extends ModificationConstrain
             LOGGER.trace("Rule {} operation not applicable", ctx.policyRule.getName());
             return false;
         }
-        if (!ctx.focusContext.hasAnyDelta()) {
+        ObjectDelta<?> summaryDelta = ctx.focusContext.getSummaryDelta();
+        if (ObjectDelta.isEmpty(summaryDelta)) {
             LOGGER.trace("Focus context has no delta (primary nor secondary)");
             return false;
         }
         if (!constraint.getItem().isEmpty()) {
-            //noinspection unchecked
-            ObjectDelta<?> summaryDelta = ObjectDeltaCollectionsUtil.union(ctx.focusContext.getPrimaryDelta(), ctx.focusContext.getSecondaryDelta());
-            if (summaryDelta == null) {
-                LOGGER.trace("Summary delta is null");
-                return false;
-            }
             boolean exactPathMatch = isTrue(constraint.isExactPathMatch());
             for (ItemPathType path : constraint.getItem()) {
                 if (!pathMatches(summaryDelta, ctx.focusContext.getObjectOld(), prismContext.toPath(path), exactPathMatch)) {

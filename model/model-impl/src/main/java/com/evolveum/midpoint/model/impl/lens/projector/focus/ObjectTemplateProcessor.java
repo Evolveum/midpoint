@@ -6,7 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.focus;
 
-import static com.evolveum.midpoint.model.impl.lens.projector.util.SkipWhenFocusDeleted.PRIMARY;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.AFTER_ASSIGNMENTS;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectTemplateMappingEvaluationPhaseType.BEFORE_ASSIGNMENTS;
 
@@ -34,7 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
  * @author Radovan Semancik
  */
 @Component
-@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = PRIMARY)
+@ProcessorExecution(focusRequired = true, focusType = FocusType.class, skipWhenFocusDeleted = true)
 public class ObjectTemplateProcessor implements ProjectorProcessor {
 
     @Autowired private ModelBeans beans;
@@ -65,7 +64,7 @@ public class ObjectTemplateProcessor implements ProjectorProcessor {
             throws SchemaException {
         LensFocusContext<AH> focusContext = evaluation.getFocusContext();
         NextRecompute nextRecompute = evaluation.getNextRecompute();
-        focusContext.applyProjectionWaveSecondaryDeltas(evaluation.getItemDeltas());
+        focusContext.swallowToSecondaryDelta(evaluation.getItemDeltas());
         if (nextRecompute != null) {
             nextRecompute.createTrigger(focusContext);
         }

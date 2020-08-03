@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -26,10 +26,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.util.ReferenceResolver;
-
-import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
@@ -71,6 +67,7 @@ import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
+import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.common.stringpolicy.FocusValuePolicyOriginResolver;
 import com.evolveum.midpoint.model.common.stringpolicy.ValuePolicyProcessor;
@@ -122,6 +119,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.test.*;
 import com.evolveum.midpoint.test.asserter.*;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerDefinitionAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -173,7 +171,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected RepositoryService repositoryService;
 
     @Autowired
-    @Qualifier("sqlRepositoryServiceImpl")
+    @Qualifier("repositoryService")
     protected RepositoryService plainRepositoryService;
 
     @Autowired protected ReferenceResolver referenceResolver;
@@ -590,7 +588,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modelService.executeChanges(deltas, null, task, result);
     }
 
-    protected <O extends ObjectType, C extends Containerable> void modifyObjectReplaceContainer(
+    @SafeVarargs
+    protected final <O extends ObjectType, C extends Containerable> void modifyObjectReplaceContainer(
             Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -600,7 +599,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modelService.executeChanges(deltas, null, task, result);
     }
 
-    protected <O extends ObjectType, C extends Containerable> void modifyObjectAddContainer(
+    @SafeVarargs
+    protected final <O extends ObjectType, C extends Containerable> void modifyObjectAddContainer(
             Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -610,7 +610,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         modelService.executeChanges(deltas, null, task, result);
     }
 
-    protected <O extends ObjectType, C extends Containerable> void modifyObjectDeleteContainer(
+    @SafeVarargs
+    protected final <O extends ObjectType, C extends Containerable> void modifyObjectDeleteContainer(
             Class<O> type, String oid, ItemPath propertyPath, Task task, OperationResult result, C... newRealValue)
             throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
             ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -1252,8 +1253,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             modifications.add((createAssignmentModification(assignmentType.getId(), false)));
         }
         return prismContext.deltaFactory().object()
-                .createModifyDelta(focusBefore.getOid(), modifications, focusBefore.getCompileTimeClass()
-                );
+                .createModifyDelta(focusBefore.getOid(), modifications, focusBefore.getCompileTimeClass());
     }
 
     /**
@@ -1671,7 +1671,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, ObjectNotFoundException {
         ObjectDelta<UserType> delta = deltaFor(assignee.getObjectClass())
                 .item(UserType.F_ASSIGNMENT)
-                    .add(ObjectTypeUtil.createAssignmentTo(assigned.object, relation))
+                .add(ObjectTypeUtil.createAssignmentTo(assigned.object, relation))
                 .asObjectDelta(assignee.oid);
         executeChanges(delta, options, task, result);
     }
@@ -1687,7 +1687,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         AssignmentType assignment = MiscUtil.extractSingleton(assignments);
         ObjectDelta<UserType> delta = deltaFor(assignee.getObjectClass())
                 .item(UserType.F_ASSIGNMENT)
-                    .delete(assignment.clone())
+                .delete(assignment.clone())
                 .asObjectDelta(assignee.oid);
         executeChanges(delta, options, task, result);
     }
@@ -5369,10 +5369,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void checkUserApprovers(String oid, List<String> expectedApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, oid, null, result);
-        checkApprovers(user, expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef(), result);
+        checkApprovers(expectedApprovers, user.asObjectable().getMetadata().getModifyApproverRef());
     }
 
-    protected void checkApprovers(PrismObject<? extends ObjectType> object, List<String> expectedApprovers, List<ObjectReferenceType> realApprovers, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    protected void checkApprovers(List<String> expectedApprovers, List<ObjectReferenceType> realApprovers) {
         HashSet<String> realApproversSet = new HashSet<>();
         for (ObjectReferenceType approver : realApprovers) {
             realApproversSet.add(approver.getOid());
@@ -6006,7 +6006,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return asserter;
     }
 
-    protected CaseAsserter<Void> assertCase(CaseType aCase, String message) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected CaseAsserter<Void> assertCase(CaseType aCase, String message) {
         CaseAsserter<Void> asserter = CaseAsserter.forCase(aCase.asPrismObject(), message);
         initializeAsserter(asserter);
         return asserter;
@@ -6301,28 +6301,33 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return assertAddAllowTracing(file, null);
     }
 
-    protected <O extends ObjectType> void assertAddAllow(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected <O extends ObjectType> void assertAddAllow(File file, ModelExecuteOptions options)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = PrismTestUtil.parseObject(file);
         assertAddAllow(object, options);
     }
 
-    protected <O extends ObjectType> OperationResult assertAddAllowTracing(File file, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected <O extends ObjectType> OperationResult assertAddAllowTracing(File file, ModelExecuteOptions options)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
         PrismObject<O> object = PrismTestUtil.parseObject(file);
         return assertAddAllowTracing(object, options);
     }
 
-    protected <O extends ObjectType> OperationResult assertAddAllow(PrismObject<O> object, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected <O extends ObjectType> OperationResult assertAddAllow(PrismObject<O> object, ModelExecuteOptions options)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         Task task = createAllowDenyTask("assertAddAllow");
         return assertAddAllow(object, options, task);
     }
 
-    protected <O extends ObjectType> OperationResult assertAddAllowTracing(PrismObject<O> object, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException, IOException {
+    protected <O extends ObjectType> OperationResult assertAddAllowTracing(PrismObject<O> object, ModelExecuteOptions options)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         Task task = createAllowDenyTask(contextName() + ".assertAddAllow");
         setTracing(task, createDefaultTracingProfile());
         return assertAddAllow(object, options, task);
     }
 
-    protected <O extends ObjectType> OperationResult assertAddAllow(PrismObject<O> object, ModelExecuteOptions options, Task task) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected <O extends ObjectType> OperationResult assertAddAllow(PrismObject<O> object, ModelExecuteOptions options, Task task)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         OperationResult result = task.getResult();
         ObjectDelta<O> addDelta = object.createAddDelta();
         logAttempt("add", object.getCompileTimeClass(), object.getOid(), null);
@@ -6337,11 +6342,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return result;
     }
 
-    protected <O extends ObjectType> void assertDeleteDeny(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected <O extends ObjectType> void assertDeleteDeny(Class<O> type, String oid)
+            throws ObjectAlreadyExistsException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
         assertDeleteDeny(type, oid, null);
     }
 
-    protected <O extends ObjectType> void assertDeleteDeny(Class<O> type, String oid, ModelExecuteOptions options) throws ObjectAlreadyExistsException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
+    protected <O extends ObjectType> void assertDeleteDeny(Class<O> type, String oid, ModelExecuteOptions options)
+            throws ObjectAlreadyExistsException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException {
         Task task = createPlainTask("assertDeleteDeny");
         OperationResult result = task.getResult();
         ObjectDelta<O> delta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
@@ -6363,11 +6370,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected <O extends ObjectType> void assertDeleteAllow(Class<O> type, String oid) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected <O extends ObjectType> void assertDeleteAllow(Class<O> type, String oid)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         assertDeleteAllow(type, oid, null);
     }
 
-    protected <O extends ObjectType> void assertDeleteAllow(Class<O> type, String oid, ModelExecuteOptions options) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+    protected <O extends ObjectType> void assertDeleteAllow(Class<O> type, String oid, ModelExecuteOptions options)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
         Task task = createPlainTask("assertDeleteAllow");
         OperationResult result = task.getResult();
         ObjectDelta<O> delta = prismContext.deltaFactory().object().createDeleteDelta(type, oid);
@@ -6606,8 +6615,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         System.out.println("Current shadows for " + resourceOid + " (" + shadows.size() + "):\n");
         for (PrismObject<ShadowType> shadowObject : shadows) {
             ShadowType shadow = shadowObject.asObjectable();
-            System.out.println(String.format("%30s%20s%20s %s", shadow.getName(), shadow.getKind(),
-                    shadow.getSynchronizationSituation(), Boolean.TRUE.equals(shadow.isProtectedObject()) ? " (protected)" : ""));
+            System.out.printf("%30s%20s%20s %s%n",
+                    shadow.getName(),
+                    shadow.getKind(),
+                    shadow.getSynchronizationSituation(),
+                    Boolean.TRUE.equals(shadow.isProtectedObject()) ? " (protected)" : "");
         }
     }
 

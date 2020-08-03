@@ -71,7 +71,8 @@ public class DetailTableItemFilterProcessor<Q extends EntityPath<?>, DQ extends 
         // this part takes care of delegation to the nested path, including JOIN creation
         QueryModelMapping<?, DQ, DR> mapping =
                 QueryModelMappingConfig.getByQueryType(detailQueryType);
-        DQ joinPath = mapping.newAlias(context.uniqueAliasName(mapping.defaultAliasName()));
+        String aliasName = context.uniqueAliasName(mapping.defaultAliasName());
+        DQ joinPath = mapping.newAlias(aliasName);
         //noinspection unchecked
         SqlQueryContext<?, DQ, DR> joinContext =
                 ((SqlPathContext<?, Q, ?>) context).leftJoin(joinPath, joinOnPredicate);

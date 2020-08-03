@@ -8,6 +8,7 @@
 <objectTemplate xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                 oid="bf0cf9b7-4c38-4ff4-afc6-c9cc9bc08490">
     <name>user-template</name>
+    <description>For 'incrementing' user subtype</description>
     <mapping>
         <strength>strong</strength>
         <source>

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.DataSourceFactory;
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.support.InstantType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -19,6 +20,7 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * Component just under the service that orchestrates query transformation and execution.
@@ -37,7 +39,9 @@ public class SqlQueryExecutor {
         this.prismContext = prismContext;
         this.dataSourceFactory = dataSourceFactory;
 
-        switch (dataSourceFactory.getConfiguration().getDatabase()) {
+        SqlRepositoryConfiguration.Database database =
+                dataSourceFactory.getConfiguration().getDatabase();
+        switch (database) {
             case H2:
                 querydslConfiguration = new Configuration(H2Templates.DEFAULT);
                 break;
@@ -55,9 +59,7 @@ public class SqlQueryExecutor {
                 querydslConfiguration = new Configuration(OracleTemplates.DEFAULT);
                 break;
             default:
-                // should not be used, but just in case
-                querydslConfiguration = new Configuration(SQLTemplates.DEFAULT);
-                break;
+                throw new SystemException("Unsupported database type " + database);
         }
 
         // See InstantType javadoc for the reasons why we need this to support Instant.

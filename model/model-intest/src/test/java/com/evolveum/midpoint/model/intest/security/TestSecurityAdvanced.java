@@ -336,7 +336,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
     }
 
     @Test
-    public void test120AutzJackDelagator() throws Exception {
+    public void test120AutzJackDelegator() throws Exception {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_DELEGATOR_OID);

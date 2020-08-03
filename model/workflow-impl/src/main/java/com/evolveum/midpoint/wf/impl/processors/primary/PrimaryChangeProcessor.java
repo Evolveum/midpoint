@@ -396,7 +396,7 @@ public class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private LensContext contextCopyWithNoDelta(ModelContext<?> context) {
         LensContext<?> contextCopy = ((LensContext<?>) context).clone();
-        contextCopy.replacePrimaryFocusDelta(null);
+        contextCopy.getFocusContext().setPrimaryDelta(null);
         Collection<LensProjectionContext> projectionContexts = contextCopy.getProjectionContexts();
         for (Iterator<LensProjectionContext> iterator = projectionContexts.iterator(); iterator.hasNext(); ) {
             ModelProjectionContext projectionContext = iterator.next();

@@ -40,25 +40,6 @@ public enum SynchronizationIntent {
      */
     SYNCHRONIZE;
 
-    public SynchronizationPolicyDecision toSynchronizationPolicyDecision() {
-        if (this == ADD) {
-            return SynchronizationPolicyDecision.ADD;
-        }
-        if (this == DELETE) {
-            return SynchronizationPolicyDecision.DELETE;
-        }
-        if (this == KEEP) {
-            return SynchronizationPolicyDecision.KEEP;
-        }
-        if (this == UNLINK) {
-            return SynchronizationPolicyDecision.UNLINK;
-        }
-        if (this == SYNCHRONIZE) {
-            return null;
-        }
-        throw new IllegalStateException("Unexpected value "+this);
-    }
-
     public SynchronizationIntentType toSynchronizationIntentType() {
         switch(this) {
             case ADD: return SynchronizationIntentType.ADD;

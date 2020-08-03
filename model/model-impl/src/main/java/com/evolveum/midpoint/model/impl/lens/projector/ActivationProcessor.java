@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -79,6 +80,7 @@ public class ActivationProcessor implements ProjectorProcessor {
     private static final ItemName FOCUS_EXISTS_PROPERTY_NAME = new ItemName(SchemaConstants.NS_C, "focusExists");
 
     private static final String OP_ACTIVATION = Projector.class.getName() + ".activation"; // for historical reasons
+    private static final String OP_PROJECTION_ACTIVATION = ActivationProcessor.class.getName() + ".projectionActivation";
 
     @Autowired private ContextLoader contextLoader;
     @Autowired private PrismContext prismContext;
@@ -103,7 +105,6 @@ public class ActivationProcessor implements ProjectorProcessor {
                 if (projectionContext.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.BROKEN
                         && projectionContext.getSynchronizationPolicyDecision() != SynchronizationPolicyDecision.IGNORE) {
                     processActivation(context, projectionContext, now, task, activationResult);
-                    projectionContext.recompute();
                 }
             }
             context.removeIgnoredContexts();
@@ -119,58 +120,67 @@ public class ActivationProcessor implements ProjectorProcessor {
     }
 
     private <O extends ObjectType, F extends FocusType> void processActivation(LensContext<O> context,
-            LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-
-        LensFocusContext<O> focusContext = context.getFocusContext();
-        if (focusContext != null && !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-            // We can do this only for focal object.
-            return;
-        }
-
-        processActivationFocal((LensContext<F>)context, projectionContext, now, task, result);
-    }
-
-    private <F extends FocusType> void processActivationFocal(LensContext<F> context,
-            LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            processActivationMetadata(context, projectionContext, now, result);
-            return;
-        }
+            LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult parentResult)
+            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        OperationResult result = parentResult.subresult(OP_PROJECTION_ACTIVATION)
+                .addParam("resourceOid", projectionContext.getResourceOid())
+                .addParam("resourceName", projectionContext.getResourceName())
+                .addParam("projection", projectionContext.getHumanReadableName())
+                .build();
         try {
+            LensFocusContext<O> focusContext = context.getFocusContext();
+            if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 
-            processActivationUserCurrent(context, projectionContext, now, task, result);
-            processActivationMetadata(context, projectionContext, now, result);
-            processActivationUserFuture(context, projectionContext, now, task, result);
+                processActivationMetadata(projectionContext, now);
 
-        } catch (ObjectNotFoundException e) {
-            if (projectionContext.isTombstone()) {
-                // This is not critical. The projection is marked as thombstone and we can go on with processing
-                // No extra action is needed.
             } else {
-                throw e;
+                try {
+
+                    //noinspection unchecked
+                    LensContext<F> contextCasted = (LensContext<F>) context;
+                    processActivationMappingsCurrent(contextCasted, projectionContext, now, task, result);
+                    processActivationMetadata(projectionContext, now);
+                    processActivationMappingsFuture(contextCasted, projectionContext, now, task, result);
+
+                } catch (ObjectNotFoundException e) {
+                    if (projectionContext.isTombstone()) {
+                        // This is not critical. The projection is marked as tombstone and we can go on with processing
+                        // No extra action is needed.
+                    } else {
+                        throw e;
+                    }
+                }
             }
+
+            projectionContext.recompute();
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 
-    private <F extends FocusType> void processActivationUserCurrent(LensContext<F> context, LensProjectionContext projCtx,
+    private <F extends FocusType> void processActivationMappingsCurrent(LensContext<F> context, LensProjectionContext projCtx,
             XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
             SecurityViolationException {
 
         String projCtxDesc = projCtx.toHumanReadableString();
-        SynchronizationPolicyDecision decision = projCtx.getSynchronizationPolicyDecision();
+        SynchronizationPolicyDecision existingDecision = projCtx.getSynchronizationPolicyDecision();
         SynchronizationIntent synchronizationIntent = projCtx.getSynchronizationIntent();
 
         LOGGER.trace("processActivationUserCurrent starting for {}. Existing decision = {}, synchronization intent = {}",
-                projCtxDesc, decision, synchronizationIntent);
+                projCtxDesc, existingDecision, synchronizationIntent);
 
-        if (decision == SynchronizationPolicyDecision.BROKEN) {
+        if (existingDecision == SynchronizationPolicyDecision.BROKEN) {
             LOGGER.trace("Broken projection {}, skipping further activation processing", projCtxDesc);
             return;
         }
-        if (decision != null) {
-            throw new IllegalStateException("Decision "+decision+" already present for projection "+projCtxDesc);
+
+        if (existingDecision != null) {
+            throw new IllegalStateException("Decision "+existingDecision+" already present for projection "+projCtxDesc);
         }
 
         if (synchronizationIntent == SynchronizationIntent.UNLINK) {
@@ -209,6 +219,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         LensProjectionContext lowerOrderContext = LensUtil.findLowerOrderContext(context, projCtx);
 
+        SynchronizationPolicyDecision decision;
         if (synchronizationIntent == null || synchronizationIntent == SynchronizationIntent.SYNCHRONIZE) {
             if (shadowShouldExist) {
                 projCtx.setActive(true);
@@ -239,7 +250,7 @@ public class ActivationProcessor implements ProjectorProcessor {
                 if (projCtx.isExists()) {
                     decision = SynchronizationPolicyDecision.DELETE;
                 } else {
-                    // we should delete the entire context, but then we will lost track of what
+                    // we should delete the entire context, but then we will lose track of what
                     // happened. So just ignore it.
                     decision = SynchronizationPolicyDecision.IGNORE;
                     // if there are any triggers then move them to focus. We may still need them.
@@ -287,18 +298,18 @@ public class ActivationProcessor implements ProjectorProcessor {
             return;
         }
 
-        if (decision == SynchronizationPolicyDecision.UNLINK || decision == SynchronizationPolicyDecision.DELETE) {
+        if (decision == SynchronizationPolicyDecision.DELETE) {
             LOGGER.trace("Decision is {}, skipping activation properties processing for {}", decision, projCtxDesc);
             return;
         }
 
-        ResourceObjectTypeDefinitionType resourceAccountDefType = projCtx.getResourceObjectTypeDefinitionType();
-        if (resourceAccountDefType == null) {
+        ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = projCtx.getResourceObjectTypeDefinitionType();
+        if (resourceObjectTypeDefinition == null) {
             LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account " + projCtxDesc);
             return;
         }
-        ResourceActivationDefinitionType activationType = resourceAccountDefType.getActivation();
-        if (activationType == null) {
+        ResourceActivationDefinitionType activationDefinition = resourceObjectTypeDefinition.getActivation();
+        if (activationDefinition == null) {
             LOGGER.trace("No activation definition in projection {}, skipping activation properties processing", projCtxDesc);
             return;
         }
@@ -316,7 +327,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         if (capStatus != null) {
             evaluateActivationMapping(context, projCtx,
-                    activationType.getAdministrativeStatus(),
+                    activationDefinition.getAdministrativeStatus(),
                     SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                     SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                     capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
@@ -324,25 +335,25 @@ public class ActivationProcessor implements ProjectorProcessor {
             LOGGER.trace("Skipping activation administrative status processing because {} does not have activation administrative status capability", projCtx.getResource());
         }
 
-        ResourceBidirectionalMappingType validFromMappingType = activationType.getValidFrom();
+        ResourceBidirectionalMappingType validFromMappingType = activationDefinition.getValidFrom();
         if (validFromMappingType == null || validFromMappingType.getOutbound() == null) {
             LOGGER.trace("Skipping activation validFrom processing because {} does not have appropriate outbound mapping", projCtx.getResource());
         } else if (capValidFrom == null && !ExpressionUtil.hasExplicitTarget(validFromMappingType.getOutbound())) {
             LOGGER.trace("Skipping activation validFrom processing because {} does not have activation validFrom capability nor outbound mapping with explicit target", projCtx.getResource());
         } else {
-            evaluateActivationMapping(context, projCtx, activationType.getValidFrom(),
+            evaluateActivationMapping(context, projCtx, activationDefinition.getValidFrom(),
                     SchemaConstants.PATH_ACTIVATION_VALID_FROM,
                     SchemaConstants.PATH_ACTIVATION_VALID_FROM,
                     null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_FROM.getLocalPart(), task, result);
         }
 
-        ResourceBidirectionalMappingType validToMappingType = activationType.getValidTo();
+        ResourceBidirectionalMappingType validToMappingType = activationDefinition.getValidTo();
         if (validToMappingType == null || validToMappingType.getOutbound() == null) {
             LOGGER.trace("Skipping activation validTo processing because {} does not have appropriate outbound mapping", projCtx.getResource());
         } else if (capValidTo == null && !ExpressionUtil.hasExplicitTarget(validToMappingType.getOutbound())) {
             LOGGER.trace("Skipping activation validTo processing because {} does not have activation validTo capability nor outbound mapping with explicit target", projCtx.getResource());
         } else {
-            evaluateActivationMapping(context, projCtx, activationType.getValidTo(),
+            evaluateActivationMapping(context, projCtx, activationDefinition.getValidTo(),
                     SchemaConstants.PATH_ACTIVATION_VALID_TO,
                     SchemaConstants.PATH_ACTIVATION_VALID_TO,
                     null, now, MappingTimeEval.CURRENT, ActivationType.F_VALID_TO.getLocalPart(), task, result);
@@ -350,33 +361,33 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         if (capLockoutStatus != null) {
             evaluateActivationMapping(context, projCtx,
-                    activationType.getLockoutStatus(),
+                    activationDefinition.getLockoutStatus(),
                     SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
                     capActivation, now, MappingTimeEval.CURRENT, ActivationType.F_LOCKOUT_STATUS.getLocalPart(), task, result);
         } else {
             LOGGER.trace("Skipping activation lockout status processing because {} does not have activation lockout status capability", projCtx.getResource());
         }
-
     }
 
-    private <F extends FocusType> void processActivationMetadata(LensContext<F> context, LensProjectionContext accCtx,
-            XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
-        ObjectDelta<ShadowType> projDelta = accCtx.getDelta();
+    private <F extends FocusType> void processActivationMetadata(LensProjectionContext projCtx, XMLGregorianCalendar now) throws SchemaException {
+        ObjectDelta<ShadowType> projDelta = projCtx.getCurrentDelta();
         if (projDelta == null) {
             return;
         }
 
-        LOGGER.trace("processActivationMetadata starting for {}", accCtx);
+        LOGGER.trace("processActivationMetadata starting for {}", projCtx);
 
         PropertyDelta<ActivationStatusType> statusDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
 
         if (statusDelta != null && !statusDelta.isDelete()) {
 
             // we have to determine if the status really changed
-            PrismObject<ShadowType> oldShadow = accCtx.getObjectOld();
-            ActivationStatusType statusOld = null;
+            PrismObject<ShadowType> oldShadow = projCtx.getObjectOld();
+            ActivationStatusType statusOld;
             if (oldShadow != null && oldShadow.asObjectable().getActivation() != null) {
                 statusOld = oldShadow.asObjectable().getActivation().getAdministrativeStatus();
+            } else {
+                statusOld = null;
             }
 
             PrismProperty<ActivationStatusType> statusPropNew = (PrismProperty<ActivationStatusType>) statusDelta.getItemNewMatchingPath(null);
@@ -388,20 +399,20 @@ public class ActivationProcessor implements ProjectorProcessor {
                 // timestamps
                 PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(statusNew,
                         now, getActivationDefinition(), OriginType.OUTBOUND, prismContext);
-                accCtx.swallowToSecondaryDelta(timestampDelta);
+                projCtx.swallowToSecondaryDelta(timestampDelta);
 
                 // disableReason
                 if (statusNew == ActivationStatusType.DISABLED) {
                     PropertyDelta<String> disableReasonDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_DISABLE_REASON);
                     if (disableReasonDelta == null) {
-                        String disableReason = null;
-                        ObjectDelta<ShadowType> projPrimaryDelta = accCtx.getPrimaryDelta();
-                        ObjectDelta<ShadowType> projSecondaryDelta = accCtx.getSecondaryDelta();
+                        String disableReason;
+                        ObjectDelta<ShadowType> projPrimaryDelta = projCtx.getPrimaryDelta();
+                        ObjectDelta<ShadowType> projSecondaryDelta = projCtx.getSecondaryDelta();
                         if (projPrimaryDelta != null
                                 && projPrimaryDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS) != null
                                 && (projSecondaryDelta == null || projSecondaryDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS) == null)) {
                             disableReason = SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT;
-                        } else if (accCtx.isLegal()) {
+                        } else if (projCtx.isLegal()) {
                             disableReason = SchemaConstants.MODEL_DISABLE_REASON_MAPPED;
                         } else {
                             disableReason = SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION;
@@ -411,14 +422,17 @@ public class ActivationProcessor implements ProjectorProcessor {
                         disableReasonDelta = disableReasonDef.createEmptyDelta(
                                 ItemPath.create(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
                         disableReasonDelta.setValueToReplace(prismContext.itemFactory().createPropertyValue(disableReason, OriginType.OUTBOUND, null));
-                        accCtx.swallowToSecondaryDelta(disableReasonDelta);
+                        projCtx.swallowToSecondaryDelta(disableReasonDelta);
                     }
                 }
             }
         }
     }
 
-    private <F extends FocusType> void processActivationUserFuture(LensContext<F> context, LensProjectionContext accCtx,
+    /**
+     * We'll evaluate the mappings just to create the triggers.
+     */
+    private <F extends FocusType> void processActivationMappingsFuture(LensContext<F> context, LensProjectionContext accCtx,
             XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         String accCtxDesc = accCtx.toHumanReadableString();
         SynchronizationPolicyDecision decision = accCtx.getSynchronizationPolicyDecision();
@@ -461,7 +475,6 @@ public class ActivationProcessor implements ProjectorProcessor {
         ActivationValidityCapabilityType capValidTo = CapabilityUtil.getEffectiveActivationValidTo(capActivation);
 
         if (capStatus != null) {
-
             evaluateActivationMapping(context, accCtx, activationType.getAdministrativeStatus(),
                     SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
                     capActivation, now, MappingTimeEval.FUTURE, ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart(), task, result);
@@ -528,19 +541,22 @@ public class ActivationProcessor implements ProjectorProcessor {
             builder.additionalSource(new Source<>(getAssignedIdi(projCtx), ExpressionConstants.VAR_ASSIGNED_QNAME));
             builder.additionalSource(new Source<>(getFocusExistsIdi(context.getFocusContext()), ExpressionConstants.VAR_FOCUS_EXISTS_QNAME));
 
+            ObjectDeltaObject<F> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();
+
             // Variable: focus
-            builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDefinition());
+            builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdoAbsolute, context.getFocusContext().getObjectDefinition());
 
             // Variable: user (for convenience, same as "focus"), DEPRECATED
-            builder.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDefinition());
+            builder.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdoAbsolute, context.getFocusContext().getObjectDefinition());
             builder.addAliasRegistration(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
 
             // Variable: projection
             // This may be tricky when creation of a new projection is considered.
             // In that case we do not have any projection object (account) yet, neither new nor old. But we already have
             // projection context. We have to pass projection definition explicitly here.
-            builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
-            builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projCtx.getObjectDeltaObject(), projCtx.getObjectDefinition());
+            ObjectDeltaObject<ShadowType> projectionOdo = projCtx.getObjectDeltaObject();
+            builder.addVariableDefinition(ExpressionConstants.VAR_SHADOW, projectionOdo, projCtx.getObjectDefinition());
+            builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projectionOdo, projCtx.getObjectDefinition());
             builder.addAliasRegistration(ExpressionConstants.VAR_SHADOW, ExpressionConstants.VAR_PROJECTION);
 
             // Variable: resource
@@ -605,7 +621,8 @@ public class ActivationProcessor implements ProjectorProcessor {
                 builder.implicitTargetPath(projectionPropertyPath);
 
                 // Source: administrativeStatus, validFrom or validTo
-                ItemDeltaItem<PrismPropertyValue<T>,PrismPropertyDefinition<T>> sourceIdi = context.getFocusContext().getObjectDeltaObject().findIdi(focusPropertyPath);
+                ObjectDeltaObject<F> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();
+                ItemDeltaItem<PrismPropertyValue<T>,PrismPropertyDefinition<T>> sourceIdi = focusOdoAbsolute.findIdi(focusPropertyPath);
 
                 if (capActivation != null && focusPropertyPath.equivalent(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS)) {
                     ActivationValidityCapabilityType capValidFrom = CapabilityUtil.getEffectiveActivationValidFrom(capActivation);
@@ -621,7 +638,7 @@ public class ActivationProcessor implements ProjectorProcessor {
                         sourcePath = SchemaConstants.PATH_ACTIVATION_EFFECTIVE_STATUS;
                     }
                     ItemDeltaItem<PrismPropertyValue<ActivationStatusType>, PrismPropertyDefinition<ActivationStatusType>> computedIdi =
-                            context.getFocusContext().getObjectDeltaObject().findIdi(sourcePath);
+                            focusOdoAbsolute.findIdi(sourcePath); // TODO wave
                     builder.implicitSourcePath(sourcePath);
 
                     builder.defaultSource(new Source<>(computedIdi, ExpressionConstants.VAR_INPUT_QNAME));
@@ -666,7 +683,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         MappingInitializer<PrismPropertyValue<T>,PrismPropertyDefinition<T>> internalInitializer =
             builder -> {
 
-                builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx));
+                builder.addVariableDefinitions(ModelImplUtils.getDefaultExpressionVariables(context, projCtx, true));
 
                 builder.originType(OriginType.OUTBOUND);
                 builder.mappingKind(MappingKindType.OUTBOUND);
@@ -687,7 +704,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         params.setAPrioriTargetObject(shadowNew);
         params.setAPrioriTargetDelta(LensUtil.findAPrioriDelta(context, projCtx));
         if (context.getFocusContext() != null) {
-            params.setSourceContext(context.getFocusContext().getObjectDeltaObject());
+            params.setSourceContext(context.getFocusContext().getObjectDeltaObjectAbsolute());
         }
         params.setTargetContext(projCtx);
         params.setDefaultTargetItemPath(projectionPropertyPath);

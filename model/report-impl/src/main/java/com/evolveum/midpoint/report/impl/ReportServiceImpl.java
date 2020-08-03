@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 
@@ -91,6 +92,7 @@ public class ReportServiceImpl implements ReportService {
 //    @Autowired private ExpressionFactory expressionFactory;
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
 //    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private ScriptingService scriptingService;
 
     @Override
     public ObjectQuery parseQuery(PrismObject<ReportType> report, String query, VariablesMap parameters, Task task, OperationResult result) throws SchemaException,
@@ -415,6 +417,9 @@ public class ReportServiceImpl implements ReportService {
         if (expressionResult.size() > 1) {
             throw new ExpressionEvaluationException("Too many results from expression "+context.getContextDescription());
         }
+        if (expressionResult.get(0) == null ) {
+            return null;
+        }
         return expressionResult.get(0).getRealValue();
     }
 
@@ -507,5 +512,9 @@ public class ReportServiceImpl implements ReportService {
 
     public SchemaHelper getSchemaHelper() {
         return schemaHelper;
+    }
+
+    public ScriptingService getScriptingService() {
+        return scriptingService;
     }
 }

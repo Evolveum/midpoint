@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
-import com.evolveum.midpoint.model.impl.lens.assignments.TargetEvaluation.TargetValidity;
+import com.evolveum.midpoint.model.impl.lens.assignments.TargetEvaluation.TargetActivation;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -32,18 +32,19 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
 
     private static final Trace LOGGER = TraceManager.getTrace(TargetAssignmentEvaluation.class);
 
-    private final PlusMinusZero targetRelativityMode;
-    private final TargetValidity targetValidity;
+    private final ConditionState targetOverallConditionState;
+    private final TargetActivation targetActivation;
     private final OperationResult result;
 
     private final AssignmentType nextAssignment;
 
-    TargetAssignmentEvaluation(AssignmentPathSegmentImpl segment, PlusMinusZero targetRelativityMode, TargetValidity targetValidity,
-            EvaluationContext<AH> ctx, OperationResult result, AssignmentType nextAssignment) {
+    TargetAssignmentEvaluation(AssignmentPathSegmentImpl segment, ConditionState targetOverallConditionState,
+            TargetActivation targetActivation, EvaluationContext<AH> ctx, OperationResult result,
+            AssignmentType nextAssignment) {
         super(segment, ctx);
-        this.targetRelativityMode = targetRelativityMode;
+        this.targetOverallConditionState = targetOverallConditionState;
+        this.targetActivation = targetActivation;
         this.result = result;
-        this.targetValidity = targetValidity;
         this.nextAssignment = nextAssignment;
     }
 
@@ -51,9 +52,9 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
             SecurityViolationException, ConfigurationException, CommunicationException {
 
         assert ctx.assignmentPath.last() == segment;
-        assert segment.isAssignmentValid() || segment.direct;
-        assert targetValidity.targetValid || segment.direct;
-        assert targetRelativityMode != null;
+        assert segment.isAssignmentActive() || segment.direct;
+        assert targetActivation.targetActive || segment.direct;
+        assert targetOverallConditionState.isNotAllFalse();
         checkIfAlreadyEvaluated();
 
         // TODO reconsider this
@@ -83,8 +84,8 @@ class TargetAssignmentEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .evaluationOrder(nextEvaluationOrder)
                 .evaluationOrderForTarget(nextEvaluationOrderForTarget)
                 .varThisObject(orderOneObject)
-                .pathToSourceValid(targetValidity.pathAndTargetValid)
-                .sourceRelativityMode(targetRelativityMode)
+                .pathToSourceValid(targetActivation.pathAndTargetActive)
+                .pathToSourceConditionState(targetOverallConditionState)
                 .build();
         new PathSegmentEvaluation<>(nextSegment, ctx, result).evaluate();
     }

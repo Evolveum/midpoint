@@ -671,4 +671,15 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         }
         super.performFreeze();
     }
+
+    @Override
+    public @Nullable Object getRealValueOrRawType(PrismContext prismContext) {
+        if (value != null) {
+            return value;
+        } else if (rawElement != null) {
+            return new RawType(this, getTypeName(), prismContext);
+        } else {
+            return null;
+        }
+    }
 }

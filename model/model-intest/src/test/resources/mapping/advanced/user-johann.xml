@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+      oid="25fa06c6-04e2-4f9e-97c4-87fa5613bb15">
+    <name>johann</name>
+    <fullName>Johann Sebastian Bach</fullName>
+</user>

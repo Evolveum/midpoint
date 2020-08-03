@@ -39,14 +39,14 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
 
     /**
      * Definition of the output item.
-     * TODO why it is important to be here?
+     * Needed for some of the evaluators (the question is if it's really needed).
      */
-    @NotNull protected final D outputDefinition;
+    protected final D outputDefinition;
 
     protected final Protector protector;
     @NotNull protected final PrismContext prismContext;
 
-    public AbstractExpressionEvaluator(@NotNull QName elementName, E expressionEvaluatorBean, @NotNull D outputDefinition,
+    public AbstractExpressionEvaluator(@NotNull QName elementName, E expressionEvaluatorBean, D outputDefinition,
             Protector protector, @NotNull PrismContext prismContext) {
         this.elementName = elementName;
         this.expressionEvaluatorBean = expressionEvaluatorBean;

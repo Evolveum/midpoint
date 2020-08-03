@@ -7,7 +7,7 @@ UPDATE m_global_metadata SET value = '4.2' WHERE name = 'databaseSchemaVersion';
 
 -- 2020-06-25 11:35
 
-ALTER TABLE m_acc_cert_campaign ALTER COLUMN ownerRef_type RENAME TO ownerRef_targetType;
+ALTER TABLE m_acc_cert_campaign ALTER COLUMN definitionRef_type RENAME TO definitionRef_targetType;
 ALTER TABLE m_acc_cert_campaign ALTER COLUMN ownerRef_type RENAME TO ownerRef_targetType;
 ALTER TABLE m_acc_cert_definition ALTER COLUMN ownerRef_type RENAME TO ownerRef_targetType;
 ALTER TABLE m_connector ALTER COLUMN connectorHostRef_type RENAME TO connectorHostRef_targetType;

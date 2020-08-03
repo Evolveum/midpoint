@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.report.impl.controller.export;
+package com.evolveum.midpoint.report.impl.controller.fileformat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,8 +13,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.RunningTask;
 
 import j2html.TagCreator;
@@ -457,12 +457,12 @@ public class HtmlController extends FileFormatController {
     }
 
     @Override
-    public void importCollectionReport(ReportType report, PrismContainerValue containerValue, RunningTask task, OperationResult result) {
+    public void importCollectionReport(ReportType report, VariablesMap listOfVariables, RunningTask task, OperationResult result) {
         throw new UnsupportedOperationException("Unsupported operation import for HTML file format");
     }
 
     @Override
-    public PrismContainer createContainerFromFile(ReportType report, ReportDataType reportData, Task task, OperationResult result) throws IOException {
+    public List<VariablesMap> createVariablesFromFile(ReportType report, ReportDataType reportData, boolean useImportScript, Task task, OperationResult result) throws IOException {
         throw new UnsupportedOperationException("Unsupported operation import for HTML file format");
     }
 

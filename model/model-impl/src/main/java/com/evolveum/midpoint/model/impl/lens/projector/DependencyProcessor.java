@@ -25,7 +25,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
-import com.evolveum.midpoint.model.impl.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -47,40 +46,50 @@ public class DependencyProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(DependencyProcessor.class);
 
-    @Autowired
-    private ProvisioningService provisioningService;
-    @Autowired
-    private TaskManager taskManager;
+    private static final String OP_SORT_PROJECTIONS_TO_WAVES = DependencyProcessor.class.getName() + ".sortProjectionsToWaves";
 
-    public <F extends ObjectType> void sortProjectionsToWaves(LensContext<F> context) throws PolicyViolationException {
-        // Create a snapshot of the projection collection at the beginning of computation.
-        // The collection may be changed during computation (projections may be added). We do not want to process
-        // these added projections. They are already processed inside the computation.
-        // This also avoids ConcurrentModificationException
-        LensProjectionContext[] projectionArray = context.getProjectionContexts().toArray(new LensProjectionContext[0]);
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired private TaskManager taskManager;
 
-        // Reset incomplete flag for those contexts that are not yet computed
-        for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-            if (projectionContext.getWave() < 0) {
-                projectionContext.setWaveIncomplete(true);
+    public <F extends ObjectType> void sortProjectionsToWaves(LensContext<F> context, OperationResult parentResult)
+            throws PolicyViolationException {
+        OperationResult result = parentResult.createMinorSubresult(OP_SORT_PROJECTIONS_TO_WAVES);
+        try {
+
+            // Create a snapshot of the projection collection at the beginning of computation.
+            // The collection may be changed during computation (projections may be added). We do not want to process
+            // these added projections. They are already processed inside the computation.
+            // This also avoids ConcurrentModificationException
+            LensProjectionContext[] projectionArray = context.getProjectionContexts().toArray(new LensProjectionContext[0]);
+
+            // Reset incomplete flag for those contexts that are not yet computed
+            for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+                if (projectionContext.getWave() < 0) {
+                    projectionContext.setWaveIncomplete(true);
+                }
             }
-        }
 
-        for (LensProjectionContext projectionContext: projectionArray) {
-            determineProjectionWave(context, projectionContext, null, null);
-            projectionContext.setWaveIncomplete(false);
-        }
-
-        if (LOGGER.isTraceEnabled()) {
-            StringBuilder sb = new StringBuilder();
-            for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
-                sb.append("\n");
-                sb.append(projectionContext.getResourceShadowDiscriminator());
-                sb.append(": ");
-                sb.append(projectionContext.getWave());
+            for (LensProjectionContext projectionContext : projectionArray) {
+                determineProjectionWave(context, projectionContext, null, null);
+                projectionContext.setWaveIncomplete(false);
             }
-            LOGGER.trace("Projections sorted to waves (projection wave {}, execution wave {}):{}",
-                    context.getProjectionWave(), context.getExecutionWave(), sb.toString());
+
+            if (LOGGER.isTraceEnabled()) {
+                StringBuilder sb = new StringBuilder();
+                for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
+                    sb.append("\n");
+                    sb.append(projectionContext.getResourceShadowDiscriminator());
+                    sb.append(": ");
+                    sb.append(projectionContext.getWave());
+                }
+                LOGGER.trace("Projections sorted to waves (projection wave {}, execution wave {}):{}",
+                        context.getProjectionWave(), context.getExecutionWave(), sb.toString());
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 
@@ -617,19 +626,13 @@ public class DependencyProcessor {
         return false;
     }
 
-    private boolean wasExecuted(LensProjectionContext accountContext){
+    private boolean wasExecuted(LensProjectionContext accountContext) {
         if (accountContext.isAdd()) {
-
-            if (accountContext.getOid() == null){
-                return false;
-            }
-
-            List<LensObjectDeltaOperation<ShadowType>> executedDeltas = accountContext.getExecutedDeltas();
-            if (executedDeltas.isEmpty()) {
-                return false;
-            }
+            return accountContext.getOid() != null &&
+                    !accountContext.getExecutedDeltas().isEmpty();
+        } else {
+            return true;
         }
-        return true;
     }
 
     static class DependencyAndSource {

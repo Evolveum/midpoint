@@ -25,6 +25,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import static org.testng.AssertJUnit.*;
 
 /**
@@ -36,6 +39,7 @@ public class TestCsvReport extends BasicNewReportTest {
     public static final File REPORT_IMPORT_OBJECT_COLLECTION_WITH_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-import-object-collection-with-view.xml");
 
     public static final String IMPORT_USERS_FILE_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/import/import-users.csv";
+    public static final String IMPORT_MODIFY_FILE_PATH = MidPointTestConstants.TEST_RESOURCES_PATH + "/import/import-modify-user.csv";
 
     public static final String REPORT_IMPORT_OBJECT_COLLECTION_WITH_CONDITION_OID = "2b77aa2e-dd86-4842-bcf5-762c8a9a85de";
 
@@ -159,7 +163,7 @@ public class TestCsvReport extends BasicNewReportTest {
         assertTrue(user.asObjectable().getAssignment().isEmpty());
     }
 
-    @Test
+    @Test(dependsOnMethods = {"test115CreateObjectCollectionReportWithCondition"})
     public void test201ImportReportfromExportedReport() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_WITH_CONDITION_OID);
         runReport(report, false);
@@ -189,6 +193,51 @@ public class TestCsvReport extends BasicNewReportTest {
         assertEquals(oldWill.asObjectable().getFullName(), newWill.asObjectable().getFullName());
         assertEquals(oldWill.asObjectable().getEmailAddress(), newWill.asObjectable().getEmailAddress());
         outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName()));
+    }
+
+    @Test(dependsOnMethods = {"test200ImportReportForUser"})
+    public void test202ImportReportWithImportScript() throws Exception {
+        PrismObject<UserType> testUser02 = searchObjectByName(UserType.class, "testUser02");
+        assertNotNull("User testUser02 was not created", testUser02);
+        assertTrue(testUser02.asObjectable().getAssignment().isEmpty());
+
+        PrismObject<UserType> testUser01 = searchObjectByName(UserType.class, "testUser01");
+        assertNotNull("User testUser01 was not created", testUser01);
+        assertTrue(testUser01.asObjectable().getAssignment().size() == 2);
+
+        PrismObject<UserType> jack = searchObjectByName(UserType.class, "jack");
+        assertNotNull("User jack was not created", jack);
+        assertNull(jack.asObjectable().getAssignment().get(0).getActivation().getValidFrom());
+        assertNull(jack.asObjectable().getAssignment().get(0).getActivation().getValidTo());
+
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_WITH_IMPORT_SCRIPT_OID);
+        importReport(report, IMPORT_MODIFY_FILE_PATH, true);
+
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
+        Date date = format.parse("2018-01-01");
+        GregorianCalendar cal = new GregorianCalendar();
+        cal.setTime(date);
+        XMLGregorianCalendar validFrom = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+        date = format.parse("2018-05-01");
+        cal.setTime(date);
+        XMLGregorianCalendar validTo = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+
+        testUser02 = searchObjectByName(UserType.class, "testUser02");
+        assertNotNull("User testUser02 was not created", testUser02);
+        assertEquals("00000000-0000-0000-0000-000000000004", testUser02.asObjectable().getAssignment().get(0).getTargetRef().getOid());
+        assertEquals(validFrom, testUser02.asObjectable().getAssignment().get(0).getActivation().getValidFrom());
+        assertEquals(validTo, testUser02.asObjectable().getAssignment().get(0).getActivation().getValidTo());
+
+        testUser01 = searchObjectByName(UserType.class, "testUser01");
+        assertNotNull("User testUser01 was not created", testUser01);
+        assertTrue(testUser01.asObjectable().getAssignment().size() == 1);
+        assertEquals("00000000-0000-0000-0000-000000000008", testUser01.asObjectable().getAssignment().get(0).getTargetRef().getOid());
+
+        jack = searchObjectByName(UserType.class, "jack");
+        assertNotNull("User jack was not created", jack);
+        assertEquals("00000000-0000-0000-0000-000000000004", jack.asObjectable().getAssignment().get(0).getTargetRef().getOid());
+        assertEquals(validFrom, jack.asObjectable().getAssignment().get(0).getActivation().getValidFrom());
+        assertEquals(validTo, jack.asObjectable().getAssignment().get(0).getActivation().getValidTo());
     }
 
     private void setExpectedValueForDashboardReport() {

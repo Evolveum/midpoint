@@ -67,10 +67,8 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LevelOverrideTurboFilter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.util.logging.TracingAppender;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
@@ -189,8 +187,6 @@ public class Clockwork {
             recordTraceAtEnd(context, trace, result);
             if (tracingRequested) {
                 tracer.storeTrace(task, result, parentResult);
-                TracingAppender.terminateCollecting(); // reconsider
-                LevelOverrideTurboFilter.cancelLoggingOverride(); // reconsider
             }
             result.computeStatusIfUnknown();
         }
@@ -532,10 +528,13 @@ public class Clockwork {
         clockworkAuditHelper.audit(context, AuditEventStage.EXECUTION, task, result, overallResult);
 
         context.rotIfNeeded();
+        context.resetDeltasAfterExecution();
 
         if (!restartRequestedHolder.getValue()) {
             context.incrementExecutionWave();
         } else {
+            LOGGER.trace("Restart of the current execution wave ({}) was requested by the change executor",
+                    context.getExecutionWave());
             // Shouldn't we explicitly rot context here?
             // BTW, what if restart is requested indefinitely?
         }

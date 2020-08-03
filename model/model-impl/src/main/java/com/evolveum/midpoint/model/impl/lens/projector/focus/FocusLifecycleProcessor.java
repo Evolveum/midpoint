@@ -51,13 +51,11 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import static com.evolveum.midpoint.model.impl.lens.projector.util.SkipWhenFocusDeleted.PRIMARY_OR_SECONDARY;
-
 /**
  * @author Radovan Semancik
  */
 @Component
-@ProcessorExecution(focusRequired = true, focusType = AssignmentHolderType.class, skipWhenFocusDeleted = PRIMARY_OR_SECONDARY)
+@ProcessorExecution(focusRequired = true, focusType = AssignmentHolderType.class, skipWhenFocusDeleted = true)
 public class FocusLifecycleProcessor implements ProjectorProcessor {
 
     @Autowired private ExpressionFactory expressionFactory;

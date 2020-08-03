@@ -4,13 +4,16 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.report.impl.controller.export;
+package com.evolveum.midpoint.report.impl.controller.fileformat;
 
 import java.io.IOException;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.RunningTask;
+
+import com.evolveum.midpoint.util.DOMUtil;
 
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
@@ -252,7 +255,7 @@ public abstract class FileFormatController {
     private Object evaluateImportExpression(ExpressionType expression, ExpressionVariables variables, Task task, OperationResult result) {
         Object value = null;
         try {
-            value = ExpressionUtil.evaluateExpression(null ,variables, null, expression,
+            value = ExpressionUtil.evaluateExpression(null, variables, null, expression,
                     null, getReportService().getExpressionFactory(), "value for column", task, result);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
                 | ConfigurationException | SecurityViolationException e) {
@@ -418,7 +421,7 @@ public abstract class FileFormatController {
                 .getCompileTimeClassForObjectType(type);
     }
 
-    public abstract void importCollectionReport(ReportType report, PrismContainerValue containerValue, RunningTask task, OperationResult result);
+    public abstract void importCollectionReport(ReportType report, VariablesMap listOfVariables, RunningTask task, OperationResult result);
 
-    public abstract PrismContainer createContainerFromFile(ReportType report, ReportDataType reportData, Task task, OperationResult result) throws IOException;
+    public abstract List<VariablesMap> createVariablesFromFile(ReportType report, ReportDataType reportData, boolean useImportScript, Task task, OperationResult result) throws IOException;
 }

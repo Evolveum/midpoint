@@ -904,7 +904,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertRoleEvaluationCount(2, 0);
 
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify(2*(1 + NUMBER_OF_LEVEL_B_ROLES)));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify2(2*(1 + NUMBER_OF_LEVEL_B_ROLES)));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -1063,7 +1063,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertRoleEvaluationCount(1, 0);
 
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify((1 + NUMBER_OF_LEVEL_B_ROLES)));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify1((1 + NUMBER_OF_LEVEL_B_ROLES)));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -1156,4 +1156,11 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         return i*3;
     }
 
+    protected int hackify2(int i) {
+        return hackify(i);
+    }
+
+    protected int hackify1(int i) {
+        return hackify(i);
+    }
 }

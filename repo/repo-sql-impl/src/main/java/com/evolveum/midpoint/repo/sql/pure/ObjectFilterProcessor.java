@@ -29,9 +29,9 @@ public class ObjectFilterProcessor implements FilterProcessor<ObjectFilter> {
             return new RefFilterProcessor(context)
                     .process((RefFilter) filter);
         } else if (filter instanceof AllFilter) {
-            return Expressions.TRUE;
+            return Expressions.asBoolean(true).isTrue();
         } else if (filter instanceof NoneFilter) {
-            return Expressions.FALSE;
+            return Expressions.asBoolean(true).isFalse();
         } else {
             throw new QueryException("Unsupported filter " + filter);
         }

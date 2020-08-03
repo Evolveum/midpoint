@@ -41,7 +41,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * This class is used for SQL repository configuration. It reads values from Apache configuration object (xml).
+ * This class is used for SQL repository configuration.
+ * It reads values from Apache configuration object (xml).
  *
  * @author lazyman
  */
@@ -397,19 +398,19 @@ public class SqlRepositoryConfiguration {
 
     private final long initializationFailTimeout;
 
-    private boolean skipExplicitSchemaValidation;
+    private final boolean skipExplicitSchemaValidation;
     @NotNull private final MissingSchemaAction missingSchemaAction;
     @NotNull private final UpgradeableSchemaAction upgradeableSchemaAction;
     @NotNull private final IncompatibleSchemaAction incompatibleSchemaAction;
-    private String schemaVersionIfMissing;
-    private String schemaVersionOverride;
-    private String schemaVariant;           // e.g. "utf8mb4" for MySQL/MariaDB
+    private final String schemaVersionIfMissing;
+    private final String schemaVersionOverride;
+    private final String schemaVariant;           // e.g. "utf8mb4" for MySQL/MariaDB
 
     private boolean enableNoFetchExtensionValuesInsertion;
     private boolean enableNoFetchExtensionValuesDeletion;
     private boolean enableIndexOnlyItems;
 
-    private int textInfoColumnSize;
+    private final int textInfoColumnSize;
 
     /*
      * Notes:

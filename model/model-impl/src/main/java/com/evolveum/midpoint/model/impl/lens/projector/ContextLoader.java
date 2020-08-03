@@ -144,7 +144,8 @@ public class ContextLoader implements ProjectorProcessor {
                 }
 
                 // Some cleanup
-                if (focusContext.getPrimaryDelta() != null && focusContext.getPrimaryDelta().isModify() && focusContext.getPrimaryDelta().isEmpty()) {
+                ObjectDelta<F> primaryDelta = focusContext.getPrimaryDelta();
+                if (ObjectDelta.isModify(primaryDelta) && primaryDelta.isEmpty()) {
                     focusContext.setPrimaryDelta(null);
                 }
 
@@ -349,9 +350,11 @@ public class ContextLoader implements ProjectorProcessor {
         } else {
             trace = null;
         }
-        LensFocusContext<O> focusContext = context.getFocusContext();
         try {
-            if (focusContext == null) {
+            LensFocusContext<O> focusContext;
+            if (context.getFocusContext() != null) {
+                focusContext = context.getFocusContext();
+            } else {
                 focusContext = determineFocusContextFromProjections(context, result);
             }
 
@@ -366,14 +369,16 @@ public class ContextLoader implements ProjectorProcessor {
                 result.addReturnComment("Already loaded");
                 return;
             }
-            ObjectDelta<O> objectDelta = focusContext.getDelta();
-            if (objectDelta != null && objectDelta.isAdd() && focusContext.getExecutedDeltas().isEmpty()) {
+
+            ObjectDelta<O> objectDelta = focusContext.getSummaryDelta(); // TODO check this
+            if (ObjectDelta.isAdd(objectDelta) && focusContext.getExecutedDeltas().isEmpty()) {
                 //we're adding the focal object. No need to load it, it is in the delta
                 focusContext.setFresh(true);
                 result.addReturnComment("Obtained from delta");
                 return;
             }
-            if (focusContext.getObjectCurrent() != null && objectDelta != null && objectDelta.isDelete()) {
+
+            if (focusContext.getObjectCurrent() != null && ObjectDelta.isDelete(objectDelta)) {
                 // do not reload if the delta is delete. the reload will most likely fail anyway
                 // but DO NOT set the fresh flag in this case, it may be misleading
                 result.addReturnComment("Not loading as delta is DELETE");
@@ -428,7 +433,7 @@ public class ContextLoader implements ProjectorProcessor {
 
     private <O extends ObjectType> LensFocusContext<O> determineFocusContextFromProjections(LensContext<O> context, OperationResult result) {
         String focusOid = null;
-        LensProjectionContext projectionContextThatYeildedFocusOid = null;
+        LensProjectionContext projectionContextThatYieldedFocusOid = null;
         PrismObject<O> focusOwner = null;
         for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
             String projectionOid = projectionContext.getOid();
@@ -441,10 +446,10 @@ public class ContextLoader implements ProjectorProcessor {
                         focusOid = shadowOwner.getOid();
                         //noinspection unchecked
                         focusOwner = (PrismObject<O>) shadowOwner;
-                        projectionContextThatYeildedFocusOid = projectionContext;
+                        projectionContextThatYieldedFocusOid = projectionContext;
                     } else {
                         throw new IllegalArgumentException("The context does not have explicit focus. Attempt to determine focus failed because two " +
-                                "projections points to different foci: "+projectionContextThatYeildedFocusOid+"->"+focusOid+"; "+
+                                "projections points to different foci: "+projectionContextThatYieldedFocusOid+"->"+focusOid+"; "+
                                 projectionContext+"->"+shadowOwner);
                     }
                 }
@@ -455,9 +460,9 @@ public class ContextLoader implements ProjectorProcessor {
             LensFocusContext<O> focusCtx = context.getOrCreateFocusContext(focusOwner.getCompileTimeClass());
             focusCtx.setOid(focusOid);
             return focusCtx;
+        } else {
+            return null;
         }
-
-        return null;
     }
 
     private <O extends ObjectType> void setPrimaryDeltaOldValue(LensElementContext<O> ctx) {
@@ -890,6 +895,7 @@ public class ContextLoader implements ProjectorProcessor {
                     if (refVal.getObject() == null) {
                         projectionContext.setSynchronizationIntent(SynchronizationIntent.UNLINK);
                     } else {
+                        // I.e. this is when we request to delete link containing full object.
                         projectionContext.setSynchronizationIntent(SynchronizationIntent.DELETE);
                         ObjectDelta<ShadowType> accountPrimaryDelta = shadow.createDeleteDelta();
                         projectionContext.setPrimaryDelta(accountPrimaryDelta);
@@ -1120,14 +1126,14 @@ public class ContextLoader implements ProjectorProcessor {
         ResourceType resource = LensUtil.getResourceReadOnly(context, resourceOid, provisioningService, task, result);
         String accountIntent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
         ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, accountIntent, shadowType.getTag(), false);
-        LensProjectionContext accountSyncContext = context.findProjectionContext(rsd);
-        if (accountSyncContext != null) {
+        LensProjectionContext existingProjectionContext = context.findProjectionContext(rsd);
+        if (existingProjectionContext != null) {
             throw new SchemaException("Attempt to add "+account+" to a focus that already contains projection of type '"+accountIntent+"' on "+resource);
         }
-        accountSyncContext = context.createProjectionContext(rsd);
-        accountSyncContext.setResource(resource);
-        accountSyncContext.setOid(account.getOid());
-        return accountSyncContext;
+        LensProjectionContext newProjectionContext = context.createProjectionContext(rsd);
+        newProjectionContext.setResource(resource);
+        newProjectionContext.setOid(account.getOid());
+        return newProjectionContext;
     }
 
     private <F extends ObjectType> LensProjectionContext findAccountContext(String accountOid, LensContext<F> context) {

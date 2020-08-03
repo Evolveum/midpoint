@@ -39,7 +39,7 @@ class MemberOfEngine {
 
     private final List<MemberOfInvocation> memberOfInvocations = new ArrayList<>();
 
-    boolean isMemberOf(ObjectDeltaObject<? extends AssignmentHolderType> focusOdo, String targetOid) {
+    boolean isMemberOf(PrismObject<? extends AssignmentHolderType> focus, String targetOid) {
         if (targetOid == null) {
             throw new IllegalArgumentException("Null targetOid in isMemberOf call");
         }
@@ -47,7 +47,7 @@ class MemberOfEngine {
         if (existingInvocation != null) {
             return existingInvocation.result;
         } else {
-            boolean result = computeIsMemberOfDuringEvaluation(focusOdo, targetOid);
+            boolean result = computeIsMemberOfDuringEvaluation(focus, targetOid);
             memberOfInvocations.add(new MemberOfInvocation(targetOid, result));
             return result;
         }
@@ -85,10 +85,8 @@ class MemberOfEngine {
         }
     }
 
-    private boolean computeIsMemberOfDuringEvaluation(ObjectDeltaObject<? extends AssignmentHolderType> focusOdo,
+    private boolean computeIsMemberOfDuringEvaluation(PrismObject<? extends AssignmentHolderType> focus,
             String targetOid) {
-        // TODO Or should we consider evaluateOld?
-        PrismObject<? extends AssignmentHolderType> focus = focusOdo.getNewObject();
         return focus != null && containsMember(focus.asObjectable().getRoleMembershipRef(), targetOid);
     }
 

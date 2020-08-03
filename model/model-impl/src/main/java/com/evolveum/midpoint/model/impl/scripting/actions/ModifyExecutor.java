@@ -53,14 +53,17 @@ public class ModifyExecutor extends AbstractObjectBasedActionExecutor<ObjectType
                 ModifyActionExpressionType.F_DELTA, PARAM_DELTA, input, context, null,
                 PARAM_DELTA, globalResult);
         if (deltaBean == null) {
-            throw new SchemaException("Found no delta to be applied");
+            Throwable ex = new SchemaException("Found no delta to be applied");
+            processActionException(ex, NAME, null, context); // TODO value for error reporting (3rd parameter)
+            context.println("Found no delta to be applied");
+            return input;
         }
 
         iterateOverObjects(input, context, globalResult,
                 (object, item, result) ->
                         modify(object, dryRun, options, deltaBean, context, result),
                 (object, exception) ->
-                        context.println("Failed to recompute " + object + drySuffix(dryRun) + exceptionSuffix(exception))
+                        context.println("Failed to modify " + object + drySuffix(dryRun) + exceptionSuffix(exception))
         );
 
         return input;

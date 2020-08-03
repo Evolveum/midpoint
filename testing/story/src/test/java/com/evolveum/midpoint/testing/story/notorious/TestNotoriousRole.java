@@ -104,4 +104,16 @@ public class TestNotoriousRole extends AbstractNotoriousTest {
     protected void assertTest158RoleMembershipRef(PrismObject<UserType> userAfter) {
         assertRoleMembershipRef(userAfter, getAltRelation(), getNotoriousOid());
     }
+
+    @Override
+    protected int hackify2(int i) {
+        // TODO: ...but sometimes only twice
+        return i*2;
+    }
+
+    @Override
+    protected int hackify1(int i) {
+        // TODO: ... or once ... why?!
+        return i;
+    }
 }

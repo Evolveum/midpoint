@@ -32,7 +32,6 @@ public class StringItemFilterProcessor
 
     @Override
     public Predicate process(PropertyValueFilter<String> filter) throws QueryException {
-        String value = getSingleValue(filter);
-        return createBinaryCondition(filter, path, value);
+        return createBinaryCondition(filter, path, new ValueFilterValues<>(filter));
     }
 }

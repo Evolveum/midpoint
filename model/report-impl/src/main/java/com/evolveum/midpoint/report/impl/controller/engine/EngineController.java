@@ -9,7 +9,8 @@ package com.evolveum.midpoint.report.impl.controller.engine;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
-import com.evolveum.midpoint.report.impl.controller.export.FileFormatController;
+import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
@@ -19,12 +20,12 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 /**
  * @author skublik
@@ -75,7 +76,7 @@ public abstract class EngineController {
         return reportService;
     }
 
-    public abstract void importReport(ReportType report, PrismContainer container, FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception;
+    public abstract void importReport(ReportType report, List<VariablesMap> variables, FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception;
 
     protected void recordProgress(Task task, long progress, OperationResult opResult, Trace logger) {
         try {

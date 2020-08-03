@@ -48,7 +48,7 @@ public class ShadowConstraintsChecker<F extends FocusType> {
     private boolean satisfiesConstraints;
     private ConstraintsCheckingResult constraintsCheckingResult;
 
-    public ShadowConstraintsChecker(LensProjectionContext accountContext) {
+    ShadowConstraintsChecker(LensProjectionContext accountContext) {
         this.projectionContext = accountContext;
     }
 
