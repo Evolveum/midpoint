@@ -1,64 +1,72 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:context="http://www.springframework.org/schema/context"
-    xsi:schemaLocation="
-     http://www.springframework.org/schema/beans
-     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
-     http://www.springframework.org/schema/context
-     http://www.springframework.org/schema/context/spring-context-3.0.xsd"
-    default-lazy-init="false" default-autowire="byName">
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:context="http://www.springframework.org/schema/context"
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+        default-lazy-init="false">
 
-    <bean id="repoSimpleObjectResolver" class="com.evolveum.midpoint.test.RepoSimpleObjectResolver" />
+    <bean id="repoSimpleObjectResolver" class="com.evolveum.midpoint.test.RepoSimpleObjectResolver"/>
 
-    <bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init">
-        <constructor-arg value="./target/midpoint-home" />
-        <constructor-arg value="test-config.xml" />
+    <bean name="midpointConfiguration"
+            class="com.evolveum.midpoint.init.StartupConfiguration"
+            init-method="init">
+        <constructor-arg value="./target/midpoint-home"/>
+        <constructor-arg value="test-config.xml"/>
     </bean>
 
-    <bean name="dummyAuditServiceFactory" class="com.evolveum.midpoint.test.DummyAuditServiceFactory" />
+    <bean name="dummyAuditServiceFactory" class="com.evolveum.midpoint.test.DummyAuditServiceFactory"/>
 
     <!-- protector initialization -->
-    <bean name="keyStoreFactory" class="com.evolveum.midpoint.init.ConfigurableProtectorFactory" init-method="init" />
+    <bean name="keyStoreFactory"
+            class="com.evolveum.midpoint.init.ConfigurableProtectorFactory"
+            init-method="init"/>
 
-    <bean name="protector" class="com.evolveum.midpoint.prism.crypto.Protector" factory-bean="keyStoreFactory"
-          factory-method="getProtector" />
+    <bean name="protector"
+            factory-bean="keyStoreFactory"
+            factory-method="getProtector"/>
 
-    <bean name="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory" init-method="init"
-        destroy-method="destroy" />
+    <bean name="repositoryFactory"
+            class="com.evolveum.midpoint.init.RepositoryFactory"
+            init-method="init"
+            destroy-method="destroy"/>
 
-    <bean name="repositoryService" factory-bean="repositoryFactory" factory-method="getRepositoryService"
-        class="com.evolveum.midpoint.repo.api.RepositoryService" depends-on="repositoryFactory"/>
+    <bean name="repositoryService"
+            factory-bean="repositoryFactory"
+            factory-method="getRepositoryService"/>
 
-    <bean name="auditFactory" class="com.evolveum.midpoint.init.AuditFactory"
-          init-method="init" destroy-method="destroy" />
+    <bean name="auditFactory" class="com.evolveum.midpoint.init.AuditFactory"/>
 
-    <bean name="auditService" factory-bean="auditFactory" factory-method="getAuditService"
-          class="com.evolveum.midpoint.audit.api.AuditService" depends-on="auditFactory" />
+    <bean name="auditService"
+            factory-bean="auditFactory"
+            factory-method="getAuditService"/>
 
     <!-- prism context initialization -->
     <bean id="midPointPrismContextFactory" class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">
-        <property name="configuration">
-            <ref bean="midpointConfiguration"/>
-        </property>
+        <property name="configuration" ref="midpointConfiguration"/>
     </bean>
 
-    <bean id="prismContext" class="com.evolveum.midpoint.prism.PrismContext"
-          factory-bean="midPointPrismContextFactory" factory-method="createInitializedPrismContext" />
+    <bean id="prismContext"
+            factory-bean="midPointPrismContextFactory"
+            factory-method="createInitializedPrismContext"/>
 
     <!-- todo prism context and other changes from configuration -->
 
     <!--  Scan for components:
              - protector (KeyStoreConfigurator)
      -->
-    <context:component-scan base-package="com.evolveum.midpoint.schema" />
-    <context:component-scan base-package="com.evolveum.midpoint.init" />
-    <context:component-scan base-package="com.evolveum.midpoint.test.util" />        <!-- HACK -->
-    <context:annotation-config />
+    <context:component-scan base-package="com.evolveum.midpoint.schema"/>
+    <context:component-scan base-package="com.evolveum.midpoint.init"/>
+    <!--<context:component-scan base-package="com.evolveum.midpoint.test.util"/>        &lt;!&ndash; HACK &ndash;&gt;-->
+    <context:annotation-config/>
 </beans>

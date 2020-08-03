@@ -39,10 +39,7 @@
             factory-bean="repositoryFactory"
             factory-method="getRepositoryService"/>
 
-    <bean id="auditFactory"
-            class="com.evolveum.midpoint.init.AuditFactory"
-            init-method="init"
-            destroy-method="destroy"/>
+    <bean id="auditFactory" class="com.evolveum.midpoint.init.AuditFactory"/>
 
     <bean id="auditService"
             factory-bean="auditFactory"

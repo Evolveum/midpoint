@@ -9,6 +9,7 @@ package com.evolveum.midpoint.init;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -21,7 +22,6 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.api.AuditServiceFactory;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,7 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * While technically this creates {@link AuditService}, hence it is a factory (see its Spring
  * configuration), it is NOT part of {@link AuditServiceFactory} hierarchy.
  */
-public class AuditFactory implements RuntimeConfiguration {
+public class AuditFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(AuditFactory.class);
 
@@ -60,8 +60,10 @@ public class AuditFactory implements RuntimeConfiguration {
 
     private AuditService auditService;
 
+    @PostConstruct
     public void init() {
-        Configuration config = getCurrentConfiguration();
+        Configuration config =
+                midpointConfiguration.getConfiguration(MidpointConfiguration.AUDIT_CONFIGURATION);
         List<HierarchicalConfiguration<ImmutableNode>> auditServices =
                 ((BaseHierarchicalConfiguration) config).configurationsAt(CONF_AUDIT_SERVICE);
         for (Configuration serviceConfig : auditServices) {
@@ -106,9 +108,6 @@ public class AuditFactory implements RuntimeConfiguration {
         return className;
     }
 
-    public void destroy() {
-    }
-
     public synchronized AuditService getAuditService() {
         if (auditService == null) {
             AuditServiceProxy proxy = new AuditServiceProxy();
@@ -128,15 +127,5 @@ public class AuditFactory implements RuntimeConfiguration {
         }
 
         return auditService;
-    }
-
-    @Override
-    public String getComponentId() {
-        return MidpointConfiguration.AUDIT_CONFIGURATION;
-    }
-
-    @Override
-    public Configuration getCurrentConfiguration() {
-        return midpointConfiguration.getConfiguration(MidpointConfiguration.AUDIT_CONFIGURATION);
     }
 }
