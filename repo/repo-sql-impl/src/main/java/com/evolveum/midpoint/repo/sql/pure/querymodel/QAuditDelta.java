@@ -10,8 +10,8 @@ import static com.querydsl.core.types.PathMetadataFactory.forVariable;
 
 import java.sql.Types;
 
+import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.SimplePath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.ForeignKey;
@@ -58,10 +58,10 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
     // columns and relations
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final StringPath checksum = createString("checksum", CHECKSUM);
-    public final SimplePath<java.sql.Blob> delta = createBlob("delta", DELTA);
+    public final ArrayPath<byte[], Byte> delta = createBlob("delta", DELTA);
     public final StringPath deltaOid = createString("deltaOid", DELTA_OID);
     public final NumberPath<Integer> deltaType = createInteger("deltaType", DELTA_TYPE);
-    public final SimplePath<java.sql.Blob> fullResult = createBlob("fullResult", FULL_RESULT);
+    public final ArrayPath<byte[], Byte> fullResult = createBlob("fullResult", FULL_RESULT);
     public final StringPath objectNameNorm = createString("objectNameNorm", OBJECT_NAME_NORM);
     public final StringPath objectNameOrig = createString("objectNameOrig", OBJECT_NAME_ORIG);
     public final StringPath resourceNameNorm = createString("resourceNameNorm", RESOURCE_NAME_NORM);

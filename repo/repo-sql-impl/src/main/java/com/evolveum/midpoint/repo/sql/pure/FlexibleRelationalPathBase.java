@@ -1,12 +1,11 @@
 package com.evolveum.midpoint.repo.sql.pure;
 
-import java.sql.Blob;
 import java.time.Instant;
 
 import com.querydsl.core.types.PathMetadata;
+import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.SimplePath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.RelationalPathBase;
@@ -105,8 +104,8 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
     /**
      * Creates BLOB path for a property and registers column metadata for it.
      */
-    protected SimplePath<Blob> createBlob(
+    protected ArrayPath<byte[], Byte> createBlob(
             String property, ColumnMetadata columnMetadata) {
-        return addMetadata(createSimple(property, java.sql.Blob.class), columnMetadata);
+        return addMetadata(createArray(property, byte[].class), columnMetadata);
     }
 }
