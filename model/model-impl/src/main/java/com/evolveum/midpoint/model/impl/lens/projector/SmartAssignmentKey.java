@@ -29,7 +29,7 @@ public class SmartAssignmentKey {
 
     @Override
     public int hashCode() {
-        return assignmentCVal.hashCode();
+        return assignmentCVal.hashCode(EquivalenceStrategy.REAL_VALUE);
     }
 
     @SuppressWarnings("SimplifiableIfStatement")
@@ -44,11 +44,7 @@ public class SmartAssignmentKey {
         if (getClass() != obj.getClass()) {
             return false;
         }
-        return equalsAssignment(((SmartAssignmentKey) obj).assignmentCVal);
-    }
-
-    private boolean equalsAssignment(PrismContainerValue<AssignmentType> other) {
-        return assignmentCVal.equals(other, EquivalenceStrategy.IGNORE_METADATA);
+        return assignmentCVal.equals(((SmartAssignmentKey) obj).assignmentCVal, EquivalenceStrategy.REAL_VALUE);
     }
 
     @Override

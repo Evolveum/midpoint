@@ -16,6 +16,8 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.testng.annotations.Test;
 
 import java.io.File;
@@ -72,6 +74,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     public static final File REPORT_OBJECT_COLLECTION_WITH_FILTER_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-filter.xml");
     public static final File REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-filter-and-basic-collection.xml");
     public static final File REPORT_OBJECT_COLLECTION_WITH_CONDITION_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-condition.xml");
+    public static final File REPORT_WITH_IMPORT_SCRIPT = new File(TEST_REPORTS_DIR, "report-with-import-script.xml");
 
     public static final String REPORT_DASHBOARD_WITH_DEFAULT_COLUMN_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a8582";
     public static final String REPORT_DASHBOARD_WITH_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a8533";
@@ -88,6 +91,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     public static final String REPORT_OBJECT_COLLECTION_WITH_FILTER_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85gh";
     public static final String REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85hi";
     public static final String REPORT_OBJECT_COLLECTION_WITH_CONDITION_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a851a";
+    public static final String REPORT_WITH_IMPORT_SCRIPT_OID = "2b44aa2e-dd86-4842-bcf5-762c8c4a851a";
 
     public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 
@@ -137,6 +141,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_FILTER_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_CONDITION_FILE, initResult);
+        importObjectFromFile(REPORT_WITH_IMPORT_SCRIPT, initResult);
     }
 
     @Test
@@ -231,10 +236,10 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     }
 
     protected PrismObject<TaskType> runReport(PrismObject<ReportType> report, boolean errorOk) throws Exception {
-        Task task = getTestTask();
+        Task task = createTask(OP_CREATE_REPORT);
         OperationResult result = task.getResult();
         PrismObject<ReportType> reportBefore = report.clone();
-        report.asObjectable().setExport(getExportConfiguration());
+        report.asObjectable().setFileFormat(getFileFormatConfiguration());
         ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
         executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
 
@@ -256,7 +261,41 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         return finishedTask;
     }
 
-    protected abstract ExportConfigurationType getExportConfiguration();
+    protected PrismObject<TaskType> importReport(PrismObject<ReportType> report, String pathToImportFile, boolean errorOk) throws Exception {
+        Task task = createTask(OP_IMPORT_REPORT);
+        OperationResult result = task.getResult();
+        PrismObject<ReportType> reportBefore = report.clone();
+        report.asObjectable().setFileFormat(getFileFormatConfiguration());
+        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
+
+        PrismObject<ReportDataType> reportData = prismContext.getSchemaRegistry()
+                .findObjectDefinitionByCompileTimeClass(ReportDataType.class).instantiate();
+        reportData.asObjectable().setFileFormat(getFileFormatConfiguration().getType());
+        reportData.asObjectable().setFilePath(new File(pathToImportFile).getAbsolutePath());
+        reportData.asObjectable().setName(new PolyStringType(report.getName()));
+        String reportDataOid = addObject(reportData, task, result);
+        reportData.setOid(reportDataOid);
+
+        // WHEN
+        when();
+        reportManager.importReport(report, reportData, task, result);
+
+        assertInProgress(result);
+
+        display("Background task (running)", task);
+
+        waitForTaskFinish(task.getOid(), false, DEFAULT_TASK_WAIT_TIMEOUT, errorOk);
+
+        // THEN
+        then();
+        PrismObject<TaskType> finishedTask = getTask(task.getOid());
+        display("Background task (finished)", finishedTask);
+
+        return finishedTask;
+    }
+
+    protected abstract FileFormatConfigurationType getFileFormatConfiguration();
 
     protected List<String> basicCheckOutputFile(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         File outputFile = findOutputFile(report);

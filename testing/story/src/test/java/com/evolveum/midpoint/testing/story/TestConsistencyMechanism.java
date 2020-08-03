@@ -2397,7 +2397,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_MORGAN_OID, null, result);
         display("User Morgan: ", user);
-        PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
 
         ExpressionType expression = new ExpressionType();
         ObjectFactory of = new ObjectFactory();

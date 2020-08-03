@@ -8,9 +8,7 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.pure.mapping.*;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditPropertyValue;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.*;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
@@ -84,6 +82,24 @@ public class QAuditEventRecordMapping
                 dq -> dq.recordId,
                 dr -> dr.recordId,
                 (r, dr) -> r.addChangedItem(dr)));
+        addDetailFetchMapper(F_DELTA, new SqlDetailFetchMapper<>(
+                r -> r.id,
+                QAuditDelta.class,
+                dq -> dq.recordId,
+                dr -> dr.recordId,
+                (r, dr) -> r.addDelta(dr)));
+        addDetailFetchMapper(F_REFERENCE, new SqlDetailFetchMapper<>(
+                r -> r.id,
+                QAuditRefValue.class,
+                dq -> dq.recordId,
+                dr -> dr.recordId,
+                (r, dr) -> r.addRefValue(dr)));
+        addDetailFetchMapper(F_RESOURCE_OID, new SqlDetailFetchMapper<>(
+                r -> r.id,
+                QAuditResource.class,
+                dq -> dq.recordId,
+                dr -> dr.recordId,
+                (r, dr) -> r.addResourceOid(dr)));
     }
 
     @Override

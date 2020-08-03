@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.report.impl;
 
+import java.io.IOException;
 import java.util.*;
 import javax.annotation.PostConstruct;
 
@@ -15,13 +16,15 @@ import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.impl.controller.engine.CollectionEngineController;
 import com.evolveum.midpoint.report.impl.controller.engine.DashboardEngineController;
 import com.evolveum.midpoint.report.impl.controller.engine.EngineController;
-import com.evolveum.midpoint.report.impl.controller.export.CsvExporterController;
-import com.evolveum.midpoint.report.impl.controller.export.ExportController;
-import com.evolveum.midpoint.report.impl.controller.export.HtmlExportController;
+import com.evolveum.midpoint.report.impl.controller.fileformat.CsvController;
+import com.evolveum.midpoint.report.impl.controller.fileformat.FileFormatController;
+import com.evolveum.midpoint.report.impl.controller.fileformat.HtmlController;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 import org.apache.commons.io.FilenameUtils;
@@ -49,7 +52,7 @@ public class ReportTaskHandler implements TaskHandler {
     private static final Trace LOGGER = TraceManager.getTrace(ReportTaskHandler.class);
 
     static final String REPORT_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/handler-3";
-    private static final String OP_CREATE_REPORT_OUTPUT = ReportTaskHandler.class.getName() + "createReportOutput";
+    private static final String OP_CREATE_REPORT_DATA = ReportTaskHandler.class.getName() + "createReportData";
 
     @Autowired
     private ReportServiceImpl reportService;
@@ -69,33 +72,68 @@ public class ReportTaskHandler implements TaskHandler {
         runResult.setOperationResult(result);
 
         try {
-            ReportType parentReport = reportService.getObjectResolver().resolve(task.getObjectRefOrClone(), ReportType.class, null,
+            ReportType report = reportService.getObjectResolver().resolve(task.getObjectRefOrClone(), ReportType.class, null,
                     "resolving report", task, result);
 
-            if (!reportService.isAuthorizedToRunReport(parentReport.asPrismObject(), task, parentResult)) {
-                LOGGER.error("Task {} is not authorized to run report {}", task, parentReport);
-                throw new SecurityViolationException("Not authorized");
+            ReportBehaviorType behaviour = report.getBehavior();
+            DirectionTypeType direction = null;
+            if (behaviour != null) {
+                direction = behaviour.getDirection();
             }
 
-//            if (parentReport.getReportEngine() == null) {
-//                throw new IllegalArgumentException("Report Object doesn't have ReportEngine attribute");
-//            }
+            String reportDataFilePath;
+            if (DirectionTypeType.IMPORT.equals(direction)) {
+                ReportDataType reportData;
 
-            EngineController engineController = resolveEngine(parentReport);
-            ExportController exportController = resolveExport(parentReport, engineController);
+                PrismReference reportDataRef = task.getExtensionReferenceOrClone(ReportConstants.REPORT_DATA_PROPERTY_NAME);
+                reportData = reportService.getObjectResolver().resolve((ObjectReferenceType) reportDataRef.getRealValue(), ReportDataType.class, null,
+                        "resolving report data", task, result);
+                reportDataFilePath = reportData.getFilePath();
 
-            String reportFilePath = engineController.createReport(parentReport, exportController, task, result);
+                try {
+                    ExecuteScriptType script = null;
+                    if (behaviour != null) {
+                        script = behaviour.getImportScript();
+                    }
+                    if (script == null) {
+                        EngineController engineController = resolveEngine(report);
+                        FileFormatController fileFormatController = resolveExport(report, engineController.getDefaultFileFormat());
+                        List<VariablesMap> variables = fileFormatController.createVariablesFromFile(report, reportData, false, task, result);
+                        engineController.importReport(report, variables, fileFormatController, task, result);
+                    } else {
+                        FileFormatController fileFormatController = resolveExport(report, FileFormatTypeType.CSV);
+                        importScriptProcessing(report, reportData, script, fileFormatController, task, result);
+                    }
+                } catch (IOException e) {
+                    String message = "Couldn't create virtual container from file path " + reportData.getFilePath();
+                    LOGGER.error(message, e);
+                    result.recordFatalError(message, e);
+                    runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+                    return runResult;
+                }
 
-            saveReportOutputType(reportFilePath, parentReport, exportController, task, result);
-            LOGGER.trace("create report output type : {}", reportFilePath);
+            } else {
+                if (!reportService.isAuthorizedToRunReport(report.asPrismObject(), task, parentResult)) {
+                    LOGGER.error("Task {} is not authorized to run report {}", task, report);
+                    throw new SecurityViolationException("Not authorized");
+                }
 
-            if (parentReport.getPostReportScript() != null) {
-                processPostReportScript(parentReport, reportFilePath, task, result);
+                EngineController engineController = resolveEngine(report);
+                FileFormatController fileFormatController = resolveExport(report, engineController.getDefaultFileFormat());
+                reportDataFilePath = engineController.createReport(report, fileFormatController, task, result);
+
+                saveReportDataType(reportDataFilePath, report, fileFormatController, task, result);
+                LOGGER.trace("create report output type : {}", reportDataFilePath);
+            }
+
+
+            if (report.getPostReportScript() != null) {
+                processPostReportScript(report, reportDataFilePath, task, result);
             }
             result.computeStatus();
 
         } catch (Exception ex) {
-            LOGGER.error("CreateReport: {}", ex.getMessage(), ex);
+            LOGGER.error("ProcessingReport: {}", ex.getMessage(), ex);
             result.recordFatalError(ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
             return runResult;
@@ -103,8 +141,26 @@ public class ReportTaskHandler implements TaskHandler {
 
         // This "run" is finished. But the task goes on ...
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-        LOGGER.trace("CreateReportTaskHandler.run stopping");
+        LOGGER.trace("ProcessingReportTaskHandler.run stopping");
         return runResult;
+    }
+
+    private void importScriptProcessing(ReportType report, ReportDataType reportData, ExecuteScriptType script,
+            FileFormatController fileFormatController, RunningTask task, OperationResult result) throws Exception {
+        List<VariablesMap> listOfVariables = fileFormatController.createVariablesFromFile(report, reportData, true, task, result);
+
+        if (listOfVariables == null || listOfVariables.isEmpty()) {
+            throw new IllegalArgumentException("Variables for import report is null or empty");
+        }
+        long i = 0;
+        task.setExpectedTotal((long) listOfVariables.size());
+        task.setProgressImmediate(i, result);
+        for (VariablesMap variables : listOfVariables) {
+            reportService.getScriptingService().evaluateExpression(script, variables, false, task, result);
+            i++;
+            task.setProgressImmediate(i, result);
+        }
+
     }
 
     private EngineController resolveEngine(ReportType parentReport) {
@@ -114,26 +170,26 @@ public class ReportTaskHandler implements TaskHandler {
         if (parentReport.getObjectCollection() != null) {
             return new CollectionEngineController(reportService);
         }
-        LOGGER.error("Report don't contains ");
-        throw new IllegalArgumentException("Dashboard or DashboardRef is null");
+        LOGGER.error("Report don't contains engine");
+        throw new IllegalArgumentException("Report don't contains engine");
     }
 
-    private ExportController resolveExport(ReportType parentReport, EngineController engine) {
-        ExportConfigurationType export;
-        if (parentReport.getExport() == null || parentReport.getExport().getType() == null) {
-            export = new ExportConfigurationType();
-            export.setType(engine.getDefaultExport());
+    private FileFormatController resolveExport(ReportType parentReport, FileFormatTypeType defaultType) {
+        FileFormatConfigurationType fileFormat;
+        if (parentReport.getFileFormat() == null || parentReport.getFileFormat().getType() == null) {
+            fileFormat = new FileFormatConfigurationType();
+            fileFormat.setType(defaultType);
         } else {
-            export = parentReport.getExport();
+            fileFormat = parentReport.getFileFormat();
         }
-        switch (export.getType()) {
+        switch (fileFormat.getType()) {
             case HTML:
-                return new HtmlExportController(export, reportService);
+                return new HtmlController(fileFormat, reportService);
             case CSV:
-                return new CsvExporterController(export, reportService);
+                return new CsvController(fileFormat, reportService);
             default:
-                LOGGER.error("Unsupported ExportType " + export);
-                throw new IllegalArgumentException("Unsupported ExportType " + export);
+                LOGGER.error("Unsupported ExportType " + fileFormat);
+                throw new IllegalArgumentException("Unsupported ExportType " + fileFormat);
         }
     }
 
@@ -147,23 +203,23 @@ public class ReportTaskHandler implements TaskHandler {
         return SystemObjectsType.ARCHETYPE_REPORT_TASK.value();
     }
 
-    private void saveReportOutputType(String filePath, ReportType reportType, ExportController exportController, Task task,
+    private void saveReportDataType(String filePath, ReportType reportType, FileFormatController fileFormatController, Task task,
             OperationResult parentResult) throws Exception {
 
         String fileName = FilenameUtils.getBaseName(filePath);
-        String reportOutputName = fileName + " - " + exportController.getType();
+        String reportDataName = fileName + " - " + fileFormatController.getType();
 
-        ReportOutputType reportOutputType = new ReportOutputType();
-        reportService.getPrismContext().adopt(reportOutputType);
+        ReportDataType reportDataType = new ReportDataType();
+        reportService.getPrismContext().adopt(reportDataType);
 
-        reportOutputType.setFilePath(filePath);
-        reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
-        reportOutputType.setName(new PolyStringType(reportOutputName));
+        reportDataType.setFilePath(filePath);
+        reportDataType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
+        reportDataType.setName(new PolyStringType(reportDataName));
         if (reportType.getDescription() != null) {
-            reportOutputType.setDescription(reportType.getDescription() + " - " + exportController.getType());
+            reportDataType.setDescription(reportType.getDescription() + " - " + fileFormatController.getType());
         }
-        if (exportController != null && exportController.getExportConfiguration() != null) {
-            reportOutputType.setExportType(exportController.getExportConfiguration().getType());
+        if (fileFormatController != null && fileFormatController.getFileFormatConfiguration() != null) {
+            reportDataType.setFileFormat(fileFormatController.getFileFormatConfiguration().getType());
         }
 
 
@@ -179,22 +235,23 @@ public class ReportTaskHandler implements TaskHandler {
             throw new IllegalStateException("Found more than one node with ID " + task.getNode());
         }
 
-        reportOutputType.setNodeRef(ObjectTypeUtil.createObjectRef(nodes.iterator().next(), reportService.getPrismContext()));
+        reportDataType.setNodeRef(ObjectTypeUtil.createObjectRef(nodes.iterator().next(), reportService.getPrismContext()));
 
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
-        ObjectDelta<ReportOutputType> objectDelta = DeltaFactory.Object.createAddDelta(reportOutputType.asPrismObject());
+        ObjectDelta<ReportDataType> objectDelta = DeltaFactory.Object.createAddDelta(reportDataType.asPrismObject());
         deltas.add(objectDelta);
-        OperationResult subResult = parentResult.createSubresult(OP_CREATE_REPORT_OUTPUT);
+        OperationResult subResult = parentResult.createSubresult(OP_CREATE_REPORT_DATA);
 
         Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = reportService.getModelService().executeChanges(deltas, null, task, subResult);
-        String reportOutputOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, reportOutputType.asPrismObject());
+        String reportDataOid = ObjectDeltaOperation.findAddDeltaOid(executedDeltas, reportDataType.asPrismObject());
 
-        LOGGER.debug("Created report output with OID {}", reportOutputOid);
+        LOGGER.debug("Created report output with OID {}", reportDataOid);
         //noinspection unchecked
-        PrismProperty<String> outputOidProperty = reportService.getPrismContext().getSchemaRegistry()
-                .findPropertyDefinitionByElementName(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME).instantiate();
-        outputOidProperty.setRealValue(reportOutputOid);
-        task.setExtensionPropertyImmediate(outputOidProperty, subResult);
+        PrismReference reportDataRef = reportService.getPrismContext().getSchemaRegistry()
+                .findReferenceDefinitionByElementName(ReportConstants.REPORT_DATA_PROPERTY_NAME).instantiate();
+        PrismReferenceValue refValue = reportService.getPrismContext().itemFactory().createReferenceValue(reportDataOid, ReportDataType.COMPLEX_TYPE);
+        reportDataRef.getValues().add(refValue);
+        task.setExtensionReference(reportDataRef);
 
         subResult.computeStatus();
     }

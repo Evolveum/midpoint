@@ -222,7 +222,7 @@ public abstract class CredentialPolicyEvaluator<R extends AbstractCredentialType
             PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
         boolean credentialValueChanged = false;
         boolean checkMinOccurs = false;
-        ObjectDelta<F> focusDelta = focusContext.getWaveDelta(context.getProjectionWave());
+        ObjectDelta<F> focusDelta = focusContext.getCurrentDelta();
         ContainerDelta<R> containerDelta = focusDelta != null ? focusDelta.findContainerDelta(getCredentialsContainerPath()) : null;        // e.g. credentials/password
         if (containerDelta != null) {
             if (containerDelta.isAdd()) {

@@ -91,7 +91,11 @@ public abstract class AbstractCachingScriptEvaluator<I,C> extends AbstractScript
             // or it can mean that we do not have definition, because this is something non-prism (e.g. report template)
             // Either way we can return immediately, without any value conversion. Just wrap the value in fake PrismPropertyValue
             List<V> evalPrismValues = new ArrayList<>(1);
-            evalPrismValues.add((V) getPrismContext().itemFactory().createPropertyValue(evalRawResult));
+            V evalPrismValue = null;
+            if (evalRawResult != null){
+                evalPrismValue = (V) getPrismContext().itemFactory().createPropertyValue(evalRawResult);
+            }
+            evalPrismValues.add(evalPrismValue);
             return evalPrismValues;
         }
 

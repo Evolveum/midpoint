@@ -13,6 +13,7 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
             xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+            xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
             xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
             xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
             xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
@@ -23,6 +24,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"/>
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-3"/>
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"/>
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"/>
 
     <xsd:include schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-model-context-3" />
@@ -23647,8 +23649,7 @@
                         </xsd:annotation>
                     </xsd:element>
 
-                    <!-- TODO: rename to fileFormat -->
-                    <xsd:element name="export" type="tns:ExportConfigurationType" minOccurs="0">
+                    <xsd:element name="fileFormat" type="tns:FileFormatConfigurationType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
                                 <p>
@@ -23685,11 +23686,78 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="behavior" type="tns:ReportBehaviorType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                <p>
+                                    Behavior for report. Contains import option and direction of report.
+                                </p>
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>GuiObjectColumnType.behavior</a:displayName>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="report" type="tns:ReportType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="ReportBehaviorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Behavior for report. Contains import option and direction of report.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="direction" type="tns:DirectionTypeType" minOccurs="0" maxOccurs="1" default="export">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Direction of report. We can use export or import direction.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ReportBehaviorType.direction</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="importOptions" type="tns:ImportOptionsType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Options used during importing of new objects from file.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ReportBehaviorType.importOptions</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="importScript" type="s:ExecuteScriptType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Script used for processing lines from file.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>ReportBehaviorType.importExecuteScript</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:simpleType name="ReportEngineSelectionType">
         <xsd:annotation>
@@ -23731,8 +23799,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <!-- TODO: Rename to FileFormatConfigurationType -->
-    <xsd:complexType name="ExportConfigurationType">
+    <xsd:complexType name="FileFormatConfigurationType">
         <xsd:annotation>
             <xsd:documentation>
                 Export configuration.
@@ -23743,7 +23810,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="type" type="tns:ExportType" minOccurs="0">
+            <xsd:element name="type" type="tns:FileFormatTypeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Type of export file.
@@ -23754,7 +23821,7 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:choice>
-                <xsd:element name="csv" type="tns:CsvExportType" minOccurs="0">
+                <xsd:element name="csv" type="tns:CsvFileFormatType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Configuration for CSV type.
@@ -23764,7 +23831,7 @@
                         </xsd:appinfo>
                     </xsd:annotation>
                 </xsd:element>
-                <xsd:element name="html" type="tns:HtmlExportType" minOccurs="0">
+                <xsd:element name="html" type="tns:HtmlFileFormatType" minOccurs="0">
                     <xsd:annotation>
                         <xsd:documentation>
                             Configuration for HTML type.
@@ -23778,8 +23845,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <!-- TODO: rename to FileFormatTypeType -->
-    <xsd:simpleType name="ExportType">
+    <xsd:simpleType name="FileFormatTypeType">
         <xsd:annotation>
             <xsd:documentation>
                 Report export type.
@@ -23804,7 +23870,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="AbstractExportType">
+    <xsd:complexType name="AbstractFileFormatType">
         <xsd:annotation>
             <xsd:documentation>
                 Supertype of report export types.
@@ -23816,7 +23882,7 @@
         </xsd:annotation>
     </xsd:complexType>
 
-    <xsd:complexType name="CsvExportType">
+    <xsd:complexType name="CsvFileFormatType">
         <xsd:annotation>
             <xsd:documentation>
                 CSV export type for Report.
@@ -23827,7 +23893,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:AbstractExportType">
+            <xsd:extension base="c:AbstractFileFormatType">
                 <xsd:sequence>
                     <xsd:element name="multivalueDelimiter" type="xsd:string" minOccurs="0" maxOccurs="1" default=",">
                         <xsd:annotation>
@@ -23909,7 +23975,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="createHeader" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+                    <xsd:element name="header" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Create header in csv output file.
@@ -24009,7 +24075,7 @@
         </xsd:restriction>
     </xsd:simpleType>
 
-    <xsd:complexType name="HtmlExportType">
+    <xsd:complexType name="HtmlFileFormatType">
         <xsd:annotation>
             <xsd:documentation>
                 HTML export type for Report.
@@ -24019,7 +24085,7 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
-            <xsd:extension base="c:AbstractExportType"/>
+            <xsd:extension base="c:AbstractFileFormatType"/>
         </xsd:complexContent>
     </xsd:complexType>
 
@@ -24374,8 +24440,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <!-- TODO: rename to ReportDataType -->
-    <xsd:complexType name="ReportOutputType">
+    <xsd:complexType name="ReportDataType">
         <xsd:annotation>
             <xsd:documentation>
                 Reports outputs.
@@ -24385,8 +24450,7 @@
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
                     <xsd:element name="filePath" type="xsd:string"/>
-                    <xsd:element name="exportType" type="tns:ExportType">
-                        <!-- TODO: rename to fileFormat -->
+                    <xsd:element name="fileFormat" type="tns:FileFormatTypeType">
                     </xsd:element>
                     <xsd:element name="reportRef" type="c:ObjectReferenceType">
                         <xsd:annotation>
@@ -24412,9 +24476,20 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="reportOutput" type="tns:ReportOutputType"/>
 
+    <xsd:element name="reportOutput" type="tns:ReportDataType" substitutionGroup="c:object">
+        <xsd:annotation>
+            <xsd:documentation>
+                DEPRECATED. Used only for compatibility back when there was an ReportOutputType.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:deprecated>true</a:deprecated>
+                <a:plannedRemoval>4.3</a:plannedRemoval>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
 
+    <xsd:element name="reportData" type="tns:ReportDataType" substitutionGroup="c:object"/>
 
     <xsd:complexType name="EnvironmentalPerformanceInformationType">
         <xsd:annotation>
@@ -25354,20 +25429,28 @@
                            </xsd:appinfo>
                        </xsd:annotation>
                    </xsd:element>
-                   <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
-                       <!-- TODO: change to import/expression and export/expression -->
+                   <xsd:element name="import" type="tns:DirectionElementsType" minOccurs="0" maxOccurs="1">
                        <xsd:annotation>
                            <xsd:documentation>
                                <p>
-                                   Expression to be used to produce value for the column.
+                                   Properties for import.
                                </p>
+                           </xsd:documentation>
+                           <xsd:appinfo>
+                               <a:displayName>GuiObjectColumnType.import</a:displayName>
+                               <a:experimental>true</a:experimental>
+                           </xsd:appinfo>
+                       </xsd:annotation>
+                   </xsd:element>
+                   <xsd:element name="export" type="tns:DirectionElementsType" minOccurs="0" maxOccurs="1">
+                       <xsd:annotation>
+                           <xsd:documentation>
                                <p>
-                                   Column expressions are EXPERIMENTAL. They work only under a very
-                                   specific circumstances.
+                                   Properties for export.
                                </p>
                            </xsd:documentation>
                         <xsd:appinfo>
-                            <a:displayName>GuiObjectColumnType.expression</a:displayName>
+                            <a:displayName>GuiObjectColumnType.export</a:displayName>
                             <a:experimental>true</a:experimental>
                            </xsd:appinfo>
                        </xsd:annotation>
@@ -25392,6 +25475,191 @@
                    </xsd:element>
                    <!-- TODO later: sorting -->
                </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:simpleType name="DirectionTypeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Direction of report. We can use export or import direction.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="import">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Import direction. We can use it for importing objects from file.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="IMPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="export">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Export direction. We can use it for exporting objects to report file.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="EXPORT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:complexType name="ImportOptionsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The options for import tasks. It specifies optional settings for import such as "overwrite" and "stop on
+                error".
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="overwrite" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to a true value it will cause that objects that are already in the repository will be
+                        overwritten by the imported objects.
+                        It may not be applicable to all import types. E.g. it makes no sense for import from resource,
+                        as this
+                        is not storing objects in the repository directly.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="keepOid" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to a true value it will cause that objects that overwritten objects will reuse the same
+                        OID
+                        as previous objects.
+                        May be potentially dangerous. USE WITH CARE.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="stopAfterErrors" type="xsd:int" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Number of errors that will cause import to stop. If set to one the import will stop on first
+                        error.
+                        If set to zero or negative value the import will not stop on any error.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="summarizeSucceses" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true the successfully imported items will be summarized in the result.
+                        WARNING: setting this to false may result in a very large result structure and may cause
+                        overflow of
+                        the system memory.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="summarizeErrors" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true the import errors will be summarized in the result.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="referentialIntegrity" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="validateStaticSchema" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="validateDynamicSchema" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="encryptProtectedValues" type="xsd:boolean" minOccurs="0" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="fetchResourceSchema" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        TODO
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="keepMetadata" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If set to true then the importer will keep the metadata from the source file.
+                        If set to false then the imported will re-generate metadata on each object.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="modelExecutionOptions" type="c:ModelExecuteOptionsType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        If present, these options are used for adding objects into the repository.
+                        Null option values might be overridden by import-related options. In particular, the missing
+                        "raw" option is overridden to "true". So, if you want the operation run in non-raw mode,
+                        set "raw" option to "false".
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="compatMode" type="xsd:boolean" minOccurs="0" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Compatibility model. If selected then the data parsing will be less strict.
+                        E.g. removed element will be ingnored.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="DirectionElementsType">
+        <xsd:annotation>
+            <xsd:documentation>
+                <p>
+                    Specific elements for export/import.
+                </p>
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                            Expression to be used to produce value for the column.
+                        </p>
+                        <p>
+                            Column expressions are EXPERIMENTAL. They work only under a very
+                            specific circumstances.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>DirectionPropertiesType.expression</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
     </xsd:complexType>
 
     <xsd:simpleType name="DisplayValueType">

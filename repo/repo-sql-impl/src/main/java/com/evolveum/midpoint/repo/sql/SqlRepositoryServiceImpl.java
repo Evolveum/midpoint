@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,7 +12,6 @@ import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -22,12 +21,11 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang3.Validate;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.dialect.Dialect;
 import org.hibernate.internal.SessionFactoryImpl;
-import org.hibernate.jdbc.Work;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Repository;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.*;
@@ -54,7 +52,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -62,16 +59,10 @@ import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * @author lazyman
- * <p>
- * Note: don't autowire this class - because of Spring AOP use it couldn't be found by implementation class; only by its interface.
+ * Main implementation of the {@link RepositoryService}, based on SQL database using ORM/Hibernate.
+ * Don't autowire by this class, use {@link RepositoryService} class instead.
  */
-@Repository
 public class SqlRepositoryServiceImpl extends SqlBaseService implements RepositoryService {
-
-    // experimental (currently some tests fail when using JSON)
-    @Deprecated
-    public static final String DATA_LANGUAGE = PrismContext.LANG_XML;
 
     public static final String PERFORMANCE_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".performance";
     public static final String CONTENTION_LOG_NAME = SqlRepositoryServiceImpl.class.getName() + ".contention";
@@ -82,7 +73,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.class);
 
-    private static final int MAX_CONFLICT_WATCHERS = 10;          // just a safeguard (watchers per thread should be at most 1-2)
+    private static final int MAX_CONFLICT_WATCHERS = 10; // just a safeguard (watchers per thread should be at most 1-2)
     public static final int MAX_CONSTRAINT_NAME_LENGTH = 40;
     private static final String IMPLEMENTATION_SHORT_NAME = "SQL";
     private static final String IMPLEMENTATION_DESCRIPTION = "Implementation that stores data in generic relational" +
@@ -178,6 +169,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <RV> RV executeAttemptsNoSchemaException(
             String oid, String operationName, Class<?> type, String operationVerb,
             OperationResult subResult, ResultSupplier<RV> supplier) throws ObjectNotFoundException {
@@ -188,6 +180,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
     }
 
+    @SuppressWarnings("SameParameterValue")
     private <RV> RV executeQueryAttemptsNoSchemaException(ObjectQuery query,
             String operationName, Class<?> type, String operationVerb, OperationResult subResult,
             Supplier<RV> emptyQueryResultSupplier, ResultQueryBasedSupplier<RV> supplier) {
@@ -348,7 +341,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult result)
+    public <T extends ObjectType> String addObject(
+            PrismObject<T> object, RepoAddOptions options, OperationResult result)
             throws ObjectAlreadyExistsException, SchemaException {
         Validate.notNull(object, "Object must not be null.");
         validateName(object);
@@ -410,7 +404,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     attempt = baseHelper.logOperationAttempt(proposedOid, operation, attempt, ex, subResult);
                     pm.registerOperationNewAttempt(opHandle, attempt);
                 }
-                noFetchExtensionValueInsertionForbidden = true;     // todo This is a temporary measure; needs better handling.
+                noFetchExtensionValueInsertionForbidden = true; // todo This is a temporary measure; needs better handling.
             }
         } finally {
             pm.registerOperationFinish(opHandle, attempt);
@@ -423,8 +417,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         emptyIfNull(conflictWatchersThreadLocal.get()).forEach(consumer);
     }
 
-    private void validateName(PrismObject object) throws SchemaException {
-        PrismProperty name = object.findProperty(ObjectType.F_NAME);
+    private void validateName(PrismObject<?> object) throws SchemaException {
+        PrismProperty<?> name = object.findProperty(ObjectType.F_NAME);
+        //noinspection ConstantConditions
         if (name == null || ((PolyString) name.getRealValue()).isEmpty()) {
             throw new SchemaException("Attempt to add object without name.");
         }
@@ -432,7 +427,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @NotNull
     @Override
-    public <T extends ObjectType> DeleteObjectResult deleteObject(Class<T> type, String oid, OperationResult result)
+    public <T extends ObjectType> DeleteObjectResult deleteObject(
+            Class<T> type, String oid, OperationResult result)
             throws ObjectNotFoundException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
@@ -489,20 +485,24 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @NotNull
     @Override
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
             RepoModifyOptions options, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         try {
             return modifyObject(type, oid, modifications, null, options, result);
         } catch (PreconditionViolationException e) {
-            throw new AssertionError(e);    // with null precondition we couldn't get this exception
+            throw new AssertionError(e); // with null precondition we couldn't get this exception
         }
     }
 
     @NotNull
     @Override
-    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
-            ModificationPrecondition<T> precondition, RepoModifyOptions options, OperationResult result)
+    public <T extends ObjectType> ModifyObjectResult<T> modifyObject(
+            Class<T> type, String oid, Collection<? extends ItemDelta> modifications,
+            ModificationPrecondition<T> precondition,
+            RepoModifyOptions options,
+            OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, PreconditionViolationException {
 
         Validate.notNull(modifications, "Modifications must not be null.");
@@ -604,7 +604,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         diag.setEmbedded(config.isEmbedded());
 
         Enumeration<Driver> drivers = DriverManager.getDrivers();
-        while ((drivers != null && drivers.hasMoreElements())) {
+        while (drivers.hasMoreElements()) {
             Driver driver = drivers.nextElement();
             if (!driver.getClass().getName().equals(config.getDriverClassName())) {
                 continue;
@@ -632,21 +632,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Session session = baseHelper.getSessionFactory().openSession();
         try {
             session.beginTransaction();
-            session.doWork(new Work() {
+            session.doWork(connection -> {
+                details.add(new LabeledString(DETAILS_TRANSACTION_ISOLATION,
+                        getTransactionIsolation(connection, config)));
 
-                @Override
-                public void execute(Connection connection) throws SQLException {
-                    details.add(new LabeledString(DETAILS_TRANSACTION_ISOLATION,
-                            getTransactionIsolation(connection, config)));
+                Properties info = connection.getClientInfo();
+                if (info == null) {
+                    return;
+                }
 
-                    Properties info = connection.getClientInfo();
-                    if (info == null) {
-                        return;
-                    }
-
-                    for (String name : info.stringPropertyNames()) {
-                        details.add(new LabeledString(DETAILS_CLIENT_INFO + name, info.getProperty(name)));
-                    }
+                for (String name : info.stringPropertyNames()) {
+                    details.add(new LabeledString(DETAILS_CLIENT_INFO + name, info.getProperty(name)));
                 }
             });
             session.getTransaction().commit();
@@ -658,17 +654,17 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             SessionFactoryImpl sessionFactoryImpl = (SessionFactoryImpl) sessionFactory;
             // we try to override configuration which was read from sql repo configuration with
             // real configuration from session factory
-            if (sessionFactoryImpl.getDialect() != null) {
+            Dialect dialect = sessionFactoryImpl.getJdbcServices().getDialect();
+            if (dialect != null) {
                 for (int i = 0; i < details.size(); i++) {
                     if (details.get(i).getLabel().equals(DETAILS_HIBERNATE_DIALECT)) {
                         details.remove(i);
                         break;
                     }
                 }
-                String dialect = sessionFactoryImpl.getDialect().getClass().getName();
-                details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, dialect));
+                String dialectClassName = dialect.getClass().getName();
+                details.add(new LabeledString(DETAILS_HIBERNATE_DIALECT, dialectClassName));
             }
-
         } catch (Throwable th) {
             //nowhere to report error (no operation result available)
             session.getTransaction().rollback();
@@ -723,13 +719,14 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <T extends ObjectType> String getVersion(Class<T> type, String oid, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException {
+    public <T extends ObjectType> String getVersion(
+            Class<T> type, String oid, OperationResult parentResult)
+            throws ObjectNotFoundException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(oid, "Object oid must not be null.");
         Validate.notNull(parentResult, "Operation result must not be null.");
 
-        LOGGER.debug("Getting version for {} with oid '{}'.", new Object[] { type.getSimpleName(), oid });
+        LOGGER.debug("Getting version for {} with oid '{}'.", type.getSimpleName(), oid);
 
         OperationResult subResult = parentResult.subresult(GET_VERSION)
                 .addQualifier(type.getSimpleName())
@@ -864,9 +861,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Nullable
-    private <T extends ObjectType> SearchResultMetadata searchObjectsIterativeBySingleTransaction(Class<T> type,
-            ObjectQuery query, ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult subResult)
-            throws SchemaException {
+    private <T extends ObjectType> SearchResultMetadata searchObjectsIterativeBySingleTransaction(
+            Class<T> type,
+            ObjectQuery query,
+            ResultHandler<T> handler,
+            Collection<SelectorOptions<GetOperationOptions>> options,
+            OperationResult subResult) {
         /*
          * Here we store OIDs that were already sent to the client during previous attempts.
          */
@@ -885,7 +885,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     return null;
                 } catch (RuntimeException ex) {
                     attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, subResult);
-                    //                    pm.registerOperationNewAttempt(opHandle, attempt);
                 }
             }
         } finally {
@@ -903,7 +902,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         Validate.notNull(lowerObjectOids, "lowerObjectOids must not be null.");
 
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Querying for subordination upper {}, lower {}", new Object[] { upperOrgOid, lowerObjectOids });
+            LOGGER.trace("Querying for subordination upper {}, lower {}", upperOrgOid, lowerObjectOids);
         }
 
         if (lowerObjectOids.isEmpty()) {
@@ -1001,7 +1000,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public RepositoryQueryDiagResponse executeQueryDiagnostics(RepositoryQueryDiagRequest request, OperationResult result) {
+    public RepositoryQueryDiagResponse executeQueryDiagnostics(
+            RepositoryQueryDiagRequest request, OperationResult result) {
+
         Validate.notNull(request, "Request must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
@@ -1034,8 +1035,15 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <O extends ObjectType> boolean selectorMatches(ObjectSelectorType objectSelector,
-            PrismObject<O> object, ObjectFilterExpressionEvaluator filterEvaluator, Trace logger, String logMessagePrefix) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public <O extends ObjectType> boolean selectorMatches(
+            ObjectSelectorType objectSelector,
+            PrismObject<O> object,
+            ObjectFilterExpressionEvaluator filterEvaluator,
+            Trace logger,
+            String logMessagePrefix)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+
         if (objectSelector == null) {
             logger.trace("{} null object specification", logMessagePrefix);
             return false;
@@ -1043,14 +1051,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         SearchFilterType specFilterType = objectSelector.getFilter();
         ObjectReferenceType specOrgRef = objectSelector.getOrgRef();
-        QName specTypeQName = objectSelector.getType();     // now it does not matter if it's unqualified
+        QName specTypeQName = objectSelector.getType(); // now it does not matter if it's unqualified
         PrismObjectDefinition<O> objectDefinition = object.getDefinition();
 
         // Type
         if (specTypeQName != null && !object.canRepresent(specTypeQName)) {
             if (logger.isTraceEnabled()) {
                 logger.trace("{} type mismatch, expected {}, was {}",
-                        logMessagePrefix, PrettyPrinter.prettyPrint(specTypeQName), PrettyPrinter.prettyPrint(objectDefinition.getTypeName()));
+                        logMessagePrefix,
+                        PrettyPrinter.prettyPrint(specTypeQName),
+                        PrettyPrinter.prettyPrint(objectDefinition.getTypeName()));
             }
             return false;
         }
@@ -1092,11 +1102,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         // Filter
         if (specFilterType != null) {
-            ObjectFilter specFilter = object.getPrismContext().getQueryConverter().createObjectFilter(object.getCompileTimeClass(), specFilterType);
+            ObjectFilter specFilter = object.getPrismContext().getQueryConverter()
+                    .createObjectFilter(object.getCompileTimeClass(), specFilterType);
             if (filterEvaluator != null) {
                 specFilter = filterEvaluator.evaluate(specFilter);
             }
-            ObjectTypeUtil.normalizeFilter(specFilter, relationRegistry);        //  we assume object is already normalized
+            ObjectTypeUtil.normalizeFilter(specFilter, relationRegistry); // we assume object is already normalized
             if (specFilter != null) {
                 ObjectQueryUtil.assertPropertyOnly(specFilter, logMessagePrefix + " filter is not property-only filter");
             }
@@ -1168,7 +1179,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             conflictWatchersThreadLocal.set(watchers = new ArrayList<>());
         }
         if (watchers.size() >= MAX_CONFLICT_WATCHERS) {
-            throw new IllegalStateException("Conflicts watchers leaking: reached limit of " + MAX_CONFLICT_WATCHERS + ": " + watchers);
+            throw new IllegalStateException("Conflicts watchers leaking: reached limit of "
+                    + MAX_CONFLICT_WATCHERS + ": " + watchers);
         }
         ConflictWatcherImpl watcher = new ConflictWatcherImpl(oid);
         watchers.add(watcher);
@@ -1181,9 +1193,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         List<ConflictWatcherImpl> watchers = conflictWatchersThreadLocal.get();
         // change these exceptions to logged errors, eventually
         if (watchers == null) {
-            throw new IllegalStateException("No conflict watchers registered for current thread; tried to unregister " + watcher);
-        } else if (!watchers.remove(watcherImpl)) {     // expecting there's only one
-            throw new IllegalStateException("Tried to unregister conflict watcher " + watcher + " that was not registered");
+            throw new IllegalStateException(
+                    "No conflict watchers registered for current thread; tried to unregister " + watcher);
+        } else if (!watchers.remove(watcherImpl)) { // expecting there's only one
+            throw new IllegalStateException(
+                    "Tried to unregister conflict watcher " + watcher + " that was not registered");
         }
     }
 
@@ -1203,8 +1217,6 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     getVersion(ObjectType.class, watcher.getOid(), result);
                 } catch (ObjectNotFoundException e) {
                     // just ignore this
-                } catch (SchemaException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Couldn't check conflicts for {}", e, watcher.getOid());
                 }
                 rv = watcher.hasConflict();
             }
@@ -1223,8 +1235,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      * So there could be situations when obsolete information is not removed because of this.
      */
     @Override
-    public <T extends ObjectType> void addDiagnosticInformation(Class<T> type, String oid, DiagnosticInformationType information,
-            OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+    public <T extends ObjectType> void addDiagnosticInformation(
+            Class<T> type, String oid,
+            DiagnosticInformationType information, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+
         OperationResult result = parentResult.subresult(ADD_DIAGNOSTIC_INFORMATION)
                 .addQualifier(type.getSimpleName())
                 .addParam("type", type)
@@ -1257,9 +1272,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     // returns true if the new information can be stored
-    private <T extends ObjectType> boolean pruneDiagnosticInformation(Class<T> type, String oid,
-            DiagnosticInformationType newInformation, List<DiagnosticInformationType> oldInformationList,
-            OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
+    private <T extends ObjectType> boolean pruneDiagnosticInformation(
+            Class<T> type, String oid, DiagnosticInformationType newInformation,
+            List<DiagnosticInformationType> oldInformationList, OperationResult result)
+            throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         String infoType = newInformation.getType();
         if (infoType == null) {
             throw new IllegalArgumentException("Diagnostic information type is not specified");
@@ -1277,8 +1293,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     .collect(Collectors.toList());
             int pruneToSize = limit > 0 ? limit - 1 : 0;
             if (oldToPrune.size() > pruneToSize) {
-                oldToPrune.sort(Comparator.nullsFirst(Comparator.comparing(i -> XmlTypeConverter.toDate(i.getTimestamp()))));
-                List<DiagnosticInformationType> toDelete = oldToPrune.subList(0, oldToPrune.size() - pruneToSize);
+                oldToPrune.sort(Comparator.nullsFirst(
+                        Comparator.comparing(i -> XmlTypeConverter.toDate(i.getTimestamp()))));
+                List<DiagnosticInformationType> toDelete =
+                        oldToPrune.subList(0, oldToPrune.size() - pruneToSize);
                 LOGGER.trace("Going to delete {} diagnostic information values", toDelete.size());
                 List<ItemDelta<?, ?>> modifications = prismContext.deltaFor(type)
                         .item(ObjectType.F_DIAGNOSTIC_INFORMATION).deleteRealValues(toDelete)

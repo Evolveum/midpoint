@@ -245,7 +245,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
      * may fail.
      */
     private void reconcileMissingAuxiliaryObjectClassAttributes(LensProjectionContext projCtx) throws SchemaException {
-        ObjectDelta<ShadowType> delta = projCtx.getDelta();
+        ObjectDelta<ShadowType> delta = projCtx.getCurrentDelta();
         if (delta == null) {
             return;
         }
@@ -892,12 +892,6 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             PrismPropertyDefinition<T> attrDef, ModificationType changeType, T value, ObjectType originObject, String reason)
             throws SchemaException {
 
-        ItemDelta existingDelta;
-        if (projCtx.getSecondaryDelta() != null) {
-            existingDelta = projCtx.getSecondaryDelta().findItemDelta(ItemPath.create(parentPath, attrDef.getItemName()));
-        } else {
-            existingDelta = null;
-        }
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("  reconciliation will {} value of attribute {}: {} because {}", changeType,
                     PrettyPrinter.prettyPrint(attrDef.getItemName()), value, reason);
@@ -909,7 +903,14 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         if (changeType == ModificationType.ADD) {
             attrDelta.addValueToAdd(pValue);
         } else if (changeType == ModificationType.DELETE) {
-            if (!isToBeDeleted(existingDelta, valueMatcher, value)){
+            ItemDelta currentItemDelta;
+            ObjectDelta<ShadowType> currentDelta = projCtx.getCurrentDelta();
+            if (currentDelta != null) {
+                currentItemDelta = currentDelta.findItemDelta(ItemPath.create(parentPath, attrDef.getItemName()));
+            } else {
+                currentItemDelta = null;
+            }
+            if (!isToBeDeleted(currentItemDelta, valueMatcher, value)) {
                 attrDelta.addValueToDelete(pValue);
             }
 
@@ -935,10 +936,6 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             RefinedAssociationDefinition assocDef, ModificationType changeType, ShadowAssociationType value,
             ObjectType originObject, String reason) throws SchemaException {
 
-        ItemDelta existingDelta = null;
-        if (accCtx.getSecondaryDelta() != null) {
-            existingDelta = accCtx.getSecondaryDelta().findItemDelta(SchemaConstants.PATH_ASSOCIATION);
-        }
         LOGGER.trace("Reconciliation will {} value of association {}: {} because {}", changeType, assocDef, value, reason);
 
         // todo initialize only once
@@ -955,6 +952,12 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         if (changeType == ModificationType.ADD) {
             assocDelta.addValueToAdd(cValue);
         } else if (changeType == ModificationType.DELETE) {
+            ItemDelta existingDelta;
+            if (accCtx.getSecondaryDelta() != null) {
+                existingDelta = accCtx.getCurrentDelta().findItemDelta(SchemaConstants.PATH_ASSOCIATION);
+            } else {
+                existingDelta = null;
+            }
             if (!isToBeDeleted(existingDelta, valueMatcher, value)){
                 LOGGER.trace("Adding association value to delete {} ", cValue);
                 assocDelta.addValueToDelete(cValue);

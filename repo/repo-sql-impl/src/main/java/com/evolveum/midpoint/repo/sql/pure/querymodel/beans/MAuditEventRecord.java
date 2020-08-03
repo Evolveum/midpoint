@@ -48,10 +48,10 @@ public class MAuditEventRecord {
 
     // "transient" fields not used by Querydsl
     public List<MAuditDelta> deltas;
-    public List<MAuditItem> changedItems;
-    // see
+    public List<String> changedItemPaths;
     public Map<String, List<MAuditRefValue>> refValues;
     public Map<String, List<String>> properties;
+    public List<String> resourceOids;
 
     public void addDelta(MAuditDelta mAuditDelta) {
         if (deltas == null) {
@@ -61,10 +61,10 @@ public class MAuditEventRecord {
     }
 
     public void addChangedItem(MAuditItem mAuditItem) {
-        if (changedItems == null) {
-            changedItems = new ArrayList<>();
+        if (changedItemPaths == null) {
+            changedItemPaths = new ArrayList<>();
         }
-        changedItems.add(mAuditItem);
+        changedItemPaths.add(mAuditItem.changedItemPath);
     }
 
     public void addRefValue(MAuditRefValue refValue) {
@@ -81,6 +81,13 @@ public class MAuditEventRecord {
         }
         List<String> values = properties.computeIfAbsent(propertyValue.name, s -> new ArrayList<>());
         values.add(propertyValue.value);
+    }
+
+    public void addResourceOid(MAuditResource resource) {
+        if (resourceOids == null) {
+            resourceOids = new ArrayList<>();
+        }
+        resourceOids.add(resource.resourceOid);
     }
 
     @Override

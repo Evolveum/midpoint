@@ -59,7 +59,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
     }
 
     @Override
-    public Construction<AH,?> getConstruction() {
+    public @NotNull Construction<AH,?> getConstruction() {
         return construction;
     }
 
@@ -154,7 +154,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
 
     private void evaluateAttributes(Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-        for (ResourceAttributeDefinitionType attributeDefinition : construction.getConstructionType().getAttribute()) {
+        for (ResourceAttributeDefinitionType attributeDefinition : construction.getConstructionBean().getAttribute()) {
             QName attrName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(attributeDefinition.getRef());
             if (attrName == null) {
                 throw new SchemaException(
@@ -165,13 +165,13 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
                 throw new SchemaException("Cannot process inbound section in definition of attribute "
                         + attrName + " in account construction in " + construction.getSource());
             }
-            MappingType outboundMappingType = attributeDefinition.getOutbound();
-            if (outboundMappingType == null) {
+            MappingType outboundMappingBean = attributeDefinition.getOutbound();
+            if (outboundMappingBean == null) {
                 throw new SchemaException("No outbound section in definition of attribute " + attrName
                         + " in account construction in " + construction.getSource());
             }
-            MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeMapping = evaluateAttribute(
-                    attributeDefinition, task, result);
+            MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeMapping =
+                    evaluateAttribute(attrName, outboundMappingBean, task, result);
             if (attributeMapping != null) {
                 addAttributeMapping(attributeMapping);
             }
@@ -179,31 +179,17 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
     }
 
     private <T> MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(
-            ResourceAttributeDefinitionType attributeDefinition, Task task, OperationResult result)
+            QName attrName, MappingType mappingBean, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-        QName attrName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(attributeDefinition.getRef());
-        if (attrName == null) {
-            throw new SchemaException("Missing 'ref' in attribute construction in account construction in "
-                    + construction.getSource());
-        }
-        if (!attributeDefinition.getInbound().isEmpty()) {
-            throw new SchemaException("Cannot process inbound section in definition of attribute " + attrName
-                    + " in account construction in " + construction.getSource());
-        }
-        MappingType outboundMappingType = attributeDefinition.getOutbound();
-        if (outboundMappingType == null) {
-            throw new SchemaException("No outbound section in definition of attribute " + attrName
-                    + " in account construction in " + construction.getSource());
-        }
         ResourceAttributeDefinition<T> outputDefinition = construction.findAttributeDefinition(attrName);
         if (outputDefinition == null) {
             throw new SchemaException("Attribute " + attrName + " not found in schema for account type "
                     + getIntent() + ", " + construction.getResolvedResource().resource
                     + " as defined in " + construction.getSource(), attrName);
         }
-        MappingBuilder<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> builder = construction.getMappingFactory().createMappingBuilder(
-                outboundMappingType,
-                "for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + construction.getSource());
+        String shortDesc = "for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + construction.getSource();
+        MappingBuilder<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> builder =
+                construction.getMappingFactory().createMappingBuilder(mappingBean, shortDesc);
 
         MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluatedMapping;
 
@@ -252,7 +238,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
 
     private void evaluateAssociations(Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-        for (ResourceObjectAssociationType associationDefinitionType : construction.getConstructionType().getAssociation()) {
+        for (ResourceObjectAssociationType associationDefinitionType : construction.getConstructionBean().getAssociation()) {
             QName assocName = ItemPathTypeUtil.asSingleNameOrFailNullSafe(associationDefinitionType.getRef());
             if (assocName == null) {
                 throw new SchemaException(
@@ -310,13 +296,14 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
             RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
-        construction.initializeMappingBuilder(builder, implicitTargetPath, mappingQName, outputDefinition, assocTargetObjectClassDefinition, task, result);
+        builder = construction.initializeMappingBuilder(builder, implicitTargetPath, mappingQName, outputDefinition, assocTargetObjectClassDefinition, task, result);
 
         // TODO
         // builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, TODO);
 
         MappingImpl<V, D> mapping = builder.build();
-            construction.getMappingEvaluator().evaluateMapping(mapping, construction.getLensContext(), projectionContext, task, result);
+
+        construction.getMappingEvaluator().evaluateMapping(mapping, construction.getLensContext(), projectionContext, task, result);
 
         return mapping;
     }

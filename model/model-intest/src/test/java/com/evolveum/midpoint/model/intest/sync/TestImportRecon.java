@@ -1628,7 +1628,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
+        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid); // password via inbounds is generated twice
     }
 
     /**
@@ -1782,7 +1782,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
+        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid); // password via inbounds is generated twice
     }
 
     @Test

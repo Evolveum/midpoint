@@ -17,14 +17,13 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.model.api.hooks.ReadHook;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.report.api.ReportService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -131,7 +130,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
      */
 
     @Override
-    public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    public void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> paramContainer, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
 
         task.getUpdatedTaskObject().asObjectable().getAssignment()
                 .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE, prismContext));
@@ -164,7 +165,45 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         parentResult.setBackgroundTaskOid(task.getOid());
     }
 
+    /**
+     * Creates and starts task with proper handler, also adds necessary information to task
+     * (like ReportType reference and so on).
+     *
+     * @param report
+     * @param task
+     * @param parentResult describes report which has to be created
+     */
 
+    @Override
+    public void importReport(PrismObject<ReportType> report, PrismObject<ReportDataType> reportData, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            SecurityViolationException {
+
+        task.getUpdatedTaskObject().asObjectable().getAssignment()
+                .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE, prismContext));
+        task.getUpdatedTaskObject().asObjectable().getArchetypeRef()
+                .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE));
+
+        if (!reportService.isAuthorizedToImportReport(report, task, parentResult)) {
+            LOGGER.error("User is not authorized to import report {}", report);
+            throw new SecurityViolationException("Not authorized");
+        }
+
+        task.setHandlerUri(ReportTaskHandler.REPORT_TASK_URI);
+        task.setObjectRef(report.getOid(), ReportType.COMPLEX_TYPE);
+
+        PrismReference reportDataRef = reportService.getPrismContext().getSchemaRegistry()
+                .findReferenceDefinitionByElementName(ReportConstants.REPORT_DATA_PROPERTY_NAME).instantiate();
+        PrismReferenceValue refValue = reportService.getPrismContext().itemFactory().createReferenceValue(reportData.getOid(), ReportDataType.COMPLEX_TYPE);
+        reportDataRef.getValues().add(refValue);
+        task.setExtensionReference(reportDataRef);
+
+        task.setThreadStopAction(ThreadStopActionType.CLOSE);
+        task.makeSingle();
+
+        taskManager.switchToBackground(task, parentResult);
+        parentResult.setBackgroundTaskOid(task.getOid());
+    }
 
     private boolean isJasperReport(PrismObject<ReportType> object) {
         if(object.getRealValue() != null && object.getRealValue().getJasper() != null) {
@@ -294,32 +333,32 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
         XMLGregorianCalendar timeXml = XmlTypeConverter.createXMLGregorianCalendar(deleteReportOutputsTo.getTime());
 
-        List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<>();
+        List<PrismObject<ReportDataType>> obsoleteReportDatas = new ArrayList<>();
         try {
-            ObjectQuery obsoleteReportOutputsQuery = prismContext.queryFor(ReportOutputType.class)
-                    .item(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).le(timeXml)
+            ObjectQuery obsoleteReportOutputsQuery = prismContext.queryFor(ReportDataType.class)
+                    .item(ReportDataType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).le(timeXml)
                     .build();
-            obsoleteReportOutputs = modelService.searchObjects(ReportOutputType.class, obsoleteReportOutputsQuery, null, null, result);
+            obsoleteReportDatas = modelService.searchObjects(ReportDataType.class, obsoleteReportOutputsQuery, null, null, result);
         } catch (Exception e) {
             throw new SystemException("Couldn't get the list of obsolete report outputs: " + e.getMessage(), e);
         }
 
-        LOGGER.debug("Found {} report output(s) to be cleaned up", obsoleteReportOutputs.size());
+        LOGGER.debug("Found {} report output(s) to be cleaned up", obsoleteReportDatas.size());
 
         boolean interrupted = false;
         int deleted = 0;
         int problems = 0;
 
-        for (PrismObject<ReportOutputType> reportOutputPrism : obsoleteReportOutputs){
-            ReportOutputType reportOutput = reportOutputPrism.asObjectable();
+        for (PrismObject<ReportDataType> reportDataPrism : obsoleteReportDatas){
+            ReportDataType reportData = reportDataPrism.asObjectable();
 
-            LOGGER.trace("Removing report output {} along with {} file.", reportOutput.getName().getOrig(),
-                    reportOutput.getFilePath());
+            LOGGER.trace("Removing report output {} along with {} file.", reportData.getName().getOrig(),
+                    reportData.getFilePath());
             boolean problem = false;
             try {
-                deleteReportOutput(reportOutput, result);
+                deleteReportData(reportData, result);
             } catch (Exception e) {
-                LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to a exception", e, reportOutput);
+                LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to a exception", e, reportData);
                 problem = true;
             }
 
@@ -346,8 +385,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
     }
 
     @Override
-    public void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception {
-        String oid = reportOutput.getOid();
+    public void deleteReportData(ReportDataType reportData, OperationResult parentResult) throws Exception {
+        String oid = reportData.getOid();
 
         // This operation does not need any extra authorization check. All model operations carried out by this
         // method are executed through modelService. Therefore usual object authorizations are checked.
@@ -356,7 +395,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         parentResult.addSubresult(task.getResult());
         OperationResult result = parentResult.createSubresult(DELETE_REPORT_OUTPUT);
 
-        String filePath = reportOutput.getFilePath();
+        String filePath = reportData.getFilePath();
         result.addParam("oid", oid);
         try {
             File file = new File(filePath);
@@ -370,7 +409,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                 if (fileName == null) {
                     return;
                 }
-                String originalNodeId = reportOutput.getNodeRef() != null ? reportOutput.getNodeRef().getOid() : null;
+                String originalNodeId = reportData.getNodeRef() != null ? reportData.getNodeRef().getOid() : null;
                 clusterExecutionHelper.executeWithFallback(originalNodeId,
                         (client, node, result1) -> {
                             client.path(ModelPublicConstants.CLUSTER_REPORT_FILE_PATH);
@@ -389,8 +428,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
                 result.computeStatusIfUnknown();
             }
 
-            ObjectDelta<ReportOutputType> delta = prismContext.deltaFactory().object()
-                    .createDeleteDelta(ReportOutputType.class, oid);
+            ObjectDelta<ReportDataType> delta = prismContext.deltaFactory().object()
+                    .createDeleteDelta(ReportDataType.class, oid);
             Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
             modelService.executeChanges(deltas, null, task, result);
 
@@ -404,11 +443,11 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
     //TODO re-throw exceptions?
     @Override
-    public InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, IOException {
+    public InputStream getReportDataStream(String reportDataOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, IOException {
         Task task = taskManager.createTaskInstance(REPORT_OUTPUT_DATA);
 
         OperationResult result = parentResult.createSubresult(REPORT_OUTPUT_DATA);
-        result.addParam("oid", reportOutputOid);
+        result.addParam("oid", reportDataOid);
 
         // This operation does not need any extra authorization check. All model operations carried out by this
         // method are executed through modelService. Therefore usual object authorizations are checked.
@@ -418,7 +457,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
         // and should not depend on user privileges.
 
         try {
-            ReportOutputType reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null, task,
+            ReportDataType reportOutput = modelService.getObject(ReportDataType.class, reportDataOid, null, task,
                     result).asObjectable();
 
             // Extra safety check: traces can be retrieved only when special authorization is present
@@ -471,11 +510,11 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
 
                 if (executorNode != null && !executorNode.getOid().equals(originalNodeId)) {
                     LOGGER.info("Recording new location of {}: {}", reportOutput, executorNode);
-                    List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(ReportOutputType.class)
-                            .item(ReportOutputType.F_NODE_REF).replace(createObjectRef(executorNode, prismContext))
+                    List<ItemDelta<?, ?>> deltas = prismContext.deltaFor(ReportDataType.class)
+                            .item(ReportDataType.F_NODE_REF).replace(createObjectRef(executorNode, prismContext))
                             .asItemDeltas();
                     try {
-                        repositoryService.modifyObject(ReportOutputType.class, reportOutputOid, deltas, result);
+                        repositoryService.modifyObject(ReportDataType.class, reportDataOid, deltas, result);
                     } catch (ObjectAlreadyExistsException e) {
                         throw new SystemException("Unexpected exception: " + e.getMessage(), e);
                     }

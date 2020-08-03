@@ -4,13 +4,18 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.report.impl.controller.export;
+package com.evolveum.midpoint.report.impl.controller.fileformat;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
+import com.evolveum.midpoint.task.api.RunningTask;
 
 import j2html.TagCreator;
 import j2html.tags.ContainerTag;
@@ -43,17 +48,17 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 
-public class HtmlExportController extends ExportController {
+public class HtmlController extends FileFormatController {
 
-    private static final Trace LOGGER = TraceManager.getTrace(HtmlExportController.class);
+    private static final Trace LOGGER = TraceManager.getTrace(HtmlController.class);
 
     private static final String REPORT_CSS_STYLE_FILE_NAME = "dashboard-report-style.css";
 
     private static final String REPORT_GENERATED_ON = "Widget.generatedOn";
     private static final String NUMBER_OF_RECORDS = "Widget.numberOfRecords";
 
-    public HtmlExportController(ExportConfigurationType exportConfiguration, ReportServiceImpl reportService) {
-        super(exportConfiguration, reportService);
+    public HtmlController(FileFormatConfigurationType fileFormatConfiguration, ReportServiceImpl reportService) {
+        super(fileFormatConfiguration, reportService);
     }
 
     @Override
@@ -246,15 +251,9 @@ public class HtmlExportController extends ExportController {
 
         columns.forEach(column -> {
             Validate.notNull(column.getName(), "Name of column is null");
-            ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
 
+            String label = getColumnLabel(column, def);
             DisplayType columnDisplay = column.getDisplay();
-            String label;
-            if (columnDisplay != null && columnDisplay.getLabel() != null) {
-                label = getMessage(columnDisplay.getLabel().getOrig());
-            } else {
-                label = getColumnLabel(column.getName(), def, path);
-            }
             ContainerTag th = TagCreator.th(TagCreator.div(TagCreator.span(label).withClass("sortableLabel")));
             if (columnDisplay != null) {
                 if (StringUtils.isNotBlank(columnDisplay.getCssClass())) {
@@ -279,7 +278,7 @@ public class HtmlExportController extends ExportController {
             ContainerTag tr = TagCreator.tr();
             columns.forEach(column -> {
                 ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
-                ExpressionType expression = column.getExpression();
+                ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
                 tr.with(TagCreator
                         .th(TagCreator.div(getRealValueAsString(column, value, path, expression, task, result))
                                 .withStyle("white-space: pre-wrap")));
@@ -333,7 +332,7 @@ public class HtmlExportController extends ExportController {
         for (AuditEventRecord record : records) {
             ContainerTag tr = TagCreator.tr();
             columns.forEach(column -> {
-                ExpressionType expression = column.getExpression();
+                ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
                 ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
                 tr.with(TagCreator
                         .th(TagCreator.div(getStringValueByAuditColumn(record, path, expression, task, result))
@@ -382,7 +381,7 @@ public class HtmlExportController extends ExportController {
                 return null;
             }
         }
-        PrismObjectDefinition<ObjectType> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionsByCompileTimeClass(type, PrismObjectDefinition.class).get(0);
+        PrismObjectDefinition<ObjectType> def = getReportService().getPrismContext().getSchemaRegistry().findItemDefinitionByCompileTimeClass(type, PrismObjectDefinition.class);
 
         if (compiledCollection.getColumns().isEmpty()) {
             getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
@@ -455,6 +454,16 @@ public class HtmlExportController extends ExportController {
 
     protected void appendMultivalueDelimiter(StringBuilder body) {
         appendNewLine(body);
+    }
+
+    @Override
+    public void importCollectionReport(ReportType report, VariablesMap listOfVariables, RunningTask task, OperationResult result) {
+        throw new UnsupportedOperationException("Unsupported operation import for HTML file format");
+    }
+
+    @Override
+    public List<VariablesMap> createVariablesFromFile(ReportType report, ReportDataType reportData, boolean useImportScript, Task task, OperationResult result) throws IOException {
+        throw new UnsupportedOperationException("Unsupported operation import for HTML file format");
     }
 
     @Override

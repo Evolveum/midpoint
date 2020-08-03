@@ -6,28 +6,21 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.ObjectBasicPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.reports.PageReport;
-import com.evolveum.midpoint.web.page.admin.reports.PageReports;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -125,11 +118,11 @@ public class ReportMainPanel extends AbstractObjectMainPanel<ReportType> {
 
             @Override
             public WebMarkupContainer createPanel(String panelId) {
-                PrismContainerWrapperModel<ReportType, Containerable> model = PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ReportType.F_EXPORT);
-                return new SingleContainerPanel(panelId, model, ExportConfigurationType.COMPLEX_TYPE){
+                PrismContainerWrapperModel<ReportType, Containerable> model = PrismContainerWrapperModel.fromContainerWrapper(getObjectModel(), ReportType.F_FILE_FORMAT);
+                return new SingleContainerPanel(panelId, model, FileFormatConfigurationType.COMPLEX_TYPE){
                     @Override
                     protected ItemVisibility getVisibility(ItemPath itemPath) {
-                        if(itemPath.isSubPathOrEquivalent(ItemPath.create(ReportType.F_EXPORT, ExportConfigurationType.F_HTML))) {
+                        if(itemPath.isSubPathOrEquivalent(ItemPath.create(ReportType.F_FILE_FORMAT, FileFormatConfigurationType.F_HTML))) {
                             return ItemVisibility.HIDDEN;
                         }
                         return ItemVisibility.AUTO;

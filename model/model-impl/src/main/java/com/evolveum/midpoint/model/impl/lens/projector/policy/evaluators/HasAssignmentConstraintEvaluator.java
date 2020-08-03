@@ -85,7 +85,7 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
                 AssignmentOrigin origin = evaluatedAssignment.getOrigin();
                 boolean assignmentIsAdded = origin.isBeingAdded();
                 boolean assignmentIsDeleted = origin.isBeingDeleted();
-                boolean assignmentIsModified = origin.isBeingModified();
+                boolean assignmentIsKept = origin.isBeingKept();
                 DeltaSetTriple<EvaluatedAssignmentTargetImpl> targetsTriple = evaluatedAssignment.getRoles();
                 for (EvaluatedAssignmentTargetImpl target : targetsTriple.getNonNegativeValues()) {
                     if (!target.appliesToFocus()) {
@@ -105,9 +105,9 @@ public class HasAssignmentConstraintEvaluator implements PolicyConstraintEvaluat
                     boolean targetIsInZeroSet = targetsTriple.presentInZeroSet(target);
                     boolean targetIsInMinusSet = targetsTriple.presentInMinusSet(target);
                     // TODO check these computations
-                    boolean isPlus = assignmentIsAdded || assignmentIsModified && targetIsInPlusSet;
-                    boolean isZero = assignmentIsModified && targetIsInZeroSet;
-                    boolean isMinus = assignmentIsDeleted || assignmentIsModified && targetIsInMinusSet;
+                    boolean isPlus = assignmentIsAdded || assignmentIsKept && targetIsInPlusSet;
+                    boolean isZero = assignmentIsKept && targetIsInZeroSet;
+                    boolean isMinus = assignmentIsDeleted || assignmentIsKept && targetIsInMinusSet;
                     if (!(allowPlus && isPlus || allowZero && isZero || allowMinus && isMinus)) {
                         continue;
                     }

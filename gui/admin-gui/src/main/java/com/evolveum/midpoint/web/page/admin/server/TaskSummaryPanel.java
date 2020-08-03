@@ -274,7 +274,9 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
                 if (started == 0) {
                     return null;
                 }
-                if (taskType.getExecutionStatus() == TaskExecutionStatusType.RUNNABLE && taskType.getNodeAsObserved() != null
+                TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(
+                        taskType.getExecutionStatus(), taskType.getNodeAsObserved() != null);
+                if (status.equals(TaskDtoExecutionStatus.RUNNING)
                         || finished == 0 || finished < started) {
 
                     return getString("TaskStatePanel.message.executionTime.notFinished",

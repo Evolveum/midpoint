@@ -44,14 +44,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 @Component
 public class ContextFactory {
 
-    @Autowired(required = true)
-    PrismContext prismContext;
-
-    @Autowired(required = true)
-    private ProvisioningService provisioningService;
-
-    @Autowired(required = true)
-    Protector protector;
+    @Autowired PrismContext prismContext;
+    @Autowired private ProvisioningService provisioningService;
+    @Autowired Protector protector;
 
     public <F extends ObjectType> LensContext<F> createContext(
             Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {

@@ -209,6 +209,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("new-name"))
                 .asObjectDelta(user.getOid());
+
         executeChanges(delta, null, task, result);
 
         then();

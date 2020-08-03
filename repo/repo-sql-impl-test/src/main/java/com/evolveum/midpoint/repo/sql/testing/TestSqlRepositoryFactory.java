@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,8 +24,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * This repository factory should be used for testing purposes only. It behaves like {@link com.evolveum.midpoint.repo.sql.SqlRepositoryFactory},
- * but during configuration initialization it checks system properties and overrides loaded configuration
+ * This repository factory should be used for testing purposes only.
+ * It behaves like {@link com.evolveum.midpoint.repo.sql.SqlRepositoryFactory}, but during
+ * configuration initialization it checks system properties and overrides loaded configuration
  * ({@link com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration}).
  *
  * @author lazyman
@@ -40,7 +41,7 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
     public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
         String configFile = System.getProperty(PROPERTY_CONFIG);
         if (StringUtils.isNotEmpty(configFile)) {
-            LOGGER.info("Overriding loaded configuration with values from '{}'", new Object[] { configFile });
+            LOGGER.info("Overriding loaded configuration with values from '{}'", configFile);
             updateConfigurationFromFile(configuration, configFile);
         }
 
@@ -49,11 +50,12 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         super.init(configuration);
     }
 
-    private void updateConfigurationFromFile(Configuration configuration, String filePath) throws RepositoryServiceFactoryException {
+    private void updateConfigurationFromFile(Configuration configuration, String filePath)
+            throws RepositoryServiceFactoryException {
         Properties properties = new Properties();
         try {
             File file = new File(filePath);
-            LOGGER.debug("Config file absolute path '{}'.", new Object[] { file.getAbsolutePath() });
+            LOGGER.debug("Config file absolute path '{}'.", file.getAbsolutePath());
             if (!file.exists() || !file.isFile() || !file.canRead()) {
                 throw new RepositoryServiceFactoryException("Config file '" + filePath + "' doesn't exist or can't be read.");
             }
@@ -131,7 +133,8 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         }
     }
 
-    private void updateConfigurationIntegerProperty(Configuration configuration, Properties properties, String propertyName) {
+    private void updateConfigurationIntegerProperty(
+            Configuration configuration, Properties properties, String propertyName) {
         String value = properties != null ? properties.getProperty(propertyName) : System.getProperty(propertyName);
         if (value == null || !value.matches("[1-9][0-9]*")) {
             return;
@@ -141,7 +144,8 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         configuration.setProperty(propertyName, val);
     }
 
-    private void updateConfigurationBooleanProperty(Configuration configuration, Properties properties, String propertyName) {
+    private void updateConfigurationBooleanProperty(
+            Configuration configuration, Properties properties, String propertyName) {
         String value = properties != null ? properties.getProperty(propertyName) : System.getProperty(propertyName);
         if (value == null) {
             return;
@@ -151,12 +155,14 @@ public class TestSqlRepositoryFactory extends SqlRepositoryFactory {
         configuration.setProperty(propertyName, val);
     }
 
-    private void updateConfigurationStringProperty(Configuration configuration, Properties properties, String propertyName) {
+    private void updateConfigurationStringProperty(
+            Configuration configuration, Properties properties, String propertyName) {
         updateConfigurationStringProperty(configuration, properties, propertyName, null);
     }
 
     private void updateConfigurationStringProperty(
-            Configuration configuration, Properties properties, String propertyName, String defaultValue) {
+            Configuration configuration, Properties properties, String propertyName,
+            @SuppressWarnings("SameParameterValue") String defaultValue) {
         String value = properties != null ? properties.getProperty(propertyName) : System.getProperty(propertyName);
         if (value == null) {
             value = defaultValue;

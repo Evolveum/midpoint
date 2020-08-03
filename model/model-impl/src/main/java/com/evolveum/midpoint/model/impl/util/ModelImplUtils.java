@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -574,11 +575,15 @@ public class ModelImplUtils {
         }
     }
 
-    public static ExpressionVariables getDefaultExpressionVariables(@NotNull LensContext<?> context, @Nullable LensProjectionContext projCtx) throws SchemaException {
+    public static ExpressionVariables getDefaultExpressionVariables(@NotNull LensContext<?> context,
+            @Nullable LensProjectionContext projCtx, boolean focusOdoAbsolute) throws SchemaException {
         ExpressionVariables variables = new ExpressionVariables();
         if (context.getFocusContext() != null) {
-            variables.put(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDeltaObject().getDefinition());
-            variables.put(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject(), context.getFocusContext().getObjectDeltaObject().getDefinition());
+            ObjectDeltaObject<?> focusOdo = focusOdoAbsolute
+                    ? context.getFocusContext().getObjectDeltaObjectAbsolute()
+                    : context.getFocusContext().getObjectDeltaObjectRelative();
+            variables.put(ExpressionConstants.VAR_FOCUS, focusOdo, focusOdo.getDefinition());
+            variables.put(ExpressionConstants.VAR_USER, focusOdo, focusOdo.getDefinition());
             variables.registerAlias(ExpressionConstants.VAR_USER, ExpressionConstants.VAR_FOCUS);
         }
         if (projCtx != null) {

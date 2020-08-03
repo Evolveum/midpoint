@@ -42,13 +42,15 @@
                     <label>Name2</label>
                 </display>
                 <previousColumn>nameColumn</previousColumn>
-                <expression>
-                    <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
-                        <code>
-                            return "Test name: " + object;
-                        </code>
-                    </script>
-                </expression>
+                <export>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                return "Test name: " + object;
+                            </code>
+                        </script>
+                    </expression>
+                </export>
             </column>
         </view>
         <useOnlyReportView>true</useOnlyReportView>

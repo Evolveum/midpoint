@@ -28,6 +28,7 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
     DeltaSetTriple<I> ivwoTriple;
     D itemDefinition;
     ItemDelta<V, D> aprioriItemDelta;
+    boolean itemDeltaExists;
     PrismContainer<?> itemContainer;
     Item<V,D> existingItem; // alternative to using itemContainer
     ValueMatcher valueMatcher;
@@ -68,6 +69,11 @@ public final class IvwoConsolidatorBuilder<V extends PrismValue, D extends ItemD
 
     public IvwoConsolidatorBuilder<V, D, I> aprioriItemDelta(ItemDelta<V, D> val) {
         aprioriItemDelta = val;
+        return this;
+    }
+
+    public IvwoConsolidatorBuilder<V, D, I> itemDeltaExists(boolean val) {
+        itemDeltaExists = val;
         return this;
     }
 

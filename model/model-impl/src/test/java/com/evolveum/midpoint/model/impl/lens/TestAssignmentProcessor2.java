@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -832,11 +833,14 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
 
-        LensContext<UserType> context = createContextForRoleAssignment(USER_JACK_OID, ROLE_R1_OID, null, null, result);
-        context.getFocusContext().swallowToPrimaryDelta(
-                prismContext.deltaFor(UserType.class)
-                        .item(UserType.F_NAME).replace(PolyString.fromOrig("jack1"))
-                        .asItemDelta());
+        ItemDelta<?, ?> additionalDelta = prismContext.deltaFor(UserType.class)
+                .item(UserType.F_NAME).replace(PolyString.fromOrig("jack1"))
+                .asItemDelta();
+
+        LensContext<UserType> context = createContextForRoleAssignment(UserType.class, USER_JACK_OID, ROLE_R1_OID, null,
+                null, primaryDelta -> {
+                    primaryDelta.addModification(additionalDelta);
+                }, result);
 
         // WHEN
         processAssignments(context, result, task);
@@ -860,7 +864,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertDelegation(evaluatedAssignment, null);
 
         // R4-1 is not in plusInvalid (see above)
-        assertConstructions(evaluatedAssignment, "R1-1", null, "MR1-2 MMR1-3", null, "R2-1 MR2-2", null);
+        assertConstructions(evaluatedAssignment, "R1-1", null, "MR1-2 MMR1-3", null, null, "R2-1 MR2-2");
         assertFocusMappings(evaluatedAssignment, "R1-1 MR1-2 MMR1-3 R2-1 MR2-2");       // R2-1 and MR2-2 are evaluated and sent to minus set
         assertFocusPolicyRules(evaluatedAssignment, "R1-1 MR1-2 MMR1-3");
 
@@ -1084,9 +1088,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
         dump("Pirate!", 0);
         dump("Sailor!", 0);
-        dump("MetaroleCrewMember!", 1);
+        dump("MetaroleCrewMember!", 2); // condition is evaluated twice
         dump("MetaroleCrewMember!", 0);
-        dump("MetarolePerson!", 1);
+        dump("MetarolePerson!", 2); // condition is evaluated twice
         dump("MetarolePerson!", 0);
         dump("Human!", 1);
         dump("Human!", 0);
@@ -1094,9 +1098,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         dump("Pirate-Sailor!", 0);
         dump("Pirate-MetaroleCrewMember!", 0);
         dump("Sailor-MetaroleCrewMember!", 0);
-        dump("MetaroleCrewMember-MetarolePerson!", 1);
+        dump("MetaroleCrewMember-MetarolePerson!", 2); // condition is evaluated twice
         dump("MetaroleCrewMember-MetarolePerson!", 0);
-        dump("MetarolePerson-Human!", 1);
+        dump("MetarolePerson-Human!", 2); // condition is evaluated twice
         dump("MetarolePerson-Human!", 0);
 
         dump("C1", 0);
@@ -1132,7 +1136,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .assertImmediateRole(null)
                 .assertAssignmentPath(2);
 
-        getRunInfo("MetaroleCrewMember!", 1)
+        getRunInfo("MetaroleCrewMember!", 2) // Each condition is evaluated twice
                 .assertThisAssignment("->MetaroleCrewMember")
                 .assertImmediateAssignment("->Sailor")
                 .assertSource("Sailor")
@@ -1146,7 +1150,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .assertImmediateRole("Pirate")
                 .assertAssignmentPath(3);
 
-        getRunInfo("MetarolePerson!", 1)
+        getRunInfo("MetarolePerson!", 2)
                 .assertThisAssignment("->MetarolePerson")
                 .assertImmediateAssignment("->MetaroleCrewMember")
                 .assertSource("MetaroleCrewMember")
@@ -1160,7 +1164,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .assertImmediateRole("MetaroleCrewMember")
                 .assertAssignmentPath(4);
 
-        getRunInfo("Human!", 1)
+        getRunInfo("Human!", 2)
                 .assertThisAssignment("->Human")
                 .assertImmediateAssignment("->MetarolePerson")
                 .assertSource("MetarolePerson")
@@ -1197,7 +1201,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .assertImmediateRole("Pirate")
                 .assertAssignmentPath(3);
 
-        getRunInfo("MetaroleCrewMember-MetarolePerson!", 1)
+        getRunInfo("MetaroleCrewMember-MetarolePerson!", 2)
                 .assertThisAssignment("->MetarolePerson")
                 .assertImmediateAssignment("->MetaroleCrewMember")
                 .assertSource("MetaroleCrewMember")
@@ -1211,7 +1215,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .assertImmediateRole("MetaroleCrewMember")
                 .assertAssignmentPath(4);
 
-        getRunInfo("MetarolePerson-Human!", 1)
+        getRunInfo("MetarolePerson-Human!", 2)
                 .assertThisAssignment("->Human")
                 .assertImmediateAssignment("->MetarolePerson")
                 .assertSource("MetarolePerson")
@@ -1415,7 +1419,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
     private static boolean recording = false;
 
-    private static MultiValuedMap<String,RunInfo> runs = new ArrayListValuedHashMap<>();
+    private static final MultiValuedMap<String,RunInfo> runs = new ArrayListValuedHashMap<>();
 
     private static RunInfo currentRun;
 

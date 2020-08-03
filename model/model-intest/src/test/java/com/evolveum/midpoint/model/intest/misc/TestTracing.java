@@ -92,10 +92,10 @@ public class TestTracing extends AbstractEmptyModelIntegrationTest {
         RESOURCE_ILLEGAL.controller.assertAccountByUsername("joe")
                 .assertFullName("A\u0007B");
 
-        SearchResultList<PrismObject<ReportOutputType>> reportOutputs =
-                repositoryService.searchObjects(ReportOutputType.class, null, null, result);
-        assertThat(reportOutputs.size()).as("# of report outputs").isEqualTo(1);
-        String file = reportOutputs.get(0).asObjectable().getFilePath();
+        SearchResultList<PrismObject<ReportDataType>> reportDatas =
+                repositoryService.searchObjects(ReportDataType.class, null, null, result);
+        assertThat(reportDatas.size()).as("# of report outputs").isEqualTo(1);
+        String file = reportDatas.get(0).asObjectable().getFilePath();
 
         TraceParser parser = new TraceParser(prismContext);
         TracingOutputType parsed = parser.parse(new File(file));

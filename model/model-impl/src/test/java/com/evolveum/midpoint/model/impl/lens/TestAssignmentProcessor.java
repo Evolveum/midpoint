@@ -18,6 +18,8 @@ import com.evolveum.midpoint.model.impl.lens.construction.Construction;
 
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 
+import com.evolveum.midpoint.util.exception.*;
+
 import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,10 +72,10 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        context.recompute();
+        recompute(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, getNow(), task, result);
+        processAssignments(task, result, context);
 
         // THEN
         display("outbound processor result", result);
@@ -93,14 +95,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addModificationToContextReplaceUserProperty(context, UserType.F_LOCALITY, new PolyString("Tortuga"));
-        context.recompute();
+        recompute(context);
 
         displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, getNow(), task, result);
+        processAssignments(task, result, context);
 
         // THEN
         displayDumpable("Output context", context);
@@ -152,14 +154,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
-        context.recompute();
+        recompute(context);
 
         displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, getNow(), task, result);
+        processAssignments(task, result, context);
 
         // THEN
         displayDumpable("Output context", context);
@@ -191,7 +193,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
-        context.recompute();
+        recompute(context);
 
         displayDumpable("Input context", context);
 
@@ -199,7 +201,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         // WHEN
         when();
-        assignmentProcessor.processAssignments(context, getNow(), task, result);
+        processAssignments(task, result, context);
 
         // THEN
         then();
@@ -260,14 +262,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addFocusModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
-        context.recompute();
+        recompute(context);
 
         displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, getNow(), task, result);
+        processAssignments(task, result, context);
 
         // THEN
         displayDumpable("Output context", context);
@@ -356,7 +358,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, task, result);
         addFocusModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
-        context.recomputeFocus();
+        recompute(context);
 
         displayDumpable("Input context", context);
 
@@ -367,7 +369,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         // WHEN
         when();
-        assignmentProcessor.processAssignments(context, getNow(), task, result);
+        processAssignments(task, result, context);
 
         // THEN
         then();
@@ -439,7 +441,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_LARGO_OID, result);
         fillContextWithAccountFromFile(context, ACCOUNT_SHADOW_ELAINE_DUMMY_FILE, task, result);
-        context.recompute();
+        recompute(context);
 
         ProjectionPolicyType accountSynchronizationSettings = new ProjectionPolicyType();
         accountSynchronizationSettings.setLegalize(Boolean.TRUE);
@@ -453,7 +455,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, getNow(), task, result);
+        processAssignments(task, result, context);
 
         context.recompute();
         // THEN
@@ -461,7 +463,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         display("outbound processor result", result);
 
         assertNotNull("Expected assigment change in secondary user changes, but it does not exist.", context.getFocusContext().getSecondaryDelta());
-        assertEquals("Unexpected number of secundary changes. ", 1, context.getFocusContext().getSecondaryDelta().getModifications().size());
+        assertEquals("Unexpected number of secondary changes. ", 1, context.getFocusContext().getSecondaryDelta().getModifications().size());
         assertNotNull("Expected assigment delta in secondary changes, but it does not exist.",
                 ItemDeltaCollectionsUtil.findContainerDelta(context.getFocusContext().getSecondaryDelta().getModifications(),
                         UserType.F_ASSIGNMENT));
@@ -483,14 +485,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         LensContext<UserType> context = createUserLensContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE_ENGINEER);
-        context.recompute();
+        recompute(context);
 
         displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, getNow(), task, result);
+        processAssignments(task, result, context);
 
         // THEN
         displayDumpable("Output context", context);
@@ -551,14 +553,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         fillContextWithFocus(context, user);
 
         addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_SET_COST_CENTER);
-        context.recompute();
+        recompute(context);
 
         displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, getNow(), task, result);
+        processAssignments(task, result, context);
 
         // THEN
         displayDumpable("Output context", context);
@@ -634,14 +636,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         addFocusDeltaToContext(context, (ObjectDelta) prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(assignmentType)
                 .asObjectDelta(USER_JACK_OID));
-        context.recompute();
+        recompute(context);
 
         displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, getNow(), task, result);
+        processAssignments(task, result, context);
 
         // THEN
         //DebugUtil.setDetailedDebugDump(true);
@@ -687,14 +689,14 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         addFocusDeltaToContext(context, (ObjectDelta) prismContext.deltaFor(UserType.class)
                 .item(UserType.F_ASSIGNMENT).add(assignmentType)
                 .asObjectDelta(USER_JACK_OID));
-        context.recompute();
+        recompute(context);
 
         displayDumpable("Input context", context);
 
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignments(context, getNow(), task, result);
+        processAssignments(task, result, context);
 
         // THEN
         //DebugUtil.setDetailedDebugDump(true);
@@ -880,5 +882,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     private XMLGregorianCalendar getNow() {
         return clock.currentTimeXMLGregorianCalendar();
+    }
+
+    private void processAssignments(Task task, OperationResult result, LensContext<UserType> context)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
+        assignmentProcessor.processAssignments(context, getNow(), task, result);
     }
 }

@@ -33,22 +33,21 @@ public class PersonaConstruction<AH extends AssignmentHolderType> extends Abstra
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         DebugUtil.debugDumpLabelLn(sb, "PersonaConstruction", indent);
-        PersonaConstructionType constructionType = getConstructionType();
-        if (constructionType != null) {
-            DebugUtil.debugDumpWithLabelLn(sb, "targetType", constructionType.getTargetType(), indent + 1);
-            DebugUtil.debugDumpWithLabelLn(sb, "subtype", constructionType.getTargetSubtype(), indent + 1);
-            DebugUtil.debugDumpWithLabelToStringLn(sb, "strength", constructionType.getStrength(), indent + 1);
+        if (constructionBean != null) {
+            DebugUtil.debugDumpWithLabelLn(sb, "targetType", constructionBean.getTargetType(), indent + 1);
+            DebugUtil.debugDumpWithLabelLn(sb, "subtype", constructionBean.getTargetSubtype(), indent + 1);
+            DebugUtil.debugDumpWithLabelToStringLn(sb, "strength", constructionBean.getStrength(), indent + 1);
         }
-        DebugUtil.debugDumpWithLabelLn(sb, "isValid", isValid(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "valid", isValid(), indent + 1);
         sb.append("\n");
-        if (getConstructionType() != null && getConstructionType().getDescription() != null) {
+        if (constructionBean != null && constructionBean.getDescription() != null) {
             sb.append("\n");
             DebugUtil.debugDumpLabel(sb, "description", indent + 1);
-            sb.append(" ").append(getConstructionType().getDescription());
+            sb.append(" ").append(constructionBean.getDescription());
         }
-        if (getAssignmentPath() != null) {
+        if (assignmentPath != null) {
             sb.append("\n");
-            sb.append(getAssignmentPath().debugDump(indent + 1));
+            sb.append(assignmentPath.debugDump(indent + 1));
         }
         return sb.toString();
 

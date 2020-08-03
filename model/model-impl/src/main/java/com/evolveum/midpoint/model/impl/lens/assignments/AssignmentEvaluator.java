@@ -62,7 +62,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
     // Context of use
 
     final LensContext<AH> lensContext;
-    final ObjectDeltaObject<AH> focusOdo;
+    final ObjectDeltaObject<AH> focusOdoAbsolute;
+    final ObjectDeltaObject<AH> focusOdoRelative;
     final LifecycleStateModelType focusStateModel;
     final String channel;
     final XMLGregorianCalendar now;
@@ -92,7 +93,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
     private AssignmentEvaluator(Builder<AH> builder) {
         referenceResolver = builder.referenceResolver;
-        focusOdo = builder.focusOdo;
+        focusOdoAbsolute = builder.focusOdoAbsolute;
+        focusOdoRelative = builder.focusOdoRelative;
         lensContext = builder.lensContext;
         channel = builder.channel;
         objectResolver = builder.objectResolver;
@@ -181,7 +183,7 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
                     .evaluationOrder(getInitialEvaluationOrder(assignmentIdi, ctx))
                     .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
                     .pathToSourceValid(true)
-                    .sourceRelativityMode(PlusMinusZero.ZERO)
+                    .pathToSourceConditionState(ConditionState.allTrue())
                     .direct(true)
                     .build();
 
@@ -208,11 +210,11 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
     /**
      * Sets evaluatedAssignment.valid property (with unclear semantics) in some strange way,
-     * mixing validity and relativity mode. FIXME reconsider this.
+     * mixing activity and condition state. TODO reconsider this.
      */
     private void setEvaluatedAssignmentValidity(EvaluationContext<AH> ctx, AssignmentPathSegmentImpl segment) {
         boolean validityValue = ctx.evalAssignment.isVirtual() ||
-                (segment.isAssignmentValid() && segment.getAssignmentRelativityMode() != null);
+                segment.isAssignmentActive() && segment.getOverallConditionState().isNotAllFalse();
         ctx.evalAssignment.setValid(validityValue);
     }
 
@@ -264,7 +266,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
     @SuppressWarnings("unused") // Can be used from scripts
     public boolean isMemberOf(String targetOid) {
-        return memberOfEngine.isMemberOf(focusOdo, targetOid);
+        // What version of focus should we use?
+        return memberOfEngine.isMemberOf(focusOdoAbsolute.getNewObject(), targetOid);
     }
 
     public boolean isMemberOfInvocationResultChanged(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple) {
@@ -273,7 +276,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
 
     public static final class Builder<AH extends AssignmentHolderType> {
         private ReferenceResolver referenceResolver;
-        private ObjectDeltaObject<AH> focusOdo;
+        private ObjectDeltaObject<AH> focusOdoAbsolute;
+        private ObjectDeltaObject<AH> focusOdoRelative;
         private LensContext<AH> lensContext;
         private String channel;
         private ObjectResolver objectResolver;
@@ -297,7 +301,18 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         }
 
         public Builder<AH> focusOdo(ObjectDeltaObject<AH> val) {
-            focusOdo = val;
+            focusOdoAbsolute = val;
+            focusOdoRelative = val;
+            return this;
+        }
+
+        public Builder<AH> focusOdoAbsolute(ObjectDeltaObject<AH> val) {
+            focusOdoAbsolute = val;
+            return this;
+        }
+
+        public Builder<AH> focusOdoRelative(ObjectDeltaObject<AH> val) {
+            focusOdoRelative = val;
             return this;
         }
 

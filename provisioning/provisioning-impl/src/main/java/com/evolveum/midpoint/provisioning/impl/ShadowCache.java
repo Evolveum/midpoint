@@ -1692,7 +1692,7 @@ public class ShadowCache {
 
         rso.setRefreshResult(retryResult);
 
-        LOGGER.trace("refreshshadowOperaton {}", rso.debugDump());
+        LOGGER.trace("refreshshadowOperaton {}", rso.debugDumpLazily());
         return rso;
     }
 

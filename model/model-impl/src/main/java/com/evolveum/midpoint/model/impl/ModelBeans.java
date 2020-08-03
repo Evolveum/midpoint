@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.model.impl;
 
+import com.evolveum.midpoint.common.ActivationComputer;
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
 import com.evolveum.midpoint.model.impl.lens.ClockworkMedic;
@@ -53,5 +54,5 @@ public class ModelBeans {
     @Autowired public ClockworkMedic medic;
     @Autowired public ProvisioningService provisioningService;
     @Autowired public ProjectionValueMetadataCreator projectionValueMetadataCreator;
-
+    @Autowired public ActivationComputer activationComputer;
 }

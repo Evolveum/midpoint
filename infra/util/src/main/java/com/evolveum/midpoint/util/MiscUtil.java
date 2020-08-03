@@ -487,7 +487,7 @@ public class MiscUtil {
         return out;
     }
 
-    public static String binaryToHex(byte[] bytes) {
+    public static @NotNull String binaryToHex(@NotNull byte[] bytes) {
         StringBuilder sb = new StringBuilder(bytes.length * 2);
         for (byte b : bytes) {
             sb.append(String.format("%02x", b & 0xff));
@@ -503,6 +503,28 @@ public class MiscUtil {
                     + Character.digit(hex.charAt(i + 1), 16));
         }
         return bytes;
+    }
+
+    private static final int HEX_PREVIEW_LEN = 8;
+
+    /**
+     * Prints couple of bytes from provided byte array as hexadecimal and adds length information.
+     * Returns null if null array is provided.
+     */
+    public static @Nullable String binaryToHexPreview(@Nullable byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+
+        int previewLen = Math.min(bytes.length, HEX_PREVIEW_LEN);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < previewLen; i++) {
+            sb.append(String.format("%02x", bytes[i]));
+        }
+        if (bytes.length > HEX_PREVIEW_LEN) {
+            sb.append("...");
+        }
+        return sb.append(" (").append(bytes.length).append(" B)").toString();
     }
 
     public static String hexToUtf8String(String hex) {
@@ -582,6 +604,17 @@ public class MiscUtil {
         }
     }
     // similar to the above ... todo deduplicate
+
+    @NotNull
+    public static <T, E extends Throwable> T extractSingletonRequired(Collection<T> collection,
+            Supplier<E> multiExceptionSupplier, Supplier<E> noneExceptionSupplier) throws E {
+        T singleton = extractSingleton(collection, multiExceptionSupplier);
+        if (singleton != null) {
+            return singleton;
+        } else {
+            throw noneExceptionSupplier.get();
+        }
+    }
 
     public static <T> T getSingleValue(Collection<T> values, T defaultValue, String contextDescription) {
         if (values.size() == 0) {

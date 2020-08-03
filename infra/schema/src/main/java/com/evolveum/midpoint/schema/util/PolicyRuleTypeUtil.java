@@ -164,6 +164,12 @@ public class PolicyRuleTypeUtil {
                 sb.append("X");
             }
         }
+        if (actions.getPrune() != null) {
+            sb.append(" prune");
+            if (enabledActions != null && filterActions(enabledActions, PrunePolicyActionType.class).isEmpty()) {
+                sb.append("X");
+            }
+        }
         if (actions.getCertification() != null) {
             sb.append(" certify");
             if (enabledActions != null && filterActions(enabledActions, CertificationPolicyActionType.class).isEmpty()) {
@@ -176,9 +182,21 @@ public class PolicyRuleTypeUtil {
                 sb.append("X");
             }
         }
+        if (actions.getRecord() != null) {
+            sb.append(" record");
+            if (enabledActions != null && filterActions(enabledActions, RecordPolicyActionType.class).isEmpty()) {
+                sb.append("X");
+            }
+        }
         if (!actions.getScriptExecution().isEmpty()) {
             sb.append(" execute");
             if (enabledActions != null && filterActions(enabledActions, ScriptExecutionPolicyActionType.class).isEmpty()) {
+                sb.append("X");
+            }
+        }
+        if (actions.getSuspendTask() != null) {
+            sb.append(" suspend");
+            if (enabledActions != null && filterActions(enabledActions, SuspendTaskPolicyActionType.class).isEmpty()) {
                 sb.append("X");
             }
         }

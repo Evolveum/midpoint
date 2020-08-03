@@ -13,12 +13,9 @@ import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionStrengthType;
@@ -29,23 +26,38 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT extends AbstractConstructionType, EC extends EvaluatedConstructible<AH>> implements DebugDumpable, Serializable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractConstruction.class);
-
-    private AssignmentPathImpl assignmentPath;
-    private ACT constructionType;
+    protected AssignmentPathImpl assignmentPath;
+    protected final ACT constructionBean;
     private ObjectType source;
     private OriginType originType;
     private String channel;
     private LensContext<AH> lensContext;
-    private ObjectDeltaObject<AH> focusOdo;
+
+    /**
+     * Focus ODO. Should be the absolute one i.e. OLD -> summary delta -> NEW.
+     */
+    private ObjectDeltaObject<AH> focusOdoAbsolute;
+
     private ObjectResolver objectResolver;
     private PrismContext prismContext;
-    private boolean isValid = true;
-    private boolean wasValid = true;
-    private PlusMinusZero relativityMode;
 
-    public AbstractConstruction(ACT constructionType, ObjectType source) {
-        this.constructionType = constructionType;
+    /**
+     * Is the construction valid in the new state, i.e.
+     * - is the whole assignment path active (regarding activation and lifecycle state),
+     * - and are all conditions on the path enabled? (EXCLUDING the focus object itself)
+     */
+    private boolean valid = true;
+
+    /**
+     * Was the construction valid in the focus old state?
+     *
+     * FIXME It is not sure that we set this value correctly. It looks like we simply take wasValid value for evaluated assignment.
+     *  MID-6404
+     */
+    private boolean wasValid = true;
+
+    public AbstractConstruction(ACT constructionBean, ObjectType source) {
+        this.constructionBean = constructionBean;
         this.source = source;
         this.assignmentPath = null;
     }
@@ -82,19 +94,19 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
         this.lensContext = lensContext;
     }
 
-    public ACT getConstructionType() {
-        return constructionType;
+    public ACT getConstructionBean() {
+        return constructionBean;
     }
 
-    public ObjectDeltaObject<AH> getFocusOdo() {
-        return focusOdo;
+    public ObjectDeltaObject<AH> getFocusOdoAbsolute() {
+        return focusOdoAbsolute;
     }
 
-    public void setFocusOdo(ObjectDeltaObject<AH> focusOdo) {
-        if (focusOdo.getDefinition() == null) {
-            throw new IllegalArgumentException("No definition in focus ODO "+focusOdo);
+    public void setFocusOdoAbsolute(ObjectDeltaObject<AH> focusOdoAbsolute) {
+        if (focusOdoAbsolute.getDefinition() == null) {
+            throw new IllegalArgumentException("No definition in focus ODO "+ focusOdoAbsolute);
         }
-        this.focusOdo = focusOdo;
+        this.focusOdoAbsolute = focusOdoAbsolute;
     }
 
     public ObjectResolver getObjectResolver() {
@@ -114,19 +126,19 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
     }
 
     public String getDescription() {
-        return constructionType.getDescription();
+        return constructionBean.getDescription();
     }
 
     public boolean isWeak() {
-        return constructionType.getStrength() == ConstructionStrengthType.WEAK;
+        return constructionBean.getStrength() == ConstructionStrengthType.WEAK;
     }
 
     public boolean isValid() {
-        return isValid;
+        return valid;
     }
 
     public void setValid(boolean isValid) {
-        this.isValid = isValid;
+        this.valid = isValid;
     }
 
     public boolean getWasValid() {
@@ -135,14 +147,6 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
 
     public void setWasValid(boolean wasValid) {
         this.wasValid = wasValid;
-    }
-
-    public PlusMinusZero getRelativityMode() {
-        return relativityMode;
-    }
-
-    public void setRelativityMode(PlusMinusZero relativityMode) {
-        this.relativityMode = relativityMode;
     }
 
     public AssignmentPathImpl getAssignmentPath() {
@@ -161,7 +165,7 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
         int result = 1;
         result = prime * result + ((assignmentPath == null) ? 0 : assignmentPath.hashCode());
         result = prime * result + ((channel == null) ? 0 : channel.hashCode());
-        result = prime * result + ((constructionType == null) ? 0 : constructionType.hashCode());
+        result = prime * result + ((constructionBean == null) ? 0 : constructionBean.hashCode());
         return result;
     }
 
@@ -191,21 +195,21 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
         } else if (!channel.equals(other.channel)) {
             return false;
         }
-        if (constructionType == null) {
-            if (other.constructionType != null) {
+        if (constructionBean == null) {
+            if (other.constructionBean != null) {
                 return false;
             }
-        } else if (!constructionType.equals(other.constructionType)) {
+        } else if (!constructionBean.equals(other.constructionBean)) {
             return false;
         }
-        if (focusOdo == null) {
-            if (other.focusOdo != null) {
+        if (focusOdoAbsolute == null) {
+            if (other.focusOdoAbsolute != null) {
                 return false;
             }
-        } else if (!focusOdo.equals(other.focusOdo)) {
+        } else if (!focusOdoAbsolute.equals(other.focusOdoAbsolute)) {
             return false;
         }
-        if (isValid != other.isValid) {
+        if (valid != other.valid) {
             return false;
         }
         if (lensContext == null) {

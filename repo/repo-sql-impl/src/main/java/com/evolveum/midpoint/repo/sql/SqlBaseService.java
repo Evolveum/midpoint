@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,33 +7,30 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author lazyman
  */
 public class SqlBaseService {
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlBaseService.class);
     // how many times we want to repeat operation after lock acquisition,
     // pessimistic, optimistic exception
     public static final int LOCKING_MAX_RETRIES = 40;
 
-    // timeout will be a random number between 0 and LOCKING_DELAY_INTERVAL_BASE * 2^exp where exp is either real attempt # minus 1, or LOCKING_EXP_THRESHOLD (whatever is lesser)
+    // timeout will be a random number between 0 and LOCKING_DELAY_INTERVAL_BASE * 2^exp
+    // where exp is either real attempt # minus 1, or LOCKING_EXP_THRESHOLD (whatever is lesser)
     public static final long LOCKING_DELAY_INTERVAL_BASE = 50;
-    public static final int LOCKING_EXP_THRESHOLD = 7;       // i.e. up to 6400 msec wait time
+    public static final int LOCKING_EXP_THRESHOLD = 7; // i.e. up to 6400 msec wait time
 
-    @Autowired
-    private PrismContext prismContext;
-    @Autowired
-    private MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired private PrismContext prismContext;
+    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
 
-    private SqlRepositoryFactory repositoryFactory;
+    private final SqlRepositoryFactory repositoryFactory;
 
     public SqlBaseService(SqlRepositoryFactory repositoryFactory) {
         this.repositoryFactory = repositoryFactory;
@@ -62,6 +59,4 @@ public class SqlBaseService {
     public void setMatchingRuleRegistry(MatchingRuleRegistry matchingRuleRegistry) {
         this.matchingRuleRegistry = matchingRuleRegistry;
     }
-
-
 }

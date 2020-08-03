@@ -118,6 +118,7 @@ class DeltaConsolidation<F extends ObjectType>  {
                             .ivwoTriple(typedEmptyTriple)
                             .itemDefinition(itemDelta.getDefinition())
                             .aprioriItemDelta(itemDelta)
+                            .itemDeltaExists(!ItemDelta.isEmpty(itemDelta)) // TODO
                             .itemContainer(currentObject)
                             .valueMatcher(null)
                             .comparator(null)

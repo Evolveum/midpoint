@@ -32,16 +32,16 @@ public class SmartAssignmentElement implements DebugDumpable {
         return origin;
     }
 
+    public boolean isNew() {
+        return origin.isNew();
+    }
+
     public boolean isCurrent() {
         return origin.isCurrent();
     }
 
     public boolean isOld() {
         return origin.isOld();
-    }
-
-    public boolean isChanged() {
-        return origin.isChanged();
     }
 
     @NotNull
@@ -71,8 +71,8 @@ public class SmartAssignmentElement implements DebugDumpable {
         return sb.toString();
     }
 
-    void updateFlags(SmartAssignmentCollection.Mode mode, AddDeleteReplace deltaSet) {
-        origin.updateFlags(mode, deltaSet);
+    void updateOrigin(SmartAssignmentCollection.Mode mode, AddDeleteReplace deltaSet) {
+        origin.update(mode, deltaSet);
     }
 
     // TODO: equals, hashCode

@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
-import static java.util.stream.Collectors.toMap;
+import static java.util.stream.Collectors.groupingBy;
 
 import static com.evolveum.midpoint.repo.sql.pure.SqlQueryContext.MAX_ID_IN_FOR_TO_MANY_FETCH;
 
@@ -16,6 +16,8 @@ import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.sql.SQLQuery;
 
 import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Mapper/fetcher of many detail records for one master record.
@@ -33,6 +35,8 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
  * @param <DR> detail row type (from result)
  */
 public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SqlDetailFetchMapper.class);
 
     private final Function<R, I> rowToId;
     private final Class<DQ> detailQueryType;
@@ -62,33 +66,32 @@ public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
             }
         }
 
-        DQ dq = QueryModelMappingConfig.getByQueryType(detailQueryType).newAlias("_detail");
-        Map<I, R> rowById = data.stream()
-                .collect(toMap(rowToId, row -> row));
+        DQ dq = QueryModelMappingConfig.getByQueryType(detailQueryType).newAlias("det_");
+        // it is possible we don't have distinct rows, we don't want to fail on it here
+        Map<I, List<R>> rowById = data.stream()
+                .collect(groupingBy(rowToId));
         SimpleExpression<I> detailFkPath = detailFkPathFunction.apply(dq);
         SQLQuery<DR> query = querySupplier.get()
                 .select(dq)
                 .from(dq)
                 .where(detailFkPath.in(rowById.keySet()));
-        // TODO logging
-        System.out.println("SQL detail query for list: " + query);
+        LOGGER.debug("SQL detail query for list: {}", query);
         List<DR> details = query.fetch();
         for (DR detail : details) {
-            masterDetailConsumer.accept(
-                    rowById.get(detailToMasterId.apply(detail)),
-                    detail);
+            for (R row : rowById.get(detailToMasterId.apply(detail))) {
+                masterDetailConsumer.accept(row, detail);
+            }
         }
     }
 
     public void execute(Supplier<SQLQuery<?>> querySupplier, R masterRow) throws QueryException {
-        DQ dq = QueryModelMappingConfig.getByQueryType(detailQueryType).newAlias("_detail");
+        DQ dq = QueryModelMappingConfig.getByQueryType(detailQueryType).newAlias("det_");
         SimpleExpression<I> detailFkPath = detailFkPathFunction.apply(dq);
         SQLQuery<DR> query = querySupplier.get()
                 .select(dq)
                 .from(dq)
                 .where(detailFkPath.eq(rowToId.apply(masterRow)));
-        // TODO logging
-        System.out.println("SQL detail query for one entity: " + query);
+        LOGGER.debug("SQL detail query for one entity: {}", query);
         List<DR> details = query.fetch();
         for (DR detail : details) {
             masterDetailConsumer.accept(masterRow, detail);

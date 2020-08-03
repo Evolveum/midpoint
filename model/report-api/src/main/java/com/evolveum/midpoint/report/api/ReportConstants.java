@@ -15,6 +15,6 @@ public class ReportConstants {
 
     public static final ItemName REPORT_PARAMS_PROPERTY_NAME = new ItemName(ReportConstants.NS_EXTENSION, "reportParam");
     public static final ItemName REPORT_OUTPUT_OID_PROPERTY_NAME = new ItemName(ReportConstants.NS_EXTENSION, "reportOutputOid");
-
+    public static final ItemName REPORT_DATA_PROPERTY_NAME = new ItemName(ReportConstants.NS_EXTENSION, "reportDataParam");
 
 }

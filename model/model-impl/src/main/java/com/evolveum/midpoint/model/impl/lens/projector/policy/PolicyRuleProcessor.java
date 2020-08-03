@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
+import com.evolveum.midpoint.model.impl.lens.projector.focus.PruningOperation;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*;
@@ -29,13 +30,10 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.LocalizableMessageBuilder;
-import com.evolveum.midpoint.util.SingleLocalizableMessage;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -115,7 +113,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             AssignmentOrigin origin = evaluatedAssignment.getOrigin();
             boolean inPlus = origin.isBeingAdded();
             boolean inMinus = origin.isBeingDeleted();
-            boolean inZero = origin.isBeingModified();
+            boolean inZero = origin.isBeingKept();
 
             resolveReferences(evaluatedAssignment.getAllTargetsPolicyRules(), getAllGlobalRules(context));
 
@@ -294,12 +292,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     }
 
     private <AH extends AssignmentHolderType> void collectFocusRulesFromAssignments(List<EvaluatedPolicyRuleImpl> rules, LensContext<AH> context) {
-        DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
-        if (evaluatedAssignmentTriple == null) {
-            return;
-        }
         // We intentionally evaluate rules also from negative (deleted) assignments.
-        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
+        for (EvaluatedAssignmentImpl<?> evaluatedAssignment : context.getAllEvaluatedAssignments()) {
             rules.addAll(evaluatedAssignment.getFocusPolicyRules());
         }
     }
@@ -512,63 +506,6 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
         } else {
             throw new IllegalArgumentException("Unknown policy constraint: " + constraint.getName() + "/" + constraint.getValue().getClass());
         }
-    }
-    //endregion
-
-    //region ------------------------------------------------------------------ Pruning
-    public <F extends AssignmentHolderType> boolean processPruning(LensContext<F> context,
-            DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple,
-            OperationResult result) throws SchemaException {
-        Collection<EvaluatedAssignmentImpl<F>> plusSet = evaluatedAssignmentTriple.getPlusSet();
-        boolean needToReevaluateAssignments = false;
-        boolean enforceOverride = false;
-        for (EvaluatedAssignmentImpl<F> plusAssignment: plusSet) {
-            for (EvaluatedPolicyRule targetPolicyRule: plusAssignment.getAllTargetsPolicyRules()) {
-                for (EvaluatedPolicyRuleTrigger trigger: new ArrayList<>(targetPolicyRule.getTriggers())) {
-                    if (!(trigger instanceof EvaluatedExclusionTrigger)) {
-                        continue;
-                    }
-                    EvaluatedExclusionTrigger exclTrigger = (EvaluatedExclusionTrigger) trigger;
-                    if (!targetPolicyRule.containsEnabledAction(PrunePolicyActionType.class)) {
-                        continue;
-                    }
-                    EvaluatedAssignment<FocusType> conflictingAssignment = exclTrigger.getConflictingAssignment();
-                    if (conflictingAssignment == null) {
-                        throw new SystemException("Added assignment "+plusAssignment
-                                +", the exclusion prune rule was triggered but there is no conflicting assignment in the trigger");
-                    }
-                    LOGGER.debug("Pruning assignment {} because it conflicts with added assignment {}", conflictingAssignment, plusAssignment);
-                    if (!conflictingAssignment.isPresentInOldObject()) {
-                        SingleLocalizableMessage message = new LocalizableMessageBuilder()
-                                .key("PolicyViolationException.message.prunedRolesAssigned")
-                                .arg(ObjectTypeUtil.createDisplayInformation(plusAssignment.getTarget(), false))
-                                .arg(ObjectTypeUtil.createDisplayInformation(conflictingAssignment.getTarget(), false))
-                                .build();
-                        targetPolicyRule.addTrigger(
-                                new EvaluatedExclusionTrigger(exclTrigger.getConstraint(),
-                                        message, null, exclTrigger.getConflictingAssignment(),
-                                        exclTrigger.getConflictingTarget(), exclTrigger.getConflictingPath(), true)
-                        );
-                        enforceOverride = true;
-                    } else {
-                        //noinspection unchecked
-                        PrismContainerValue<AssignmentType> assignmentValueToRemove = conflictingAssignment.getAssignmentType()
-                                .asPrismContainerValue().clone();
-                        PrismObjectDefinition<F> focusDef = context.getFocusContext().getObjectDefinition();
-                        ContainerDelta<AssignmentType> assignmentDelta = prismContext.deltaFactory().container()
-                                .createDelta(FocusType.F_ASSIGNMENT, focusDef);
-                        //noinspection unchecked
-                        assignmentDelta.addValuesToDelete(assignmentValueToRemove);
-                        context.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
-                    }
-                    needToReevaluateAssignments = true;
-                }
-            }
-        }
-
-        // If enforceOverride we will signal violation exception later anyway, and it is crucial that we will *NOT* prune
-        // conflicting assignments away, because it would mean that these enforcement triggers would go away with them.
-        return needToReevaluateAssignments && !enforceOverride;
     }
     //endregion
 

@@ -42,7 +42,7 @@ public @interface ProcessorExecution {
     /**
      * Should the methods execution be skipped if the focus is going to be deleted?
      */
-    SkipWhenFocusDeleted skipWhenFocusDeleted() default SkipWhenFocusDeleted.NONE;
+    boolean skipWhenFocusDeleted() default false;
 
     /**
      * Should the execution be skipped if the projection is to be deleted?

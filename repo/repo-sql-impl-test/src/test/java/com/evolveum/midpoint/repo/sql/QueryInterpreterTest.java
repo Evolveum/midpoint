@@ -2341,14 +2341,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         try {
             XMLGregorianCalendar timeXml = XMLGregorianCalendarType.asXMLGregorianCalendar(new Date());
-            ObjectQuery query = prismContext.queryFor(ReportOutputType.class)
-                    .item(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).le(timeXml)
+            ObjectQuery query = prismContext.queryFor(ReportDataType.class)
+                    .item(ReportDataType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP).le(timeXml)
                     .build();
-            String real = getInterpretedQuery(session, ReportOutputType.class, query);
+            String real = getInterpretedQuery(session, ReportDataType.class, query);
             String expected = "select\n" +
                     "  r.oid, r.fullObject\n" +
                     "from\n" +
-                    "  RReportOutput r\n" +
+                    "  RReportData r\n" +
                     "where\n" +
                     "  r.createTimestamp <= :createTimestamp";
 

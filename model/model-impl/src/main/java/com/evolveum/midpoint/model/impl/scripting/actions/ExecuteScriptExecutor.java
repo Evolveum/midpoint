@@ -114,7 +114,7 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
         try {
             TypedValue<PipelineData> inputTypedValue = new TypedValue<>(input, PipelineData.class);
             Object outObject = executeScript(parameters.scriptExpression, inputTypedValue, context.getInitialVariables(), context, result);
-            if (outObject != null) {
+            if (outObject != null ) {
                 addToData(outObject, PipelineData.newOperationResult(), output);
             } else {
                 // no definition means we don't plan to provide any output - so let's just copy the input item to the output
