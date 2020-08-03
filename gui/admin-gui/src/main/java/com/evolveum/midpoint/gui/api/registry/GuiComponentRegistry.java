@@ -30,7 +30,7 @@ public interface GuiComponentRegistry extends Serializable {
 
     Class<?> getPanelClass(QName typeName);
 
-    <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> ItemWrapperFactory<IW, VW, PV> findWrapperFactory(ItemDefinition<?> def);
+    <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue, C extends Containerable> ItemWrapperFactory<IW, VW, PV> findWrapperFactory(ItemDefinition<?> def, PrismContainerValue<C> parent);
 
     <C extends Containerable> PrismContainerWrapperFactory<C> findContainerWrapperFactory(PrismContainerDefinition<C> def);
 

@@ -47,6 +47,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     private boolean readOnly;
     private boolean selected;
     private boolean heterogenous;
+    private boolean metadata;
 
     private List<VirtualContainerItemSpecificationType> virtualItems;
     private List<ItemWrapper<?, ?>> items = new ArrayList<>();
@@ -464,6 +465,16 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     @Override
     public boolean isVirtual() {
         return virtualItems != null;
+    }
+
+    @Override
+    public boolean isMetadata() {
+        return this.metadata;
+    }
+
+    @Override
+    public void setMetadata(boolean metadata) {
+        this.metadata = metadata;
     }
 
     @Override

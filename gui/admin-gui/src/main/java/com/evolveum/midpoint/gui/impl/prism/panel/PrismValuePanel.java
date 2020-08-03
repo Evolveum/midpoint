@@ -8,24 +8,33 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 
+import com.evolveum.midpoint.prism.ValueMetadata;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.form.Form;
 
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -35,10 +44,17 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.PropertyModel;
+
+import javax.xml.namespace.QName;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T>> extends BasePanel<VW> {
 
@@ -55,6 +71,8 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private static final String ID_INPUT = "input";
     private static final String ID_SHOW_METADATA = "showMetadata";
     private static final String ID_METADATA = "metadata";
+    private static final String ID_METADATA_LIST = "metadataList";
+    private static final String ID_METADATA_QNAME = "metadataQName";
 
     private ItemPanelSettings settings;
 
@@ -154,7 +172,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         panelCtx.setExpressionValidator(createExpressionValidator());
         panelCtx.setFeedback(feedback);
 
-        Panel component;
+        Component component;
         try {
             component = factory.createPanel(panelCtx);
             valueContainer.add(component);
@@ -172,9 +190,58 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     protected void createMetadataPanel(Form form) {
-        MetadataContainerValuePanel metadataPanel = new MetadataContainerValuePanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"), new ItemPanelSettingsBuilder().editabilityHandler(wrapper -> false).build());
+        ListView<ItemPath> metadataList = new ListView<ItemPath>(ID_METADATA_LIST, createMetadataListModel()) {
+
+            @Override
+            protected void populateItem(ListItem<ItemPath> listItem) {
+                AjaxButton showMetadataDetails  = new AjaxButton(ID_METADATA_QNAME,
+                        createStringResource(listItem.getModelObject().equivalent(ItemPath.EMPTY_PATH) ? "valueMetadata" : listItem.getModelObject().lastName().getLocalPart())) {
+                    @Override
+                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                        for (ItemWrapper iw : PrismValuePanel.this.getModelObject().getValueMetadata().getItems()) {
+                            if (ItemPath.EMPTY_PATH.equivalent(listItem.getModelObject())) {
+                                if (!(iw instanceof PrismContainerWrapper)) {
+                                    iw.setShowMetadataDetails(true);
+                                } else {
+                                    iw.setShowMetadataDetails(false);
+                                }
+                            } else {
+                                if (iw.getPath().equivalent(listItem.getModelObject())) {
+                                    iw.setShowMetadataDetails(true);
+                                } else {
+                                    iw.setShowMetadataDetails(false);
+                                }
+                            }
+                        }
+                        ajaxRequestTarget.add(PrismValuePanel.this);
+                    }
+                };
+                listItem.add(showMetadataDetails);
+            }
+        };
+        form.add(metadataList);
+        metadataList.add(new VisibleBehaviour(() -> getModelObject().getValueMetadata() != null && getModelObject().isShowMetadata()));
+        ValueMetadataPanel metadataPanel = new ValueMetadataPanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
+                new ItemPanelSettingsBuilder()
+                        .editabilityHandler(wrapper -> false)
+                        .headerVisibility(false)
+                        .visibilityHandler(w -> w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN)
+                        .build());
         metadataPanel.add(new VisibleBehaviour(() -> getModelObject().getValueMetadata() != null && getModelObject().isShowMetadata()));
         form.add(metadataPanel);
+    }
+
+    private ReadOnlyModel<List<ItemPath>> createMetadataListModel() {
+        return new ReadOnlyModel<List<ItemPath>>(() -> {
+            ValueMetadataWrapperImpl metadataWrapper = getModelObject().getValueMetadata();
+            if (metadataWrapper == null) {
+                return Collections.EMPTY_LIST;
+            }
+            List<ItemPath> metadataQNames = metadataWrapper.getItems().stream().map(m -> m.getPath()).collect(Collectors.toList());
+            metadataQNames.add(ItemPath.EMPTY_PATH);
+
+            return metadataQNames;
+        });
     }
 
     private AjaxEventBehavior createEventBehavior() {

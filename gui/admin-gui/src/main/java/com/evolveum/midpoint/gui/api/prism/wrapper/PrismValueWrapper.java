@@ -36,7 +36,7 @@ public interface PrismValueWrapper<T> extends Serializable, DebugDumpable {
 
     boolean isVisible();
 
-    PrismContainerValueWrapper getValueMetadata();
+    ValueMetadataWrapperImpl getValueMetadata();
     void setValueMetadata(ValueMetadataWrapperImpl valueMetadata);
 
     boolean isShowMetadata();

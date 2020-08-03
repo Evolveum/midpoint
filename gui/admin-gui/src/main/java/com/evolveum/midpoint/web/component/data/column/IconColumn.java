@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -43,7 +44,7 @@ public abstract class IconColumn<T> extends AbstractColumn<T, String> {//impleme
 
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {
-        cellItem.add(new ImagePanel(componentId, getIconDisplayType(rowModel)));
+        cellItem.add(new ImagePanel(componentId, new ReadOnlyModel<>(() -> getIconDisplayType(rowModel))));
     }
 
     protected abstract DisplayType getIconDisplayType(final IModel<T> rowModel);

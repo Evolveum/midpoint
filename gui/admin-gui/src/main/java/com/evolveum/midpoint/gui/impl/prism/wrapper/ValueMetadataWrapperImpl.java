@@ -109,7 +109,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
     }
 
     @Override
-    public PrismContainerValueWrapper getValueMetadata() {
+    public ValueMetadataWrapperImpl getValueMetadata() {
         return null;
     }
 
@@ -231,6 +231,16 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
     @Override
     public boolean isVirtual() {
         return false;
+    }
+
+    @Override
+    public boolean isMetadata() {
+        return metadataValueWrapper.isMetadata();
+    }
+
+    @Override
+    public void setMetadata(boolean metadata) {
+        metadataValueWrapper.setMetadata(metadata);
     }
 
     @Override

@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.wicket.AttributeModifier;
@@ -36,7 +37,7 @@ import org.apache.wicket.model.PropertyModel;
  * @author katka
  *
  */
-public class MetadataContainerPanel<C extends Containerable> extends ItemPanel<PrismContainerValueWrapper<C>, PrismContainerWrapper<C>>{
+public class MetadataContainerPanel<C extends Containerable> extends PrismContainerPanel<C> {
 
     private static final long serialVersionUID = 1L;
 
@@ -66,7 +67,13 @@ public class MetadataContainerPanel<C extends Containerable> extends ItemPanel<P
 
     @Override
     protected Component createHeaderPanel() {
-         return new Label(ID_HEADER, new PropertyModel<>(getModel(), "displayName"));
+         return new AjaxButton(ID_HEADER, new PropertyModel<>(getModel(), "displayName")) {
+
+             @Override
+             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+
+             }
+         };
     }
 
     @Override
@@ -76,46 +83,55 @@ public class MetadataContainerPanel<C extends Containerable> extends ItemPanel<P
 
     @Override
     protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
-
-        WebMarkupContainer valuePanel = new WebMarkupContainer(ID_PANEL);
-        item.add(valuePanel);
-        ListView<ItemWrapper> nonContainers = new ListView<ItemWrapper>(ID_NON_CONTAINERS, new PropertyModel<>(item.getModel(), "nonContainers")) {
-
-            @Override
-            protected void populateItem(ListItem<ItemWrapper> listItem) {
-                listItem.add(new Label(ID_LABEL, new PropertyModel<>(listItem.getModel(), "displayName")));
-
-                ListView<PrismValueWrapper> values = new ListView<PrismValueWrapper>(ID_VALUES, new PropertyModel<>(listItem.getModel(), "values")) {
-
-                    @Override
-                    protected void populateItem(ListItem<PrismValueWrapper> listItem) {
-                        Label value = new Label(ID_VALUE, new ReadOnlyModel<>(() -> {
-
-                            return listItem.getModelObject().toShortString();
-                        }));
-                        listItem.add(value);
-                    }
-                };
-
-                values.add(new VisibleBehaviour(() -> listItem.getModelObject() != null && !listItem.getModelObject().isEmpty()));
-                listItem.add(values);
-            }
-        };
-        valuePanel.add(nonContainers);
-
-        ListView<PrismContainerWrapper<?>> containers = new ListView<PrismContainerWrapper<?>>(ID_CONTAINERS, new PropertyModel<>(item.getModel(), "containers")) {
-
-            @Override
-            protected void populateItem(ListItem<PrismContainerWrapper<?>> listItem) {
-                ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
-                listItem.add(new MetadataContainerPanel(ID_CONTAINER, listItem.getModel(), settings));
-            }
-        };
-        valuePanel.add(containers);
-
-        return valuePanel;
-
+        ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
+        ValueMetadataPanel<C, PrismContainerValueWrapper<C>> panel = new ValueMetadataPanel<>("value", item.getModel(), settings);
+        item.add(panel);
+        return panel;
     }
+
+
+    //    @Override
+//    protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
+//
+//        WebMarkupContainer valuePanel = new WebMarkupContainer(ID_PANEL);
+//        item.add(valuePanel);
+//        ListView<ItemWrapper> nonContainers = new ListView<ItemWrapper>(ID_NON_CONTAINERS, new PropertyModel<>(item.getModel(), "nonContainers")) {
+//
+//            @Override
+//            protected void populateItem(ListItem<ItemWrapper> listItem) {
+//                listItem.add(new Label(ID_LABEL, new PropertyModel<>(listItem.getModel(), "displayName")));
+//
+//                ListView<PrismValueWrapper> values = new ListView<PrismValueWrapper>(ID_VALUES, new PropertyModel<>(listItem.getModel(), "values")) {
+//
+//                    @Override
+//                    protected void populateItem(ListItem<PrismValueWrapper> listItem) {
+//                        Label value = new Label(ID_VALUE, new ReadOnlyModel<>(() -> {
+//
+//                            return listItem.getModelObject().toShortString();
+//                        }));
+//                        listItem.add(value);
+//                    }
+//                };
+//
+//                values.add(new VisibleBehaviour(() -> listItem.getModelObject() != null && !listItem.getModelObject().isEmpty()));
+//                listItem.add(values);
+//            }
+//        };
+//        valuePanel.add(nonContainers);
+//
+//        ListView<PrismContainerWrapper<?>> containers = new ListView<PrismContainerWrapper<?>>(ID_CONTAINERS, new PropertyModel<>(item.getModel(), "containers")) {
+//
+//            @Override
+//            protected void populateItem(ListItem<PrismContainerWrapper<?>> listItem) {
+//                ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
+//                listItem.add(new MetadataContainerPanel(ID_CONTAINER, listItem.getModel(), settings));
+//            }
+//        };
+//        valuePanel.add(containers);
+//
+//        return valuePanel;
+//
+//    }
 
     @Override
     protected <PV extends PrismValue> PV createNewValue(PrismContainerWrapper<C> itemWrapper) {

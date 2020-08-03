@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.List;
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.gui.impl.prism.panel.MetadataContainerPanel;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
@@ -98,12 +100,12 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
     }
 
     protected ItemWrapper<?, ?> createChildWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper, WrapperContext context) throws SchemaException {
-        ItemWrapperFactory<?, ?, ?> factory = getChildWrapperFactory(def);
+        ItemWrapperFactory<?, ?, ?> factory = getChildWrapperFactory(def, containerValueWrapper.getNewValue());
         return factory.createWrapper(containerValueWrapper, def, context);
     }
 
-    private ItemWrapperFactory<?,?,?> getChildWrapperFactory(ItemDefinition def) throws SchemaException {
-        ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def);
+    private ItemWrapperFactory<?,?,?> getChildWrapperFactory(ItemDefinition def, PrismContainerValue<?> parentValue) throws SchemaException {
+        ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def, parentValue);
         if (factory == null) {
             LOGGER.error("Cannot find factory for {}", def);
             throw new SchemaException("Cannot find factory for " + def);
@@ -129,7 +131,11 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
     @Override
     public void registerWrapperPanel(PrismContainerWrapper<C> wrapper) {
-        getRegistry().registerWrapperPanel(wrapper.getTypeName(), PrismContainerPanel.class);
+        if (wrapper.isMetadata()) {
+            getRegistry().registerWrapperPanel(wrapper.getTypeName(), MetadataContainerPanel.class);
+        } else {
+            getRegistry().registerWrapperPanel(wrapper.getTypeName(), PrismContainerPanel.class);
+        }
     }
 
     @Override

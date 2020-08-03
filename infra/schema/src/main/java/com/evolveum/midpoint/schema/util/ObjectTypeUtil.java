@@ -558,19 +558,20 @@ public class ObjectTypeUtil {
         }
     }
 
-    public static PolyStringType getDisplayName(ObjectReferenceType ref) {
+    public static PolyStringType getDisplayName(Referencable ref) {
         if (ref == null) {
             return null;
         }
 
-        if (ref.getObject() == null) {
+        PrismObject object = ref.asReferenceValue().getObject();
+        if (object == null) {
             return getName(ref);
         }
 
-        return getDisplayName(ref.asReferenceValue().getObject());
+        return getDisplayName(object);
     }
 
-    public static PolyStringType getName(ObjectReferenceType ref) {
+    public static PolyStringType getName(Referencable ref) {
         if (ref == null) {
             return null;
         } else if (ref.asReferenceValue().getObject() != null && ref.asReferenceValue().getObject().getName() != null) {

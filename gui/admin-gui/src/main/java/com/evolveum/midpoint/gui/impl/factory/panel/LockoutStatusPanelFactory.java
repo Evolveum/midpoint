@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -41,7 +40,7 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPrope
     }
 
     @Override
-    public Panel createPanel(PrismPropertyPanelContext<LockoutStatusType> panelCtx) {
+    public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<LockoutStatusType> panelCtx) {
         LockoutStatusPanel panel = new LockoutStatusPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
         return panel;
     }

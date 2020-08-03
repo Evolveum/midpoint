@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -20,32 +22,39 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
  */
-public class ImagePanel extends Panel {
+public class ImagePanel extends BasePanel<DisplayType> {
 
     //image can be defined either with css class or with image file source; therefore we need to use 2 different tags for each case
     private static final String ID_IMAGE = "image";
     private static final String ID_IMAGE_SRC = "imageSrc";
 
-    private DisplayType iconDisplayData;
+//    private DisplayType iconDisplayData;
 
     public ImagePanel(String id, IModel<String> iconClassModel, IModel<String> titleModel) {
         super(id);
-        iconDisplayData = new DisplayType();
+        DisplayType iconDisplayData = new DisplayType();
         IconType icon = new IconType();
         icon.setCssClass(iconClassModel != null ? iconClassModel.getObject() : null);
         iconDisplayData.setIcon(icon);
 
         PolyStringType title = new PolyStringType(titleModel != null ? titleModel.getObject() : null);
         iconDisplayData.setTooltip(title);
-    }
 
-    public ImagePanel(String id, DisplayType iconDisplayData){
-        super(id);
-        this.iconDisplayData = iconDisplayData == null ? new DisplayType() : iconDisplayData;
+        getModel().setObject(iconDisplayData);
+    }
+//
+//    public ImagePanel(String id, DisplayType iconDisplayData){
+//        super(id);
+//        this.iconDisplayData = iconDisplayData == null ? new DisplayType() : iconDisplayData;
+//    }
+
+    public ImagePanel(String id, IModel<DisplayType> model) {
+        super(id, model);
     }
 
     @Override
@@ -56,21 +65,37 @@ public class ImagePanel extends Panel {
 
     private void initLayout(){
         Label image = new Label(ID_IMAGE);
-        image.add(AttributeModifier.replace("class", iconDisplayData.getIcon() != null ? iconDisplayData.getIcon().getCssClass() : ""));
-        if (iconDisplayData.getTooltip() != null && StringUtils.isNotEmpty(iconDisplayData.getTooltip().getOrig())) {
-            image.add(AttributeModifier.replace("title", iconDisplayData.getTooltip().getOrig()));
-        }
-        if (iconDisplayData.getIcon() != null && StringUtils.isNotEmpty(iconDisplayData.getIcon().getColor())){
-            image.add(AttributeAppender.append("style", "color: " + iconDisplayData.getIcon().getColor() + ";"));
-        }
+        image.add(AttributeModifier.replace("class", new PropertyModel<>(getModel(), "icon.cssClass")));
+        image.add(AttributeModifier.replace("title", new PropertyModel<>(getModel(), "tooltip.orig")));
+        image.add(AttributeAppender.append("style", new ReadOnlyModel<>(() -> StringUtils.isNotBlank(getColor()) ? "color: " + getColor() + ";" : "")));
+//        image.add(AttributeModifier.replace("class", iconDisplayData.getIcon() != null ? iconDisplayData.getIcon().getCssClass() : ""));
+//        if (iconDisplayData.getTooltip() != null && StringUtils.isNotEmpty(iconDisplayData.getTooltip().getOrig())) {
+//            image.add(AttributeModifier.replace("title", iconDisplayData.getTooltip().getOrig()));
+//        }
+//        if (iconDisplayData.getIcon() != null && StringUtils.isNotEmpty(iconDisplayData.getIcon().getColor())){
+//            image.add(AttributeAppender.append("style", "color: " + iconDisplayData.getIcon().getColor() + ";"));
+//        }
         image.setOutputMarkupId(true);
-        image.add(new VisibleBehaviour(() -> iconDisplayData.getIcon() != null && StringUtils.isNotEmpty(iconDisplayData.getIcon().getCssClass())));
+        image.add(new VisibleBehaviour(() -> getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getCssClass())));
         add(image);
 
         ExternalImage customLogoImgSrc = new ExternalImage(ID_IMAGE_SRC,
-                WebComponentUtil.getIconUrlModel(iconDisplayData.getIcon()));
+                WebComponentUtil.getIconUrlModel(getModelObject().getIcon()));
         customLogoImgSrc.setOutputMarkupId(true);
-        customLogoImgSrc.add(new VisibleBehaviour(() -> iconDisplayData.getIcon() != null && StringUtils.isNotEmpty(iconDisplayData.getIcon().getImageUrl())));
+        customLogoImgSrc.add(new VisibleBehaviour(() -> getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getImageUrl())));
         add(customLogoImgSrc);
+    }
+
+    private String getColor() {
+        if (getModelObject() == null) {
+            return null;
+        }
+
+        IconType icon = getModelObject().getIcon();
+        if (icon == null) {
+            return null;
+        }
+
+        return icon.getColor();
     }
 }

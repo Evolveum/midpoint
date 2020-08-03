@@ -33,8 +33,10 @@ public class ValueMetadataWrapperFactoryImpl extends PrismContainerWrapperFactor
     @Override
     public PrismContainerValueWrapper<Containerable> createValueWrapper(PrismContainerWrapper<Containerable> parent, PrismContainerValue<Containerable> value, ValueStatus status, WrapperContext context) throws SchemaException {
         context.setCreateOperational(true);
+        context.setMetadata(true);
         PrismContainerValueWrapper<Containerable> v = super.createValueWrapper(parent, value, status, context);
         context.setCreateOperational(false);
+        context.setMetadata(false);
         return v;
     }
 

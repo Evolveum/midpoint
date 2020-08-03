@@ -8,8 +8,6 @@
 package com.evolveum.midpoint.gui.api.factory;
 
 import org.apache.wicket.Component;
-import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
-import org.apache.wicket.markup.html.panel.Panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
@@ -19,7 +17,7 @@ public interface GuiComponentFactory<T extends ItemPanelContext>{
 
     <IW extends ItemWrapper> boolean match(IW wrapper);
 
-    Panel createPanel(T panelCtx);
+    Component createPanel(T panelCtx);
 
     Integer getOrder();
 

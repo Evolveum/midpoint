@@ -1149,7 +1149,7 @@ public final class WebComponentUtil {
                                                                  PageBase pageBase, String operation) {
         return getEffectiveName(ref, propertyName, pageBase, operation, true);
     }
-    public static <O extends ObjectType> String getEffectiveName(ObjectReferenceType ref, QName propertyName,
+    public static <O extends ObjectType> String getEffectiveName(Referencable ref, QName propertyName,
                                                                  PageBase pageBase, String operation, boolean translate) {
         PrismObject<O> object = WebModelServiceUtils.loadObject(ref, pageBase,
                 pageBase.createSimpleTask(operation), new OperationResult(operation));
@@ -1166,7 +1166,7 @@ public final class WebComponentUtil {
         return getName(ref, true);
     }
 
-    public static String getName(ObjectReferenceType ref, boolean translate) {
+    public static String getName(Referencable ref, boolean translate) {
         if (ref == null) {
             return null;
         }
@@ -1381,11 +1381,11 @@ public final class WebComponentUtil {
         return StringUtils.isNotEmpty(displayName) ? displayName : getName(object, translate, localizationService);
     }
 
-    public static String getDisplayNameOrName(ObjectReferenceType ref) {
+    public static String getDisplayNameOrName(Referencable ref) {
         return getDisplayNameOrName(ref, true);
     }
 
-    public static String getDisplayNameOrName(ObjectReferenceType ref, boolean translate) {
+    public static String getDisplayNameOrName(Referencable ref, boolean translate) {
         if (ref == null) {
             return null;
         }
@@ -1402,7 +1402,7 @@ public final class WebComponentUtil {
         return getDisplayName(ref, true);
     }
 
-    public static String getDisplayName(ObjectReferenceType ref, boolean translate) {
+    public static String getDisplayName(Referencable ref, boolean translate) {
         if (translate){
             return getTranslatedPolyString(ObjectTypeUtil.getDisplayName(ref));
         } else {
@@ -2280,7 +2280,14 @@ public final class WebComponentUtil {
         return ItemPath.create(newPath);
     }
 
-    public static void dispatchToObjectDetailsPage(ObjectReferenceType objectRef, Component component, boolean failIfUnsupported) {
+    public static void dispatchToObjectDetailsPage(PrismReferenceValue objectRef, Component component, boolean failIfUnsupported) {
+        if (objectRef == null) {
+            return; //TODO is this correct?
+        }
+        dispatchToObjectDetailsPage(objectRef.asReferencable(), component, failIfUnsupported);
+    }
+
+    public static void dispatchToObjectDetailsPage(Referencable objectRef, Component component, boolean failIfUnsupported) {
         if (objectRef == null) {
             return; // should not occur
         }
@@ -3375,6 +3382,14 @@ public final class WebComponentUtil {
             return "";
         }
         return displayType.getTooltip().getOrig();
+    }
+
+    public static <O extends ObjectType> DisplayType getDisplayTypeForObject(PrismObject<O> obj, OperationResult result, PageBase pageBase) {
+        if (obj == null) {
+            return null;
+        }
+
+        return getDisplayTypeForObject(obj.asObjectable(), result, pageBase);
     }
 
     public static <O extends ObjectType> DisplayType getDisplayTypeForObject(O obj, OperationResult result, PageBase pageBase){

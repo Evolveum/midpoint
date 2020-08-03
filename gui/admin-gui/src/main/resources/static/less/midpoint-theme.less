@@ -925,8 +925,19 @@ body .treeview-menu > li > span:hover {
     }
   }
 
+}
+
+.metadata-properties {
+  .metadata-property {
+    padding-left: 20px;
+
+    &.stripe {
+      background-color: @table-stripe-bg-color;
+    }
+  }
 
 }
+
 .prism-header {
 	margin-bottom: 15px;
 	display: block;
@@ -1650,4 +1661,16 @@ display: inline-block;
   background-color: #f4f4f4;
   vertical-align: middle;
   font-size: 12px;
+}
+
+.panel-default {
+    .panel-default {
+        border-color: #ffffff;
+    }
+}
+
+.metadata-nav > li > a {
+    border-radius: 10px;
+    padding: 5px 10px;
+    float: left;
 }
