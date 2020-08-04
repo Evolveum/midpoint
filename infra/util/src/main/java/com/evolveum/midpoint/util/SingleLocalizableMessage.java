@@ -17,11 +17,11 @@ import java.util.Objects;
 public class SingleLocalizableMessage implements LocalizableMessage {
     private static final long serialVersionUID = 1L;
 
-    final private String key;
-    final private Object[] args;
+    private final String key;
+    private final Object[] args;
     // at most one of the following can be present
-    final private LocalizableMessage fallbackLocalizableMessage;
-    final private String fallbackMessage;
+    private final LocalizableMessage fallbackLocalizableMessage;
+    private final String fallbackMessage;
 
     public SingleLocalizableMessage(String key, Object[] args, LocalizableMessage fallbackLocalizableMessage) {
         super();

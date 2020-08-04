@@ -7,33 +7,31 @@
 
 package com.evolveum.midpoint.notifications.impl.events;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.IN_REVIEW_STAGE;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.REVIEW_STAGE_DONE;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.notifications.api.events.AccessCertificationEvent;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.EventStatusType;
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignStateType.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public abstract class AccessCertificationEventImpl extends BaseEventImpl implements AccessCertificationEvent {
 
-    @NotNull final protected AccessCertificationCampaignType campaign;
-    @NotNull final protected OperationResultStatus status;
-    @NotNull final private EventOperationType operationType;
+    @NotNull protected final AccessCertificationCampaignType campaign;
+    @NotNull protected final OperationResultStatus status;
+    @NotNull private final EventOperationType operationType;
 
     AccessCertificationEventImpl(LightweightIdentifierGenerator lightweightIdentifierGenerator,
             @NotNull AccessCertificationCampaignType campaign, @NotNull EventOperationType opType) {
         super(lightweightIdentifierGenerator);
         this.campaign = campaign;
         this.operationType = opType;
-        this.status = OperationResultStatus.SUCCESS;            // TODO fix this temporary implementation
+        this.status = OperationResultStatus.SUCCESS; // TODO fix this temporary implementation
     }
 
     @Override
@@ -44,7 +42,7 @@ public abstract class AccessCertificationEventImpl extends BaseEventImpl impleme
 
     @Override
     public boolean isRelatedToItem(ItemPath itemPath) {
-        return false;           // not supported for this kind of events
+        return false; // not supported for this kind of events
     }
 
     @Override

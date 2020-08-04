@@ -7,18 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.dataModel.model;
 
+import java.util.List;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.List;
 
 /**
  * @author mederly
  */
 public class Relation {
 
-    @NotNull final private List<DataItem> sources;
-    @Nullable final private DataItem target;
+    @NotNull private final List<DataItem> sources;
+    @Nullable private final DataItem target;
 
     public Relation(@NotNull List<DataItem> sources, @Nullable DataItem target) {
         this.sources = sources;

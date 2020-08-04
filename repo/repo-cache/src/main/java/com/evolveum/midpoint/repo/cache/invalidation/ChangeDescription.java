@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.repo.cache.invalidation;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -23,14 +26,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCampaignType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
- *  Describes a change that was detected on a repository object:
- *  - type
- *  - OID
- *  - additional information related object ADD/MODIFY/DELETE operation
+ * Describes a change that was detected on a repository object:
+ * - type
+ * - OID
+ * - additional information related object ADD/MODIFY/DELETE operation
  */
 public abstract class ChangeDescription {
 
@@ -39,12 +40,12 @@ public abstract class ChangeDescription {
     /**
      * Type of the changed object.
      */
-    final protected Class<? extends ObjectType> type;
+    protected final Class<? extends ObjectType> type;
 
     /**
      * OID of the changed object.
      */
-    final protected String oid;
+    protected final String oid;
 
     ChangeDescription(Class<? extends ObjectType> type, String oid) {
         this.type = type;
@@ -69,7 +70,8 @@ public abstract class ChangeDescription {
         }
 
         @Override
-        public String toString() { return "Add{" + addInfo + '}';
+        public String toString() {
+            return "Add{" + addInfo + '}';
         }
     }
 
@@ -153,7 +155,6 @@ public abstract class ChangeDescription {
         }
     }
 
-
     @NotNull
     public static ChangeDescription getFrom(Class<? extends ObjectType> type, String oid, CacheInvalidationContext context, boolean safeInvalidation) {
         Object additionalInfo;
@@ -232,7 +233,7 @@ public abstract class ChangeDescription {
             return true;
         } catch (Throwable t) {
             LOGGER.warn("Couldn't match object being changed to cached query -- continuing as if there might be an overlap:\n"
-                            + "change description = {}\nfilter = {}", this, filter, t);
+                    + "change description = {}\nfilter = {}", this, filter, t);
             return true;
         }
     }

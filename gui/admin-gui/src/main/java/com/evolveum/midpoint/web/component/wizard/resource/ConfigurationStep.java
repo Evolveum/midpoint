@@ -7,13 +7,10 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -21,13 +18,20 @@ import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -42,6 +46,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
@@ -59,7 +64,6 @@ public class ConfigurationStep extends WizardStep {
     private static final Trace LOGGER = TraceManager.getTrace(ConfigurationStep.class);
 
     private static final String DOT_CLASS = ConfigurationStep.class.getName() + ".";
-    private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
     private static final String OPERATION_SAVE = DOT_CLASS + "saveResource";
     private static final String OPERATION_CREATE_CONFIGURATION_WRAPPERS = "createConfigurationWrappers";
 
@@ -67,10 +71,9 @@ public class ConfigurationStep extends WizardStep {
     private static final String ID_TEST_CONNECTION = "testConnection";
     private static final String ID_MAIN = "main";
 
-    final private NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModelNoFetch;
-//    final private NonEmptyLoadableModel<List<PrismContainerWrapper<?>>> configurationPropertiesModel;
-    final private PageResourceWizard parentPage;
-    final private LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> configurationModel;
+    private final NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModelNoFetch;
+    private final PageResourceWizard parentPage;
+    private final LoadableModel<PrismContainerWrapper<ConnectorConfigurationType>> configurationModel;
 
     public ConfigurationStep(NonEmptyLoadableModel<PrismObject<ResourceType>> modelNoFetch, final PageResourceWizard parentPage) {
         super(parentPage);
@@ -101,9 +104,7 @@ public class ConfigurationStep extends WizardStep {
         PrismObject<ResourceType> resource = resourceModelNoFetch.getObject();
         PrismContainer<ConnectorConfigurationType> configuration = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 
-        List<PrismContainerWrapper<?>> containerWrappers = new ArrayList<>();
-
-        if(parentPage.isNewResource()) {
+        if (parentPage.isNewResource()) {
             return null;
         }
         ItemStatus configurationStatus = ItemStatus.NOT_CHANGED;
@@ -131,13 +132,12 @@ public class ConfigurationStep extends WizardStep {
         WrapperContext ctx = new WrapperContext(task, getResult());
         ctx.setReadOnly(parentPage.isReadOnly());
         ctx.setShowEmpty(ItemStatus.ADDED == configurationStatus);
-        PrismContainerWrapper<ConnectorConfigurationType> configurationWrapper = getPageBase().createItemWrapper(configuration, configurationStatus, ctx);
 
-        return configurationWrapper;
+        return getPageBase().createItemWrapper(configuration, configurationStatus, ctx);
     }
 
     private void initLayout() {
-        com.evolveum.midpoint.web.component.form.Form form = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN, true);
+        Form form = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN, true);
         form.setOutputMarkupId(true);
         add(form);
 
@@ -201,7 +201,7 @@ public class ConfigurationStep extends WizardStep {
         tabs.clear();
 
         tabs.addAll(createConfigurationTabs());
-        if (tabs.size() == 0){
+        if (tabs.size() == 0) {
             return;
         }
         int i = tabbedPanel.getSelectedTab();
@@ -211,9 +211,8 @@ public class ConfigurationStep extends WizardStep {
         tabbedPanel.setSelectedTab(i);
     }
 
-    @SuppressWarnings("unchecked")
-    private com.evolveum.midpoint.web.component.form.Form getForm() {
-        return (com.evolveum.midpoint.web.component.form.Form) get(ID_MAIN);
+    private Form getForm() {
+        return (Form) get(ID_MAIN);
     }
 
     @SuppressWarnings("unchecked")

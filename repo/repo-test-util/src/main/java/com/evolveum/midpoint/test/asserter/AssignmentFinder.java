@@ -73,7 +73,7 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
         if (found == null) {
             fail("Found no assignment that matches search criteria");
         }
-        return assignmentsAsserter.forAssignment(found, foundTarget);
+        return assignmentsAsserter.forAssignment(found);
     }
 
     public AssignmentsAsserter<F,FA,RA> assertNone() throws ObjectNotFoundException, SchemaException {
