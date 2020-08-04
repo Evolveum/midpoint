@@ -45,6 +45,31 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
     }
 
     @Override
+    protected String getLdapBindDn() {
+        return null;
+    }
+
+    @Override
+    protected String getLdapSubServerHost() {
+        return null;
+    }
+
+    @Override
+    protected String getLdapSubSuffix() {
+        return null;
+    }
+
+    @Override
+    protected String getLdapSubBindDn() {
+        return null;
+    }
+
+    @Override
+    protected String getAccountJackSid() {
+        return null;
+    }
+
+    @Override
     protected File getReconciliationTaskFile() {
         return new File(getBaseDir(), "task-reconcile-chimera-users.xml");
     }
@@ -52,6 +77,11 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
     @Override
     protected String getReconciliationTaskOid() {
         return "6e2689dc-88fa-11e9-a382-0baf927677fd";
+    }
+
+    @Override
+    protected int getNumberOfAllAccounts() {
+        return 0;
     }
 
     @Override

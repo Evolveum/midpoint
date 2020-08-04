@@ -18,28 +18,53 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * Old "chimera/hydra" servers in Lozorno. DEPRECATED.
+ * AD multi-domain test for AD 2102R2 hosted in Evolveum private cloud.
  *
  * @author semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
+public class TestAdLdapAd2012 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected String getResourceOid() {
-        return "eced6d24-73e3-11e5-8457-93eff15a6b85";
+        return "2f12ae18-d635-11ea-bafe-a76bd61868b5";
     }
 
     @Override
     protected File getResourceFile() {
-        return new File(getBaseDir(), "resource-chimera.xml");
+        return new File(getBaseDir(), "resource-ad2012.xml");
     }
 
     @Override
     protected String getLdapServerHost() {
-        return "chimera.ad.evolveum.com";
+        return "ad01.ad2012.lab.evolveum.com";
+    }
+
+    @Override
+    protected String getLdapSuffix() {
+        return "DC=ad2012,DC=lab,DC=evolveum,DC=com";
+    }
+
+    @Override
+    protected String getLdapBindDn() {
+        return "CN=midpoint," + getPeopleLdapSuffix();
+    }
+
+    @Override
+    protected String getLdapSubServerHost() {
+        return "ad02.ad2012.lab.evolveum.com";
+    }
+
+    @Override
+    protected String getLdapSubSuffix() {
+        return "DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com";
+    }
+
+    @Override
+    protected String getLdapSubBindDn() {
+        return "CN=midpoint," + getPeopleLdapSubSuffix();
     }
 
     @Override
@@ -48,38 +73,13 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
     }
 
     @Override
-    protected String getLdapBindDn() {
-        return null;
-    }
-
-    @Override
-    protected String getLdapSubServerHost() {
-        return null;
-    }
-
-    @Override
-    protected String getLdapSubSuffix() {
-        return null;
-    }
-
-    @Override
-    protected String getLdapSubBindDn() {
-        return null;
-    }
-
-    @Override
     protected File getReconciliationTaskFile() {
-        return new File(getBaseDir(), "task-reconcile-chimera-users.xml");
+        return new File(getBaseDir(), "task-reconcile-ad2012-users.xml");
     }
 
     @Override
     protected String getReconciliationTaskOid() {
-        return "6e2689dc-88fa-11e9-a382-0baf927677fd";
-    }
-
-    @Override
-    protected int getNumberOfAllAccounts() {
-        return 18;
+        return "6dabfa58-d635-11ea-ae7a-5b48b3057a69";
     }
 
     @Override
@@ -94,7 +94,11 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected String getAccountJackSid() {
-        return "S-1-5-21-3305462238-3617280118-659738602-4878";
+        return "S-1-5-21-2906460819-3509546030-3153952426-1109";
     }
 
+    @Override
+    protected int getNumberOfAllAccounts() {
+        return 9;
+    }
 }
