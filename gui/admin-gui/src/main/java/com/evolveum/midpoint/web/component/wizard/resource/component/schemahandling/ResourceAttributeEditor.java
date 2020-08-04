@@ -8,10 +8,10 @@ package com.evolveum.midpoint.web.component.wizard.resource.component.schemahand
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -67,9 +67,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 
     private static final String ID_LABEL = "label";
     private static final String ID_SCHEMA_REF_PANEL = "schemaRefPanel";
-    private static final String ID_NON_SCHEMA_REF_PANEL = "nonSchemaReferencePanel";    // temporarily not used
     private static final String ID_REFERENCE_SELECT = "referenceSelect";
-    private static final String ID_REFERENCE_ALLOW = "allowRef";                        // temporarily not used
     private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXCLUSIVE_STRONG = "exclusiveStrong";
@@ -77,8 +75,6 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
     private static final String ID_TOLERANT_VP = "tolerantValuePattern";
     private static final String ID_INTOLERANT_VP = "intolerantValuePattern";
     private static final String ID_FETCH_STRATEGY = "fetchStrategy";
-    private static final String ID_MATCHING_RULE = "matchingRule";
-    private static final String ID_UNKNOWN_MATCHING_RULE = "unknownMatchingRule";
     private static final String ID_INBOUND = "inbound";
     private static final String ID_OUTBOUND_LABEL = "outboundLabel";
     private static final String ID_BUTTON_OUTBOUND = "buttonOutbound";
@@ -99,13 +95,14 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
     private static final String ID_T_INBOUND = "inboundTooltip";
     private static final String ID_DELETE_OUTBOUND = "deleteOutbound";
 
-    private PrismObject<ResourceType> resource;
-    private ResourceObjectTypeDefinitionType objectType;
-    private boolean nonSchemaRefValueAllowed = false;
+    private final PrismObject<ResourceType> resource;
+    private final ResourceObjectTypeDefinitionType objectType;
+
     @NotNull private final SchemaHandlingStep parentStep;
 
-    public ResourceAttributeEditor(String id, IModel<ResourceAttributeDefinitionType> model, ResourceObjectTypeDefinitionType objectType,
-            PrismObject<ResourceType> resource, SchemaHandlingStep parentStep, NonEmptyModel<Boolean> readOnlyModel) {
+    public ResourceAttributeEditor(String id, IModel<ResourceAttributeDefinitionType> model,
+            ResourceObjectTypeDefinitionType objectType, PrismObject<ResourceType> resource,
+            @NotNull SchemaHandlingStep parentStep, NonEmptyModel<Boolean> readOnlyModel) {
         super(id, model);
 
         this.resource = resource;
@@ -120,39 +117,10 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         label.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(label);
 
-/*
-        TEMPORARILY DISABLED
-
-        QNameEditorPanel nonSchemaRefPanel = new QNameEditorPanel(ID_NON_SCHEMA_REF_PANEL, new PropertyModel<ItemPathType>(getModel(), "ref"),
-                "SchemaHandlingStep.attribute.label.attributeName", "SchemaHandlingStep.attribute.tooltip.attributeLocalPart",
-                "SchemaHandlingStep.attribute.label.attributeNamespace", "SchemaHandlingStep.attribute.tooltip.attributeNamespace", true, true) {
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                target.add(parentStep.getAttributeList());
-            }
-        };
-
-        nonSchemaRefPanel.setOutputMarkupId(true);
-        nonSchemaRefPanel.setOutputMarkupPlaceholderTag(true);
-        nonSchemaRefPanel.add(new VisibleEnableBehaviour(){
-
-            @Override
-            public boolean isVisible() {
-                return nonSchemaRefValueAllowed;
-            }
-        });
-        add(nonSchemaRefPanel);
-*/
-
         WebMarkupContainer schemaRefPanel = new WebMarkupContainer(ID_SCHEMA_REF_PANEL);
         schemaRefPanel.setOutputMarkupId(true);
         schemaRefPanel.setOutputMarkupPlaceholderTag(true);
         schemaRefPanel.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return !nonSchemaRefValueAllowed;
-            }
-
             @Override
             public boolean isEnabled() {
                 return !readOnlyModel.getObject();
@@ -196,7 +164,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
                 QName referenceQName = ItemPathTypeUtil.asSingleName(getModelObject());
                 QName optionQName = ItemPathTypeUtil.asSingleName(object);
 
-                return ObjectUtils.equals(referenceQName, optionQName);
+                return Objects.equals(referenceQName, optionQName);
             }
         };
         refSelect.setNullValid(false);
@@ -212,21 +180,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         refSelect.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         schemaRefPanel.add(refSelect);
 
-/*
-        TEMPORARILY DISABLED
-
-        CheckBox allowNonSchema = new CheckBox(ID_REFERENCE_ALLOW, new PropertyModel<Boolean>(this, "nonSchemaRefValueAllowed"));
-        allowNonSchema.add(new AjaxFormComponentUpdatingBehavior("change") {
-
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                target.add(get(ID_NON_SCHEMA_REF_PANEL), get(ID_SCHEMA_REF_PANEL));
-            }
-        });
-        add(allowNonSchema);
-*/
-
-        TextField displayName = new TextField<>(ID_DISPLAY_NAME, new PropertyModel<String>(getModel(), "displayName"));
+        TextField<?> displayName = new TextField<>(ID_DISPLAY_NAME, new PropertyModel<String>(getModel(), "displayName"));
         displayName.add(new EmptyOnChangeAjaxFormUpdatingBehavior() {
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
@@ -236,7 +190,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         displayName.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(displayName);
 
-        TextArea description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
+        TextArea<?> description = new TextArea<>(ID_DESCRIPTION, new PropertyModel<String>(getModel(), "description"));
         description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(description);
 
@@ -261,17 +215,17 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         tolerant.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(tolerant);
 
-        MultiValueTextPanel tolerantVP = new MultiValueTextPanel<>(ID_TOLERANT_VP,
+        MultiValueTextPanel<?> tolerantVP = new MultiValueTextPanel<>(ID_TOLERANT_VP,
                 new PropertyModel<List<String>>(getModel(), "tolerantValuePattern"), readOnlyModel, true);
         tolerantVP.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(tolerantVP);
 
-        MultiValueTextPanel intolerantVP = new MultiValueTextPanel<>(ID_INTOLERANT_VP,
+        MultiValueTextPanel<?> intolerantVP = new MultiValueTextPanel<>(ID_INTOLERANT_VP,
                 new PropertyModel<List<String>>(getModel(), "intolerantValuePattern"), readOnlyModel, true);
         intolerantVP.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(intolerantVP);
 
-        DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
+        DropDownChoice<?> fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
                 new PropertyModel<>(getModel(), "fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
                 new EnumChoiceRenderer<>(this));
@@ -281,20 +235,16 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
 
         AttributeEditorUtils.addMatchingRuleFields(this, readOnlyModel);
 
-        TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
-                new IModel<String>() {
+        TextField<String> outboundLabel = new TextField<>(ID_OUTBOUND_LABEL,
+                (IModel<String>) () -> {
+                    ResourceAttributeDefinitionType attributeDefinition = getModel().getObject();
 
-                    @Override
-                    public String getObject() {
-                        ResourceAttributeDefinitionType attributeDefinition = getModel().getObject();
-
-                        if (attributeDefinition == null) {
-                            return null;
-                        }
-
-                        return MappingTypeDto.createMappingLabel(attributeDefinition.getOutbound(), LOGGER, getPageBase().getPrismContext(),
-                                getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
+                    if (attributeDefinition == null) {
+                        return null;
                     }
+
+                    return MappingTypeDto.createMappingLabel(attributeDefinition.getOutbound(), LOGGER, getPageBase().getPrismContext(),
+                            getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
                 });
         outboundLabel.setEnabled(false);
         outboundLabel.setOutputMarkupId(true);
@@ -334,7 +284,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         deleteOutbound.add(WebComponentUtil.visibleIfFalse(readOnlyModel));
         add(deleteOutbound);
 
-        MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
+        MultiValueTextEditPanel<?> inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
                 new PropertyModel<>(getModel(), "inbound"), null, false, true, readOnlyModel) {
 
             @Override
@@ -454,7 +404,7 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         for (ObjectClassComplexTypeDefinition def : schema.getObjectClassDefinitions()) {
             if (objectType.getObjectClass().equals(def.getTypeName()) ||
                     objectType.getAuxiliaryObjectClass().contains(def.getTypeName())) {
-                for (ResourceAttributeDefinition attributeDefinition : def.getAttributeDefinitions()) {
+                for (ResourceAttributeDefinition<?> attributeDefinition : def.getAttributeDefinitions()) {
                     ItemPath itemPath = attributeDefinition.getItemName();
                     ItemPathType itemPathType = new ItemPathType(itemPath);
                     if (!references.contains(itemPathType)) {

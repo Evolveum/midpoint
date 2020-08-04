@@ -1,11 +1,16 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.model.impl.dataModel.model;
+
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -14,10 +19,6 @@ import com.evolveum.midpoint.model.impl.dataModel.DataModel;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import org.apache.commons.lang3.ObjectUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author mederly
@@ -27,7 +28,7 @@ public class ResourceDataItem extends DataItem {
     @NotNull private final DataModel ctx;
     @NotNull private final String resourceOid;
     @NotNull private final ShadowKindType kind;
-    @NotNull private final String intent;                // TODO or more intents?
+    @NotNull private final String intent; // TODO or more intents?
     @NotNull private final ItemPath itemPath;
     private final boolean hasItemDefinition;
 
@@ -46,7 +47,7 @@ public class ResourceDataItem extends DataItem {
         if (itemPath.lastName() == null) {
             throw new IllegalArgumentException("Wrong itemPath (have a named segment): " + itemPath);
         }
-        this.hasItemDefinition = itemPath.size() == 1;            // TODO
+        this.hasItemDefinition = itemPath.size() == 1; // TODO... TODO what?
         this.refinedResourceSchema = refinedResourceSchema;
         this.refinedObjectClassDefinition = refinedDefinition;
     }
@@ -129,9 +130,8 @@ public class ResourceDataItem extends DataItem {
             ItemPath path) {
         return this.resourceOid.equals(resourceOid)
                 && this.kind == kind
-                && ObjectUtils.equals(this.intent, intent)
+                && Objects.equals(this.intent, intent)
                 && QNameUtil.match(getObjectClassName(), objectClassName)
                 && this.itemPath.equivalent(path);
     }
-
 }
