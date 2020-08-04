@@ -2083,7 +2083,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <F extends FocusType> void assertNoAssignments(PrismObject<F> user) {
-        assignmentAsserts.assertNoAssignments(user);
+        new AssignmentAsserts(prismContext).assertNoAssignments(user);
     }
 
     protected void assertNoAssignments(String userOid, OperationResult result) throws ObjectNotFoundException, SchemaException {
@@ -2105,22 +2105,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <F extends FocusType> AssignmentType assertAssignedRole(
             PrismObject<F> user, String roleOid) {
-        return assignmentAsserts.assertAssignedRole(user, roleOid);
+        return new AssignmentAsserts(prismContext).assertAssignedRole(user, roleOid);
     }
 
     protected <F extends FocusType> void assertAssignedRoles(
             PrismObject<F> user, String... roleOids) {
-        assignmentAsserts.assertAssignedRoles(user, roleOids);
+        new AssignmentAsserts(prismContext).assertAssignedRoles(user, roleOids);
     }
 
     protected <F extends FocusType> void assertAssignedRoles(
             PrismObject<F> user, Collection<String> roleOids) {
-        assignmentAsserts.assertAssignedRoles(user, roleOids);
+        new AssignmentAsserts(prismContext).assertAssignedRoles(user, roleOids);
     }
 
     protected <R extends AbstractRoleType> AssignmentType assertInducedRole(
             PrismObject<R> role, String roleOid) {
-        return assignmentAsserts.assertInducedRole(role, roleOid);
+        return new AssignmentAsserts(prismContext).assertInducedRole(role, roleOid);
     }
 
     protected void assignDeputy(String userDeputyOid, String userTargetOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -2171,13 +2171,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <F extends FocusType> void assertAssignedDeputy(
             PrismObject<F> focus, String targetUserOid) {
-        assignmentAsserts.assertAssigned(
+        new AssignmentAsserts(prismContext).assertAssigned(
                 focus, targetUserOid, UserType.COMPLEX_TYPE, SchemaConstants.ORG_DEPUTY);
     }
 
     protected <F extends FocusType> void assertAssignedOrgs(
             PrismObject<F> user, String... orgOids) {
-        assignmentAsserts.assertAssignedOrgs(user, orgOids);
+        new AssignmentAsserts(prismContext).assertAssignedOrgs(user, orgOids);
     }
 
     @UnusedTestElement
@@ -2248,23 +2248,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected void assertNotAssignedRole(String userOid, String roleOid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-        assignmentAsserts.assertNotAssignedRole(user, roleOid);
+        new AssignmentAsserts(prismContext).assertNotAssignedRole(user, roleOid);
     }
 
     protected <F extends FocusType> void assertAssignedResource(
             Class<F> type, String userOid, String resourceOid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         PrismObject<F> focus = repositoryService.getObject(type, userOid, null, result);
-        assignmentAsserts.assertAssignedResource(focus, resourceOid);
+        new AssignmentAsserts(prismContext).assertAssignedResource(focus, resourceOid);
     }
 
     protected <F extends FocusType> void assertNotAssignedRole(PrismObject<F> user, String roleOid) {
-        assignmentAsserts.assertNotAssignedRole(user, roleOid);
+        new AssignmentAsserts(prismContext).assertNotAssignedRole(user, roleOid);
     }
 
     protected <F extends FocusType> void assertNotAssignedOrg(
             PrismObject<F> user, String orgOid, QName relation) {
-        assignmentAsserts.assertNotAssignedOrg(user, orgOid, relation);
+        new AssignmentAsserts(prismContext).assertNotAssignedOrg(user, orgOid, relation);
     }
 
     protected void assertAssignedOrg(
@@ -2276,27 +2276,28 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected void assertAssignedOrg(
             PrismObject<? extends FocusType> focus, String orgOid, QName relation) {
-        assignmentAsserts.assertAssignedOrg(focus, orgOid, relation);
+        new AssignmentAsserts(prismContext).assertAssignedOrg(focus, orgOid, relation);
     }
 
     protected <F extends FocusType> AssignmentType assertAssignedOrg(
             PrismObject<F> focus, String orgOid) {
-        return assignmentAsserts.assertAssignedOrg(focus, orgOid);
+        return new AssignmentAsserts(prismContext).assertAssignedOrg(focus, orgOid);
     }
 
     protected <F extends FocusType> void assertNotAssignedOrg(
             PrismObject<F> focus, String orgOid) {
-        assignmentAsserts.assertNotAssignedOrg(focus, orgOid);
+        new AssignmentAsserts(prismContext).assertNotAssignedOrg(focus, orgOid);
     }
 
     protected AssignmentType assertAssignedOrg(
             PrismObject<UserType> user, PrismObject<OrgType> org) {
-        return assignmentAsserts.assertAssignedOrg(user, org.getOid());
+        return new AssignmentAsserts(prismContext).assertAssignedOrg(user, org.getOid());
     }
 
     protected void assertHasOrg(String userOid, String orgOid, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+        PrismObject<UserType> user =
+                repositoryService.getObject(UserType.class, userOid, null, result);
         assertAssignedOrg(user, orgOid);
     }
 
@@ -2308,29 +2309,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <O extends ObjectType> void assertHasOrg(PrismObject<O> focus, String orgOid) {
-        assignmentAsserts.assertHasOrg(focus, orgOid);
+        new AssignmentAsserts(prismContext).assertHasOrg(focus, orgOid);
     }
 
     protected <O extends ObjectType> void assertHasOrg(
             PrismObject<O> user, String orgOid, QName relation) {
-        assignmentAsserts.assertHasOrg(user, orgOid, relation);
+        new AssignmentAsserts(prismContext).assertHasOrg(user, orgOid, relation);
     }
 
     protected <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user, String orgOid) {
-        assignmentAsserts.assertHasNoOrg(user, orgOid, null);
+        new AssignmentAsserts(prismContext).assertHasNoOrg(user, orgOid, null);
     }
 
     protected <O extends ObjectType> void assertHasNoOrg(
             PrismObject<O> user, String orgOid, QName relation) {
-        assignmentAsserts.assertHasNoOrg(user, orgOid, relation);
+        new AssignmentAsserts(prismContext).assertHasNoOrg(user, orgOid, relation);
     }
 
     protected <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user) {
-        assignmentAsserts.assertHasNoOrg(user);
+        new AssignmentAsserts(prismContext).assertHasNoOrg(user);
     }
 
     protected <O extends ObjectType> void assertHasOrgs(PrismObject<O> user, int expectedNumber) {
-        assignmentAsserts.assertHasOrgs(user, expectedNumber);
+        new AssignmentAsserts(prismContext).assertHasOrgs(user, expectedNumber);
     }
 
     @UnusedTestElement
@@ -2343,12 +2344,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <O extends AssignmentHolderType> void assertHasArchetypes(
             PrismObject<O> object, int expectedNumber) {
-        assignmentAsserts.assertHasArchetypes(object, expectedNumber);
+        new AssignmentAsserts(prismContext).assertHasArchetypes(object, expectedNumber);
     }
 
     protected <AH extends AssignmentHolderType> void assertHasArchetype(
             PrismObject<AH> object, String oid) {
-        assignmentAsserts.assertHasArchetype(object, oid);
+        new AssignmentAsserts(prismContext).assertHasArchetype(object, oid);
     }
 
     protected void assertSubOrgs(String baseOrgOid, int expected) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -2500,11 +2501,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     protected <F extends AssignmentHolderType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
-        assignmentAsserts.assertAssignments(user, expectedNumber);
+        new AssignmentAsserts(prismContext).assertAssignments(user, expectedNumber);
     }
 
     protected <R extends AbstractRoleType> void assertInducements(PrismObject<R> role, int expectedNumber) {
-        assignmentAsserts.assertInducements(role, expectedNumber);
+        new AssignmentAsserts(prismContext).assertInducements(role, expectedNumber);
     }
 
     protected <R extends AbstractRoleType> void assertInducedRoles(PrismObject<R> role, String... roleOids) {
@@ -2516,11 +2517,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
     protected <F extends AssignmentHolderType> void assertAssignments(
             PrismObject<F> user, Class expectedType, int expectedNumber) {
-        assignmentAsserts.assertAssignments(user, expectedType, expectedNumber);
+        new AssignmentAsserts(prismContext).assertAssignments(user, expectedType, expectedNumber);
     }
 
     protected <F extends AssignmentHolderType> void assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
-        assignmentAsserts.assertAssigned(user, targetOid, refType);
+        new AssignmentAsserts(prismContext).assertAssigned(user, targetOid, refType);
     }
 
     protected void assertAssignedNoOrg(PrismObject<UserType> user) {
@@ -4365,19 +4366,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
         try {
             return dummyResource.getGroupByName(name);
-        } catch (ConnectException e) {
-            throw new IllegalStateException(e.getMessage(), e);
-        } catch (FileNotFoundException e) {
+        } catch (ConnectException | FileNotFoundException e) {
             throw new IllegalStateException(e.getMessage(), e);
         }
     }
 
     protected void assertDummyGroup(String username, String description) throws SchemaViolationException, ConflictException, InterruptedException {
         assertDummyGroup(null, username, description, null);
-    }
-
-    protected void assertDummyGroup(String username, String description, Boolean active) throws SchemaViolationException, ConflictException, InterruptedException {
-        assertDummyGroup(null, username, description, active);
     }
 
     protected void assertDummyGroup(String dummyInstanceName, String groupname, String description, Boolean active) throws SchemaViolationException, ConflictException, InterruptedException {
@@ -5201,13 +5196,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
             PrismObject<H> focus, int assignmentOrder)
             throws ObjectNotFoundException, SchemaException, ConfigurationException,
             ExpressionEvaluationException, CommunicationException, SecurityViolationException {
-        return getAssignableRoleSpecification(focus, AbstractRoleType.class, 0);
+        return getAssignableRoleSpecification(focus, AbstractRoleType.class, assignmentOrder);
     }
 
-    protected <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(PrismObject<H> focus, Class<R> targetType, int assignmentOrder) throws ObjectNotFoundException, SchemaException, ConfigurationException, ExpressionEvaluationException, CommunicationException, SecurityViolationException {
+    protected <H extends AssignmentHolderType, R extends AbstractRoleType> RoleSelectionSpecification getAssignableRoleSpecification(
+            PrismObject<H> focus, Class<R> targetType, int assignmentOrder)
+            throws ObjectNotFoundException, SchemaException, ConfigurationException,
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException {
         Task task = createPlainTask("getAssignableRoleSpecification");
         OperationResult result = task.getResult();
-        RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(focus, targetType, assignmentOrder, task, result);
+        RoleSelectionSpecification spec = modelInteractionService.getAssignableRoleSpecification(
+                focus, targetType, assignmentOrder, task, result);
         assertSuccess(result);
         return spec;
     }

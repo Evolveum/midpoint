@@ -186,8 +186,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      */
     protected PredefinedTestMethodTracing predefinedTestMethodTracing;
 
-    protected AssignmentAsserts assignmentAsserts;
-
     private volatile boolean initSystemExecuted = false;
 
     /**
@@ -208,8 +206,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             return;
         }
         initSystemExecuted = true;
-
-        assignmentAsserts = new AssignmentAsserts(prismContext);
 
         // Check whether we are already initialized
         assertNotNull("Repository is not wired properly", repositoryService);
@@ -2760,12 +2756,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected RefinedResourceSchemaAsserter<Void> assertRefinedResourceSchema(PrismObject<ResourceType> resource, String details) throws SchemaException {
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, prismContext);
         assertNotNull("No refined schema for " + resource + " (" + details + ")", refinedSchema);
-        RefinedResourceSchemaAsserter<Void> asserter = new RefinedResourceSchemaAsserter(refinedSchema, resource.toString() + " (" + details + ")");
+        RefinedResourceSchemaAsserter<Void> asserter = new RefinedResourceSchemaAsserter<>(
+                refinedSchema, resource.toString() + " (" + details + ")");
         initializeAsserter(asserter);
         return asserter;
     }
 
-    protected ShadowAsserter<Void> assertShadow(PrismObject<ShadowType> shadow, String details) throws ObjectNotFoundException {
+    protected ShadowAsserter<Void> assertShadow(PrismObject<ShadowType> shadow, String details) {
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, details);
         initializeAsserter(asserter);
         asserter.display();

@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.test.util;
+package com.evolveum.midpoint.model.test.asserter;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
@@ -23,6 +23,15 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+/**
+ * Moved from MidPointAsserts and test-util, made non-static to allow prismContext in constructor.
+ * It does not extend from AbstractAsserter which I found after it was moved from test-util,
+ * where it was unnecessarily high in Maven module order.
+ * <p>
+ * TODO: rethink the name or eliminate somehow, there is already another AssignmentAsserter.
+ * Most usages are one-liners in AbstractModelIntegrationTest, but that class is already so big,
+ * I didn't want to inline it there.
+ */
 public class AssignmentAsserts {
 
     private final PrismContext prismContext;
@@ -182,8 +191,8 @@ public class AssignmentAsserts {
 
     public <F extends FocusType> void assertAssignedTargets(
             PrismObject<F> user, String typeDesc, QName type, String... expectedTargetOids) {
-        List<String> haveTagetOids = getAssignedOids(user, type);
-        com.evolveum.midpoint.prism.util.PrismAsserts.assertSets("Wrong " + typeDesc + " in " + user, haveTagetOids, expectedTargetOids);
+        List<String> haveTargetOids = getAssignedOids(user, type);
+        com.evolveum.midpoint.prism.util.PrismAsserts.assertSets("Wrong " + typeDesc + " in " + user, haveTargetOids, expectedTargetOids);
     }
 
     public <F extends FocusType> void assertAssignedTargets(PrismObject<F> user, String typeDesc, QName type, Collection<String> expectedTargetOids) {
