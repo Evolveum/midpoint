@@ -12,16 +12,14 @@
 // Generated on: 2012.02.22 at 05:53:26 PM CET
 //
 
-
 package com.evolveum.midpoint.prism.foo;
-
-import com.evolveum.midpoint.prism.path.ItemName;
 
 import java.io.Serializable;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
 
+import com.evolveum.midpoint.prism.path.ItemName;
 
 /**
  * <p>Java class for AccountType complex type.
@@ -39,29 +37,26 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "AccountType", propOrder = {
-    "attributes"
+        "attributes"
 })
 public class AccountType
-    extends ObjectType
-    implements Serializable
-{
+        extends ObjectType
+        implements Serializable {
 
-    public final static ItemName F_ATTRIBUTES = new ItemName(NS_FOO, "attributes");
-    private final static long serialVersionUID = 201202081233L;
+    private static final long serialVersionUID = 201202081233L;
+
+    public static final ItemName F_ATTRIBUTES = new ItemName(NS_FOO, "attributes");
+
     protected AttributesType attributes;
 
     /**
      * Gets the value of the attributes property.
      *
-     * @return
-     *     possible object is
-     *     {@link AttributesType }
-     *
+     * @return possible object is
+     * {@link AttributesType }
      */
     public AttributesType getAttributes() {
         return attributes;
@@ -70,10 +65,8 @@ public class AccountType
     /**
      * Sets the value of the attributes property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link AttributesType }
-     *
+     * @param value allowed object is
+     * {@link AttributesType }
      */
     public void setAttributes(AttributesType value) {
         this.attributes = value;

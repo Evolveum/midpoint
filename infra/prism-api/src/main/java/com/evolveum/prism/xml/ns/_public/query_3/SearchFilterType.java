@@ -18,14 +18,12 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
-import org.jetbrains.annotations.NotNull;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.EqualsStrategy;
 import org.jvnet.jaxb2_commons.lang.HashCode;
 import org.jvnet.jaxb2_commons.lang.HashCodeStrategy;
 import org.jvnet.jaxb2_commons.locator.ObjectLocator;
 import org.jvnet.jaxb2_commons.locator.util.LocatorUtils;
-import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -46,16 +44,17 @@ import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 })
 
 public class SearchFilterType extends AbstractFreezable implements Serializable, Cloneable, Equals, HashCode, DebugDumpable, Freezable, JaxbVisitable {
-    private final static long serialVersionUID = 201303040000L;
+
+    private static final long serialVersionUID = 201303040000L;
+
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "SearchFilterType");
+    public static final QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
 
     @XmlElement
     protected String description;
 
     // this one is not exposed via JAXB
-    protected MapXNode filterClauseXNode;           // single-subnode map node (key = filter element qname, value = contents)
-
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "SearchFilterType");
-    public static final QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
+    protected MapXNode filterClauseXNode; // single-subnode map node (key = filter element qname, value = contents)
 
     /**
      * Creates a new {@code QueryType} instance.
@@ -228,7 +227,7 @@ public class SearchFilterType extends AbstractFreezable implements Serializable,
     public SearchFilterType clone() {
         final SearchFilterType clone;
         try {
-            clone = this.getClass().newInstance();          // TODO fix this using super.clone()
+            clone = this.getClass().newInstance(); // TODO fix this using super.clone()
         } catch (InstantiationException | IllegalAccessException e) {
             throw new IllegalStateException("Couldn't instantiate " + this.getClass() + ": " + e.getMessage(), e);
         }

@@ -64,20 +64,25 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 })
 public class PagingType implements Serializable, Cloneable, Equals, HashCode {
 
-    private final static long serialVersionUID = 201105211233L;
+    private static final long serialVersionUID = 201105211233L;
+
     protected ItemPathType orderBy;
+
     @XmlElement(defaultValue = "ascending")
     protected OrderDirectionType orderDirection;
+
     @XmlElement(defaultValue = "0")
     protected Integer offset;
+
     @XmlElement(defaultValue = "2147483647")
     protected Integer maxSize;
+
     protected ItemPathType groupBy;
 
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "PagingType");
-    public final static QName F_ORDER_DIRECTION = new QName(PrismConstants.NS_QUERY, "orderDirection");
-    public final static QName F_OFFSET = new QName(PrismConstants.NS_QUERY, "offset");
-    public final static QName F_MAX_SIZE = new QName(PrismConstants.NS_QUERY, "maxSize");
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "PagingType");
+    public static final QName F_ORDER_DIRECTION = new QName(PrismConstants.NS_QUERY, "orderDirection");
+    public static final QName F_OFFSET = new QName(PrismConstants.NS_QUERY, "offset");
+    public static final QName F_MAX_SIZE = new QName(PrismConstants.NS_QUERY, "maxSize");
 
     /**
      * Creates a new {@code PagingType} instance.
@@ -273,10 +278,10 @@ public class PagingType implements Serializable, Cloneable, Equals, HashCode {
         lhsGroupBy = this.getGroupBy();
         ItemPathType rhsGroupBy;
         rhsGroupBy = that.getOrderBy();
-        if (!strategy.equals(LocatorUtils.property(thisLocator, "groupBy", lhsGroupBy), LocatorUtils.property(thatLocator, "groupBy", rhsGroupBy), lhsGroupBy, rhsGroupBy)) {
-            return false;
-        }
-        return true;
+        return strategy.equals(
+                LocatorUtils.property(thisLocator, "groupBy", lhsGroupBy),
+                LocatorUtils.property(thatLocator, "groupBy", rhsGroupBy),
+                lhsGroupBy, rhsGroupBy);
     }
 
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")

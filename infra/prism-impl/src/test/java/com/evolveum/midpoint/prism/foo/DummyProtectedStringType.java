@@ -11,7 +11,6 @@
 // Generated on: 2014.02.07 at 10:53:52 AM CET
 //
 
-
 package com.evolveum.midpoint.prism.foo;
 
 import java.io.Serializable;
@@ -20,10 +19,8 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 
-
 /**
- *
- *                 This type mimmicks a complex type that may be used in properties.
+ * This type mimmicks a complex type that may be used in properties.
  *
  *
  * <p>Java class for DummyProtectedStringType complex type.
@@ -41,28 +38,24 @@ import javax.xml.bind.annotation.XmlType;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "DummyProtectedStringType", propOrder = {
-    "value"
+        "value"
 })
 public class DummyProtectedStringType
-    implements Serializable
-{
+        implements Serializable {
 
-    private final static long serialVersionUID = 201202081233L;
+    private static final long serialVersionUID = 201202081233L;
+
     @XmlElement(required = true)
     protected String value;
 
     /**
      * Gets the value of the value property.
      *
-     * @return
-     *     possible object is
-     *     {@link String }
-     *
+     * @return possible object is
+     * {@link String }
      */
     public String getValue() {
         return value;
@@ -71,10 +64,8 @@ public class DummyProtectedStringType
     /**
      * Sets the value of the value property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *
+     * @param value allowed object is
+     * {@link String }
      */
     public void setValue(String value) {
         this.value = value;

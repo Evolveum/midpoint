@@ -10,11 +10,6 @@ import java.io.IOException;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.expression.VariablesMap;
-import com.evolveum.midpoint.task.api.RunningTask;
-
-import com.evolveum.midpoint.util.DOMUtil;
-
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,7 +26,9 @@ import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.AuditConstants;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -53,7 +50,7 @@ public abstract class FileFormatController {
     protected static final String NUMBER_COLUMN = "number";
     protected static final String STATUS_COLUMN = "status";
 
-    private final static Set<String> HEADS_OF_WIDGET =
+    private static final Set<String> HEADS_OF_WIDGET =
             ImmutableSet.of(LABEL_COLUMN, NUMBER_COLUMN, STATUS_COLUMN);
 
     private final ReportServiceImpl reportService;
@@ -267,15 +264,14 @@ public abstract class FileFormatController {
         return value;
     }
 
-
     protected String getColumnLabel(GuiObjectColumnType column, PrismContainerDefinition objectDefinition) {
         ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
 
         DisplayType columnDisplay = column.getDisplay();
         String label;
-        if(columnDisplay != null && columnDisplay.getLabel() != null) {
+        if (columnDisplay != null && columnDisplay.getLabel() != null) {
             label = getMessage(columnDisplay.getLabel().getOrig());
-        } else  {
+        } else {
 
             String name = column.getName();
             if (path != null) {
@@ -284,7 +280,7 @@ public abstract class FileFormatController {
                     throw new IllegalArgumentException("Could'n find item for path " + path);
                 }
                 String displayName = def.getDisplayName();
-                label =  getMessage(displayName);
+                label = getMessage(displayName);
             } else {
                 label = name;
             }

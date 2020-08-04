@@ -53,10 +53,12 @@ public class NAryLogicalOperatorFilterType
         extends LogicalOperatorFilterType
         implements Serializable, Cloneable, Equals, HashCode {
 
-    private final static long serialVersionUID = 201105211233L;
+    private static final long serialVersionUID = 201105211233L;
+
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "NAryLogicalOperatorFilterType");
+
     @XmlAnyElement
     protected List<Element> filter;
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "NAryLogicalOperatorFilterType");
 
     /**
      * Creates a new {@code NAryLogicalOperatorFilterType} instance.
@@ -148,10 +150,10 @@ public class NAryLogicalOperatorFilterType
         lhsFilter = (((this.filter != null) && (!this.filter.isEmpty())) ? this.getFilter() : null);
         List<Element> rhsFilter;
         rhsFilter = (((that.filter != null) && (!that.filter.isEmpty())) ? that.getFilter() : null);
-        if (!strategy.equals(LocatorUtils.property(thisLocator, "filter", lhsFilter), LocatorUtils.property(thatLocator, "filter", rhsFilter), lhsFilter, rhsFilter)) {
-            return false;
-        }
-        return true;
+        return strategy.equals(
+                LocatorUtils.property(thisLocator, "filter", lhsFilter),
+                LocatorUtils.property(thatLocator, "filter", rhsFilter),
+                lhsFilter, rhsFilter);
     }
 
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")

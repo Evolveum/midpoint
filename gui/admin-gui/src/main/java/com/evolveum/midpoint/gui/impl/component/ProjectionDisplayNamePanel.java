@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -22,21 +22,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * @author skublik
  */
-
-public class ProjectionDisplayNamePanel extends DisplayNamePanel<ShadowType>{
+public class ProjectionDisplayNamePanel extends DisplayNamePanel<ShadowType> {
 
     private static final long serialVersionUID = 1L;
 
-    private final static String ID_PENDING_OPERATION_CONTAINER = "pendingOperationContainer";
-    private final static String ID_PENDING_OPERATION = "pendingOperation";
+    private static final String ID_PENDING_OPERATION_CONTAINER = "pendingOperationContainer";
+    private static final String ID_PENDING_OPERATION = "pendingOperation";
 
     public ProjectionDisplayNamePanel(String id, IModel<ShadowType> model) {
         super(id, model);
-
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
@@ -44,17 +42,11 @@ public class ProjectionDisplayNamePanel extends DisplayNamePanel<ShadowType>{
     private void initLayout() {
         WebMarkupContainer pendingOperationContainer = new WebMarkupContainer(ID_PENDING_OPERATION_CONTAINER);
         List<PendingOperationType> pendingOperations = getModelObject().getPendingOperation();
-        if(pendingOperations != null
+        if (pendingOperations != null
                 && !pendingOperations.isEmpty()) {
 
-            pendingOperationContainer.add(new PendingOperationPanel(ID_PENDING_OPERATION, new IModel<List<PendingOperationType>>() {
-
-                @Override
-                public List<PendingOperationType> getObject() {
-                    return pendingOperations;
-                }
-
-            }));
+            pendingOperationContainer.add(new PendingOperationPanel(ID_PENDING_OPERATION,
+                    (IModel<List<PendingOperationType>>) () -> pendingOperations));
         } else {
             pendingOperationContainer.add(new WebMarkupContainer(ID_PENDING_OPERATION));
             pendingOperationContainer.add(new VisibleEnableBehaviour() {
@@ -74,21 +66,14 @@ public class ProjectionDisplayNamePanel extends DisplayNamePanel<ShadowType>{
 
     @Override
     protected IModel<List<String>> getDescriptionLabelsModel() {
-        List<String> descriptionLabels = new ArrayList<String>();
+        List<String> descriptionLabels = new ArrayList<>();
         descriptionLabels.add(WebComponentUtil.getResourceAttributesLabelModel(getModelObject(), getPageBase()).getObject());
-        return new IModel<List<String>>() {
-
-            @Override
-            public List<String> getObject() {
-                return descriptionLabels;
-            }
-
-        };
+        return (IModel<List<String>>) () -> descriptionLabels;
     }
 
     @Override
     protected String createImageModel() {
-        if (getModelObject() == null){
+        if (getModelObject() == null) {
             return "";
         }
         return WebComponentUtil.createShadowIcon(getModelObject().asPrismObject());
