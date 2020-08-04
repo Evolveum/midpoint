@@ -16,7 +16,7 @@
             http://www.springframework.org/schema/context/spring-context-3.0.xsd"
         default-lazy-init="false">
 
-    <bean name="midpointConfiguration"
+    <bean id="midpointConfiguration"
             class="com.evolveum.midpoint.init.StartupConfiguration"
             init-method="init">
         <constructor-arg value="./target/midpoint-home"/>
@@ -24,18 +24,20 @@
     </bean>
 
     <!-- protector initialization -->
-    <bean name="keyStoreFactory" class="com.evolveum.midpoint.init.ConfigurableProtectorFactory" init-method="init"/>
+    <bean id="keyStoreFactory"
+            class="com.evolveum.midpoint.init.ConfigurableProtectorFactory"
+            init-method="init"/>
 
-    <bean name="protector"
+    <bean id="protector"
             factory-bean="keyStoreFactory"
             factory-method="getProtector"/>
 
-    <bean name="repositoryFactory"
+    <bean id="repositoryFactory"
             class="com.evolveum.midpoint.init.RepositoryFactory"
             init-method="init"
             destroy-method="destroy"/>
 
-    <bean name="repositoryService"
+    <bean id="repositoryService"
             factory-bean="repositoryFactory"
             factory-method="getRepositoryService"/>
 

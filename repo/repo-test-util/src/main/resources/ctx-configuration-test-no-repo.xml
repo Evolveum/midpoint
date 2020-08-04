@@ -15,28 +15,28 @@
             http://www.springframework.org/schema/context/spring-context-3.0.xsd"
         default-lazy-init="false">
 
-    <bean name="midpointConfiguration"
+    <bean id="midpointConfiguration"
             class="com.evolveum.midpoint.init.StartupConfiguration"
             init-method="init">
         <constructor-arg value="./target/midpoint-home"/>
         <constructor-arg value="test-config-no-repo.xml"/>
     </bean>
 
-    <bean name="dummyAuditServiceFactory"
+    <bean id="dummyAuditServiceFactory"
             class="com.evolveum.midpoint.test.DummyAuditServiceFactory"/>
 
     <!-- protector initialization -->
-    <bean name="keyStoreFactory"
+    <bean id="keyStoreFactory"
             class="com.evolveum.midpoint.init.ConfigurableProtectorFactory"
             init-method="init"/>
 
-    <bean name="protector"
+    <bean id="protector"
             factory-bean="keyStoreFactory"
             factory-method="getProtector"/>
 
-    <bean name="auditFactory" class="com.evolveum.midpoint.init.AuditFactory"/>
+    <bean id="auditFactory" class="com.evolveum.midpoint.init.AuditFactory"/>
 
-    <bean name="auditService"
+    <bean id="auditService"
             factory-bean="auditFactory"
             factory-method="getAuditService"/>
 

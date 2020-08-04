@@ -16,6 +16,6 @@
 
     <context:annotation-config/>
 
-    <bean name="lightweightIdentifierGenerator"
+    <bean id="lightweightIdentifierGenerator"
             class="com.evolveum.midpoint.repo.sql.testing.LightweightIdentifierGeneratorMock"/>
 </beans>

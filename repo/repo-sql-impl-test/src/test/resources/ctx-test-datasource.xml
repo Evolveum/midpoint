@@ -51,7 +51,7 @@ It fakes JNDI context with simple H2 file DataSource.
         </property>
     </bean>
 
-    <bean name="midpointConfiguration"
+    <bean id="midpointConfiguration"
             class="com.evolveum.midpoint.init.StartupConfiguration"
             init-method="init">
         <constructor-arg value="./target/midpoint-home"/>

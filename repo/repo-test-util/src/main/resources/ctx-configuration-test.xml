@@ -18,17 +18,17 @@
 
     <bean id="repoSimpleObjectResolver" class="com.evolveum.midpoint.test.RepoSimpleObjectResolver"/>
 
-    <bean name="midpointConfiguration"
+    <bean id="midpointConfiguration"
             class="com.evolveum.midpoint.init.StartupConfiguration"
             init-method="init">
         <constructor-arg value="./target/midpoint-home"/>
         <constructor-arg value="test-config.xml"/>
     </bean>
 
-    <bean name="dummyAuditServiceFactory" class="com.evolveum.midpoint.test.DummyAuditServiceFactory"/>
+    <bean id="dummyAuditServiceFactory" class="com.evolveum.midpoint.test.DummyAuditServiceFactory"/>
 
     <!-- protector initialization -->
-    <bean name="keyStoreFactory"
+    <bean id="keyStoreFactory"
             class="com.evolveum.midpoint.init.ConfigurableProtectorFactory"
             init-method="init"/>
 
@@ -38,22 +38,22 @@
     This may get better when switched to Java config, as it will use the class in code and can be
     added to dependencies - as it should - without Maven complaining. Argh...
     -->
-    <bean name="protector"
+    <bean id="protector"
             factory-bean="keyStoreFactory"
             factory-method="getProtector"/>
 
-    <bean name="repositoryFactory"
+    <bean id="repositoryFactory"
             class="com.evolveum.midpoint.init.RepositoryFactory"
             init-method="init"
             destroy-method="destroy"/>
 
-    <bean name="repositoryService"
+    <bean id="repositoryService"
             factory-bean="repositoryFactory"
             factory-method="getRepositoryService"/>
 
-    <bean name="auditFactory" class="com.evolveum.midpoint.init.AuditFactory"/>
+    <bean id="auditFactory" class="com.evolveum.midpoint.init.AuditFactory"/>
 
-    <bean name="auditService"
+    <bean id="auditService"
             factory-bean="auditFactory"
             factory-method="getAuditService"/>
 
