@@ -32,6 +32,12 @@
             class="com.evolveum.midpoint.init.ConfigurableProtectorFactory"
             init-method="init"/>
 
+    <!--
+    TODO: factory methods marked red, because this module (repo-test-util) does not depend
+    on system-init where the factory beans come from, so the IDE is rightfully confused.
+    This may get better when switched to Java config, as it will use the class in code and can be
+    added to dependencies - as it should - without Maven complaining. Argh...
+    -->
     <bean name="protector"
             factory-bean="keyStoreFactory"
             factory-method="getProtector"/>
@@ -60,13 +66,7 @@
             factory-bean="midPointPrismContextFactory"
             factory-method="createInitializedPrismContext"/>
 
-    <!-- todo prism context and other changes from configuration -->
-
-    <!--  Scan for components:
-             - protector (KeyStoreConfigurator)
-     -->
     <context:component-scan base-package="com.evolveum.midpoint.schema"/>
     <context:component-scan base-package="com.evolveum.midpoint.init"/>
-    <!--<context:component-scan base-package="com.evolveum.midpoint.test.util"/>        &lt;!&ndash; HACK &ndash;&gt;-->
     <context:annotation-config/>
 </beans>

@@ -40,12 +40,7 @@
     <bean id="prismContext" class="com.evolveum.midpoint.prism.PrismContext"
           factory-bean="midPointPrismContextFactory" factory-method="createInitializedPrismContext" />
 
-    <!-- todo prism context and other changes from configuration -->
-
-    <!--  Scan for components:
-             - protector (KeyStoreConfigurator)
-     -->
-    <context:component-scan base-package="com.evolveum.midpoint.schema" />
-    <context:component-scan base-package="com.evolveum.midpoint.init" />
-    <context:annotation-config />
+    <context:component-scan base-package="com.evolveum.midpoint.schema"/>
+    <context:component-scan base-package="com.evolveum.midpoint.init"/>
+    <context:annotation-config/>
 </beans>

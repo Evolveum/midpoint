@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -35,9 +35,6 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-
-import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
-
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,6 +93,7 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -188,6 +186,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
      */
     protected PredefinedTestMethodTracing predefinedTestMethodTracing;
 
+    protected AssignmentAsserts assignmentAsserts;
+
     private volatile boolean initSystemExecuted = false;
 
     /**
@@ -208,6 +208,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             return;
         }
         initSystemExecuted = true;
+
+        assignmentAsserts = new AssignmentAsserts(prismContext);
 
         // Check whether we are already initialized
         assertNotNull("Repository is not wired properly", repositoryService);
@@ -2009,9 +2011,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected TracingProfileType addRepositoryAndSqlLogging(TracingProfileType profile) {
         return profile.getLoggingOverride()
                 .beginLevelOverride()
-                    .logger("com.evolveum.midpoint.repo")
-                    .logger("org.hibernate.SQL")
-                    .level(LoggingLevelType.TRACE)
+                .logger("com.evolveum.midpoint.repo")
+                .logger("org.hibernate.SQL")
+                .level(LoggingLevelType.TRACE)
                 .<LoggingOverrideType>end()
                 .end();
     }

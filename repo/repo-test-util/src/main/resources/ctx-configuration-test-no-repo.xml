@@ -50,10 +50,7 @@
             factory-bean="midPointPrismContextFactory"
             factory-method="createInitializedPrismContext"/>
 
-    <!--  Scan for components: ?? what??
-     -->
     <context:component-scan base-package="com.evolveum.midpoint.schema"/>
     <context:component-scan base-package="com.evolveum.midpoint.init"/>
-    <!--<context:component-scan base-package="com.evolveum.midpoint.test.util"/>        &lt;!&ndash; HACK &ndash;&gt;-->
     <context:annotation-config/>
 </beans>

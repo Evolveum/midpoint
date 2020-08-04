@@ -2835,7 +2835,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertNotNull("User must not be null", user);
         UserType userType = user.asObjectable();
         assertEquals("User must have one link ref, ", 1, userType.getLinkRef().size());
-        MidPointAsserts.assertAssignments(user, 1);
+        assignmentAsserts.assertAssignments(user, 1);
 
         String accountOid = userType.getLinkRef().get(0).getOid();
 
