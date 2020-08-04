@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2016 Evolveum and contributors
+ * Copyright (c) 2013-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,7 +12,6 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
 
-import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -22,6 +21,7 @@ import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRuleTrigger;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
+import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -51,9 +51,6 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
 
     protected static final File USER_DRAKE_FILE = new File(TEST_DIR, "user-drake.xml");
     protected static final String USER_DRAKE_OID = "c0c010c0-d34d-b33f-f00d-888888888888";
-
-//    protected static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_OPENDJ = TEST_RESOURCE_DIR_NAME +
-//            "/user-jack-modify-add-assignment-account-opendj.xml";
 
     protected static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY = new File(TEST_DIR,
             "user-jack-modify-add-assignment-account-dummy.xml");
@@ -162,8 +159,9 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
         // repoAddObjectFromFile(USER_DRAKE_FILE, initResult);
     }
 
-    protected AssignmentType getAssignmentType(File assignmentFile) throws java.io.IOException, SchemaException {
-        AssignmentType assignmentType = unmarshalValueFromFile(assignmentFile, AssignmentType.class);
+    protected AssignmentType getAssignmentType(File assignmentFile)
+            throws java.io.IOException, SchemaException {
+        AssignmentType assignmentType = unmarshalValueFromFile(assignmentFile);
 
         // We need to make sure that the assignment has a parent
         PrismContainerDefinition<AssignmentType> assignmentContainerDefinition =

@@ -600,24 +600,27 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return prismObject.asObjectable();
     }
 
-    protected <T extends ObjectType> T parseObjectType(File file, Class<T> clazz) throws SchemaException, IOException {
-        PrismObject<T> prismObject = prismContext.parseObject(file);
-        return prismObject.asObjectable();
+    /**
+     * Just like {@link #parseObject(File)}, but helps with typing when another method is called
+     * on the returned value (with version without class, local variable is needed).
+     */
+    @SuppressWarnings("unused")
+    protected <T extends ObjectType> T parseObjectType(File file, Class<T> clazz)
+            throws SchemaException, IOException {
+        return parseObjectType(file);
     }
 
-    protected static <T> T unmarshalValueFromFile(File file, Class<T> clazz)
+    protected static <T> T unmarshalValueFromFile(File file)
             throws IOException, SchemaException {
         return PrismTestUtil.parseAnyValue(file);
     }
 
-    protected static <T> T unmarshalValueFromFile(String filePath, Class<T> clazz)
+    /**
+     * Version of {@link #unmarshalValueFromFile} with type inference if another method is chained.
+     */
+    protected static <T> T unmarshalValueFromFile(File file, Class<T> clazz)
             throws IOException, SchemaException {
-        return PrismTestUtil.parseAnyValue(new File(filePath));
-    }
-
-    protected static ObjectType unmarshalValueFromFile(String filePath)
-            throws IOException, SchemaException {
-        return unmarshalValueFromFile(filePath, ObjectType.class);
+        return PrismTestUtil.parseAnyValue(file);
     }
 
     protected PrismObject<ResourceType> addResourceFromFile(
