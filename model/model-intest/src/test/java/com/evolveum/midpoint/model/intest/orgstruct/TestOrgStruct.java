@@ -1422,7 +1422,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
-        assignmentAsserts.assertHasOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -1447,7 +1447,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         display("User jack after", userJack);
         assertAssignedOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
         assertHasOrgs(userJack, ORG_MINISTRY_OF_OFFENSE_OID, ORG_MINISTRY_OF_DEFENSE_OID);
-        assignmentAsserts.assertHasOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_DEFENSE_OID, SchemaConstants.ORG_MANAGER);
 
         // Postcondition
         assertMonkeyIslandOrgSanity();
@@ -1690,9 +1690,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         Collection<UserType> managers = libraryMidpointFunctions.getManagers(user.asObjectable(), orgType, allowSelf);
         ModelExpressionThreadLocalHolder.popExpressionEnvironment();
         if (managerOid == null) {
-            if (managers == null || managers.isEmpty()) {
-                return;
-            } else {
+            if (managers != null && !managers.isEmpty()) {
                 AssertJUnit.fail("Expected no manager for " + user + ", but got " + managers);
             }
         } else {
@@ -1703,9 +1701,7 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
                 AssertJUnit.fail("Expected one manager for " + user + ", but got: " + managers);
             } else {
                 UserType manager = managers.iterator().next();
-                if (manager.getOid().equals(managerOid)) {
-                    return;
-                } else {
+                if (!manager.getOid().equals(managerOid)) {
                     AssertJUnit.fail("Expected manager with OID " + managerOid + " for " + user + ", but got " + manager);
                 }
             }
@@ -1723,5 +1719,4 @@ public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
         }
         PrismAsserts.assertEqualsCollectionUnordered("Jack's titles are wrong", titleAccountValues, expectedTitleValues);
     }
-
 }
