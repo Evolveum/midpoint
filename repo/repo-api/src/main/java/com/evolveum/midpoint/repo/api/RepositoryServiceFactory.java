@@ -21,5 +21,5 @@ public interface RepositoryServiceFactory {
 
     void destroy() throws RepositoryServiceFactoryException;
 
-    RepositoryService getRepositoryService() throws RepositoryServiceFactoryException;
+    RepositoryService createRepositoryService() throws RepositoryServiceFactoryException;
 }

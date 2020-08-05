@@ -26,13 +26,9 @@
             class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryBeanPostProcessor"/>
 
     <bean id="testSqlRepositoryFactory"
-            class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory"
-            primary="true"
-            depends-on="repositoryFactory"/>
+            class="com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory"/>
 
-    <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory">
-        <property name="repositoryFactory" ref="testSqlRepositoryFactory"/>
-    </bean>
+    <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory"/>
 
     <bean id="testDataSourceFactory"
             class="com.evolveum.midpoint.repo.sql.DataSourceFactory">
@@ -41,8 +37,7 @@
 
     <bean id="testDataSource"
             factory-bean="testDataSourceFactory"
-            factory-method="createDataSource"
-            depends-on="testDataSourceFactory"/>
+            factory-method="createDataSource"/>
 
     <!-- Proxied data source used to collect SQL statements -->
 

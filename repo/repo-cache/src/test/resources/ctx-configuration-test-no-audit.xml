@@ -36,7 +36,7 @@
 
     <bean id="repositoryService"
             factory-bean="repositoryFactory"
-            factory-method="getRepositoryService"/>
+            factory-method="createRepositoryService"/>
 
     <!-- prism context initialization -->
     <bean id="midPointPrismContextFactory" class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">

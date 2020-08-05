@@ -19,7 +19,7 @@ import com.evolveum.midpoint.audit.api.AuditServiceFactory;
 public class DummyAuditServiceFactory implements AuditServiceFactory {
 
     @Override
-    public AuditService getAuditService() {
+    public AuditService createAuditService() {
         return DummyAuditService.getInstance();
     }
 

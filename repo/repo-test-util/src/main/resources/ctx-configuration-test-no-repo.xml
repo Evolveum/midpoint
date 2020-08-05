@@ -38,7 +38,7 @@
 
     <bean id="auditService"
             factory-bean="auditFactory"
-            factory-method="getAuditService"/>
+            factory-method="createAuditService"/>
 
     <!-- prism context initialization -->
     <bean id="midPointPrismContextFactory"

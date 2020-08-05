@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,10 +7,9 @@
 
 package com.evolveum.midpoint.repo.sql.helpers;
 
-import static com.evolveum.midpoint.repo.sql.SqlBaseService.*;
-
 import java.sql.SQLException;
 import java.util.regex.Pattern;
+import javax.sql.DataSource;
 
 import com.google.common.base.Strings;
 import org.hibernate.*;
@@ -44,23 +43,57 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class BaseHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseHelper.class);
-    private static final Trace CONTENTION_LOGGER = TraceManager.getTrace(SqlRepositoryServiceImpl.CONTENTION_LOG_NAME);
+    private static final Trace CONTENTION_LOGGER =
+            TraceManager.getTrace(SqlRepositoryServiceImpl.CONTENTION_LOG_NAME);
+
+    /**
+     * How many times we want to repeat operation after lock acquisition,
+     * pessimistic, optimistic exception.
+     */
+    public static final int LOCKING_MAX_RETRIES = 40;
+
+    /**
+     * Timeout will be a random number between 0 and LOCKING_DELAY_INTERVAL_BASE * 2^exp
+     * where exp is either real attempt # minus 1, or LOCKING_EXP_THRESHOLD (whatever is lesser).
+     */
+    public static final long LOCKING_DELAY_INTERVAL_BASE = 50;
+
+    public static final int LOCKING_EXP_THRESHOLD = 7; // i.e. up to 6400ms wait time
+
+    @NotNull
+    private final SqlRepositoryConfiguration sqlRepositoryConfiguration;
+    private final SessionFactory sessionFactory;
+    private final LocalSessionFactoryBean sessionFactoryBean;
+    private final DataSource dataSource;
+
+    // used for non-bean creation
+    public BaseHelper(
+            @NotNull SqlRepositoryConfiguration sqlRepositoryConfiguration,
+            SessionFactory sessionFactory,
+            LocalSessionFactoryBean sessionFactoryBean,
+            DataSource dataSource) {
+        this.sqlRepositoryConfiguration = sqlRepositoryConfiguration;
+        this.sessionFactory = sessionFactory;
+        this.sessionFactoryBean = sessionFactoryBean;
+        this.dataSource = dataSource;
+    }
 
     @Autowired
-    private SessionFactory sessionFactory;
-
-    @Autowired
-    private SqlRepositoryFactory repositoryFactory;
-
-    @Autowired
-    private LocalSessionFactoryBean sessionFactoryBean;
+    public BaseHelper(
+            SqlRepositoryFactory repositoryFactory,
+            SessionFactory sessionFactory,
+            LocalSessionFactoryBean sessionFactoryBean,
+            DataSource dataSource) {
+        this(repositoryFactory.getSqlConfiguration(),
+                sessionFactory, sessionFactoryBean, dataSource);
+    }
 
     public SessionFactory getSessionFactory() {
         return sessionFactory;
     }
 
     public LocalSessionFactoryBean getSessionFactoryBean() {
-        return sessionFactoryBean;
+        return sessionFactoryBean; // TODO check how used for hibernate properties, can it be sessionFactory.getProperties()?
     }
 
     public Session beginReadOnlyTransaction() {
@@ -93,7 +126,7 @@ public class BaseHelper {
 
     @NotNull
     public SqlRepositoryConfiguration getConfiguration() {
-        return repositoryFactory.getSqlConfiguration();
+        return sqlRepositoryConfiguration;
     }
 
     void rollbackTransaction(Session session, Throwable ex, OperationResult result, boolean fatal) {
@@ -392,4 +425,7 @@ public class BaseHelper {
         return false;
     }
 
+    public DataSource dataSource() {
+        return dataSource;
+    }
 }

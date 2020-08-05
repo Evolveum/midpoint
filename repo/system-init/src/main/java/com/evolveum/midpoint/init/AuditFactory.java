@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * Audit factory is a managed component that hides multiple actual {@link AuditServiceFactory}
  * components - and {@link AuditService}s they create - behind a single proxy implementation.
- * This is actually "Audit Service Proxy Factory", the service is returned by {@link #getAuditService()}.
+ * This is actually "Audit Service Proxy Factory", the service is returned by {@link #createAuditService()}.
  * This component takes care of "midpoint/audit" part of the config XML and "auditService" elements there.
  * <p>
  * Initialization process uses configured managed components (Spring beans) of type {@link AuditServiceFactory}.
@@ -67,19 +67,21 @@ public class AuditFactory {
         List<HierarchicalConfiguration<ImmutableNode>> auditServices =
                 ((BaseHierarchicalConfiguration) config).configurationsAt(CONF_AUDIT_SERVICE);
         for (Configuration serviceConfig : auditServices) {
+            String factoryClass = getFactoryClassName(serviceConfig);
             try {
-                String factoryClass = getFactoryClassName(serviceConfig);
                 //noinspection unchecked
-                Class<AuditServiceFactory> clazz = (Class<AuditServiceFactory>) Class.forName(factoryClass);
+                Class<AuditServiceFactory> clazz =
+                        (Class<AuditServiceFactory>) Class.forName(factoryClass);
                 AuditServiceFactory factory = getFactory(clazz);
                 factory.init(serviceConfig);
 
                 serviceFactories.add(factory);
             } catch (Exception ex) {
-                LoggingUtils.logException(LOGGER, "AuditServiceFactory implementation class {} failed to " +
-                        "initialize.", ex, getFactoryClassName(serviceConfig));
+                LoggingUtils.logException(LOGGER,
+                        "AuditServiceFactory implementation class {} failed to initialize.",
+                        ex, factoryClass);
                 throw new SystemException("AuditServiceFactory implementation class "
-                        + getFactoryClassName(serviceConfig) + " failed to initialize: " + ex.getMessage(), ex);
+                        + factoryClass + " failed to initialize: " + ex.getMessage(), ex);
             }
         }
     }
@@ -108,12 +110,12 @@ public class AuditFactory {
         return className;
     }
 
-    public synchronized AuditService getAuditService() {
+    public synchronized AuditService createAuditService() {
         if (auditService == null) {
             AuditServiceProxy proxy = new AuditServiceProxy();
             for (AuditServiceFactory factory : serviceFactories) {
                 try {
-                    AuditService service = factory.getAuditService();
+                    AuditService service = factory.createAuditService();
                     autowireCapableBeanFactory.autowireBean(service);
                     proxy.registerService(service);
                 } catch (Exception ex) {

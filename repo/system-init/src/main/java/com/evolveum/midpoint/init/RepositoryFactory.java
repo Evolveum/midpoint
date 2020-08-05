@@ -95,14 +95,14 @@ public class RepositoryFactory implements RuntimeConfiguration {
         return midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
     }
 
-    public synchronized RepositoryService getRepositoryService() {
+    public synchronized RepositoryService createRepositoryService() {
         if (repositoryService != null) {
             return repositoryService;
         }
 
         try {
             LOGGER.debug("Creating repository service using factory {}", factory);
-            repositoryService = factory.getRepositoryService();
+            repositoryService = factory.createRepositoryService();
         } catch (RepositoryServiceFactoryException | RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + factory, ex);
             throw new SystemException("Failed to get repository service from factory " + factory, ex);
@@ -112,9 +112,5 @@ public class RepositoryFactory implements RuntimeConfiguration {
         }
 
         return repositoryService;
-    }
-
-    public RepositoryServiceFactory getFactory() {
-        return factory;
     }
 }

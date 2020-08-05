@@ -46,13 +46,13 @@
 
     <bean id="repositoryService"
             factory-bean="repositoryFactory"
-            factory-method="getRepositoryService"/>
+            factory-method="createRepositoryService"/>
 
     <bean id="auditFactory" class="com.evolveum.midpoint.init.AuditFactory"/>
 
     <bean id="auditService"
             factory-bean="auditFactory"
-            factory-method="getAuditService"/>
+            factory-method="createAuditService"/>
 
     <!-- prism context initialization -->
     <bean id="midPointPrismContextFactory" class="com.evolveum.midpoint.init.ConfigurablePrismContextFactory">

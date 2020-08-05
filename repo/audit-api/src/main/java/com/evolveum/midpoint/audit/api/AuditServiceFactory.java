@@ -20,5 +20,5 @@ public interface AuditServiceFactory {
 
     void destroy() throws AuditServiceFactoryException;
 
-    AuditService getAuditService() throws AuditServiceFactoryException;
+    AuditService createAuditService() throws AuditServiceFactoryException;
 }

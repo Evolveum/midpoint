@@ -34,9 +34,9 @@ public class TestAsyncUpdateCachingIndexOnly extends TestAsyncUpdateCaching {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         // These are experimental features, so they need to be explicitly enabled. This will be eliminated later,
         // when we make them enabled by default.
-        sqlRepositoryService.getConfiguration().setEnableIndexOnlyItems(true);
-        sqlRepositoryService.getConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
-        sqlRepositoryService.getConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
+        sqlRepositoryService.sqlConfiguration().setEnableIndexOnlyItems(true);
+        sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
+        sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
 
         super.initSystem(initTask, initResult);
     }

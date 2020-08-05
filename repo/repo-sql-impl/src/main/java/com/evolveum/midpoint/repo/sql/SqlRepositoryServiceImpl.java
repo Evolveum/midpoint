@@ -98,8 +98,9 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private FullTextSearchConfigurationType fullTextSearchConfiguration;
 
-    public SqlRepositoryServiceImpl(SqlRepositoryFactory repositoryFactory) {
-        super(repositoryFactory);
+    @Override
+    public SqlRepositoryConfiguration sqlConfiguration() {
+        return baseHelper.getConfiguration();
     }
 
     // public because of testing
@@ -335,8 +336,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (iterative) {
             LOGGER.trace("Iterative search by paging defined by the configuration: {}, batch size {}",
-                    getConfiguration().isIterativeSearchByPaging(),
-                    getConfiguration().getIterativeSearchByPagingBatchSize());
+                    sqlConfiguration().isIterativeSearchByPaging(),
+                    sqlConfiguration().getIterativeSearchByPagingBatchSize());
         }
     }
 
@@ -596,7 +597,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         diag.setImplementationShortName(IMPLEMENTATION_SHORT_NAME);
         diag.setImplementationDescription(IMPLEMENTATION_DESCRIPTION);
 
-        SqlRepositoryConfiguration config = getConfiguration();
+        SqlRepositoryConfiguration config = sqlConfiguration();
 
         //todo improve, find and use real values (which are used by sessionFactory) MID-1219
         diag.setDriverShortName(config.getDriverClassName());
@@ -789,7 +790,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         IterationMethodType iterationMethod;
         IterationMethodType explicitIterationMethod = GetOperationOptions.getIterationMethod(SelectorOptions.findRootOptions(options));
         if (explicitIterationMethod == null || explicitIterationMethod == IterationMethodType.DEFAULT) {
-            if (getConfiguration().isIterativeSearchByPaging()) {
+            if (sqlConfiguration().isIterativeSearchByPaging()) {
                 if (strictlySequential) {
                     if (isCustomPagingOkWithPagedSeqIteration(query)) {
                         iterationMethod = IterationMethodType.STRICTLY_SEQUENTIAL_PAGING;
@@ -801,7 +802,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                     } else {
                         LOGGER.warn("Iterative search by paging was defined in the repository configuration, and strict sequentiality "
                                 + "was requested. However, a custom paging precludes its application and maxSize is either "
-                                + "undefined or too large (over " + getConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod()
+                                + "undefined or too large (over " + sqlConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod()
                                 + "). Therefore switching to simple paging iteration method. Paging requested: " + query.getPaging());
                         iterationMethod = IterationMethodType.SIMPLE_PAGING;
                     }
@@ -817,7 +818,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (strictlySequential && iterationMethod == IterationMethodType.SIMPLE_PAGING) {
             LOGGER.warn("Using simple paging where strictly sequential one is indicated: type={}, query={}", type, query);
-        } else if (getConfiguration().isIterativeSearchByPaging() && explicitIterationMethod == IterationMethodType.SINGLE_TRANSACTION) {
+        } else if (sqlConfiguration().isIterativeSearchByPaging() && explicitIterationMethod == IterationMethodType.SINGLE_TRANSACTION) {
             // we should introduce some 'native iteration supported' flag for the DB configuration to avoid false warnings here
             // based on 'iterativeSearchByPaging' setting for databases that support native iteration
             LOGGER.warn("Using single transaction iteration where DB indicates paging should be used: type={}, query={}", type, query);
@@ -849,7 +850,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return query != null
                 && query.getPaging() != null
                 && query.getPaging().getMaxSize() != null
-                && query.getPaging().getMaxSize() <= getConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod();
+                && query.getPaging().getMaxSize() <= sqlConfiguration().getMaxObjectsForImplicitFetchAllIterationMethod();
     }
 
     public static boolean isCustomPagingOkWithPagedSeqIteration(ObjectQuery query) {

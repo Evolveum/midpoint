@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,18 +7,18 @@
 
 package com.evolveum.midpoint.repo.sql.perf;
 
-import com.evolveum.midpoint.repo.api.perf.OperationRecord;
-import com.evolveum.midpoint.repo.sql.SqlBaseService;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+
+import com.evolveum.midpoint.repo.api.perf.OperationRecord;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 class OutputFormatter {
 
@@ -46,7 +46,7 @@ class OutputFormatter {
     static String getFormattedStatistics(List<OperationRecord> finishedOperations, Map<Long, OperationRecord> outstandingOperations) {
         StatEntry all = new StatEntry();
         StatEntry unfinished = new StatEntry();
-        final int maxAttempts = SqlBaseService.LOCKING_MAX_RETRIES + 1;
+        final int maxAttempts = BaseHelper.LOCKING_MAX_RETRIES + 1;
         StatEntry[] perAttempts = new StatEntry[maxAttempts];
 
         for (int i = 0; i < maxAttempts; i++) {
@@ -56,7 +56,7 @@ class OutputFormatter {
         for (OperationRecord operation : finishedOperations) {
             all.process(operation);
             if (operation.getAttempts() >= 1 && operation.getAttempts() <= maxAttempts) {
-                perAttempts[operation.getAttempts() -1].process(operation);
+                perAttempts[operation.getAttempts() - 1].process(operation);
             } else if (operation.getAttempts() < 0) {
                 unfinished.process(operation);
             }
@@ -89,9 +89,9 @@ class OutputFormatter {
                 return "no records";
             }
             return "Records: " + records + ", " +
-                   "Total time (avg/sum): " + ((float) totalTime/records) + "/" + totalTime + ", " +
-                   "Wasted time (avg/sum): " + ((float) wastedTime/records) + "/" + wastedTime + " (" + (wastedTime*100.0f/totalTime) + "%), " +
-                   "Attempts (avg): " + ((float) attempts/records);
+                    "Total time (avg/sum): " + ((float) totalTime / records) + "/" + totalTime + ", " +
+                    "Wasted time (avg/sum): " + ((float) wastedTime / records) + "/" + wastedTime + " (" + (wastedTime * 100.0f / totalTime) + "%), " +
+                    "Attempts (avg): " + ((float) attempts / records);
         }
     }
 }

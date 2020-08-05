@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -35,24 +34,25 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
+
     private static final long POOL_CLOSE_WAIT = 500L;
     private static final long H2_CLOSE_WAIT = 2000L;
     private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
+
     private boolean initialized;
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
-
-    private SqlPerformanceMonitorImpl performanceMonitor;
-
-    @NotNull
-    public SqlRepositoryConfiguration getSqlConfiguration() {
-        Validate.notNull(sqlConfiguration, "Sql repository configuration not available (null).");
-        return sqlConfiguration;
-    }
+    private SqlRepositoryServiceImpl sqlRepositoryService;
 
     /**
      * Initialization called by central repository factory from system-init.
-     * This is not part of Spring bean initialization and must (and will) happen later.
+     * This IS called as a part of Spring bean initialization and for this reason
+     * the {@link #sqlRepositoryService} is initialized lazily in {@link #createRepositoryService()},
+     * so it can use other autowired components (some depending on this factory).
+     * <p>
+     * NOTE: It's kind of circular dependency, {@link SqlRepositoryBeanConfig} depends on this
+     * when in fact it can only depend on {@link SqlRepositoryConfiguration}, but that is not
+     * a managed component (Spring bean).
      */
     @Override
     public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
@@ -86,9 +86,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             LOGGER.info("Repository is not running in embedded mode.");
         }
 
-        performanceMonitor = new SqlPerformanceMonitorImpl(
-                config.getPerformanceStatisticsLevel(), config.getPerformanceStatisticsFile());
-
         LOGGER.info("Repository initialization finished.");
 
         initialized = true;
@@ -101,8 +98,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             return;
         }
 
-        if (performanceMonitor != null) {
-            performanceMonitor.shutdown();
+        if (sqlRepositoryService != null) {
+            sqlRepositoryService.destroy();
         }
 
         if (!getSqlConfiguration().isEmbedded()) {
@@ -137,9 +134,18 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         initialized = false;
     }
 
+    @NotNull
+    public SqlRepositoryConfiguration getSqlConfiguration() {
+        Validate.notNull(sqlConfiguration, "SQL repository configuration not available (null).");
+        return sqlConfiguration;
+    }
+
     @Override
-    public RepositoryService getRepositoryService() {
-        return new SqlRepositoryServiceImpl(this);
+    public synchronized RepositoryService createRepositoryService() {
+        if (sqlRepositoryService == null) {
+            sqlRepositoryService = new SqlRepositoryServiceImpl();
+        }
+        return sqlRepositoryService;
     }
 
     private String getRelativeBaseDirPath(String baseDir) {
@@ -279,9 +285,5 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         } else {
             LOGGER.info("File '{}' doesn't exist: delete status {}", file.getAbsolutePath(), file.delete());
         }
-    }
-
-    public SqlPerformanceMonitorImpl getPerformanceMonitor() {
-        return performanceMonitor;
     }
 }

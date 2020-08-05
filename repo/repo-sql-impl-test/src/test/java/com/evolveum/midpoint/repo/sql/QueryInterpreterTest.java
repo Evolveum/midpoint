@@ -4701,7 +4701,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     private SqlRepositoryConfiguration getConfiguration() {
-        return sqlRepositoryService.getConfiguration();
+        return sqlRepositoryService.sqlConfiguration();
     }
 
     // TODO negative tests - order by entity, reference, any, collection
