@@ -40,7 +40,7 @@ public class SqlQueryExecutor {
         this.dataSourceFactory = dataSourceFactory;
 
         SqlRepositoryConfiguration.Database database =
-                dataSourceFactory.getConfiguration().getDatabase();
+                dataSourceFactory.configuration().getDatabase();
         switch (database) {
             case H2:
                 querydslConfiguration = new Configuration(H2Templates.DEFAULT);

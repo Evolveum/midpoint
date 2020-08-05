@@ -35,9 +35,8 @@
     </bean>
 
     <bean id="testDataSourceFactory"
-            class="com.evolveum.midpoint.repo.sql.DataSourceFactory"
-            destroy-method="destroy">
-        <property name="configuration" value="#{testSqlRepositoryFactory.sqlConfiguration}"/>
+            class="com.evolveum.midpoint.repo.sql.DataSourceFactory">
+        <constructor-arg value="#{testSqlRepositoryFactory.sqlConfiguration}"/>
     </bean>
 
     <bean id="testDataSource"
