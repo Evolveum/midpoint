@@ -31,7 +31,8 @@ public class DataSourceFactory {
 
     private final SqlRepositoryConfiguration configuration;
 
-    private DataSource internalDataSource;
+    private boolean internalDataSource = false;
+
     private DataSource dataSource;
 
     public DataSourceFactory(SqlRepositoryConfiguration configuration) {
@@ -51,11 +52,11 @@ public class DataSourceFactory {
         try {
             if (StringUtils.isNotEmpty(configuration.getDataSource())) {
                 LOGGER.info("JNDI datasource present in configuration, looking for '{}'.", configuration.getDataSource());
-                dataSource = createJNDIDataSource();
+                dataSource = createJndiDataSource();
             } else {
                 LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}", configuration.getJdbcUrl());
-                internalDataSource = createDataSourceInternal();
-                dataSource = internalDataSource;
+                dataSource = createDataSourceInternal();
+                internalDataSource = true;
             }
             return dataSource;
         } catch (Exception ex) {
@@ -67,14 +68,14 @@ public class DataSourceFactory {
         return dataSource;
     }
 
-    private DataSource createJNDIDataSource() throws IllegalArgumentException, NamingException {
+    private DataSource createJndiDataSource() throws IllegalArgumentException, NamingException {
         JndiObjectFactoryBean factory = new JndiObjectFactoryBean();
         factory.setJndiName(configuration.getDataSource());
         factory.afterPropertiesSet();
         return (DataSource) factory.getObject();
     }
 
-    private HikariConfig createConfig() {
+    private HikariConfig createHikariConfig() {
         HikariConfig config = new HikariConfig();
 
         config.setDriverClassName(configuration.getDriverClassName());
@@ -96,7 +97,6 @@ public class DataSourceFactory {
         }
 
         config.setIsolateInternalQueries(true);
-//        config.setAutoCommit(false);
 
         TransactionIsolation ti = configuration.getTransactionIsolation();
         if (ti != null && TransactionIsolation.SNAPSHOT != ti) {
@@ -107,15 +107,6 @@ public class DataSourceFactory {
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-
-//            config.addDataSourceProperty("useServerPrepStmts", "true");
-//            config.addDataSourceProperty("useLocalSessionState", "true");
-//            config.addDataSourceProperty("useLocalTransactionState", "true");
-//            config.addDataSourceProperty("rewriteBatchedStatements", "true");
-//            config.addDataSourceProperty("cacheResultSetMetadata", "true");
-//            config.addDataSourceProperty("cacheServerConfiguration", "true");
-//            config.addDataSourceProperty("elideSetAutoCommits", "true");
-//            config.addDataSourceProperty("maintainTimeStats", "false");
         }
 
         config.setInitializationFailTimeout(configuration.getInitializationFailTimeout());
@@ -124,15 +115,15 @@ public class DataSourceFactory {
     }
 
     private DataSource createDataSourceInternal() {
-        HikariConfig config = createConfig();
+        HikariConfig config = createHikariConfig();
 
         return new HikariDataSource(config);
     }
 
     @PreDestroy
     public void destroy() throws IOException {
-        if (internalDataSource instanceof Closeable) {
-            ((Closeable) internalDataSource).close();
+        if (internalDataSource && dataSource instanceof Closeable) {
+            ((Closeable) dataSource).close();
         }
     }
 }
