@@ -32,10 +32,7 @@
             factory-bean="keyStoreFactory"
             factory-method="getProtector"/>
 
-    <bean id="repositoryFactory"
-            class="com.evolveum.midpoint.init.RepositoryFactory"
-            init-method="init"
-            destroy-method="destroy"/>
+    <bean id="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory"/>
 
     <bean id="repositoryService"
             factory-bean="repositoryFactory"

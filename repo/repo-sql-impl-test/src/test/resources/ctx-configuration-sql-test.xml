@@ -16,10 +16,7 @@
             http://www.springframework.org/schema/context/spring-context-3.0.xsd"
         default-lazy-init="false">
 
-    <bean id="repositoryFactory"
-            class="com.evolveum.midpoint.init.RepositoryFactory"
-            init-method="init"
-            destroy-method="destroy"/>
+    <bean id="repositoryFactory" class="com.evolveum.midpoint.init.RepositoryFactory"/>
 
     <bean id="repositoryService"
             factory-bean="repositoryFactory"
