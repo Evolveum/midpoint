@@ -30,9 +30,7 @@
             primary="true"
             depends-on="repositoryFactory"/>
 
-    <bean id="testSqlAuditFactory"
-            class="com.evolveum.midpoint.repo.sql.testing.TestSqlAuditServiceFactory"
-            primary="true">
+    <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory">
         <property name="repositoryFactory" ref="testSqlRepositoryFactory"/>
     </bean>
 
