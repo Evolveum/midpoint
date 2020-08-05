@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -50,6 +50,50 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         return sqlConfiguration;
     }
 
+    /**
+     * Initialization called by central repository factory from system-init.
+     * This is not part of Spring bean initialization and must (and will) happen later.
+     */
+    @Override
+    public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
+        if (initialized) {
+            LOGGER.info("SQL repository already initialized.");
+            return;
+        }
+        Validate.notNull(configuration, "Configuration must not be null.");
+
+        LOGGER.info("Initializing SQL repository factory");
+        SqlRepositoryConfiguration config = new SqlRepositoryConfiguration(configuration);
+        config.validate();
+        sqlConfiguration = config;
+
+        if (config.isUsingH2()) {
+            if (System.getProperty(H2_IMPLICIT_RELATIVE_PATH) == null) {
+                System.setProperty(H2_IMPLICIT_RELATIVE_PATH, "true");        // to ensure backwards compatibility (H2 1.3.x)
+            }
+        }
+
+        if (config.isEmbedded()) {
+            dropDatabaseIfExists(config);
+            if (config.isAsServer()) {
+                LOGGER.info("Starting h2 in server mode.");
+                startServer();
+            } else {
+                LOGGER.info("H2 prepared to run in local mode (from file).");
+            }
+            LOGGER.info("H2 files are in '{}'.", new File(config.getBaseDir()).getAbsolutePath());
+        } else {
+            LOGGER.info("Repository is not running in embedded mode.");
+        }
+
+        performanceMonitor = new SqlPerformanceMonitorImpl(
+                config.getPerformanceStatisticsLevel(), config.getPerformanceStatisticsFile());
+
+        LOGGER.info("Repository initialization finished.");
+
+        initialized = true;
+    }
+
     @Override
     public synchronized void destroy() {
         if (!initialized) {
@@ -91,46 +135,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         LOGGER.info("Shutdown complete.");
 
         initialized = false;
-    }
-
-    @Override
-    public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
-        if (initialized) {
-            LOGGER.info("SQL repository already initialized.");
-            return;
-        }
-        Validate.notNull(configuration, "Configuration must not be null.");
-
-        LOGGER.info("Initializing SQL repository factory");
-        SqlRepositoryConfiguration config = new SqlRepositoryConfiguration(configuration);
-        config.validate();
-        sqlConfiguration = config;
-
-        if (config.isUsingH2()) {
-            if (System.getProperty(H2_IMPLICIT_RELATIVE_PATH) == null) {
-                System.setProperty(H2_IMPLICIT_RELATIVE_PATH, "true");        // to ensure backwards compatibility (H2 1.3.x)
-            }
-        }
-
-        if (config.isEmbedded()) {
-            dropDatabaseIfExists(config);
-            if (config.isAsServer()) {
-                LOGGER.info("Starting h2 in server mode.");
-                startServer();
-            } else {
-                LOGGER.info("H2 prepared to run in local mode (from file).");
-            }
-            LOGGER.info("H2 files are in '{}'.", new File(config.getBaseDir()).getAbsolutePath());
-        } else {
-            LOGGER.info("Repository is not running in embedded mode.");
-        }
-
-        performanceMonitor = new SqlPerformanceMonitorImpl();
-        performanceMonitor.initialize(this);
-
-        LOGGER.info("Repository initialization finished.");
-
-        initialized = true;
     }
 
     @Override
