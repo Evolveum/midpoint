@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 import java.util.Collection;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -70,7 +71,7 @@ public class ProjectionValueMetadataCreator {
                         metadata = metadataSupplier.get();
                     }
                     try {
-                        value.setValueMetadata(metadata);
+                        value.setValueMetadata(CloneUtil.clone(metadata));
                     } catch (SchemaException e) {
                         throw new SystemException("Unexpected schema exception", e);
                     }

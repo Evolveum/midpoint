@@ -758,7 +758,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
             PrismObject<F> focus = getCurrentFocus();
             PrismObjectDefinition<F> focusDef = getFocusDefinition(focus);
 
-            // TODO apply metadata on if enabled
+            // TODO apply metadata only if enabled
             if (currentProjectionItem != null) {
                 beans.projectionValueMetadataCreator.setValueMetadata(currentProjectionItem, projectionContext);
             }
