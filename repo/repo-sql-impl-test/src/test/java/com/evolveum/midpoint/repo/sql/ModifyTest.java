@@ -1672,13 +1672,13 @@ public class ModifyTest extends BaseSQLRepoTest {
         Item<PrismValue, ItemDefinition> item = object.findItem(itemName);
         assertThat(item).isNotNull();
         assertThat(item.size()).isEqualTo(1);
-        ValueMetadataType metadata = (ValueMetadataType) item.getValue().getValueMetadata().asContainerable();
+        ValueMetadataType metadata = item.getValue().getValueMetadata().getRealValue(ValueMetadataType.class);
         assertThat(metadata).isNotNull();
         assertThat(metadata.getStorage()).isNotNull();
         assertThat(metadata.getStorage().getCreateChannel()).isEqualTo(expectedValue);
     }
 
-    private PrismValue createCloneWithMetadata(ItemName itemName, String channel) {
+    private PrismValue createCloneWithMetadata(ItemName itemName, String channel) throws SchemaException {
         ValueMetadataType metadata = new ValueMetadataType(prismContext)
                 .beginStorage()
                     .createChannel(channel)

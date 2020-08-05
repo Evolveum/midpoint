@@ -308,6 +308,7 @@ public class OpNode {
         }
         return false;
     }
+
     public String getImportanceSymbol() {
         if (result.getImportance() != null) {
             switch (result.getImportance()) {
@@ -544,5 +545,22 @@ public class OpNode {
         // temporary implementation
         OperationKindType kind = getKind();
         return kind == OperationKindType.CLOCKWORK_EXECUTION || kind == OperationKindType.CLOCKWORK_CLICK;
+    }
+
+    public List<OpNode> getVisibleChildren() {
+        List<OpNode> visibleChildren = new ArrayList<>();
+        for (OpNode child : children) {
+            if (child.isVisible()) {
+                visibleChildren.add(child);
+            } else {
+                visibleChildren.addAll(child.getVisibleChildren());
+            }
+        }
+        return visibleChildren;
+    }
+
+    @Override
+    public String toString() {
+        return "OpNode{" + getOperationNameFormatted() + '}';
     }
 }

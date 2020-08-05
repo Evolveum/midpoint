@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.prism.impl.xnode;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
@@ -15,6 +16,7 @@ import com.evolveum.midpoint.prism.AbstractFreezable;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.Transformer;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
@@ -242,18 +244,14 @@ public abstract class XNodeImpl extends AbstractFreezable implements XNode {
         this.parserData = parserData;
     }
 
-    void appendMetadata(StringBuilder sb, int indent, MapXNode metadata) {
-        if (metadata != null) {
+    void appendMetadata(StringBuilder sb, int indent, List<MapXNode> metadata) {
+        if (metadata != null && !metadata.isEmpty()) {
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "metadata", metadata, indent);
         }
     }
 
-    boolean metadataEquals(MapXNode metadata1, MapXNode metadata2) {
-        if (metadata1 == null) {
-            return metadata2 == null;
-        } else {
-            return metadata1.equals(metadata2);
-        }
+    boolean metadataEquals(@NotNull List<MapXNode> metadata1, @NotNull List<MapXNode> metadata2) {
+        return MiscUtil.unorderedCollectionEquals(metadata1, metadata2);
     }
 }

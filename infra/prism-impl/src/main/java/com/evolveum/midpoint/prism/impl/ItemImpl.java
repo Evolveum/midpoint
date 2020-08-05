@@ -785,15 +785,15 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         if (this == obj) {
             return true;
         }
-        if (getClass() != obj.getClass()) {
+        if (!(obj instanceof Item)) {
             return false;
         }
-        ItemImpl<?,?> second = (ItemImpl<?,?>) obj;
+        Item<?,?> second = (Item<?,?>) obj;
         @SuppressWarnings("unchecked")
-        Collection<V> secondValues = (Collection<V>) second.values;
-        return (!parameterizedEquivalenceStrategy.isConsideringDefinitions() || Objects.equals(definition, second.definition)) &&
-                (!parameterizedEquivalenceStrategy.isConsideringElementNames() || Objects.equals(elementName, second.elementName)) &&
-                incomplete == second.incomplete &&
+        Collection<V> secondValues = (Collection<V>) second.getValues();
+        return (!parameterizedEquivalenceStrategy.isConsideringDefinitions() || Objects.equals(definition, second.getDefinition())) &&
+                (!parameterizedEquivalenceStrategy.isConsideringElementNames() || Objects.equals(elementName, second.getElementName())) &&
+                incomplete == second.isIncomplete() &&
                 MiscUtil.unorderedCollectionEquals(values, secondValues, parameterizedEquivalenceStrategy::equals);
         // Do not compare parents at all. They are not relevant.
     }

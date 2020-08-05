@@ -196,17 +196,19 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
 
     protected <VW extends PrismValueWrapper> void setupMetadata(VW valueWrapper, WrapperContext ctx) throws SchemaException {
         PrismValue oldValue = valueWrapper.getNewValue();
-        Optional<ValueMetadata> metadata = oldValue.valueMetadata();
-        if (!metadata.isPresent()) {
-            LOGGER.trace("Skipping creating metadata");
-            return;
-        }
-
-        ValueMetadata valueMetadata = metadata.get();
-
-        ValueMetadataWrapperFactoryImpl valueMetadataWrapperFactory = new ValueMetadataWrapperFactoryImpl(getRegistry());
-        PrismContainerValueWrapper<Containerable> valueMetadataWrapper = valueMetadataWrapperFactory.createValueWrapper(null, valueMetadata, ValueStatus.NOT_CHANGED, ctx);
-        valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
+        Optional<ValueMetadata> metadata = oldValue.valueMetadata(); // TODO
+        return;
+        // TODO adapt this code
+//        if (!metadata.isPresent()) {
+//            LOGGER.trace("Skipping creating metadata");
+//            return;
+//        }
+//
+//        ValueMetadata valueMetadata = metadata.get();
+//
+//        ValueMetadataWrapperFactoryImpl valueMetadataWrapperFactory = new ValueMetadataWrapperFactoryImpl(getRegistry());
+//        PrismContainerValueWrapper<Containerable> valueMetadataWrapper = valueMetadataWrapperFactory.createValueWrapper(null, valueMetadata, ValueStatus.NOT_CHANGED, ctx);
+//        valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
     }
 
     protected List<PV> getValues(I item) {

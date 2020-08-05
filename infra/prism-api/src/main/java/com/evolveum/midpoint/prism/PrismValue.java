@@ -46,8 +46,13 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 
     void setParent(Itemable parent);
 
-    @Experimental
-    Optional<ValueMetadata> valueMetadata();
+    /**
+     * To be reconsidered.
+     */
+    @Deprecated
+    default Optional<ValueMetadata> valueMetadata() {
+        return Optional.of(getValueMetadata());
+    }
 
     /**
      * Maybe it is better to expect empty value metadata if these are absent.
@@ -58,13 +63,33 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
     ValueMetadata getValueMetadata();
 
     /**
+     * Returns value metadata as typed PrismContainer.
+     * Useful for lazy clients because of the type matching.
+     */
+    @Experimental
+    @NotNull
+    default <C extends Containerable> PrismContainer<C> getValueMetadataAsContainer() {
+        //noinspection unchecked
+        return (PrismContainer<C>) getValueMetadata();
+    }
+
+    /**
      * Sets metadata for this value.
      */
     @Experimental
     void setValueMetadata(ValueMetadata valueMetadata);
 
+    /**
+     * Sets metadata for this value.
+     */
     @Experimental
-    void setValueMetadata(Containerable realValue);
+    void setValueMetadata(PrismContainer<?> valueMetadata);
+
+    /**
+     * Sets metadata from this value (from PCV). To be removed (most probably).
+     */
+    @Experimental
+    void setValueMetadata(Containerable realValue) throws SchemaException;
 
     @NotNull
     ItemPath getPath();

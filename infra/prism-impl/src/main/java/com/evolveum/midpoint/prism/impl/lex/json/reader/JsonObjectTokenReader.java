@@ -10,21 +10,22 @@ package com.evolveum.midpoint.prism.impl.lex.json.reader;
 import static com.evolveum.midpoint.prism.impl.lex.json.reader.RootObjectReader.DEFAULT_NAMESPACE_MARKER;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.impl.xnode.*;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 
 import com.evolveum.midpoint.prism.xnode.MetadataAware;
+
+import com.evolveum.midpoint.prism.xnode.XNode;
 
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.impl.lex.json.Constants;
-import com.evolveum.midpoint.prism.impl.xnode.IncompleteMarkerXNodeImpl;
-import com.evolveum.midpoint.prism.impl.xnode.MapXNodeImpl;
-import com.evolveum.midpoint.prism.impl.xnode.PrimitiveXNodeImpl;
-import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
 import com.evolveum.midpoint.prism.marshaller.XNodeProcessorEvaluationMode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -70,7 +71,7 @@ class JsonObjectTokenReader {
     /**
      * Metadata (@metadata).
      */
-    private MapXNode metadata;
+    private final List<MapXNode> metadata = new ArrayList<>();
 
     /**
      * Value of the "incomplete" flag (@incomplete).
@@ -204,13 +205,18 @@ class JsonObjectTokenReader {
     }
 
     private void processMetadataValue() throws SchemaException {
-        if (metadata != null) {
-            warnOrThrow("Value ('" + Constants.PROP_METADATA + "') defined more than once");
-        }
         if (currentFieldValue instanceof MapXNode) {
-            metadata = (MapXNode) currentFieldValue;
+            metadata.add((MapXNode) currentFieldValue);
+        } else if (currentFieldValue instanceof ListXNodeImpl) {
+            for (XNode metadataValue : (ListXNodeImpl) currentFieldValue) {
+                if (metadataValue instanceof MapXNode) {
+                    metadata.add((MapXNode) metadataValue);
+                } else {
+                    warnOrThrow("Metadata is not a map XNode: " + metadataValue.debugDump());
+                }
+            }
         } else {
-            warnOrThrow("Metadata is not a map XNode: " + currentFieldValue.debugDump());
+            warnOrThrow("Metadata is not a map or list XNode: " + currentFieldValue.debugDump());
         }
     }
 
@@ -284,14 +290,14 @@ class JsonObjectTokenReader {
             if (rv instanceof MapXNodeImpl) {
                 ctx.defaultNamespaces.put((MapXNodeImpl) rv, declaredNamespace);
             }
-            if (metadata != null) {
-                ctx.defaultNamespaces.put((MapXNodeImpl) metadata, declaredNamespace);
+            for (MapXNode metadataNode : metadata) {
+                ctx.defaultNamespaces.put((MapXNodeImpl) metadataNode, declaredNamespace);
             }
         }
 
-        if (metadata != null) {
+        if (!metadata.isEmpty()) {
             if (rv instanceof MetadataAware) {
-                ((MetadataAware) rv).setMetadataNode(metadata);
+                ((MetadataAware) rv).setMetadataNodes(metadata);
             } else {
                 warnOrThrow("Couldn't apply metadata to non-metadata-aware node: " + rv.getClass());
             }

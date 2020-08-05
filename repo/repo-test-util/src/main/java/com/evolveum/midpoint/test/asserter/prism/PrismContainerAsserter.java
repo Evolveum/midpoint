@@ -46,14 +46,19 @@ public class PrismContainerAsserter<C extends Containerable, RA> extends PrismIt
         return this;
     }
 
-    public PrismContainerValueAsserter<C, PrismContainerAsserter<C, RA>> value(int index) {
+    public PrismContainerValueAsserter<C, ? extends PrismContainerAsserter<C, RA>> singleValue() {
+        assertSize(1);
+        return value(0);
+    }
+
+    public PrismContainerValueAsserter<C, ? extends PrismContainerAsserter<C, RA>> value(int index) {
         PrismContainerValueAsserter<C, PrismContainerAsserter<C, RA>> asserter =
                 new PrismContainerValueAsserter<>(getItem().getValues().get(index), this, getDetails());
         copySetupTo(asserter);
         return asserter;
     }
 
-    public PrismContainerValueAsserter<C, PrismContainerAsserter<C, RA>> value(ValueSelector<PrismContainerValue<C>> selector) {
+    public PrismContainerValueAsserter<C, ? extends PrismContainerAsserter<C, RA>> value(ValueSelector<PrismContainerValue<C>> selector) {
         PrismContainerValueAsserter<C, PrismContainerAsserter<C, RA>> asserter =
                 new PrismContainerValueAsserter<>(getItem().getAnyValue(selector), this, getDetails());
         copySetupTo(asserter);

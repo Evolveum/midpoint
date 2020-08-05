@@ -225,12 +225,14 @@ public class PrismMarshaller {
     }
 
     private void marshalValueMetadata(PrismValue itemValue, XNodeImpl xnode, SerializationContext ctx) throws SchemaException {
-        PrismContainerValue<?> valueMetadata = itemValue.getValueMetadata();
-        if (!valueMetadata.isEmpty()) {
+        PrismContainer<?> valueMetadataContainer = itemValue.getValueMetadata();
+        if (!valueMetadataContainer.isEmpty()) {
             if (xnode instanceof MetadataAware) {
-                MapXNode metadataNode = marshalContainerValue(valueMetadata,
-                        getSchemaRegistry().getValueMetadataDefinition(), ctx, emptySet());
-                ((MetadataAware) xnode).setMetadataNode(metadataNode);
+                for (PrismContainerValue<?> valueMetadataValue : valueMetadataContainer.getValues()) {
+                    MapXNode metadataNode = marshalContainerValue(valueMetadataValue,
+                            getSchemaRegistry().getValueMetadataDefinition(), ctx, emptySet());
+                    ((MetadataAware) xnode).addMetadataNode(metadataNode);
+                }
             } else {
                 throw new IllegalStateException("Couldn't marshal value metadata of " + itemValue + " to non-metadata-aware XNode: " + xnode);
             }

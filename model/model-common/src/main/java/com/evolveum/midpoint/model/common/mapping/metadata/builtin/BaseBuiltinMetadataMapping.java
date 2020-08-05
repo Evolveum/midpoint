@@ -66,7 +66,7 @@ abstract class BaseBuiltinMetadataMapping implements BuiltinMetadataMapping {
     private <T> Set<T> getRealValues(List<PrismValue> values, ItemPath path) {
         //noinspection unchecked
         return (Set<T>) values.stream()
-                .map(PrismValue::getValueMetadata)
+                .flatMap(prismValue -> prismValue.getValueMetadata().getValues().stream()) // TEMPORARY!!!
                 .map(v -> v.findItem(path))
                 .filter(Objects::nonNull)
                 .map(Item::getRealValue)

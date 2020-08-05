@@ -17,6 +17,9 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * @author Radovan Semancik
  *
@@ -25,7 +28,7 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
 
     private Element schemaElement;
 
-    private MapXNode metadata;
+    @NotNull private List<MapXNode> metadataNodes = new ArrayList<>();
 
     public Element getSchemaElement() {
         return schemaElement;
@@ -58,7 +61,7 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
         if (dumpSuffix != null) {
             sb.append(dumpSuffix);
         }
-        appendMetadata(sb, indent, metadata);
+        appendMetadata(sb, indent, metadataNodes);
         return sb.toString();
     }
 
@@ -74,7 +77,7 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
 
         SchemaXNodeImpl that = (SchemaXNodeImpl) o;
 
-        if (!metadataEquals(metadata, that.metadata)) {
+        if (!metadataEquals(metadataNodes, that.metadataNodes)) {
             return false;
         }
 
@@ -93,13 +96,13 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
     }
 
     @Override
-    public MapXNode getMetadataNode() {
-        return metadata;
+    public @NotNull List<MapXNode> getMetadataNodes() {
+        return metadataNodes;
     }
 
     @Override
-    public void setMetadataNode(MapXNode metadata) {
-        this.metadata = metadata;
+    public void setMetadataNodes(@NotNull List<MapXNode> metadataNodes) {
+        this.metadataNodes = metadataNodes;
     }
 
     @Override

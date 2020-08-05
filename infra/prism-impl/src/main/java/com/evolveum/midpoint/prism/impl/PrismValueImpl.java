@@ -389,36 +389,48 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     }
 
     @Override
-    public Optional<ValueMetadata> valueMetadata() {
-        if (valueMetadata != null) {
-            return Optional.of(valueMetadata);
-        } else {
-            return Optional.empty();
-        }
-    }
-
-    @Override
     @NotNull
     public ValueMetadata getValueMetadata() {
         if (valueMetadata == null) {
-            if (prismContext != null && prismContext.getValueMetadataFactory() != null) {
-                valueMetadata = prismContext.getValueMetadataFactory().createEmpty();
-            } else {
-                valueMetadata = ValueMetadataAdapter.holding(new PrismContainerValueImpl<>());
-            }
+            assert isMutable();
+            valueMetadata = createEmptyMetadata();
         }
         return valueMetadata;
     }
 
+    private ValueMetadata createEmptyMetadata() {
+        if (prismContext != null && prismContext.getValueMetadataFactory() != null) {
+            return prismContext.getValueMetadataFactory().createEmpty();
+        } else {
+            return ValueMetadataAdapter.holding(new PrismContainerImpl<>(PrismConstants.VALUE_METADATA_CONTAINER_NAME));
+        }
+    }
+
     @Override
     public void setValueMetadata(ValueMetadata valueMetadata) {
+        checkMutable();
+        if (valueMetadata != null) {
+            valueMetadata.checkConsistence(ConsistencyCheckScope.MANDATORY_CHECKS_ONLY); // TODO optimize
+        }
         this.valueMetadata = valueMetadata;
     }
 
     @Override
-    public void setValueMetadata(Containerable realValue) {
+    public void setValueMetadata(PrismContainer<?> valueMetadataContainer) {
+        if (valueMetadataContainer != null) {
+            setValueMetadata(ValueMetadataAdapter.holding(valueMetadataContainer));
+        } else {
+            setValueMetadata((ValueMetadata) null);
+        }
+    }
+
+    @Override
+    public void setValueMetadata(Containerable realValue) throws SchemaException {
         if (realValue != null) {
-            setValueMetadata(ValueMetadataAdapter.holding(realValue.asPrismContainerValue()));
+            ValueMetadata newMetadata = createEmptyMetadata();
+            //noinspection unchecked
+            newMetadata.add(realValue.asPrismContainerValue());
+            setValueMetadata(newMetadata);
         } else {
             setValueMetadata((ValueMetadata) null);
         }
@@ -426,6 +438,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
 
     @Override
     protected void performFreeze() {
+        getValueMetadata(); // to create empty metadata if there's none
         if (valueMetadata != null) {
             valueMetadata.freeze();
         }

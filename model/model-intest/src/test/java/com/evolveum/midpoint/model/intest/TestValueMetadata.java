@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 import com.evolveum.midpoint.test.DummyTestResource;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -144,8 +145,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         addObject(TEMPLATE_REGULAR_USER, initTask, initResult);
         addObject(USER_ALICE, initTask, initResult);
 
-        //predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
-//        setGlobalTracingOverride(createModelLoggingTracingProfile());
+//        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
+        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     @Override
@@ -167,20 +168,20 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         nameValue.getValueMetadata();
 
         when();
-        Optional<ValueMetadata> metadata = nameValue.valueMetadata();
-        assertThat(metadata).isPresent();
+        ValueMetadata metadata = nameValue.getValueMetadata();
+        assertThat(metadata.isEmpty()).isTrue();
 
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
 
-        ValueMetadataType realMetadataValue = (ValueMetadataType) metadata.get().asContainerable();
+        ValueMetadataType realMetadataValue = (ValueMetadataType) metadata.createNewValue().asContainerable();
         realMetadataValue.setProvisioning(new ProvisioningMetadataType(prismContext));
         realMetadataValue.getProvisioning().setLastProvisioningTimestamp(now);
 
         then();
-        Optional<ValueMetadata> metadataAfter = nameValue.valueMetadata();
-        assertThat(metadataAfter).isPresent();
+        @NotNull ValueMetadata metadataAfter = nameValue.getValueMetadata();
+        assertThat(metadataAfter.isEmpty()).isFalse();
 
-        ValueMetadataType realMetadataValueAfter = (ValueMetadataType) metadataAfter.get().asContainerable();
+        ValueMetadataType realMetadataValueAfter = (ValueMetadataType) metadataAfter.getRealValue();
         assertThat(realMetadataValueAfter.getProvisioning().getLastProvisioningTimestamp()).isEqualTo(now);
     }
 
@@ -189,66 +190,63 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         given();
 
         when();
-        PrismObject<UserType> alice = getUser(USER_ALICE.oid);
 
-        Optional<ValueMetadata> objectMetadata = alice.getValue().valueMetadata();
-        Optional<ValueMetadata> nameMetadata = alice.findItem(UserType.F_NAME).getValue().valueMetadata();
-        Optional<ValueMetadata> givenNameMetadata = alice.findItem(UserType.F_GIVEN_NAME).getValue().valueMetadata();
-        Optional<ValueMetadata> familyNameMetadata = alice.findItem(UserType.F_FAMILY_NAME).getValue().valueMetadata();
-        Optional<ValueMetadata> fullNameMetadata = alice.findItem(UserType.F_FULL_NAME).getValue().valueMetadata();
-        Optional<ValueMetadata> developmentMetadata = alice.findProperty(UserType.F_ORGANIZATIONAL_UNIT)
-                .getAnyValue(ppv -> "Development".equals(PolyString.getOrig((PolyString) ppv.getRealValue())))
-                .valueMetadata();
-        //noinspection unchecked
-        PrismContainerValue<AssignmentType> assignment111 = (PrismContainerValue<AssignmentType>) alice.find(ItemPath.create(UserType.F_ASSIGNMENT, 111L));
-        Optional<ValueMetadata> assignmentMetadata = assignment111.valueMetadata();
-        Optional<ValueMetadata> manualSubtypeMetadata = assignment111.findProperty(AssignmentType.F_SUBTYPE)
-                .getAnyValue(ppv -> "manual".equals(ppv.getRealValue()))
-                .valueMetadata();
-        Optional<ValueMetadata> assignmentAdminStatusMetadata =
-                assignment111.findProperty(ItemPath.create(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS))
-                        .getValue().valueMetadata();
         then();
-
-        display("alice after", alice);
-
-        assertThat(objectMetadata).as("object metadata").isPresent();
-        displayDumpable("object metadata", objectMetadata.get());
-        assertThat(cast(objectMetadata).getProcess()).as("process metadata")
-                .isNotNull()
-                .extracting(ProcessMetadataType::getRequestTimestamp).as("request timestamp").isNotNull();
-
-        assertThat(nameMetadata).as("name metadata").isPresent();
-        displayDumpable("name metadata", nameMetadata.get());
-        assertThat(cast(nameMetadata).getTransformation())
-                .as("name transformation metadata")
-                .isNotNull()
-                .extracting(TransformationMetadataType::getSource)
-                .asList().hasSize(1);
-        assertThat(cast(nameMetadata).getTransformation().getSource().get(0).getKind())
-                .as("name transformation source kind")
-                .isEqualTo("http://midpoint.evolveum.com/data-provenance/source#resource");
-
-        assertThat(givenNameMetadata).as("given name metadata").isPresent();
-        displayDumpable("given name metadata", givenNameMetadata.get());
-
-        assertThat(familyNameMetadata).as("family name metadata").isPresent();
-        displayDumpable("family name metadata", familyNameMetadata.get());
-
-        assertThat(fullNameMetadata).as("full name metadata").isPresent();
-        displayDumpable("full name metadata", fullNameMetadata.get());
-
-        assertThat(developmentMetadata).as("Development OU metadata").isPresent();
-        displayDumpable("Development OU metadata", developmentMetadata.get());
-
-        assertThat(assignmentMetadata).as("assignment[111] metadata").isPresent();
-        displayDumpable("assignment[111] metadata", assignmentMetadata.get());
-
-        assertThat(manualSubtypeMetadata).as("assignment[111] subtype of 'manual' metadata").isPresent();
-        displayDumpable("assignment[111] subtype of 'manual' metadata", manualSubtypeMetadata.get());
-
-        assertThat(assignmentAdminStatusMetadata).as("assignment[111] admin status metadata").isPresent();
-        displayDumpable("assignment[111] admin status metadata", assignmentAdminStatusMetadata.get());
+        assertUserAfter(USER_ALICE.oid)
+                .valueMetadata(ItemPath.EMPTY_PATH)
+                    .singleValue()
+                        .containerSingle(ValueMetadataType.F_PROCESS)
+                            .assertItems(ProcessMetadataType.F_REQUEST_TIMESTAMP)
+                            .end()
+                        .end()
+                    .end()
+                .valueMetadata(UserType.F_NAME)
+                    .singleValue()
+                        .containerSingle(ValueMetadataType.F_TRANSFORMATION)
+                            .container(TransformationMetadataType.F_SOURCE)
+                                .assertSize(1)
+                                .singleValue()
+                                    .assertPropertyEquals(ValueSourceType.F_KIND, "http://midpoint.evolveum.com/data-provenance/source#resource")
+                                    .end()
+                                .end()
+                            .end()
+                        .end()
+                    .end()
+                .valueMetadata(UserType.F_GIVEN_NAME)
+                    .singleValue()
+                        .display()
+                        .end()
+                    .end()
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .singleValue()
+                        .display()
+                        .end()
+                    .end()
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .singleValue()
+                        .display()
+                        .end()
+                    .end()
+                .valueMetadata(UserType.F_ORGANIZATIONAL_UNIT, ppv -> "Development".equals(PolyString.getOrig((PolyString) ppv.getRealValue())))
+                    .singleValue()
+                        .display()
+                        .end()
+                    .end()
+                .valueMetadata(ItemPath.create(UserType.F_ASSIGNMENT, 111L))
+                    .singleValue()
+                        .display()
+                        .end()
+                    .end()
+                .valueMetadata(ItemPath.create(UserType.F_ASSIGNMENT, 111L, AssignmentType.F_SUBTYPE), ppv -> "manual".equals(ppv.getRealValue()))
+                    .singleValue()
+                        .display()
+                        .end()
+                    .end()
+                .valueMetadata(ItemPath.create(UserType.F_ASSIGNMENT, 111L, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS))
+                    .singleValue()
+                        .display()
+                        .end()
+                    .end();
     }
 
     @Test
@@ -265,18 +263,22 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .display()
                 .displayXml()
                 .valueMetadata(UserType.F_GIVEN_NAME)
-                    .display()
-                    .assertPropertyValuesEqual(LOA_PATH, "low")
+                    .singleValue()
+                        .display()
+                        .assertPropertyValuesEqual(LOA_PATH, "low")
+                        .end()
                     .end()
                 .valueMetadata(UserType.F_FAMILY_NAME)
-                    .display()
-                    .assertPropertyValuesEqual(LOA_PATH, "high")
+                    .singleValue()
+                        .display()
+                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .end()
                     .end()
                 .assertFullName("Bob Green")
                 .valueMetadata(UserType.F_FULL_NAME)
-                    .display()
-                    .assertPropertyValuesEqual(LOA_PATH, "low")
-                    .end();
+                    .singleValue()
+                        .display()
+                        .assertPropertyValuesEqual(LOA_PATH, "low");
     }
 
     @Test
@@ -300,9 +302,10 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .displayXml()
                 .assertFullName("Chuck White")
                 .valueMetadata(UserType.F_FULL_NAME)
-                    .display()
-                    .assertPropertyValuesEqual(LOA_PATH, "low")
-                    .end();
+                    .singleValue()
+                        .display()
+                        .assertPropertyValuesEqual(LOA_PATH, "low")
+                        .end();
     }
     //endregion
 
@@ -323,13 +326,13 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .assertFullName("Paul Morphy")
                 .assertDescription("Paul")
                 .valueMetadata(UserType.F_DESCRIPTION)
-                    .display()
                     .assertSize(0)
                     .end()
                 .valueMetadata(UserType.F_FULL_NAME)
-                    .display()
-                    .assertSize(1)
-                    .getPrismValue();
+                    .singleValue()
+                        .display()
+                        .assertSize(1)
+                        .getPrismValue();
 
         when("recompute");
         recomputeUser(USER_PAUL.oid, task, result);
@@ -341,13 +344,13 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .assertFullName("Paul Morphy")
                 .assertDescription("Paul")
                 .valueMetadata(UserType.F_DESCRIPTION)
-                    .display()
                     .assertSize(0)
                     .end()
                 .valueMetadata(UserType.F_FULL_NAME)
-                    .display()
-                    .assertSize(1)
-                    .getPrismValue();
+                    .singleValue()
+                        .display()
+                        .assertSize(1)
+                        .getPrismValue();
 
         displayDumpable("full name metadata after add", fullNameMetadata1);
         displayDumpable("full name metadata after recompute", fullNameMetadata2);
@@ -374,13 +377,13 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .displayXml()
                 .assignments()
                     .forOrg(ORG_SPECIAL_MEDICAL_SERVICES.oid)
-                    .valueMetadata()
+                    .valueMetadataSingle()
                         .display()
                         .assertPropertyValuesEqual(SENSITIVITY_PATH, "high")
                         .end()
                     .end()
                     .forOrg(ORG_EMPLOYEES.oid)
-                    .valueMetadata()
+                    .valueMetadataSingle()
                         .display()
                         .assertPropertyValuesEqual(SENSITIVITY_PATH, "low")
                         .end()
@@ -442,15 +445,15 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         then();
         assertUserAfter(USER_LEONHARD.oid)
                 .displayXml()
-                .valueMetadata(UserType.F_GIVEN_NAME)
+                .valueMetadataSingle(UserType.F_GIVEN_NAME)
                     .display()
                     .end()
 
-                .valueMetadata(UserType.F_FAMILY_NAME)
+                .valueMetadataSingle(UserType.F_FAMILY_NAME)
                     .display()
                     .end()
 
-                .valueMetadata(UserType.F_FULL_NAME)
+                .valueMetadataSingle(UserType.F_FULL_NAME)
                     .display()
                     .end();
     }
@@ -488,17 +491,17 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         then();
         assertUserAfter(USER_LEONHARD.oid)
                 .displayXml()
-                .valueMetadata(UserType.F_GIVEN_NAME)
-                .display()
-                .end()
+                .valueMetadataSingle(UserType.F_GIVEN_NAME)
+                    .display()
+                    .end()
 
-                .valueMetadata(UserType.F_FAMILY_NAME)
-                .display()
-                .end()
+                .valueMetadataSingle(UserType.F_FAMILY_NAME)
+                    .display()
+                    .end()
 
-                .valueMetadata(UserType.F_FULL_NAME)
-                .display()
-                .end();
+                .valueMetadataSingle(UserType.F_FULL_NAME)
+                    .display()
+                    .end();
     }
 
     @Test
@@ -522,7 +525,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         assertUserAfterByUsername(USER_BLAISE_NAME)
                 .displayXml()
                 .assertName("blaise")
-                .valueMetadata(UserType.F_NAME)
+                .valueMetadataSingle(UserType.F_NAME)
                     .display()
                     .provenance()
                         .singleYield()
@@ -536,7 +539,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .end()
 
                 .assertGivenName("Blaise")
-                .valueMetadata(UserType.F_GIVEN_NAME)
+                .valueMetadataSingle(UserType.F_GIVEN_NAME)
                     .display()
                     .provenance()
                         .singleYield()
@@ -550,7 +553,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .end()
 
                 .assertFamilyName("Pascal")
-                .valueMetadata(UserType.F_FAMILY_NAME)
+                .valueMetadataSingle(UserType.F_FAMILY_NAME)
                     .display()
                     .provenance()
                         .singleYield()
@@ -564,7 +567,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .end()
 
                 .assertFullName("Blaise Pascal")
-                .valueMetadata(UserType.F_FULL_NAME)
+                .valueMetadataSingle(UserType.F_FULL_NAME)
                     .display()
                     .provenance()
                         .singleYield()
@@ -619,7 +622,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         assertUserAfterByUsername(USER_BLAISE_NAME)
                 .displayXml()
                 .assertName("blaise")
-                .valueMetadata(UserType.F_NAME)
+                .valueMetadataSingle(UserType.F_NAME)
                     .display()
                     .provenance()
                         .singleYield()
@@ -633,7 +636,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .end()
 
                 .assertGivenName("Blaise")
-                .valueMetadata(UserType.F_GIVEN_NAME)
+                .valueMetadataSingle(UserType.F_GIVEN_NAME)
                     .display()
                     .provenance()
                         .singleYield()
@@ -648,7 +651,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
                 .assertFamilyName("Pascal")
 
-                .valueMetadata(UserType.F_FAMILY_NAME)
+                .valueMetadataSingle(UserType.F_FAMILY_NAME)
                     .display()
                     .provenance()
                         .singleYield(ORIGIN_HR_FEED.oid)
@@ -667,7 +670,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .end()
 
                 .assertFullName("Blaise Pascal")
-                .valueMetadata(UserType.F_FULL_NAME)
+                .valueMetadataSingle(UserType.F_FULL_NAME)
                     .display()
                     .provenance()
                         .singleYield(ORIGIN_ADMIN_ENTRY.oid)
@@ -722,7 +725,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         assertUserAfterByUsername(USER_BLAISE_NAME)
                 .displayXml()
                 .assertName("blaise")
-                .valueMetadata(UserType.F_NAME)
+                .valueMetadataSingle(UserType.F_NAME)
                     .display()
                     .provenance()
                         .singleYield()
@@ -736,7 +739,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .end()
 
                 .assertGivenName("Blaise")
-                .valueMetadata(UserType.F_GIVEN_NAME)
+                .valueMetadataSingle(UserType.F_GIVEN_NAME)
                     .display()
                     .provenance()
                         .singleYield(ORIGIN_HR_FEED.oid)
@@ -756,7 +759,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
                 .assertFamilyName("Pascal")
 
-                .valueMetadata(UserType.F_FAMILY_NAME)
+                .valueMetadataSingle(UserType.F_FAMILY_NAME)
                     .display()
                     .provenance()
                         .singleYield(ORIGIN_HR_FEED.oid)
@@ -775,7 +778,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .end()
 
                 .assertFullName("Blaise Pascal")
-                .valueMetadata(UserType.F_FULL_NAME)
+                .valueMetadataSingle(UserType.F_FULL_NAME)
                     .display()
 //                    .provenance()
 //                        .singleYield(ORIGIN_ADMIN_ENTRY.oid)
@@ -815,10 +818,4 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     //endregion
-
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private ValueMetadataType cast(Optional<ValueMetadata> metadata) {
-        //noinspection OptionalGetWithoutIsPresent
-        return (ValueMetadataType) (metadata.get().asContainerable());
-    }
 }

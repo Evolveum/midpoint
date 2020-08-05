@@ -188,7 +188,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
     }
 
     private void assertAcquisitionChannel(PrismPropertyValue<PolyString> newGivenName) {
-        ValueMetadataType metadata = (ValueMetadataType) newGivenName.getValueMetadata().asContainerable();
+        ValueMetadataType metadata = newGivenName.getValueMetadata().getRealValue(ValueMetadataType.class);
         assertThat(metadata).isNotNull();
         assertThat(metadata.getProvenance()).isNotNull();
         assertThat(metadata.getProvenance().getYield()).hasSize(1);

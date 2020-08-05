@@ -105,7 +105,9 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     }
 
     private static void traceOperation(String opName, Supplier<String> paramsSupplier, long count, boolean traceAndDebug) {
-        LOGGER.info("MONITOR {} ({})", opName, count);
+        String params = paramsSupplier != null ? paramsSupplier.get() : "";
+        // TODO consider if the outputting params for operations other than clone() is adequate
+        LOGGER.info("MONITOR {}({}) ({})", opName, params, count);
         if (LOGGER.isDebugEnabled()) {
             StackTraceElement[] fullStack = Thread.currentThread().getStackTrace();
             String immediateClass = null;
@@ -124,7 +126,6 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
                 sb.append(stackElement.toString());
                 sb.append("\n");
             }
-            String params = paramsSupplier != null ? paramsSupplier.get() : "";
             if (traceAndDebug) {
                 LOGGER.debug("MONITOR {}({}) ({}): {} {}", opName, params, count, immediateClass, immediateMethod);
             }

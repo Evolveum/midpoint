@@ -14,10 +14,7 @@ import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -437,9 +434,10 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
 
     private void assertSingleMetadata(XNode node, String name, String expected) throws SchemaException {
         assertThat(node).isInstanceOf(MetadataAware.class);
-        MapXNode metadataNode = ((MetadataAware) node).getMetadataNode();
-        assertThat(metadataNode).isNotNull();
-        assertThat(metadataNode.size()).isEqualTo(1);
+        List<MapXNode> metadataNodes = ((MetadataAware) node).getMetadataNodes();
+        assertThat(metadataNodes).isNotNull();
+        assertThat(metadataNodes.size()).isEqualTo(1);
+        MapXNode metadataNode = metadataNodes.get(0);
 
         QName key = metadataNode.getSingleSubEntry("").getKey();
         assertThat(key.getNamespaceURI()).isEqualTo(NS_FOO);
@@ -461,7 +459,10 @@ public abstract class TestPrismParsing extends AbstractPrismTest {
     }
 
     private void assertSingleMetadata(PrismValue value, String name, String expected) {
-        ValueMetadata valueMetadata = value.getValueMetadata();
+        PrismContainer<?> valueMetadataContainer = value.getValueMetadata();
+        assertThat(valueMetadataContainer.size()).isEqualTo(1);
+
+        PrismContainerValue<?> valueMetadata = valueMetadataContainer.getValue();
         assertThat(valueMetadata).isNotNull();
         assertThat(valueMetadata.size()).isEqualTo(1);
 

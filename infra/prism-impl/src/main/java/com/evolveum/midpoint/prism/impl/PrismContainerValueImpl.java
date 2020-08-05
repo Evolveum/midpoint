@@ -1397,21 +1397,6 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         return equals(other, EquivalenceStrategy.REAL_VALUE);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!super.equals(obj)) return false;
-        if (getClass() != obj.getClass()) return false;
-        PrismContainerValue<?> other = (PrismContainerValue<?>) obj;
-        return equals(other, getEqualsHashCodeStrategy());
-    }
-
-    // Just to make checkstyle happy
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
     // TODO consider taking equivalence strategy into account
     @Override
     public int hashCode(ParameterizedEquivalenceStrategy strategy) {

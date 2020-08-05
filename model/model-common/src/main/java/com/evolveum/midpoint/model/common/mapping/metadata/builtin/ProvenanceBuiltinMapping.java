@@ -80,7 +80,8 @@ public class ProvenanceBuiltinMapping extends BaseBuiltinMetadataMapping {
     private List<ProvenanceAcquisitionType> collectAcquisitions(List<PrismValue> input) {
         List<ProvenanceAcquisitionType> acquisitions = new ArrayList<>();
         input.stream()
-                .map(v -> ((ValueMetadataType) v.getValueMetadata().asContainerable()).getProvenance())
+                .flatMap(prismValue -> prismValue.<ValueMetadataType>getValueMetadataAsContainer().getRealValues().stream())
+                .map(ValueMetadataType::getProvenance)
                 .filter(Objects::nonNull)
                 .flatMap(provenance -> provenance.getYield().stream())
                 .flatMap(yield -> yield.getAcquisition().stream())
@@ -139,7 +140,8 @@ public class ProvenanceBuiltinMapping extends BaseBuiltinMetadataMapping {
     private Collection<ProvenanceYieldType> collectYields(List<PrismValue> input) {
         List<ProvenanceYieldType> yields = new ArrayList<>();
         input.stream()
-                .map(v -> ((ValueMetadataType) v.getValueMetadata().asContainerable()).getProvenance())
+                .flatMap(prismValue -> prismValue.<ValueMetadataType>getValueMetadataAsContainer().getRealValues().stream())
+                .map(ValueMetadataType::getProvenance)
                 .filter(Objects::nonNull)
                 .flatMap(provenance -> provenance.getYield().stream())
                 .forEach(yield -> addYieldIfNotPresent(yield, yields));

@@ -84,13 +84,17 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
     }
 
     @Override
-    public ValueMetadata getNewValue() {
-        return (ValueMetadata) metadataValueWrapper.getOldValue();
+    public PrismContainerValue  getNewValue() {
+        return null;
+        // todo adapt
+//        return (ValueMetadata) metadataValueWrapper.getOldValue();
     }
 
     @Override
-    public ValueMetadata getOldValue() {
-        return (ValueMetadata) metadataValueWrapper.getOldValue();
+    public PrismContainerValue getOldValue() {
+        return null;
+        // todo adapt
+//        return (ValueMetadata) metadataValueWrapper.getOldValue();
     }
 
     @Override

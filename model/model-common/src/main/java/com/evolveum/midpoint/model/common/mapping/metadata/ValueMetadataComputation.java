@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -121,13 +120,20 @@ public class ValueMetadataComputation {
             logStart();
             processCustomMappings();
             processBuiltinMappings();
-            return MidpointValueMetadataFactory.createFrom(outputMetadata);
+            return wrapOutputMetadata();
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    @NotNull
+    private ValueMetadata wrapOutputMetadata() throws SchemaException {
+        ValueMetadata metadata = beans.prismContext.getValueMetadataFactory().createEmpty();
+        metadata.addMetadataValue(outputMetadata);
+        return metadata;
     }
 
     private void logStart() {
@@ -193,9 +199,12 @@ public class ValueMetadataComputation {
         Collection<PrismValue> values = new HashSet<>();
         for (PrismValue dataValue : inputValues) {
             if (dataValue != null) {
-                Item<PrismValue, ItemDefinition> sourceItem = dataValue.getValueMetadata().findItem(sourcePath);
-                if (sourceItem != null) {
-                    values.addAll(CloneUtil.cloneCollectionMembers(sourceItem.getValues()));
+                // TEMPORARY!!!
+                for (PrismContainerValue<Containerable> metadataValue : dataValue.getValueMetadata().getValues()) {
+                    Item<PrismValue, ItemDefinition> sourceItem = metadataValue.findItem(sourcePath);
+                    if (sourceItem != null) {
+                        values.addAll(CloneUtil.cloneCollectionMembers(sourceItem.getValues()));
+                    }
                 }
             }
         }

@@ -69,8 +69,8 @@ class RootObjectReader {
             for (Map.Entry<QName, XNodeImpl> entry : map.entrySet()) {
                 processDefaultNamespaces(entry.getValue(), currentDefault, ctx);
             }
-            if (map.getMetadataNode() != null) {
-                processDefaultNamespaces((XNodeImpl) map.getMetadataNode(), currentDefault, ctx);
+            for (MapXNode metadataNode : map.getMetadataNodes()) {
+                processDefaultNamespaces((XNodeImpl) metadataNode, currentDefault, ctx);
             }
             qualifyElementNameIfNeeded(map, currentDefault, ctx);
         } else {
@@ -81,8 +81,7 @@ class RootObjectReader {
                 }
             }
             if (xnode instanceof MetadataAware) {
-                MapXNode metadataNode = ((MetadataAware) xnode).getMetadataNode();
-                if (metadataNode != null) {
+                for (MapXNode metadataNode : ((MetadataAware) xnode).getMetadataNodes()) {
                     processDefaultNamespaces((XNodeImpl) metadataNode, parentDefault, ctx);
                 }
             }

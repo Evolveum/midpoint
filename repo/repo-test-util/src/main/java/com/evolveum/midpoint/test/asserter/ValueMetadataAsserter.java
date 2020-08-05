@@ -6,17 +6,15 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.test.asserter.prism.PrismContainerValueAsserter;
+import com.evolveum.midpoint.prism.ValueSelector;
+import com.evolveum.midpoint.test.asserter.prism.PrismContainerAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
-public class ValueMetadataAsserter<RA extends AbstractAsserter> extends PrismContainerValueAsserter<ValueMetadataType, RA> {
+public class ValueMetadataAsserter<RA extends AbstractAsserter> extends PrismContainerAsserter<ValueMetadataType, RA> {
 
-    public ValueMetadataAsserter(PrismContainerValue<ValueMetadataType> valueMetadata, RA parentAsserter, String details) {
+    public ValueMetadataAsserter(PrismContainer<ValueMetadataType> valueMetadata, RA parentAsserter, String details) {
         super(valueMetadata, parentAsserter, details);
     }
 
@@ -26,48 +24,27 @@ public class ValueMetadataAsserter<RA extends AbstractAsserter> extends PrismCon
     }
 
     @Override
-    public ValueMetadataAsserter<RA> assertItems(QName... expectedItems) {
-        return (ValueMetadataAsserter<RA>) super.assertItems(expectedItems);
+    public ValueMetadataValueAsserter<ValueMetadataAsserter<RA>> singleValue() {
+        assertSize(1);
+        return value(0);
     }
 
-    @Override
-    public ValueMetadataAsserter<RA> assertAny() {
-        return (ValueMetadataAsserter<RA>) super.assertAny();
+    public ValueMetadataValueAsserter<ValueMetadataAsserter<RA>> value(int index) {
+        ValueMetadataValueAsserter<ValueMetadataAsserter<RA>> asserter =
+                new ValueMetadataValueAsserter<>(getItem().getValues().get(index), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
 
-    @Override
-    public <T> ValueMetadataAsserter<RA> assertPropertyValuesEqual(ItemPath path, T... expectedValues) {
-        return (ValueMetadataAsserter<RA>) super.assertPropertyValuesEqual(path, expectedValues);
+    public ValueMetadataValueAsserter<ValueMetadataAsserter<RA>> value(ValueSelector<PrismContainerValue<ValueMetadataType>> selector) {
+        ValueMetadataValueAsserter<ValueMetadataAsserter<RA>> asserter =
+                new ValueMetadataValueAsserter<>(getItem().getAnyValue(selector), this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
-
-    @Override
-    public <T> ValueMetadataAsserter<RA> assertPropertyValuesEqualRaw(ItemPath path, T... expectedValues) {
-        return (ValueMetadataAsserter<RA>) super.assertPropertyValuesEqualRaw(path, expectedValues);
-    }
-
-    @Override
-    public <T> ValueMetadataAsserter<RA> assertNoItem(QName itemName) {
-        return (ValueMetadataAsserter<RA>) super.assertNoItem(itemName);
-    }
-
-    public ProvenanceMetadataAsserter<ValueMetadataAsserter<RA>> provenance() {
-        return new ProvenanceMetadataAsserter<>(getPrismValue().asContainerable().getProvenance(),
-                this, "provenance in " + getDetails());
-    }
-
-    @Override
-    public <CC extends Containerable> PrismContainerValueAsserter<CC, ValueMetadataAsserter<RA>> containerSingle(QName subcontainerQName) {
-        return (PrismContainerValueAsserter<CC, ValueMetadataAsserter<RA>>) super.containerSingle(subcontainerQName);
-    }
-
 
     protected String desc() {
         // TODO handling of details
         return "metadata of " + getDetails();
-    }
-
-    @Override
-    public ValueMetadataAsserter<RA> display() {
-        return (ValueMetadataAsserter<RA>) super.display();
     }
 }

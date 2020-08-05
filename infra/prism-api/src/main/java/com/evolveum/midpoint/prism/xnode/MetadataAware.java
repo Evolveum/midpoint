@@ -7,18 +7,27 @@
 
 package com.evolveum.midpoint.prism.xnode;
 
+import com.evolveum.midpoint.prism.util.CloneUtil;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
 /**
  * Some XNodes can hold value metadata.
  */
 public interface MetadataAware {
 
-    MapXNode getMetadataNode();
+    @NotNull
+    List<MapXNode> getMetadataNodes();
 
-    void setMetadataNode(MapXNode metadata);
+    void setMetadataNodes(@NotNull List<MapXNode> metadataNodes);
+
+    default void addMetadataNode(MapXNode metadataNode) {
+        getMetadataNodes().add(metadataNode);
+    }
 
     static void cloneMetadata(MetadataAware target, MetadataAware source) {
-        if (source.getMetadataNode() != null) {
-            target.setMetadataNode(source.getMetadataNode().clone());
-        }
+        target.setMetadataNodes(CloneUtil.cloneCollectionMembers(source.getMetadataNodes()));
     }
 }

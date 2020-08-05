@@ -14,6 +14,10 @@ import java.util.function.Supplier;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +69,11 @@ public class ProjectionValueMetadataCreator {
                     if (metadata == null) {
                         metadata = metadataSupplier.get();
                     }
-                    value.setValueMetadata(metadata);
+                    try {
+                        value.setValueMetadata(metadata);
+                    } catch (SchemaException e) {
+                        throw new SystemException("Unexpected schema exception", e);
+                    }
                     changed++;
                 }
             }

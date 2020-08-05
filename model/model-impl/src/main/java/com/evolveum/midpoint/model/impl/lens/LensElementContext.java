@@ -952,12 +952,4 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             primaryDelta.freeze();
         }
     }
-
-    int getProjectionWave() {
-        return getLensContext().getProjectionWave();
-    }
-
-    int getExecutionWave() {
-        return getLensContext().getExecutionWave();
-    }
 }

@@ -489,17 +489,17 @@ public class PrismUnmarshaller {
 
     private void addMetadataIfPresent(PrismValue prismValue, XNode node, @NotNull ParsingContext pc) throws SchemaException {
         if (prismValue != null && node instanceof MetadataAware) {
-            MapXNode metadata = ((MetadataAware) node).getMetadataNode();
-            if (metadata != null) {
-                prismValue.setValueMetadata(parseMetadata(metadata, pc));
-            }
+            parseMetadataNodes(prismValue, ((MetadataAware) node).getMetadataNodes(), pc);
         }
     }
 
-    private ValueMetadata parseMetadata(MapXNode metadata, ParsingContext pc) throws SchemaException {
-        PrismContainerValue<?> pcv =
-                parseContainerValueFromMap((MapXNodeImpl) metadata, schemaRegistry.getValueMetadataDefinition(), pc);
-        return ValueMetadataAdapter.holding(pcv);
+    private void parseMetadataNodes(PrismValue prismValue, List<MapXNode> metadataNodes, ParsingContext pc) throws SchemaException {
+        for (MapXNode metadataNode : metadataNodes) {
+            PrismContainerValue pcv =
+                    parseContainerValueFromMap((MapXNodeImpl) metadataNode, schemaRegistry.getValueMetadataDefinition(), pc);
+            //noinspection unchecked
+            prismValue.getValueMetadata().add(pcv);
+        }
     }
 
     @Nullable
