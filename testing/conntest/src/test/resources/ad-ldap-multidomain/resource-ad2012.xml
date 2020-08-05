@@ -12,7 +12,7 @@
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          oid="2f12ae18-d635-11ea-bafe-a76bd61868b5">
+          oid="eced6d24-73e3-11e5-8457-93eff15a6b85">
     <name>Active Directory 2012R2 (LDAP)</name>
 
     <connectorRef type="ConnectorType">
@@ -793,19 +793,21 @@
               <name>username</name>
            </argument>
             <!-- Single-line command, but parameters in variable. This may make it multi-line. -->
-            <code>$T = Get-Date -format u; $M = $T + " (CredSSP) ADD " + $username +"`n"; write-host $M; $block = $ExecutionContext.InvokeCommand.NewScriptBlock("Add-Content c:\conn.txt `""+$M+"`""); Invoke-Command -ComputerName ad02.sub.ad2012.lab.evolveum.com -ScriptBlock $block</code>
+            <code>Hostname</code>
+<!--            <code>$T = Get-Date -format u; $M = $T + " (CredSSP) ADD " + $username +"`n"; write-host $M; $block = $ExecutionContext.InvokeCommand.NewScriptBlock("Add-Content c:\conn.txt `""+$M+"`""); Invoke-Command -ComputerName ad02.sub.ad2012.lab.evolveum.com -ScriptBlock $block</code> -->
             <operation>add</operation>
             <order>before</order>
         </script>
         <script>
             <host>resource</host>
             <language>powerhell</language>
+            <code>Hostname</code>
             <!-- Make sure that this is a multi-line command. -->
-            <code>
+<!--            <code>
                 write-host "before"
                 Invoke-Command -ComputerName ad02.sub.ad2012.lab.evolveum.com -ScriptBlock { $T = Get-Date; Add-Content c:\conn.txt $T; Add-Content c:\conn.txt "(CredSSP) MOD`n" }
                 write-host "after"
-            </code>
+            </code> -->
             <operation>modify</operation>
             <order>before</order>
         </script>

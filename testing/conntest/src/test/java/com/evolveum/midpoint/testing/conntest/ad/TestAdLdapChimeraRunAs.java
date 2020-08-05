@@ -93,4 +93,9 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
     protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
         assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
     }
+
+    @Override
+    protected boolean hasExchange() {
+        return true;
+    }
 }

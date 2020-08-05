@@ -28,11 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class TestAdLdapAd2012 extends AbstractAdLdapMultidomainTest {
 
     @Override
-    protected String getResourceOid() {
-        return "2f12ae18-d635-11ea-bafe-a76bd61868b5";
-    }
-
-    @Override
     protected File getResourceFile() {
         return new File(getBaseDir(), "resource-ad2012.xml");
     }
@@ -48,11 +43,6 @@ public class TestAdLdapAd2012 extends AbstractAdLdapMultidomainTest {
     }
 
     @Override
-    protected String getLdapBindDn() {
-        return "CN=midpoint," + getPeopleLdapSuffix();
-    }
-
-    @Override
     protected String getLdapSubServerHost() {
         return "ad02.ad2012.lab.evolveum.com";
     }
@@ -60,16 +50,6 @@ public class TestAdLdapAd2012 extends AbstractAdLdapMultidomainTest {
     @Override
     protected String getLdapSubSuffix() {
         return "DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com";
-    }
-
-    @Override
-    protected String getLdapSubBindDn() {
-        return "CN=midpoint," + getPeopleLdapSubSuffix();
-    }
-
-    @Override
-    protected int getLdapServerPort() {
-        return 636;
     }
 
     @Override
@@ -100,5 +80,10 @@ public class TestAdLdapAd2012 extends AbstractAdLdapMultidomainTest {
     @Override
     protected int getNumberOfAllAccounts() {
         return 9;
+    }
+
+    @Override
+    protected boolean hasExchange() {
+        return false;
     }
 }

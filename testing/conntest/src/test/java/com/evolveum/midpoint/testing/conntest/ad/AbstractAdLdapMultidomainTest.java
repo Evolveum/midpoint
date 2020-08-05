@@ -150,8 +150,6 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     private static final String VERY_STRANGE_PARAMETER = "This iš a véry stándže p§räméteř!";
 
-    private static final int LDAP_CONNECTOR_INSTANCES_NORMAL = 1; // 2?
-
     private boolean allowDuplicateSearchResults = false;
 
     protected String jackAccountOid;
@@ -167,6 +165,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     private String accountSubmanOid;
 
     private String accountSubmarineOid;
+
+    @Override
+    protected String getResourceOid() {
+        return "eced6d24-73e3-11e5-8457-93eff15a6b85";
+    }
 
     @Override
     public String getStartSystemCommand() {
@@ -226,7 +229,15 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         return "CN=Users," + getLdapSubSuffix();
     }
 
-    protected abstract String getLdapSubBindDn();
+    protected String getLdapSubBindDn() {
+        return "CN=midpoint," + getPeopleLdapSubSuffix();
+    }
+
+    @Override
+    protected int getLdapServerPort() {
+        return 636;
+    }
+
     @Override
     protected String getLdapAccountObjectClass() {
         return "user";
@@ -266,6 +277,19 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     protected String getObjectCategoryGroup() {
         return "CN=Group,CN=Schema,CN=Configuration," + getLdapSuffix();
+    }
+
+    protected abstract boolean hasExchange();
+
+    /**
+     * Returns true if this test does not really care about all the details.
+     */
+    protected boolean isVagueTest() {
+        return false;
+    }
+
+    protected int getNormalNumberOfLdapConnectorInstances() {
+        return 1;
     }
 
     protected abstract String getAccountJackSid();
@@ -340,13 +364,17 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         //        IntegrationTestTools.displayXml("Resource XML", resource);
         accountObjectClassDefinition = assertAdResourceSchema(resource, getAccountObjectClass(), prismContext);
         assertAdRefinedSchema(resource, getAccountObjectClass());
-        // We do not have exchange schema any more
-//        assertExchangeSchema(resource, getAccountObjectClass(), prismContext);
+        if (hasExchange()) {
+            assertExchangeSchema(resource, getAccountObjectClass(), prismContext);
+        }
 
         ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 
-        // Should be 5 with exchange
-        assertEquals("Unexpected number of schema definitions (limited by generation constraints)", 4, resourceSchema.getDefinitions().size());
+        int expectedDefinitions = 4;
+        if (hasExchange()) {
+            expectedDefinitions = 5;
+        }
+        assertEquals("Unexpected number of schema definitions (limited by generation constraints)", expectedDefinitions, resourceSchema.getDefinitions().size());
 
         assertLdapConnectorInstances(1);
     }
@@ -565,8 +593,12 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         SearchResultList<PrismObject<ShadowType>> searchResultList = doSearch(query,
                 getNumberOfAllAccounts(), task, result);
 
-        // TODO: Why 14? Why not 1?
-        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 12);  // 14?
+        if (isVagueTest()) {
+            rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+        } else {
+            // TODO: Why 14? Why not 1?
+            assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 12);  // 14?
+        }
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
         SearchResultMetadata metadata = searchResultList.getMetadata();
@@ -574,7 +606,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -603,7 +635,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     @Test
@@ -629,7 +661,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     @Test
@@ -656,7 +688,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -685,7 +717,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -720,7 +752,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -741,7 +773,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         SearchResultList<PrismObject<ShadowType>> shadows = doSearch(query, 2, task, result);
 
-        assertAccountShadow(shadows.get(0), "CN=Administrator,CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com");
+        assertAccountShadow(shadows.get(0), getExpected182FirstShadow());
 //        assertAccountShadow(shadows.get(0), "CN=Adolf Supperior,CN=Users,DC=ad,DC=evolveum,DC=com");
 //        assertAccountShadow(shadows.get(1), "CN=DiscoverySearchMailbox {D919BA05-46A6-415f-80AD-7E09334BB852},CN=Users,DC=ad,DC=evolveum,DC=com");
 
@@ -754,7 +786,11 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             assertFalse(metadata.isPartialResults());
         }
 
-        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
+    }
+
+    protected String getExpected182FirstShadow() {
+        return "CN=Administrator,"+getPeopleLdapSuffix();
     }
 
     @Test
@@ -840,7 +876,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
-//        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+//        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     @Test
@@ -875,7 +911,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
-        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -914,7 +950,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         String shadowOid = getSingleLinkOid(user);
         assertEquals("Shadows have moved", accountBarbossaOid, shadowOid);
 
-        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -1067,7 +1103,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, newPassword);
 
-        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     protected void testModifyUserBarbossaPasswordSelfServiceFailure(
@@ -1097,7 +1133,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, oldPassword);
 
-        assertLdapConnectorInstances(LDAP_CONNECTOR_INSTANCES_NORMAL);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     @Test

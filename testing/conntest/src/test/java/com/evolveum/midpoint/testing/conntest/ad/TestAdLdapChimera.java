@@ -28,11 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
 
     @Override
-    protected String getResourceOid() {
-        return "eced6d24-73e3-11e5-8457-93eff15a6b85";
-    }
-
-    @Override
     protected File getResourceFile() {
         return new File(getBaseDir(), "resource-chimera.xml");
     }
@@ -43,28 +38,18 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
     }
 
     @Override
-    protected int getLdapServerPort() {
-        return 636;
-    }
-
-    @Override
-    protected String getLdapBindDn() {
-        return null;
-    }
-
-    @Override
     protected String getLdapSubServerHost() {
-        return null;
+        return "hydra.ad.evolveum.com";
+    }
+
+    @Override
+    protected String getLdapSuffix() {
+        return "DC=ad,DC=evolveum,DC=com";
     }
 
     @Override
     protected String getLdapSubSuffix() {
-        return null;
-    }
-
-    @Override
-    protected String getLdapSubBindDn() {
-        return null;
+        return "DC=sub,DC=ad,DC=evolveum,DC=com";
     }
 
     @Override
@@ -97,4 +82,23 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
         return "S-1-5-21-3305462238-3617280118-659738602-4878";
     }
 
+    @Override
+    protected boolean hasExchange() {
+        return true;
+    }
+
+    @Override
+    protected boolean isVagueTest() {
+        return true;
+    }
+
+    @Override
+    protected int getNormalNumberOfLdapConnectorInstances() {
+        return 2;
+    }
+
+    @Override
+    protected String getExpected182FirstShadow() {
+        return "CN=Adolf Supperior,"+getPeopleLdapSuffix();
+    }
 }

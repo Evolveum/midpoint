@@ -209,7 +209,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         return false;
     }
 
-    protected abstract String getLdapBindDn();
+    protected String getLdapBindDn() {
+        return "CN=midpoint," + getPeopleLdapSuffix();
+    }
 
     protected abstract String getLdapBindPassword();
 
