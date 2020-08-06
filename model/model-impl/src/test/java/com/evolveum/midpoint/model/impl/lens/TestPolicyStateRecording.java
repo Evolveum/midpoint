@@ -400,7 +400,7 @@ public class TestPolicyStateRecording extends AbstractLensTest {
         assertEquals("Wrong # of assignments", 2, eve.getAssignment().size());
 
         displayDumpable("Audit", dummyAuditService);
-        dummyAuditService.assertExecutionRecords(2); // MID-6375 (should be a single operation here)
+        dummyAuditService.assertExecutionRecords(1);
 
         for (AssignmentType assignment : eve.getAssignment()) {
             assertExclusionViolationState(assignment);

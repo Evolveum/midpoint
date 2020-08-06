@@ -624,7 +624,7 @@ public class OpNode {
             if (Boolean.TRUE.equals(trace.isHasMinus())) {
                 sb.append("-");
             }
-            if (Boolean.TRUE.equals(trace.isHasMinus())) {
+            if (Boolean.TRUE.equals(trace.isHasZero())) {
                 sb.append("0");
             }
             sb.append(" → ").append(trace.getDestination());

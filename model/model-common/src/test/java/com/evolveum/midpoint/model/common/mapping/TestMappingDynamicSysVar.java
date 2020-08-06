@@ -771,8 +771,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
         // THEN
         evaluator.assertResult(opResult);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
-        PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, "B");
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleZero(outputTriple, "B");
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
@@ -795,8 +795,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
                 employeeTypeDeltaABAdd("B", "A", "B");
 
         // THEN
-        PrismAsserts.assertTripleZero(outputTriple, "A");
-        PrismAsserts.assertTriplePlus(outputTriple, "B");
+        PrismAsserts.assertTripleZero(outputTriple, "A", "B");
+        PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
@@ -807,8 +807,8 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
                 employeeTypeDeltaABAdd("B", "B");
 
         // THEN
-        PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, "B");
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleZero(outputTriple, "B");
         PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 

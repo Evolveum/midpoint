@@ -249,8 +249,12 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .end();
     }
 
+    /**
+     * Let us add a user with some metadata for givenName (loa=low) and familyName (loa=high).
+     * Metadata for fullName should be computed (loa=low).
+     */
     @Test
-    public void test050SimpleMetadataMapping() throws Exception {
+    public void test050SimpleMetadataMappingUserAdd() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -281,8 +285,51 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .assertPropertyValuesEqual(LOA_PATH, "low");
     }
 
+    /**
+     * Now we change givenName: value stays the same but LoA is increased.
+     */
+    @Test(enabled = false)
+    public void test055SimpleMetadataMappingUserModify() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismPropertyValue<PolyString> bob = prismContext.itemFactory().createPropertyValue();
+        bob.setValue(PolyString.fromOrig("Bob"));
+        bob.getValueMetadata().createNewValue().findOrCreateProperty(LOA_PATH).setRealValue("normal");
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).replace(bob)
+                .asObjectDelta(USER_BOB.oid);
+
+        when();
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertUserAfter(USER_BOB.oid)
+                .display()
+                .displayXml()
+                .valueMetadata(UserType.F_GIVEN_NAME)
+                    .singleValue()
+                        .display()
+                        .assertPropertyValuesEqual(LOA_PATH, "normal")
+                        .end()
+                    .end()
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .singleValue()
+                        .display()
+                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .end()
+                    .end()
+                .assertFullName("Bob Green")
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .singleValue()
+                        .display()
+                        .assertPropertyValuesEqual(LOA_PATH, "normal");
+    }
+
     @Test
-    public void test060SimpleMetadataMappingPreview() throws Exception {
+    public void test070SimpleMetadataMappingPreview() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();

@@ -9,6 +9,7 @@ package com.evolveum.midpoint.model.common.expression.evaluator.transformation;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -48,10 +49,16 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
     @NotNull final List<SourceTriple<?,?>> sourceTripleList;
 
     /**
-     * Merged all values from individual sources (adding null when there are no values for a given source).
-     * Ordered according to the order of sources.
+     * Which triples do have which sets? (Looking for plus and zero sets.)
+     * Special value of null in the set means that the respective source is empty.
      */
-    @NotNull private final List<SourceValues> sourceValuesList;
+    @NotNull private final List<Set<PlusMinusZero>> setsOccupiedPlusZero = new ArrayList<>();
+
+    /**
+     * Which triples do have which sets? (Looking for minus and zero sets.)
+     * Special value of null in the set means that the respective source is empty.
+     */
+    @NotNull private final List<Set<PlusMinusZero>> setsOccupiedMinusZero = new ArrayList<>();
 
     /**
      * Pre-compiled condition expression, to be evaluated for individual value combinations.
@@ -68,9 +75,9 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         super(context, parentResult, evaluator);
         this.evaluatorBean = evaluator.getExpressionEvaluatorBean();
         this.sourceTripleList = createSourceTriplesList();
-        this.sourceValuesList = SourceValues.fromSourceTripleList(sourceTripleList);
         this.conditionExpression = createConditionExpression();
         this.outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+        computeSetsOccupied();
     }
 
     PrismValueDeltaSetTriple<V> evaluate() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
@@ -78,13 +85,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
 
         recordEvaluationStart();
         try {
-            MiscUtil.carthesian(sourceValuesList, valuesTuple -> {
-                // This lambda will be called for all combinations of all values in the sources
-                // The pvalues parameter is a list of values; each values comes from a difference source.
-                try (ValueTupleTransformation<V> valueTupleTransformation = new ValueTupleTransformation<>(valuesTuple, this, parentResult)) {
-                    valueTupleTransformation.evaluate();
-                }
-            });
+            generateTransformationRequests();
         } catch (TunnelException e) {
             unwrapTunnelException(e);
         }
@@ -92,6 +93,117 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         cleanUpOutputTriple();
         recordEvaluationEnd(outputTriple);
         return outputTriple;
+    }
+
+    /**
+     * Going through combinations of all non-negative and non-positive values and transform each tuple found.
+     * It is done in two steps:
+     *
+     * 1) Specific plus-minus-zero sets are selected for each source, combining non-negative to PLUS (except for all zeros
+     * that go into ZERO), and then combining non-positive to MINUS (except for all zeros that are skipped because they are
+     * already computed).
+     *
+     * 2) All values from selected sets are combined together.
+     */
+    private void generateTransformationRequests() {
+        // The skipEvaluationPlus is evaluated within.
+        generatePlusZeroRequests();
+
+        // But for minus we can prune this branch even here.
+        if (!context.isSkipEvaluationMinus()) {
+            generateMinusRequests();
+        }
+    }
+
+    private void generatePlusZeroRequests() {
+        MiscUtil.carthesian(setsOccupiedPlusZero, sets -> {
+            if (isAllZeros(sets)) {
+                generateRequests(sets, PlusMinusZero.ZERO);
+            } else {
+                if (!context.isSkipEvaluationPlus()) {
+                    generateRequests(sets, PlusMinusZero.PLUS);
+                }
+            }
+        });
+    }
+
+    private void generateMinusRequests() {
+        MiscUtil.carthesian(setsOccupiedMinusZero, sets -> {
+            if (isAllZeros(sets)) {
+                // already done
+            } else {
+                generateRequests(sets, PlusMinusZero.MINUS);
+            }
+        });
+    }
+
+    private boolean isAllZeros(List<PlusMinusZero> sets) {
+        return sets.stream().allMatch(set -> set == null || set == PlusMinusZero.ZERO);
+    }
+
+    private void generateRequests(List<PlusMinusZero> sets, PlusMinusZero outputSet) {
+        List<Collection<PrismValue>> domains = createDomainsForSets(sets);
+        logDomainsForSets(domains, sets, outputSet);
+        MiscUtil.carthesian(domains, valuesTuple -> {
+            try (ValueTupleTransformation<V> valueTupleTransformation = new ValueTupleTransformation<>(valuesTuple, outputSet, this, parentResult)) {
+                valueTupleTransformation.evaluate();
+            }
+        });
+    }
+
+    private void logDomainsForSets(List<Collection<PrismValue>> domains, List<PlusMinusZero> sets, PlusMinusZero outputSet) {
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Domains for sets, targeting {}:", outputSet);
+            Iterator<PlusMinusZero> setsIterator = sets.iterator();
+            for (Collection<PrismValue> domain : domains) {
+                LOGGER.trace(" - set: {}, domain: {}", setsIterator.next(), domain);
+            }
+        }
+    }
+
+    private List<Collection<PrismValue>> createDomainsForSets(List<PlusMinusZero> sets) {
+        List<Collection<PrismValue>> domains = new ArrayList<>();
+        Iterator<PlusMinusZero> setsIterator = sets.iterator();
+        for (SourceTriple<?, ?> sourceTriple : sourceTripleList) {
+            PlusMinusZero set = setsIterator.next();
+            Collection<PrismValue> domain;
+            if (set != null) {
+                //noinspection unchecked
+                domain = (Collection<PrismValue>) sourceTriple.getSet(set);
+            } else {
+                // This is a special value ensuring that the tuple computation will run at least once
+                // even for empty sources.
+                domain = Collections.singleton(null);
+            }
+            domains.add(domain);
+        }
+        return domains;
+    }
+
+    private void computeSetsOccupied() {
+        for (SourceTriple<?, ?> sourceTriple : sourceTripleList) {
+            Set<PlusMinusZero> setOccupiedPlusZero = new HashSet<>();
+            Set<PlusMinusZero> setOccupiedMinusZero = new HashSet<>();
+            if (sourceTriple.isEmpty()) {
+                setOccupiedPlusZero.add(null);
+                setOccupiedMinusZero.add(null);
+            } else {
+                if (sourceTriple.hasPlusSet()) {
+                    setOccupiedPlusZero.add(PlusMinusZero.PLUS);
+                }
+                if (sourceTriple.hasMinusSet()) {
+                    setOccupiedMinusZero.add(PlusMinusZero.MINUS);
+                }
+                if (sourceTriple.hasZeroSet()) {
+                    setOccupiedPlusZero.add(PlusMinusZero.ZERO);
+                    setOccupiedMinusZero.add(PlusMinusZero.ZERO);
+                }
+            }
+            setsOccupiedPlusZero.add(setOccupiedPlusZero);
+            setsOccupiedMinusZero.add(setOccupiedMinusZero);
+            LOGGER.trace("Adding setsOccupiedPlusZero: {}, setOccupiedMinusZero: {} for source {}",
+                    setOccupiedPlusZero, setOccupiedMinusZero, sourceTriple.getName());
+        }
     }
 
     private void recordEvaluationStart() throws SchemaException {

@@ -28,10 +28,13 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.function.Function;
 
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.NOT_LITERAL;
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE;
 import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.FOR_DELTA_ADD_APPLICATION;
 import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.FOR_DELTA_DELETE_APPLICATION;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import static com.evolveum.midpoint.prism.path.ItemPath.checkNoSpecialSymbols;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * @author Radovan Semancik
@@ -663,7 +666,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
             return false;
         }
         for (V myVal: set) {
-            if (myVal.equals(value, ignoreMetadata ? EquivalenceStrategy.IGNORE_METADATA : EquivalenceStrategy.NOT_LITERAL)) {
+            if (myVal.equals(value, ignoreMetadata ? EquivalenceStrategy.IGNORE_METADATA : NOT_LITERAL)) {
                 return true;
             }
         }
@@ -1020,6 +1023,8 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     /**
      * Distributes the replace values of this delta to add and delete with
      * respect to provided existing values.
+     *
+     * TODO reconsider equivalence strategy!
      */
     public void distributeReplace(Collection<V> existingValues) {
         checkMutable();
@@ -1028,24 +1033,24 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         clearValuesToReplace();
         if (existingValues != null) {
             for (V existingVal : existingValues) {
-                if (!isIn(origValuesToReplace, existingVal)) {
+                if (!isIn(origValuesToReplace, existingVal, REAL_VALUE)) {
                     addValueToDelete((V) existingVal.clone());
                 }
             }
         }
         for (V replaceVal : origValuesToReplace) {
-            if (!isIn(existingValues, replaceVal) && !isIn(getValuesToAdd(), replaceVal)) {
+            if (!isIn(existingValues, replaceVal, REAL_VALUE) && !isIn(getValuesToAdd(), replaceVal, REAL_VALUE)) {
                 addValueToAdd((V) replaceVal.clone());
             }
         }
     }
 
-    private boolean isIn(Collection<V> values, V val) {
+    private boolean isIn(Collection<V> values, V val, ParameterizedEquivalenceStrategy equivalenceStrategy) {
         if (values == null) {
             return false;
         }
         for (V v : values) {
-            if (v.equals(val, EquivalenceStrategy.REAL_VALUE)) {
+            if (v.equals(val, equivalenceStrategy)) {
                 return true;
             }
         }
@@ -1475,25 +1480,45 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 
     public PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V,D> itemOld) {
         PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTripleImpl<>();
+
         if (isReplace()) {
-            triple.getPlusSet().addAll(PrismValueCollectionsUtil.cloneCollection(getValuesToReplace()));
-            if (itemOld != null) {
-                triple.getMinusSet().addAll(PrismValueCollectionsUtil.cloneCollection(itemOld.getValues()));
+            for (V valueToReplace : valuesToReplace) {
+                if (itemOld != null && isIn(itemOld.getValues(), valueToReplace, NOT_LITERAL)) {
+                    triple.getZeroSet().add(CloneUtil.clone(valueToReplace));
+                } else {
+                    triple.getPlusSet().add(CloneUtil.clone(valueToReplace));
+                }
             }
-            return triple;
-        }
-        if (isAdd()) {
-            triple.getPlusSet().addAll(PrismValueCollectionsUtil.cloneCollection(getValuesToAdd()));
-        }
-        if (isDelete()) {
-            triple.getMinusSet().addAll(PrismValueCollectionsUtil.cloneCollection(getValuesToDelete()));
-        }
-        if (itemOld != null) {
-            for (V itemVal: itemOld.getValues()) {
-                if (!PrismValueCollectionsUtil.containsRealValue(valuesToDelete, itemVal) &&
-                        !PrismValueCollectionsUtil.containsRealValue(valuesToAdd, itemVal)) {
-                    //noinspection unchecked
-                    triple.getZeroSet().add((V) itemVal.clone());
+            if (itemOld != null) {
+                for (V oldValue : itemOld.getValues()) {
+                    if (isIn(valuesToReplace, oldValue, NOT_LITERAL)) {
+                        // already processed
+                    } else {
+                        triple.getMinusSet().add(CloneUtil.clone(oldValue));
+                    }
+                }
+            }
+        } else {
+            for (V valueToAdd : emptyIfNull(valuesToAdd)) {
+                if (itemOld != null && isIn(itemOld.getValues(), valueToAdd, NOT_LITERAL)) {
+                    triple.getZeroSet().add(CloneUtil.clone(valueToAdd));
+                } else {
+                    triple.getPlusSet().add(CloneUtil.clone(valueToAdd));
+                }
+            }
+            for (V valueToDelete : emptyIfNull(valuesToDelete)) {
+                if (isIn(valuesToAdd, valueToDelete, NOT_LITERAL)) {
+                    // already processed
+                } else {
+                    // We do not try to be smart. There are complications e.g. when deleting PCV by id, etc.
+                    triple.getMinusSet().add(CloneUtil.clone(valueToDelete));
+                }
+            }
+            if (itemOld != null) {
+                for (V oldValue : itemOld.getValues()) {
+                    if (!isIn(valuesToAdd, oldValue, NOT_LITERAL) && !isIn(valuesToDelete, oldValue, NOT_LITERAL)) {
+                        triple.getZeroSet().add(CloneUtil.clone(oldValue));
+                    }
                 }
             }
         }
