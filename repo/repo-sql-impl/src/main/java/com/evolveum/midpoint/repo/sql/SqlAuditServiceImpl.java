@@ -260,7 +260,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Session session = baseHelper.beginReadOnlyTransaction();
         try {
             session.doWork(con -> {
-                Database database = baseHelper.getConfiguration().getDatabase();
+                Database database = sqlConfiguration().getDatabaseType();
                 int count = 0;
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {
@@ -459,7 +459,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         try {
             SingleSqlQuery query = RAuditEventRecord.toRepo(record, customColumn);
             session.doWork(connection -> {
-                Database database = sqlConfiguration().getDatabase();
+                Database database = sqlConfiguration().getDatabaseType();
                 String[] keyColumn = { RAuditEventRecord.ID_COLUMN_NAME };
                 PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
                 Long id = null;
@@ -779,7 +779,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     // Hibernate-based
-    private int selectRecordsByNumberToKeep(Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
+    private int selectRecordsByNumberToKeep(
+            Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
+
         CriteriaBuilder cb = session.getCriteriaBuilder();
         CriteriaQuery cq = cb.createQuery(RAuditEventRecord.class);
         cq.select(cb.count(cq.from(RAuditEventRecord.class)));
@@ -876,7 +878,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         try {
             session.setFlushMode(FlushMode.MANUAL);
             session.doWork(connection -> {
-                Database database = sqlConfiguration().getDatabase();
+                Database database = sqlConfiguration().getDatabaseType();
 
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {

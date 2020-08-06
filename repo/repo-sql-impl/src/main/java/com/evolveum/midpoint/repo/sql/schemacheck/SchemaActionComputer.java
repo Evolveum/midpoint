@@ -294,7 +294,7 @@ class SchemaActionComputer {
 
     @NotNull
     private SqlRepositoryConfiguration.Database getDatabase() {
-        SqlRepositoryConfiguration.Database database = baseHelper.getConfiguration().getDatabase();
+        SqlRepositoryConfiguration.Database database = baseHelper.getConfiguration().getDatabaseType();
         if (database == null) {
             throw new SystemException("Couldn't create/upgrade DB schema because database kind is not known");
         }

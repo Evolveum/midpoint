@@ -45,7 +45,7 @@ public class SqlQueryExecutor {
         this.dataSource = baseHelper.dataSource();
 
         SqlRepositoryConfiguration.Database database =
-                baseHelper.getConfiguration().getDatabase();
+                baseHelper.getConfiguration().getDatabaseType();
         switch (database) {
             case H2:
                 querydslConfiguration = new Configuration(H2Templates.DEFAULT);

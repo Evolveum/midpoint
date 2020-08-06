@@ -983,7 +983,7 @@ public class SqlRepositoryConfiguration {
         return skipOrgClosureStructureCheck;
     }
 
-    public Database getDatabase() {
+    public Database getDatabaseType() {
         return database;
     }
 
