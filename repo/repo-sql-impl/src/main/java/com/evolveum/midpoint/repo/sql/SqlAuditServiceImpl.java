@@ -78,13 +78,14 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
+
     private static final String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
     private static final String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
     private static final String OP_LIST_RECORDS = "listRecords";
     private static final String OP_LIST_RECORDS_ATTEMPT = "listRecordsAttempt";
     private static final String OP_LOAD_AUDIT_DELTA = "loadAuditDelta";
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
 
     private static final String QUERY_MAX_RESULT = "setMaxResults";
@@ -630,7 +631,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     // Hibernate-based
     private void cleanupAuditMaxRecords(CleanupPolicyType policy, OperationResult parentResult) {
-
         if (policy.getMaxRecords() == null) {
             return;
         }

@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 import javax.sql.DataSource;
 
 import com.google.common.base.Strings;
+import com.querydsl.sql.*;
 import org.hibernate.*;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.LockAcquisitionException;
@@ -22,6 +23,7 @@ import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.sql.*;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.support.InstantType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
@@ -63,8 +65,12 @@ public class BaseHelper {
     @NotNull
     private final SqlRepositoryConfiguration sqlRepositoryConfiguration;
     private final SessionFactory sessionFactory;
+
+    // TODO MID-6318 remove, needed only for Dialect determination in audit service
     private final LocalSessionFactoryBean sessionFactoryBean;
     private final DataSource dataSource;
+
+    private Configuration querydslConfiguration;
 
     // used for non-bean creation
     public BaseHelper(
@@ -93,7 +99,7 @@ public class BaseHelper {
     }
 
     public LocalSessionFactoryBean getSessionFactoryBean() {
-        return sessionFactoryBean; // TODO check how used for hibernate properties, can it be sessionFactory.getProperties()?
+        return sessionFactoryBean;
     }
 
     public Session beginReadOnlyTransaction() {
@@ -427,5 +433,45 @@ public class BaseHelper {
 
     public DataSource dataSource() {
         return dataSource;
+    }
+
+    public Configuration querydslConfiguration() {
+        if (querydslConfiguration == null) {
+            synchronized (this) {
+                SqlRepositoryConfiguration.Database database =
+                        sqlRepositoryConfiguration.getDatabaseType();
+                switch (database) {
+                    case H2:
+                        querydslConfiguration =
+                                new Configuration(H2Templates.DEFAULT);
+                        break;
+                    case MYSQL:
+                    case MARIADB:
+                        querydslConfiguration =
+                                new Configuration(MySQLTemplates.DEFAULT);
+                        break;
+                    case POSTGRESQL:
+                        querydslConfiguration =
+                                new Configuration(PostgreSQLTemplates.DEFAULT);
+                        break;
+                    case SQLSERVER:
+                        querydslConfiguration =
+                                new Configuration(SQLServer2012Templates.DEFAULT);
+                        break;
+                    case ORACLE:
+                        querydslConfiguration =
+                                new Configuration(OracleTemplates.DEFAULT);
+                        break;
+                    default:
+                        throw new SystemException(
+                                "Unsupported database type " + database + " for Querydsl config");
+                }
+
+                // See InstantType javadoc for the reasons why we need this to support Instant.
+                querydslConfiguration.register(new InstantType());
+                // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
+            }
+        }
+        return querydslConfiguration;
     }
 }

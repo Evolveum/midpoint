@@ -12,21 +12,18 @@ import java.util.Collection;
 import javax.sql.DataSource;
 
 import com.querydsl.core.types.EntityPath;
-import com.querydsl.sql.*;
+import com.querydsl.sql.Configuration;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.support.InstantType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * Component just under the service that orchestrates query transformation and execution.
@@ -43,33 +40,7 @@ public class SqlQueryExecutor {
     public SqlQueryExecutor(PrismContext prismContext, BaseHelper baseHelper) {
         this.prismContext = prismContext;
         this.dataSource = baseHelper.dataSource();
-
-        SqlRepositoryConfiguration.Database database =
-                baseHelper.getConfiguration().getDatabaseType();
-        switch (database) {
-            case H2:
-                querydslConfiguration = new Configuration(H2Templates.DEFAULT);
-                break;
-            case MYSQL:
-            case MARIADB:
-                querydslConfiguration = new Configuration(MySQLTemplates.DEFAULT);
-                break;
-            case POSTGRESQL:
-                querydslConfiguration = new Configuration(PostgreSQLTemplates.DEFAULT);
-                break;
-            case SQLSERVER:
-                querydslConfiguration = new Configuration(SQLServer2012Templates.DEFAULT);
-                break;
-            case ORACLE:
-                querydslConfiguration = new Configuration(OracleTemplates.DEFAULT);
-                break;
-            default:
-                throw new SystemException("Unsupported database type " + database);
-        }
-
-        // See InstantType javadoc for the reasons why we need this to support Instant.
-        querydslConfiguration.register(new InstantType());
-        // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
+        this.querydslConfiguration = baseHelper.querydslConfiguration();
     }
 
     public <S, Q extends EntityPath<R>, R> int count(
