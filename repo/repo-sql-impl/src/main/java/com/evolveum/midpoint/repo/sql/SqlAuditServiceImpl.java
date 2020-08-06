@@ -589,9 +589,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Date minValue = new Date();
         duration.addTo(minValue);
 
-        // factored out because it produces INFO-level message
-        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
-        checkTemporaryTablesSupport(dialect);
+        checkTemporaryTablesSupport();
 
         long start = System.currentTimeMillis();
         boolean first = true;
@@ -611,6 +609,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         LOGGER.debug(
                                 "Starting audit cleanup batch, deleting up to {} (duration '{}'), batch size {}, up to now deleted {} entries.",
                                 minValue, duration, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
+
+                        // TODO remove Hibernate stuff
+                        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
                         count = batchDeletionAttempt((session, tempTable) -> selectRecordsByMaxAge(session, tempTable, minValue, dialect),
                                 totalCountHolder, batchStart, dialect, parentResult);
                     } while (count > 0);
@@ -642,9 +643,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         Integer recordsToKeep = policy.getMaxRecords();
 
-        // factored out because it produces INFO-level message
-        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
-        checkTemporaryTablesSupport(dialect);
+        checkTemporaryTablesSupport();
 
         long start = System.currentTimeMillis();
         boolean first = true;
@@ -664,6 +663,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         LOGGER.debug(
                                 "Starting audit cleanup batch, keeping at most {} records, batch size {}, up to now deleted {} entries.",
                                 recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
+
+                        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
                         count = batchDeletionAttempt((session, tempTable) -> selectRecordsByNumberToKeep(session, tempTable, recordsToKeep, dialect),
                                 totalCountHolder, batchStart, dialect, parentResult);
                     } while (count > 0);
@@ -680,15 +681,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
-    // Hibernate-based
-    private void checkTemporaryTablesSupport(Dialect dialect) {
-        TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
-
-        if (!ttDialect.supportsTemporaryTables()) {
-            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup audit logs.",
-                    dialect);
+    private void checkTemporaryTablesSupport() {
+        Database database = sqlConfiguration().getDatabaseType();
+        try {
+            TemporaryTableDialect.getTempTableDialect(database);
+        } catch (SystemException e) {
+            LOGGER.error("Database type {} doesn't support temporary tables, couldn't cleanup audit logs.",
+                    database);
             throw new SystemException(
-                    "Dialect " + dialect + " doesn't support temporary tables, couldn't cleanup audit logs.");
+                    "Database type " + database + " doesn't support temporary tables, couldn't cleanup audit logs.");
         }
     }
 
@@ -699,7 +700,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         Session session = baseHelper.beginTransaction();
         try {
-            TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
+            TemporaryTableDialect ttDialect =
+                    TemporaryTableDialect.getTempTableDialect(sqlConfiguration().getDatabaseType());
 
             // create temporary table
             final String tempTable = ttDialect.generateTemporaryTableName(RAuditEventRecord.TABLE_NAME);
@@ -834,7 +836,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 }
             }
 
-            TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
+            TemporaryTableDialect ttDialect =
+                    TemporaryTableDialect.getTempTableDialect(sqlConfiguration().getDatabaseType());
 
             Statement s = connection.createStatement();
             s.execute(ttDialect.getCreateTemporaryTableString()
