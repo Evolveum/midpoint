@@ -17,12 +17,9 @@
         default-lazy-init="true">
 
     <bean id="sqlRepositoryFactory"
-            class="com.evolveum.midpoint.repo.sql.SqlRepositoryFactory"
-            depends-on="repositoryFactory"/>
+            class="com.evolveum.midpoint.repo.sql.SqlRepositoryFactory"/>
 
-    <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory">
-        <property name="repositoryFactory" ref="sqlRepositoryFactory"/>
-    </bean>
+    <bean id="sqlAuditFactory" class="com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory"/>
 
     <context:annotation-config/>
     <context:component-scan base-package="com.evolveum.midpoint.repo.sql"/>

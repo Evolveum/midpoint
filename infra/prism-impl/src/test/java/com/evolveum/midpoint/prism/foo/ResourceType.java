@@ -48,9 +48,9 @@ import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
     "schema"
 })
 public class ResourceType extends ObjectType implements Serializable {
-    private final static long serialVersionUID = 201202081233L;
+    private static final long serialVersionUID = 201202081233L;
 
-    public final static ItemName F_SCHEMA = new ItemName(NS_FOO, "schema");
+    public static final ItemName F_SCHEMA = new ItemName(NS_FOO, "schema");
 
     protected SchemaDefinitionType schema;
 

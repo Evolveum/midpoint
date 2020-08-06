@@ -12,28 +12,20 @@
 // Generated on: 2012.02.24 at 02:46:19 PM CET
 //
 
-
 package com.evolveum.midpoint.prism.foo;
-
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlSchemaType;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 /**
- *
- *                 Account construction type is NOT a container. It is a complex-type property.
- *                 This tests the ability to deal with complex type properties and also with
- *                 dateTime fields in them.
+ * Account construction type is NOT a container. It is a complex-type property.
+ * This tests the ability to deal with complex type properties and also with
+ * dateTime fields in them.
  *
  *
  * <p>Java class for AccountConstructionType complex type.
@@ -53,19 +45,17 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "AccountConstructionType", propOrder = {
-    "howto",
-    "when",
-    "value"
+        "howto",
+        "when",
+        "value"
 })
-public class AccountConstructionType
-    implements Serializable, Cloneable
-{
-    private final static long serialVersionUID = 201202081233L;
+public class AccountConstructionType implements Serializable, Cloneable {
+
+    private static final long serialVersionUID = 201202081233L;
+
     @XmlElement(required = true)
     protected String howto;
     @XmlSchemaType(name = "dateTime")
@@ -83,10 +73,8 @@ public class AccountConstructionType
     /**
      * Gets the value of the howto property.
      *
-     * @return
-     *     possible object is
-     *     {@link String }
-     *
+     * @return possible object is
+     * {@link String }
      */
     public String getHowto() {
         return howto;
@@ -95,10 +83,8 @@ public class AccountConstructionType
     /**
      * Sets the value of the howto property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *
+     * @param value allowed object is
+     * {@link String }
      */
     public void setHowto(String value) {
         this.howto = value;
@@ -107,10 +93,8 @@ public class AccountConstructionType
     /**
      * Gets the value of the when property.
      *
-     * @return
-     *     possible object is
-     *     {@link javax.xml.datatype.XMLGregorianCalendar }
-     *
+     * @return possible object is
+     * {@link javax.xml.datatype.XMLGregorianCalendar }
      */
     public XMLGregorianCalendar getWhen() {
         return when;
@@ -119,10 +103,8 @@ public class AccountConstructionType
     /**
      * Sets the value of the when property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link javax.xml.datatype.XMLGregorianCalendar }
-     *
+     * @param value allowed object is
+     * {@link javax.xml.datatype.XMLGregorianCalendar }
      */
     public void setWhen(XMLGregorianCalendar value) {
         this.when = value;
@@ -140,23 +122,16 @@ public class AccountConstructionType
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
         AccountConstructionType other = (AccountConstructionType) obj;
         if (howto == null) {
-            if (other.howto != null)
-                return false;
-        } else if (!howto.equals(other.howto))
-            return false;
+            if (other.howto != null) { return false; }
+        } else if (!howto.equals(other.howto)) { return false; }
         if (when == null) {
-            if (other.when != null)
-                return false;
-        } else if (!when.equals(other.when))
-            return false;
+            if (other.when != null) { return false; }
+        } else if (!when.equals(other.when)) { return false; }
         if (value == null || value.isEmpty()) {
             return other.value == null || other.value.isEmpty();
         } else if (other.value == null || other.value.isEmpty()) {
@@ -178,5 +153,4 @@ public class AccountConstructionType
         }
         return clone;
     }
-
 }

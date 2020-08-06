@@ -1,11 +1,27 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.wf.impl;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.testng.AssertJUnit.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
@@ -41,27 +57,11 @@ import com.evolveum.midpoint.wf.impl.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.impl.util.MiscHelper;
 import com.evolveum.midpoint.wf.util.QueryUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.testng.AssertJUnit.*;
 
 /**
  * @author mederly
- *
  */
-@ContextConfiguration(locations = {"classpath:ctx-workflow-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-workflow-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractWfTest extends AbstractModelImplementationIntegrationTest {
 
@@ -243,8 +243,7 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
             public boolean check() throws CommonException {
                 task.refresh(waitResult);
                 OperationResult result = task.getResult();
-                if (verbose)
-                    display("Check result", result);
+                if (verbose) { display("Check result", result); }
                 return task.getExecutionStatus() == TaskExecutionStatus.CLOSED;
             }
 
@@ -271,13 +270,10 @@ public abstract class AbstractWfTest extends AbstractModelImplementationIntegrat
         return roleOid;
     }
 
-    protected void checkTargetOid(CaseWorkItemType caseWorkItem, String expectedOid)
-            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
-            SecurityViolationException {
+    protected void checkTargetOid(CaseWorkItemType caseWorkItem, String expectedOid) {
         String realOid = getTargetOid(caseWorkItem);
         assertEquals("Unexpected target OID", expectedOid, realOid);
     }
-
 
     protected void assertDeltasEqual(String message, ObjectDelta expectedDelta, ObjectDelta realDelta) {
 //        removeOldValues(expectedDelta);

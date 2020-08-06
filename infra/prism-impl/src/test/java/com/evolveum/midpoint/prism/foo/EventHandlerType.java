@@ -54,7 +54,7 @@ import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 })
 public class EventHandlerType implements Serializable, Cloneable, Equals, HashCode {
 
-    private final static long serialVersionUID = 201105211233L;
+    private static final long serialVersionUID = 201105211233L;
     @XmlAttribute(name = "name")
     protected String name;
 

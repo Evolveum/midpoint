@@ -7,26 +7,26 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
+import java.io.Serializable;
+import java.util.Objects;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.JaxbVisitable;
 import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.Objects;
-
 /**
- *  Experimental.
+ * Experimental.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ObjectDeltaObjectType", propOrder = {
-    "oldObject",
-    "delta",
-    "newObject"
+        "oldObject",
+        "delta",
+        "newObject"
 })
 public class ObjectDeltaObjectType implements Serializable, JaxbVisitable {
 
@@ -34,10 +34,10 @@ public class ObjectDeltaObjectType implements Serializable, JaxbVisitable {
     protected ObjectDeltaType delta;
     protected ObjectType newObject;
 
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectDeltaObjectType");
-    public final static QName F_OLD_OBJECT = new QName(PrismConstants.NS_TYPES, "oldObject");
-    public final static QName F_DELTA = new QName(PrismConstants.NS_TYPES, "delta");
-    public final static QName F_NEW_OBJECT = new QName(PrismConstants.NS_TYPES, "newObject");
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectDeltaObjectType");
+    public static final QName F_OLD_OBJECT = new QName(PrismConstants.NS_TYPES, "oldObject");
+    public static final QName F_DELTA = new QName(PrismConstants.NS_TYPES, "delta");
+    public static final QName F_NEW_OBJECT = new QName(PrismConstants.NS_TYPES, "newObject");
 
     public ObjectType getOldObject() {
         return oldObject;
@@ -65,10 +65,8 @@ public class ObjectDeltaObjectType implements Serializable, JaxbVisitable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof ObjectDeltaObjectType))
-            return false;
+        if (this == o) { return true; }
+        if (!(o instanceof ObjectDeltaObjectType)) { return false; }
         ObjectDeltaObjectType that = (ObjectDeltaObjectType) o;
         return Objects.equals(oldObject, that.oldObject) &&
                 Objects.equals(delta, that.delta) &&

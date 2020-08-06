@@ -7,6 +7,22 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -43,25 +59,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-
-import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
  * @author lazyman
@@ -79,18 +76,18 @@ public class NameStep extends WizardStep {
     private static final String ID_CONNECTOR_HOST = "connectorHost";
     private static final String ID_CONNECTOR = "connector";
 
-    final private NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModelRaw;
+    private final NonEmptyLoadableModel<PrismObject<ResourceType>> resourceModelRaw;
 
-    final private LoadableModel<String> resourceNameModel;
-    final private LoadableModel<String> resourceDescriptionModel;
-    final private LoadableModel<PrismObject<ConnectorHostType>> selectedHostModel;
-    final private LoadableModel<List<PrismObject<ConnectorType>>> allConnectorsModel;
-    final private LoadableModel<List<PrismObject<ConnectorType>>> relevantConnectorsModel;            // filtered, based on selected host
-    final private LoadableModel<PrismObject<ConnectorType>> selectedConnectorModel;
-    final private IModel<String> schemaChangeWarningModel;
-    final private LoadableModel<List<PrismObject<ConnectorHostType>>> allHostsModel;                // this one is not dependent on resource content
+    private final LoadableModel<String> resourceNameModel;
+    private final LoadableModel<String> resourceDescriptionModel;
+    private final LoadableModel<PrismObject<ConnectorHostType>> selectedHostModel;
+    private final LoadableModel<List<PrismObject<ConnectorType>>> allConnectorsModel;
+    private final LoadableModel<List<PrismObject<ConnectorType>>> relevantConnectorsModel;            // filtered, based on selected host
+    private final LoadableModel<PrismObject<ConnectorType>> selectedConnectorModel;
+    private final IModel<String> schemaChangeWarningModel;
+    private final LoadableModel<List<PrismObject<ConnectorHostType>>> allHostsModel;                // this one is not dependent on resource content
 
-    final private PageResourceWizard parentPage;
+    private final PageResourceWizard parentPage;
 
     public NameStep(@NotNull NonEmptyLoadableModel<PrismObject<ResourceType>> modelRaw, @NotNull final PageResourceWizard parentPage) {
         super(parentPage);
@@ -152,12 +149,9 @@ public class NameStep extends WizardStep {
         };
         parentPage.registerDependentModel(selectedConnectorModel);
 
-        schemaChangeWarningModel = new IModel<String>() {
-            @Override
-            public String getObject() {
-                PrismObject<ConnectorType> selectedConnector = getConnectorDropDown().getInput().getModel().getObject();
-                return isConfigurationSchemaCompatible(selectedConnector) ? "" : getString("NameStep.configurationWillBeLost");
-            }
+        schemaChangeWarningModel = (IModel<String>) () -> {
+            PrismObject<ConnectorType> selectedConnector = getConnectorDropDown().getInput().getModel().getObject();
+            return isConfigurationSchemaCompatible(selectedConnector) ? "" : getString("NameStep.configurationWillBeLost");
         };
         initLayout();
     }
@@ -207,10 +201,11 @@ public class NameStep extends WizardStep {
 
                     @Override
                     public String getIdValue(PrismObject<ConnectorType> object, int index) {
-                        if (index < 0){
-                            List<PrismObject<ConnectorType>> connectors = (List<PrismObject<ConnectorType>> ) getConnectorDropDown().getInput().getChoices();
-                            for (PrismObject<ConnectorType> connector : connectors){
-                                if (connector.getOid().equals(selectedConnectorModel.getObject().getOid())){
+                        if (index < 0) {
+                            //noinspection unchecked
+                            List<PrismObject<ConnectorType>> connectors = (List<PrismObject<ConnectorType>>) getConnectorDropDown().getInput().getChoices();
+                            for (PrismObject<ConnectorType> connector : connectors) {
+                                if (connector.getOid().equals(selectedConnectorModel.getObject().getOid())) {
                                     return Integer.toString(connectors.indexOf(connector));
                                 }
                             }
@@ -221,7 +216,7 @@ public class NameStep extends WizardStep {
 
             @Override
             protected DropDownChoice<PrismObject<ConnectorType>> createDropDown(String id, IModel<List<PrismObject<ConnectorType>>> choices,
-                                                    IChoiceRenderer<PrismObject<ConnectorType>> renderer, boolean required) {
+                    IChoiceRenderer<PrismObject<ConnectorType>> renderer, boolean required) {
                 DropDownChoice<PrismObject<ConnectorType>> choice = super.createDropDown(id, choices, renderer, required);
                 choice.add(new AjaxFormComponentUpdatingBehavior("change") {
                     @Override
@@ -324,7 +319,7 @@ public class NameStep extends WizardStep {
 
             @Override
             protected DropDownChoice<PrismObject<ConnectorHostType>> createDropDown(String id, IModel<List<PrismObject<ConnectorHostType>>> choices,
-                                                    IChoiceRenderer<PrismObject<ConnectorHostType>> renderer, boolean required) {
+                    IChoiceRenderer<PrismObject<ConnectorHostType>> renderer, boolean required) {
                 DropDownChoice<PrismObject<ConnectorHostType>> choice = super.createDropDown(id, choices, renderer, required);
                 choice.add(new AjaxFormComponentUpdatingBehavior("change") {
 
@@ -341,15 +336,11 @@ public class NameStep extends WizardStep {
     private List<PrismObject<ConnectorType>> loadConnectors(PrismObject<ConnectorHostType> host) {
         List<PrismObject<ConnectorType>> filtered = filterConnectors(host);
 
-        Collections.sort(filtered, new Comparator<PrismObject<ConnectorType>>() {
+        filtered.sort((c1, c2) -> {
+            String name1 = c1.getPropertyRealValue(ConnectorType.F_CONNECTOR_TYPE, String.class);
+            String name2 = c2.getPropertyRealValue(ConnectorType.F_CONNECTOR_TYPE, String.class);
 
-            @Override
-            public int compare(PrismObject<ConnectorType> c1, PrismObject<ConnectorType> c2) {
-                String name1 = c1.getPropertyRealValue(ConnectorType.F_CONNECTOR_TYPE, String.class);
-                String name2 = c2.getPropertyRealValue(ConnectorType.F_CONNECTOR_TYPE, String.class);
-
-                return String.CASE_INSENSITIVE_ORDER.compare(name1, name2);
-            }
+            return String.CASE_INSENSITIVE_ORDER.compare(name1, name2);
         });
 
         return filtered;
@@ -409,7 +400,7 @@ public class NameStep extends WizardStep {
         try {
             ModelService model = page.getModelService();
             model.discoverConnectors(host, task, result);
-        } catch (CommonException|RuntimeException ex) {
+        } catch (CommonException | RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't discover connectors", ex);
         } finally {
             result.recomputeStatus();
@@ -439,7 +430,7 @@ public class NameStep extends WizardStep {
                 throw new IllegalStateException("No connector selected");        // should be treated by form validation
             }
 
-            ObjectDelta delta;
+            ObjectDelta<?> delta;
             final String oid = resource.getOid();
             boolean isNew = oid == null;
             if (isNew) {
@@ -486,7 +477,7 @@ public class NameStep extends WizardStep {
                 parentPage.setEditedResourceOid(delta.getOid());
             }
 
-        } catch (RuntimeException|SchemaException ex) {
+        } catch (RuntimeException | SchemaException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save resource", ex);
             result.recordFatalError(createStringResource("NameStep.message.saveResource.fatalError", ex.getMessage()).getString(), ex);
         } finally {

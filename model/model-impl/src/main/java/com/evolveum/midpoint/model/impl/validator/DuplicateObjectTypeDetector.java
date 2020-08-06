@@ -7,22 +7,23 @@
 
 package com.evolveum.midpoint.model.impl.validator;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SchemaHandlingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationType;
 
 /**
  * @author mederly
  */
 class DuplicateObjectTypeDetector {
 
-    @NotNull final private Set<ObjectTypeRecord> records = new HashSet<>();
-    @NotNull final private Set<ObjectTypeRecord> duplicates = new HashSet<>();
+    @NotNull private final Set<ObjectTypeRecord> records = new HashSet<>();
+    @NotNull private final Set<ObjectTypeRecord> duplicates = new HashSet<>();
 
     DuplicateObjectTypeDetector(@Nullable SchemaHandlingType schemaHandling) {
         addCheckingDuplicates(ObjectTypeRecord.extractFrom(schemaHandling));

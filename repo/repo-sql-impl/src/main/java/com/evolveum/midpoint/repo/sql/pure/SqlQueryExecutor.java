@@ -1,18 +1,24 @@
+/*
+ * Copyright (c) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Collection;
+import javax.sql.DataSource;
 
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.sql.*;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.sql.DataSourceFactory;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
+import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.support.InstantType;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -25,22 +31,21 @@ import com.evolveum.midpoint.util.exception.SystemException;
 /**
  * Component just under the service that orchestrates query transformation and execution.
  * Sql query executor itself does hold the query state, it uses {@link SqlQueryContext} for that.
- * Instead, this - as a Spring managed component - keeps configuration information.
+ * This object manages configuration information and provides dataSource/connections for queries.
  */
-@Component
 public class SqlQueryExecutor {
 
     private final PrismContext prismContext;
-    private final DataSourceFactory dataSourceFactory;
+    private final DataSource dataSource;
 
     private final Configuration querydslConfiguration;
 
-    public SqlQueryExecutor(PrismContext prismContext, DataSourceFactory dataSourceFactory) {
+    public SqlQueryExecutor(PrismContext prismContext, BaseHelper baseHelper) {
         this.prismContext = prismContext;
-        this.dataSourceFactory = dataSourceFactory;
+        this.dataSource = baseHelper.dataSource();
 
         SqlRepositoryConfiguration.Database database =
-                dataSourceFactory.getConfiguration().getDatabase();
+                baseHelper.getConfiguration().getDatabase();
         switch (database) {
             case H2:
                 querydslConfiguration = new Configuration(H2Templates.DEFAULT);
@@ -123,6 +128,6 @@ public class SqlQueryExecutor {
     }
 
     private Connection getConnection() throws SQLException {
-        return dataSourceFactory.getDataSource().getConnection();
+        return dataSource.getConnection();
     }
 }

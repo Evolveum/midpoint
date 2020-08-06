@@ -15,7 +15,7 @@ import com.evolveum.midpoint.audit.api.AuditServiceFactory;
 public class LoggerAuditServiceFactory implements AuditServiceFactory {
 
     @Override
-    public AuditService getAuditService() {
+    public AuditService createAuditService() {
         return new LoggerAuditServiceImpl();
     }
 

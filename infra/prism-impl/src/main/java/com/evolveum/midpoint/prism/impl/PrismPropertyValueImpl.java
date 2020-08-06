@@ -7,32 +7,11 @@
 
 package com.evolveum.midpoint.prism.impl;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.EncryptionException;
-import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
-import com.evolveum.midpoint.prism.impl.marshaller.BeanMarshaller;
-import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
-import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.impl.util.PrismUtilInternal;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import java.io.Serializable;
+import java.util.Arrays;
+import java.util.Objects;
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
@@ -41,19 +20,36 @@ import org.jetbrains.annotations.Nullable;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.w3c.dom.Element;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Optional;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+import com.evolveum.midpoint.prism.impl.marshaller.BeanMarshaller;
+import com.evolveum.midpoint.prism.impl.util.PrismUtilInternal;
+import com.evolveum.midpoint.prism.impl.xnode.XNodeImpl;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.PrismPrettyPrinter;
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 /**
  * @author lazyman
  */
-public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDumpable, Serializable, PrismPropertyValue<T> {
-
-    final static Trace LOGGER = TraceManager.getTrace(PrismPropertyValueImpl.class);
+public class PrismPropertyValueImpl<T> extends PrismValueImpl
+        implements DebugDumpable, Serializable, PrismPropertyValue<T> {
 
     private T value;
 
@@ -91,7 +87,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
      * Private constructor just for cloning.
      */
     private PrismPropertyValueImpl(OriginType type, Objectable source) {
-        super(type,source);
+        super(type, source);
     }
 
     PrismPropertyValueImpl() {
@@ -137,7 +133,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
                 try {
                     applyDefinition(def);
                 } catch (SchemaException e) {
-                    throw new IllegalStateException(e.getMessage(),e);
+                    throw new IllegalStateException(e.getMessage(), e);
                 }
             }
             if (rawElement != null) {
@@ -174,7 +170,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         PrismPropertyDefinition propertyDefinition = (PrismPropertyDefinition) definition;
         if (propertyDefinition != null && !propertyDefinition.isAnyType() && rawElement != null) {
             value = (T) parseRawElementToNewRealValue(this, propertyDefinition);
-            if (value ==  null) {
+            if (value == null) {
                 // Be careful here. Expression element can be legal sub-element of complex properties.
                 // Therefore parse expression only if there is no legal value.
                 expression = PrismUtilInternal.parseExpression(rawElement, prismContext);
@@ -193,7 +189,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         super.revive(prismContext);
         if (value != null) {
             if (value instanceof Revivable) {
-                ((Revivable)value).revive(prismContext);
+                ((Revivable) value).revive(prismContext);
             } else {
                 BeanMarshaller marshaller = ((PrismContextImpl) prismContext).getBeanMarshaller();
                 if (marshaller.canProcess(value.getClass())) {
@@ -223,14 +219,14 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         }
         T value = getValue();
         if (value instanceof Structured) {
-            return ((Structured)value).resolve(path);
+            return ((Structured) value).resolve(path);
         } else {
-            throw new IllegalArgumentException("Attempt to resolve sub-path '"+path+"' on non-structured property value "+value);
+            throw new IllegalArgumentException("Attempt to resolve sub-path '" + path + "' on non-structured property value " + value);
         }
     }
 
     @Override
-    public <IV extends PrismValue,ID extends ItemDefinition> PartiallyResolvedItem<IV,ID> findPartial(ItemPath path) {
+    public <IV extends PrismValue, ID extends ItemDefinition> PartiallyResolvedItem<IV, ID> findPartial(ItemPath path) {
         throw new UnsupportedOperationException("Attempt to invoke findPartialItem on a property value");
     }
 
@@ -249,13 +245,13 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         }
         if (value instanceof PolyStringType) {
             // This is illegal. PolyString should be there instead.
-            throw new IllegalArgumentException("PolyStringType found where PolyString should be in "+this);
+            throw new IllegalArgumentException("PolyStringType found where PolyString should be in " + this);
         }
         if (value instanceof Serializable) {
             // This is OK (covers also primitives, SchemaDefinitionType, RawType)
             return;
         }
-        throw new IllegalArgumentException("Unsupported value "+value+" ("+value.getClass()+") in "+this);
+        throw new IllegalArgumentException("Unsupported value " + value + " (" + value.getClass() + ") in " + this);
     }
 
     @Override
@@ -266,39 +262,39 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 
         ItemPath myPath = getPath();
         if (prohibitRaw && rawElement != null) {
-            throw new IllegalStateException("Raw element in property value "+this+" ("+myPath+" in "+rootItem+")");
+            throw new IllegalStateException("Raw element in property value " + this + " (" + myPath + " in " + rootItem + ")");
         }
         if (value == null && rawElement == null && expression == null) {
-            throw new IllegalStateException("Neither value, expression nor raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
+            throw new IllegalStateException("Neither value, expression nor raw element specified in property value " + this + " (" + myPath + " in " + rootItem + ")");
         }
         if (value != null && rawElement != null) {
-            throw new IllegalStateException("Both value and raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
+            throw new IllegalStateException("Both value and raw element specified in property value " + this + " (" + myPath + " in " + rootItem + ")");
         }
         if (value != null) {
             if (value instanceof Recomputable) {
                 try {
-                    ((Recomputable)value).checkConsistence();
+                    ((Recomputable) value).checkConsistence();
                 } catch (IllegalStateException e) {
-                    throw new IllegalStateException(e.getMessage()+" in property value "+this+" ("+myPath+" in "+rootItem+")", e);
+                    throw new IllegalStateException(e.getMessage() + " in property value " + this + " (" + myPath + " in " + rootItem + ")", e);
                 }
             }
             if (value instanceof PolyStringType) {
-                throw new IllegalStateException("PolyStringType found in property value "+this+" ("+myPath+" in "+rootItem+")");
+                throw new IllegalStateException("PolyStringType found in property value " + this + " (" + myPath + " in " + rootItem + ")");
             }
             if (value instanceof ProtectedStringType) {
-                if (((ProtectedStringType)value).isEmpty()) {
-                    throw new IllegalStateException("Empty ProtectedStringType found in property value "+this+" ("+myPath+" in "+rootItem+")");
+                if (((ProtectedStringType) value).isEmpty()) {
+                    throw new IllegalStateException("Empty ProtectedStringType found in property value " + this + " (" + myPath + " in " + rootItem + ")");
                 }
             }
             PrismContext prismContext = getPrismContext();
             if (value instanceof PolyString && prismContext != null) {
-                PolyString poly = (PolyString)value;
+                PolyString poly = (PolyString) value;
                 String orig = poly.getOrig();
                 String norm = poly.getNorm();
                 PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
                 String expectedNorm = polyStringNormalizer.normalize(orig);
                 if (!Objects.equals(norm, expectedNorm)) {
-                    throw new IllegalStateException("PolyString has inconsistent orig ("+orig+") and norm ("+norm+") in property value "+this+" ("+myPath+" in "+rootItem+")");
+                    throw new IllegalStateException("PolyString has inconsistent orig (" + orig + ") and norm (" + norm + ") in property value " + this + " (" + myPath + " in " + rootItem + ")");
                 }
             }
         }
@@ -352,9 +348,8 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     }
 
     private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition<T> definition)
-                throws SchemaException {
+            throws SchemaException {
         PrismContext prismCtx = definition.getPrismContext() != null ? definition.getPrismContext() : prismContext;
-        //noinspection UnnecessaryLocalVariable
         if (prismCtx == null) {
             throw new SchemaException("Unexpected null prism context.");
         }
@@ -363,7 +358,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
     }
 
     private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, Class<T> clazz, PrismContext prismContext)
-                throws SchemaException {
+            throws SchemaException {
         return prismContext.parserFor(prismPropertyValue.getRawElement().toRootXNode()).parseRealValue(clazz);
     }
 
@@ -379,7 +374,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         }
 
         if (this.rawElement != null && other.getRawElement() != null) {
-            return equalsRawElements((PrismPropertyValue<T>)other);
+            return equalsRawElements((PrismPropertyValue<T>) other);
         }
 
         PrismPropertyValue<T> otherProcessed = (PrismPropertyValue<T>) other;
@@ -393,8 +388,8 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
                 }
             } catch (SchemaException e) {
                 // TODO: Maybe just return false?
-                throw new IllegalArgumentException("Error parsing the value of property "+getParent()+" using the 'other' definition "+
-                        "during a compare: "+e.getMessage(),e);
+                throw new IllegalArgumentException("Error parsing the value of property " + getParent() + " using the 'other' definition " +
+                        "during a compare: " + e.getMessage(), e);
             }
         }
 
@@ -419,7 +414,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         } else {
 
             if (thisRealValue instanceof Element && otherRealValue instanceof Element) {
-                return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, strategy.isLiteralDomComparison());
+                return DOMUtil.compareElement((Element) thisRealValue, (Element) otherRealValue, strategy.isLiteralDomComparison());
             }
 
             if (thisRealValue instanceof SchemaDefinitionType && otherRealValue instanceof SchemaDefinitionType) {
@@ -435,10 +430,10 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
                     return thisRealValue.equals(otherRealValue);
                 } else {
                     try {
-                        return prismContext.getDefaultProtector().areEquivalent((ProtectedStringType)thisRealValue, (ProtectedStringType)otherRealValue);
+                        return prismContext.getDefaultProtector().areEquivalent((ProtectedStringType) thisRealValue, (ProtectedStringType) otherRealValue);
                     } catch (SchemaException | EncryptionException e) {
                         // Not absolutely correct. But adding those throws clauses to all equals(...) signature will wreak havoc.
-                        throw new SystemException("Error comparing protected string values: "+e.getMessage(), e);
+                        throw new SystemException("Error comparing protected string values: " + e.getMessage(), e);
                     }
                 }
             }
@@ -464,13 +459,11 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
         return this.rawElement.equals(other.getRawElement());
     }
 
-
-
     @Override
     public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!super.equals(obj)) return false;
-        if (getClass() != obj.getClass()) return false;
+        if (this == obj) { return true; }
+        if (!super.equals(obj)) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
         PrismPropertyValue other = (PrismPropertyValue) obj;
         return equals(other, getEqualsHashCodeStrategy());
     }
@@ -523,7 +516,7 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
                 if (wasIndent) {
                     sb.append("\n");
                 }
-                sb.append(((DebugDumpable)value).debugDump(indent + 1));
+                sb.append(((DebugDumpable) value).debugDump(indent + 1));
             } else {
                 if (!wasIndent) {
                     DebugUtil.indentDebugDump(sb, indent);
@@ -601,13 +594,13 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 
     private String toHumanReadableStringInternal() {
         if (value == null && expression != null) {
-            return ("expression("+expression+")");
+            return ("expression(" + expression + ")");
         } else if (value instanceof PolyString) {
             // We intentionally do not put this code into PrettyPrinter, to avoid unwanted side effects
             // (displaying the aux information in user-visible context). But for e.g. deltas we need this information.
             PolyString ps = (PolyString) this.value;
             StringBuilder sb = new StringBuilder();
-            if (MapUtils.isNotEmpty(ps.getLang()) || ps.getTranslation() != null && StringUtils.isNotEmpty(ps.getTranslation().getKey())){
+            if (MapUtils.isNotEmpty(ps.getLang()) || ps.getTranslation() != null && StringUtils.isNotEmpty(ps.getTranslation().getKey())) {
                 sb.append("orig=").append(ps.getOrig());
             } else {
                 sb.append(ps.getOrig());

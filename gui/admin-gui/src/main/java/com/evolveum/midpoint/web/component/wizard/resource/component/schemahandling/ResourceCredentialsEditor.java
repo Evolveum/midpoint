@@ -7,16 +7,25 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextEditPanel;
@@ -28,32 +37,13 @@ import com.evolveum.midpoint.web.component.wizard.resource.dto.MappingTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
- *  @author shood
- * */
+ * @author shood
+ */
 public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefinitionType> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceCredentialsEditor.class);
-
-    private static final String DOT_CLASS = ResourceCredentialsEditor.class.getName() + ".";
-    private static final String OPERATION_LOAD_PASSWORD_POLICIES = DOT_CLASS + "createPasswordPolicyList";
 
     private static final String ID_FETCH_STRATEGY = "fetchStrategy";
     private static final String ID_OUTBOUND_LABEL = "outboundLabel";
@@ -67,7 +57,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
     private static final String ID_T_IN = "inboundTooltip";
     private static final String ID_T_PASS_POLICY = "passwordPolicyRefTooltip";
 
-    final private Map<String, String> passPolicyMap = new HashMap<>();
+    private final Map<String, String> passPolicyMap = new HashMap<>();
 
     public ResourceCredentialsEditor(String id, IModel<ResourceCredentialsDefinitionType> model, PageResourceWizard parentPage) {
         super(id, model);
@@ -78,11 +68,11 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
     public IModel<ResourceCredentialsDefinitionType> getModel() {
         IModel<ResourceCredentialsDefinitionType> model = super.getModel();
 
-        if(model.getObject() == null){
+        if (model.getObject() == null) {
             model.setObject(new ResourceCredentialsDefinitionType());
         }
 
-        if(model.getObject().getPassword() == null){
+        if (model.getObject().getPassword() == null) {
             model.getObject().setPassword(new ResourcePasswordDefinitionType());
         }
 
@@ -90,10 +80,10 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
     }
 
     protected void initLayout(final PageResourceWizard parentPage) {
-        DropDownChoice fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
-            new PropertyModel<>(getModel(), "password.fetchStrategy"),
+        DropDownChoice<?> fetchStrategy = new DropDownChoice<>(ID_FETCH_STRATEGY,
+                new PropertyModel<>(getModel(), "password.fetchStrategy"),
                 WebComponentUtil.createReadonlyModelFromEnum(AttributeFetchStrategyType.class),
-            new EnumChoiceRenderer<>(this));
+                new EnumChoiceRenderer<>(this));
         parentPage.addEditingEnabledBehavior(fetchStrategy);
         add(fetchStrategy);
 
@@ -107,24 +97,20 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
                 return !parentPage.isReadOnly() || credentials.getPassword().getOutbound() != null;
             }
         };
-        TextField outboundLabel = new TextField<>(ID_OUTBOUND_LABEL, new IModel<String>() {
+        TextField<?> outboundLabel = new TextField<>(ID_OUTBOUND_LABEL, (IModel<String>) () -> {
+            ResourceCredentialsDefinitionType credentials = getModel().getObject();
 
-            @Override
-            public String getObject() {
-                ResourceCredentialsDefinitionType credentials = getModel().getObject();
-
-                if(credentials == null || credentials.getPassword() == null){
-                    return null;
-                }
-                // TODO: support multiple password mappings
-                MappingType outbound = null;
-                List<MappingType> outbounds = credentials.getPassword().getOutbound();
-                if (!outbounds.isEmpty()) {
-                    outbound = outbounds.get(0);
-                }
-                return MappingTypeDto.createMappingLabel(outbound, LOGGER, getPageBase().getPrismContext(),
-                        getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
+            if (credentials == null || credentials.getPassword() == null) {
+                return null;
             }
+            // TODO: support multiple password mappings
+            MappingType outbound = null;
+            List<MappingType> outbounds = credentials.getPassword().getOutbound();
+            if (!outbounds.isEmpty()) {
+                outbound = outbounds.get(0);
+            }
+            return MappingTypeDto.createMappingLabel(outbound, LOGGER, getPageBase().getPrismContext(),
+                    getString("MappingType.label.placeholder"), getString("MultiValueField.nameNotSpecified"));
         });
         outboundLabel.setEnabled(false);
         outboundLabel.setOutputMarkupId(true);
@@ -142,8 +128,8 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         outbound.add(showIfEditingOrOutboundExists);
         add(outbound);
 
-        MultiValueTextEditPanel inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
-            new PropertyModel<>(getModel(), "password.inbound"), null, false, true, parentPage.getReadOnlyModel()) {
+        MultiValueTextEditPanel<?> inbound = new MultiValueTextEditPanel<MappingType>(ID_INBOUND,
+                new PropertyModel<>(getModel(), "password.inbound"), null, false, true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<MappingType> model) {
@@ -158,28 +144,24 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
             }
 
             @Override
-            protected MappingType createNewEmptyItem(){
+            protected MappingType createNewEmptyItem() {
                 return WizardUtil.createEmptyMapping();
             }
 
             @Override
-            protected void editPerformed(AjaxRequestTarget target, MappingType object){
+            protected void editPerformed(AjaxRequestTarget target, MappingType object) {
                 inboundEditPerformed(target, object);
             }
         };
         inbound.setOutputMarkupId(true);
         add(inbound);
 
-        DropDownChoice passwordPolicy = new DropDownChoice<>(ID_PASS_POLICY,
-            new PropertyModel<>(getModel(), "password.passwordPolicyRef"),
-                new IModel<List<ObjectReferenceType>>() {
-
-                    @Override
-                    public List<ObjectReferenceType> getObject() {
-                        return WebModelServiceUtils.createObjectReferenceList(ValuePolicyType.class, getPageBase(), passPolicyMap);
-
-                    }
-                }, new ObjectReferenceChoiceRenderer(passPolicyMap));
+        DropDownChoice<?> passwordPolicy = new DropDownChoice<>(ID_PASS_POLICY,
+                new PropertyModel<>(getModel(), "password.passwordPolicyRef"),
+                (IModel<List<ObjectReferenceType>>) () ->
+                        WebModelServiceUtils.createObjectReferenceList(
+                                ValuePolicyType.class, getPageBase(), passPolicyMap),
+                new ObjectReferenceChoiceRenderer(passPolicyMap));
         parentPage.addEditingEnabledBehavior(passwordPolicy);
         add(passwordPolicy);
 
@@ -202,7 +184,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         initModals(parentPage.getReadOnlyModel());
     }
 
-    private void initModals(NonEmptyModel<Boolean> readOnlyModel){
+    private void initModals(NonEmptyModel<Boolean> readOnlyModel) {
         ModalWindow inboundEditor = new MappingEditorDialog(ID_MODAL_INBOUND, null, readOnlyModel) {
 
             @Override
@@ -222,42 +204,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         add(outboundEditor);
     }
 
-    private List<ObjectReferenceType> createPasswordPolicyList(){
-        passPolicyMap.clear();
-        OperationResult result = new OperationResult(OPERATION_LOAD_PASSWORD_POLICIES);
-        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_PASSWORD_POLICIES);
-        List<PrismObject<ValuePolicyType>> policies = null;
-        List<ObjectReferenceType> references = new ArrayList<>();
-
-        try{
-            policies = getPageBase().getModelService().searchObjects(ValuePolicyType.class, null, null, task, result);
-            result.recomputeStatus();
-        } catch (CommonException |RuntimeException e) {
-            result.recordFatalError(getString("ResourceCredentialsEditor.message.createPasswordPolicyList.fatalError"), e);
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
-        }
-
-        // TODO - show error somehow
-        // if(!result.isSuccess()){
-        //    getPageBase().showResult(result);
-        // }
-
-        if(policies != null){
-            ObjectReferenceType ref;
-
-            for(PrismObject<ValuePolicyType> policy: policies){
-                passPolicyMap.put(policy.getOid(), WebComponentUtil.getName(policy));
-                ref = new ObjectReferenceType();
-                ref.setType(ValuePolicyType.COMPLEX_TYPE);
-                ref.setOid(policy.getOid());
-                references.add(ref);
-            }
-        }
-
-        return references;
-    }
-
-    private void outboundEditPerformed(AjaxRequestTarget target){
+    private void outboundEditPerformed(AjaxRequestTarget target) {
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_OUTBOUND);
         IModel<ResourceCredentialsDefinitionType> model = getModel();
         List<MappingType> outboundMappingList = model == null ? null :
@@ -269,7 +216,7 @@ public class ResourceCredentialsEditor extends BasePanel<ResourceCredentialsDefi
         window.show(target);
     }
 
-    private void inboundEditPerformed(AjaxRequestTarget target, MappingType mapping){
+    private void inboundEditPerformed(AjaxRequestTarget target, MappingType mapping) {
         MappingEditorDialog window = (MappingEditorDialog) get(ID_MODAL_INBOUND);
         window.updateModel(target, mapping, false);
         window.show(target);

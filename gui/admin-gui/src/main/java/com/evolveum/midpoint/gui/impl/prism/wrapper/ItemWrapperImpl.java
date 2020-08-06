@@ -512,7 +512,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public QName getTypeName() {
+    public @NotNull QName getTypeName() {
         return getItemDefinition().getTypeName();
     }
 

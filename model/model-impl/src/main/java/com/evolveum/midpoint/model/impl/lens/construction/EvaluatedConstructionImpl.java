@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
@@ -30,12 +36,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-
 /**
  * @author mederly
  * @author Radovan Semancik
@@ -44,22 +44,22 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedConstructionImpl.class);
 
-    @NotNull final private Construction<AH,?> construction;
-    @NotNull final private ResourceShadowDiscriminator rsd;
-    @NotNull final private Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings = new ArrayList<>();;
-    @NotNull final private Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings = new ArrayList<>();
+    @NotNull private final Construction<AH, ?> construction;
+    @NotNull private final ResourceShadowDiscriminator rsd;
+    @NotNull private final Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings = new ArrayList<>();
+    @NotNull private final Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings = new ArrayList<>();
     private LensProjectionContext projectionContext;
 
     /**
-     * @pre construction is already evaluated and not ignored (has resource)
+     * Precondition: {@link Construction} is already evaluated and not ignored (has resource).
      */
-    EvaluatedConstructionImpl(@NotNull final Construction<AH,?> construction, @NotNull final ResourceShadowDiscriminator rsd) {
+    EvaluatedConstructionImpl(@NotNull final Construction<AH, ?> construction, @NotNull final ResourceShadowDiscriminator rsd) {
         this.construction = construction;
         this.rsd = rsd;
     }
 
     @Override
-    public @NotNull Construction<AH,?> getConstruction() {
+    public @NotNull Construction<AH, ?> getConstruction() {
         return construction;
     }
 
@@ -73,7 +73,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
     }
 
     @Override
-    public ShadowKindType getKind() {
+    public @NotNull ShadowKindType getKind() {
         return rsd.getKind();
     }
 
@@ -150,7 +150,6 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
             // projection context may not exist yet (existence might not be yet decided)
         }
     }
-
 
     private void evaluateAttributes(Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -307,7 +306,6 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
 
         return mapping;
     }
-
 
     private String getHumanReadableConstructionDescription() {
         return "construction for (" + (construction.getResolvedResource() != null ? construction.getResolvedResource().resource : null)

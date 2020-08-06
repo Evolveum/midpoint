@@ -48,8 +48,9 @@ public abstract class LogicalOperatorFilterType
         extends FilterClauseType
         implements Serializable, Cloneable, Equals, HashCode {
 
-    private final static long serialVersionUID = 201105211233L;
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "LogicalOperatorFilterType");
+    private static final long serialVersionUID = 201105211233L;
+
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "LogicalOperatorFilterType");
 
     /**
      * Creates a new {@code LogicalOperatorFilterType} instance.
@@ -98,10 +99,7 @@ public abstract class LogicalOperatorFilterType
         if (this == object) {
             return true;
         }
-        if (!super.equals(thisLocator, thatLocator, object, strategy)) {
-            return false;
-        }
-        return true;
+        return super.equals(thisLocator, thatLocator, object, strategy);
     }
 
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")

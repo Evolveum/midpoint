@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2016-2019 Evolveum and contributors
+  ~ Copyright (c) 2016-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -13,7 +13,7 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
           xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
           oid="eced6d24-73e3-11e5-8457-93eff15a6b85">
-    <name>Active Directory Chimera (LDAP)</name>
+    <name>Active Directory 2012R2 (LDAP)</name>
 
     <connectorRef type="ConnectorType">
         <filter>
@@ -26,21 +26,22 @@
 
     <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
         <icfc:configurationProperties xmlns:icfcldap="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-ldap/com.evolveum.polygon.connector.ldap.ad.AdLdapConnector">
-            <icfcldap:host>chimera.ad.evolveum.com</icfcldap:host>
+            <icfcldap:host>ad01.ad2012.lab.evolveum.com</icfcldap:host>
             <icfcldap:port>636</icfcldap:port>
             <icfcldap:baseContext><expression><const>adBaseDn</const></expression></icfcldap:baseContext>
-            <icfcldap:bindDn>CN=midpoint,CN=Users,DC=ad,DC=evolveum,DC=com</icfcldap:bindDn>
+            <icfcldap:bindDn>CN=midpoint,CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</icfcldap:bindDn>
             <icfcldap:connectionSecurity>ssl</icfcldap:connectionSecurity>
             <icfcldap:bindPassword>
                 <t:clearValue>qwe.123</t:clearValue>
             </icfcldap:bindPassword>
-            <icfcldap:servers>host=hydra.ad.evolveum.com; baseContext=DC=sub,DC=ad,DC=evolveum,DC=com; bindDn=CN=midpoint,CN=Users,DC=sub,DC=ad,DC=evolveum,DC=com</icfcldap:servers>
+            <icfcldap:servers>host=ad02.ad2012.lab.evolveum.com; baseContext=DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com; bindDn=CN=midpoint,CN=Users,DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com</icfcldap:servers>
             <icfcldap:referralStrategy>ignore</icfcldap:referralStrategy>
             <icfcldap:globalCatalogStrategy>resolve</icfcldap:globalCatalogStrategy>
             <icfcldap:operationalAttributes>msExchHideFromAddressLists</icfcldap:operationalAttributes>
             <icfcldap:enableExtraTests>true</icfcldap:enableExtraTests>
             <icfcldap:forcePasswordChangeAtNextLogon>false</icfcldap:forcePasswordChangeAtNextLogon>
-            <icfcldap:useTreeDelete>never</icfcldap:useTreeDelete>
+            <icfcldap:useTreeDelete>always</icfcldap:useTreeDelete>
+            <icfcldap:baseContextToSynchronize>CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</icfcldap:baseContextToSynchronize>
         </icfc:configurationProperties>
         <icfc:resultsHandlerConfiguration>
             <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -61,7 +62,7 @@
         </connectorRef>
         <connectorConfiguration xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
             <icfc:configurationProperties xmlns:icfcps="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-powershell/com.evolveum.polygon.connector.powershell.PowerShellConnector">
-                <icfcps:winRmHost>chimera.ad.evolveum.com</icfcps:winRmHost>
+                <icfcps:winRmHost>ad01.ad2012.lab.evolveum.com</icfcps:winRmHost>
                 <icfcps:winRmUsername>midpoint</icfcps:winRmUsername>
                 <icfcps:winRmPassword>
                     <t:clearValue>qwe.123</t:clearValue>
@@ -71,7 +72,6 @@
                 <icfcps:winRmPort>5986</icfcps:winRmPort>
                 <icfcps:winRmUseHttps>true</icfcps:winRmUseHttps>
                 <icfcps:powershellArgumentStyle>variables</icfcps:powershellArgumentStyle>
-                <icfcps:disableCertificateChecks>true</icfcps:disableCertificateChecks>
             </icfc:configurationProperties>
             <icfc:resultsHandlerConfiguration>
                 <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -87,7 +87,9 @@
             <generateObjectClass>ri:group</generateObjectClass>
             <generateObjectClass>ri:organizationalUnit</generateObjectClass>
             <generateObjectClass>ri:domain</generateObjectClass>
+           <!-- No exchange here
             <generateObjectClass>ri:msExchBaseClass</generateObjectClass>
+            -->
         </generationConstraints>
     </schema>
 
@@ -104,7 +106,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <expression><const>adUsersDn</const></expression>
+                        <expression><const>ad2012UsersDn</const></expression>
                     </q:equal>
                 </filter>
             </baseContext>
@@ -114,12 +116,12 @@
                 <matchingRule>mr:distinguishedName</matchingRule>
                 <outbound>
                     <source>
-                        <path>$user/fullName</path>
+                        <path>fullName</path>
                     </source>
                     <expression>
                         <script>
                             <code>
-                                basic.composeDnWithSuffix('CN', fullName + iterationToken, midpoint.getConst('adUsersDn'))
+                                basic.composeDnWithSuffix('CN', fullName + iterationToken, midpoint.getConst('ad2012UsersDn'))
                             </code>
                         </script>
                     </expression>
@@ -132,7 +134,7 @@
                     <secondaryIdentifier>true</secondaryIdentifier>
                     <outbound>
                         <source>
-                            <path>$user/name</path>
+                            <path>name</path>
                         </source>
                     </outbound>
                     <inbound>
@@ -203,12 +205,12 @@
                     <ref>ri:userPrincipalName</ref>
                     <outbound>
                     <source>
-                        <path>$user/name</path>
+                        <path>name</path>
                     </source>
                     <expression>
                         <script>
                             <code>
-                                name + iterationToken + '@ad.evolveum.com'
+                                name + iterationToken + '@ad2012.lab.evolveum.com'
                             </code>
                         </script>
                     </expression>
@@ -233,7 +235,7 @@
                 <ref>ri:objectCategory</ref>
                 <outbound>
                     <expression>
-                        <value>CN=Person,CN=Schema,CN=Configuration,DC=ad,DC=evolveum,DC=com</value>
+                        <value>CN=Person,CN=Schema,CN=Configuration,DC=ad2012,DC=lab,DC=evolveum,DC=com</value>
                     </expression>
                 </outbound>
             </attribute>
@@ -299,7 +301,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>cn=midpoint,cn=users,dc=ad,dc=evolveum,dc=com</q:value>
+                        <q:value>cn=midpoint,cn=users,dc=ad2012,dc=lab,dc=evolveum,dc=com</q:value>
                     </q:equal>
                 </filter>
             </protected>
@@ -307,7 +309,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>CN=SUB$,CN=Users,DC=ad,DC=evolveum,DC=com</q:value>
+                        <q:value>CN=SUB$,CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
                     </q:equal>
                 </filter>
             </protected>
@@ -355,7 +357,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>OU=Org,DC=ad,DC=evolveum,DC=com</q:value>
+                        <q:value>OU=Org,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
                     </q:equal>
                 </filter>
             </baseContext>
@@ -370,7 +372,7 @@
                     <expression>
                         <script>
                             <code>
-                                basic.composeDnWithSuffix('OU', name, 'OU=Org,DC=ad,DC=evolveum,DC=com')
+                                basic.composeDnWithSuffix('OU', name, 'OU=Org,DC=ad2012,DC=lab,DC=evolveum,DC=com')
                             </code>
                         </script>
                     </expression>
@@ -394,7 +396,7 @@
                 <ref>ri:objectCategory</ref>
                 <outbound>
                     <expression>
-                        <value>CN=Organizational-Unit,CN=Schema,CN=Configuration,DC=ad,DC=evolveum,DC=com</value>
+                        <value>CN=Organizational-Unit,CN=Schema,CN=Configuration,DC=ad2012,DC=lab,DC=evolveum,DC=com</value>
                     </expression>
                 </outbound>
             </attribute>
@@ -413,7 +415,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>CN=Users,DC=sub,DC=ad,DC=evolveum,DC=com</q:value>
+                        <q:value>CN=Users,DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
                     </q:equal>
                 </filter>
             </baseContext>
@@ -428,7 +430,7 @@
                     <expression>
                         <script>
                             <code>
-                                basic.composeDnWithSuffix('CN', fullName, 'CN=Users,DC=sub,DC=ad,DC=evolveum,DC=com')
+                                basic.composeDnWithSuffix('CN', fullName, 'CN=Users,DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com')
                             </code>
                         </script>
                     </expression>
@@ -516,7 +518,7 @@
                     <expression>
                         <script>
                             <code>
-                                name + iterationToken + '@sub.ad.evolveum.com'
+                                name + iterationToken + '@sub.ad2012.lab.evolveum.com'
                             </code>
                         </script>
                     </expression>
@@ -564,7 +566,7 @@
                 </limitations>
                 <outbound>
                     <expression>
-                        <value>CN=Person,CN=Schema,CN=Configuration,DC=ad,DC=evolveum,DC=com</value>
+                        <value>CN=Person,CN=Schema,CN=Configuration,DC=ad2012,DC=lab,DC=evolveum,DC=com</value>
                     </expression>
                 </outbound>
             </attribute>
@@ -607,7 +609,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>DC=sub,DC=ad,DC=evolveum,DC=com</q:value>
+                        <q:value>DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
                     </q:equal>
                 </filter>
             </baseContext>
@@ -622,7 +624,7 @@
                     <expression>
                         <script>
                             <code>
-                                basic.composeDnWithSuffix('OU', name, 'DC=sub,DC=ad,DC=evolveum,DC=com')
+                                basic.composeDnWithSuffix('OU', name, 'DC=sub,DC=ad2012,DC=lab,DC=evolveum,DC=com')
                             </code>
                         </script>
                     </expression>
@@ -646,7 +648,7 @@
                 <ref>ri:objectCategory</ref>
                 <outbound>
                     <expression>
-                        <value>CN=Organizational-Unit,CN=Schema,CN=Configuration,DC=ad,DC=evolveum,DC=com</value>
+                        <value>CN=Organizational-Unit,CN=Schema,CN=Configuration,DC=ad2012,DC=lab,DC=evolveum,DC=com</value>
                     </expression>
                 </outbound>
             </attribute>
@@ -666,7 +668,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>CN=Users,DC=ad,DC=evolveum,DC=com</q:value>
+                        <q:value>CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
                     </q:equal>
                 </filter>
             </baseContext>
@@ -680,7 +682,7 @@
                     <expression>
                         <script>
                             <code>
-                                basic.composeDnWithSuffix('CN', name, 'CN=Users,DC=ad,DC=evolveum,DC=com')
+                                basic.composeDnWithSuffix('CN', name, 'CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com')
                             </code>
                         </script>
                     </expression>
@@ -728,7 +730,7 @@
                 <filter>
                     <q:equal>
                         <q:path>attributes/dn</q:path>
-                        <q:value>OU=Org,DC=ad,DC=evolveum,DC=com</q:value>
+                        <q:value>OU=Org,DC=ad2012,DC=lab,DC=evolveum,DC=com</q:value>
                     </q:equal>
                 </filter>
             </baseContext>
@@ -743,7 +745,7 @@
                         <script>
                             <code>
                                 def parent = midpoint.getParentOrgByOrgType(focus,null)
-                                basic.composeDnWithSuffix('CN', name, 'OU', parent.getName(), 'OU=Org,DC=ad,DC=evolveum,DC=com')
+                                basic.composeDnWithSuffix('CN', name, 'OU', parent.getName(), 'OU=Org,DC=ad2012,DC=lab,DC=evolveum,DC=com')
                             </code>
                         </script>
                     </expression>
@@ -782,75 +784,6 @@
 
     </schemaHandling>
 
-    <capabilities>
-
-        <!-- A whole bunch of configured capabilities. This are pretty much the same as native capabilities.
-             We just want to make sure that this explicit configuration works as well. MID-5798 -->
-        <configured xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:CapabilityCollectionType">
-            <cap:liveSync>
-                <cap:enabled>true</cap:enabled>
-            </cap:liveSync>
-            <cap:testConnection>
-                <cap:enabled>true</cap:enabled>
-            </cap:testConnection>
-            <cap:create>
-                <cap:enabled>true</cap:enabled>
-            </cap:create>
-            <cap:update>
-                <cap:enabled>true</cap:enabled>
-                <cap:delta>true</cap:delta>
-                <cap:addRemoveAttributeValues>true</cap:addRemoveAttributeValues>
-            </cap:update>
-            <cap:delete>
-                <cap:enabled>true</cap:enabled>
-            </cap:delete>
-            <cap:script>
-                <cap:enabled>true</cap:enabled>
-                <cap:host>
-                    <cap:type>resource</cap:type>
-                </cap:host>
-                <cap:host>
-                    <cap:type>connector</cap:type>
-                </cap:host>
-            </cap:script>
-            <cap:activation>
-                <cap:enabled>true</cap:enabled>
-                <cap:status>
-                    <cap:enabled>true</cap:enabled>
-                    <cap:returnedByDefault>true</cap:returnedByDefault>
-                    <cap:ignoreAttribute>true</cap:ignoreAttribute>
-                </cap:status>
-                <cap:validFrom>
-                    <cap:enabled>false</cap:enabled>
-                    <cap:returnedByDefault>false</cap:returnedByDefault>
-                </cap:validFrom>
-                <cap:validTo>
-                    <cap:enabled>false</cap:enabled>
-                    <cap:returnedByDefault>false</cap:returnedByDefault>
-                </cap:validTo>
-                <cap:lockoutStatus>
-                    <cap:enabled>false</cap:enabled>
-                    <cap:returnedByDefault>false</cap:returnedByDefault>
-                    <cap:ignoreAttribute>true</cap:ignoreAttribute>
-                </cap:lockoutStatus>
-            </cap:activation>
-            <cap:credentials>
-                <cap:enabled>true</cap:enabled>
-                <cap:password>
-                    <cap:enabled>true</cap:enabled>
-                    <cap:returnedByDefault>false</cap:returnedByDefault>
-                </cap:password>
-            </cap:credentials>
-            <cap:auxiliaryObjectClasses>
-                <cap:enabled>true</cap:enabled>
-            </cap:auxiliaryObjectClasses>
-            <cap:read>
-                <cap:enabled>true</cap:enabled>
-                <cap:returnDefaultAttributesOption>true</cap:returnDefaultAttributesOption>
-            </cap:read>
-        </configured>
-    </capabilities>
-
     <scripts>
         <script>
             <host>resource</host>
@@ -860,19 +793,21 @@
               <name>username</name>
            </argument>
             <!-- Single-line command, but parameters in variable. This may make it multi-line. -->
-            <code>$T = Get-Date -format u; $M = $T + " (CredSSP) ADD " + $username +"`n"; write-host $M; $block = $ExecutionContext.InvokeCommand.NewScriptBlock("Add-Content c:\conn.txt `""+$M+"`""); Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock $block</code>
+            <code>Hostname</code>
+<!--            <code>$T = Get-Date -format u; $M = $T + " (CredSSP) ADD " + $username +"`n"; write-host $M; $block = $ExecutionContext.InvokeCommand.NewScriptBlock("Add-Content c:\conn.txt `""+$M+"`""); Invoke-Command -ComputerName ad02.sub.ad2012.lab.evolveum.com -ScriptBlock $block</code> -->
             <operation>add</operation>
             <order>before</order>
         </script>
         <script>
             <host>resource</host>
             <language>powerhell</language>
+            <code>Hostname</code>
             <!-- Make sure that this is a multi-line command. -->
-            <code>
+<!--            <code>
                 write-host "before"
-                Invoke-Command -ComputerName hydra.sub.ad.evolveum.com -ScriptBlock { $T = Get-Date; Add-Content c:\conn.txt $T; Add-Content c:\conn.txt "(CredSSP) MOD`n" }
+                Invoke-Command -ComputerName ad02.sub.ad2012.lab.evolveum.com -ScriptBlock { $T = Get-Date; Add-Content c:\conn.txt $T; Add-Content c:\conn.txt "(CredSSP) MOD`n" }
                 write-host "after"
-            </code>
+            </code> -->
             <operation>modify</operation>
             <order>before</order>
         </script>
@@ -883,7 +818,7 @@
         <validateSchema>true</validateSchema>
     </consistency>
 
-        <synchronization>
+    <synchronization>
 
         <objectSynchronization>
             <name>Account sync</name>

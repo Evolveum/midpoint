@@ -28,7 +28,7 @@
                 <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
             <auditService>
-                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlAuditServiceFactory</auditServiceFactoryClass>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.test.DummyAuditServiceFactory</auditServiceFactoryClass>
@@ -59,6 +59,8 @@
             <passwordClear>secret</passwordClear>
             <adBaseDn>DC=ad,DC=evolveum,DC=com</adBaseDn>
             <adUsersDn>CN=Users,DC=ad,DC=evolveum,DC=com</adUsersDn>
+            <ad2012BaseDn>DC=ad2012,DC=lab,DC=evolveum,DC=com</ad2012BaseDn>
+            <ad2012UsersDn>CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</ad2012UsersDn>
         </constants>
     </midpoint>
 </configuration>

@@ -26,12 +26,12 @@ import org.hibernate.engine.spi.RowSelection;
 import org.hibernate.query.NativeQuery;
 import org.hibernate.query.Query;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -73,6 +73,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}.
+ * This is NOT a managed bean, it is completely created by {@link SqlAuditServiceFactory} and any
+ * of the dependencies must be dependencies of that factory to assure proper initialization.
  */
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
 
@@ -82,24 +84,32 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private static final String OP_LIST_RECORDS_ATTEMPT = "listRecordsAttempt";
     private static final String OP_LOAD_AUDIT_DELTA = "loadAuditDelta";
 
-    @Autowired
-    private BaseHelper baseHelper;
-
-    @Autowired
-    private SqlQueryExecutor sqlQueryExecutor;
-
     private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
 
     private static final String QUERY_MAX_RESULT = "setMaxResults";
     private static final String QUERY_FIRST_RESULT = "setFirstResult";
 
+    private final BaseHelper baseHelper;
+    private final PrismContext prismContext;
+
+    private final SqlQueryExecutor sqlQueryExecutor;
+
     private final Map<String, String> customColumn = new HashMap<>();
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
-    public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
-        super(repositoryFactory);
+    public SqlAuditServiceImpl(
+            BaseHelper baseHelper,
+            PrismContext prismContext) {
+        this.baseHelper = baseHelper;
+        this.prismContext = prismContext;
+        this.sqlQueryExecutor = new SqlQueryExecutor(prismContext, baseHelper);
+    }
+
+    @Override
+    public SqlRepositoryConfiguration sqlConfiguration() {
+        return baseHelper.getConfiguration();
     }
 
     @Override
@@ -217,7 +227,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Session session = baseHelper.beginTransaction();
         try {
 
-            RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, getPrismContext(), null, auditConfiguration);
+            RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, prismContext, null, auditConfiguration);
             //TODO FIXME temporary hack, merge will eventually load the object to the session if there isn't one,
             // but in this case we force loading object because of "objectDeltaOperation". There is some problem probably
             // during serializing/deserializing which causes constraint violation on primary key..
@@ -298,7 +308,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                             while (subResultList.next()) {
                                 try {
                                     ObjectDeltaOperation<?> odo = RObjectDeltaOperation.fromRepo(
-                                            subResultList, getPrismContext(), getConfiguration().isUsingSQLServer());
+                                            subResultList, prismContext, sqlConfiguration().isUsingSQLServer());
                                     audit.addDelta(odo);
                                 } catch (DtoTranslationException ex) {
                                     LOGGER.error("Cannot convert stored audit delta. Reason: {}", ex.getMessage(), ex);
@@ -356,6 +366,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                             subStmt.close();
                         }
 
+                        // TODO MID-4712 rework without SQL at all, just create lightweight objects with available info
+                        // alternative is sqlRepo.getObject, because now it can be in different DB
                         try {
                             // TODO what if original name (in audit log) differs from the current one (in repo) ?
                             audit.setInitiator(resolve(session, resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
@@ -366,7 +378,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                     resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.FOCUS));
                             audit.setTarget(resolve(session, resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.TARGET_NAME_COLUMN_NAME),
-                                    RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME))), getPrismContext());
+                                    RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME))), prismContext);
                             audit.setTargetOwner(resolve(session, resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
                                     resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
                                     RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME))));
@@ -413,7 +425,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     // Hibernate-based
     // using generic parameter to avoid typing warnings
-    private <X extends ObjectType> PrismObject<X> resolve(Session session, String oid, String defaultName, RObjectType defaultType) throws SchemaException {
+    private <X extends ObjectType> PrismObject<X> resolve(
+            Session session, String oid, String defaultName, RObjectType defaultType)
+            throws SchemaException {
+
         if (oid == null) {
             return null;
         }
@@ -425,10 +440,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         PrismObject result;
         if (object != null) {
             String serializedForm = RUtil.getSerializedFormFromBytes(object.getFullObject());
-            result = getPrismContext().parserFor(serializedForm)
+            result = prismContext.parserFor(serializedForm)
                     .compat().parse();
         } else if (defaultType != null) {
-            result = getPrismContext().createObject(defaultType.getJaxbClass());
+            result = prismContext.createObject(defaultType.getJaxbClass());
             result.asObjectable().setName(PolyStringType.fromOrig(defaultName != null ? defaultName : oid));
             result.setOid(oid);
         } else {
@@ -444,7 +459,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         try {
             SingleSqlQuery query = RAuditEventRecord.toRepo(record, customColumn);
             session.doWork(connection -> {
-                Database database = getConfiguration().getDatabase();
+                Database database = sqlConfiguration().getDatabase();
                 String[] keyColumn = { RAuditEventRecord.ID_COLUMN_NAME };
                 PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
                 Long id = null;
@@ -474,7 +489,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     ObjectDelta<?> objectDelta = delta.getObjectDelta();
                     for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
                         ItemPath path = itemDelta.getPath();
-                        CanonicalItemPath canonical = getPrismContext().createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
+                        CanonicalItemPath canonical = prismContext.createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
                         for (int i = 0; i < canonical.size(); i++) {
 
                             SingleSqlQuery itemQuery = RAuditItem.toRepo(id, canonical.allUpToIncluding(i).asString());
@@ -484,7 +499,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
                     SingleSqlQuery deltaQuery;
                     try {
-                        deltaQuery = RObjectDeltaOperation.toRepo(id, delta, getPrismContext(), auditConfiguration);
+                        deltaQuery = RObjectDeltaOperation.toRepo(id, delta, prismContext, auditConfiguration);
                         deltaBatchQuery.addQueryForBatch(deltaQuery);
                     } catch (DtoTranslationException e) {
                         baseHelper.handleGeneralCheckedException(e, session, null);
@@ -804,7 +819,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private void createTemporaryTable(Session session, final Dialect dialect, final String tempTable) {
         session.doWork(connection -> {
             // check if table exists
-            if (!getConfiguration().isUsingPostgreSQL()) {
+            if (!sqlConfiguration().isUsingPostgreSQL()) {
                 try {
                     Statement s = connection.createStatement();
                     s.execute("select id from " + tempTable + " where id = 1");
@@ -830,9 +845,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     private String createDeleteQuery(String objectTable, String tempTable, String idColumnName) {
-        if (getConfiguration().isUsingMySqlCompatible()) {
+        if (sqlConfiguration().isUsingMySqlCompatible()) {
             return createDeleteQueryAsJoin(objectTable, tempTable, idColumnName);
-        } else if (getConfiguration().isUsingPostgreSQL()) {
+        } else if (sqlConfiguration().isUsingPostgreSQL()) {
             return createDeleteQueryAsJoinPostgreSQL(objectTable, tempTable, idColumnName);
         } else {
             // todo consider using join for other databases as well
@@ -861,7 +876,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         try {
             session.setFlushMode(FlushMode.MANUAL);
             session.doWork(connection -> {
-                Database database = getConfiguration().getDatabase();
+                Database database = sqlConfiguration().getDatabase();
 
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {

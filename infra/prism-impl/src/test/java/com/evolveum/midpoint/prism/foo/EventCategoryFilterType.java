@@ -33,7 +33,8 @@ public class EventCategoryFilterType
         extends EventHandlerType
         implements Serializable, Cloneable, Equals, HashCode {
 
-    private final static long serialVersionUID = 201105211233L;
+    private static final long serialVersionUID = 201105211233L;
+
     protected List<String> category;
 
     /**
@@ -128,6 +129,7 @@ public class EventCategoryFilterType
         return true;
     }
 
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")
     public boolean equals(Object object) {
         final EqualsStrategy strategy = DomAwareEqualsStrategy.INSTANCE;
         return equals(null, null, object, strategy);

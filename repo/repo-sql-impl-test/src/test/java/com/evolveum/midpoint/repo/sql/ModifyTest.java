@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -98,7 +98,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         // This is an experimental feature, so it needs to be explicitly enabled. This will be eliminated later,
         // when we make it enabled by default.
-        sqlRepositoryService.getConfiguration().setEnableIndexOnlyItems(true);
+        sqlRepositoryService.sqlConfiguration().setEnableIndexOnlyItems(true);
         InternalsConfig.encryptionChecks = false;
 
         userAdam = prismContext.parseObject(USER_ADAM_FILE);

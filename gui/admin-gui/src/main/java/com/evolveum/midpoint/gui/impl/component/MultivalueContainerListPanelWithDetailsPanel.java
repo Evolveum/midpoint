@@ -10,20 +10,18 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
@@ -33,7 +31,7 @@ import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
  */
 
 public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Containerable, S extends Serializable>
-                                        extends MultivalueContainerListPanel<C, S> {
+        extends MultivalueContainerListPanel<C, S> {
 
     private static final long serialVersionUID = 1L;
 
@@ -42,13 +40,11 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
     public static final String ID_DETAILS = "details";
 
-    private final static String ID_BUTTONS_PANEL = "buttonsPanel";
-    private final static String ID_DONE_BUTTON = "doneButton";
-    private final static String ID_CANCEL_BUTTON = "cancelButton";
+    private static final String ID_BUTTONS_PANEL = "buttonsPanel";
+    private static final String ID_DONE_BUTTON = "doneButton";
+    private static final String ID_CANCEL_BUTTON = "cancelButton";
 
-    private static final Trace LOGGER = TraceManager.getTrace(MultivalueContainerListPanelWithDetailsPanel.class);
-
-    private List<PrismContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
+    private final List<PrismContainerValueWrapper<C>> detailsPanelItemsList = new ArrayList<>();
     private boolean itemDetailsVisible;
 
     public MultivalueContainerListPanelWithDetailsPanel(String id, IModel<PrismContainerWrapper<C>> model, TableId tableId, PageStorage pageStorage) {
@@ -104,7 +100,6 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
 
             }
 
-
         };
 
         itemDetailsView.setOutputMarkupId(true);
@@ -152,10 +147,10 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
         itemPerformedForDefaultAction(target, null, listItems);
     }
 
-    protected void cancelItemDetailsPerformed(AjaxRequestTarget target){
+    protected void cancelItemDetailsPerformed(AjaxRequestTarget target) {
     }
 
-    protected boolean isButtonPanelVisible(){
+    protected boolean isButtonPanelVisible() {
         return true;
     }
 
@@ -163,14 +158,13 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
     public void itemPerformedForDefaultAction(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<C>> rowModel,
             List<PrismContainerValueWrapper<C>> listItems) {
 
-        if((listItems!= null && !listItems.isEmpty()) || rowModel != null) {
+        if ((listItems != null && !listItems.isEmpty()) || rowModel != null) {
             setItemDetailsVisible(true);
             detailsPanelItemsList.clear();
-            if(rowModel == null) {
+            if (rowModel == null) {
                 detailsPanelItemsList.addAll(listItems);
-                listItems.forEach(itemConfigurationTypeContainerValueWrapper -> {
-                    itemConfigurationTypeContainerValueWrapper.setSelected(false);
-                });
+                listItems.forEach(itemConfigurationTypeContainerValueWrapper ->
+                        itemConfigurationTypeContainerValueWrapper.setSelected(false));
             } else {
                 detailsPanelItemsList.add(rowModel.getObject());
                 rowModel.getObject().setSelected(false);
@@ -187,11 +181,11 @@ public abstract class MultivalueContainerListPanelWithDetailsPanel<C extends Con
         return !itemDetailsVisible;
     }
 
-    protected WebMarkupContainer getDetailsPanelContainer(){
+    protected WebMarkupContainer getDetailsPanelContainer() {
         return (WebMarkupContainer) get(ID_DETAILS);
     }
 
-    protected List<PrismContainerValueWrapper<C>> getDetailsPanelItemsList(){
+    protected List<PrismContainerValueWrapper<C>> getDetailsPanelItemsList() {
         return detailsPanelItemsList;
     }
 }

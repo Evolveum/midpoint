@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -25,7 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactory;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -35,19 +34,61 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 public class SqlRepositoryFactory implements RepositoryServiceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlRepositoryFactory.class);
+
     private static final long POOL_CLOSE_WAIT = 500L;
     private static final long H2_CLOSE_WAIT = 2000L;
     private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
+
     private boolean initialized;
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
+    private SqlRepositoryServiceImpl sqlRepositoryService;
 
-    private SqlPerformanceMonitorImpl performanceMonitor;
+    /**
+     * Initialization called by central repository factory from system-init.
+     * This IS called as a part of Spring bean initialization and for this reason
+     * the {@link #sqlRepositoryService} is initialized lazily in {@link #createRepositoryService()},
+     * so it can use other autowired components (some depending on this factory).
+     * <p>
+     * NOTE: It's kind of circular dependency, {@link SqlRepositoryBeanConfig} depends on this
+     * when in fact it can only depend on {@link SqlRepositoryConfiguration}, but that is not
+     * a managed component (Spring bean).
+     */
+    @Override
+    public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
+        if (initialized) {
+            LOGGER.info("SQL repository already initialized.");
+            return;
+        }
+        Validate.notNull(configuration, "Configuration must not be null.");
 
-    @NotNull
-    public SqlRepositoryConfiguration getSqlConfiguration() {
-        Validate.notNull(sqlConfiguration, "Sql repository configuration not available (null).");
-        return sqlConfiguration;
+        LOGGER.info("Initializing SQL repository factory");
+        SqlRepositoryConfiguration config = new SqlRepositoryConfiguration(configuration);
+        config.validate();
+        sqlConfiguration = config;
+
+        if (config.isUsingH2()) {
+            if (System.getProperty(H2_IMPLICIT_RELATIVE_PATH) == null) {
+                System.setProperty(H2_IMPLICIT_RELATIVE_PATH, "true");        // to ensure backwards compatibility (H2 1.3.x)
+            }
+        }
+
+        if (config.isEmbedded()) {
+            dropDatabaseIfExists(config);
+            if (config.isAsServer()) {
+                LOGGER.info("Starting h2 in server mode.");
+                startServer();
+            } else {
+                LOGGER.info("H2 prepared to run in local mode (from file).");
+            }
+            LOGGER.info("H2 files are in '{}'.", new File(config.getBaseDir()).getAbsolutePath());
+        } else {
+            LOGGER.info("Repository is not running in embedded mode.");
+        }
+
+        LOGGER.info("Repository initialization finished.");
+
+        initialized = true;
     }
 
     @Override
@@ -57,8 +98,8 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             return;
         }
 
-        if (performanceMonitor != null) {
-            performanceMonitor.shutdown();
+        if (sqlRepositoryService != null) {
+            sqlRepositoryService.destroy();
         }
 
         if (!getSqlConfiguration().isEmbedded()) {
@@ -93,49 +134,18 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         initialized = false;
     }
 
-    @Override
-    public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
-        if (initialized) {
-            LOGGER.info("SQL repository already initialized.");
-            return;
-        }
-        Validate.notNull(configuration, "Configuration must not be null.");
-
-        LOGGER.info("Initializing SQL repository factory");
-        SqlRepositoryConfiguration config = new SqlRepositoryConfiguration(configuration);
-        config.validate();
-        sqlConfiguration = config;
-
-        if (config.isUsingH2()) {
-            if (System.getProperty(H2_IMPLICIT_RELATIVE_PATH) == null) {
-                System.setProperty(H2_IMPLICIT_RELATIVE_PATH, "true");        // to ensure backwards compatibility (H2 1.3.x)
-            }
-        }
-
-        if (config.isEmbedded()) {
-            dropDatabaseIfExists(config);
-            if (config.isAsServer()) {
-                LOGGER.info("Starting h2 in server mode.");
-                startServer();
-            } else {
-                LOGGER.info("H2 prepared to run in local mode (from file).");
-            }
-            LOGGER.info("H2 files are in '{}'.", new File(config.getBaseDir()).getAbsolutePath());
-        } else {
-            LOGGER.info("Repository is not running in embedded mode.");
-        }
-
-        performanceMonitor = new SqlPerformanceMonitorImpl();
-        performanceMonitor.initialize(this);
-
-        LOGGER.info("Repository initialization finished.");
-
-        initialized = true;
+    @NotNull
+    public SqlRepositoryConfiguration getSqlConfiguration() {
+        Validate.notNull(sqlConfiguration, "SQL repository configuration not available (null).");
+        return sqlConfiguration;
     }
 
     @Override
-    public RepositoryService getRepositoryService() {
-        return new SqlRepositoryServiceImpl(this);
+    public synchronized RepositoryService createRepositoryService() {
+        if (sqlRepositoryService == null) {
+            sqlRepositoryService = new SqlRepositoryServiceImpl();
+        }
+        return sqlRepositoryService;
     }
 
     private String getRelativeBaseDirPath(String baseDir) {
@@ -275,9 +285,5 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         } else {
             LOGGER.info("File '{}' doesn't exist: delete status {}", file.getAbsolutePath(), file.delete());
         }
-    }
-
-    public SqlPerformanceMonitorImpl getPerformanceMonitor() {
-        return performanceMonitor;
     }
 }

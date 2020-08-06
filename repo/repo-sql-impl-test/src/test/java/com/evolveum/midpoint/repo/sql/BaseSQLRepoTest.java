@@ -206,7 +206,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     @SuppressWarnings("unused")
     protected SqlRepositoryConfiguration getRepositoryConfiguration() {
-        return ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
+        return ((SqlRepositoryServiceImpl) repositoryService).sqlConfiguration();
     }
 
     protected GetOperationOptionsBuilder getOperationOptionsBuilder() {

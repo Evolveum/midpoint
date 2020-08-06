@@ -45,6 +45,31 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
     }
 
     @Override
+    protected String getLdapBindDn() {
+        return null;
+    }
+
+    @Override
+    protected String getLdapSubServerHost() {
+        return null;
+    }
+
+    @Override
+    protected String getLdapSubSuffix() {
+        return null;
+    }
+
+    @Override
+    protected String getLdapSubBindDn() {
+        return null;
+    }
+
+    @Override
+    protected String getAccountJackSid() {
+        return null;
+    }
+
+    @Override
     protected File getReconciliationTaskFile() {
         return new File(getBaseDir(), "task-reconcile-chimera-users.xml");
     }
@@ -55,6 +80,11 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
     }
 
     @Override
+    protected int getNumberOfAllAccounts() {
+        return 0;
+    }
+
+    @Override
     protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
         assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
     }
@@ -62,5 +92,10 @@ public class TestAdLdapChimeraRunAs extends AbstractAdLdapMultidomainRunAsTest {
     @Override
     protected void assertAccountEnabled(PrismObject<ShadowType> shadow) {
         assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
+    }
+
+    @Override
+    protected boolean hasExchange() {
+        return true;
     }
 }

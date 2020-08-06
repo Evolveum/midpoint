@@ -48,11 +48,13 @@ import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 })
 public class ValueType implements Serializable, Cloneable, Equals, HashCode {
 
-    private final static long serialVersionUID = 201105211233L;
+    private static final long serialVersionUID = 201105211233L;
+
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "ValueType");
+
     @XmlMixed
     @XmlAnyElement
     protected List<Object> content;
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "ValueType");
 
     /**
      * Creates a new {@code ValueType} instance.

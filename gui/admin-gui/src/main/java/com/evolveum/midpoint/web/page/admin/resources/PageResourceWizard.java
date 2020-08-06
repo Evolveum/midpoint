@@ -170,7 +170,7 @@ public class PageResourceWizard extends PageAdmin {
     }
 
     private void initLayout() {
-        WizardModel wizardModel = new ResourceWizardModel(this);
+        WizardModel wizardModel = new ResourceWizardModel();
         if (!configurationOnly) {
             wizardModel.add(new NameStep(modelRaw, this));
         }
