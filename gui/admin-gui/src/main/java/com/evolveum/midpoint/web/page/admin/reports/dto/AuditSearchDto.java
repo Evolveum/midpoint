@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil.Channel;
+import com.evolveum.midpoint.gui.impl.Channel;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;

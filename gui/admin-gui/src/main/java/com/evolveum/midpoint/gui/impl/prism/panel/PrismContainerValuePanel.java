@@ -145,11 +145,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
         return (PV) itemWrapper.getItem().createNewValue();
     }
 
-
-
-
-
-
     private void initButtons(WebMarkupContainer header) {
         header.add(createExpandCollapseButton());
 //        header.add(createMetadataButton());
@@ -307,13 +302,6 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
         refreshPanel(target);
     }
-
-//    private void onShowMetadataClicked(AjaxRequestTarget target) {
-//        CVW wrapper = getModelObject();
-//        wrapper.setShowMetadata(!wrapper.isShowMetadata());
-//        refreshPanel(target);
-//    }
-
 
     private void refreshPanel(AjaxRequestTarget target) {
         target.add(PrismContainerValuePanel.this);

@@ -1,0 +1,43 @@
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<!DOCTYPE html>
+<html xmlns:wicket="http://wicket.apache.org">
+<wicket:panel>
+
+        <div class="prism-header" wicket:id="header"/>
+        <div class="panel panel-default">
+            <div class="panel=body" wicket:id="values">
+                <div wicket:id="yieldHeader">
+                    <div>
+                        <div class="panel panel-default" wicket:id="yield">
+                            <div class="panel-heading">
+                                <div class="col-md-11 col-xs-10" wicket:id="acquisitionHeader">
+                                    <ul class="nav nav-pills">
+                                        <li class="nav nav-pills" wicket:id="acquisitions">
+                                            <div wicket:id="acquisition"></div>
+<!--                                            <div  wicket:id="details">-->
+<!--                                                <div wicket:id="resource"></div>-->
+<!--                                                <div wicket:id="origin"></div>-->
+<!--                                                <div wicket:id="channel"></div>-->
+<!--                                            </div>-->
+                                        </li>
+                                    </ul>
+                                </div>
+                                <button wicket:id="showMore" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
+                                        class="btn btn-box-tool expand-collapse-button" trigger="hover"><i class="fa fa-caret-down"></i></button>
+                            </div>
+                            <div class="panel-body" style="width:100%" wicket:id="defaultPanel"/>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+        </div>
+</wicket:panel>
+</html>

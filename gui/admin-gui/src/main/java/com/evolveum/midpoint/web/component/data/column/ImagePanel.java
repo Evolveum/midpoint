@@ -76,13 +76,13 @@ public class ImagePanel extends BasePanel<DisplayType> {
 //            image.add(AttributeAppender.append("style", "color: " + iconDisplayData.getIcon().getColor() + ";"));
 //        }
         image.setOutputMarkupId(true);
-        image.add(new VisibleBehaviour(() -> getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getCssClass())));
+        image.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getCssClass())));
         add(image);
 
         ExternalImage customLogoImgSrc = new ExternalImage(ID_IMAGE_SRC,
-                WebComponentUtil.getIconUrlModel(getModelObject().getIcon()));
+                WebComponentUtil.getIconUrlModel(getModelObject() != null ? getModelObject().getIcon() : null));
         customLogoImgSrc.setOutputMarkupId(true);
-        customLogoImgSrc.add(new VisibleBehaviour(() -> getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getImageUrl())));
+        customLogoImgSrc.add(new VisibleBehaviour(() -> getModelObject()!= null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getImageUrl())));
         add(customLogoImgSrc);
     }
 

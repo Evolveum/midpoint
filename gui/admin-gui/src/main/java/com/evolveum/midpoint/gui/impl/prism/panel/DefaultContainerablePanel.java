@@ -58,6 +58,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
 //        defaultPanel.add(createNonContainersPanel());
         createNonContainersPanel();
         createContainersPanel();
+        setOutputMarkupId(true);
 //        defaultPanel.add(createContainersPanel());
 //        return defaultPanel;
     }
@@ -218,7 +219,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
 
                 @Override
                 public boolean isEnabled() {
-                    return !itemWrapper.isReadOnly();
+                    return !itemWrapper.isReadOnly() || itemWrapper.isMetadata(); //TODO hack isMetadata - beacuse all links are then disabled.
                 }
             });
             container.add(panel);

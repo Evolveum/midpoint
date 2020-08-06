@@ -23,6 +23,7 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.impl.Channel;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 
@@ -552,30 +553,30 @@ public final class WebComponentUtil {
         return pageBase.getCompiledGuiProfile().getDefaultObjectCollectionView();
     }
 
-    public enum Channel {
-        // TODO: move this to schema component
-        LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),
-        RECONCILIATION(SchemaConstants.CHANGE_CHANNEL_RECON_URI),
-        RECOMPUTATION(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI),
-        DISCOVERY(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI),
-        WEB_SERVICE(SchemaConstants.CHANNEL_WEB_SERVICE_URI),
-        IMPORT(SchemaConstants.CHANNEL_OBJECT_IMPORT_URI),
-        REST(SchemaConstants.CHANNEL_REST_URI),
-        INIT(SchemaConstants.CHANNEL_GUI_INIT_URI),
-        USER(SchemaConstants.CHANNEL_GUI_USER_URI),
-        SELF_REGISTRATION(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI),
-        RESET_PASSWORD(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
-
-        private String channel;
-
-        Channel(String channel) {
-            this.channel = channel;
-        }
-
-        public String getChannel() {
-            return channel;
-        }
-    }
+//    public enum Channel {
+//        // TODO: move this to schema component
+//        LIVE_SYNC(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI),
+//        RECONCILIATION(SchemaConstants.CHANGE_CHANNEL_RECON_URI),
+//        RECOMPUTATION(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI),
+//        DISCOVERY(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI),
+//        WEB_SERVICE(SchemaConstants.CHANNEL_WEB_SERVICE_URI),
+//        IMPORT(SchemaConstants.CHANNEL_OBJECT_IMPORT_URI),
+//        REST(SchemaConstants.CHANNEL_REST_URI),
+//        INIT(SchemaConstants.CHANNEL_GUI_INIT_URI),
+//        USER(SchemaConstants.CHANNEL_GUI_USER_URI),
+//        SELF_REGISTRATION(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI),
+//        RESET_PASSWORD(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
+//
+//        private String channel;
+//
+//        Channel(String channel) {
+//            this.channel = channel;
+//        }
+//
+//        public String getChannel() {
+//            return channel;
+//        }
+//    }
 
     public static DateValidator getRangeValidator(Form<?> form, ItemPath path) {
         DateValidator validator = null;

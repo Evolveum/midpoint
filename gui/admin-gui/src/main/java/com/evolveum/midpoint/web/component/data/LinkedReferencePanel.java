@@ -37,7 +37,7 @@ import javax.xml.namespace.QName;
 /**
  * Created by honchar
  */
-public class LinkedReferencePanel<O extends ObjectType, R extends Referencable> extends BasePanel<R> {
+public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
@@ -68,7 +68,7 @@ public class LinkedReferencePanel<O extends ObjectType, R extends Referencable> 
 
             @Override
             protected PrismReferenceValue load() {
-                if (getModelObject() == null) {
+                if (getModelObject() == null || getModelObject().getOid() == null) {
                     return null;
                 }
                 PrismReferenceValue value = getModelObject().asReferenceValue().clone();

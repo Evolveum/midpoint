@@ -52,6 +52,7 @@ import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
+import java.net.InetAddress;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -216,18 +217,25 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
                         ajaxRequestTarget.add(PrismValuePanel.this);
                     }
                 };
+                showMetadataDetails.setOutputMarkupId(true);
+                showMetadataDetails.setOutputMarkupPlaceholderTag(true);
+                listItem.setOutputMarkupId(true);
                 listItem.add(showMetadataDetails);
             }
         };
         form.add(metadataList);
+        metadataList.setOutputMarkupId(true);
+        metadataList.setOutputMarkupPlaceholderTag(true);
         metadataList.add(new VisibleBehaviour(() -> getModelObject().getValueMetadata() != null && getModelObject().isShowMetadata()));
         ValueMetadataPanel metadataPanel = new ValueMetadataPanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
                 new ItemPanelSettingsBuilder()
-                        .editabilityHandler(wrapper -> false)
+                        .editabilityHandler(wrapper -> true)
                         .headerVisibility(false)
                         .visibilityHandler(w -> w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN)
                         .build());
         metadataPanel.add(new VisibleBehaviour(() -> getModelObject().getValueMetadata() != null && getModelObject().isShowMetadata()));
+        metadataPanel.setOutputMarkupId(true);
+        metadataPanel.setOutputMarkupPlaceholderTag(true);
         form.add(metadataPanel);
     }
 

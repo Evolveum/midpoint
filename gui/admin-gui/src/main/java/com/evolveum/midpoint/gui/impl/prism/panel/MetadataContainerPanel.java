@@ -67,13 +67,9 @@ public class MetadataContainerPanel<C extends Containerable> extends PrismContai
 
     @Override
     protected Component createHeaderPanel() {
-         return new AjaxButton(ID_HEADER, new PropertyModel<>(getModel(), "displayName")) {
-
-             @Override
-             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-
-             }
-         };
+         Label button = new Label(ID_HEADER, new PropertyModel<>(getModel(), "displayName"));
+         button.setOutputMarkupId(true);
+         return button;
     }
 
     @Override
@@ -85,6 +81,7 @@ public class MetadataContainerPanel<C extends Containerable> extends PrismContai
     protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
         ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
         ValueMetadataPanel<C, PrismContainerValueWrapper<C>> panel = new ValueMetadataPanel<>("value", item.getModel(), settings);
+        panel.setOutputMarkupId(true);
         item.add(panel);
         return panel;
     }

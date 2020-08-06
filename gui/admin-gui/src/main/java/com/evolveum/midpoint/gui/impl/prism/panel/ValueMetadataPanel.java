@@ -94,7 +94,9 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
 
     @Override
     protected Component createDefaultPanel(String id) {
-        return new MetadataContainerValuePanel<>(id, getModel(), getSettings());
+        MetadataContainerValuePanel<C, CVW> panel = new MetadataContainerValuePanel<>(id, getModel(), getSettings());
+        panel.setOutputMarkupId(true);
+        return panel;
     }
 
     @Override
