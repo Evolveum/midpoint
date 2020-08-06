@@ -127,6 +127,7 @@ class DeltaConsolidation<F extends ObjectType>  {
                             .strengthSelector(StrengthSelector.ALL)
                             .valueMetadataComputer(computer)
                             .result(result)
+                            .prismContext(beans.prismContext)
                             .build()) {
 
                 ItemDelta<V, D> consolidatedItemDelta = consolidator.consolidateAPrioriDelta();

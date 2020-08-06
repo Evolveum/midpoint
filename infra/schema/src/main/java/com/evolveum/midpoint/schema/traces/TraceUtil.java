@@ -59,7 +59,7 @@ public class TraceUtil {
         if (params != null) {
             return params.getEntry().stream()
                 .filter(e -> key.equals(e.getKey()))
-                .map(e -> e.getEntryValue())
+                .map(EntryType::getEntryValue)
                 .collect(Collectors.toList());
         } else {
             return Collections.emptyList();
@@ -74,9 +74,9 @@ public class TraceUtil {
         return asStringList(selectByKey(opResult.getReturns(), name));
     }
 
-    private static List<String> asStringList(List<JAXBElement<?>> elements) {
+    public static List<String> asStringList(List<JAXBElement<?>> elements) {
         return elements.stream()
-                .map(e -> dump(e))
+                .map(TraceUtil::dump)
                 .collect(Collectors.toList());
     }
 

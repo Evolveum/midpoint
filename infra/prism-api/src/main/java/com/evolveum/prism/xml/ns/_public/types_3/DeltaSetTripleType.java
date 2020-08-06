@@ -103,13 +103,13 @@ public class DeltaSetTripleType implements Serializable, JaxbVisitable, Cloneabl
     public static <V extends PrismValue> DeltaSetTripleType fromDeltaSetTriple(PrismValueDeltaSetTriple<V> triple, PrismContext prismContext) {
         DeltaSetTripleType rv = new DeltaSetTripleType();
         for (V v : triple.getZeroSet()) {
-            rv.zero.add(v.getRealValueOrRawType(prismContext));
+            rv.zero.add(v != null ? v.getRealValueOrRawType(prismContext) : "null"); // fixme
         }
         for (V v : triple.getPlusSet()) {
-            rv.plus.add(v.getRealValueOrRawType(prismContext));
+            rv.plus.add(v != null ? v.getRealValueOrRawType(prismContext) : "null"); // fixme
         }
         for (V v : triple.getMinusSet()) {
-            rv.minus.add(v.getRealValueOrRawType(prismContext));
+            rv.minus.add(v != null ? v.getRealValueOrRawType(prismContext) : "null"); // fixme
         }
         return rv;
     }

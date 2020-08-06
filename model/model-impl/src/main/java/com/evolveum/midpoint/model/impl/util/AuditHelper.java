@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationKindType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -61,8 +63,12 @@ public class AuditHelper {
     public void audit(AuditEventRecord record, ObjectDeltaSchemaLevelUtil.NameResolver externalNameResolver, Task task,
             OperationResult parentResult) {
         OperationResult result = parentResult.subresult(OP_AUDIT)
+                .operationKind(OperationKindType.MODEL_AUDIT)
                 .setMinor()
+                .addArbitraryObjectAsParam("stage", record.getEventStage())
+                .addArbitraryObjectAsParam("eventType", record.getEventType())
                 .build();
+
         try {
             LOGGER.trace("Auditing the record:\n{}", record.debugDumpLazily());
             resolveNamesInDeltas(record, externalNameResolver, result);
@@ -71,6 +77,10 @@ public class AuditHelper {
             result.recordFatalError(t);
             throw t;
         } finally {
+            if (record.getTarget() != null) {
+                result.addParam("targetOid", record.getTarget().getOid());
+                result.addParam("targetName", record.getTarget().getTargetName());
+            }
             result.computeStatusIfUnknown();
         }
     }

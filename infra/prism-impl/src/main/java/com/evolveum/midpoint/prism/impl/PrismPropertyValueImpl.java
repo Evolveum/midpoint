@@ -657,9 +657,9 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl implements DebugDu
 
     @Override
     public @Nullable Object getRealValueOrRawType(PrismContext prismContext) {
-        if (value != null) {
+        if (value != null && !hasValueMetadata()) {
             return value;
-        } else if (rawElement != null) {
+        } else if (rawElement != null || hasValueMetadata()) {
             return new RawType(this, getTypeName(), prismContext);
         } else {
             return null;

@@ -394,6 +394,7 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
             trace.setHasPlus(hasPlus);
             trace.setHasMinus(hasMinus);
             trace.setHasZero(hasZero);
+            trace.setLocalContextDescription(context.getLocalContextDescription());
         }
     }
 

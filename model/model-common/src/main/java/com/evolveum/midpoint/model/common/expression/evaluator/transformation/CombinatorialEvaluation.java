@@ -18,6 +18,10 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueTransformationEvaluationModeType;
+
+import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -72,6 +76,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
     PrismValueDeltaSetTriple<V> evaluate() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
 
+        recordEvaluationStart();
         try {
             MiscUtil.carthesian(sourceValuesList, valuesTuple -> {
                 // This lambda will be called for all combinations of all values in the sources
@@ -85,7 +90,21 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         }
 
         cleanUpOutputTriple();
+        recordEvaluationEnd(outputTriple);
         return outputTriple;
+    }
+
+    private void recordEvaluationStart() throws SchemaException {
+        if (trace != null) {
+            super.recordEvaluationStart(ValueTransformationEvaluationModeType.COMBINATORIAL);
+            int i = 0;
+            for (SourceTriple<?, ?> sourceTriple : sourceTripleList) {
+                trace.getSource().get(i)
+                        .setDeltaSetTriple(
+                                DeltaSetTripleType.fromDeltaSetTriple(sourceTriple, prismContext));
+                i++;
+            }
+        }
     }
 
     private Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> createConditionExpression()

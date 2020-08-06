@@ -251,6 +251,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
                     .valueMetadataComputer(valueMetadataComputer)
                     .result(result)
                     .customize(consolidatorBuilderCustomizer)
+                    .prismContext(beans.prismContext)
                     .build()) {
                 itemDelta = consolidator.consolidateTriples();
             }

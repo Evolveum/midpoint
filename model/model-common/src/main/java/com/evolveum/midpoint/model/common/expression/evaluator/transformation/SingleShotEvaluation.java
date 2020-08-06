@@ -27,6 +27,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TransformExpressionEvaluatorType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueTransformationEvaluationModeType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -51,11 +53,18 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition, E ext
 
     PrismValueDeltaSetTriple<V> evaluate() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException {
+
+        recordEvaluationStart(ValueTransformationEvaluationModeType.SINGLE_SHOT);
+
+        PrismValueDeltaSetTriple<V> outputTriple;
         if (context.hasDeltas() || expressionDependsOnSystemState()) {
-            return evaluateAbsoluteExpressionWithDeltas();
+            outputTriple = evaluateAbsoluteExpressionWithDeltas();
         } else {
-            return evaluateAbsoluteExpressionWithoutDeltas();
+            outputTriple = evaluateAbsoluteExpressionWithoutDeltas();
         }
+
+        recordEvaluationEnd(outputTriple);
+        return outputTriple;
     }
 
     // FIXME remove this temporary hack - MID-6406

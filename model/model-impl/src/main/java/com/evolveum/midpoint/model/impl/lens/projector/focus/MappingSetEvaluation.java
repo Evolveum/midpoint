@@ -245,6 +245,7 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
                     .strengthSelector(StrengthSelector.ALL)
                     .valueMetadataComputer(null) // todo
                     .result(result)
+                    .prismContext(beans.prismContext)
                     .build()) {
 
             ItemDelta itemDelta = consolidator.consolidateTriples();

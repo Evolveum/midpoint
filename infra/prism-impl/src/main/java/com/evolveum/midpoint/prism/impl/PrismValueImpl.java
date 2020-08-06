@@ -407,6 +407,11 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     }
 
     @Override
+    public boolean hasValueMetadata() {
+        return valueMetadata != null && valueMetadata.hasAnyValue();
+    }
+
+    @Override
     public void setValueMetadata(ValueMetadata valueMetadata) {
         checkMutable();
         if (valueMetadata != null) {

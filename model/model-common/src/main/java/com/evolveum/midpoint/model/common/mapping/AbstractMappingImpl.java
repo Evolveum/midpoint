@@ -1044,6 +1044,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             context.setDefaultSource(defaultSource);
             context.setMappingQName(mappingQName);
             context.setVariableProducer(variableProducer);
+            context.setLocalContextDescription("condition");
             conditionOutputTriple = expression.evaluate(context, result);
         }
     }
@@ -1063,6 +1064,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         context.setMappingQName(mappingQName);
         context.setVariableProducer(variableProducer);
         context.setValueMetadataComputer(createValueMetadataComputer(result));
+        context.setLocalContextDescription("expression");
 
         if (mappingPreExpression != null) {
             mappingPreExpression.mappingPreExpression(context, result);

@@ -74,6 +74,13 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
     }
 
     /**
+     * @return True if this value has any metadata (i.e. the metadata container has any value).
+     *
+     * TODO Or should we accept only non-empty values? Probably not.
+     */
+    boolean hasValueMetadata();
+
+    /**
      * Sets metadata for this value.
      */
     @Experimental
@@ -187,7 +194,7 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
     @Nullable
     @Experimental // todo reconsider method name
     default Object getRealValueOrRawType(PrismContext prismContext) {
-        if (hasRealClass()) {
+        if (hasRealClass() && getValueMetadata().isEmpty()) {
             return getRealValue();
         } else {
             return new RawType(this, getTypeName(), prismContext);

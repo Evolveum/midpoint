@@ -113,6 +113,7 @@ public class ValueMetadataComputation {
         return new ValueMetadataComputation(inputValues, processingSpec, beans, env.createChild("metadata evaluation in"));
     }
 
+    @NotNull
     public ValueMetadata execute(OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         result = parentResult.createMinorSubresult(OP_EXECUTE);
@@ -120,13 +121,19 @@ public class ValueMetadataComputation {
             logStart();
             processCustomMappings();
             processBuiltinMappings();
-            return wrapOutputMetadata();
+            return recordOutput(wrapOutputMetadata());
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    @NotNull
+    private ValueMetadata recordOutput(ValueMetadata output) {
+        result.addReturn("summary", output.shortDump()); // temporary
+        return output;
     }
 
     @NotNull

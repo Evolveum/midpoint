@@ -273,13 +273,15 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     @NotNull
     Collection<?> getRealValues();
 
-    @Experimental
+    @Experimental // Do NOT use !!!!
     @NotNull
     default Collection<Object> getRealValuesOrRawTypes(PrismContext prismContext) {
         List<Object> rv = new ArrayList<>();
         for (V value : getValues()) {
             if (value != null) {
                 rv.add(value.getRealValueOrRawType(prismContext));
+            } else {
+                rv.add("null"); // fixme
             }
         }
         return rv;
@@ -622,6 +624,10 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     default boolean hasNoValues() {
         return getValues().isEmpty();
+    }
+
+    default boolean hasAnyValue() {
+        return !getValues().isEmpty();
     }
 
     @SuppressWarnings("unused")

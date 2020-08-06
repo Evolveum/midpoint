@@ -225,6 +225,7 @@ public class ConsolidationProcessor {
                     .contextDescription(discr.toHumanReadableDescription())
                     .strengthSelector(StrengthSelector.ALL_EXCEPT_WEAK)
                     .result(result)
+                    .prismContext(prismContext)
                     .build()) {
 
                 //noinspection unchecked
@@ -416,6 +417,7 @@ public class ConsolidationProcessor {
                     .contextDescription(discr.toHumanReadableDescription())
                     .strengthSelector(projCtx.hasFullShadow() ? strengthSelector : strengthSelector.notWeak())
                     .result(result)
+                    .prismContext(prismContext)
                     .build()) {
 
                 itemDelta = consolidator.consolidateToDeltaNoMetadata();

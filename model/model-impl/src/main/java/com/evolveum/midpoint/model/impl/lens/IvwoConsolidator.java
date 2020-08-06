@@ -16,12 +16,17 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Holder;
 
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemConsolidationTraceType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -178,6 +183,8 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
      */
     private final OperationResult result;
 
+    @NotNull private final PrismContext prismContext;
+
     /**
      * The output.
      */
@@ -220,6 +227,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         contextDescription = builder.contextDescription;
         result = builder.result.createMinorSubresult(OP_CONSOLIDATE_TO_DELTA)
                 .addArbitraryObjectAsParam("itemPath", itemPath);
+        prismContext = builder.prismContext;
 
         //noinspection unchecked
         itemDelta = builder.itemDefinition.createEmptyDelta(itemPath);
@@ -740,6 +748,16 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
     private void logEnd() {
         LOGGER.trace("Consolidated {} IVwO triple to delta:\n{}", itemPath, itemDelta.debugDumpLazily(1));
+        if (result.isTraced()) {
+            ItemConsolidationTraceType trace = new ItemConsolidationTraceType(prismContext);
+            trace.setItemPath(new ItemPathType(itemPath));
+            try {
+                trace.getResultingDelta().addAll(DeltaConvertor.toItemDeltaTypes(itemDelta));
+            } catch (SchemaException e) {
+                LOGGER.warn("Couldn't convert itemDelta to the trace", e);
+            }
+            result.getTraces().add(trace);
+        }
     }
 
     private void categorizeValues() throws SchemaException {
