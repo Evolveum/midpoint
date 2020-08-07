@@ -478,8 +478,8 @@ public class RAuditEventRecord implements Serializable {
         }
 
         try {
-            if (record.getTarget() != null) {
-                PrismReferenceValue target = record.getTarget();
+            if (record.getTargetRef() != null) {
+                PrismReferenceValue target = record.getTargetRef();
                 repo.setTargetName(getOrigName(target));
                 repo.setTargetOid(target.getOid());
 
@@ -639,8 +639,8 @@ public class RAuditEventRecord implements Serializable {
         insertBuilder.addParameter(RESULT_COLUMN_NAME, record.getResult());
 
         try {
-            if (record.getTarget() != null) {
-                PrismReferenceValue target = record.getTarget();
+            if (record.getTargetRef() != null) {
+                PrismReferenceValue target = record.getTargetRef();
                 insertBuilder.addParameter(TARGET_NAME_COLUMN_NAME, getOrigName(target));
                 insertBuilder.addParameter(TARGET_OID_COLUMN_NAME, target.getOid());
                 insertBuilder.addParameter(TARGET_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForQName(target.getTargetType()));

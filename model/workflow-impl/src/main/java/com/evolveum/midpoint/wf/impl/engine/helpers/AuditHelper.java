@@ -98,11 +98,11 @@ public class AuditHelper {
         AuditEventRecord record = new AuditEventRecord();
         record.setEventType(WORKFLOW_PROCESS_INSTANCE);
         record.setEventStage(stage);
-        record.setInitiator(miscHelper.getRequesterIfExists(aCase, result));           // set real principal in case of explicitly requested process termination (MID-4263)
+        record.setInitiator(miscHelper.getRequesterIfExists(aCase, result), prismContext);           // set real principal in case of explicitly requested process termination (MID-4263)
 
         // TODO we could be more strict and allow non-existence of object only in case of "object add" delta. But we are not.
         ObjectReferenceType objectRef = resolveIfNeeded(aCase.getObjectRef(), true, result);
-        record.setTarget(objectRef.asReferenceValue());
+        record.setTargetRef(objectRef.asReferenceValue());
 
         record.setOutcome(OperationResultStatus.SUCCESS);
 
@@ -173,7 +173,7 @@ public class AuditHelper {
 
         // TODO we could be more strict and allow non-existence of object only in case of "object add" delta. But we are not.
         ObjectReferenceType objectRef = resolveIfNeeded(aCase.getObjectRef(), true, result);
-        record.setTarget(objectRef.asReferenceValue());
+        record.setTargetRef(objectRef.asReferenceValue());
 
         record.setOutcome(OperationResultStatus.SUCCESS);
         record.setParameter(miscHelper.getCompleteStageInfo(aCase));
@@ -197,7 +197,7 @@ public class AuditHelper {
     public AuditEventRecord prepareWorkItemCreatedAuditRecord(CaseWorkItemType workItem, CaseType aCase, OperationResult result) {
 
         AuditEventRecord record = prepareWorkItemAuditRecordCommon(workItem, aCase, AuditEventStage.REQUEST, result);
-        record.setInitiator(miscHelper.getRequesterIfExists(aCase, result));
+        record.setInitiator(miscHelper.getRequesterIfExists(aCase, result), prismContext);
         record.setMessage(miscHelper.getCompleteStageInfo(aCase));
         return record;
     }
@@ -248,12 +248,12 @@ public class AuditHelper {
     private void setInitiatorAndAttorneyFromPrincipal(AuditEventRecord record) {
         try {
             MidPointPrincipal principal = securityContextManager.getPrincipal();
-            record.setInitiator(principal.getFocus().asPrismObject());
+            record.setInitiator(principal.getFocus().asPrismObject(), prismContext);
             if (principal.getAttorney() != null) {
-                record.setAttorney(principal.getAttorney().asPrismObject());
+                record.setAttorney(principal.getAttorney().asPrismObject(), prismContext);
             }
         } catch (SecurityViolationException e) {
-            record.setInitiator(null);
+            record.setInitiator(null, prismContext);
             LOGGER.warn("No initiator known for auditing work item event: " + e.getMessage(), e);
         }
     }

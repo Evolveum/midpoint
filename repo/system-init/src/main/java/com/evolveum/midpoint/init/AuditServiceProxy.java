@@ -147,7 +147,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             record.setChannel(task.getChannel());
         }
         if (record.getInitiator() == null && task != null) {
-            record.setInitiator(task.getOwner());
+            record.setInitiator(task.getOwner(), prismContext);
         }
 
         if (record.getNodeIdentifier() == null && taskManager != null) {

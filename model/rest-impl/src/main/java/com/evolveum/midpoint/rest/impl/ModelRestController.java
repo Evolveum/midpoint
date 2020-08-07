@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.rest.impl;
 
 import static org.springframework.http.ResponseEntity.status;
@@ -20,7 +26,6 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.impl.ModelCrudService;
 import com.evolveum.midpoint.model.impl.scripting.PipelineData;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -57,7 +62,6 @@ public class ModelRestController extends AbstractRestController {
     @Autowired private ModelDiagnosticService modelDiagnosticService;
     @Autowired private ModelInteractionService modelInteraction;
     @Autowired private ModelService modelService;
-    @Autowired private PrismContext prismContext;
     @Autowired private ScriptingService scriptingService;
     @Autowired private TaskService taskService;
 
