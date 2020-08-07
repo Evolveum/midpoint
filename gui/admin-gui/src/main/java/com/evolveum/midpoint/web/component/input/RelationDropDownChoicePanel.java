@@ -11,6 +11,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
@@ -65,11 +67,17 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     protected void onInitialize(){
         super.onInitialize();
 
-
+        ListModel supportedRelationsModel = new ListModel<>(supportedRelations);
         if (!allowNull && defaultRelation == null) {
+            if (CollectionUtils.isNotEmpty(supportedRelations)){
+                List<QName> sortedRelations  = WebComponentUtil.sortDropDownChoices(supportedRelationsModel, getRenderer());
+                defaultRelation = sortedRelations.get(0);
+            } else {
+                defaultRelation = PrismConstants.Q_ANY;
+            }
             defaultRelation = supportedRelations.size() > 0 ? supportedRelations.get(0) : PrismConstants.Q_ANY;
         }
-        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), new ListModel<>(supportedRelations), getRenderer(),
+        DropDownFormGroup<QName> input = new DropDownFormGroup<QName>(ID_INPUT, Model.of(defaultRelation), supportedRelationsModel, getRenderer(),
                 getRelationLabelModel(), "relationDropDownChoicePanel.tooltip.relation", true, "col-md-4",
                 getRelationLabelModel() == null || StringUtils.isEmpty(getRelationLabelModel().getObject()) ? "" : "col-md-8", !allowNull){
             private static final long serialVersionUID = 1L;
