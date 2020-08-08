@@ -104,38 +104,7 @@ public class RelationDropDownChoicePanel extends BasePanel<QName> {
     }
 
     protected IChoiceRenderer<QName> getRenderer(){
-        return new IChoiceRenderer<QName>() {
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public QName getObject(String id, IModel choices) {
-                if (StringUtils.isBlank(id)) {
-                    return null;
-                }
-                return ((List<QName>)choices.getObject()).get(Integer.parseInt(id));
-            }
-
-            @Override
-            public Object getDisplayValue(QName object) {
-                RelationDefinitionType def = WebComponentUtil.getRelationDefinition(object);
-                if (def != null){
-                    DisplayType display = def.getDisplay();
-                    if (display != null){
-                        PolyStringType label = display.getLabel();
-                        if (PolyStringUtils.isNotEmpty(label)){
-                            return getPageBase().createStringResource(label).getString();
-                        }
-                    }
-                }
-                return object.getLocalPart();
-            }
-
-            @Override
-            public String getIdValue(QName object, int index) {
-                return Integer.toString(index);
-            }
-        };
+        return WebComponentUtil.getRelationChoicesRenderer(getPageBase());
     }
 
     protected boolean isRelationDropDownEnabled(){
