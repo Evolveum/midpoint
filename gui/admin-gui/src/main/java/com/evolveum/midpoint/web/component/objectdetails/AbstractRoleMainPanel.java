@@ -11,6 +11,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+
 import org.apache.wicket.ajax.AjaxChannel;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
@@ -272,7 +274,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
     }
 
     protected AvailableRelationDto getSupportedGovernanceTabRelations(){
-        return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage()));
+        return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.GOVERNANCE, getDetailsPage()), SchemaConstants.ORG_APPROVER);
     }
 
     protected Map<String, String> getGovernanceTabAuthorizations(){

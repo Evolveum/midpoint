@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import org.apache.commons.collections.CollectionUtils;
@@ -164,7 +165,8 @@ public class TreeTablePanel extends BasePanel<String> {
 
             @Override
             protected AvailableRelationDto getSupportedRelations() {
-                return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase()));
+                return new AvailableRelationDto(WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.ORGANIZATION, TreeTablePanel.this.getPageBase()),
+                        SchemaConstants.ORG_DEFAULT);
             }
         };
         memberPanel.setOutputMarkupId(true);
