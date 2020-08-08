@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
@@ -26,7 +27,10 @@ import com.evolveum.midpoint.util.exception.*;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ItemConsolidationTraceType;
 
+import com.evolveum.prism.xml.ns._public.types_3.DeltaSetTripleType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -413,7 +417,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         private ValueConsolidation(EquivalenceClass equivalenceClass) {
             this.equivalenceClass = equivalenceClass;
 
-            LOGGER.trace("Consolidating value equivalence class:\n{}", equivalenceClass.debugDumpLazily());
+            LOGGER.trace("Consolidating value equivalence class ({} of {}):\n{}",
+                    equivalenceClass.id, equivalenceClasses.size(),
+                    equivalenceClass.debugDumpLazily());
             addingOrigins = findAddingOrigins();
 
             LOGGER.trace("Add-indicating IVwOs = {}", addingOrigins);
@@ -752,6 +758,18 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             ItemConsolidationTraceType trace = new ItemConsolidationTraceType(prismContext);
             trace.setItemPath(new ItemPathType(itemPath));
             try {
+                if (ivwoTriple != null) {
+                    PrismValueDeltaSetTriple<PrismValue> prismValueDeltaSetTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+                    ivwoTriple.transform(prismValueDeltaSetTriple, ItemValueWithOrigin::getItemValue);
+                    trace.setDeltaSetTriple(DeltaSetTripleType.fromDeltaSetTriple(prismValueDeltaSetTriple, prismContext));
+                }
+                if (existingItem != null) {
+                    trace.setExistingItem(ItemType.fromItem(existingItem, prismContext));
+                }
+                if (aprioriItemDelta != null) {
+                    trace.getAprioriDelta().addAll(DeltaConvertor.toItemDeltaTypes(aprioriItemDelta));
+                }
+                trace.setEquivalenceClassCount(equivalenceClasses.size());
                 trace.getResultingDelta().addAll(DeltaConvertor.toItemDeltaTypes(itemDelta));
             } catch (SchemaException e) {
                 LOGGER.warn("Couldn't convert itemDelta to the trace", e);
@@ -967,6 +985,9 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     }
 
     private class EquivalenceClass implements DebugDumpable {
+
+        // Just for reporting. Ugly hack but should work.
+        final int id = equivalenceClasses.size() + 1;
 
         @NotNull private final List<V> members = new ArrayList<>();
 

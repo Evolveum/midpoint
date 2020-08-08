@@ -13,33 +13,28 @@ import java.util.stream.Stream;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.ModificationTypeType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
-
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
 
-import static com.evolveum.midpoint.schema.traces.TraceUtil.*;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 @Experimental
 public class OpNode {
 
     private final PrismContext prismContext;
-    private final OperationResultType result;
+    protected final OperationResultType result;
     private final List<OpNode> children = new ArrayList<>();
     private final OpNode parent;
     private final OpResultInfo info;
     private final TraceInfo traceInfo;
+    private OpNodePresentation presentation;
 
     private TraceVisualizationInstructionsType visualizationInstructions;
     private TraceVisualizationInstructionType visualizationInstruction;
@@ -111,6 +106,24 @@ public class OpNode {
         return sb.toString();
     }
 
+    public String getLabel() {
+        if (presentation != null) {
+            String label = presentation.getLabel();
+            if (label != null) {
+                return label;
+            }
+        }
+        return getOperationNameFormatted();
+    }
+
+    public String getToolTip() {
+        if (presentation != null) {
+            return presentation.getToolTip();
+        } else {
+            return null;
+        }
+    }
+
     public String getOperationNameFormatted() {
         return getType().getFormattedName(this) + (visible ? "" : "!");
     }
@@ -168,12 +181,16 @@ public class OpNode {
     }
 
     public <T> T getTraceDownwards(Class<T> aClass) {
+        return getTraceDownwards(aClass, Integer.MAX_VALUE);
+    }
+
+    public <T> T getTraceDownwards(Class<T> aClass, int maxLevel) {
         T trace = getTrace(aClass);
-        if (trace != null) {
+        if (trace != null || maxLevel == 0) {
             return trace;
         } else {
             for (OpNode child : children) {
-                T inChild = child.getTraceDownwards(aClass);
+                T inChild = child.getTraceDownwards(aClass, maxLevel-1);
                 if (inChild != null) {
                     return inChild;
                 }
@@ -610,122 +627,16 @@ public class OpNode {
         }
     }
 
-    public String getValueTupleTransformationDescription() {
-        ValueTransformationTraceType trace = getTrace(ValueTransformationTraceType.class);
-        if (trace != null) {
-            StringBuilder sb = new StringBuilder();
-            if (trace.getLocalContextDescription() != null) {
-                sb.append("for ").append(trace.getLocalContextDescription()).append(" ");
-            }
-            sb.append("(");
-            if (Boolean.TRUE.equals(trace.isHasPlus())) {
-                sb.append("+");
-            }
-            if (Boolean.TRUE.equals(trace.isHasMinus())) {
-                sb.append("-");
-            }
-            if (Boolean.TRUE.equals(trace.isHasZero())) {
-                sb.append("0");
-            }
-            sb.append(" → ").append(trace.getDestination());
-            sb.append(")");
-            if (Boolean.FALSE.equals(trace.isConditionResult())) {
-                sb.append(" [cond: false]");
-            }
-            return sb.toString();
-        } else {
-            return null;
-        }
-    }
-
     @Override
     public String toString() {
         return "OpNode{" + getOperationNameFormatted() + '}';
     }
 
-    public String getItemConsolidationInfo() {
-        StringBuilder sb = new StringBuilder();
-        ItemConsolidationTraceType trace = getTrace(ItemConsolidationTraceType.class);
-        if (trace != null) {
-            sb.append(trace.getItemPath());
-            List<String> results = new ArrayList<>();
-            for (ItemDeltaType itemDeltaBean : trace.getResultingDelta()) {
-                int values = itemDeltaBean.getValue().size();
-                if (itemDeltaBean.getModificationType() == ModificationTypeType.ADD && values > 0) {
-                    results.add(values + " add");
-                }
-                if (itemDeltaBean.getModificationType() == ModificationTypeType.DELETE && values > 0) {
-                    results.add(values + " delete");
-                }
-                if (itemDeltaBean.getModificationType() == ModificationTypeType.REPLACE) {
-                    results.add(values + " replace");
-                }
-            }
-            if (results.isEmpty()) {
-                sb.append(" (no delta)");
-            } else {
-                sb.append(" (").append(String.join(", ", results)).append(")");
-            }
-        } else {
-            String itemPath = getParameter(result, "itemPath");
-            if (itemPath != null) {
-                sb.append(itemPath);
-            }
-        }
-        return sb.toString();
+    public OpNodePresentation getPresentation() {
+        return presentation;
     }
 
-    public String getMappingInfo() {
-        MappingEvaluationTraceType trace = getTrace(MappingEvaluationTraceType.class);
-        String context = getContext(result, "context");
-        StringBuilder sb = new StringBuilder();
-        if (trace != null) {
-            AbstractMappingType mapping = trace.getMapping();
-            if (mapping != null) {
-                if (mapping.getName() != null) {
-                    sb.append(mapping.getName());
-                } else {
-                    String sources = mapping.getSource().stream()
-                            .map(source -> stringifyPath(source.getPath()))
-                            .collect(Collectors.joining(", "));
-                    if (mapping.getTarget() != null && mapping.getTarget().getPath() != null) {
-                        String sourcesPlusSpace = sources.isEmpty() ? "" : sources + " ";
-                        sb.append(sourcesPlusSpace).append("→ ").append(stringifyPath(mapping.getTarget().getPath()));
-                    } else {
-                        sb.append(context).append(sources.isEmpty() ? "" : " <- " + sources);
-                    }
-                }
-            }
-            List<String> results = new ArrayList<>();
-            if (trace.getOutput() != null) {
-                if (trace.getOutput().getPlus().size() > 0) {
-                    results.add(trace.getOutput().getPlus().size() + " plus");
-                }
-                if (trace.getOutput().getMinus().size() > 0) {
-                    results.add(trace.getOutput().getMinus().size() + " minus");
-                }
-                if (trace.getOutput().getZero().size() > 0) {
-                    results.add(trace.getOutput().getZero().size() + " zero");
-                }
-            }
-            if (results.isEmpty()) {
-                sb.append(" (no outputs)");
-            } else {
-                sb.append(" (").append(String.join(", ", results)).append(")");
-            }
-            return sb.toString();
-        } else {
-            return context;
-        }
+    public void setPresentation(OpNodePresentation presentation) {
+        this.presentation = presentation;
     }
-
-    private String stringifyPath(ItemPathType pathBean) {
-        if (pathBean != null) {
-            ItemPath path = pathBean.getItemPath();
-            return path.stripVariableSegment().toString();
-        } else {
-            return "(no path)";
-        }
-    }
-
 }

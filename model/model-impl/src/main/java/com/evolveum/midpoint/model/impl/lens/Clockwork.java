@@ -410,7 +410,9 @@ public class Clockwork {
                 clockworkAuditHelper.audit(context, AuditEventStage.REQUEST, task, result, parentResult); // we need to take the overall ("run" operation result) not the current one
             }
 
-            projectIfNeeded(context, task, result);
+            if (state != ModelState.FINAL) {
+                projectIfNeeded(context, task, result);
+            }
 
             if (!context.isRequestAuthorized()) {
                 clockworkAuthorizationHelper.authorizeContextRequest(context, task, result);
@@ -479,10 +481,9 @@ public class Clockwork {
                 processPrimaryToSecondary(context, task, result);
                 break;
             case SECONDARY:
+                processSecondary(context, task, result, parentResult);
                 if (context.getExecutionWave() > context.getMaxWave() + 1) {
                     processSecondaryToFinal(context, task, result);
-                } else {
-                    processSecondary(context, task, result, parentResult);
                 }
                 break;
             case FINAL:

@@ -91,7 +91,7 @@ public enum OpType {
 
     VALUE_METADATA_COMPUTATION(OperationKindType.OTHER, "Value metadata computation",
             "com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataComputation.execute",
-            "Value metadata computation → ${r:summary}"),
+            "Value metadata computation ⇒ ${r:summary}"),
 
     ITEM_CONSOLIDATION(OperationKindType.OTHER, "Consolidation (item)",
             "com.evolveum.midpoint.model.impl.lens.IvwoConsolidator.consolidateToDelta",
@@ -236,7 +236,7 @@ public enum OpType {
         // TODO script
         case CHANGE_EXECUTION: return "Change execution";
         case FOCUS_CHANGE_EXECUTION: return "Change execution for focus (" + last + ")";
-        case PROJECTION_CHANGE_EXECUTION: return "Change execution for focus (" + last + ")";
+        case PROJECTION_CHANGE_EXECUTION: return "Change execution for projection (" + last + ")";
         case CHANGE_EXECUTION_DELTA: return "Delta execution";
         case CHANGE_EXECUTION_OTHER: return "Change execution - " + last;
         case REPOSITORY: return "Repository " + last + commaQualifiers;

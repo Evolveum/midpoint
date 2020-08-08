@@ -1909,8 +1909,12 @@
             <xsd:extension base="tns:TraceType">
                 <xsd:sequence>
                     <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0"/>
+                    <xsd:element name="deltaSetTriple" type="t:DeltaSetTripleType" minOccurs="0" />
+                    <xsd:element name="existingItem" type="t:ItemType" minOccurs="0" />
+                    <xsd:element name="aprioriDelta" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="equivalenceClassCount" type="xsd:int" minOccurs="0" />
                     <xsd:element name="resultingDelta" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded"/>
-                    <!-- We could maybe add source delta set triple, apriori delta, existing item, and various parameters here -->
+                    <!-- We could maybe add the parameters here -->
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>

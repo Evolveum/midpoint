@@ -38,7 +38,7 @@ public class OpNodeTreeBuilder {
 
     private void addNode(OpNode parent, List<OpNode> rv, OperationResultType result, TraceInfo traceInfo) {
         OpResultInfo info = OpResultInfo.create(result, infoMap);
-        OpNode newNode = new OpNode(prismContext, result, info, parent, traceInfo);
+        OpNode newNode = OpNodeFactory.createOpNode(prismContext, result, info, parent, traceInfo);
         rv.add(newNode);
         for (OperationResultType child : result.getPartialResults()) {
             addNode(newNode, newNode.getChildren(), child, traceInfo);
