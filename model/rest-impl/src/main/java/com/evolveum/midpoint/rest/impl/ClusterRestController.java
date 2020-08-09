@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -47,7 +47,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformation
  * However, for diagnostic purposes we might allow also administrator access sometimes in the future.
  */
 @RestController
-@RequestMapping({"/ws/cluster", "/rest/cluster", "/api/cluster"})
+@RequestMapping({ "/ws/cluster", "/rest/cluster", "/api/cluster" })
 public class ClusterRestController extends AbstractRestController {
 
     public static final String CLASS_DOT = ClusterRestController.class.getName() + ".";
@@ -66,7 +66,6 @@ public class ClusterRestController extends AbstractRestController {
 
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
-
     @Autowired private CacheDispatcher cacheDispatcher;
 
     public ClusterRestController() {

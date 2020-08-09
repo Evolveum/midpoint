@@ -330,7 +330,7 @@ public abstract class FileFormatController {
             case AuditConstants.EVENT_TYPE_COLUMN:
                 return record.getEventType() == null ? "" : ReportUtils.prettyPrintForReport(record.getEventType());
             case AuditConstants.TARGET_COLUMN:
-                return record.getTarget() == null ? "" : getObjectNameFromRef(record.getTarget().getRealValue());
+                return record.getTargetRef() == null ? "" : getObjectNameFromRef(record.getTargetRef().getRealValue());
             case AuditConstants.TARGET_OWNER_COLUMN:
                 return record.getTargetOwner() == null ? "" : record.getTargetOwner().getName().getOrig();
             case AuditConstants.CHANNEL_COLUMN:
