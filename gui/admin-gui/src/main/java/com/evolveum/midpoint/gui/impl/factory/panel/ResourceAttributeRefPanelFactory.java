@@ -7,14 +7,25 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+
+import org.apache.wicket.model.IModel;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteQNamePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ConstructionValueWrapper;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -25,20 +36,12 @@ import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.apache.wicket.model.IModel;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.io.Serializable;
-import java.util.*;
-import java.util.stream.Collectors;
-
-
 //FIXME serializable?
 @Component
-public class ResourceAttributeRefPanelFactory extends AbstractInputGuiComponentFactory<ItemPathType> implements Serializable {
+public class ResourceAttributeRefPanelFactory
+        extends AbstractInputGuiComponentFactory<ItemPathType> implements Serializable {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ResourceAttributeRefPanelFactory.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceAttributeRefPanelFactory.class);
 
     @PostConstruct
     public void register() {
@@ -82,7 +85,6 @@ public class ResourceAttributeRefPanelFactory extends AbstractInputGuiComponentF
 
     private List<ItemName> getChoicesList(PrismPropertyPanelContext<ItemPathType> ctx) {
 
-
         PrismPropertyWrapper wrapper = ctx.unwrapWrapperModel();
         //attribute/ref
         if (wrapper == null) {
@@ -112,7 +114,6 @@ public class ResourceAttributeRefPanelFactory extends AbstractInputGuiComponentF
 
         ConstructionValueWrapper constructionWrapper = (ConstructionValueWrapper) itemWrapper;
 
-
         try {
             RefinedResourceSchema schema = constructionWrapper.getResourceSchema();
             if (schema == null) {
@@ -128,8 +129,8 @@ public class ResourceAttributeRefPanelFactory extends AbstractInputGuiComponentF
                 return associationDefs.stream().map(association -> association.getName()).collect(Collectors.toList());
             }
 
-            Collection<? extends  ResourceAttributeDefinition> attrDefs = rOcd.getAttributeDefinitions();
-            return  attrDefs.stream().map(a -> a.getItemName()).collect(Collectors.toList());
+            Collection<? extends ResourceAttributeDefinition> attrDefs = rOcd.getAttributeDefinitions();
+            return attrDefs.stream().map(a -> a.getItemName()).collect(Collectors.toList());
 
         } catch (SchemaException e) {
             LOGGER.warn("Cannot get resource attribute definitions");
@@ -159,15 +160,15 @@ public class ResourceAttributeRefPanelFactory extends AbstractInputGuiComponentF
                 return null;
             }
             ItemPath path = itemPathType.getItemPath();
-           if (path.size() > 1) {
-               return new ItemName("failure");
-           }
+            if (path.size() > 1) {
+                return new ItemName("failure");
+            }
 
-           if (ItemPath.isName(path.first())) {
-               return path.firstToName();
-           }
+            if (ItemPath.isName(path.first())) {
+                return path.firstToName();
+            }
 
-           return null;
+            return null;
         }
 
         @Override

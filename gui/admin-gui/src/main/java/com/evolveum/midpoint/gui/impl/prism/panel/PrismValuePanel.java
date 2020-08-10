@@ -6,27 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
-
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.Form;
-
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.util.ExpressionValidator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -40,9 +19,27 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.PropertyModel;
 
-public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T>> extends BasePanel<VW> {
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.ExpressionValidator;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
+public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T>>
+        extends BasePanel<VW> {
+
+    private static final Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
     private static final String ID_VALUE_FORM = "valueForm";
     private static final String ID_REMOVE_BUTTON = "removeButton";
@@ -93,7 +90,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
                     removeValue(PrismValuePanel.this.getModelObject(), target);
                 } catch (SchemaException e) {
                     LOGGER.error("Cannot remove value: {}", getModelObject());
-                    getSession().error("Cannot remove value "+ getModelObject());
+                    getSession().error("Cannot remove value " + getModelObject());
                     target.add(getPageBase().getFeedbackPanel());
                 }
             }
@@ -229,7 +226,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     protected ItemEditabilityHandler getEditabilityHandler() {
         if (settings == null) {
-             return null;
+            return null;
         }
 
         return settings.getEditabilityHandler();
@@ -283,7 +280,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         value.setShowMetadata(!value.isShowMetadata());
         target.add(PrismValuePanel.this);
     }
-
 
     protected boolean isRemoveButtonVisible() {
         return !getModelObject().getParent().isReadOnly();

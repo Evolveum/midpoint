@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,7 +7,14 @@
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
-import com.evolveum.midpoint.notifications.api.NotificationManager;
+import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileNew;
+
+import javax.annotation.PostConstruct;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
@@ -20,17 +27,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FileConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-
-import static com.evolveum.midpoint.notifications.impl.api.transports.TransportUtil.formatToFileNew;
-
-/**
- * @author mederly
- */
 @Component
 public class FileTransport implements Transport {
 
@@ -41,7 +38,10 @@ public class FileTransport implements Transport {
     private static final String DOT_CLASS = FileTransport.class.getName() + ".";
     private static final String DEFAULT_FILE_NAME = "notifications.txt";
 
-    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService cacheRepositoryService;
+
     @Autowired private TransportRegistry transportRegistry;
 
     @PostConstruct

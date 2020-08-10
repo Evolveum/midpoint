@@ -213,7 +213,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     /**
      * Resource that hosts this projection.
      */
-    transient private ResourceType resource;
+    private transient ResourceType resource;
 
     /**
      * EXPERIMENTAL. A flag that this projection context has to be put into 'history archive'.
@@ -221,13 +221,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *
      * TODO implement as non-transient.
      */
-    transient private boolean toBeArchived;
+    private transient boolean toBeArchived;
 
-    transient private String humanReadableName;
+    private transient String humanReadableName;
 
     private Map<String, PrismObject<ShadowType>> entitlementMap = new HashMap<>();
 
-    transient private String humanReadableString;
+    private transient String humanReadableString;
 
     LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
         super(ShadowType.class, lensContext);
