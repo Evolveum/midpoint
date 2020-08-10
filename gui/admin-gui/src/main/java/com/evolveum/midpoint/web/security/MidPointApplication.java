@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,8 +14,6 @@ import java.util.*;
 import javax.servlet.ServletContext;
 import javax.xml.datatype.Duration;
 
-import com.evolveum.midpoint.repo.api.CacheRegistry;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -75,6 +73,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
@@ -101,6 +100,7 @@ import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.page.self.PagePostAuthentication;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.MidPointResourceStreamLocator;
 import com.evolveum.midpoint.web.util.MidPointStringResourceLoader;
 import com.evolveum.midpoint.web.util.SchrodingerComponentInitListener;
@@ -159,52 +159,29 @@ public class MidPointApplication extends AuthenticatedWebApplication implements 
         AVAILABLE_LOCALES = Collections.unmodifiableList(locales);
     }
 
-    @Autowired
-    transient ModelService model;
-    @Autowired
-    transient ModelInteractionService modelInteractionService;
-    @Autowired
-    transient RelationRegistry relationRegistry;
-    @Autowired
-    transient TaskService taskService;
-    @Autowired
-    transient PrismContext prismContext;
-    @Autowired
-    transient SchemaHelper schemaHelper;
-    @Autowired
-    transient ExpressionFactory expressionFactory;
-    @Autowired
-    transient TaskManager taskManager;
-    @Autowired
-    transient ModelAuditService auditService;
-    @Autowired
-    transient private RepositoryService repositoryService;            // temporary
-    @Autowired
-    transient private CacheRegistry cacheRegistry;
-    @Autowired
-    transient private WorkflowService workflowService;
-    @Autowired
-    transient private WorkflowManager workflowManager;
-    @Autowired
-    transient MidpointConfiguration configuration;
-    @Autowired
-    transient Protector protector;
-    @Autowired
-    transient MatchingRuleRegistry matchingRuleRegistry;
-    @Autowired
-    transient SecurityEnforcer securityEnforcer;
-    @Autowired
-    transient SecurityContextManager securityContextManager;
-    @Autowired
-    transient SystemObjectCache systemObjectCache;
-    @Autowired
-    transient LocalizationService localizationService;
-    @Autowired
-    transient AsyncWebProcessManager asyncWebProcessManager;
-    @Autowired
-    transient ApplicationContext applicationContext;
-    @Autowired
-    transient SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
+    @Autowired private ModelService model;
+    @Autowired private ModelInteractionService modelInteractionService;
+    @Autowired private RelationRegistry relationRegistry;
+    @Autowired private TaskService taskService;
+    @Autowired private PrismContext prismContext;
+    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private TaskManager taskManager;
+    @Autowired private ModelAuditService auditService;
+    @Autowired private RepositoryService repositoryService; // temporary
+    @Autowired private CacheRegistry cacheRegistry;
+    @Autowired private WorkflowService workflowService;
+    @Autowired private WorkflowManager workflowManager;
+    @Autowired private MidpointConfiguration configuration;
+    @Autowired private Protector protector;
+    @Autowired private MatchingRuleRegistry matchingRuleRegistry;
+    @Autowired private SecurityEnforcer securityEnforcer;
+    @Autowired private SecurityContextManager securityContextManager;
+    @Autowired private SystemObjectCache systemObjectCache;
+    @Autowired private LocalizationService localizationService;
+    @Autowired private AsyncWebProcessManager asyncWebProcessManager;
+    @Autowired private ApplicationContext applicationContext;
+    @Autowired private SystemConfigurationChangeDispatcher systemConfigurationChangeDispatcher;
 
     private WebApplicationConfiguration webApplicationConfiguration;
 

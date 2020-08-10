@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,10 +10,6 @@ package com.evolveum.midpoint.security.impl;
 import java.util.Collection;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.schema.SearchResultList;
-
-import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -21,9 +17,9 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ActivationComputer;
-import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -40,16 +36,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
@@ -60,7 +47,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
     private static final Trace LOGGER = TraceManager.getTrace(MidPointPrincipalManagerMock.class);
 
     @Autowired
-    private transient RepositoryService repositoryService;
+    private RepositoryService repositoryService;
 
     @Autowired
     private ActivationComputer activationComputer;
@@ -76,11 +63,11 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
             focus = findByUsername(username, clazz, result);
         } catch (ObjectNotFoundException ex) {
             LOGGER.trace("Couldn't find user with name '{}', reason: {}.",
-                    new Object[]{username, ex.getMessage(), ex});
+                    username, ex.getMessage(), ex);
             throw ex;
         } catch (Exception ex) {
             LOGGER.warn("Error getting user with name '{}', reason: {}.",
-                    new Object[]{username, ex.getMessage(), ex});
+                    username, ex.getMessage(), ex);
             throw new SystemException(ex.getMessage(), ex);
         }
 
@@ -100,11 +87,9 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
         return getPrincipal(focus, null, result);
     }
 
-
-
     @Override
     public MidPointPrincipal getPrincipal(PrismObject<? extends FocusType> focus,
-            AuthorizationTransformer authorizationLimiter, OperationResult result) throws SchemaException {
+            AuthorizationTransformer authorizationLimiter, OperationResult result) {
         if (focus == null) {
             return null;
         }
@@ -135,11 +120,11 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
             save(principal, result);
         } catch (Exception ex) {
             LOGGER.warn("Couldn't save user '{}, ({})', reason: {}.",
-                    new Object[]{principal.getUsername(), principal.getOid(), ex.getMessage()});
+                    principal.getUsername(), principal.getOid(), ex.getMessage());
         }
     }
 
-    private PrismObject<? extends FocusType> findByUsername(String username, Class<? extends FocusType> focusType,  OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private PrismObject<? extends FocusType> findByUsername(String username, Class<? extends FocusType> focusType, OperationResult result) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
         ObjectQuery query = ObjectQueryUtil.createNormNameQuery(usernamePoly, prismContext);
         LOGGER.trace("Looking for user, query:\n" + query.debugDump());
@@ -197,9 +182,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
         FocusType oldUserType = getUserByOid(person.getOid(), newUser.asObjectable().getClass(), result);
         PrismObject<? extends FocusType> oldUser = oldUserType.asPrismObject();
 
-
-
-        ObjectDelta<? extends FocusType> delta = ((PrismObject<FocusType>)oldUser).diff((PrismObject<FocusType>)newUser);
+        ObjectDelta<? extends FocusType> delta = ((PrismObject<FocusType>) oldUser).diff((PrismObject<FocusType>) newUser);
         repositoryService.modifyObject(newUser.asObjectable().getClass(), delta.getOid(), delta.getModifications(),
                 new OperationResult(OPERATION_UPDATE_USER));
 
@@ -223,10 +206,7 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
         }
         PrismObject<F> owner = null;
         if (object.canRepresent(ShadowType.class)) {
-            owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(MidPointPrincipalManagerMock.class+".resolveOwner"));
-        }
-        if (owner == null) {
-            return null;
+            owner = repositoryService.searchShadowOwner(object.getOid(), null, new OperationResult(MidPointPrincipalManagerMock.class + ".resolveOwner"));
         }
         return owner;
     }
@@ -242,6 +222,5 @@ public class MidPointPrincipalManagerMock implements MidPointPrincipalManager, U
             throw new IllegalArgumentException(e.getMessage(), e);
         }
     }
-
 
 }

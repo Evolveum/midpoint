@@ -75,7 +75,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
      */
     private Class<O> objectTypeClass;
 
-    transient private PrismContext prismContext;
+    private transient PrismContext prismContext;
 
     public ObjectDeltaImpl(Class<O> objectTypeClass, ChangeType changeType, PrismContext prismContext) {
         Validate.notNull(objectTypeClass,"No objectTypeClass");

@@ -8,34 +8,22 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
-
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-
-import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.ComponentConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ObjectTabVisibleBehavior;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.gui.impl.prism.panel.SingleContainerPanel;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
@@ -50,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskWorkManagementTy
 
 public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskMainPanel.class);
 
     private static final String ID_SAVE_AND_RUN = "saveAndRun";
 
@@ -91,12 +79,12 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private void createBasicPanel(List<ITab> tabs, PageTask parentPage) {
         ObjectTabVisibleBehavior<TaskType> basicTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_BASIC_URL, parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_BASIC_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isBasicVisible();
             }
         };
@@ -117,12 +105,12 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private void createScheduleTab(List<ITab> tabs, PageTask parentPage) {
         ObjectTabVisibleBehavior<TaskType> scheduleTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_SCHEDULE_URL, parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_SCHEDULE_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isSchedulingVisible();
             }
         };
@@ -145,12 +133,12 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private void createWorkManagementTab(List<ITab> tabs, PageTask parentPage) {
         ObjectTabVisibleBehavior<TaskType> workManagementTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_WORK_MANAGEMENT_URL, parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_WORK_MANAGEMENT_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isWorkManagementVisible(getTask());
             }
         };
@@ -202,12 +190,12 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private void createSubtasksTab(List<ITab> tabs, PageTask parentPage) {
         ObjectTabVisibleBehavior<TaskType> subtasksTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_SUBTASKS_URL, parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_SUBTASKS_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isSubtasksAndThreadsVisible(getTask());
             }
         };
@@ -224,12 +212,12 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private void createOperationStatisticsPanel(List<ITab> tabs, PageTask parentPage) {
         ObjectTabVisibleBehavior<TaskType> operationStatsAndInternalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_OPERATION_STATISTICS_URL, parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_OPERATION_STATISTICS_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isInternalPerformanceVisible();
             }
         };
@@ -246,12 +234,12 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private void createEnvironmentalPerformanceTab(List<ITab> tabs, PageTask parentPage) {
         ObjectTabVisibleBehavior<TaskType> envPerfTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_ENVIRONMENTAL_PERFORMANCE_URL, parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_ENVIRONMENTAL_PERFORMANCE_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isEnvironmentalPerformanceVisible();
             }
         };
@@ -268,12 +256,12 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private void createOperationTab(List<ITab> tabs, PageTask parentPage) {
         ObjectTabVisibleBehavior<TaskType> operationTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_OPERATION_URL, parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_OPERATION_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isOperationVisible();
             }
         };
@@ -289,12 +277,12 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private void createInteranalPerformanceTab(List<ITab> tabs, PageTask parentPage) {
         ObjectTabVisibleBehavior<TaskType> internalPerfTabsVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_INTERNAL_PERFORMANCE_URL, parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_INTERNAL_PERFORMANCE_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isInternalPerformanceVisible();
             }
         };
@@ -310,12 +298,12 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private void createResultTab(List<ITab> tabs, PageTask parentPage) {
         ObjectTabVisibleBehavior<TaskType> resultTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_RESULT_URL, parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_RESULT_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isResultVisible();
             }
         };
@@ -331,12 +319,12 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
     private void createErrorsTab(List<ITab> tabs, PageTask parentPage) {
         ObjectTabVisibleBehavior<TaskType> errorsTabVisibility = new ObjectTabVisibleBehavior<TaskType>
-                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_ERRORS_URL, parentPage){
+                (Model.of(getObjectWrapper().getObject()), ComponentConstants.UI_TASK_TAB_ERRORS_URL, parentPage) {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return super.isVisible() && parentPage.getTaskTabVisibilty().isErrorsVisible();
             }
         };
@@ -367,7 +355,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
         if (ItemPath.create(TaskType.F_WORK_MANAGEMENT, TaskWorkManagementType.F_WORKERS).equivalent(path)) {
             if (handler.endsWith("task/lightweight-partitioning/handler-3") || handler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
-                || handler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3") || handler.endsWith("task/generic-partitioning/handler-3")) {
+                    || handler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3") || handler.endsWith("task/generic-partitioning/handler-3")) {
                 return ItemVisibility.AUTO;
             }
             return ItemVisibility.HIDDEN;
@@ -383,7 +371,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
-                ((PageTask)getDetailsPage()).saveAndRunPerformed(target);
+                ((PageTask) getDetailsPage()).saveAndRunPerformed(target);
             }
 
             @Override
@@ -391,7 +379,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
                 target.add(getDetailsPage().getFeedbackPanel());
             }
         };
-        saveButton.add(new VisibleEnableBehaviour(){
+        saveButton.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -411,7 +399,7 @@ public class TaskMainPanel extends AssignmentHolderTypeMainPanel<TaskType> {
         getMainForm().add(saveButton);
     }
 
-    private ItemEditabilityHandler getTaskEditabilityHandler(){
+    private ItemEditabilityHandler getTaskEditabilityHandler() {
         return wrapper -> !WebComponentUtil.isRunningTask(getTask());
     }
 

@@ -32,7 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class LivesyncTokenEditorPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements Popupable {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(LivesyncTokenEditorPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LivesyncTokenEditorPanel.class);
 
     private static final String ID_TOKEN = "token";
     private static final String ID_OK = "ok";

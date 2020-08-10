@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 
 public class ExecuteScriptModel implements IModel<String> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ExecuteScriptModel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ExecuteScriptModel.class);
 
     private IModel<ExecuteScriptType> baseModel;
     private ModelServiceLocator locator;
@@ -28,7 +28,6 @@ public class ExecuteScriptModel implements IModel<String> {
         this.baseModel = model;
         this.locator = locator;
     }
-
 
     @Override
     public String getObject() {

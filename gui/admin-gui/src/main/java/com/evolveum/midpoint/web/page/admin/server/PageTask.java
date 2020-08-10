@@ -3,10 +3,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.io.InputStream;
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.*;
-import com.evolveum.midpoint.prism.*;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -19,13 +15,17 @@ import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -63,8 +63,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import javax.xml.namespace.QName;
-
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/task", matchUrlForSecurity = "/admin/task")
@@ -81,7 +79,7 @@ import javax.xml.namespace.QName;
 public class PageTask extends PageAdminObjectDetails<TaskType> implements Refreshable {
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(PageTask.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageTask.class);
     private static final String DOT_CLASS = PageTask.class.getName() + ".";
     protected static final String OPERATION_EXECUTE_TASK_CHANGES = DOT_CLASS + "executeTaskChanges";
     private static final String OPERATION_LOAD_REPORT_OUTPUT = DOT_CLASS + "loadReport";
@@ -152,8 +150,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
         createRefreshNowIconButton(repeatingView);
         createResumePauseButton(repeatingView);
-
-
 
 //        AjaxIconButton cleanupErrors = new AjaxIconButton(repeatingView.newChildId(), new Model<>(GuiStyleConstants.CLASS_ICON_TRASH),
 //        createStringResource("operationalButtonsPanel.cleanupErrors")) {
@@ -264,7 +260,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 }
             }
 
-
             @Override
             public String getFileName() {
                 ReportDataType reportObject = getReportData();
@@ -317,7 +312,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         PrismReference reportData = task.findReference(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_DATA_PROPERTY_NAME));
         if (reportData == null && reportData.getRealValue() == null) {
             PrismProperty<String> reportOutputOid = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
-            if (reportOutputOid == null){
+            if (reportOutputOid == null) {
                 return null;
             }
             return reportOutputOid.getRealValue();
@@ -421,7 +416,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                     public void yesPerformed(AjaxRequestTarget target) {
                         try {
                             deleteItem(target, TaskType.F_RESULT, TaskType.F_RESULT_STATUS);
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             LOGGER.error("Cannot clear task results: {}", e.getMessage());
                             getSession().error(PageTask.this.getString("PageTask.cleanup.result.failed"));
                         }
@@ -450,12 +445,12 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
         return getPrismContext().deltaFor(TaskType.class)
                 .item(itemName)
-                    .delete(oldValue)
+                .delete(oldValue)
                 .asItemDelta();
 
     }
 
-    private void saveTaskChanges(AjaxRequestTarget target, ObjectDelta<TaskType> taskDelta){
+    private void saveTaskChanges(AjaxRequestTarget target, ObjectDelta<TaskType> taskDelta) {
         if (taskDelta.isEmpty()) {
             getSession().warn("Nothing to save, no changes were made.");
             target.add(getFeedbackPanel());
@@ -476,7 +471,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         afterOperation(target, result);
     }
 
-    private CompositedIcon getTaskCleanupCompositedIcon(String basicIconClass){
+    private CompositedIcon getTaskCleanupCompositedIcon(String basicIconClass) {
         CompositedIconBuilder iconBuilder = new CompositedIconBuilder();
         return iconBuilder
                 .setBasicIcon(basicIconClass, IconCssStyle.IN_ROW_STYLE)
@@ -541,7 +536,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             return;
         }
         PrismReferenceValueWrapperImpl<Referencable> taskOwnerValue = taskOwner.getValue();
-        if (taskOwnerValue == null){
+        if (taskOwnerValue == null) {
             return;
         }
 
@@ -570,7 +565,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         if (recurrenceWrapperValue.getNewValue() == null || recurrenceWrapperValue.getNewValue().isEmpty()) {
             recurrenceWrapperValue.setRealValue(TaskRecurrenceType.SINGLE);
         }
-
 
     }
 
@@ -602,7 +596,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         }
 
         TaskRecurrenceType recurenceValue = recurrenceType.getRealValue();
-        if (recurenceValue == null || TaskRecurrenceType.SINGLE ==  recurenceValue) {
+        if (recurenceValue == null || TaskRecurrenceType.SINGLE == recurenceValue) {
             return true;
         }
 
@@ -612,7 +606,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 || schedule.getInterval() != null || schedule.getLatestFinishTime() != null
                 || schedule.getLatestStartTime() != null || schedule.getMisfireAction() != null;
     }
-
 
     private String createRefreshingLabel() {
         if (isRefreshEnabled()) {
@@ -636,7 +629,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         return new TaskMainPanel(id, getObjectModel(), this);
     }
 
-    TaskType getTask(){
+    TaskType getTask() {
         return getObjectWrapper().getObject().asObjectable();
     }
 
@@ -655,7 +648,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         return REFRESH_INTERVAL;
     }
 
-    private boolean isNotRunning(){
+    private boolean isNotRunning() {
         return !WebComponentUtil.isRunningTask(getTask());
     }
 
@@ -688,13 +681,13 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         return taskTabsVisibility;
     }
 
-    private void rememberShowEmptyState(){
+    private void rememberShowEmptyState() {
         rememberedShowEmptyState.clear();
         rememberedExpandedState.clear();
         rememberContainerWrappersShowEmptyState(Arrays.asList(getObjectWrapper()));
         PrismObjectWrapper<TaskType> objectWrapper = getObjectWrapper();
-        for (PrismContainerValueWrapper cv : objectWrapper.getValues()){
-            if (cv.isShowEmpty()){
+        for (PrismContainerValueWrapper cv : objectWrapper.getValues()) {
+            if (cv.isShowEmpty()) {
                 rememberedShowEmptyState.add(cv.getPath());
             }
         }
@@ -702,7 +695,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     private <IW extends ItemWrapper, VW extends PrismValueWrapper> void rememberContainerWrappersShowEmptyState(List<IW> iwList) {
         for (IW iw : iwList) {
-            if (!(iw instanceof PrismContainerWrapper)){
+            if (!(iw instanceof PrismContainerWrapper)) {
                 continue;
             }
             List<VW> values = iw.getValues();
@@ -716,7 +709,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private void rememberContainerValueWrapperShowEmptyState(PrismContainerValueWrapper cvw) {
-        if (cvw == null){
+        if (cvw == null) {
             return;
         }
         if (cvw.isShowEmpty()) {
@@ -739,7 +732,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     private <IW extends ItemWrapper, VW extends PrismValueWrapper> void checkContainerWrappersShowEmptyState(List<IW> iwList) {
         for (IW iw : iwList) {
-            if (!(iw instanceof PrismContainerWrapper)){
+            if (!(iw instanceof PrismContainerWrapper)) {
                 continue;
             }
             List<VW> values = iw.getValues();
@@ -753,13 +746,13 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private void checkContainerValueWrapperShowEmptyState(PrismContainerValueWrapper cvw) {
-        if (cvw == null){
+        if (cvw == null) {
             return;
         }
-        if (isContainerShowEmpty(cvw.getPath())){
+        if (isContainerShowEmpty(cvw.getPath())) {
             cvw.setShowEmpty(true);
         }
-        if (isContainerExpanded(cvw.getPath())){
+        if (isContainerExpanded(cvw.getPath())) {
             cvw.setExpanded(true);
         } else {
             cvw.setExpanded(false);
@@ -767,18 +760,18 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         checkContainerWrappersShowEmptyState(cvw.getItems());
     }
 
-    private boolean isContainerShowEmpty(ItemPath containerPath){
-        for (ItemPath path : rememberedShowEmptyState){
-            if (path.equivalent(containerPath)){
+    private boolean isContainerShowEmpty(ItemPath containerPath) {
+        for (ItemPath path : rememberedShowEmptyState) {
+            if (path.equivalent(containerPath)) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean isContainerExpanded(ItemPath containerPath){
-        for (ItemPath path : rememberedExpandedState){
-            if (path.equivalent(containerPath)){
+    private boolean isContainerExpanded(ItemPath containerPath) {
+        for (ItemPath path : rememberedExpandedState) {
+            if (path.equivalent(containerPath)) {
                 return true;
             }
         }

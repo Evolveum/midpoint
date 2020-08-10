@@ -6,6 +6,18 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.*;
+import java.util.Objects;
+import java.util.Map.Entry;
+import java.util.stream.Stream;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
@@ -39,21 +51,9 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.Objects;
-import java.util.stream.Stream;
 
 /**
  * @author semancik
- *
  */
 public class LensContext<F extends ObjectType> implements ModelContext<F>, Cloneable {
 
@@ -82,9 +82,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     // For use with personas
     private String ownerOid;
 
-    transient private PrismObject<UserType> cachedOwner;
+    private transient PrismObject<UserType> cachedOwner;
 
-    transient private SecurityPolicyType globalSecurityPolicy;
+    private transient SecurityPolicyType globalSecurityPolicy;
 
     /**
      * Channel that is the source of primary change (GUI, live sync, import,
@@ -99,13 +99,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * EXPERIMENTAL. A trace of resource objects that once existed but were
      * unlinked or deleted, and the corresponding contexts were rotten and
      * removed afterwards.
-     *
+     * <p>
      * Necessary to evaluate old state of hasLinkedAccount.
-     *
+     * <p>
      * TODO implement as non-transient. TODO consider storing whole projection
      * contexts here.
      */
-    transient private Collection<ResourceShadowDiscriminator> historicResourceObjects;
+    private transient Collection<ResourceShadowDiscriminator> historicResourceObjects;
 
     private Class<F> focusClass;
 
@@ -126,27 +126,27 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     private final List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
 
-    transient private ObjectTemplateType focusTemplate;
+    private transient ObjectTemplateType focusTemplate;
     private boolean focusTemplateExternallySet;       // todo serialize this
-    transient private ProjectionPolicyType accountSynchronizationSettings;
+    private transient ProjectionPolicyType accountSynchronizationSettings;
 
     /**
      * Delta set triple (plus, minus, zero) for evaluated assignments.
      * Relativity is determined by looking at current delta (i.e. objectCurrent -> objectNew).
-     *
+     * <p>
      * If you want to know whether the assignment was added or deleted with regards to objectOld,
      * please check evaluatedAssignment.origin property -
      * {@link com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin}.
-     *
+     * <p>
      * TODO verify if this is really true
      */
-    transient private DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple;
+    private transient DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple;
 
     /**
      * Just a cached copy. Keep it in context so we do not need to reload it all
      * the time.
      */
-    transient private PrismObject<SystemConfigurationType> systemConfiguration;
+    private transient PrismObject<SystemConfigurationType> systemConfiguration;
 
     /**
      * True if we want to reconcile all accounts in this context.
@@ -177,30 +177,30 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * At this level, isFresh == false means that deeper recomputation has to be
      * carried out.
      */
-    transient private boolean isFresh = false;
+    private transient boolean isFresh = false;
     private boolean isRequestAuthorized = false;
 
     /**
      * Cache of resource instances. It is used to reduce the number of read
      * (getObject) calls for ResourceType objects.
      */
-    transient private Map<String, ResourceType> resourceCache;
+    private transient Map<String, ResourceType> resourceCache;
 
-    transient private PrismContext prismContext;
+    private transient PrismContext prismContext;
 
-    transient private ProvisioningService provisioningService;
+    private transient ProvisioningService provisioningService;
 
     private ModelExecuteOptions options;
 
     /**
      * Used mostly in unit tests.
      */
-    transient private ClockworkInspector inspector;
+    private transient ClockworkInspector inspector;
 
     /**
      * User feedback.
      */
-    transient private Collection<ProgressListener> progressListeners;
+    private transient Collection<ProgressListener> progressListeners;
 
     private Map<String, Long> sequences = new HashMap<>();
 
@@ -210,14 +210,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     @NotNull private final List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
 
-    transient private boolean preview;
+    private transient boolean preview;
 
-    transient private Map<String,Collection<Containerable>> hookPreviewResultsMap;
+    private transient Map<String, Collection<Containerable>> hookPreviewResultsMap;
 
-    transient private PolicyRuleEnforcerPreviewOutputType policyRuleEnforcerPreviewOutput;
+    private transient PolicyRuleEnforcerPreviewOutputType policyRuleEnforcerPreviewOutput;
 
-    @NotNull transient private final List<ObjectReferenceType> operationApprovedBy = new ArrayList<>();
-    @NotNull transient private final List<String> operationApproverComments = new ArrayList<>();
+    @NotNull private transient final List<ObjectReferenceType> operationApprovedBy = new ArrayList<>();
+    @NotNull private transient final List<String> operationApproverComments = new ArrayList<>();
 
     public LensContext(Class<F> focusClass, PrismContext prismContext,
             ProvisioningService provisioningService) {
@@ -514,7 +514,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     private void rotProjectionContextsIfNeeded(Holder<Boolean> rotHolder) throws SchemaException {
-        for (LensProjectionContext projectionContext: projectionContexts) {
+        for (LensProjectionContext projectionContext : projectionContexts) {
             if (projectionContext.getWave() != executionWave) {
                 LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", projectionContext);
             } else {
@@ -587,7 +587,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public boolean isReconcileFocus() {
-        return doReconciliationForAllProjections ||  ModelExecuteOptions.isReconcileFocus(options);
+        return doReconciliationForAllProjections || ModelExecuteOptions.isReconcileFocus(options);
     }
 
     public boolean isExecutionPhaseOnly() {
@@ -842,7 +842,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             try {
                 checkConsistence();
             } catch (IllegalStateException e) {
-                throw new IllegalStateException(e.getMessage()+" in clockwork, state="+state, e);
+                throw new IllegalStateException(e.getMessage() + " in clockwork, state=" + state, e);
             }
         } else {
             checkAbortRequested(); // useful to check as often as realistically possible
@@ -1113,7 +1113,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "Deleted/unlinked resource objects",
                     historicResourceObjects.toString(), indent + 1); // temporary
-                                                                        // impl
+            // impl
         }
 
         return sb.toString();
@@ -1169,7 +1169,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             sb.append("global ");
         }
         sb.append("rule: ").append(rule.toShortString());
-        dumpTriggersCollection(indent+2, sb, rule.getTriggers());
+        dumpTriggersCollection(indent + 2, sb, rule.getTriggers());
         for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
             sb.append("\n");
             DebugUtil.indentDebugDump(sb, indent + 2);
@@ -1272,10 +1272,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /**
      * 'reduced' means
      * - no full object values (focus, shadow).
-     *
+     * <p>
      * This mode is to be used for re-starting operation after primary-stage approval (here all data are re-loaded; maybe
      * except for objectOld, but let's neglect it for the time being).
-     *
+     * <p>
      * It is also to be used for the FINAL stage, where we need the context basically for information about executed deltas.
      */
     public LensContextType toLensContextType(ExportType exportType) throws SchemaException {
@@ -1329,7 +1329,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return rv;
     }
 
-    @SuppressWarnings({"unchecked", "raw"})
+    @SuppressWarnings({ "unchecked", "raw" })
     public static LensContext fromLensContextType(LensContextType lensContextType, PrismContext prismContext,
             ProvisioningService provisioningService, Task task, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
@@ -1405,7 +1405,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (delta != null && delta.getObjectTypeClass() != null
                 && (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())
-                        || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
+                || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
             // TODO exception can be thrown here (MID-4391) e.g. if resource does not exist any more; consider what to do
             // Currently we are on the safe side by making whole conversion fail
             getProvisioningService().applyDefinition(delta, task, result);
@@ -1554,7 +1554,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public boolean hasProjectionChange() {
-        for (LensProjectionContext projectionContext: getProjectionContexts()) {
+        for (LensProjectionContext projectionContext : getProjectionContexts()) {
             if (projectionContext.getWave() != getExecutionWave()) {
                 continue;
             }

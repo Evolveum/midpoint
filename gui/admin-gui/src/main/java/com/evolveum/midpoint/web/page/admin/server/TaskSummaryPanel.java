@@ -37,7 +37,7 @@ import java.util.List;
 public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     private static final long serialVersionUID = -5077637168906420769L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskSummaryPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskSummaryPanel.class);
 
     private static final String ID_TAG_REFRESH = "refreshTag";
 
