@@ -238,6 +238,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
 
         CVW wrapper = getModelObject();
         wrapper.setShowEmpty(!wrapper.isShowEmpty());
+        target.add(DefaultContainerablePanel.this);
 //        target.add(getPageBase().getFeedbackPanel());
 //        target.add(findParent(PrismContainerValuePanel.class));
     }

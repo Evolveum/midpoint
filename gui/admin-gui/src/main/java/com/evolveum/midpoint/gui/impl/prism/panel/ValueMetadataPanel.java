@@ -64,12 +64,20 @@ import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContainerValueWrapper<C>> extends PrismContainerValuePanel<C, CVW> {
 
     private static final String ID_CONTAINER = "container";
+    private static final String ID_HEADER = "header";
 
     public ValueMetadataPanel(String id, IModel<CVW> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
 
-
+    @Override
+    protected void addToHeader(WebMarkupContainer header) {
+        LoadableDetachableModel<String> headerLabelModel = getLabelModel();
+        Label labelComponent = new Label(ID_LABEL, headerLabelModel);
+        labelComponent.setOutputMarkupId(true);
+        labelComponent.setOutputMarkupPlaceholderTag(true);
+        header.add(labelComponent);
+    }
 
 //    @Override
 //    protected Component createDefaultPanel(String id) {
@@ -148,10 +156,8 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
 
     }
 
-
     @Override
     protected boolean isRemoveButtonVisible() {
         return false;
     }
-
 }

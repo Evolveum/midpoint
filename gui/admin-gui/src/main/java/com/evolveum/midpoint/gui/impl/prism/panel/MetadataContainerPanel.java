@@ -67,14 +67,14 @@ public class MetadataContainerPanel<C extends Containerable> extends PrismContai
 
     @Override
     protected Component createHeaderPanel() {
-         Label button = new Label(ID_HEADER, new PropertyModel<>(getModel(), "displayName"));
-         button.setOutputMarkupId(true);
-         return button;
+        Label button = new Label(ID_HEADER, new PropertyModel<>(getModel(), "displayName"));
+        button.setOutputMarkupId(true);
+        return button;
     }
 
     @Override
     protected boolean getHeaderVisibility() {
-        return true;
+        return false;
     }
 
     @Override

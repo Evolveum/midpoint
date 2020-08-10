@@ -1674,3 +1674,36 @@ display: inline-block;
     padding: 5px 10px;
     float: left;
 }
+
+.acquisition {
+
+}
+
+.acquisition > li {
+  float: left;
+  list-style: none;
+  margin-left: -30px;
+}
+
+.acquisition > li + li {
+  margin-left: 10px;
+  list-style: none;
+}
+
+.acquisition > li + li::before {
+  font-family: "FontAwesome";
+  content: "\f067";
+  float: left;
+  margin-right: 10px;
+}
+
+.yield {
+  margin-bottom: 2px;
+  border-radius: 3px;
+}
+
+.yield-heading {
+  padding: 5px 5px;
+  border-top: 1px solid #dddddd;
+}
+

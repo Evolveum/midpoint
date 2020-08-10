@@ -53,6 +53,7 @@ import org.apache.wicket.model.PropertyModel;
 
 import javax.xml.namespace.QName;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -199,19 +200,20 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
                         createStringResource(listItem.getModelObject().equivalent(ItemPath.EMPTY_PATH) ? "valueMetadata" : listItem.getModelObject().lastName().getLocalPart())) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        for (ItemWrapper iw : PrismValuePanel.this.getModelObject().getValueMetadata().getItems()) {
+                        for (PrismContainerWrapper cw : PrismValuePanel.this.getModelObject().getValueMetadata().getContainers()) {
                             if (ItemPath.EMPTY_PATH.equivalent(listItem.getModelObject())) {
-                                if (!(iw instanceof PrismContainerWrapper)) {
-                                    iw.setShowMetadataDetails(true);
-                                } else {
-                                    iw.setShowMetadataDetails(false);
-                                }
+                                cw.setShowMetadataDetails(false);
                             } else {
-                                if (iw.getPath().equivalent(listItem.getModelObject())) {
-                                    iw.setShowMetadataDetails(true);
+                                if (cw.getPath().equivalent(listItem.getModelObject())) {
+                                    cw.setShowMetadataDetails(true);
                                 } else {
-                                    iw.setShowMetadataDetails(false);
+                                    cw.setShowMetadataDetails(false);
                                 }
+                            }
+                        }
+                        for (ItemWrapper iw : PrismValuePanel.this.getModelObject().getValueMetadata().getNonContainers()) {
+                            if (ItemPath.EMPTY_PATH.equivalent(listItem.getModelObject())) {
+                                iw.setShowMetadataDetails(true);
                             }
                         }
                         ajaxRequestTarget.add(PrismValuePanel.this);
@@ -227,7 +229,13 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         metadataList.setOutputMarkupId(true);
         metadataList.setOutputMarkupPlaceholderTag(true);
         metadataList.add(new VisibleBehaviour(() -> getModelObject().getValueMetadata() != null && getModelObject().isShowMetadata()));
-        ValueMetadataPanel metadataPanel = new ValueMetadataPanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
+//        ValueMetadataPanel metadataPanel = new ValueMetadataPanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
+//                new ItemPanelSettingsBuilder()
+//                        .editabilityHandler(wrapper -> true)
+//                        .headerVisibility(false)
+//                        .visibilityHandler(w -> w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN)
+//                        .build());
+        MetadataContainerValuePanel metadataPanel = new MetadataContainerValuePanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
                 new ItemPanelSettingsBuilder()
                         .editabilityHandler(wrapper -> true)
                         .headerVisibility(false)
@@ -245,8 +253,16 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             if (metadataWrapper == null) {
                 return Collections.EMPTY_LIST;
             }
-            List<ItemPath> metadataQNames = metadataWrapper.getItems().stream().map(m -> m.getPath()).collect(Collectors.toList());
-            metadataQNames.add(ItemPath.EMPTY_PATH);
+            List<ItemPath> metadataQNames = new ArrayList<>();
+            for (ItemWrapper iw : metadataWrapper.getContainers()) {
+                if (!iw.isEmpty()) {
+                   metadataQNames.add(iw.getPath());
+                }
+            }
+            if (CollectionUtils.isNotEmpty(metadataWrapper.getNonContainers())) {
+                metadataQNames.add(ItemPath.EMPTY_PATH);
+            }
+
 
             return metadataQNames;
         });

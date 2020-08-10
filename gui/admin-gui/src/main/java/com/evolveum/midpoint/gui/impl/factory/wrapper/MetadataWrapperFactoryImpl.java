@@ -50,10 +50,14 @@ public class MetadataWrapperFactoryImpl<C extends Containerable> extends PrismCo
 
     @Override
     public PrismContainerWrapper<C> createWrapper(PrismContainerValueWrapper<?> parent, ItemDefinition<?> def, WrapperContext context) throws SchemaException {
-        Boolean readonly = context.getReadOnly() == null ? null : Boolean.valueOf(context.getReadOnly());
-        context.setReadOnly(true);
-        PrismContainerWrapper<C> wrapper = super.createWrapper(parent, def, context);
-        context.setReadOnly(readonly);
+//        Boolean readonly = context.getReadOnly() == null ? null : Boolean.valueOf(context.getReadOnly());
+//        context.setReadOnly(true);
+//        context.setMetadata(true);
+        WrapperContext ctx = context.clone();
+        ctx.setReadOnly(true);
+        ctx.setMetadata(true);
+        PrismContainerWrapper<C> wrapper = super.createWrapper(parent, def, ctx);
+//        context.setReadOnly(readonly);
         return wrapper;
     }
 }

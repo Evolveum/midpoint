@@ -9,6 +9,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -111,6 +112,10 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
 
         if (QNameUtil.match(DOMUtil.XSD_QNAME, typeName)) {
             return ((QName)getRealValue()).getLocalPart();
+        }
+
+        if (QNameUtil.match(DOMUtil.XSD_DATETIME, typeName)) {
+            
         }
 
         return getRealValue().toString();

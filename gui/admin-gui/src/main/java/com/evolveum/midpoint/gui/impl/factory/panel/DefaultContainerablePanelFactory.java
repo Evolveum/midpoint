@@ -30,7 +30,7 @@ public class DefaultContainerablePanelFactory<C extends Containerable> implement
 
     @Override
     public <IW extends ItemWrapper> boolean match(IW wrapper) {
-        return wrapper instanceof PrismContainerWrapper;
+        return wrapper instanceof PrismContainerWrapper && !wrapper.isMetadata();
     }
 
     @Override
