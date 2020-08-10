@@ -3,9 +3,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 import java.io.InputStream;
 import java.util.*;
 
-import com.evolveum.midpoint.prism.path.ItemPathImpl;
-import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -25,8 +22,6 @@ import com.evolveum.midpoint.gui.impl.component.AjaxCompositedIconButton;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
@@ -686,7 +681,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         return taskTabsVisibility;
     }
 
-    private void rememberShowEmptyState(){
+    private void rememberShowEmptyState() {
         rememberedObjectWrapper = getObjectWrapper();
     }
 
@@ -700,17 +695,17 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         return objectWrapper;
     }
 
-    private void applyOldPageObjectState(PrismObjectWrapper<TaskType> objectWrapperAfterReload){
+    private void applyOldPageObjectState(PrismObjectWrapper<TaskType> objectWrapperAfterReload) {
         applyOldPageContainersState(rememberedObjectWrapper.getValue(), objectWrapperAfterReload.getValue());
         applyOldVirtualContainerState(objectWrapperAfterReload);
     }
 
-    private <IW extends ItemWrapper, VW extends PrismValueWrapper> void applyOldPageContainersState(List<IW> newItemList){
+    private <IW extends ItemWrapper, VW extends PrismValueWrapper> void applyOldPageContainersState(List<IW> newItemList) {
         for (IW iw : newItemList) {
-            if (!(iw instanceof PrismContainerWrapper)){
+            if (!(iw instanceof PrismContainerWrapper)) {
                 continue;
             }
-            if (((PrismContainerWrapper) iw).isVirtual()){
+            if (((PrismContainerWrapper) iw).isVirtual()) {
                 continue;
             }
             List<VW> values = iw.getValues();
@@ -734,7 +729,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private void applyOldPageContainersState(PrismContainerValueWrapper oldVal, PrismContainerValueWrapper newVal) {
-        if (oldVal == null || newVal == null){
+        if (oldVal == null || newVal == null) {
             return;
         }
         newVal.setShowEmpty(oldVal.isShowEmpty());
@@ -744,8 +739,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
     private <C extends Containerable> void applyOldVirtualContainerState(PrismObjectWrapper<TaskType> objectWrapperAfterReload) {
         List<PrismContainerWrapper<C>> containers = objectWrapperAfterReload.getValue().getContainers();
-        for (PrismContainerWrapper pcw : containers){
-            if (!pcw.isVirtual()){
+        for (PrismContainerWrapper pcw : containers) {
+            if (!pcw.isVirtual()) {
                 continue;
             }
             PrismContainerValueWrapper virtualCont = CollectionUtils.isNotEmpty(pcw.getValues()) ?
@@ -777,16 +772,16 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         if (val1 == null || val2 == null || !val1.isVirtual() || !val2.isVirtual()) {
             return false;
         }
-        if (val1.getVirtualItems() == null && val2.getVirtualItems() != null){
+        if (val1.getVirtualItems() == null && val2.getVirtualItems() != null) {
             return false;
         }
-        if (val1.getVirtualItems() != null && val2.getVirtualItems() == null){
+        if (val1.getVirtualItems() != null && val2.getVirtualItems() == null) {
             return false;
         }
-        if (val1.getVirtualItems() == null && val2.getVirtualItems() == null){
+        if (val1.getVirtualItems() == null && val2.getVirtualItems() == null) {
             return true;
         }
-        if (val1.getVirtualItems().size() != val2.getVirtualItems().size()){
+        if (val1.getVirtualItems().size() != val2.getVirtualItems().size()) {
             return false;
         }
         List<VirtualContainerItemSpecificationType> virtItems = val1.getVirtualItems();
@@ -794,12 +789,12 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             List<VirtualContainerItemSpecificationType> virtItems2 = val2.getVirtualItems();
             boolean valContainsVirtItem = false;
             for (VirtualContainerItemSpecificationType spec2 : virtItems2) {
-                if (spec.getPath().equivalent(spec2.getPath())){
+                if (spec.getPath().equivalent(spec2.getPath())) {
                     valContainsVirtItem = true;
                     break;
                 }
             }
-            if (!valContainsVirtItem){
+            if (!valContainsVirtItem) {
                 return false;
             }
         }
