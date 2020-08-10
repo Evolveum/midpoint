@@ -113,11 +113,7 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
         if (QNameUtil.match(DOMUtil.XSD_QNAME, typeName)) {
             return ((QName)getRealValue()).getLocalPart();
         }
-
-        if (QNameUtil.match(DOMUtil.XSD_DATETIME, typeName)) {
-            
-        }
-
+        
         return getRealValue().toString();
     }
 
