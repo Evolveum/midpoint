@@ -169,8 +169,8 @@ public class ClockworkAuditHelper {
             Collection<ObjectDeltaOperation<? extends ObjectType>> clonedDeltas = ObjectDeltaOperation.cloneDeltaCollection(context.getPrimaryChanges());
             checkNamesArePresent(clonedDeltas, primaryObject);
             auditRecord.addDeltas(clonedDeltas);
-            if (auditRecord.getTarget() == null) {
-                auditRecord.setTarget(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas, context.getPrismContext()));
+            if (auditRecord.getTargetRef() == null) {
+                auditRecord.setTargetRef(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas, context.getPrismContext()));
             }
         } else if (stage == AuditEventStage.EXECUTION) {
             auditRecord.setOutcome(clone.getStatus());

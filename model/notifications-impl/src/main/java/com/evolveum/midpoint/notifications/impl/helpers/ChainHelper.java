@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
  * @author mederly
  */
 @Component
-public class ChainHelper extends BaseHelper {
+public class ChainHelper extends BaseNotificationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChainHelper.class);
 

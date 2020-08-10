@@ -59,7 +59,7 @@ public class SqlRepositoryConfiguration {
     @SuppressWarnings("deprecation")
     public enum Database {
 
-        // order is important! (the first value is the default)
+        // Order of dialects is important, the first value is the default.
         H2(DRIVER_H2,
                 H2Dialect.class.getName()),
         MYSQL(DRIVER_MYSQL,
@@ -983,7 +983,7 @@ public class SqlRepositoryConfiguration {
         return skipOrgClosureStructureCheck;
     }
 
-    public Database getDatabase() {
+    public Database getDatabaseType() {
         return database;
     }
 

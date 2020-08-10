@@ -24,7 +24,6 @@ import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.pagination.LimitHandler;
 import org.hibernate.engine.spi.RowSelection;
 import org.hibernate.query.NativeQuery;
-import org.hibernate.query.Query;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -32,7 +31,7 @@ import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -67,9 +65,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}.
@@ -78,13 +74,14 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
 
+    private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
+
     private static final String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
     private static final String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
     private static final String OP_LIST_RECORDS = "listRecords";
     private static final String OP_LIST_RECORDS_ATTEMPT = "listRecordsAttempt";
     private static final String OP_LOAD_AUDIT_DELTA = "loadAuditDelta";
 
-    private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
 
     private static final String QUERY_MAX_RESULT = "setMaxResults";
@@ -260,7 +257,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Session session = baseHelper.beginReadOnlyTransaction();
         try {
             session.doWork(con -> {
-                Database database = baseHelper.getConfiguration().getDatabase();
+                Database database = sqlConfiguration().getDatabaseType();
                 int count = 0;
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {
@@ -366,25 +363,25 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                             subStmt.close();
                         }
 
-                        // TODO MID-4712 rework without SQL at all, just create lightweight objects with available info
-                        // alternative is sqlRepo.getObject, because now it can be in different DB
-                        try {
-                            // TODO what if original name (in audit log) differs from the current one (in repo) ?
-                            audit.setInitiator(resolve(session, resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
-                                    resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
-                                    // TODO: when JDK-8 is gone use Objects.requireNonNullElse
-                                    defaultIfNull(RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)), RObjectType.FOCUS)));
-                            audit.setAttorney(resolve(session, resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
-                                    resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.FOCUS));
-                            audit.setTarget(resolve(session, resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
-                                    resultList.getString(RAuditEventRecord.TARGET_NAME_COLUMN_NAME),
-                                    RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME))), prismContext);
-                            audit.setTargetOwner(resolve(session, resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
-                                    resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
-                                    RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME))));
-                        } catch (SchemaException ex) {
-                            baseHelper.handleGeneralCheckedException(ex, session, null);
-                        }
+                        audit.setInitiatorRef(prismRefValue(
+                                resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
+                                resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
+                                // TODO: when JDK-8 is gone use Objects.requireNonNullElse
+                                defaultIfNull(
+                                        repoObjectType(resultList, RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME),
+                                        RObjectType.FOCUS)));
+                        audit.setAttorneyRef(prismRefValue(
+                                resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
+                                resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME),
+                                RObjectType.FOCUS));
+                        audit.setTargetRef(prismRefValue(
+                                resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
+                                resultList.getString(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME),
+                                repoObjectType(resultList, RAuditEventRecord.TARGET_TYPE_COLUMN_NAME)));
+                        audit.setTargetOwnerRef(prismRefValue(
+                                resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
+                                resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
+                                repoObjectType(resultList, RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME)));
                         count++;
                         if (!handler.handle(audit)) {
                             LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
@@ -398,13 +395,29 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 LOGGER.trace("List records iterative attempt processed {} records", count);
             });
             session.getTransaction().commit();
-
         } catch (RuntimeException ex) {
             baseHelper.handleGeneralRuntimeException(ex, session, null);
         } finally {
             baseHelper.cleanupSessionAndResult(session, null);
         }
+    }
 
+    // Yes, to detect null, you have to check again after reading int. No getInteger there.
+    private RObjectType repoObjectType(ResultSet resultList, String columnName) throws SQLException {
+        int ordinalValue = resultList.getInt(columnName);
+        return resultList.wasNull() ? null : RObjectType.fromOrdinal(ordinalValue);
+    }
+
+    private PrismReferenceValue prismRefValue(String oid, String description, RObjectType repoObjectType) {
+        if (oid == null) {
+            return null;
+        }
+
+        PrismReferenceValue prv = prismContext.itemFactory().createReferenceValue(oid,
+                prismContext.getSchemaRegistry().determineTypeForClass(
+                        repoObjectType.getJaxbClass()));
+        prv.setDescription(description);
+        return prv;
     }
 
     private void setParametersToQuery(SelectQueryBuilder queryBuilder, Map<String, Object> params) {
@@ -424,42 +437,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     // Hibernate-based
-    // using generic parameter to avoid typing warnings
-    private <X extends ObjectType> PrismObject<X> resolve(
-            Session session, String oid, String defaultName, RObjectType defaultType)
-            throws SchemaException {
-
-        if (oid == null) {
-            return null;
-        }
-        Query<?> query = session.getNamedQuery("get.object");
-        query.setParameter("oid", oid);
-        query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
-        GetObjectResult object = (GetObjectResult) query.uniqueResult();
-
-        PrismObject result;
-        if (object != null) {
-            String serializedForm = RUtil.getSerializedFormFromBytes(object.getFullObject());
-            result = prismContext.parserFor(serializedForm)
-                    .compat().parse();
-        } else if (defaultType != null) {
-            result = prismContext.createObject(defaultType.getJaxbClass());
-            result.asObjectable().setName(PolyStringType.fromOrig(defaultName != null ? defaultName : oid));
-            result.setOid(oid);
-        } else {
-            result = null;
-        }
-        //noinspection unchecked
-        return result;
-    }
-
-    // Hibernate-based
     private void auditAttempt(AuditEventRecord record) {
         Session session = baseHelper.beginTransaction();
         try {
             SingleSqlQuery query = RAuditEventRecord.toRepo(record, customColumn);
             session.doWork(connection -> {
-                Database database = sqlConfiguration().getDatabase();
+                Database database = sqlConfiguration().getDatabaseType();
                 String[] keyColumn = { RAuditEventRecord.ID_COLUMN_NAME };
                 PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
                 Long id = null;
@@ -589,9 +572,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Date minValue = new Date();
         duration.addTo(minValue);
 
-        // factored out because it produces INFO-level message
-        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
-        checkTemporaryTablesSupport(dialect);
+        checkTemporaryTablesSupport();
 
         long start = System.currentTimeMillis();
         boolean first = true;
@@ -611,6 +592,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         LOGGER.debug(
                                 "Starting audit cleanup batch, deleting up to {} (duration '{}'), batch size {}, up to now deleted {} entries.",
                                 minValue, duration, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
+
+                        // TODO remove Hibernate stuff
+                        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
                         count = batchDeletionAttempt((session, tempTable) -> selectRecordsByMaxAge(session, tempTable, minValue, dialect),
                                 totalCountHolder, batchStart, dialect, parentResult);
                     } while (count > 0);
@@ -629,7 +613,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     // Hibernate-based
     private void cleanupAuditMaxRecords(CleanupPolicyType policy, OperationResult parentResult) {
-
         if (policy.getMaxRecords() == null) {
             return;
         }
@@ -642,9 +625,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         Integer recordsToKeep = policy.getMaxRecords();
 
-        // factored out because it produces INFO-level message
-        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
-        checkTemporaryTablesSupport(dialect);
+        checkTemporaryTablesSupport();
 
         long start = System.currentTimeMillis();
         boolean first = true;
@@ -664,7 +645,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         LOGGER.debug(
                                 "Starting audit cleanup batch, keeping at most {} records, batch size {}, up to now deleted {} entries.",
                                 recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
-                        count = batchDeletionAttempt((session, tempTable) -> selectRecordsByNumberToKeep(session, tempTable, recordsToKeep, dialect),
+
+                        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
+                        count = batchDeletionAttempt(
+                                (session, tempTable) -> selectRecordsByNumberToKeep(session, tempTable, recordsToKeep, dialect),
                                 totalCountHolder, batchStart, dialect, parentResult);
                     } while (count > 0);
                     return;
@@ -680,15 +664,15 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
-    // Hibernate-based
-    private void checkTemporaryTablesSupport(Dialect dialect) {
-        TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
-
-        if (!ttDialect.supportsTemporaryTables()) {
-            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup audit logs.",
-                    dialect);
+    private void checkTemporaryTablesSupport() {
+        Database database = sqlConfiguration().getDatabaseType();
+        try {
+            TemporaryTableDialect.getTempTableDialect(database);
+        } catch (SystemException e) {
+            LOGGER.error("Database type {} doesn't support temporary tables, couldn't cleanup audit logs.",
+                    database);
             throw new SystemException(
-                    "Dialect " + dialect + " doesn't support temporary tables, couldn't cleanup audit logs.");
+                    "Database type " + database + " doesn't support temporary tables, couldn't cleanup audit logs.");
         }
     }
 
@@ -699,7 +683,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         Session session = baseHelper.beginTransaction();
         try {
-            TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
+            TemporaryTableDialect ttDialect =
+                    TemporaryTableDialect.getTempTableDialect(sqlConfiguration().getDatabaseType());
 
             // create temporary table
             final String tempTable = ttDialect.generateTemporaryTableName(RAuditEventRecord.TABLE_NAME);
@@ -749,7 +734,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     // Hibernate-based
-    private int selectRecordsByMaxAge(Session session, String tempTable, Date minValue, Dialect dialect) {
+    private int selectRecordsByMaxAge(
+            Session session, String tempTable, Date minValue, Dialect dialect) {
 
         // fill temporary table, we don't need to join task on object on
         // container, oid and id is already in task table
@@ -779,7 +765,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     // Hibernate-based
-    private int selectRecordsByNumberToKeep(Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
+    private int selectRecordsByNumberToKeep(
+            Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
+
         CriteriaBuilder cb = session.getCriteriaBuilder();
         CriteriaQuery cq = cb.createQuery(RAuditEventRecord.class);
         cq.select(cb.count(cq.from(RAuditEventRecord.class)));
@@ -832,7 +820,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 }
             }
 
-            TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
+            TemporaryTableDialect ttDialect =
+                    TemporaryTableDialect.getTempTableDialect(sqlConfiguration().getDatabaseType());
 
             Statement s = connection.createStatement();
             s.execute(ttDialect.getCreateTemporaryTableString()
@@ -876,7 +865,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         try {
             session.setFlushMode(FlushMode.MANUAL);
             session.doWork(connection -> {
-                Database database = sqlConfiguration().getDatabase();
+                Database database = sqlConfiguration().getDatabaseType();
 
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {

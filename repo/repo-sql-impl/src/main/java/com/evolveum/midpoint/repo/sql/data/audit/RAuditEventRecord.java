@@ -478,8 +478,8 @@ public class RAuditEventRecord implements Serializable {
         }
 
         try {
-            if (record.getTarget() != null) {
-                PrismReferenceValue target = record.getTarget();
+            if (record.getTargetRef() != null) {
+                PrismReferenceValue target = record.getTargetRef();
                 repo.setTargetName(getOrigName(target));
                 repo.setTargetOid(target.getOid());
 
@@ -612,55 +612,55 @@ public class RAuditEventRecord implements Serializable {
             throws DtoTranslationException {
 
         Objects.requireNonNull(record, "Audit event record must not be null.");
-        InsertQueryBuilder queryBulder = new InsertQueryBuilder(TABLE_NAME);
+        InsertQueryBuilder insertBuilder = new InsertQueryBuilder(TABLE_NAME);
         if (record.getRepoId() != null) {
-            queryBulder.addParameter(ID_COLUMN_NAME, record.getRepoId());
+            insertBuilder.addParameter(ID_COLUMN_NAME, record.getRepoId());
         }
-        queryBulder.addParameter(CHANNEL_COLUMN_NAME, record.getChannel());
-        queryBulder.addParameter(TIMESTAMP_VALUE_COLUMN_NAME, new Timestamp(record.getTimestamp()));
-        queryBulder.addParameter(EVENT_STAGE_COLUMN_NAME, RAuditEventStage.toRepo(record.getEventStage()));
-        queryBulder.addParameter(EVENT_TYPE_COLUMN_NAME, RAuditEventType.toRepo(record.getEventType()));
-        queryBulder.addParameter(SESSION_IDENTIFIER_COLUMN_NAME, record.getSessionIdentifier());
-        queryBulder.addParameter(EVENT_IDENTIFIER_COLUMN_NAME, record.getEventIdentifier());
-        queryBulder.addParameter(HOST_IDENTIFIER_COLUMN_NAME, record.getHostIdentifier());
-        queryBulder.addParameter(REMOTE_HOST_ADDRESS_COLUMN_NAME, record.getRemoteHostAddress());
-        queryBulder.addParameter(NODE_IDENTIFIER_COLUMN_NAME, record.getNodeIdentifier());
-        queryBulder.addParameter(PARAMETER_COLUMN_NAME, record.getParameter());
-        queryBulder.addParameter(MESSAGE_COLUMN_NAME, RUtil.trimString(record.getMessage(), AuditService.MAX_MESSAGE_SIZE));
+        insertBuilder.addParameter(CHANNEL_COLUMN_NAME, record.getChannel());
+        insertBuilder.addParameter(TIMESTAMP_VALUE_COLUMN_NAME, new Timestamp(record.getTimestamp()));
+        insertBuilder.addParameter(EVENT_STAGE_COLUMN_NAME, RAuditEventStage.toRepo(record.getEventStage()));
+        insertBuilder.addParameter(EVENT_TYPE_COLUMN_NAME, RAuditEventType.toRepo(record.getEventType()));
+        insertBuilder.addParameter(SESSION_IDENTIFIER_COLUMN_NAME, record.getSessionIdentifier());
+        insertBuilder.addParameter(EVENT_IDENTIFIER_COLUMN_NAME, record.getEventIdentifier());
+        insertBuilder.addParameter(HOST_IDENTIFIER_COLUMN_NAME, record.getHostIdentifier());
+        insertBuilder.addParameter(REMOTE_HOST_ADDRESS_COLUMN_NAME, record.getRemoteHostAddress());
+        insertBuilder.addParameter(NODE_IDENTIFIER_COLUMN_NAME, record.getNodeIdentifier());
+        insertBuilder.addParameter(PARAMETER_COLUMN_NAME, record.getParameter());
+        insertBuilder.addParameter(MESSAGE_COLUMN_NAME, RUtil.trimString(record.getMessage(), AuditService.MAX_MESSAGE_SIZE));
         if (record.getOutcome() != null) {
-            queryBulder.addParameter(OUTCOME_COLUMN_NAME, RUtil.getRepoEnumValue(record.getOutcome().createStatusType(),
+            insertBuilder.addParameter(OUTCOME_COLUMN_NAME, RUtil.getRepoEnumValue(record.getOutcome().createStatusType(),
                     ROperationResultStatus.class));
         } else {
-            queryBulder.addParameter(OUTCOME_COLUMN_NAME, null);
+            insertBuilder.addParameter(OUTCOME_COLUMN_NAME, null);
         }
-        queryBulder.addParameter(REQUEST_IDENTIFIER_COLUMN_NAME, record.getRequestIdentifier());
-        queryBulder.addParameter(TASK_IDENTIFIER_COLUMN_NAME, record.getTaskIdentifier());
-        queryBulder.addParameter(TASK_OID_COLUMN_NAME, record.getTaskOid());
-        queryBulder.addParameter(RESULT_COLUMN_NAME, record.getResult());
+        insertBuilder.addParameter(REQUEST_IDENTIFIER_COLUMN_NAME, record.getRequestIdentifier());
+        insertBuilder.addParameter(TASK_IDENTIFIER_COLUMN_NAME, record.getTaskIdentifier());
+        insertBuilder.addParameter(TASK_OID_COLUMN_NAME, record.getTaskOid());
+        insertBuilder.addParameter(RESULT_COLUMN_NAME, record.getResult());
 
         try {
-            if (record.getTarget() != null) {
-                PrismReferenceValue target = record.getTarget();
-                queryBulder.addParameter(TARGET_NAME_COLUMN_NAME, getOrigName(target));
-                queryBulder.addParameter(TARGET_OID_COLUMN_NAME, target.getOid());
-                queryBulder.addParameter(TARGET_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForQName(target.getTargetType()));
+            if (record.getTargetRef() != null) {
+                PrismReferenceValue target = record.getTargetRef();
+                insertBuilder.addParameter(TARGET_NAME_COLUMN_NAME, getOrigName(target));
+                insertBuilder.addParameter(TARGET_OID_COLUMN_NAME, target.getOid());
+                insertBuilder.addParameter(TARGET_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForQName(target.getTargetType()));
             }
             if (record.getTargetOwner() != null) {
                 PrismObject<? extends FocusType> targetOwner = record.getTargetOwner();
-                queryBulder.addParameter(TARGET_OWNER_NAME_COLUMN_NAME, getOrigName(targetOwner));
-                queryBulder.addParameter(TARGET_OWNER_OID_COLUMN_NAME, targetOwner.getOid());
-                queryBulder.addParameter(TARGET_OWNER_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForClass(targetOwner.getCompileTimeClass()));
+                insertBuilder.addParameter(TARGET_OWNER_NAME_COLUMN_NAME, getOrigName(targetOwner));
+                insertBuilder.addParameter(TARGET_OWNER_OID_COLUMN_NAME, targetOwner.getOid());
+                insertBuilder.addParameter(TARGET_OWNER_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForClass(targetOwner.getCompileTimeClass()));
             }
             if (record.getInitiator() != null) {
                 PrismObject<? extends ObjectType> initiator = record.getInitiator();
-                queryBulder.addParameter(INITIATOR_NAME_COLUMN_NAME, getOrigName(initiator));
-                queryBulder.addParameter(INITIATOR_OID_COLUMN_NAME, initiator.getOid());
-                queryBulder.addParameter(INITIATOR_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForClass(initiator.asObjectable().getClass()));
+                insertBuilder.addParameter(INITIATOR_NAME_COLUMN_NAME, getOrigName(initiator));
+                insertBuilder.addParameter(INITIATOR_OID_COLUMN_NAME, initiator.getOid());
+                insertBuilder.addParameter(INITIATOR_TYPE_COLUMN_NAME, ClassMapper.getHQLTypeForClass(initiator.asObjectable().getClass()));
             }
             if (record.getAttorney() != null) {
                 PrismObject<? extends FocusType> attorney = record.getAttorney();
-                queryBulder.addParameter(ATTORNEY_NAME_COLUMN_NAME, getOrigName(attorney));
-                queryBulder.addParameter(ATTORNEY_OID_COLUMN_NAME, attorney.getOid());
+                insertBuilder.addParameter(ATTORNEY_NAME_COLUMN_NAME, getOrigName(attorney));
+                insertBuilder.addParameter(ATTORNEY_OID_COLUMN_NAME, attorney.getOid());
             }
 
             if (!customColumn.isEmpty()) {
@@ -668,7 +668,7 @@ public class RAuditEventRecord implements Serializable {
                     if (!customColumn.containsKey(property.getKey())) {
                         throw new IllegalArgumentException("Audit event record table don't contains column for property " + property.getKey());
                     }
-                    queryBulder.addParameter(customColumn.get(property.getKey()), property.getValue());
+                    insertBuilder.addParameter(customColumn.get(property.getKey()), property.getValue());
                 }
             }
 
@@ -676,7 +676,7 @@ public class RAuditEventRecord implements Serializable {
             throw new DtoTranslationException(ex.getMessage(), ex);
         }
 
-        return queryBulder.build();
+        return insertBuilder.build();
     }
 
     public static AuditEventRecord fromRepo(ResultSet resultSet) throws SQLException {

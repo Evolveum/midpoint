@@ -39,7 +39,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
     private static final long H2_CLOSE_WAIT = 2000L;
     private static final String H2_IMPLICIT_RELATIVE_PATH = "h2.implicitRelativePath";
 
-    private boolean initialized;
     private SqlRepositoryConfiguration sqlConfiguration;
     private Server server;
     private SqlRepositoryServiceImpl sqlRepositoryService;
@@ -56,10 +55,6 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
      */
     @Override
     public synchronized void init(Configuration configuration) throws RepositoryServiceFactoryException {
-        if (initialized) {
-            LOGGER.info("SQL repository already initialized.");
-            return;
-        }
         Validate.notNull(configuration, "Configuration must not be null.");
 
         LOGGER.info("Initializing SQL repository factory");
@@ -87,17 +82,10 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
         }
 
         LOGGER.info("Repository initialization finished.");
-
-        initialized = true;
     }
 
     @Override
     public synchronized void destroy() {
-        if (!initialized) {
-            LOGGER.info("SQL repository was not initialized, nothing to destroy.");
-            return;
-        }
-
         if (sqlRepositoryService != null) {
             sqlRepositoryService.destroy();
         }
@@ -126,12 +114,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             } catch (InterruptedException e) {
                 // just ignore
             }
-
         }
 
         LOGGER.info("Shutdown complete.");
-
-        initialized = false;
     }
 
     @NotNull

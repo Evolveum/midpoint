@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,6 +8,9 @@ package com.evolveum.midpoint.report.impl;
 
 import java.io.Serializable;
 import java.util.Map;
+
+import net.sf.jasperreports.engine.*;
+import net.sf.jasperreports.engine.fill.*;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.report.api.ReportService;
@@ -19,21 +22,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
-import net.sf.jasperreports.engine.JRDataset;
-import net.sf.jasperreports.engine.JRException;
-import net.sf.jasperreports.engine.JRExpression;
-import net.sf.jasperreports.engine.JRExpressionChunk;
-import net.sf.jasperreports.engine.JRRuntimeException;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.fill.JREvaluator;
-import net.sf.jasperreports.engine.fill.JRExpressionEvalException;
-import net.sf.jasperreports.engine.fill.JRFillField;
-import net.sf.jasperreports.engine.fill.JRFillParameter;
-import net.sf.jasperreports.engine.fill.JRFillVariable;
-
 /**
  * @author katka
- *
  */
 public class JRMidpointEvaluator extends JREvaluator {
 
@@ -52,7 +42,6 @@ public class JRMidpointEvaluator extends JREvaluator {
     private Map<String, JRFillParameter> parametersMap;
     private Map<String, JRFillField> fieldsMap;
     private Map<String, JRFillVariable> variablesMap;
-
 
     public JRMidpointEvaluator(Serializable compileData, String unitName) {
         this.compileData = compileData;
@@ -132,7 +121,7 @@ public class JRMidpointEvaluator extends JREvaluator {
     }
 
     private void logEvaluate(Mode mode, JRExpression expression) {
-        LOGGER.trace("JasperReport expression: evaluate({}): {} (type:{})", mode, expression, expression==null?null:expression.getType());
+        LOGGER.trace("JasperReport expression: evaluate({}): {} (type:{})", mode, expression, expression == null ? null : expression.getType());
     }
 
     private Object evaluateExpression(JRExpression expression, Mode mode) {
@@ -144,15 +133,14 @@ public class JRMidpointEvaluator extends JREvaluator {
 
         VariablesMap variables = new VariablesMap();
 
-        String groovyCode = "";
+        StringBuilder groovyCode = new StringBuilder();
 
         for (JRExpressionChunk chunk : expression.getChunks()) {
             if (chunk == null) {
                 break;
             }
-//            LOGGER.trace("JR chunk: {}: {}", chunk.getType(), chunk.getText());
 
-            groovyCode += chunk.getText();
+            groovyCode.append(chunk.getText());
             switch (chunk.getType()) {
                 case JRExpressionChunk.TYPE_FIELD:
                     JRFillField field = fieldsMap.get(chunk.getText());
@@ -171,9 +159,7 @@ public class JRMidpointEvaluator extends JREvaluator {
                     break;
                 default:
                     LOGGER.trace("nothing to do for chunk type {}", chunk.getType());
-
             }
-
         }
 
         if (reportService == null) {
@@ -181,17 +167,14 @@ public class JRMidpointEvaluator extends JREvaluator {
         }
 
         try {
+            Object evaluationResult = reportService.evaluate(getReport(), groovyCode.toString(), variables, getTask(), getOperationResult());
 
-            Object evaluationResult = reportService.evaluate(getReport(), groovyCode, variables, getTask(), getOperationResult());
-
-            traceEvaluationSuccess(mode, variables, groovyCode, evaluationResult);
+            traceEvaluationSuccess(mode, variables, groovyCode.toString(), evaluationResult);
             return evaluationResult;
-
         } catch (Throwable e) {
-            traceEvaluationFailure(mode, variables, groovyCode, e);
+            traceEvaluationFailure(mode, variables, groovyCode.toString(), e);
             throw new JRRuntimeException(e.getMessage(), e);
         }
-
     }
 
     private void traceEvaluationSuccess(Mode mode, VariablesMap variables, String code, Object result) {
@@ -212,7 +195,6 @@ public class JRMidpointEvaluator extends JREvaluator {
         traceEvaluationTail(sb);
     }
 
-
     private StringBuilder traceEvaluationHead(Mode mode, VariablesMap variables, String code) {
         StringBuilder sb = new StringBuilder();
         sb.append("---[ JasperReport expression evaluation ]---\n");
@@ -224,7 +206,6 @@ public class JRMidpointEvaluator extends JREvaluator {
         sb.append(code).append("\n");
         return sb;
     }
-
 
     private void traceEvaluationTail(StringBuilder sb) {
         sb.append("---------------------------------------------");
@@ -243,7 +224,7 @@ public class JRMidpointEvaluator extends JREvaluator {
             case OLD:
                 return field.getOldValue();
             default:
-                throw new IllegalArgumentException("Wrong mode "+mode);
+                throw new IllegalArgumentException("Wrong mode " + mode);
         }
     }
 
@@ -260,11 +241,11 @@ public class JRMidpointEvaluator extends JREvaluator {
             case OLD:
                 return var.getOldValue();
             default:
-                throw new IllegalArgumentException("Wrong mode "+mode);
+                throw new IllegalArgumentException("Wrong mode " + mode);
         }
     }
 
-    enum Mode { DEFAULT, OLD, ESTIMATED }
+    enum Mode {DEFAULT, OLD, ESTIMATED}
 
     // NOT USED
 
@@ -285,6 +266,4 @@ public class JRMidpointEvaluator extends JREvaluator {
         // Not used. Not even invoked.
         throw new UnsupportedOperationException("Boom! This code should not be reached");
     }
-
-
 }

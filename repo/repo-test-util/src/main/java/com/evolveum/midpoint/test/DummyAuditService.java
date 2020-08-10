@@ -354,7 +354,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     public void assertTarget(String expectedOid, AuditEventStage stage) {
         Collection<PrismReferenceValue> targets = new ArrayList<>();
         for (AuditEventRecord record : records) {
-            PrismReferenceValue target = record.getTarget();
+            PrismReferenceValue target = record.getTargetRef();
             if (stage == null || stage == record.getEventStage()) {
                 if (target != null && expectedOid.equals(target.getOid())) {
                     return;

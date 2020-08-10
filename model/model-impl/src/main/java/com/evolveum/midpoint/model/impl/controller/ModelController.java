@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -474,7 +474,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         String requestIdentifier = ModelImplUtils.generateRequestIdentifier();
         auditRecord.setRequestIdentifier(requestIdentifier);
         auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
-        auditRecord.setTarget(ModelImplUtils.determineAuditTarget(deltas, prismContext));
+        auditRecord.setTargetRef(ModelImplUtils.determineAuditTarget(deltas, prismContext));
         // we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
         auditHelper.audit(auditRecord, null, task, result);
 
@@ -1313,7 +1313,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
         Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
         enterModelMethod();
-        LOGGER.trace("Testing resource OID: {}", new Object[] { resourceOid });
+        LOGGER.trace("Testing resource OID: {}", resourceOid);
 
         OperationResult testResult;
         try {
@@ -1354,8 +1354,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         Validate.notNull(objectClass, "Object class must not be null.");
         Validate.notNull(task, "Task must not be null.");
         enterModelMethod();
-        LOGGER.trace("Launching import from resource with oid {} for object class {}.", new Object[] {
-                resourceOid, objectClass });
+        LOGGER.trace("Launching import from resource with oid {} for object class {}.", resourceOid, objectClass);
 
         OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
         result.addParam("resourceOid", resourceOid);
@@ -1972,7 +1971,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         AuditEventRecord auditRecord = new AuditEventRecord(event, stage);
         String requestIdentifier = ModelImplUtils.generateRequestIdentifier();
         auditRecord.setRequestIdentifier(requestIdentifier);
-        auditRecord.setTarget(taskRef);
+        auditRecord.setTargetRef(taskRef);
         ObjectDelta<TaskType> delta;
         if (AuditEventType.DELETE_OBJECT == event) {
             delta = prismContext.deltaFactory().object().createDeleteDelta(TaskType.class, taskRef.getOid());
