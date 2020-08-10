@@ -101,7 +101,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             PrismContext prismContext) {
         this.baseHelper = baseHelper;
         this.prismContext = prismContext;
-        this.sqlQueryExecutor = new SqlQueryExecutor(prismContext, baseHelper);
+        this.sqlQueryExecutor = new SqlQueryExecutor(baseHelper, prismContext);
     }
 
     @Override
