@@ -20,7 +20,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 /**
  * AD multi-domain test for AD 2102R2 hosted in Evolveum private cloud.
  *
- * @author semancik
+ * This test is running on ad01/ad02 servers in ad2012.lab.evolveum.com domain.
+ *
+ * These servers ho not have Exchange installed, therefore exchange-specific aspects are skipped.
+ *
+ * There is also a problem with CredSSP configuration on those servers.
+ * Therefore "second-hop" CredSSP tests are skipped here.
+ * There is still CreddSSP configured in ad01 server (top-level domain), therefore CredSSP is still tested in a way.
+ * In case of need the old Chimera/Hydra environment is archived, therefore it can be restored and used for full CredSSP tests.
+ *
+ * @see AbstractAdLdapMultidomainTest
+ *
+ * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
@@ -74,7 +85,7 @@ public class TestAdLdapAd2012 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected String getAccountJackSid() {
-        return "S-1-5-21-2906460819-3509546030-3153952426-1109";
+        return "S-1-5-21-3636361896-1924952074-658678417-1109";
     }
 
     @Override

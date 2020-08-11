@@ -9,15 +9,18 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.data.column.ImagePanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -34,7 +37,7 @@ import javax.xml.namespace.QName;
 /**
  * Created by honchar
  */
-public class LinkedReferencePanel<O extends ObjectType, R extends Referencable> extends BasePanel<R> {
+public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_ICON = "icon";
@@ -44,7 +47,9 @@ public class LinkedReferencePanel<O extends ObjectType, R extends Referencable> 
     private static final String DOT_CLASS = LinkedReferencePanel.class.getName() + ".";
     private static final String OPERATION_LOAD_REFERENCED_OBJECT = DOT_CLASS + "loadReferencedObject";
 
-    IModel<ObjectType> referencedObjectModel = null;
+//    IModel<ObjectType> referencedObjectModel = null;
+
+    IModel<PrismReferenceValue> referenceModel;
 
     public LinkedReferencePanel(String id, IModel<R> objectReferenceModel){
         super(id, objectReferenceModel);
@@ -58,76 +63,126 @@ public class LinkedReferencePanel<O extends ObjectType, R extends Referencable> 
     }
 
     public void initReferencedObjectModel() {
-            referencedObjectModel = new LoadableModel<ObjectType>() {
-                @Override
-                protected ObjectType load() {
-                    if (getModelObject() == null || getModelObject().getType() == null){
-                        return null;
-                    }
-                    if (getModelObject().asReferenceValue() != null && getModelObject().asReferenceValue().getObject() != null
-                            && getModelObject().asReferenceValue().getObject().asObjectable() instanceof ObjectType ){
-                        return (ObjectType)getModelObject().asReferenceValue().getObject().asObjectable();
-                    }
-                    if (StringUtils.isNotEmpty(getModelObject().getOid()) && getModelObject().getType() != null &&
-                            getModelObject() instanceof ObjectReferenceType) {
-                        PageBase pageBase = LinkedReferencePanel.this.getPageBase();
-                        OperationResult result = new OperationResult(OPERATION_LOAD_REFERENCED_OBJECT);
-                        PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject((ObjectReferenceType) getModelObject(), pageBase,
-                                pageBase.createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT), result);
-                        return referencedObject != null ? referencedObject.asObjectable() : null;
-                    }
+
+        referenceModel = new LoadableModel<PrismReferenceValue>() {
+
+            @Override
+            protected PrismReferenceValue load() {
+                if (getModelObject() == null || getModelObject().getOid() == null) {
                     return null;
                 }
-            };
+                PrismReferenceValue value = getModelObject().asReferenceValue().clone();
+                if (value.getObject() == null) {
+                    Task task = getPageBase().createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT);
+                    OperationResult result = task.getResult();
+                    PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject(getModelObject(), getPageBase(),
+                            task, result);
+                    if (referencedObject != null) {
+                        value.setObject(referencedObject.clone());
+                    }
+                }
+                return value;
+            }
+        };
+
+//             referencedObjectModel = new LoadableModel<ObjectType>() {
+//                @Override
+//                protected ObjectType load() {
+//                    if (getModelObject() == null || getModelObject().getType() == null){
+//                        return null;
+//                    }
+//                    if (getModelObject().asReferenceValue() != null && getModelObject().asReferenceValue().getObject() != null
+//                            && getModelObject().asReferenceValue().getObject().asObjectable() instanceof ObjectType ){
+//                        return (ObjectType)getModelObject().asReferenceValue().getObject().asObjectable();
+//                    }
+//                    if (StringUtils.isNotEmpty(getModelObject().getOid()) && getModelObject().getType() != null &&
+//                            getModelObject() instanceof ObjectReferenceType) {
+//                        PageBase pageBase = LinkedReferencePanel.this.getPageBase();
+//                        OperationResult result = new OperationResult(OPERATION_LOAD_REFERENCED_OBJECT);
+//                        PrismObject<ObjectType> referencedObject = WebModelServiceUtils.loadObject((ObjectReferenceType) getModelObject(), pageBase,
+//                                pageBase.createSimpleTask(OPERATION_LOAD_REFERENCED_OBJECT), result);
+//                        return referencedObject != null ? referencedObject.asObjectable() : null;
+//                    }
+//                    return null;
+//                }
+//            };
     }
 
     private void initLayout(){
         setOutputMarkupId(true);
 
-        DisplayType displayType = WebComponentUtil.getDisplayTypeForObject(referencedObjectModel.getObject(), null, getPageBase());
-        if (displayType == null){
-            displayType = new DisplayType();
-        }
-        if (displayType.getIcon() == null && referencedObjectModel.getObject() != null){
-            displayType.setIcon(WebComponentUtil.createIconType(WebComponentUtil.createDefaultBlackIcon(
-                    WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObjectModel.getObject().getClass()))));
-        }
-        ImagePanel imagePanel = new ImagePanel(ID_ICON, displayType);
+        IModel<DisplayType> displayModel = new ReadOnlyModel<>( () -> {
+
+            PrismReferenceValue ref = referenceModel.getObject();
+            if (ref == null) {
+                return null;
+            }
+
+            DisplayType displayType = WebComponentUtil.getDisplayTypeForObject(ref.getObject(), null, getPageBase());
+            if (displayType == null){
+                displayType = new DisplayType();
+            }
+            if (displayType.getIcon() == null){
+                displayType.setIcon(WebComponentUtil.createIconType(WebComponentUtil.createDefaultBlackIcon(ref.getTargetType())));
+            }
+            return displayType;
+        });
+
+
+
+        ImagePanel imagePanel = new ImagePanel(ID_ICON, displayModel);
         imagePanel.setOutputMarkupId(true);
 //        imagePanel.add(new VisibleBehaviour(() -> displayType != null && displayType.getIcon() != null && StringUtils.isNotEmpty(displayType.getIcon().getCssClass())));
         add(imagePanel);
 
-        AjaxLink<ObjectType> nameLink = new AjaxLink<ObjectType>(ID_NAME, referencedObjectModel) {
+        AjaxLink<PrismReferenceValue> nameLink = new AjaxLink<PrismReferenceValue>(ID_NAME, referenceModel) {
             @Override
             public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                if (referencedObjectModel != null && referencedObjectModel.getObject() != null) {
-                    WebComponentUtil.dispatchToObjectDetailsPage(referencedObjectModel.getObject().asPrismObject(),
-                            LinkedReferencePanel.this);
-                }
+                WebComponentUtil.dispatchToObjectDetailsPage(referenceModel.getObject(), LinkedReferencePanel.this, false);
             }
         };
-        nameLink.add(new EnableBehaviour(() ->
-                referencedObjectModel != null && referencedObjectModel.getObject() != null
-                && !new QName("dummy").getLocalPart().equals(
-                        referencedObjectModel.getObject().asPrismContainer().getElementName().getLocalPart())));
+        nameLink.add(new EnableBehaviour(() -> {
+                PrismReferenceValue ref = referenceModel.getObject();
+                if (ref == null) {
+                    return false;
+                }
+
+                return ref.getObject() != null;
+//                referencedObjectModel != null && referencedObjectModel.getObject() != null
+//                && !new QName("dummy").getLocalPart().equals(
+//                        referencedObjectModel.getObject().asPrismContainer().getElementName().getLocalPart())));
+        }));
         nameLink.setOutputMarkupId(true);
         add(nameLink);
 
-        ObjectType referencedObject = referencedObjectModel.getObject();
-        ObjectReferenceType referencedObjectRef = null;
-        if (referencedObject != null) {
-            referencedObjectRef = ObjectTypeUtil.createObjectRef(referencedObject.getOid(), referencedObject.getName(), ObjectTypes.getObjectType(referencedObject.getClass()));
-            PrismReferenceValue referenceValue = getPageBase().getPrismContext().itemFactory().createReferenceValue(referencedObject.getOid(),
-                    WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
-            referenceValue.setObject(referencedObject.asPrismObject());
-            referencedObjectRef.setupReferenceValue(referenceValue);
-        }
-        String nameLinkTextVal = (referencedObject instanceof UserType)?WebComponentUtil.getDisplayNameAndName(referencedObjectRef):
-                WebComponentUtil.getDisplayNameOrName(referencedObjectRef);
+        Label nameLinkText = new Label(ID_NAME_TEXT, new ReadOnlyModel<>(() -> {
+            PrismReferenceValue ref = referenceModel.getObject();
+            if (ref == null) {
+                return "";
+            }
 
-        Label nameLinkText = new Label(ID_NAME_TEXT, Model.of(nameLinkTextVal));
+            if (ref.getObject() != null) {
+                return WebComponentUtil.getDisplayNameOrName(ref.getObject());
+            }
+
+            return WebComponentUtil.getDisplayNameOrName(ref.asReferencable());
+        }));
         nameLinkText.setOutputMarkupId(true);
         nameLink.add(nameLinkText);
+
+//        ObjectType referencedObject = referencedObjectModel.getObject();
+//        ObjectReferenceType referencedObjectRef = null;
+//        if (referencedObject != null) {
+//            referencedObjectRef = ObjectTypeUtil.createObjectRef(referencedObject.getOid(), referencedObject.getName(), ObjectTypes.getObjectType(referencedObject.getClass()));
+//            PrismReferenceValue referenceValue = getPageBase().getPrismContext().itemFactory().createReferenceValue(referencedObject.getOid(),
+//                    WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
+//            referenceValue.setObject(referencedObject.asPrismObject());
+//            referencedObjectRef.setupReferenceValue(referenceValue);
+//        }
+//        String nameLinkTextVal = (referencedObject instanceof UserType)?WebComponentUtil.getDisplayNameAndName(referencedObjectRef):
+//                WebComponentUtil.getDisplayNameOrName(referencedObjectRef);
+
+
 
     }
 

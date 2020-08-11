@@ -32,7 +32,6 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
 
     public static final String TABLE_NAME = "m_audit_event";
 
-    // column metadata constants, we don't care about the indexes, better to remove them
     public static final ColumnMetadata ID =
             ColumnMetadata.named("id").ofType(Types.BIGINT).withSize(19).notNull();
     public static final ColumnMetadata ATTORNEY_NAME =
@@ -132,7 +131,7 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public final ForeignKey<QAuditResource> auditResourceFk = createInvForeignKey(id, "RECORD_ID");
 
     public QAuditEventRecord(String variable) {
-        this(variable, "PUBLIC", TABLE_NAME);
+        this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
     public QAuditEventRecord(String variable, String schema, String table) {

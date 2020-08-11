@@ -225,7 +225,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @Override
             public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
-                ItemWrapperFactory<IW, ?, ?> factory = registry.findWrapperFactory(item.getDefinition());
+                ItemWrapperFactory<IW, ?, ?> factory = registry.findWrapperFactory(item.getDefinition(), null);
 
                 ctx.setCreateIfEmpty(true);
                 return factory.createWrapper(null, item, status, ctx);
@@ -233,7 +233,7 @@ public abstract class AbstractGuiIntegrationTest extends AbstractModelIntegratio
 
             @Override
             public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
-                ItemWrapperFactory<IW, VW, PV> factory = registry.findWrapperFactory(parentWrapper);
+                ItemWrapperFactory<IW, VW, PV> factory = registry.findWrapperFactory(parentWrapper, null);
 
                 return factory.createValueWrapper(parentWrapper, newValue, status, context);
             }

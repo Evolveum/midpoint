@@ -103,8 +103,8 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
         return factory;
     }
 
-    public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> ItemWrapperFactory<IW, VW, PV> findWrapperFactory(ItemDefinition<?> def) {
-        Optional<ItemWrapperFactory<IW, VW, PV>> opt = (Optional) wrapperFactories.stream().filter(f -> f.match(def)).findFirst();
+    public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue, C extends Containerable> ItemWrapperFactory<IW, VW, PV> findWrapperFactory(ItemDefinition<?> def, PrismContainerValue<C> parent) {
+        Optional<ItemWrapperFactory<IW, VW, PV>> opt = (Optional) wrapperFactories.stream().filter(f -> f.match(def, parent)).findFirst();
         if (!opt.isPresent()) {
             LOGGER.trace("Could not find factory for {}.", def);
             return null;
@@ -118,7 +118,7 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 
     @Override
     public <C extends Containerable> PrismContainerWrapperFactory<C> findContainerWrapperFactory(PrismContainerDefinition<C> def) {
-        ItemWrapperFactory<?, ?, ?> factory = findWrapperFactory(def);
+        ItemWrapperFactory<?, ?, ?> factory = findWrapperFactory(def, null);
         if (factory == null) {
             return null;
         }
@@ -133,7 +133,7 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
     }
 
     public <O extends ObjectType> PrismObjectWrapperFactory<O> getObjectWrapperFactory(PrismObjectDefinition<O> objectDef) {
-        return (PrismObjectWrapperFactory) findWrapperFactory(objectDef);
+        return (PrismObjectWrapperFactory) findWrapperFactory(objectDef, null);
     }
 
     @Override

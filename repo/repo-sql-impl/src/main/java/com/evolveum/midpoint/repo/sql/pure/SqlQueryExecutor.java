@@ -6,18 +6,15 @@
  */
 package com.evolveum.midpoint.repo.sql.pure;
 
-import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.Collection;
-import javax.sql.DataSource;
 
 import com.querydsl.core.types.EntityPath;
-import com.querydsl.sql.Configuration;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
@@ -32,15 +29,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class SqlQueryExecutor {
 
+    private final BaseHelper baseHelper;
     private final PrismContext prismContext;
-    private final DataSource dataSource;
 
-    private final Configuration querydslConfiguration;
-
-    public SqlQueryExecutor(PrismContext prismContext, BaseHelper baseHelper) {
+    public SqlQueryExecutor(BaseHelper baseHelper, PrismContext prismContext) {
         this.prismContext = prismContext;
-        this.dataSource = baseHelper.dataSource();
-        this.querydslConfiguration = baseHelper.querydslConfiguration();
+        this.baseHelper = baseHelper;
     }
 
     public <S, Q extends EntityPath<R>, R> int count(
@@ -50,17 +44,15 @@ public class SqlQueryExecutor {
             throws QueryException {
 
         SqlQueryContext<S, Q, R> context =
-                SqlQueryContext.from(schemaType, prismContext, querydslConfiguration);
+                SqlQueryContext.from(schemaType, prismContext, baseHelper.querydslConfiguration());
         if (query != null) {
             context.process(query.getFilter());
         }
         // TODO MID-6319: all options can be applied, just like for list?
         context.processOptions(options);
 
-        try (Connection conn = getConnection()) {
-            return context.executeCount(conn);
-        } catch (SQLException e) {
-            throw new QueryException(e.toString(), e);
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+            return context.executeCount(jdbcSession.connection());
         }
     }
 
@@ -71,7 +63,7 @@ public class SqlQueryExecutor {
             throws QueryException, SchemaException {
 
         SqlQueryContext<S, Q, R> context =
-                SqlQueryContext.from(schemaType, prismContext, querydslConfiguration);
+                SqlQueryContext.from(schemaType, prismContext, baseHelper.querydslConfiguration());
         if (query != null) {
             context.process(query.getFilter());
             context.processObjectPaging(query.getPaging());
@@ -79,10 +71,8 @@ public class SqlQueryExecutor {
         context.processOptions(options);
 
         PageOf<R> result;
-        try (Connection conn = getConnection()) {
-            result = context.executeQuery(conn);
-        } catch (SQLException e) {
-            throw new QueryException(e.toString(), e);
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+            result = context.executeQuery(jdbcSession.connection());
         }
 
         PageOf<S> map = context.transformToSchemaType(result);
@@ -96,9 +86,5 @@ public class SqlQueryExecutor {
             metadata.setApproxNumberOfAllResults((int) result.totalCount());
         }
         return new SearchResultList<>(result.content(), metadata);
-    }
-
-    private Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
     }
 }

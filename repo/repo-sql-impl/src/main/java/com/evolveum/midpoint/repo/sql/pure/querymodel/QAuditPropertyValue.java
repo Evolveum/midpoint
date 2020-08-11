@@ -47,7 +47,7 @@ public class QAuditPropertyValue extends FlexibleRelationalPathBase<MAuditProper
     public final ForeignKey<QAuditEventRecord> auditPropValueFk = createForeignKey(recordId, "ID");
 
     public QAuditPropertyValue(String variable) {
-        this(variable, "PUBLIC", TABLE_NAME);
+        this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
     public QAuditPropertyValue(String variable, String schema, String table) {

@@ -7,10 +7,10 @@
 
 package com.evolveum.midpoint.gui.api.factory;
 
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.factory.panel.PrismPropertyPanelContext;
 
 public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFactory<PrismPropertyPanelContext<T>> {
@@ -23,9 +23,8 @@ public abstract class AbstractGuiComponentFactory<T> implements GuiComponentFact
     }
 
     @Override
-    public Panel createPanel(PrismPropertyPanelContext<T> panelCtx) {
+    public Component createPanel(PrismPropertyPanelContext<T> panelCtx) {
         Panel panel = getPanel(panelCtx);
-//        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(panel));
         return panel;
     }
 

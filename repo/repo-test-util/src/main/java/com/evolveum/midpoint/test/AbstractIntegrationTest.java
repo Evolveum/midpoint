@@ -2914,4 +2914,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             }
         };
     }
+
+    /**
+     * Returns true if the test runs in IntelliJ IDEA.
+     * Some tests may behave differently when executed from the IDE.
+     */
+    protected boolean runsInIdea() {
+        return System.getProperty("idea.launcher.bin.path") != null;
+    }
 }

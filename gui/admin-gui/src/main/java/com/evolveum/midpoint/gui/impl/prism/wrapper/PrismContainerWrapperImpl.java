@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
-
 import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
@@ -24,17 +26,14 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author katka
- *
  */
-public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrapperImpl<PrismContainer<C>, PrismContainerValueWrapper<C>> implements PrismContainerWrapper<C>, Serializable{
+public class PrismContainerWrapperImpl<C extends Containerable>
+        extends ItemWrapperImpl<PrismContainer<C>, PrismContainerValueWrapper<C>>
+        implements PrismContainerWrapper<C>, Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -43,7 +42,6 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
     private boolean expanded;
 
     private boolean virtual;
-
 
     public PrismContainerWrapperImpl(PrismContainerValueWrapper<?> parent, PrismContainer<C> item, ItemStatus status) {
         super(parent, item, status);
@@ -174,8 +172,8 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
 
     @Override
     public PrismContainerValueWrapper<C> findContainerValue(ItemPath path) {
-        if (isSingleValue()){
-            return findValue(0l);
+        if (isSingleValue()) {
+            return findValue(0L);
         } else if (!path.startsWithId()) {
             throw new UnsupportedOperationException("Cannot get value from multivalue container without specified container id.");
         } else {
@@ -211,7 +209,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
         return super.debugDump(indent);
     }
 
-    protected <C extends Containerable> void cleanupEmptyContainers(PrismContainer<C> container) {
+    protected void cleanupEmptyContainers(PrismContainer<C> container) {
         List<PrismContainerValue<C>> values = container.getValues();
         Iterator<PrismContainerValue<C>> valueIterator = values.iterator();
         while (valueIterator.hasNext()) {
@@ -224,30 +222,26 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
         }
     }
 
-    protected <C extends Containerable> PrismContainerValue<C> cleanupEmptyContainerValue(PrismContainerValue<C> value) {
-            Collection<Item<?, ?>> items = value.getItems();
+    protected PrismContainerValue<C> cleanupEmptyContainerValue(PrismContainerValue<C> value) {
+        Collection<Item<?, ?>> items = value.getItems();
 
-            if (items != null) {
-                Iterator<Item<?, ?>> iterator = items.iterator();
-                while (iterator.hasNext()) {
-                    Item<?, ?> item = iterator.next();
+        if (items != null) {
+            Iterator<Item<?, ?>> iterator = items.iterator();
+            while (iterator.hasNext()) {
+                Item<?, ?> item = iterator.next();
 
-                    cleanupEmptyValues(item);
-                    if (item.isEmpty()) {
-                        iterator.remove();
-                    }
-
+                cleanupEmptyValues(item);
+                if (item.isEmpty()) {
+                    iterator.remove();
                 }
-
-
             }
+        }
 
-            if (value.getItems() == null || value.getItems().isEmpty()) {
-                return null;
-            }
+        if (value.getItems() == null || value.getItems().isEmpty()) {
+            return null;
+        }
 
-            return value;
-
+        return value;
     }
 
     private <T> void cleanupEmptyValues(Item item) {
@@ -255,7 +249,7 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
             cleanupEmptyContainers((PrismContainer) item);
         }
 
-        if (item instanceof  PrismProperty) {
+        if (item instanceof PrismProperty) {
             PrismProperty<T> property = (PrismProperty) item;
             List<PrismPropertyValue<T>> pVals = property.getValues();
             if (pVals == null || pVals.isEmpty()) {
@@ -338,7 +332,6 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
         }
         return deltas;
     }
-
 
     protected ItemPath getDeltaPathForStatus(ItemStatus status) {
         if (ItemStatus.ADDED == status) {
