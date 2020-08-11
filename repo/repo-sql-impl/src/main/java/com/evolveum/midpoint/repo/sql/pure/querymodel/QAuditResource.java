@@ -41,7 +41,7 @@ public class QAuditResource extends FlexibleRelationalPathBase<MAuditResource> {
     public final ForeignKey<QAuditEventRecord> auditResourceFk = createForeignKey(recordId, "ID");
 
     public QAuditResource(String variable) {
-        this(variable, "PUBLIC", TABLE_NAME);
+        this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
     public QAuditResource(String variable, String schema, String table) {

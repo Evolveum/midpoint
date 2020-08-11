@@ -12,6 +12,10 @@ import java.sql.Statement;
 import java.util.Objects;
 
 import com.google.common.base.Strings;
+import com.querydsl.sql.Configuration;
+import com.querydsl.sql.RelationalPath;
+import com.querydsl.sql.SQLQuery;
+import com.querydsl.sql.dml.SQLInsertClause;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
@@ -41,20 +45,23 @@ public class JdbcSession implements AutoCloseable {
     private static final Trace LOGGER = TraceManager.getTrace(JdbcSession.class);
 
     private final Connection connection;
-    private final SqlRepositoryConfiguration configuration;
+    private final SqlRepositoryConfiguration repoConfiguration;
+    private final Configuration querydslConfiguration;
 
     private boolean rollbackForReadOnly;
 
     public JdbcSession(
             @NotNull Connection connection,
-            @NotNull SqlRepositoryConfiguration configuration) {
+            @NotNull SqlRepositoryConfiguration repoConfiguration,
+            @NotNull Configuration querydslConfiguration) {
         this.connection = Objects.requireNonNull(connection);
-        this.configuration = configuration;
+        this.repoConfiguration = repoConfiguration;
+        this.querydslConfiguration = querydslConfiguration;
 
         try {
             connection.setAutoCommit(false);
             // Connection has its transaction isolation set by Hikari, except for obscure ones.
-            if (configuration.getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
+            if (repoConfiguration.getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
                 LOGGER.trace("Setting transaction isolation level SNAPSHOT.");
                 // bit rough from a constructor, but it's safe, connection field is already set
                 executeStatement("SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
@@ -79,7 +86,7 @@ public class JdbcSession implements AutoCloseable {
         rollbackForReadOnly = false;
         // Configuration check really means: "Does it support read-only transactions?"
         if (readonly) {
-            if (configuration.isUseReadOnlyTransactions()) {
+            if (repoConfiguration.isUseReadOnlyTransactions()) {
                 executeStatement("SET TRANSACTION READ ONLY");
             } else {
                 rollbackForReadOnly = true;
@@ -127,12 +134,27 @@ public class JdbcSession implements AutoCloseable {
         }
     }
 
+    /**
+     * Creates Querydsl query based on current Querydsl configuration and session's connection.
+     */
+    public SQLQuery<?> query() {
+        return new SQLQuery<>(connection, querydslConfiguration);
+    }
+
+    public SQLInsertClause insert(RelationalPath<?> entity) {
+        return new SQLInsertClause(connection, querydslConfiguration, entity);
+    }
+
+    public String getNativeTypeName(int typeCode) {
+        return querydslConfiguration.getTemplates().getTypeNameForCode(typeCode);
+    }
+
     public Connection connection() {
         return connection;
     }
 
     public SqlRepositoryConfiguration.Database databaseType() {
-        return configuration.getDatabaseType();
+        return repoConfiguration.getDatabaseType();
     }
 
     @Override
@@ -201,7 +223,7 @@ public class JdbcSession implements AutoCloseable {
     }
 
     private boolean isExceptionRelatedToSerialization(Throwable ex) {
-        return new TransactionSerializationProblemDetector(configuration, LOGGER)
+        return new TransactionSerializationProblemDetector(repoConfiguration, LOGGER)
                 .isExceptionRelatedToSerialization(ex);
     }
 }

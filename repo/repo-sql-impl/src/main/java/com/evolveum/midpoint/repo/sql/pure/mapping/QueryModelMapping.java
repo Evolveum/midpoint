@@ -29,6 +29,7 @@ import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * Common supertype for mapping items/attributes between schema (prism) classes and query types.
@@ -201,15 +202,15 @@ public abstract class QueryModelMapping<S, Q extends EntityPath<R>, R> {
         return queryType;
     }
 
-    public Q newAlias(String alias) throws QueryException {
+    public Q newAlias(String alias) {
         try {
             return queryType.getConstructor(String.class).newInstance(alias);
         } catch (ReflectiveOperationException e) {
-            throw new QueryException("Invalid constructor for type " + queryType, e);
+            throw new SystemException("Invalid constructor for type " + queryType, e);
         }
     }
 
-    public synchronized Q defaultAlias() throws QueryException {
+    public synchronized Q defaultAlias() {
         if (defaultAlias == null) {
             defaultAlias = newAlias(defaultAliasName);
         }

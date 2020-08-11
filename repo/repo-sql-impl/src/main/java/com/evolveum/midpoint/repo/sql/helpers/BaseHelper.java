@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import java.sql.SQLException;
@@ -18,7 +17,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.exception.ConstraintViolationException;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.sql.*;
@@ -66,21 +64,18 @@ public class BaseHelper {
     private final SqlRepositoryConfiguration sqlRepositoryConfiguration;
     private final SessionFactory sessionFactory;
 
-    // TODO MID-6318 remove, needed only for Dialect determination in audit service
-    private final LocalSessionFactoryBean sessionFactoryBean;
     private final DataSource dataSource;
 
+    // don't access outside of querydslConfiguration() method, always use the method to lazy-init
     private Configuration querydslConfiguration;
 
     // used for non-bean creation
     public BaseHelper(
             @NotNull SqlRepositoryConfiguration sqlRepositoryConfiguration,
             SessionFactory sessionFactory,
-            LocalSessionFactoryBean sessionFactoryBean,
             DataSource dataSource) {
         this.sqlRepositoryConfiguration = sqlRepositoryConfiguration;
         this.sessionFactory = sessionFactory;
-        this.sessionFactoryBean = sessionFactoryBean;
         this.dataSource = dataSource;
     }
 
@@ -88,18 +83,12 @@ public class BaseHelper {
     public BaseHelper(
             SqlRepositoryFactory repositoryFactory,
             SessionFactory sessionFactory,
-            LocalSessionFactoryBean sessionFactoryBean,
             DataSource dataSource) {
-        this(repositoryFactory.getSqlConfiguration(),
-                sessionFactory, sessionFactoryBean, dataSource);
+        this(repositoryFactory.getSqlConfiguration(), sessionFactory, dataSource);
     }
 
     public SessionFactory getSessionFactory() {
         return sessionFactory;
-    }
-
-    public LocalSessionFactoryBean getSessionFactoryBean() {
-        return sessionFactoryBean;
     }
 
     public Session beginReadOnlyTransaction() {
@@ -330,7 +319,10 @@ public class BaseHelper {
      */
     public JdbcSession newJdbcSession() {
         try {
-            return new JdbcSession(dataSource().getConnection(), sqlRepositoryConfiguration);
+            return new JdbcSession(
+                    dataSource().getConnection(),
+                    sqlRepositoryConfiguration,
+                    querydslConfiguration());
         } catch (SQLException e) {
             throw new SystemException("Cannot create JDBC connection", e);
         }
