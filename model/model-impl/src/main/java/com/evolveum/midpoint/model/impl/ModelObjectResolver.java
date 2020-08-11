@@ -1,25 +1,18 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl;
 
-import java.util.*;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.model.api.hooks.ReadHook;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.task.api.TaskManager;
-
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -27,53 +20,43 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.model.api.hooks.ReadHook;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
-/**
- * @author semancik
- *
- * TODO decide on transient autowired fields
- */
 @Component
 public class ModelObjectResolver implements ObjectResolver {
 
-    @Autowired private transient ProvisioningService provisioning;
+    @Autowired private ProvisioningService provisioning;
 
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
+    private RepositoryService cacheRepositoryService;
 
-    @Autowired private transient PrismContext prismContext;
+    @Autowired private PrismContext prismContext;
 
-    @Autowired private transient TaskManager taskManager;
-
-    @Autowired(required = false)
-    private transient WorkflowManager workflowManager;
+    @Autowired private TaskManager taskManager;
 
     @Autowired(required = false)
-    private transient HookRegistry hookRegistry;
+    private HookRegistry hookRegistry;
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 
@@ -113,7 +96,7 @@ public class ModelObjectResolver implements ObjectResolver {
         if (typeQName != null) {
             typeClass = prismContext.getSchemaRegistry().determineCompileTimeClass(typeQName);
         }
-        return (PrismObject<O>) (getObjectSimple((Class<O>)typeClass, oid, options, task, result)).asPrismObject();
+        return (PrismObject<O>) (getObjectSimple((Class<O>) typeClass, oid, options, task, result)).asPrismObject();
     }
 
     public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task,
@@ -126,8 +109,8 @@ public class ModelObjectResolver implements ObjectResolver {
             LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
             // Add to result only a short version of the error, the details will be in subresults
             result.recordFatalError(
-                    "Couldn't get object with oid '" + oid + "': "+ex.getErrorTypeMessage(), ex);
-            throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
+                    "Couldn't get object with oid '" + oid + "': " + ex.getErrorTypeMessage(), ex);
+            throw new SystemException("Error resolving object with oid '" + oid + "': " + ex.getMessage(), ex);
         }
     }
 
@@ -143,22 +126,22 @@ public class ModelObjectResolver implements ObjectResolver {
                 case PROVISIONING:
                     object = provisioning.getObject(clazz, oid, options, task, result);
                     if (object == null) {
-                        throw new SystemException("Got null result from provisioning.getObject while looking for "+clazz.getSimpleName()
-                                +" with OID "+oid+"; using provisioning implementation "+provisioning.getClass().getName());
+                        throw new SystemException("Got null result from provisioning.getObject while looking for " + clazz.getSimpleName()
+                                + " with OID " + oid + "; using provisioning implementation " + provisioning.getClass().getName());
                     }
                     break;
                 case TASK_MANAGER:
                     object = taskManager.getObject(clazz, oid, options, result);
                     if (object == null) {
-                        throw new SystemException("Got null result from taskManager.getObject while looking for "+clazz.getSimpleName()
-                                +" with OID "+oid+"; using task manager implementation "+taskManager.getClass().getName());
+                        throw new SystemException("Got null result from taskManager.getObject while looking for " + clazz.getSimpleName()
+                                + " with OID " + oid + "; using task manager implementation " + taskManager.getClass().getName());
                     }
                     break;
                 default:
                     object = cacheRepositoryService.getObject(clazz, oid, options, result);
                     if (object == null) {
-                        throw new SystemException("Got null result from repository.getObject while looking for "+clazz.getSimpleName()
-                                +" with OID "+oid+"; using repository implementation "+cacheRepositoryService.getClass().getName());
+                        throw new SystemException("Got null result from repository.getObject while looking for " + clazz.getSimpleName()
+                                + " with OID " + oid + "; using repository implementation " + cacheRepositoryService.getClass().getName());
                     }
             }
             objectType = object.asObjectable();
@@ -175,7 +158,7 @@ public class ModelObjectResolver implements ObjectResolver {
             }
         } catch (RuntimeException | Error ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Error resolving object with oid {}, expected type was {}.", ex, oid, clazz);
-            throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
+            throw new SystemException("Error resolving object with oid '" + oid + "': " + ex.getMessage(), ex);
         }
         return objectType;
     }
@@ -288,7 +271,7 @@ public class ModelObjectResolver implements ObjectResolver {
         return null;
     }
 
-    public <R,O extends ObjectType> R searchOrgTreeWidthFirst(PrismObject<O> object,
+    public <R, O extends ObjectType> R searchOrgTreeWidthFirst(PrismObject<O> object,
             Function<PrismObject<OrgType>, R> function, Task task, OperationResult result) {
         PrismReference orgRef = object.findReference(ObjectType.F_PARENT_ORG_REF);
         if (orgRef == null) {

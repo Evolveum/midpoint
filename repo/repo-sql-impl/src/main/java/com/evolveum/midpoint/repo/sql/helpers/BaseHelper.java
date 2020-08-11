@@ -35,11 +35,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Core functionality needed in all members of SQL service family.
- * Taken out of SqlBaseService in order to be accessible from other helpers without having to autowire SqlRepositoryServiceImpl
- * (as it causes problems with Spring AOP proxies.)
- *
- * @author lazyman
- * @author mederly
+ * Taken out of SqlBaseService in order to be accessible from other components by autowiring.
+ * <p>
+ * Originally more Hibernate oriented, some pure JDBC parts are added ({@link #newJdbcSession()}
+ * and {@link #dataSource} field) which may be basis of pure JDBC repository in the future.
+ * It may go away from this class, but for now, hybrid approach is chosen.
+ * But while helper methods are used for ORM/Hibernate stuff, after creating {@link JdbcSession}
+ * all other methods are called on the returned object.
  */
 @Component
 public class BaseHelper {
@@ -435,43 +437,56 @@ public class BaseHelper {
         return dataSource;
     }
 
-    public Configuration querydslConfiguration() {
-        if (querydslConfiguration == null) {
-            synchronized (this) {
-                SqlRepositoryConfiguration.Database database =
-                        sqlRepositoryConfiguration.getDatabaseType();
-                switch (database) {
-                    case H2:
-                        querydslConfiguration =
-                                new Configuration(H2Templates.DEFAULT);
-                        break;
-                    case MYSQL:
-                    case MARIADB:
-                        querydslConfiguration =
-                                new Configuration(MySQLTemplates.DEFAULT);
-                        break;
-                    case POSTGRESQL:
-                        querydslConfiguration =
-                                new Configuration(PostgreSQLTemplates.DEFAULT);
-                        break;
-                    case SQLSERVER:
-                        querydslConfiguration =
-                                new Configuration(SQLServer2012Templates.DEFAULT);
-                        break;
-                    case ORACLE:
-                        querydslConfiguration =
-                                new Configuration(OracleTemplates.DEFAULT);
-                        break;
-                    default:
-                        throw new SystemException(
-                                "Unsupported database type " + database + " for Querydsl config");
-                }
-
-                // See InstantType javadoc for the reasons why we need this to support Instant.
-                querydslConfiguration.register(new InstantType());
-                // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
-            }
+    public synchronized Configuration querydslConfiguration() {
+        if (querydslConfiguration != null) {
+            return querydslConfiguration;
         }
+
+        SqlRepositoryConfiguration.Database database =
+                sqlRepositoryConfiguration.getDatabaseType();
+        switch (database) {
+            case H2:
+                querydslConfiguration =
+                        new Configuration(H2Templates.DEFAULT);
+                break;
+            case MYSQL:
+            case MARIADB:
+                querydslConfiguration =
+                        new Configuration(MySQLTemplates.DEFAULT);
+                break;
+            case POSTGRESQL:
+                querydslConfiguration =
+                        new Configuration(PostgreSQLTemplates.DEFAULT);
+                break;
+            case SQLSERVER:
+                querydslConfiguration =
+                        new Configuration(SQLServer2012Templates.DEFAULT);
+                break;
+            case ORACLE:
+                querydslConfiguration =
+                        new Configuration(OracleTemplates.DEFAULT);
+                break;
+            default:
+                throw new SystemException(
+                        "Unsupported database type " + database + " for Querydsl config");
+        }
+
+        // See InstantType javadoc for the reasons why we need this to support Instant.
+        querydslConfiguration.register(new InstantType());
+        // Alternatively we may stick to Timestamp and go on with our miserable lives. ;-)
         return querydslConfiguration;
+    }
+
+    /**
+     * Creates {@link JdbcSession} that typically represents transactional work on JDBC connection.
+     * All other lifecycle methods are to be called on the returned object.
+     * Object is {@link AutoCloseable} and can be used in try-with-resource blocks.
+     */
+    public JdbcSession newJdbcSession() {
+        try {
+            return new JdbcSession(dataSource().getConnection(), sqlRepositoryConfiguration);
+        } catch (SQLException e) {
+            throw new SystemException("Cannot create JDBC connection", e);
+        }
     }
 }

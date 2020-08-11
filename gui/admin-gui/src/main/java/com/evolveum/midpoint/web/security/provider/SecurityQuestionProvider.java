@@ -1,10 +1,21 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.security.provider;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
@@ -18,16 +29,6 @@ import com.evolveum.midpoint.web.security.module.authentication.SecurityQuestion
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SecurityQuestionsCredentialsPolicyType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author skublik
@@ -38,7 +39,7 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
     private static final Trace LOGGER = TraceManager.getTrace(SecurityQuestionProvider.class);
 
     @Autowired
-    private transient AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> questionAuthenticationEvaluator;
+    private AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> questionAuthenticationEvaluator;
 
     @Override
     protected AuthenticationEvaluator<SecurityQuestionsAuthenticationContext> getEvaluator() {
@@ -71,7 +72,7 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
 
-            MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
+            MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
 
             LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
                     authentication.getClass().getSimpleName(), principal.getAuthorities());

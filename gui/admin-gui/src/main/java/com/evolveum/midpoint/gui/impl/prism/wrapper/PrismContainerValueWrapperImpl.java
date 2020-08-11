@@ -9,16 +9,12 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -29,12 +25,17 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author katka
- *
  */
-public class PrismContainerValueWrapperImpl<C extends Containerable> extends PrismValueWrapperImpl<C> implements PrismContainerValueWrapper<C> {
+public class PrismContainerValueWrapperImpl<C extends Containerable>
+        extends PrismValueWrapperImpl<C> implements PrismContainerValueWrapper<C> {
 
     private static final long serialVersionUID = 1L;
 
@@ -60,13 +61,12 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     public PrismContainerValue<C> getValueToAdd() throws SchemaException {
         Collection<ItemDelta> modifications = new ArrayList<>();
         for (ItemWrapper<?, ?> itemWrapper : items) {
-            Collection<ItemDelta> subDelta =  itemWrapper.getDelta();
+            Collection<ItemDelta> subDelta = itemWrapper.getDelta();
 
             if (subDelta != null && !subDelta.isEmpty()) {
                 modifications.addAll(subDelta);
             }
         }
-
 
         PrismContainerValue<C> valueToAdd = getOldValue().clone();
         if (!modifications.isEmpty()) {
@@ -153,7 +153,6 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
         return items;
     }
 
-
     @Override
     public boolean isShowMetadata() {
         return showMetadata;
@@ -211,7 +210,6 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
                 allowed = false;
             }
 
-
             if (allowed) {
                 childContainers.add(containerDef);
             }
@@ -223,7 +221,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     @Override
     public <T extends Containerable> List<PrismContainerWrapper<T>> getContainers() {
         List<PrismContainerWrapper<T>> containers = new ArrayList<>();
-        for (ItemWrapper<?,?> container : items) {
+        for (ItemWrapper<?, ?> container : items) {
 
             collectExtensionItems(container, true, containers);
 
@@ -320,7 +318,6 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
             throw new IllegalStateException(e.getMessage(), e);
         }
 
-
     }
 
     private PrismContainerDefinition<C> getContainerDefinition() {
@@ -330,7 +327,6 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     private ContainerStatus findObjectStatus() {
         return ContainerStatus.ADDING;
     }
-
 
     /* (non-Javadoc)
      * @see com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper#findContainer(com.evolveum.midpoint.prism.path.ItemPath)
@@ -344,7 +340,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     public <IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException {
         Object first = path.first();
         if (!ItemPath.isName(first)) {
-            throw new IllegalArgumentException("Attempt to lookup item using a non-name path "+path+" in "+this);
+            throw new IllegalArgumentException("Attempt to lookup item using a non-name path " + path + " in " + this);
         }
         ItemName subName = ItemPath.toName(first);
         ItemPath rest = path.rest();
@@ -357,7 +353,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
             } else {
                 // Go deeper
                 if (item instanceof PrismContainerWrapper) {
-                    return ((PrismContainerWrapper<?>)item).findItem(rest, type);
+                    return ((PrismContainerWrapper<?>) item).findItem(rest, type);
                 }
             }
         }
@@ -365,23 +361,23 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
         return null;
     }
 
-        private <IW extends ItemWrapper> IW findItemByQName(QName subName) throws SchemaException {
-            if (items == null) {
-                return null;
-            }
-            IW matching = null;
-            for (ItemWrapper<?, ?> item : items) {
-                if (QNameUtil.match(subName, item.getItemName())) {
-                    if (matching != null) {
-                        String containerName = getParent() != null ? DebugUtil.formatElementName(getParent().getItemName()) : "";
-                        throw new SchemaException("More than one items matching " + subName + " in container " + containerName);
-                    } else {
-                        matching = (IW) item;
-                    }
+    private <IW extends ItemWrapper> IW findItemByQName(QName subName) throws SchemaException {
+        if (items == null) {
+            return null;
+        }
+        IW matching = null;
+        for (ItemWrapper<?, ?> item : items) {
+            if (QNameUtil.match(subName, item.getItemName())) {
+                if (matching != null) {
+                    String containerName = getParent() != null ? DebugUtil.formatElementName(getParent().getItemName()) : "";
+                    throw new SchemaException("More than one items matching " + subName + " in container " + containerName);
+                } else {
+                    matching = (IW) item;
                 }
             }
-            return matching;
         }
+        return matching;
+    }
 
     @Override
     public <X> PrismPropertyWrapper<X> findProperty(ItemPath propertyPath) throws SchemaException {
@@ -418,31 +414,27 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder(super.debugDump(indent));
         sb.append("Items:\n");
-        for (ItemWrapper<?, ?> item: items) {
+        for (ItemWrapper<?, ?> item : items) {
             sb.append(item.debugDump(indent + 1)).append("\n");
         }
 
         return sb.toString();
     }
 
-
     @Override
     public boolean isReadOnly() {
         return readOnly;
     }
-
 
     @Override
     public void setReadOnly(boolean readOnly, boolean recursive) {
         this.readOnly = readOnly;
     }
 
-
     @Override
     public boolean isShowEmpty() {
         return showEmpty;
     }
-
 
     @Override
     public void setShowEmpty(boolean showEmpty) {

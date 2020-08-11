@@ -17,14 +17,15 @@ import org.apache.wicket.model.PropertyModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
 /**
  * @author skublik
  */
-public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW extends PrismValueWrapper> extends BasePanel<IW> {
+public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW extends PrismValueWrapper>
+        extends BasePanel<IW> {
 
     private static final long serialVersionUID = 1L;
     protected PageBase pageBase;
@@ -47,8 +48,8 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
     }
 
     private void initLayout() {
-        //TODO migth fix MID-6125, not sure about this one, it's really hard to replicate
-        // but prismContext is transient so it might be lost during the serilaization/deserialization
+        // TODO might fix MID-6125, not sure about this one, it's really hard to replicate
+        // but prismContext is transient so it might be lost during the serialization/deserialization
         if (getModelObject() != null) {
             AbstractItemWrapperColumnPanel.this.getModelObject().revive(getPageBase().getPrismContext());
         }
@@ -82,9 +83,7 @@ public abstract class AbstractItemWrapperColumnPanel<IW extends ItemWrapper, VW 
             case VALUE:
                 item.add(createValuePanel(ID_VALUE, getModel(), item.getModelObject()));
                 break;
-
         }
-
     }
 
     protected abstract String createLabel(VW object);

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -103,7 +102,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
                     removeValue(PrismValuePanel.this.getModelObject(), target);
                 } catch (SchemaException e) {
                     LOGGER.error("Cannot remove value: {}", getModelObject());
-                    getSession().error("Cannot remove value "+ getModelObject());
+                    getSession().error("Cannot remove value " + getModelObject());
                     target.add(getPageBase().getFeedbackPanel());
                 }
             }
@@ -345,7 +344,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     protected ItemEditabilityHandler getEditabilityHandler() {
         if (settings == null) {
-             return null;
+            return null;
         }
 
         return settings.getEditabilityHandler();
@@ -391,7 +390,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         value.setShowMetadata(!value.isShowMetadata());
         target.add(PrismValuePanel.this);
     }
-
 
     protected boolean isRemoveButtonVisible() {
         return !getModelObject().getParent().isReadOnly();

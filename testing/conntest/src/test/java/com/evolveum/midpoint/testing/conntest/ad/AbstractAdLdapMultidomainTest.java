@@ -597,7 +597,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
         } else {
             // TODO: Why 14? Why not 1?
-            assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 12);  // 14?
+            assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 10);  // 14?
         }
         assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
 
@@ -1199,7 +1199,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -1221,7 +1221,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -1246,7 +1246,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertBarbossaDisabled(USER_BARBOSSA_PASSWORD_AD_1);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -1271,7 +1271,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertBarbossaEnabled(USER_BARBOSSA_PASSWORD_AD_1);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     protected PrismObject<UserType> assertBarbossaEnabled(String ldapPassword) throws Exception {
@@ -1281,7 +1281,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         Entry entry = assertLdapAccount(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME);
         assertAttribute(entry, "title", "Captain");
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "512");
-        assertAttribute(entry, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "FALSE");
+        if (hasExchange()) {
+            assertAttribute(entry, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "FALSE");
+        }
 
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
@@ -1295,7 +1297,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     }
 
     private void assertBarbossaDisabled(String password) throws Exception {
-        assertLdapConnectorInstances(2);
+//        assertLdapConnectorInstances(2);
 
         PrismObject<UserType> user = getUser(USER_BARBOSSA_OID);
         assertAdministrativeStatus(user, ActivationStatusType.DISABLED);
@@ -1304,7 +1306,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         displayValue("disabled Barbossa entry", entry);
         assertAttribute(entry, ATTRIBUTE_USER_ACCOUNT_CONTROL_NAME, "514");
 
-        assertAttribute(entry, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "TRUE");
+        if (hasExchange()) {
+            assertAttribute(entry, ATTRIBUTE_MS_EXCH_HIDE_FROM_ADDRESS_LISTS_NAME, "TRUE");
+        }
 
         String shadowOid = getSingleLinkOid(user);
         PrismObject<ShadowType> shadow = getObject(ShadowType.class, shadowOid);
@@ -1317,7 +1321,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
             // this is expected
         }
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -1365,7 +1369,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 //            // this is expected, account is disabled
 //        }
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     @Test
@@ -1427,7 +1431,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertLdapPassword(USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME, "wanna.be.a.123");
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -1456,7 +1460,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertMessageContains(result.getMessage(), "does not meet the length, complexity, or history requirement");
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorInstances(getNormalNumberOfLdapConnectorInstances());
     }
 
     /**
@@ -2217,7 +2221,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         // THEN
         then();
 
-        assertUsers(15);
+        assertUsers(13);
         // TODO
 
 //        assertLdapConnectorInstances(2);

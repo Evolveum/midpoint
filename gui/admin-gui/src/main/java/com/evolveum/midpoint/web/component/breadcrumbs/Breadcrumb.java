@@ -7,21 +7,22 @@
 
 package com.evolveum.midpoint.web.component.breadcrumbs;
 
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import java.io.Serializable;
+import java.util.Arrays;
+
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.io.Serializable;
-import java.util.Arrays;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Breadcrumb object that is stored in the session. It represents the way "back" to the main menu.
- *
+ * <p>
  * We need to be extra careful about the memory references here. This object goes in the session.
  * Therefore we cannot allow models to be stored in the session. The models may have references
  * to (possibly big) pages and other rich objects. The references are there mostly to load the
@@ -36,9 +37,9 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 
     private static final Trace LOG = TraceManager.getTrace(Breadcrumb.class);
 
-    transient private IModel<String> labelModel;
+    private transient IModel<String> labelModel;
     private String label;
-    transient private IModel<String> iconModel;
+    private transient IModel<String> iconModel;
     private String icon;
     private boolean useLink = false;
     private boolean visible = true;
@@ -63,6 +64,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
         if (labelModel == null && label != null) {
             labelModel = new IModel<String>() {
                 private static final long serialVersionUID = 1L;
+
                 @Override
                 public String getObject() {
                     return label;
@@ -104,6 +106,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
         if (iconModel == null && icon != null) {
             iconModel = new IModel<String>() {
                 private static final long serialVersionUID = 1L;
+
                 @Override
                 public String getObject() {
                     return icon;
@@ -192,8 +195,8 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         //we don't compare label/icon models, we would need to compare models values
         return true;
@@ -201,7 +204,7 @@ public class Breadcrumb implements Serializable, DebugDumpable {
 
     @Override
     public int hashCode() {
-        return Arrays.hashCode(new Object[]{labelModel, iconModel});
+        return Arrays.hashCode(new Object[] { labelModel, iconModel });
     }
 
     @Override
@@ -215,12 +218,12 @@ public class Breadcrumb implements Serializable, DebugDumpable {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append(this.getClass().getSimpleName());
         sb.append("\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "labelModel", labelModel==null?"":labelModel.toString(), indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "label", label, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "iconModel", iconModel==null?"":iconModel.toString(), indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "icon", icon, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "useLink", useLink, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "visible", visible, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "labelModel", labelModel == null ? "" : labelModel.toString(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "label", label, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "iconModel", iconModel == null ? "" : iconModel.toString(), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "icon", icon, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "useLink", useLink, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "visible", visible, indent + 1);
         extendsDebugDump(sb, indent);
         return sb.toString();
     }
