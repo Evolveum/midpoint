@@ -86,4 +86,9 @@ public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticat
         return CredentialsType.F_PASSWORD;
     }
 
+    @Override
+    public String getBadPasswordExceptionMessageKey(){
+        return "web.security.provider.invalid";
+    }
+
 }
