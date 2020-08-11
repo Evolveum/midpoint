@@ -29,6 +29,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  * There is still CreddSSP configured in ad01 server (top-level domain), therefore CredSSP is still tested in a way.
  * In case of need the old Chimera/Hydra environment is archived, therefore it can be restored and used for full CredSSP tests.
  *
+ * @see AbstractAdLdapMultidomainTest
+ *
  * @author Radovan Semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
