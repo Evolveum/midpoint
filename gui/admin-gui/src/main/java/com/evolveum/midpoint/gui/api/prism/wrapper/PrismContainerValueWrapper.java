@@ -38,7 +38,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     <T extends Containerable> List<PrismContainerWrapper<T>> getContainers();
 
-    List<? extends ItemWrapper<?, ?>> getNonContainers();
+    List<ItemWrapper<?, ?>> getNonContainers();
 
     List<? extends ItemWrapper<?, ?>> getItems();
 

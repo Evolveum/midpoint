@@ -13,7 +13,6 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 
 public interface GuiComponentFactory<T extends ItemPanelContext>{
-//    public void register();
 
     <IW extends ItemWrapper> boolean match(IW wrapper);
 
@@ -22,9 +21,6 @@ public interface GuiComponentFactory<T extends ItemPanelContext>{
     Integer getOrder();
 
     default void configure(T panelCtx, Component component) {
-//        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(component));
     }
-
-//    Panel build(PanelContext panelContext);
 
 }

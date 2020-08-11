@@ -12,8 +12,6 @@ import java.util.List;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,6 +25,7 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -63,18 +62,16 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
 //        return defaultPanel;
     }
 
-    private <IW extends ItemWrapper<?,?>> WebMarkupContainer createNonContainersPanel() {
+    private void createNonContainersPanel() {
         WebMarkupContainer propertiesLabel = new WebMarkupContainer(ID_PROPERTIES_LABEL);
         propertiesLabel.setOutputMarkupId(true);
 
-        IModel<List<IW>> nonContainerWrappers = createNonContainerWrappersModel();
+        IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers = createNonContainerWrappersModel();
 
-        ListView<IW> properties = new ListView<IW>("properties", nonContainerWrappers) {
-
-            private static final long serialVersionUID = 1L;
+        ListView<ItemWrapper<?, ?>> properties = new ListView<ItemWrapper<?, ?>>("properties", nonContainerWrappers) {
 
             @Override
-            protected void populateItem(final ListItem<IW> item) {
+            protected void populateItem(ListItem<ItemWrapper<?, ?>> item) {
                 populateNonContainer(item);
             }
         };
@@ -107,10 +104,9 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
             }
         });
         propertiesLabel.add(labelShowEmpty);
-        return propertiesLabel;
     }
 
-    protected WebMarkupContainer createContainersPanel() {
+    protected void createContainersPanel() {
         WebMarkupContainer containersLable = new WebMarkupContainer(ID_CONTAINERS_LABEL);
         add(containersLable);
         ListView<PrismContainerWrapper<?>> containers = new ListView<PrismContainerWrapper<?>>("containers", new PropertyModel<>(getModel(), "containers")) {
@@ -125,25 +121,23 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         containers.setReuseItems(true);
         containers.setOutputMarkupId(true);
         containersLable.add(containers);
-        return containersLable;
-
     }
 
-    private <IW extends ItemWrapper<?,?>> IModel<List<IW>> createNonContainerWrappersModel() {
-        return new IModel<List<IW>>() {
+    private IModel<List<ItemWrapper<?, ?>>> createNonContainerWrappersModel() {
+        return new IModel<List<ItemWrapper<?, ?>>>() {
 
             private static final long serialVersionUID = 1L;
 
             @Override
-            public List<IW> getObject() {
+            public List<ItemWrapper<?, ?>> getObject() {
                 return getNonContainerWrappers();
             }
         };
     }
 
-    private <IW extends ItemWrapper<?,?>> List<IW> getNonContainerWrappers() {
+    private List<ItemWrapper<?, ?>> getNonContainerWrappers() {
         CVW containerValueWrapper = getModelObject();
-        List<? extends ItemWrapper<?, ?>> nonContainers = containerValueWrapper.getNonContainers();
+        List<ItemWrapper<?, ?>> nonContainers = containerValueWrapper.getNonContainers();
 
         Locale locale = WebModelServiceUtils.getLocale();
         if (locale == null) {
@@ -172,12 +166,12 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
             }
         }
 
-        return (List<IW>) nonContainers;
+        return nonContainers;
     }
 
-    private <IW extends ItemWrapper<?,?>> void populateNonContainer(ListItem<IW> item) {
+    private void populateNonContainer(ListItem<? extends ItemWrapper<?, ?>> item) {
         item.setOutputMarkupId(true);
-        IW itemWrapper = item.getModelObject();
+        ItemWrapper<?, ?> itemWrapper = item.getModelObject();
         try {
             QName typeName = itemWrapper.getTypeName();
             if(item.getModelObject() instanceof ResourceAttributeWrapper) {

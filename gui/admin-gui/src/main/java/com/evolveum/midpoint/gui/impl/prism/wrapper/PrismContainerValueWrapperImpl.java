@@ -192,26 +192,28 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
                 continue;
             }
 
+            @SuppressWarnings("unchecked") PrismContainerDefinition<C> containerDef = (PrismContainerDefinition<C>) def;
+
             ContainerStatus objectStatus = findObjectStatus();
 
             boolean allowed = false;
             switch (objectStatus) {
                 case ADDING:
-                    allowed = def.canAdd();
+                    allowed = containerDef.canAdd();
                     break;
                 case MODIFYING:
                 case DELETING:
-                    allowed = def.canModify();
+                    allowed = containerDef.canModify();
             }
 
             //do not allow to add already existing singel value container
-            if (def.isSingleValue() && findContainer(def.getItemName()) != null) {
+            if (containerDef.isSingleValue() && findContainer(containerDef.getItemName()) != null) {
                 allowed = false;
             }
 
 
             if (allowed) {
-                childContainers.add((PrismContainerDefinition<C>)def);
+                childContainers.add(containerDef);
             }
         }
 
@@ -226,6 +228,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
             collectExtensionItems(container, true, containers);
 
             if (container instanceof PrismContainerWrapper && !ObjectType.F_EXTENSION.equivalent(container.getItemName())) {
+                //noinspection unchecked
                 containers.add((PrismContainerWrapper<T>) container);
             }
         }
@@ -233,14 +236,14 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
     }
 
     @Override
-    public List<? extends ItemWrapper<?,?>> getNonContainers() {
-        List<? extends ItemWrapper<?,?>> nonContainers = new ArrayList<>();
+    public List<ItemWrapper<?,?>> getNonContainers() {
+        List<ItemWrapper<?,?>> nonContainers = new ArrayList<>();
         for (ItemWrapper<?,?> item : items) {
 
             collectExtensionItems(item, false, nonContainers);
 
             if (!(item instanceof PrismContainerWrapper)) {
-                ((List)nonContainers).add(item);
+                (nonContainers).add(item);
             }
         }
 
@@ -272,18 +275,13 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
                     continue;
                 }
 
-                if (checkContainerInclusion(itemWrapper)) {
-                    ((List)nonContainers).add(itemWrapper);
-                }
+                nonContainers.add(itemWrapper);
+
             } catch (SchemaException e) {
                 LOGGER.error("Cannot find wrapper with path {}, error occurred {}", virtualItem, e.getMessage(), e);
             }
         }
         return nonContainers;
-    }
-
-    public boolean checkContainerInclusion(ItemWrapper<?, ?> itemWrapper) {
-        return true;
     }
 
     private ItemPath getVirtualItemPath(VirtualContainerItemSpecificationType virtualItem) throws SchemaException {
@@ -295,24 +293,24 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
         return itemPathType.getItemPath();
     }
 
-    protected <IW extends ItemWrapper<?, ?>> void collectExtensionItems(ItemWrapper<?, ?> item, boolean containers, List<IW> itemWrappers) {
+    protected void collectExtensionItems(ItemWrapper<?, ?> item, boolean containers, List<? extends ItemWrapper<?, ?>> itemWrappers) {
         if (!ObjectType.F_EXTENSION.equals(item.getItemName())) {
             return;
         }
 
         try {
             PrismContainerValueWrapper<ExtensionType> extenstion = (PrismContainerValueWrapper<ExtensionType>) item.getValue();
-            List<IW> extensionItems = (List<IW>) extenstion.getItems();
-            for (IW extensionItem : extensionItems) {
+            List<? extends ItemWrapper<?, ?>> extensionItems = extenstion.getItems();
+            for (ItemWrapper<?, ?> extensionItem : extensionItems) {
                 if (extensionItem instanceof PrismContainerWrapper) {
                     if (containers) {
-                        itemWrappers.add(extensionItem);
+                        ((List)itemWrappers).add(extensionItem);
                     }
                     continue;
                 }
 
                 if (!containers) {
-                    itemWrappers.add(extensionItem);
+                    ((List)itemWrappers).add(extensionItem);
                 }
             }
         } catch (SchemaException e) {
@@ -339,8 +337,7 @@ public class PrismContainerValueWrapperImpl<C extends Containerable> extends Pri
      */
     @Override
     public <T extends Containerable> PrismContainerWrapper<T> findContainer(ItemPath path) throws SchemaException {
-        PrismContainerWrapper<T> container = findItem(path, PrismContainerWrapper.class);
-        return container;
+        return findItem(path, PrismContainerWrapper.class);
     }
 
     @Override

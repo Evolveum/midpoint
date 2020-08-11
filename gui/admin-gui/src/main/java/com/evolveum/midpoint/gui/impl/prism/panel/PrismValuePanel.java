@@ -6,34 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.gui.impl.factory.wrapper.ValueMetadataWrapperFactoryImpl;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.Form;
-
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.util.ExpressionValidator;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -44,19 +19,34 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.PropertyModel;
 
-import javax.xml.namespace.QName;
-import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.ExpressionValidator;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends PrismValueWrapper<T>> extends BasePanel<VW> {
 
@@ -73,7 +63,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     private static final String ID_INPUT = "input";
     private static final String ID_SHOW_METADATA = "showMetadata";
     private static final String ID_METADATA = "metadata";
-//    private static final String ID_VALUE_METADATA = "valueMetadata";
     private static final String ID_METADATA_LIST = "metadataList";
     private static final String ID_METADATA_QNAME = "metadataQName";
 
@@ -119,7 +108,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
                 }
             }
         };
-        removeButton.add(new VisibleBehaviour(() -> isRemoveButtonVisible()));
+        removeButton.add(new VisibleBehaviour(this::isRemoveButtonVisible));
         buttonContainer.add(removeButton);
 
         AjaxLink<Void> showMetadataButton = new AjaxLink<Void>(ID_SHOW_METADATA) {
@@ -141,7 +130,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-    private WebMarkupContainer createValuePanel(Form form) {
+    private void createValuePanel(Form form) {
 
         GuiComponentFactory factory = null;
         if (getModelObject() != null && getModelObject().getParent() != null) {
@@ -161,7 +150,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             valueContainer.add(defaultPanel);
             feedback.setFilter(new ComponentFeedbackMessageFilter(defaultPanel));
             valueContainer.add(feedback);
-            return valueContainer;
+            return;
         }
 
         ItemPanelContext<T, ItemWrapper<?, ?>> panelCtx = createPanelCtx(new PropertyModel<>(getModel(), "parent"));
@@ -188,11 +177,25 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             throw new RuntimeException(e);
         }
 
-        return valueContainer;
-
     }
 
     protected void createMetadataPanel(Form form) {
+        createMetadataNavigationPanel(form);
+
+        MetadataContainerValuePanel<Containerable, PrismContainerValueWrapper<Containerable>> valueMetadataPanel =
+                new MetadataContainerValuePanel<>(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
+                    new ItemPanelSettingsBuilder()
+                        .editabilityHandler(wrapper -> true)
+                        .headerVisibility(false)
+                        .visibilityHandler(w -> w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN)
+                        .build());
+        valueMetadataPanel.add(new VisibleBehaviour(this::shouldShowMetadata));
+        valueMetadataPanel.setOutputMarkupId(true);
+        valueMetadataPanel.setOutputMarkupPlaceholderTag(true);
+        form.add(valueMetadataPanel);
+    }
+
+    private void createMetadataNavigationPanel(Form form) {
         ListView<ItemPath> metadataList = new ListView<ItemPath>(ID_METADATA_LIST, createMetadataListModel()) {
 
             @Override
@@ -201,48 +204,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
                         createStringResource(listItem.getModelObject().equivalent(ItemPath.EMPTY_PATH) ? "valueMetadata" : listItem.getModelObject().lastName().getLocalPart())) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        this.add(AttributeAppender.replace("class", "label label-primary"));
-                        for (PrismContainerWrapper cw : getValueMetadata().getContainers()) {
-                            if (ItemPath.EMPTY_PATH.equivalent(listItem.getModelObject())) {
-                                cw.setShowMetadataDetails(false);
-                            } else {
-                                if (cw.getPath().equivalent(listItem.getModelObject())) {
-                                    cw.setShowMetadataDetails(true);
-                                } else {
-                                    cw.setShowMetadataDetails(false);
-                                }
-                            }
-                        }
-                        for (ItemWrapper iw : getValueMetadata().getNonContainers()) {
-                            if (ItemPath.EMPTY_PATH.equivalent(listItem.getModelObject())) {
-                                iw.setShowMetadataDetails(true);
-                            }
-                        }
-                        ajaxRequestTarget.add(PrismValuePanel.this);
+                        setContainersToShow(listItem.getModelObject(), ajaxRequestTarget);
                     }
                 };
-                showMetadataDetails.add(AttributeAppender.replace("class", new ReadOnlyModel<>(() -> {
-                    for (PrismContainerWrapper cw : getValueMetadata().getContainers()) {
-                        if (!listItem.getModelObject().equivalent(cw.getPath())) {
-                            continue;
-                        }
-
-                        if (cw.isShowMetadataDetails()) {
-                            return "label label-primary";
-                        }
-                    }
-
-                    for (ItemWrapper iw : getValueMetadata().getNonContainers()) {
-                        if (!ItemPath.EMPTY_PATH.equivalent(listItem.getModelObject())) {
-                            continue;
-                        }
-
-                        if (iw.isShowMetadataDetails()) {
-                            return "label label-primary";
-                        }
-                    }
-                    return "label label-default";
-                })));
+                showMetadataDetails.add(AttributeAppender.replace("class", createButtonClassModel(listItem)));
                 showMetadataDetails.setOutputMarkupId(true);
                 showMetadataDetails.setOutputMarkupPlaceholderTag(true);
                 listItem.setOutputMarkupId(true);
@@ -252,47 +217,65 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         form.add(metadataList);
         metadataList.setOutputMarkupId(true);
         metadataList.setOutputMarkupPlaceholderTag(true);
-        metadataList.add(new VisibleBehaviour(() -> getValueMetadata() != null && getModelObject().isShowMetadata()));
-        MetadataContainerValuePanel valueMetadataPanel = new MetadataContainerValuePanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
-                new ItemPanelSettingsBuilder()
-                        .editabilityHandler(wrapper -> true)
-                        .headerVisibility(false)
-                        .visibilityHandler(w -> w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN)
-                        .build());
-        valueMetadataPanel.add(new VisibleBehaviour(() -> getValueMetadata() != null && getModelObject().isShowMetadata()));
-        valueMetadataPanel.setOutputMarkupId(true);
-        valueMetadataPanel.setOutputMarkupPlaceholderTag(true);
-        form.add(valueMetadataPanel);
-//        MetadataContainerPanel metadataPanel = new MetadataContainerPanel(ID_METADATA, new ReadOnlyModel(() -> {
-//            ValueMetadataWrapperImpl valueMetadata = getValueMetadata();
-//            if (valueMetadata == null) {
-//                return null;
-//            }
-//            List<PrismContainerWrapper<Containerable>> containers = valueMetadata.getContainers();
-//            if (containers == null) {
-//                return null;
-//            }
-//            for (PrismContainerWrapper cw : getValueMetadata().getContainers()) {
-//                if (cw.isShowMetadataDetails()) {
-//                    return cw;
-//                }
-//            }
-//            return null;
-//        }),
-//                new ItemPanelSettingsBuilder()
-//                        .editabilityHandler(wrapper -> true)
-//                        .headerVisibility(false)
-//                        .visibilityHandler(w -> w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN)
-//                        .build());
-//        metadataPanel.add(new VisibleBehaviour(() -> getValueMetadata() != null && getModelObject().isShowMetadata()));
-//        metadataPanel.setOutputMarkupId(true);
-//        metadataPanel.setOutputMarkupPlaceholderTag(true);
-//        form.add(metadataPanel);
+        metadataList.add(new VisibleBehaviour(this::shouldShowMetadata));
+    }
+
+    private boolean shouldShowMetadata() {
+        if (getValueMetadata() == null) {
+            return false;
+        }
+        return getModelObject().isShowMetadata();
+    }
+
+    private IModel<?> createButtonClassModel(ListItem<ItemPath> itemPath) {
+
+        return new ReadOnlyModel<>(() -> {
+
+            String primaryButton = getPrimaryButton(getValueMetadata().getContainers(), itemPath.getModelObject());
+            if (primaryButton == null) {
+                primaryButton = getPrimaryButton(getValueMetadata().getNonContainers(), itemPath.getModelObject());
+            }
+
+            return primaryButton == null ? "label label-default" : primaryButton;
+        });
+    }
+
+    private String getPrimaryButton(List<? extends ItemWrapper<?, ?>> wrappers, ItemPath path) {
+        for (ItemWrapper<?, ?> cw : wrappers) {
+            if (!path.equivalent(cw.getPath())) {
+                continue;
+            }
+
+            if (cw.isShowMetadataDetails()) {
+                return "label label-primary";
+            }
+        }
+        return null;
+    }
+
+    private void setContainersToShow(ItemPath itemPath, AjaxRequestTarget ajaxRequestTarget) {
+        getValueMetadata().getNonContainers().forEach(iw -> {
+            if (ItemPath.EMPTY_PATH.equivalent(itemPath)) {
+                iw.setShowMetadataDetails(true);
+            } else {
+                iw.setShowMetadataDetails(false);
+            }
+        });
+        getValueMetadata().getContainers().forEach(cw -> {
+            if (cw.getPath().equivalent(itemPath)) {
+                cw.setShowMetadataDetails(true);
+            } else {
+                cw.setShowMetadataDetails(false);
+            }
+        });
+
+        ajaxRequestTarget.add(PrismValuePanel.this);
+
     }
 
     private ReadOnlyModel<List<ItemPath>> createMetadataListModel() {
         return new ReadOnlyModel<List<ItemPath>>(() -> {
-            ValueMetadataWrapperImpl metadataWrapper = getModelObject().getValueMetadata();
+            ValueMetadataWrapperImpl metadataWrapper = getValueMetadata();
             if (metadataWrapper == null) {
                 return Collections.EMPTY_LIST;
             }
@@ -305,7 +288,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             if (CollectionUtils.isNotEmpty(metadataWrapper.getNonContainers())) {
                 metadataQNames.add(ItemPath.EMPTY_PATH);
             }
-
 
             return metadataQNames;
         });
@@ -367,14 +349,6 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         }
 
         return settings.getEditabilityHandler();
-    }
-
-    protected ItemVisibilityHandler getVisibilityHandler() {
-        if (settings == null) {
-            return null;
-        }
-
-        return settings.getVisibilityHandler();
     }
 
     protected ExpressionValidator<T> createExpressionValidator() {
