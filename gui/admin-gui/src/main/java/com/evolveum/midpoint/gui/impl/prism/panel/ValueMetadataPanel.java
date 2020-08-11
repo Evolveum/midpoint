@@ -76,6 +76,7 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
         Label labelComponent = new Label(ID_LABEL, headerLabelModel);
         labelComponent.setOutputMarkupId(true);
         labelComponent.setOutputMarkupPlaceholderTag(true);
+        labelComponent.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getParent() != null && getModelObject().getParent().isMultiValue()));
         header.add(labelComponent);
     }
 

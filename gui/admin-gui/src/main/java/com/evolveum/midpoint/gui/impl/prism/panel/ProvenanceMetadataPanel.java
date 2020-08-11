@@ -33,12 +33,8 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetad
     private static final String ID_ACQUISITION_HEADER = "acquisitionHeader";
     private static final String ID_ACQUISITIONS = "acquisitions";
     private static final String ID_ACQUISITION = "acquisition";
-    private static final String ID_RESOURCE = "resource";
     private static final String ID_SHOW_MORE = "showMore";
     private static final String ID_DEFAULT_PANEL = "defaultPanel";
-    private static final String ID_ORIGIN = "origin";
-    private static final String ID_CHANNEL = "channel";
-    private static final String ID_DETAILS = "details";
 
     /**
      * @param id
@@ -73,8 +69,6 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetad
 
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<ProvenanceYieldType>> listItem) {
-//                ProvenanceYieldType t = listItem.getModelObject();
-//                t.getAcquisition();
                 WebMarkupContainer panel = createAcquisitionPanel(PrismContainerWrapperModel.fromContainerValueWrapper(listItem.getModel(), ProvenanceYieldType.F_ACQUISITION));
                 listItem.add(panel);
 
@@ -101,7 +95,7 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetad
 
                 ItemPanelSettings settings = getSettings().copy();
                 settings.setVisibilityHandler(w -> ItemVisibility.AUTO);
-                Component defaultPanel = new ValueMetadataPanel<>(ID_DEFAULT_PANEL, listItem.getModel(), settings);
+                Component defaultPanel = new MetadataContainerValuePanel<>(ID_DEFAULT_PANEL, listItem.getModel(), settings);
                 defaultPanel.setOutputMarkupPlaceholderTag(true);
                 defaultPanel.setOutputMarkupId(true);
                 defaultPanel.add(new VisibleBehaviour(() -> listItem.getModelObject().isShowEmpty()));
@@ -123,33 +117,9 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetad
 
             @Override
             protected void populateItem(ListItem<PrismContainerValueWrapper<ProvenanceAcquisitionType>> listItem) {
-//                ProvenanceAcquisitionType a = listItem.getModelObject();
-//                a.getActorRef();
-//                a.getChannel();
-//                a.getOriginRef();
-//                a.getResourceRef();
-//                a.getTimestamp();
-
                 ProvenanceAcquisitionHeaderPanel panel = new ProvenanceAcquisitionHeaderPanel(ID_ACQUISITION, new ItemRealValueModel<>(listItem.getModel()));
                 panel.setOutputMarkupId(true);
                 listItem.add(panel);
-//                WebMarkupContainer details = new WebMarkupContainer(ID_DETAILS);
-//                LinkedReferencePanel<Referencable> resourcePanel = new LinkedReferencePanel<>(ID_RESOURCE,
-//                        new ItemRealValueModel<>(
-//                                new PropertyModel<>(PrismReferenceWrapperModel.fromContainerValueWrapper(listItem.getModel(), ProvenanceAcquisitionType.F_RESOURCE_REF), "value")));
-//
-//                details.add(resourcePanel);
-//
-//                LinkedReferencePanel<Referencable> originPanel = new LinkedReferencePanel<>(ID_ORIGIN,
-//                        new ItemRealValueModel<>(
-//                                new PropertyModel<>(PrismReferenceWrapperModel.fromContainerValueWrapper(listItem.getModel(), ProvenanceAcquisitionType.F_ORIGIN_REF), "value")));
-//
-//                details.add(originPanel);
-//
-//                Label channel = new Label(ID_CHANNEL, listItem.getModelObject().getRealValue().getChannel());
-//                details.add(channel);
-//                listItem.add(details);
-//
             }
         };
         container.add(acquisition);
