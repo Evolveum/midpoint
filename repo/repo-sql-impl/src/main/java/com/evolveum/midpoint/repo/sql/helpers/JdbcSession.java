@@ -11,10 +11,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Objects;
 
+import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.TransactionIsolation;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -28,6 +30,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * If transaction is still active during closing the JDBC session, it commits the transaction.
  * If database does not support read-only transactions directly,
  * {@link #commit()} executes rollback instead.
+ * <p>
+ * Provides convenient methods for handling exceptions and {@link OperationResult}s.
  * <p>
  * TODO MID-6318 - review this decision:
  * All {@link SQLException}s are translated to {@link SystemException}.
@@ -81,7 +85,6 @@ public class JdbcSession implements AutoCloseable {
                 rollbackForReadOnly = true;
             }
         }
-        // TODO
         return this;
     }
 
@@ -128,6 +131,10 @@ public class JdbcSession implements AutoCloseable {
         return connection;
     }
 
+    public SqlRepositoryConfiguration.Database databaseType() {
+        return configuration.getDatabaseType();
+    }
+
     @Override
     public void close() {
         try {
@@ -136,5 +143,65 @@ public class JdbcSession implements AutoCloseable {
         } catch (SQLException e) {
             throw new SystemException(e);
         }
+    }
+
+    // exception and operation result handling (mostly from BaseHelper and adapted for JDBC)
+
+    public void handleGeneralException(Throwable ex, OperationResult result) {
+        if (ex instanceof RuntimeException) {
+            handleGeneralRuntimeException((RuntimeException) ex, result);
+        } else {
+            handleGeneralCheckedException(ex, result);
+        }
+        throw new IllegalStateException("Shouldn't get here");
+    }
+
+    public void handleGeneralRuntimeException(RuntimeException ex, OperationResult result) {
+        LOGGER.debug("General runtime exception occurred.", ex);
+
+        if (isExceptionRelatedToSerialization(ex)) {
+            rollbackTransaction(ex, result, false);
+            // this exception will be caught and processed in logOperationAttempt,
+            // so it's safe to pass any RuntimeException here
+            throw ex;
+        } else {
+            rollbackTransaction(ex, result, true);
+            if (ex instanceof SystemException) {
+                throw ex;
+            } else {
+                throw new SystemException(ex.getMessage(), ex);
+            }
+        }
+    }
+
+    public void handleGeneralCheckedException(Throwable ex, OperationResult result) {
+        LOGGER.error("General checked exception occurred.", ex);
+
+        boolean fatal = !isExceptionRelatedToSerialization(ex);
+        rollbackTransaction(ex, result, fatal);
+        throw new SystemException(ex.getMessage(), ex);
+    }
+
+    void rollbackTransaction(Throwable ex, OperationResult result, boolean fatal) {
+        String message = ex != null ? ex.getMessage() : "null";
+        rollbackTransaction(ex, message, result, fatal);
+    }
+
+    void rollbackTransaction(Throwable ex, String message, OperationResult result, boolean fatal) {
+        if (Strings.isNullOrEmpty(message) && ex != null) {
+            message = ex.getMessage();
+        }
+
+        // non-fatal errors will NOT be put into OperationResult, not to confuse the user
+        if (result != null && fatal) {
+            result.recordFatalError(message, ex);
+        }
+
+        rollback();
+    }
+
+    private boolean isExceptionRelatedToSerialization(Throwable ex) {
+        return new TransactionSerializationProblemDetector(configuration, LOGGER)
+                .isExceptionRelatedToSerialization(ex);
     }
 }
