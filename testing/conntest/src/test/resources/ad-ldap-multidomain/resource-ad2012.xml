@@ -72,6 +72,7 @@
                 <icfcps:winRmPort>5986</icfcps:winRmPort>
                 <icfcps:winRmUseHttps>true</icfcps:winRmUseHttps>
                 <icfcps:powershellArgumentStyle>variables</icfcps:powershellArgumentStyle>
+                <icfcps:disableCertificateChecks>true</icfcps:disableCertificateChecks>
             </icfc:configurationProperties>
             <icfc:resultsHandlerConfiguration>
                 <icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>
@@ -249,6 +250,7 @@
                 </outbound>
             </attribute>
 
+            <!-- No Exchange on ad2012
             <attribute>
                 <ref>ri:msExchHideFromAddressLists</ref>
                 <description>MID-4041</description>
@@ -269,7 +271,7 @@
                         </script>
                     </expression>
                 </outbound>
-            </attribute>
+            </attribute> -->
 
             <association>
                 <ref>ri:group</ref>

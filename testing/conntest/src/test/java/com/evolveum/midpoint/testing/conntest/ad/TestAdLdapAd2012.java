@@ -74,7 +74,7 @@ public class TestAdLdapAd2012 extends AbstractAdLdapMultidomainTest {
 
     @Override
     protected String getAccountJackSid() {
-        return "S-1-5-21-2906460819-3509546030-3153952426-1109";
+        return "S-1-5-21-3636361896-1924952074-658678417-1109";
     }
 
     @Override
