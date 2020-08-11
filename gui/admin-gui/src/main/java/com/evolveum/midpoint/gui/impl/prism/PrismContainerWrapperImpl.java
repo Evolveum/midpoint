@@ -175,8 +175,14 @@ public class PrismContainerWrapperImpl<C extends Containerable> extends ItemWrap
     }
 
     @Override
-    public <T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path) {
-        throw new UnsupportedOperationException("Too lazy to implement it. Please, implement by yourself :) ");
+    public PrismContainerValueWrapper<C> findContainerValue(ItemPath path) {
+        if (isSingleValue()){
+            return findValue(0L);
+        } else if (!path.startsWithId()) {
+            throw new UnsupportedOperationException("Cannot get value from multivalue container without specified container id.");
+        } else {
+            return findValue(path.firstToId());
+        }
     }
 
 
