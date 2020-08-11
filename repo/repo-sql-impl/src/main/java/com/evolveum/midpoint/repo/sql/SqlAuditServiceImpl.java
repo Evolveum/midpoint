@@ -45,6 +45,7 @@ import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.data.audit.*;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -254,9 +255,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     DebugUtil.debugDump(params, 2));
         }
 
-        Session session = baseHelper.beginReadOnlyTransaction();
-        try {
-            session.doWork(con -> {
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+            try {
+                Connection conn = jdbcSession.connection();
                 Database database = sqlConfiguration().getDatabaseType();
                 int count = 0;
                 String basicQuery = query;
@@ -265,18 +266,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                             + (database.equals(Database.ORACLE) ? "" : "as ")
                             + "aer where 1=1 order by aer.timestampValue desc";
                 }
-                String deltaQuery = "select * from m_audit_delta "
-                        + (database.equals(Database.ORACLE) ? "" : "as ")
-                        + "delta where delta.record_id=?";
-                String propertyQuery = "select * from m_audit_prop_value "
-                        + (database.equals(Database.ORACLE) ? "" : "as ")
-                        + "prop where prop.record_id=?";
-                String refQuery = "select * from m_audit_ref_value "
-                        + (database.equals(Database.ORACLE) ? "" : "as ")
-                        + "ref where ref.record_id=?";
-                String resourceQuery = "select * from m_audit_resource "
-                        + (database.equals(Database.ORACLE) ? "" : "as ")
-                        + "res where res.record_id=?";
                 SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
                 setParametersToQuery(queryBuilder, params);
 
@@ -284,104 +273,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
                 }
 
-                try (PreparedStatement stmt = queryBuilder.build().createPreparedStatement(con)) {
+                try (PreparedStatement stmt = queryBuilder.build().createPreparedStatement(conn)) {
                     ResultSet resultList = stmt.executeQuery();
                     while (resultList.next()) {
-
-                        AuditEventRecord audit = RAuditEventRecord.fromRepo(resultList);
-                        if (!customColumn.isEmpty()) {
-                            for (Entry<String, String> property : customColumn.entrySet()) {
-                                audit.getCustomColumnProperty().put(property.getKey(), resultList.getString(property.getValue()));
-                            }
-                        }
-
-                        //query for deltas
-                        PreparedStatement subStmt = con.prepareStatement(deltaQuery);
-                        subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
-                        ResultSet subResultList = subStmt.executeQuery();
-
-                        OperationResult deltaResult = result.createMinorSubresult(OP_LOAD_AUDIT_DELTA);
-                        try {
-                            while (subResultList.next()) {
-                                try {
-                                    ObjectDeltaOperation<?> odo = RObjectDeltaOperation.fromRepo(
-                                            subResultList, prismContext, sqlConfiguration().isUsingSQLServer());
-                                    audit.addDelta(odo);
-                                } catch (DtoTranslationException ex) {
-                                    LOGGER.error("Cannot convert stored audit delta. Reason: {}", ex.getMessage(), ex);
-                                    deltaResult.recordPartialError("Cannot convert stored audit delta. Reason: " + ex.getMessage(), ex);
-                                    //do not throw an error. rather audit record without delta than fatal error.
-                                }
-                            }
-                        } finally {
-                            subResultList.close();
-                            subStmt.close();
-                            deltaResult.computeStatus();
-                        }
-
-                        //query for properties
-                        subStmt = con.prepareStatement(propertyQuery);
-                        subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
-                        subResultList = subStmt.executeQuery();
-
-                        try {
-                            while (subResultList.next()) {
-                                audit.addPropertyValue(subResultList.getString(RAuditPropertyValue.NAME_COLUMN_NAME),
-                                        subResultList.getString(RAuditPropertyValue.VALUE_COLUMN_NAME));
-                            }
-                        } finally {
-                            subResultList.close();
-                            subStmt.close();
-                        }
-
-                        //query for references
-                        subStmt = con.prepareStatement(refQuery);
-                        subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
-                        subResultList = subStmt.executeQuery();
-
-                        try {
-                            while (subResultList.next()) {
-                                audit.addReferenceValue(subResultList.getString(RAuditReferenceValue.NAME_COLUMN_NAME),
-                                        RAuditReferenceValue.fromRepo(subResultList));
-                            }
-                        } finally {
-                            subResultList.close();
-                            subStmt.close();
-                        }
-
-                        //query for target resource oids
-                        subStmt = con.prepareStatement(resourceQuery);
-                        subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
-                        subResultList = subStmt.executeQuery();
-
-                        try {
-                            while (subResultList.next()) {
-                                audit.addResourceOid(subResultList.getString(RTargetResourceOid.RESOURCE_OID_COLUMN_NAME));
-                            }
-                        } finally {
-                            subResultList.close();
-                            subStmt.close();
-                        }
-
-                        audit.setInitiatorRef(prismRefValue(
-                                resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
-                                resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
-                                // TODO: when JDK-8 is gone use Objects.requireNonNullElse
-                                defaultIfNull(
-                                        repoObjectType(resultList, RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME),
-                                        RObjectType.FOCUS)));
-                        audit.setAttorneyRef(prismRefValue(
-                                resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
-                                resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME),
-                                RObjectType.FOCUS));
-                        audit.setTargetRef(prismRefValue(
-                                resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
-                                resultList.getString(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME),
-                                repoObjectType(resultList, RAuditEventRecord.TARGET_TYPE_COLUMN_NAME)));
-                        audit.setTargetOwnerRef(prismRefValue(
-                                resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
-                                resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
-                                repoObjectType(resultList, RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME)));
+                        AuditEventRecord audit = getAuditEventRecord(resultList, jdbcSession, result);
                         count++;
                         if (!handler.handle(audit)) {
                             LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
@@ -393,13 +288,106 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 }
 
                 LOGGER.trace("List records iterative attempt processed {} records", count);
-            });
-            session.getTransaction().commit();
-        } catch (RuntimeException ex) {
-            baseHelper.handleGeneralRuntimeException(ex, session, null);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
+            } catch (Exception ex) {
+                jdbcSession.handleGeneralException(ex, result);
+            }
         }
+    }
+
+    @NotNull
+    private AuditEventRecord getAuditEventRecord(
+            ResultSet resultList, JdbcSession jdbcSession, OperationResult result)
+            throws SQLException {
+        AuditEventRecord audit = RAuditEventRecord.fromRepo(resultList);
+        if (!customColumn.isEmpty()) {
+            for (Entry<String, String> property : customColumn.entrySet()) {
+                audit.getCustomColumnProperty().put(property.getKey(), resultList.getString(property.getValue()));
+            }
+        }
+
+        //query for deltas
+        String tableAliasPreposition =
+                jdbcSession.databaseType().equals(Database.ORACLE) ? "" : "as ";
+        OperationResult deltaResult = result.createMinorSubresult(OP_LOAD_AUDIT_DELTA);
+        try (PreparedStatement subStmt = jdbcSession.connection().prepareStatement(
+                "select * from m_audit_delta " + tableAliasPreposition
+                        + "delta where delta.record_id=?")) {
+            subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
+
+            ResultSet subResultList = subStmt.executeQuery();
+            while (subResultList.next()) {
+                try {
+                    ObjectDeltaOperation<?> odo = RObjectDeltaOperation.fromRepo(
+                            subResultList, prismContext, sqlConfiguration().isUsingSQLServer());
+                    audit.addDelta(odo);
+                } catch (DtoTranslationException ex) {
+                    LOGGER.error("Cannot convert stored audit delta. Reason: {}", ex.getMessage(), ex);
+                    deltaResult.recordPartialError("Cannot convert stored audit delta. Reason: " + ex.getMessage(), ex);
+                    //do not throw an error. rather audit record without delta than fatal error.
+                }
+            }
+        } finally {
+            deltaResult.computeStatus();
+        }
+
+        //query for properties
+        try (PreparedStatement subStmt = jdbcSession.connection().prepareStatement(
+                "select * from m_audit_prop_value " + tableAliasPreposition
+                        + "prop where prop.record_id=?")) {
+            subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
+
+            ResultSet subResultList = subStmt.executeQuery();
+            while (subResultList.next()) {
+                audit.addPropertyValue(subResultList.getString(RAuditPropertyValue.NAME_COLUMN_NAME),
+                        subResultList.getString(RAuditPropertyValue.VALUE_COLUMN_NAME));
+            }
+        }
+
+        //query for references
+        try (PreparedStatement subStmt = jdbcSession.connection().prepareStatement(
+                "select * from m_audit_ref_value " + tableAliasPreposition
+                        + "ref where ref.record_id=?")) {
+            subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
+
+            ResultSet subResultList = subStmt.executeQuery();
+            while (subResultList.next()) {
+                audit.addReferenceValue(subResultList.getString(RAuditReferenceValue.NAME_COLUMN_NAME),
+                        RAuditReferenceValue.fromRepo(subResultList));
+            }
+        }
+
+        //query for target resource oids
+        try (PreparedStatement subStmt = jdbcSession.connection().prepareStatement(
+                "select * from m_audit_resource " + tableAliasPreposition
+                        + "res where res.record_id=?")) {
+            subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
+            ResultSet subResultList = subStmt.executeQuery();
+
+            while (subResultList.next()) {
+                audit.addResourceOid(subResultList.getString(RTargetResourceOid.RESOURCE_OID_COLUMN_NAME));
+            }
+        }
+
+        audit.setInitiatorRef(prismRefValue(
+                resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
+                resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
+                // TODO: when JDK-8 is gone use Objects.requireNonNullElse
+                defaultIfNull(
+                        repoObjectType(resultList, RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME),
+                        RObjectType.FOCUS)));
+        audit.setAttorneyRef(prismRefValue(
+                resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
+                resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME),
+                RObjectType.FOCUS));
+        audit.setTargetRef(prismRefValue(
+                resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
+                resultList.getString(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME),
+                repoObjectType(resultList, RAuditEventRecord.TARGET_TYPE_COLUMN_NAME)));
+        audit.setTargetOwnerRef(prismRefValue(
+                resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
+                resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
+                repoObjectType(resultList, RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME)));
+        return audit;
     }
 
     // Yes, to detect null, you have to check again after reading int. No getInteger there.
@@ -500,7 +488,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     for (String propertyValue : propertyEntry.getValue()) {
                         SingleSqlQuery propertyQuery = RAuditPropertyValue.toRepo(
                                 id, propertyEntry.getKey(), RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE));
-//                                val.setTransient(isTransient);
                         propertyBatchQuery.addQueryForBatch(propertyQuery);
                     }
                 }
@@ -512,7 +499,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 for (Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
                     for (AuditReferenceValue referenceValue : referenceEntry.getValue()) {
                         SingleSqlQuery referenceQuery = RAuditReferenceValue.toRepo(id, referenceEntry.getKey(), referenceValue);
-//                                 val.setTransient(isTransient);
                         referenceBatchQuery.addQueryForBatch(referenceQuery);
                     }
                 }
