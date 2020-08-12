@@ -184,6 +184,14 @@ public class JdbcSession implements AutoCloseable {
 
     // exception and operation result handling (mostly from BaseHelper and adapted for JDBC)
 
+    /**
+     * Rolls back the transaction and throws exception.
+     * Uses {@link #handleGeneralCheckedException} or {@link #handleGeneralRuntimeException}
+     * depending on the exception type.
+     *
+     * @throws SystemException wrapping the exception used as parameter
+     * @throws RuntimeException rethrows input exception if related to transaction serialization
+     */
     public void handleGeneralException(
             @NotNull Throwable ex,
             @Nullable OperationResult result) {
@@ -192,9 +200,17 @@ public class JdbcSession implements AutoCloseable {
         } else {
             handleGeneralCheckedException(ex, result);
         }
-        throw new IllegalStateException("Shouldn't get here");
+        throw new AssertionError("Shouldn't get here");
     }
 
+    /**
+     * Rolls back the transaction and throws exception.
+     * If the exception is related to transaction serialization problems, the operation result
+     * does not record the error (non-fatal).
+     *
+     * @throws SystemException wrapping the exception used as parameter
+     * @throws RuntimeException rethrows input exception if related to transaction serialization
+     */
     public void handleGeneralRuntimeException(
             @NotNull RuntimeException ex,
             @Nullable OperationResult result) {
@@ -215,6 +231,11 @@ public class JdbcSession implements AutoCloseable {
         }
     }
 
+    /**
+     * Rolls back the transaction and throws exception.
+     *
+     * @throws SystemException wrapping the exception used as parameter
+     */
     public void handleGeneralCheckedException(
             @NotNull Throwable ex,
             @Nullable OperationResult result) {
