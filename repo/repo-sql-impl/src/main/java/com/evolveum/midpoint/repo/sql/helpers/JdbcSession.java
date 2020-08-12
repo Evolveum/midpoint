@@ -11,12 +11,12 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Objects;
 
-import com.google.common.base.Strings;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.SQLInsertClause;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.TransactionIsolation;
@@ -72,10 +72,16 @@ public class JdbcSession implements AutoCloseable {
         }
     }
 
+    /**
+     * Starts transaction and returns {@code this}.
+     */
     public JdbcSession startTransaction() {
         return startTransaction(false);
     }
 
+    /**
+     * Starts read-only transaction and returns {@code this}.
+     */
     public JdbcSession startReadOnlyTransaction() {
         return startTransaction(true);
     }
@@ -95,6 +101,10 @@ public class JdbcSession implements AutoCloseable {
         return this;
     }
 
+    /**
+     * Commits current transaction.
+     * If read-only transaction is not supported by database it rolls back read-only transaction.
+     */
     public void commit() {
         try {
             if (rollbackForReadOnly) {
@@ -110,6 +120,11 @@ public class JdbcSession implements AutoCloseable {
         }
     }
 
+    /**
+     * Rolls back the transaction.
+     * See also various {@code handle*Exception()} methods that do the same thing
+     * adding exception logging and changes to the operation result.
+     */
     public void rollback() {
         try {
             LOGGER.debug("Rolling back transaction");
@@ -169,16 +184,36 @@ public class JdbcSession implements AutoCloseable {
 
     // exception and operation result handling (mostly from BaseHelper and adapted for JDBC)
 
-    public void handleGeneralException(Throwable ex, OperationResult result) {
+    /**
+     * Rolls back the transaction and throws exception.
+     * Uses {@link #handleGeneralCheckedException} or {@link #handleGeneralRuntimeException}
+     * depending on the exception type.
+     *
+     * @throws SystemException wrapping the exception used as parameter
+     * @throws RuntimeException rethrows input exception if related to transaction serialization
+     */
+    public void handleGeneralException(
+            @NotNull Throwable ex,
+            @Nullable OperationResult result) {
         if (ex instanceof RuntimeException) {
             handleGeneralRuntimeException((RuntimeException) ex, result);
         } else {
             handleGeneralCheckedException(ex, result);
         }
-        throw new IllegalStateException("Shouldn't get here");
+        throw new AssertionError("Shouldn't get here");
     }
 
-    public void handleGeneralRuntimeException(RuntimeException ex, OperationResult result) {
+    /**
+     * Rolls back the transaction and throws exception.
+     * If the exception is related to transaction serialization problems, the operation result
+     * does not record the error (non-fatal).
+     *
+     * @throws SystemException wrapping the exception used as parameter
+     * @throws RuntimeException rethrows input exception if related to transaction serialization
+     */
+    public void handleGeneralRuntimeException(
+            @NotNull RuntimeException ex,
+            @Nullable OperationResult result) {
         LOGGER.debug("General runtime exception occurred.", ex);
 
         if (isExceptionRelatedToSerialization(ex)) {
@@ -196,7 +231,14 @@ public class JdbcSession implements AutoCloseable {
         }
     }
 
-    public void handleGeneralCheckedException(Throwable ex, OperationResult result) {
+    /**
+     * Rolls back the transaction and throws exception.
+     *
+     * @throws SystemException wrapping the exception used as parameter
+     */
+    public void handleGeneralCheckedException(
+            @NotNull Throwable ex,
+            @Nullable OperationResult result) {
         LOGGER.error("General checked exception occurred.", ex);
 
         boolean fatal = !isExceptionRelatedToSerialization(ex);
@@ -204,25 +246,19 @@ public class JdbcSession implements AutoCloseable {
         throw new SystemException(ex.getMessage(), ex);
     }
 
-    void rollbackTransaction(Throwable ex, OperationResult result, boolean fatal) {
-        String message = ex != null ? ex.getMessage() : "null";
-        rollbackTransaction(ex, message, result, fatal);
-    }
-
-    void rollbackTransaction(Throwable ex, String message, OperationResult result, boolean fatal) {
-        if (Strings.isNullOrEmpty(message) && ex != null) {
-            message = ex.getMessage();
-        }
-
+    private void rollbackTransaction(
+            @NotNull Throwable ex,
+            @Nullable OperationResult result,
+            boolean fatal) {
         // non-fatal errors will NOT be put into OperationResult, not to confuse the user
         if (result != null && fatal) {
-            result.recordFatalError(message, ex);
+            result.recordFatalError(ex);
         }
 
         rollback();
     }
 
-    private boolean isExceptionRelatedToSerialization(Throwable ex) {
+    private boolean isExceptionRelatedToSerialization(@NotNull Throwable ex) {
         return new TransactionSerializationProblemDetector(repoConfiguration, LOGGER)
                 .isExceptionRelatedToSerialization(ex);
     }

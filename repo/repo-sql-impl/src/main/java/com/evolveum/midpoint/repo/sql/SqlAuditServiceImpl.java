@@ -19,7 +19,6 @@ import javax.xml.datatype.Duration;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.SQLInsertClause;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
@@ -133,6 +132,102 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    private void auditAttempt(AuditEventRecord record) {
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
+            try {
+                SingleSqlQuery query = RAuditEventRecord.toRepo(record, customColumn);
+                Database database = sqlConfiguration().getDatabaseType();
+                String[] keyColumn = { RAuditEventRecord.ID_COLUMN_NAME };
+                Connection connection = jdbcSession.connection();
+                PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
+                Long id = null;
+                try {
+                    smtp.executeUpdate();
+                    ResultSet resultSet = smtp.getGeneratedKeys();
+
+                    if (resultSet.next()) {
+                        id = resultSet.getLong(1);
+
+                    }
+                } finally {
+                    smtp.close();
+                }
+                if (id == null) {
+                    throw new IllegalArgumentException("Returned id of new record is null");
+                }
+
+                BatchSqlQuery deltaBatchQuery = new BatchSqlQuery(database);
+                BatchSqlQuery itemBatchQuery = new BatchSqlQuery(database);
+
+                for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
+                    if (delta == null) {
+                        continue;
+                    }
+
+                    ObjectDelta<?> objectDelta = delta.getObjectDelta();
+                    for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
+                        ItemPath path = itemDelta.getPath();
+                        CanonicalItemPath canonical = prismContext.createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
+                        for (int i = 0; i < canonical.size(); i++) {
+
+                            SingleSqlQuery itemQuery = RAuditItem.toRepo(id, canonical.allUpToIncluding(i).asString());
+                            itemBatchQuery.addQueryForBatch(itemQuery);
+                        }
+                    }
+
+                    SingleSqlQuery deltaQuery;
+                    try {
+                        deltaQuery = RObjectDeltaOperation.toRepo(id, delta, prismContext, auditConfiguration);
+                        deltaBatchQuery.addQueryForBatch(deltaQuery);
+                    } catch (DtoTranslationException e) {
+                        jdbcSession.handleGeneralCheckedException(e, null);
+                        // always throws exception, does not continue
+                    }
+                }
+                if (!deltaBatchQuery.isEmpty()) {
+                    deltaBatchQuery.execute(connection);
+                }
+                if (!itemBatchQuery.isEmpty()) {
+                    itemBatchQuery.execute(connection);
+                }
+
+                BatchSqlQuery propertyBatchQuery = new BatchSqlQuery(database);
+                for (Entry<String, Set<String>> propertyEntry : record.getProperties().entrySet()) {
+                    for (String propertyValue : propertyEntry.getValue()) {
+                        SingleSqlQuery propertyQuery = RAuditPropertyValue.toRepo(
+                                id, propertyEntry.getKey(), RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE));
+                        propertyBatchQuery.addQueryForBatch(propertyQuery);
+                    }
+                }
+                if (!propertyBatchQuery.isEmpty()) {
+                    propertyBatchQuery.execute(connection);
+                }
+
+                BatchSqlQuery referenceBatchQuery = new BatchSqlQuery(database);
+                for (Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
+                    for (AuditReferenceValue referenceValue : referenceEntry.getValue()) {
+                        SingleSqlQuery referenceQuery = RAuditReferenceValue.toRepo(id, referenceEntry.getKey(), referenceValue);
+                        referenceBatchQuery.addQueryForBatch(referenceQuery);
+                    }
+                }
+                if (!referenceBatchQuery.isEmpty()) {
+                    referenceBatchQuery.execute(connection);
+                }
+
+                BatchSqlQuery resourceOidBatchQuery = new BatchSqlQuery(database);
+                for (String resourceOid : record.getResourceOids()) {
+                    SingleSqlQuery resourceOidQuery = RTargetResourceOid.toRepo(id, resourceOid);
+                    resourceOidBatchQuery.addQueryForBatch(resourceOidQuery);
+                }
+                if (!resourceOidBatchQuery.isEmpty()) {
+                    resourceOidBatchQuery.execute(connection);
+                }
+            } catch (DtoTranslationException | RuntimeException | SQLException ex) {
+                jdbcSession.handleGeneralException(ex, null);
+            }
+        }
+    }
+
     @Override
     public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult parentResult) {
         final String operation = "listRecords";
@@ -200,54 +295,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     }
 
-    // Hibernate-based
-    @Override
-    public void reindexEntry(AuditEventRecord record) {
-        final String operation = "reindexEntry";
-        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
-        int attempt = 1;
-
-        while (true) {
-            try {
-                reindexEntryAttempt(record);
-                return;
-            } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
-                pm.registerOperationNewAttempt(opHandle, attempt);
-            } finally {
-                pm.registerOperationFinish(opHandle, attempt);
-            }
-        }
-    }
-
-    // Hibernate-based
-    private void reindexEntryAttempt(AuditEventRecord record) {
-        Session session = baseHelper.beginTransaction();
-        try {
-
-            RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, prismContext, null, auditConfiguration);
-            //TODO FIXME temporary hack, merge will eventually load the object to the session if there isn't one,
-            // but in this case we force loading object because of "objectDeltaOperation". There is some problem probably
-            // during serializing/deserializing which causes constraint violation on primary key..
-            RAuditEventRecord rRecord = session.load(RAuditEventRecord.class, record.getRepoId());
-            rRecord.getChangedItems().clear();
-            rRecord.getChangedItems().addAll(reindexed.getChangedItems());
-            session.merge(rRecord);
-
-            session.getTransaction().commit();
-
-        } catch (DtoTranslationException ex) {
-            baseHelper.handleGeneralCheckedException(ex, session, null);
-        } catch (RuntimeException ex) {
-            baseHelper.handleGeneralRuntimeException(ex, session, null);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
-        }
-
-    }
-
-    // Hibernate-based
     private void listRecordsIterativeAttempt(String query, Map<String, Object> params,
             AuditResultHandler handler, OperationResult result) {
 
@@ -391,8 +438,55 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         return audit;
     }
 
-    // Yes, to detect null, you have to check again after reading int. No getInteger there.
-    private RObjectType repoObjectType(ResultSet resultList, String columnName) throws SQLException {
+    // Hibernate-based
+    @Override
+    public void reindexEntry(AuditEventRecord record) {
+        final String operation = "reindexEntry";
+        SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
+        long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
+        int attempt = 1;
+
+        while (true) {
+            try {
+                reindexEntryAttempt(record);
+                return;
+            } catch (RuntimeException ex) {
+                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
+                pm.registerOperationNewAttempt(opHandle, attempt);
+            } finally {
+                pm.registerOperationFinish(opHandle, attempt);
+            }
+        }
+    }
+
+    private void reindexEntryAttempt(AuditEventRecord record) {
+        Session session = baseHelper.beginTransaction();
+        try {
+
+            RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, prismContext, null, auditConfiguration);
+            //TODO FIXME temporary hack, merge will eventually load the object to the session if there isn't one,
+            // but in this case we force loading object because of "objectDeltaOperation". There is some problem probably
+            // during serializing/deserializing which causes constraint violation on primary key..
+            RAuditEventRecord rRecord = session.load(RAuditEventRecord.class, record.getRepoId());
+            rRecord.getChangedItems().clear();
+            rRecord.getChangedItems().addAll(reindexed.getChangedItems());
+            session.merge(rRecord);
+
+            session.getTransaction().commit();
+
+        } catch (DtoTranslationException ex) {
+            baseHelper.handleGeneralCheckedException(ex, session, null);
+        } catch (RuntimeException ex) {
+            baseHelper.handleGeneralRuntimeException(ex, session, null);
+        } finally {
+            baseHelper.cleanupSessionAndResult(session, null);
+        }
+
+    }
+
+    private RObjectType repoObjectType(ResultSet resultList, String columnName)
+            throws SQLException {
+        // Yes, to detect null, you have to check again after reading int. No getInteger there.
         int ordinalValue = resultList.getInt(columnName);
         return resultList.wasNull() ? null : RObjectType.fromOrdinal(ordinalValue);
     }
@@ -423,108 +517,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             params.remove(QUERY_MAX_RESULT);
         }
         queryBuilder.addParameters(params);
-    }
-
-    // Hibernate-based
-    private void auditAttempt(AuditEventRecord record) {
-        Session session = baseHelper.beginTransaction();
-        try {
-            SingleSqlQuery query = RAuditEventRecord.toRepo(record, customColumn);
-            session.doWork(connection -> {
-                Database database = sqlConfiguration().getDatabaseType();
-                String[] keyColumn = { RAuditEventRecord.ID_COLUMN_NAME };
-                PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
-                Long id = null;
-                try {
-                    smtp.executeUpdate();
-                    ResultSet resultSet = smtp.getGeneratedKeys();
-
-                    if (resultSet.next()) {
-                        id = resultSet.getLong(1);
-
-                    }
-                } finally {
-                    smtp.close();
-                }
-                if (id == null) {
-                    throw new IllegalArgumentException("Returned id of new record is null");
-                }
-
-                BatchSqlQuery deltaBatchQuery = new BatchSqlQuery(database);
-                BatchSqlQuery itemBatchQuery = new BatchSqlQuery(database);
-
-                for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
-                    if (delta == null) {
-                        continue;
-                    }
-
-                    ObjectDelta<?> objectDelta = delta.getObjectDelta();
-                    for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
-                        ItemPath path = itemDelta.getPath();
-                        CanonicalItemPath canonical = prismContext.createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
-                        for (int i = 0; i < canonical.size(); i++) {
-
-                            SingleSqlQuery itemQuery = RAuditItem.toRepo(id, canonical.allUpToIncluding(i).asString());
-                            itemBatchQuery.addQueryForBatch(itemQuery);
-                        }
-                    }
-
-                    SingleSqlQuery deltaQuery;
-                    try {
-                        deltaQuery = RObjectDeltaOperation.toRepo(id, delta, prismContext, auditConfiguration);
-                        deltaBatchQuery.addQueryForBatch(deltaQuery);
-                    } catch (DtoTranslationException e) {
-                        baseHelper.handleGeneralCheckedException(e, session, null);
-                    }
-                }
-                if (!deltaBatchQuery.isEmpty()) {
-                    deltaBatchQuery.execute(connection);
-                }
-                if (!itemBatchQuery.isEmpty()) {
-                    itemBatchQuery.execute(connection);
-                }
-
-                BatchSqlQuery propertyBatchQuery = new BatchSqlQuery(database);
-                for (Entry<String, Set<String>> propertyEntry : record.getProperties().entrySet()) {
-                    for (String propertyValue : propertyEntry.getValue()) {
-                        SingleSqlQuery propertyQuery = RAuditPropertyValue.toRepo(
-                                id, propertyEntry.getKey(), RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE));
-                        propertyBatchQuery.addQueryForBatch(propertyQuery);
-                    }
-                }
-                if (!propertyBatchQuery.isEmpty()) {
-                    propertyBatchQuery.execute(connection);
-                }
-
-                BatchSqlQuery referenceBatchQuery = new BatchSqlQuery(database);
-                for (Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
-                    for (AuditReferenceValue referenceValue : referenceEntry.getValue()) {
-                        SingleSqlQuery referenceQuery = RAuditReferenceValue.toRepo(id, referenceEntry.getKey(), referenceValue);
-                        referenceBatchQuery.addQueryForBatch(referenceQuery);
-                    }
-                }
-                if (!referenceBatchQuery.isEmpty()) {
-                    referenceBatchQuery.execute(connection);
-                }
-
-                BatchSqlQuery resourceOidBatchQuery = new BatchSqlQuery(database);
-                for (String resourceOid : record.getResourceOids()) {
-                    SingleSqlQuery resourceOidQuery = RTargetResourceOid.toRepo(id, resourceOid);
-                    resourceOidBatchQuery.addQueryForBatch(resourceOidQuery);
-                }
-                if (!resourceOidBatchQuery.isEmpty()) {
-                    resourceOidBatchQuery.execute(connection);
-                }
-            });
-
-            session.getTransaction().commit();
-        } catch (DtoTranslationException ex) {
-            baseHelper.handleGeneralCheckedException(ex, session, null);
-        } catch (RuntimeException ex) {
-            baseHelper.handleGeneralRuntimeException(ex, session, null);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
-        }
     }
 
     @Override
@@ -596,7 +588,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
-    // Hibernate-based
     private void cleanupAuditMaxRecords(CleanupPolicyType policy, OperationResult parentResult) {
         if (policy.getMaxRecords() == null) {
             return;
@@ -661,7 +652,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
-    // deletes one batch of records (using recordsSelector to select records according to particular cleanup policy)
+    /**
+     * Deletes one batch of records using recordsSelector to select records
+     * according to particular cleanup policy.
+     */
     private int batchDeletionAttempt(
             BiFunction<JdbcSession, String, Integer> recordsSelector,
             Holder<Integer> totalCountHolder, long batchStart, OperationResult subResult) {
@@ -828,12 +822,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     public long countObjects(String query, Map<String, Object> params) {
-        long[] count = { 0 };
-        Session session = baseHelper.beginTransaction();
-        try {
-            session.setFlushMode(FlushMode.MANUAL);
-            session.doWork(connection -> {
-                Database database = sqlConfiguration().getDatabaseType();
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+            try {
+                Database database = jdbcSession.databaseType();
 
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {
@@ -846,23 +837,25 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
                 LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
 
-                try (PreparedStatement stmt = queryBuilder.build().createPreparedStatement(connection)) {
+                try (PreparedStatement stmt =
+                        queryBuilder.build().createPreparedStatement(jdbcSession.connection())) {
                     ResultSet resultList = stmt.executeQuery();
                     if (!resultList.next()) {
-                        throw new IllegalArgumentException("Result set don't have value for select: " + query);
+                        throw new IllegalArgumentException(
+                                "Result set don't have value for select: " + query);
                     }
                     if (resultList.getMetaData().getColumnCount() > 1) {
-                        throw new IllegalArgumentException("Result have more as one value for select: " + query);
+                        throw new IllegalArgumentException(
+                                "Result have more as one value for select: " + query);
                     }
-                    count[0] = resultList.getLong(1);
+                    return resultList.getLong(1);
                 }
-            });
-        } catch (RuntimeException ex) {
-            baseHelper.handleGeneralRuntimeException(ex, session, null);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
+            } catch (RuntimeException | SQLException ex) {
+                jdbcSession.handleGeneralException(ex, null);
+            }
         }
-        return count[0];
+        // not good, there is not even an operation result to check for error status
+        return 0;
     }
 
     @Override
