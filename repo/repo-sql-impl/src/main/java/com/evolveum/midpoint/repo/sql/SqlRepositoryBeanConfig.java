@@ -1,20 +1,21 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import java.util.Properties;
 import javax.sql.DataSource;
 
 import org.hibernate.SessionFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
+import org.springframework.transaction.TransactionManager;
 
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
@@ -23,7 +24,10 @@ import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
 
 /**
- * Created by Viliam Repan (lazyman).
+ * SQL repository related configuration from {@link DataSourceFactory} through ORM all the way to
+ * {@link TransactionManager}.
+ * {@link ConditionalOnMissingBean} annotations are used to avoid duplicate bean acquirement that
+ * would happen when combined with alternative configurations (e.g. context XMLs for test).
  */
 @Configuration
 public class SqlRepositoryBeanConfig {
@@ -34,11 +38,13 @@ public class SqlRepositoryBeanConfig {
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public DataSourceFactory dataSourceFactory(SqlRepositoryFactory sqlRepositoryFactory) {
         return new DataSourceFactory(sqlRepositoryFactory.getSqlConfiguration());
     }
 
     @Bean
+    @ConditionalOnMissingBean
     public DataSource dataSource(DataSourceFactory dataSourceFactory)
             throws RepositoryServiceFactoryException {
         return dataSourceFactory.createDataSource();
@@ -104,7 +110,7 @@ public class SqlRepositoryBeanConfig {
     }
 
     @Bean
-    public HibernateTransactionManager transactionManager(SessionFactory sessionFactory) {
+    public TransactionManager transactionManager(SessionFactory sessionFactory) {
         HibernateTransactionManager htm = new HibernateTransactionManager();
         htm.setSessionFactory(sessionFactory);
 
