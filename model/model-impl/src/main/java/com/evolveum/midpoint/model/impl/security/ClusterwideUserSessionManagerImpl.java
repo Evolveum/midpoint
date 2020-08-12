@@ -8,9 +8,9 @@
 package com.evolveum.midpoint.model.impl.security;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.ws.rs.core.Response;
 
 import org.jetbrains.annotations.NotNull;
@@ -64,8 +64,17 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
 
         List<UserSessionManagementType> loggedUsers = guiProfiledPrincipalManager.getLocalLoggedInPrincipals();
 
-        Map<String, UserSessionManagementType> usersMap = loggedUsers.stream()
-                .collect(Collectors.toMap(key -> key.getFocus().getOid(), value -> value));
+        Map<String, UserSessionManagementType> usersMap = new HashMap<>();
+        //fix for mid-6328
+        loggedUsers.forEach(loggedUser -> {
+            UserSessionManagementType addedUser = usersMap.get(loggedUser.getFocus().getOid());
+            if (addedUser != null) {
+                addedUser.setActiveSessions(addedUser.getActiveSessions() + loggedUser.getActiveSessions());
+                addedUser.getNode().addAll(loggedUser.getNode());
+            } else {
+                usersMap.put(loggedUser.getFocus().getOid(), loggedUser);
+            }
+        });
 
         // We try to invoke this call also on nodes that are in transition. We want to get
         // information as complete as realistically possible.
