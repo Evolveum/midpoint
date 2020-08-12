@@ -19,7 +19,6 @@ import javax.xml.datatype.Duration;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.SQLInsertClause;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 
@@ -828,12 +827,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     public long countObjects(String query, Map<String, Object> params) {
-        long[] count = { 0 };
-        Session session = baseHelper.beginTransaction();
-        try {
-            session.setFlushMode(FlushMode.MANUAL);
-            session.doWork(connection -> {
-                Database database = sqlConfiguration().getDatabaseType();
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+            try {
+                Database database = jdbcSession.databaseType();
 
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {
@@ -846,23 +842,25 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
                 LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
 
-                try (PreparedStatement stmt = queryBuilder.build().createPreparedStatement(connection)) {
+                try (PreparedStatement stmt =
+                        queryBuilder.build().createPreparedStatement(jdbcSession.connection())) {
                     ResultSet resultList = stmt.executeQuery();
                     if (!resultList.next()) {
-                        throw new IllegalArgumentException("Result set don't have value for select: " + query);
+                        throw new IllegalArgumentException(
+                                "Result set don't have value for select: " + query);
                     }
                     if (resultList.getMetaData().getColumnCount() > 1) {
-                        throw new IllegalArgumentException("Result have more as one value for select: " + query);
+                        throw new IllegalArgumentException(
+                                "Result have more as one value for select: " + query);
                     }
-                    count[0] = resultList.getLong(1);
+                    return resultList.getLong(1);
                 }
-            });
-        } catch (RuntimeException ex) {
-            baseHelper.handleGeneralRuntimeException(ex, session, null);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
+            } catch (RuntimeException | SQLException ex) {
+                jdbcSession.handleGeneralException(ex, null);
+            }
         }
-        return count[0];
+        // not good, there is not even an operation result to check for error status
+        return 0;
     }
 
     @Override
