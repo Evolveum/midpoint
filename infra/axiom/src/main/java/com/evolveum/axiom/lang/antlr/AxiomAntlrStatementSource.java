@@ -36,7 +36,7 @@ public class AxiomAntlrStatementSource {
         parser.removeErrorListeners();
         AxiomErrorListener errorListener = new AxiomErrorListener(sourceName);
         parser.addErrorListener(errorListener);
-        ItemContext statement = parser.item();
+        ItemContext statement = parser.file().item();
         errorListener.validate();
         return statement;
     }
