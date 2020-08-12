@@ -96,7 +96,7 @@ public class TestNonceAuthenticationEvaluator extends TestAbstractAuthentication
     }
 
     @Override
-    public String getBadPasswordExceptionMessageKey(){
+    public String getEmptyPasswordExceptionMessageKey(){
         return "web.security.provider.nonce.bad";
     }
 }

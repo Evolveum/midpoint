@@ -112,7 +112,7 @@ public class TestSecurityQuestionsAuthenticationEvaluator extends TestAbstractAu
     }
 
     @Override
-    public String getBadPasswordExceptionMessageKey(){
+    public String getEmptyPasswordExceptionMessageKey(){
         return "web.security.provider.securityQuestion.bad";
     }
 }

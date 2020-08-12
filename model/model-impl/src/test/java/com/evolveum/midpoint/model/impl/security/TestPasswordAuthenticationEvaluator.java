@@ -87,7 +87,7 @@ public class TestPasswordAuthenticationEvaluator extends TestAbstractAuthenticat
     }
 
     @Override
-    public String getBadPasswordExceptionMessageKey(){
+    public String getEmptyPasswordExceptionMessageKey(){
         return "web.security.provider.invalid";
     }
 
