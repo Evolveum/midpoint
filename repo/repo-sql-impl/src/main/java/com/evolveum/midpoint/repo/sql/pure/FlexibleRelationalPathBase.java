@@ -51,6 +51,7 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
  */
 public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
 
+    public static final String DEFAULT_SCHEMA_NAME = "PUBLIC";
     private static final long serialVersionUID = -3374516272567011096L;
 
     public FlexibleRelationalPathBase(

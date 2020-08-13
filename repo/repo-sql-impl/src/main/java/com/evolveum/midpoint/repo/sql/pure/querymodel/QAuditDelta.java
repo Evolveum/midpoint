@@ -73,7 +73,7 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
     public final ForeignKey<QAuditEventRecord> auditDeltaFk = createForeignKey(recordId, "ID");
 
     public QAuditDelta(String variable) {
-        this(variable, "PUBLIC", TABLE_NAME);
+        this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
     public QAuditDelta(String variable, String schema, String table) {

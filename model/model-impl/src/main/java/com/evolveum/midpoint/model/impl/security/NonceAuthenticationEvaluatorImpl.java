@@ -31,8 +31,8 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv,
             NonceAuthenticationContext authCtx) {
         if (StringUtils.isBlank(authCtx.getNonce())) {
-            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
-            throw new BadCredentialsException("web.security.provider.password.encoding");
+            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty nonce provided", authCtx.getPrincipalType(), false);
+            throw new BadCredentialsException("web.security.provider.nonce.bad");
         }
     }
 
@@ -51,7 +51,7 @@ public class NonceAuthenticationEvaluatorImpl extends AuthenticationEvaluatorImp
             @NotNull MidPointPrincipal principal, NonceType credential) {
         if (credential.getValue() == null) {
             recordAuthenticationBehavior(principal.getUsername(), principal, connEnv,"no stored password value", principal.getFocus().getClass(), false);
-            throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
+            throw new AuthenticationCredentialsNotFoundException("web.security.provider.nonce.bad");
         }
     }
 

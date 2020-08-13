@@ -14,7 +14,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Properties;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -71,7 +73,18 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
- * @author semancik
+ * Active Directory multidomain test abstract superclass.
+ * This tests configuration of Active Directory forrest with two domains: parent domain and child domain.
+ * Whole forrest is configured as a single resource.
+ *
+ * This is a "live and conservative" conntest.
+ * Which means that it runs on very realy and very live Active Directory forrest.
+ * The AD servers are NOT cleaned and reset after/before test.
+ * The test is carefully built not to destroy the environment.
+ * The test cleans up all the objects that it creates.
+ * In case that the test fails, there is a special cleanup procedure in test000Sanity.
+ *
+ * @author Radovan Semancik
  */
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
@@ -289,7 +302,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     }
 
     protected int getNormalNumberOfLdapConnectorInstances() {
-        return 1;
+        return 2;
     }
 
     protected abstract String getAccountJackSid();
@@ -340,6 +353,15 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     @Test
     public void test000Sanity() throws Exception {
+
+        Properties p = System.getProperties();
+        Enumeration keys = p.keys();
+        while (keys.hasMoreElements()) {
+            String key = (String)keys.nextElement();
+            String value = (String)p.get(key);
+            System.out.println("PROP: " + key + ": " + value);
+        }
+
         assertLdapPassword(ACCOUNT_JACK_SAM_ACCOUNT_NAME, ACCOUNT_JACK_FULL_NAME, ACCOUNT_JACK_PASSWORD);
         cleanupDelete(toAccountDn(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME));
         cleanupDelete(toAccountDn(USER_CPTBARBOSSA_USERNAME, USER_CPTBARBOSSA_FULL_NAME));

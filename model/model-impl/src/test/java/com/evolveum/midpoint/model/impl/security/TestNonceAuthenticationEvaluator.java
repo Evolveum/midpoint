@@ -95,4 +95,8 @@ public class TestNonceAuthenticationEvaluator extends TestAbstractAuthentication
         return CredentialsType.F_NONCE;
     }
 
+    @Override
+    public String getEmptyPasswordExceptionMessageKey(){
+        return "web.security.provider.nonce.bad";
+    }
 }

@@ -41,7 +41,7 @@ public class QAuditItem extends FlexibleRelationalPathBase<MAuditItem> {
     public final ForeignKey<QAuditEventRecord> auditItemFk = createForeignKey(recordId, "ID");
 
     public QAuditItem(String variable) {
-        this(variable, "PUBLIC", TABLE_NAME);
+        this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
     public QAuditItem(String variable, String schema, String table) {

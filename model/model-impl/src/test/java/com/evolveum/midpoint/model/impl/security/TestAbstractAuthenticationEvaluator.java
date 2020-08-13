@@ -78,6 +78,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     public abstract V getGoodPasswordGuybrush();
     public abstract V getBadPasswordGuybrush();
     public abstract V get103EmptyPasswordJack();
+    public abstract String getEmptyPasswordExceptionMessageKey();
 
     public abstract AbstractCredentialType getCredentialUsedForAuthentication(UserType user);
     public abstract QName getCredentialType();
@@ -219,7 +220,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         } catch (BadCredentialsException e) {
             then();
             displayExpectedException(e);
-            assertPasswordEncodingException(e);
+            assertEmptyPasswordException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -246,7 +247,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         } catch (BadCredentialsException e) {
             then();
             displayExpectedException(e);
-            assertPasswordEncodingException(e);
+            assertEmptyPasswordException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -277,7 +278,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         } catch (BadCredentialsException e) {
             then();
             displayExpectedException(e);
-            assertPasswordEncodingException(e);
+            assertEmptyPasswordException(e);
         }
 
     }
@@ -905,6 +906,10 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
     private void assertBadPasswordException(BadCredentialsException e) {
         assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), getTranslatedMessage(e));
+    }
+
+    private void assertEmptyPasswordException(BadCredentialsException e) {
+        assertEquals("Wrong exception meessage (key)", messages.getMessage(getEmptyPasswordExceptionMessageKey()), getTranslatedMessage(e));
     }
 
     private String getTranslatedMessage(Throwable t) {
