@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,6 +15,7 @@ import javax.xml.datatype.Duration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.*;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -541,15 +542,19 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     }
 
     @Override
-    public int countObjects(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+    public int countObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
         throw new UnsupportedOperationException("countObjects not supported");
     }
 
     @Override
     @NotNull
-    public SearchResultList<AuditEventRecordType> searchObjects(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+    public SearchResultList<AuditEventRecordType> searchObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
         throw new UnsupportedOperationException("searchObjects not supported");
     }
 }

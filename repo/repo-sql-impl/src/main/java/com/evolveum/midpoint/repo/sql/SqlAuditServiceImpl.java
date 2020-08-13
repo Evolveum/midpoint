@@ -21,6 +21,7 @@ import com.querydsl.sql.dml.SQLInsertClause;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
@@ -292,7 +293,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 result.recordFatalError("Error while trying to list audit record " + ex.getMessage() + ", attempt: " + attempt, ex);
             }
         }
-
     }
 
     private void listRecordsIterativeAttempt(String query, Map<String, Object> params,
@@ -462,7 +462,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private void reindexEntryAttempt(AuditEventRecord record) {
         Session session = baseHelper.beginTransaction();
         try {
-
             RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, prismContext, null, auditConfiguration);
             //TODO FIXME temporary hack, merge will eventually load the object to the session if there isn't one,
             // but in this case we force loading object because of "objectDeltaOperation". There is some problem probably
@@ -473,7 +472,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             session.merge(rRecord);
 
             session.getTransaction().commit();
-
         } catch (DtoTranslationException ex) {
             baseHelper.handleGeneralCheckedException(ex, session, null);
         } catch (RuntimeException ex) {
@@ -767,7 +765,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     /**
      * This method creates temporary table for cleanup audit method.
      */
-    // Hibernate-based
     private void createTemporaryTable(JdbcSession jdbcSession, final String tempTable) {
         // check if table exists
         if (!sqlConfiguration().isUsingPostgreSQL()) {
@@ -874,10 +871,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     @Override
     public int countObjects(
-            ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult parentResult) {
-
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
         try {
             // TODO MID-6319 do something with the OperationResult... skipped for now
             return sqlQueryExecutor.count(AuditEventRecordType.class, query, options);
@@ -889,9 +885,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @Override
     @NotNull
     public SearchResultList<AuditEventRecordType> searchObjects(
-            ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult parentResult)
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult)
             throws SchemaException {
 
         // TODO MID-6319 do something with the OperationResult... skipped for now
