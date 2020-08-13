@@ -19,7 +19,6 @@ import javax.xml.datatype.Duration;
 import com.querydsl.sql.SQLQuery;
 import com.querydsl.sql.dml.SQLInsertClause;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -441,6 +440,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     // Hibernate-based
     @Override
     public void reindexEntry(AuditEventRecord record) {
+        LOGGER.warn("Audit reindex does nothing now and probably should not be used.");
+        /* TODO: disabled in 2020 during MID-6318, see Javadoc from interface.
+         * Consider removal if it doesn't get proper meaning in some not so distant time.
         final String operation = "reindexEntry";
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
@@ -479,7 +481,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         } finally {
             baseHelper.cleanupSessionAndResult(session, null);
         }
-
+        */
     }
 
     private RObjectType repoObjectType(ResultSet resultList, String columnName)
