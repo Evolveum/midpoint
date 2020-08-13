@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -77,17 +79,10 @@ public class AssignmentCollector {
         LensContext<AH> lensContext = createAuthenticationLensContext(focus, result);
 
         AH focusBean = focus.asObjectable();
-        Collection<AssignmentType> forcedAssignments;
-        try {
-            forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(),
-                    focusBean.getLifecycleState(), objectResolver, prismContext, task, result);
-        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-                | ExpressionEvaluationException e1) {
-            LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", focusBean.getLifecycleState(), e1);
-            forcedAssignments = null;
-        }
+
         Collection<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
 
+        Collection<AssignmentType> forcedAssignments = collectForcedAssignments(focusBean, lensContext.getFocusContext().getLifecycleModel(), task, result);
         if (!focusBean.getAssignment().isEmpty() || forcedAssignments != null) {
             AssignmentEvaluator.Builder<AH> builder =
                     new AssignmentEvaluator.Builder<AH>()
@@ -158,6 +153,17 @@ public class AssignmentCollector {
         ArchetypePolicyType policyConfigurationType = determineObjectPolicyConfiguration(user, result);
         lensContext.getFocusContext().setArchetypePolicyType(policyConfigurationType);
         return lensContext;
+    }
+
+    private <AH extends AssignmentHolderType> Collection<AssignmentType> collectForcedAssignments(AH focusBean, LifecycleStateModelType lifecycleModel, Task task, OperationResult result) {
+        try {
+            return LensUtil.getForcedAssignments(lifecycleModel,
+                    focusBean.getLifecycleState(), objectResolver, prismContext, task, result);
+        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
+                | ExpressionEvaluationException | SchemaException e) {
+            LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", focusBean.getLifecycleState(), e);
+            return null;
+        }
     }
 
     private <AH extends AssignmentHolderType> ArchetypePolicyType determineObjectPolicyConfiguration(PrismObject<AH> user, OperationResult result) throws SchemaException {

@@ -88,6 +88,8 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      */
     private final boolean isAssignment;
 
+    private final boolean isHierarchy;
+
     /**
      * Resolved target object. (Can be null if there's no target or if the target was not resolved yet.)
      */
@@ -240,6 +242,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
                 builder.isMatchingOrderForTarget : computeMatchingOrder(evaluationOrderForTarget, assignment);
         lastEqualOrderSegmentIndex = builder.lastEqualOrderSegmentIndex;
         varThisObject = builder.varThisObject;
+        isHierarchy = builder.isHierarchy;
     }
 
     private boolean computeMatchingOrder(EvaluationOrder evaluationOrder, AssignmentType assignment) {
@@ -256,6 +259,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         this.assignment = origin.assignment;
         this.relation = origin.relation;
         this.isAssignment = origin.isAssignment;
+        this.isHierarchy = origin.isHierarchy;
         this.target = target;
         this.direct = origin.direct;
         this.pathToSourceActive = origin.pathToSourceActive;
@@ -274,6 +278,10 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     @Override
     public boolean isAssignment() {
         return isAssignment;
+    }
+
+    public boolean isHierarchy() {
+        return isHierarchy;
     }
 
     public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
@@ -611,6 +619,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi;
         private boolean evaluateOld;
         private boolean isAssignment;
+        private boolean isHierarchy;
         private ObjectType target;
         private boolean direct;
         private boolean pathToSourceActive;
@@ -670,6 +679,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
         public Builder isAssignment(boolean val) {
             isAssignment = val;
+            return this;
+        }
+
+        public Builder isHierarchy(boolean val) {
+            isHierarchy = val;
             return this;
         }
 
