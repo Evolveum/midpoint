@@ -26,6 +26,7 @@ import org.springframework.stereotype.Component;
 
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -63,9 +64,17 @@ public class ClusterwideUserSessionManagerImpl implements ClusterwideUserSession
 
         List<UserSessionManagementType> loggedUsers = localUserProfileService.getLocalLoggedInPrincipals();
 
-        Map<String, UserSessionManagementType> usersMap = loggedUsers.stream()
-                .collect(Collectors.toMap(key -> key.getUser().getOid(), value -> value));
-
+        Map<String, UserSessionManagementType> usersMap = new HashMap<>();
+        //fix for mid-6328
+        loggedUsers.forEach(loggedUser -> {
+            UserSessionManagementType addedUser = usersMap.get(loggedUser.getUser().getOid());
+            if (addedUser != null) {
+                addedUser.setActiveSessions(addedUser.getActiveSessions() + loggedUser.getActiveSessions());
+                addedUser.getNode().addAll(loggedUser.getNode());
+            } else {
+                usersMap.put(loggedUser.getUser().getOid(), loggedUser);
+            }
+        });
         // We try to invoke this call also on nodes that are in transition. We want to get
         // information as complete as realistically possible.
         clusterExecutionHelper.execute((client, result1) -> {
