@@ -125,7 +125,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
             @Override
             protected List<InlineMenuItem> createAssignmentMenu() {
                 List<InlineMenuItem> items = new ArrayList<>();
-                InlineMenuItem item = new InlineMenuItem(createStringResource("AssignmentTablePanel.menu.unassign")) {
+                InlineMenuItem item = new InlineMenuItem(createStringResource("PageAssignmentsList.deleteAllItemsFromShoppingCart")) {
                     private static final long serialVersionUID = 1L;
 
                     @Override

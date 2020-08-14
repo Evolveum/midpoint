@@ -118,6 +118,7 @@ public abstract class AbstractRoleMainPanel<R extends AbstractRoleType> extends 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(getObject().asObjectable(), UserDtoStatus.ADD, parentPage);
+                dto.setSimpleView(true);
                 storage.getAssignmentShoppingCart().add(dto);
                 parentPage.redirectBack();
             }
