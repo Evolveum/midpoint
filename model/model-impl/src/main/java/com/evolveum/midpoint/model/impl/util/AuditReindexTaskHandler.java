@@ -1,10 +1,20 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.util;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.PostConstruct;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
@@ -22,16 +32,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskPartitionDefinitionType;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
 
 @Component
 public class AuditReindexTaskHandler implements TaskHandler {
@@ -59,14 +59,12 @@ public class AuditReindexTaskHandler implements TaskHandler {
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
 
-        final long expectedTotal = auditService.countObjects("select count(*) from RAuditEventRecord as aer where 1=1", null);
+        final long expectedTotal = auditService.countObjects(null, null, null);
         AuditResultHandler resultHandler = new AuditResultHandler() {
-
-            private AtomicInteger processedObjects =  new AtomicInteger();
+            private final AtomicInteger processedObjects = new AtomicInteger();
 
             @Override
             public boolean handle(AuditEventRecord auditRecord) {
-
                 auditService.reindexEntry(auditRecord);
                 processedObjects.incrementAndGet();
 
@@ -97,6 +95,9 @@ public class AuditReindexTaskHandler implements TaskHandler {
             while (true) {
                 params.put("setFirstResult", firstResult);
                 params.put("setMaxResults", maxResults);
+                // TODO MID-6319: to migrate this to searchObjects returning AERType?
+                // BUT AERType does NOT contain repository identifier, which would make it
+                // complicated or inefficient to work with persistent audit records.
                 List<AuditEventRecord> records = auditService.listRecords(null, params, opResult);
                 if (CollectionUtils.isNotEmpty(records)) {
                     for (AuditEventRecord record : records) {
@@ -179,5 +180,4 @@ public class AuditReindexTaskHandler implements TaskHandler {
         runResult.setRunResultStatus(status);
         runResult.setProgress((long) resultHandler.getProgress());
     }
-
 }

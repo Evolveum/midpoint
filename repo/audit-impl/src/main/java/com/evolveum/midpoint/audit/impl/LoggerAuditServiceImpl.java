@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -187,15 +188,19 @@ public class LoggerAuditServiceImpl implements AuditService {
     }
 
     @Override
-    public int countObjects(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+    public int countObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
         throw new UnsupportedOperationException("countObjects not supported");
     }
 
     @Override
     @NotNull
-    public SearchResultList<AuditEventRecordType> searchObjects(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+    public SearchResultList<AuditEventRecordType> searchObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
         throw new UnsupportedOperationException("searchObjects not supported");
     }
 }

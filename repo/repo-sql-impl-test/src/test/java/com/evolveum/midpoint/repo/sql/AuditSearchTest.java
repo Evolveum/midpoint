@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -1099,7 +1098,16 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 .asc(AuditEventRecordType.F_TIMESTAMP)
                 .build());
 
-        then("count all records is returned, order is ignored");
+        then("count of all records is returned, order is ignored");
+        assertThat(result).isEqualTo(3);
+    }
+
+    @Test
+    public void test930CountWithAllParametersNull() {
+        when("counting audit objects with all parameters null");
+        int result = auditService.countObjects(null, null, null);
+
+        then("count of all records is returned");
         assertThat(result).isEqualTo(3);
     }
 
@@ -1113,7 +1121,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 .maxSize(1)
                 .build());
 
-        then("count all records is returned, paging is ignored");
+        then("count of all records is returned, paging is ignored");
         assertThat(result).isEqualTo(3);
     }
 
