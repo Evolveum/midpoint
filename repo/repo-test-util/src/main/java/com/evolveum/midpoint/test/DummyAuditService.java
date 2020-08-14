@@ -228,10 +228,12 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         return deltas.iterator().next();
     }
 
-    public <O extends ObjectType> ObjectDeltaOperation<O> getExecutionDelta(int index, ChangeType changeType, Class<O> typeClass) {
+    public <O extends ObjectType> ObjectDeltaOperation<O> getExecutionDelta(
+            int index, ChangeType changeType, Class<O> typeClass) {
         for (ObjectDeltaOperation<? extends ObjectType> deltaOp : getExecutionDeltas(index)) {
             ObjectDelta<? extends ObjectType> delta = deltaOp.getObjectDelta();
             if (delta.getObjectTypeClass() == typeClass && delta.getChangeType() == changeType) {
+                //noinspection unchecked
                 return (ObjectDeltaOperation<O>) deltaOp;
             }
         }
@@ -373,18 +375,24 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assertTarget(expectedOid, AuditEventStage.EXECUTION);
     }
 
-    public <O extends ObjectType, T> void assertPropertyReplace(
-            ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertPropertyReplace(
+            ChangeType expectedChangeType, Class<O> expectedClass,
+            ItemPath propPath, T... expectedValues) {
         assertPropertyReplace(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertPropertyReplace(
-            int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertPropertyReplace(
+            int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         assertPropertyReplace(null, index, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertPropertyReplace(
-            String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertPropertyReplace(
+            String message, int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
 
         ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
         assert deltaOp != null : (message == null ? ""
@@ -408,18 +416,23 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         PrismAsserts.assertValues((message == null ? "" : message + ": ") + "Wrong values to replace in property delta for " + propPath + " in Delta for " + expectedClass + " of type " + expectedChangeType, valuesToReplace, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertOldValue(
-            ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertOldValue(ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         assertOldValue(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertOldValue(
-            int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertOldValue(
+            int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         assertOldValue(null, index, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertOldValue(
-            String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertOldValue(
+            String message, int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
         assert deltaOp != null
                 : (message == null ? "" : message + ": ") + "Delta for " + expectedClass +
