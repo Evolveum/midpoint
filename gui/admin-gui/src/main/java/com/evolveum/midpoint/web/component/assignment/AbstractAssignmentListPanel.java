@@ -6,6 +6,16 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -17,14 +27,6 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-
-import java.util.*;
-
-import javax.xml.namespace.QName;
 
 /**
  * Created by honchar.
@@ -66,7 +68,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                deleteAssignmentConfirmedPerformed(target, getAssignmentListToProcess(dto));
+                deleteAssignmentConfirmedPerformed(target, dto);
                 reloadMainFormButtons(target);
             }
         };
@@ -96,16 +98,22 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
         }
     }
 
-    protected void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target,
-            List<AssignmentEditorDto> toDelete) {
+    protected void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, AssignmentEditorDto dto) {
         List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
-
-        for (AssignmentEditorDto assignment : toDelete) {
-            if (UserDtoStatus.ADD.equals(assignment.getStatus())) {
-                assignments.remove(assignment);
-            } else {
-                assignment.setStatus(UserDtoStatus.DELETE);
-                assignment.setSelected(false);
+        if (dto != null){
+            assignments.remove(dto);
+        } else {
+            Iterator<AssignmentEditorDto> it = assignments.iterator();
+            while (it.hasNext()){
+                AssignmentEditorDto assignmentEditorDto = it.next();
+                if (assignmentEditorDto.isSelected()){
+                    if (UserDtoStatus.ADD.equals(assignmentEditorDto.getStatus())) {
+                        it.remove();
+                    } else {
+                        assignmentEditorDto.setStatus(UserDtoStatus.DELETE);
+                        assignmentEditorDto.setSelected(false);
+                    }
+                }
             }
         }
         target.add(getPageBase().getFeedbackPanel());

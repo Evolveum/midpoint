@@ -135,6 +135,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase{
 
                             @Override
                             public void onClick(AjaxRequestTarget target) {
+                                getModelObject().forEach(assignmentEditorDto -> assignmentEditorDto.setSelected(true));
                                 deleteAssignmentPerformed(target, null);
                             }
                         };
