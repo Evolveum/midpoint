@@ -95,7 +95,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
             while (true) {
                 params.put("setFirstResult", firstResult);
                 params.put("setMaxResults", maxResults);
-                // TODO MID-6319: to migrate this to searchObjects we need to work with AERType, not AER
+                // TODO MID-6319: to migrate this to searchObjects returning AERType?
                 // BUT AERType does NOT contain repository identifier, which would make it
                 // complicated or inefficient to work with persistent audit records.
                 List<AuditEventRecord> records = auditService.listRecords(null, params, opResult);

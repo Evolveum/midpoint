@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.COLUMN_RECORD_ID;
 import static com.evolveum.midpoint.repo.sql.data.audit.RAuditReferenceValue.TABLE_NAME;
+import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditRefValue.*;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -156,14 +156,14 @@ public class RAuditReferenceValue implements EntityState {
                 queryBuilder.addParameter(TARGET_NAME_ORIG_COLUMN_NAME, value.getTargetName().getOrig());
                 queryBuilder.addParameter(TARGET_NAME_NORM_COLUMN_NAME, value.getTargetName().getNorm());
             } else {
-                queryBuilder.addNullParameter(TARGET_NAME_ORIG_COLUMN_NAME);
-                queryBuilder.addNullParameter(TARGET_NAME_NORM_COLUMN_NAME);
+                queryBuilder.addNullParameter(TARGET_NAME_ORIG);
+                queryBuilder.addNullParameter(TARGET_NAME_NORM.getName());
             }
         } else {
-            queryBuilder.addNullParameter(OID_COLUMN_NAME);
-            queryBuilder.addNullParameter(TYPE_COLUMN_NAME);
-            queryBuilder.addNullParameter(TARGET_NAME_ORIG_COLUMN_NAME);
-            queryBuilder.addNullParameter(TARGET_NAME_NORM_COLUMN_NAME);
+            queryBuilder.addNullParameter(OID.getName());
+            queryBuilder.addNullParameter(TYPE.getName());
+            queryBuilder.addNullParameter(TARGET_NAME_ORIG.getName());
+            queryBuilder.addNullParameter(TARGET_NAME_NORM.getName());
         }
         return queryBuilder.build();
     }
@@ -174,13 +174,13 @@ public class RAuditReferenceValue implements EntityState {
 
     public static AuditReferenceValue fromRepo(ResultSet resultSet) throws SQLException {
         PolyString targetName = null;
-        if (resultSet.getString(TARGET_NAME_ORIG_COLUMN_NAME) != null
-                || resultSet.getString(TARGET_NAME_NORM_COLUMN_NAME) != null) {
-            targetName = new PolyString(resultSet.getString(TARGET_NAME_ORIG_COLUMN_NAME),
-                    resultSet.getString(TARGET_NAME_NORM_COLUMN_NAME));
+        if (resultSet.getString(TARGET_NAME_ORIG.getName()) != null
+                || resultSet.getString(TARGET_NAME_NORM.getName()) != null) {
+            targetName = new PolyString(resultSet.getString(TARGET_NAME_ORIG.getName()),
+                    resultSet.getString(TARGET_NAME_NORM.getName()));
         }
-        return new AuditReferenceValue(resultSet.getString(OID_COLUMN_NAME),
-                RUtil.stringToQName(resultSet.getString(TYPE_COLUMN_NAME)), targetName);
+        return new AuditReferenceValue(resultSet.getString(OID.getName()),
+                RUtil.stringToQName(resultSet.getString(TYPE.getName())), targetName);
     }
 
     @Override
