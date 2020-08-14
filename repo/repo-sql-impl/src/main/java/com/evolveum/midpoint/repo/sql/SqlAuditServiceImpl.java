@@ -54,6 +54,7 @@ import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.*;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.AuditEventRecordSqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
@@ -98,7 +99,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private final SqlQueryExecutor sqlQueryExecutor;
 
-    private final Map<String, String> customColumn = new HashMap<>();
+    // maps from property names to column names
+    private final Map<String, String> customColumns = new HashMap<>();
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
@@ -141,10 +143,12 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private void auditAttempt(AuditEventRecord record) {
         try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
             try {
-                SingleSqlQuery query = createAuditInsertStatement(record, customColumn);
-                Database database = sqlConfiguration().getDatabaseType();
-                String[] keyColumn = { QAuditEventRecord.ID.getName() };
+                // TODO use new version with Querydsl insert
+//                long id = insertAuditEventRecord(jdbcSession, record);
+
                 Connection connection = jdbcSession.connection();
+                SingleSqlQuery query = createAuditInsertStatement(record);
+                String[] keyColumn = { QAuditEventRecord.ID.getName() };
                 PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
                 Long id = null;
                 try {
@@ -162,6 +166,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     throw new IllegalArgumentException("Returned id of new record is null");
                 }
 
+                Database database = sqlConfiguration().getDatabaseType();
                 BatchSqlQuery deltaBatchQuery = new BatchSqlQuery(database);
                 BatchSqlQuery itemBatchQuery = new BatchSqlQuery(database);
 
@@ -177,7 +182,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                                 path, objectDelta.getObjectTypeClass());
                         for (int i = 0; i < canonical.size(); i++) {
 
-                            SingleSqlQuery itemQuery = RAuditItem.toRepo(
+                            SingleSqlQuery itemQuery = createAuditItemInsertStatement(
                                     id, canonical.allUpToIncluding(i).asString());
                             itemBatchQuery.addQueryForBatch(itemQuery);
                         }
@@ -233,14 +238,30 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 if (!resourceOidBatchQuery.isEmpty()) {
                     resourceOidBatchQuery.execute(connection);
                 }
-            } catch (DtoTranslationException | RuntimeException | SQLException ex) {
+            } catch (RuntimeException | SQLException | DtoTranslationException ex) {
                 jdbcSession.handleGeneralException(ex, null);
             }
         }
     }
 
+    private Long insertAuditEventRecord(
+            JdbcSession jdbcSession, AuditEventRecord record) {
+        AuditEventRecordSqlTransformer transformer =
+                new AuditEventRecordSqlTransformer(prismContext);
+        QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
+        SQLInsertClause insert = jdbcSession.insert(aer)
+                .populate(transformer.from(record));
+
+        if (!customColumns.isEmpty()) {
+            // TODO add custom columns
+        }
+
+        return insert.executeWithKey(aer.id);
+    }
+
+    @Deprecated // TODO remove after treating custom columns above
     private SingleSqlQuery createAuditInsertStatement(
-            AuditEventRecord record, Map<String, String> customColumn)
+            AuditEventRecord record)
             throws DtoTranslationException {
         Objects.requireNonNull(record, "Audit event record must not be null.");
         InsertQueryBuilder insertBuilder = new InsertQueryBuilder(QAuditEventRecord.TABLE_NAME);
@@ -295,14 +316,14 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 insertBuilder.addParameter(ATTORNEY_OID, attorney.getOid());
             }
 
-            if (!customColumn.isEmpty()) {
+            if (!customColumns.isEmpty()) {
                 for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
-                    if (!customColumn.containsKey(property.getKey())) {
+                    if (!customColumns.containsKey(property.getKey())) {
                         throw new IllegalArgumentException("Audit event record table doesn't"
                                 + " contains column for property " + property.getKey());
                     }
                     insertBuilder.addParameter(
-                            customColumn.get(property.getKey()), property.getValue());
+                            customColumns.get(property.getKey()), property.getValue());
                 }
             }
 
@@ -324,6 +345,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
         PolyString name = refval.getTargetName();
         return name != null ? name.getOrig() : null;
+    }
+
+    private SingleSqlQuery createAuditItemInsertStatement(Long recordId, String itemPath) {
+        InsertQueryBuilder queryBuilder = new InsertQueryBuilder(QAuditItem.TABLE_NAME);
+        queryBuilder.addParameter(QAuditItem.CHANGED_ITEM_PATH, itemPath, true);
+        queryBuilder.addParameter(QAuditItem.RECORD_ID, recordId, true);
+        return queryBuilder.build();
     }
 
     @Override
@@ -447,8 +475,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             ResultSet resultList, JdbcSession jdbcSession, OperationResult result)
             throws SQLException {
         AuditEventRecord audit = RAuditEventRecord.fromRepo(resultList);
-        if (!customColumn.isEmpty()) {
-            for (Entry<String, String> property : customColumn.entrySet()) {
+        if (!customColumns.isEmpty()) {
+            for (Entry<String, String> property : customColumns.entrySet()) {
                 audit.getCustomColumnProperty().put(property.getKey(), resultList.getString(property.getValue()));
             }
         }
@@ -876,8 +904,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 .limit(CLEANUP_AUDIT_BATCH_SIZE);
 
         QAuditTemp tmp = new QAuditTemp("tmp", tempTable);
-        SQLInsertClause insert = jdbcSession.insert(tmp).select(populateQuery);
-        System.out.println(insert);
         return (int) jdbcSession.insert(tmp).select(populateQuery).execute();
     }
 
@@ -903,8 +929,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 .limit(recordsToDelete);
 
         QAuditTemp tmp = new QAuditTemp("tmp", tempTable);
-        SQLInsertClause insert = jdbcSession.insert(tmp).select(populateQuery);
-        System.out.println(insert);
         return (int) jdbcSession.insert(tmp).select(populateQuery).execute();
     }
 
@@ -1007,8 +1031,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         return true;
     }
 
-    public Map<String, String> getCustomColumn() {
-        return customColumn;
+    public Map<String, String> getCustomColumns() {
+        return customColumns;
     }
 
     @Override

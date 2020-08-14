@@ -156,6 +156,11 @@ public class JdbcSession implements AutoCloseable {
         return new SQLQuery<>(connection, querydslConfiguration);
     }
 
+    /**
+     * Starts insert clause for specified entity.
+     * Check <a href="http://www.querydsl.com/static/querydsl/4.1.3/reference/html_single/#d0e1316">Querydsl docs on insert</a>
+     * for more about various ways how to use it.
+     */
     public SQLInsertClause insert(RelationalPath<?> entity) {
         return new SQLInsertClause(connection, querydslConfiguration, entity);
     }

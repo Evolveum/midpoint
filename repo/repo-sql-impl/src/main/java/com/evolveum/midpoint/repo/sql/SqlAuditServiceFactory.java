@@ -68,7 +68,7 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
                         subConfigColumn, CONF_AUDIT_SERVICE_COLUMN_NAME);
                 String eventRecordPropertyName = getStringFromConfig(
                         subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
-                auditService.getCustomColumn().put(eventRecordPropertyName, columnName);
+                auditService.getCustomColumns().put(eventRecordPropertyName, columnName);
             }
         } catch (RepositoryServiceFactoryException ex) {
             throw new AuditServiceFactoryException(ex.getMessage(), ex);

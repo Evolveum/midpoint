@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,16 +7,11 @@
 package com.evolveum.midpoint.repo.sql.data;
 
 import java.math.BigDecimal;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.sql.Types;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.audit.api.AuditEventStage;
@@ -36,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
  */
 public abstract class SqlQuery {
 
-    private List<Integer> primaryKeys = new ArrayList<Integer>();
+    private List<Integer> primaryKeys = new ArrayList<>();
     private Database database = Database.H2;
 
     public abstract PreparedStatement createPreparedStatement(Connection con) throws SQLException;
@@ -44,7 +39,7 @@ public abstract class SqlQuery {
     public abstract void execute(Connection connection) throws SQLException;
 
     protected Object toRepoType(Object value) {
-        if(value == null){
+        if (value == null) {
             return value;
         }
 
@@ -53,7 +48,7 @@ public abstract class SqlQuery {
             return new Timestamp(date.getTime());
 
         } else if (value instanceof Date) {
-            return new Timestamp(((Date)value).getTime());
+            return new Timestamp(((Date) value).getTime());
 
         } else if (value instanceof AuditEventType) {
             return RAuditEventType.toRepo((AuditEventType) value).ordinal();
@@ -83,25 +78,25 @@ public abstract class SqlQuery {
         return value;
     }
 
-    protected void addParametersToStatment(Map<Integer, Object> parameters, PreparedStatement stmt) throws SQLException {
-        for(int index : parameters.keySet()) {
+    protected void addParametersToStatement(Map<Integer, Object> parameters, PreparedStatement stmt) throws SQLException {
+        for (int index : parameters.keySet()) {
             Object value = toRepoType(parameters.get(index));
             if (value == null) {
                 stmt.setObject(index, value, Types.NULL);
             }
             if (value instanceof String) {
                 stmt.setString(index, (String) value);
-            } else if(value instanceof Integer) {
+            } else if (value instanceof Integer) {
                 stmt.setInt(index, (int) value);
             } else if (value instanceof Timestamp) {
                 stmt.setTimestamp(index, (Timestamp) value);
-            } else if(value instanceof Long) {
-                if(database.equals(Database.ORACLE)) {
+            } else if (value instanceof Long) {
+                if (database.equals(Database.ORACLE)) {
                     stmt.setBigDecimal(index, BigDecimal.valueOf((long) value));
                 } else {
                     stmt.setLong(index, (long) value);
                 }
-            } else if(value instanceof byte[]) {
+            } else if (value instanceof byte[]) {
                 stmt.setBytes(index, (byte[]) value);
             } else {
                 stmt.setObject(index, value);

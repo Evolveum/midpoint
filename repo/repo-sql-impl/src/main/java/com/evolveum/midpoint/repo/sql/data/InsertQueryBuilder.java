@@ -52,6 +52,10 @@ public class InsertQueryBuilder {
         addParameter(nameOfParameter, value, false);
     }
 
+    public void addParameter(ColumnMetadata column, Object value, boolean isPrimaryKey) {
+        addParameter(column.getName(), value, isPrimaryKey);
+    }
+
     public void addParameter(String nameOfParameter, Object value, boolean isPrimaryKey) {
         sbQuery.append(parameters.isEmpty() ? "" : ", ").append(nameOfParameter);
         sbValues.append(parameters.isEmpty() ? "" : ", ").append("?");

@@ -21,38 +21,34 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
  */
 public class BatchSqlQuery extends SqlQuery {
 
-    public BatchSqlQuery() {
-    }
+    private final Set<SingleSqlQuery> queriesForBatch = new HashSet<>();
+    private String query;
 
     public BatchSqlQuery(Database database) {
         setDatabase(database);
     }
 
-    private String query;
-    Set<SingleSqlQuery> queriesForBatch = new HashSet<SingleSqlQuery>();
-
     public void addQueryForBatch(SingleSqlQuery sqlQuery) {
-        if(query == null) {
+        if (query == null) {
             query = sqlQuery.getQuery();
             setPrimaryKeys(sqlQuery.getPrimaryKeys());
-        } else if(!query.equals(sqlQuery.getQuery())) {
+        } else if (!query.equals(sqlQuery.getQuery())) {
             throw new IllegalArgumentException("SingleSqlQuery added to BatchQuery have different query");
         }
         queriesForBatch.add(sqlQuery);
-
     }
 
     @Override
     public PreparedStatement createPreparedStatement(Connection con) throws SQLException {
-        if(StringUtils.isBlank(query)) {
+        if (StringUtils.isBlank(query)) {
             throw new IllegalArgumentException("Query is empty");
         }
         PreparedStatement stmt = con.prepareStatement(query);
-        Set<SingleSqlQuery> usedSqlQuery = new HashSet<SingleSqlQuery>();
-        for(SingleSqlQuery sqlQuery : queriesForBatch) {
-            if(isUnique(sqlQuery, usedSqlQuery)){
+        Set<SingleSqlQuery> usedSqlQuery = new HashSet<>();
+        for (SingleSqlQuery sqlQuery : queriesForBatch) {
+            if (isUnique(sqlQuery, usedSqlQuery)) {
                 stmt.clearParameters();
-                addParametersToStatment(sqlQuery.getParameters(), stmt);
+                addParametersToStatement(sqlQuery.getParameters(), stmt);
                 stmt.addBatch();
                 usedSqlQuery.add(sqlQuery);
             }
@@ -61,23 +57,23 @@ public class BatchSqlQuery extends SqlQuery {
     }
 
     private boolean isUnique(SingleSqlQuery sqlQuery, Set<SingleSqlQuery> usedSqlQueries) {
-        if(getPrimaryKeys().isEmpty()) {
+        if (getPrimaryKeys().isEmpty()) {
             return true;
         }
-        for(SingleSqlQuery usedSqlQuery : usedSqlQueries) {
+        for (SingleSqlQuery usedSqlQuery : usedSqlQueries) {
             boolean allIsSame = true;
-            for(int primaryKey : getPrimaryKeys()) {
-                if(sqlQuery.getParameters().size() < primaryKey || usedSqlQuery.getParameters().size() < primaryKey) {
+            for (int primaryKey : getPrimaryKeys()) {
+                if (sqlQuery.getParameters().size() < primaryKey || usedSqlQuery.getParameters().size() < primaryKey) {
                     throw new IllegalArgumentException("Size of list of parameters in added query is less as index of primaryKey");
                 }
-                if(sqlQuery.getParameters().get(primaryKey) == null || usedSqlQuery.getParameters().get(primaryKey) == null) {
+                if (sqlQuery.getParameters().get(primaryKey) == null || usedSqlQuery.getParameters().get(primaryKey) == null) {
                     throw new IllegalArgumentException("Value of primaryKey is null");
                 }
-                if(!sqlQuery.getParameters().get(primaryKey).equals(usedSqlQuery.getParameters().get(primaryKey))) {
+                if (!sqlQuery.getParameters().get(primaryKey).equals(usedSqlQuery.getParameters().get(primaryKey))) {
                     allIsSame = false;
                 }
             }
-            if(allIsSame) {
+            if (allIsSame) {
                 return false;
             }
         }
@@ -100,5 +96,4 @@ public class BatchSqlQuery extends SqlQuery {
     public boolean isEmpty() {
         return queriesForBatch.isEmpty();
     }
-
 }

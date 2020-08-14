@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
@@ -174,5 +176,64 @@ public class AuditEventRecordSqlTransformer
         return status != null
                 ? status.getSchemaValue()
                 : null;
+    }
+
+    /**
+     * Transforms {@link AuditEventRecord} to {@link MAuditEventRecord} without any subentities.
+     */
+    public MAuditEventRecord from(AuditEventRecord record) {
+        MAuditEventRecord bean = new MAuditEventRecord();
+        bean.id = record.getRepoId(); // this better be null if we want to insert
+        bean.eventIdentifier = record.getEventIdentifier();
+        bean.timestamp = MiscUtil.asInstant(record.getTimestamp());
+        bean.channel = record.getChannel();
+        bean.eventStage = MiscUtil.enumOrdinal(RAuditEventStage.toRepo(record.getEventStage()));
+        bean.eventType = MiscUtil.enumOrdinal(RAuditEventType.toRepo(record.getEventType()));
+        bean.hostIdentifier = record.getHostIdentifier();
+
+        PrismReferenceValue attorney = record.getAttorneyRef();
+        if (attorney != null) {
+            bean.attorneyName = attorney.getDescription();
+            bean.attorneyOid = attorney.getOid();
+        }
+
+        PrismReferenceValue initiator = record.getInitiatorRef();
+        if (initiator != null) {
+            bean.initiatorName = initiator.getDescription();
+            bean.initiatorOid = initiator.getOid();
+            bean.initiatorType = targetTypeToRepoOrdinal(initiator);
+        }
+
+        bean.message = record.getMessage();
+        bean.nodeIdentifier = record.getNodeIdentifier();
+        bean.outcome = MiscUtil.enumOrdinal(ROperationResultStatus.from(record.getOutcome()));
+        bean.parameter = record.getParameter();
+        bean.remoteHostAddress = record.getRemoteHostAddress();
+        bean.requestIdentifier = record.getRequestIdentifier();
+        bean.result = record.getResult();
+        bean.sessionIdentifier = record.getSessionIdentifier();
+
+        PrismReferenceValue target = record.getTargetRef();
+        if (target != null) {
+            bean.targetName = target.getDescription();
+            bean.targetOid = target.getOid();
+            bean.targetType = targetTypeToRepoOrdinal(target);
+        }
+        PrismReferenceValue targetOwner = record.getTargetOwnerRef();
+        if (targetOwner != null) {
+            bean.targetOwnerName = targetOwner.getDescription();
+            bean.targetOwnerOid = targetOwner.getOid();
+            bean.targetOwnerType = targetTypeToRepoOrdinal(targetOwner);
+        }
+        bean.taskIdentifier = record.getTaskIdentifier();
+        bean.taskOid = record.getTaskOid();
+        return bean;
+    }
+
+    private Integer targetTypeToRepoOrdinal(PrismReferenceValue targetOwner) {
+        //noinspection rawtypes
+        Class objectClass = prismContext.getSchemaRegistry().determineClassForType(targetOwner.getTargetType());
+        //noinspection unchecked
+        return MiscUtil.enumOrdinal(RObjectType.getByJaxbType(objectClass));
     }
 }
