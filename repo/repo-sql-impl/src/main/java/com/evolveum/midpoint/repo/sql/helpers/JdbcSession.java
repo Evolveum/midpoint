@@ -37,7 +37,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * <p>
  * Provides convenient methods for handling exceptions and {@link OperationResult}s.
  * <p>
- * TODO MID-6318 - review this decision:
  * All {@link SQLException}s are translated to {@link SystemException}.
  */
 public class JdbcSession implements AutoCloseable {

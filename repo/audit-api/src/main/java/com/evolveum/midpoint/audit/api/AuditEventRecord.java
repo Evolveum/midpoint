@@ -613,6 +613,7 @@ public class AuditEventRecord implements DebugDumpable {
             referenceEntry.getValue().forEach(v -> referenceType.getValue().add(v.toXml()));
             auditRecordType.getReference().add(referenceType);
         }
+        // TODO MID-5531 convert custom properties too? What about other than string types?
         return auditRecordType;
     }
 
