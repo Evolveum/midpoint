@@ -35,9 +35,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * Custom configuration (factory) for embedded tomcat factory.
  * This is necessary, as the tomcat factory is hacking tomcat setup.
- * @see MidPointTomcatServletWebServerFactory
  *
  * @author semancik
+ * @see MidPointTomcatServletWebServerFactory
  */
 @AutoConfigureOrder(Ordered.HIGHEST_PRECEDENCE)
 @Configuration
@@ -53,13 +53,13 @@ public class EmbeddedTomcatAutoConfiguration {
     @ConditionalOnMissingBean(value = TomcatServletWebServerFactory.class, search = SearchStrategy.CURRENT)
     public static class EmbeddedTomcat {
 
-        @Value( "${server.tomcat.ajp.enabled:false}" )
+        @Value("${server.tomcat.ajp.enabled:false}")
         private boolean enableAjp;
 
-        @Value( "${server.tomcat.ajp.port:9090}" )
+        @Value("${server.tomcat.ajp.port:9090}")
         private int port;
 
-        @Value( "${server.tomcat.ajp.secret:}" )
+        @Value("${server.tomcat.ajp.secret:}")
         private String secret;
 
         @Value("${server.servlet.context-path}")
@@ -72,9 +72,9 @@ public class EmbeddedTomcatAutoConfiguration {
         public TomcatServletWebServerFactory tomcatEmbeddedServletContainerFactory() {
             MidPointTomcatServletWebServerFactory tomcat = new MidPointTomcatServletWebServerFactory(contextPath, systemObjectCache);
 
-            if(enableAjp) {
+            if (enableAjp) {
                 Connector ajpConnector = new Connector("AJP/1.3");
-                AjpNioProtocol protocol = (AjpNioProtocol)ajpConnector.getProtocolHandler();
+                AjpNioProtocol protocol = (AjpNioProtocol) ajpConnector.getProtocolHandler();
                 protocol.setSecret(secret);
                 ajpConnector.setPort(port);
                 ajpConnector.setSecure(false);
