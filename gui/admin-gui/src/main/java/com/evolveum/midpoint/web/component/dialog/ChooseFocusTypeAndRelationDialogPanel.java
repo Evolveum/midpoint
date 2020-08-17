@@ -72,7 +72,7 @@ public class ChooseFocusTypeAndRelationDialogPanel extends BasePanel implements 
 //            optionsMap.put("nonSelectedText", createStringResource("LoggingConfigPanel.appenders.Inherit").getString());
             options.setObject(optionsMap);
         ListMultipleChoicePanel<QName> relation = new ListMultipleChoicePanel<QName>(ID_RELATION, new ListModel<>(),
-                new ListModel<QName>(getSupportedRelations()), new QNameObjectTypeChoiceRenderer(), options);
+                new ListModel<QName>(getSupportedRelations()), WebComponentUtil.getRelationChoicesRenderer(getPageBase()), options);
         relation.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         relation.setOutputMarkupId(true);
         add(relation);
