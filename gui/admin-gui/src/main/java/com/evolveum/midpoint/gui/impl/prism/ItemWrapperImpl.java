@@ -267,11 +267,17 @@ public abstract class ItemWrapperImpl<PV extends PrismValue, I extends Item<PV, 
                 return localizeName(displayName, displayName);
             }
 
-            if (val != null && val.getTypeName() != null) {
+            if (val != null) {
                 if (val.getRealClass() != null) {
                     displayName = val.getRealClass().getSimpleName() + "." + displayName;
-                } else {
+                } else if (val.getTypeName() != null) {
                     displayName = val.getTypeName().getLocalPart() + "." + displayName;
+                }
+                String localizedName = localizeName(displayName, displayName);
+                //try to find by super class name + item name
+                if (localizedName.equals(displayName) && val.getRealClass() != null && val.getRealClass().getSuperclass() != null){
+                    String displayNameParentClass = val.getRealClass().getSuperclass().getSimpleName() + "." + name.getLocalPart();
+                    return localizeName(displayNameParentClass, name.getLocalPart());
                 }
             }
         } else {
