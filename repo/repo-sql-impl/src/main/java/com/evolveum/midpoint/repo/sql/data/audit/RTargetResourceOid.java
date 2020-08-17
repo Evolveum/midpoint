@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.audit;
 
 import static com.evolveum.midpoint.repo.sql.data.audit.RTargetResourceOid.COLUMN_RECORD_ID;
@@ -14,8 +13,6 @@ import javax.persistence.*;
 
 import org.hibernate.annotations.ForeignKey;
 
-import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
-import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 
@@ -87,21 +84,6 @@ public class RTargetResourceOid implements EntityState {
 
     public void setResourceOid(String resourceOid) {
         this.resourceOid = resourceOid;
-    }
-
-    public static RTargetResourceOid toRepo(RAuditEventRecord record, String resourceOid) {
-        RTargetResourceOid resourceOidObject = new RTargetResourceOid();
-        resourceOidObject.setRecord(record);
-        resourceOidObject.setResourceOid(resourceOid);
-        return resourceOidObject;
-
-    }
-
-    public static SingleSqlQuery toRepo(Long recordId, String resourceOid) {
-        InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
-        queryBuilder.addParameter(COLUMN_RECORD_ID, recordId, true);
-        queryBuilder.addParameter(RESOURCE_OID_COLUMN_NAME, resourceOid, true);
-        return queryBuilder.build();
     }
 
     @Override

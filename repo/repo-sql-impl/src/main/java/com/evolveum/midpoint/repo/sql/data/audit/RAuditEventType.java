@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
@@ -56,7 +58,7 @@ public enum RAuditEventType implements SchemaEnum<AuditEventTypeType> {
         return AuditEventType.toSchemaValue(type);
     }
 
-    public static RAuditEventType toRepo(AuditEventType type) {
+    public static RAuditEventType from(AuditEventType type) {
         if (type == null) {
             return null;
         }
@@ -70,9 +72,9 @@ public enum RAuditEventType implements SchemaEnum<AuditEventTypeType> {
         throw new IllegalArgumentException("Unknown audit event type '" + type + "'.");
     }
 
-    public static RAuditEventType fromSchemaValue(AuditEventTypeType type) {
+    public static @Nullable RAuditEventType fromSchemaValue(@Nullable AuditEventTypeType type) {
         return type != null
-                ? toRepo(AuditEventType.fromSchemaValue(type))
+                ? from(AuditEventType.fromSchemaValue(type))
                 : null;
     }
 }

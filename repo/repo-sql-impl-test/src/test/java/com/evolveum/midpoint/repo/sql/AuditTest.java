@@ -196,13 +196,19 @@ public class AuditTest extends BaseSQLRepoTest {
             audit.addPropertyValue(rPropertyValue.getName(), rPropertyValue.getValue());
         }
         for (RAuditReferenceValue rRefValue : repo.getReferenceValues()) {
-            audit.addReferenceValue(rRefValue.getName(), rRefValue.fromRepo(prismContext));
+            audit.addReferenceValue(rRefValue.getName(), fromRepo(rRefValue));
         }
 
         audit.setRepoId(repo.getId());
 
         return audit;
         // initiator, attorney, target, targetOwner
+    }
+
+    private AuditReferenceValue fromRepo(RAuditReferenceValue refValue) {
+        return new AuditReferenceValue(refValue.getOid(),
+                RUtil.stringToQName(refValue.getType()),
+                RPolyString.fromRepo(refValue.getTargetName(), prismContext));
     }
 
     @NotNull

@@ -27,8 +27,9 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 
 /**
- * @author skublik
+ * @deprecated use Querydsl from "pure" package and remove this
  */
+@Deprecated
 public abstract class SqlQuery {
 
     private List<Integer> primaryKeys = new ArrayList<>();
@@ -51,17 +52,17 @@ public abstract class SqlQuery {
             return new Timestamp(((Date) value).getTime());
 
         } else if (value instanceof AuditEventType) {
-            return RAuditEventType.toRepo((AuditEventType) value).ordinal();
+            return RAuditEventType.from((AuditEventType) value).ordinal();
 
         } else if (value instanceof AuditEventTypeType) {
-            return RAuditEventType.toRepo(
+            return RAuditEventType.from(
                     AuditEventType.fromSchemaValue((AuditEventTypeType) value)).ordinal();
 
         } else if (value instanceof AuditEventStage) {
-            return RAuditEventStage.toRepo((AuditEventStage) value).ordinal();
+            return RAuditEventStage.from((AuditEventStage) value).ordinal();
 
         } else if (value instanceof AuditEventStageType) {
-            return RAuditEventStage.toRepo(
+            return RAuditEventStage.from(
                     AuditEventStage.fromSchemaValue((AuditEventStageType) value)).ordinal();
 
         } else if (value instanceof OperationResultStatusType) {

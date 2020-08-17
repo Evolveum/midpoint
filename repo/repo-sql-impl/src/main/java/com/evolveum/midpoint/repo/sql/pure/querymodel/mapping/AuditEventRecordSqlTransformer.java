@@ -187,8 +187,8 @@ public class AuditEventRecordSqlTransformer
         bean.eventIdentifier = record.getEventIdentifier();
         bean.timestamp = MiscUtil.asInstant(record.getTimestamp());
         bean.channel = record.getChannel();
-        bean.eventStage = MiscUtil.enumOrdinal(RAuditEventStage.toRepo(record.getEventStage()));
-        bean.eventType = MiscUtil.enumOrdinal(RAuditEventType.toRepo(record.getEventType()));
+        bean.eventStage = MiscUtil.enumOrdinal(RAuditEventStage.from(record.getEventStage()));
+        bean.eventType = MiscUtil.enumOrdinal(RAuditEventType.from(record.getEventType()));
         bean.hostIdentifier = record.getHostIdentifier();
 
         PrismReferenceValue attorney = record.getAttorneyRef();

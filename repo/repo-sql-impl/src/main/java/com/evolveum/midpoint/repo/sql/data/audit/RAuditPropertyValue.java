@@ -14,8 +14,6 @@ import java.util.Objects;
 import javax.persistence.*;
 
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
-import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.helpers.modify.Ignore;
 import com.evolveum.midpoint.repo.sql.util.EntityState;
 
@@ -104,22 +102,6 @@ public class RAuditPropertyValue implements EntityState {
 
     public void setValue(String value) {
         this.value = value;
-    }
-
-    public static RAuditPropertyValue toRepo(RAuditEventRecord record, String name, String value) {
-        RAuditPropertyValue property = new RAuditPropertyValue();
-        property.setRecord(record);
-        property.setName(name);
-        property.setValue(value);
-        return property;
-    }
-
-    public static SingleSqlQuery toRepo(Long recordId, String name, String value) {
-        InsertQueryBuilder queryBuilder = new InsertQueryBuilder(TABLE_NAME);
-        queryBuilder.addParameter(COLUMN_RECORD_ID, recordId);
-        queryBuilder.addParameter(NAME_COLUMN_NAME, name);
-        queryBuilder.addParameter(VALUE_COLUMN_NAME, value);
-        return queryBuilder.build();
     }
 
     @Override
