@@ -32,7 +32,7 @@ public enum RAuditEventStage implements SchemaEnum<AuditEventStageType> {
         return AuditEventStage.toSchemaValue(stage);
     }
 
-    public static RAuditEventStage toRepo(AuditEventStage stage) {
+    public static RAuditEventStage from(AuditEventStage stage) {
         if (stage == null) {
             return null;
         }
@@ -48,7 +48,7 @@ public enum RAuditEventStage implements SchemaEnum<AuditEventStageType> {
 
     public static RAuditEventStage fromSchemaValue(AuditEventStageType stage) {
         return stage != null
-                ? toRepo(AuditEventStage.fromSchemaValue(stage))
+                ? from(AuditEventStage.fromSchemaValue(stage))
                 : null;
     }
 }

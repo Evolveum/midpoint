@@ -7,11 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
-import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.*;
-
 import java.io.Serializable;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Objects;
@@ -21,7 +17,6 @@ import javax.persistence.*;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
@@ -420,44 +415,6 @@ public class RAuditEventRecord implements Serializable {
 
     public void setResult(String result) {
         this.result = result;
-    }
-
-    public static AuditEventRecord fromRepo(ResultSet resultSet) throws SQLException {
-        AuditEventRecord audit = new AuditEventRecord();
-        audit.setChannel(resultSet.getString(CHANNEL.getName()));
-        audit.setEventIdentifier(resultSet.getString(EVENT_IDENTIFIER.getName()));
-        if (resultSet.getObject(EVENT_STAGE.getName()) != null) {
-            audit.setEventStage(RAuditEventStage.values()[resultSet.getInt(EVENT_STAGE.getName())].getStage());
-        }
-        if (resultSet.getObject(EVENT_TYPE.getName()) != null) {
-            audit.setEventType(RAuditEventType.values()[resultSet.getInt(EVENT_TYPE.getName())].getType());
-        }
-        audit.setHostIdentifier(resultSet.getString(HOST_IDENTIFIER.getName()));
-        audit.setRemoteHostAddress(resultSet.getString(REMOTE_HOST_ADDRESS.getName()));
-        audit.setNodeIdentifier(resultSet.getString(NODE_IDENTIFIER.getName()));
-        audit.setMessage(resultSet.getString(MESSAGE.getName()));
-
-        if (resultSet.getObject(OUTCOME.getName()) != null) {
-            audit.setOutcome(
-                    ROperationResultStatus.values()[resultSet.getInt(OUTCOME.getName())].getStatus());
-        }
-        audit.setParameter(resultSet.getString(PARAMETER.getName()));
-        audit.setResult(resultSet.getString(RESULT.getName()));
-        audit.setSessionIdentifier(resultSet.getString(SESSION_IDENTIFIER.getName()));
-        audit.setRequestIdentifier(resultSet.getString(REQUEST_IDENTIFIER.getName()));
-        audit.setTaskIdentifier(resultSet.getString(TASK_IDENTIFIER.getName()));
-        audit.setTaskOid(resultSet.getString(TASK_OID.getName()));
-        if (resultSet.getTimestamp(TIMESTAMP.getName()) != null) {
-            audit.setTimestamp(resultSet.getTimestamp(TIMESTAMP.getName()).getTime());
-        }
-
-        audit.setRepoId(resultSet.getLong(ID.getName()));
-
-        return audit;
-    }
-
-    public void merge(RAuditEventRecord repoRecord) {
-        this.id = repoRecord.id;
     }
 
     @Override

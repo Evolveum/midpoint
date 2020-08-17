@@ -14,8 +14,9 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * @author skublik
+ * @deprecated use Querydsl from "pure" package and remove this
  */
+@Deprecated
 public class SingleSqlQuery extends SqlQuery {
 
     private final String query;

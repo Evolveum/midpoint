@@ -17,8 +17,9 @@ import org.apache.commons.lang3.StringUtils;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
 
 /**
- * @author skublik
+ * @deprecated use Querydsl from "pure" package and remove this
  */
+@Deprecated
 public class BatchSqlQuery extends SqlQuery {
 
     private final Set<SingleSqlQuery> queriesForBatch = new HashSet<>();
