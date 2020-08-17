@@ -423,7 +423,7 @@ public class ReportServiceImpl implements ReportService {
         return expressionResult.get(0).getRealValue();
     }
 
-    private ExpressionProfile determineExpressionProfile(PrismObject<ReportType> report, OperationResult result) throws SchemaException, ConfigurationException {
+    public ExpressionProfile determineExpressionProfile(PrismObject<ReportType> report, OperationResult result) throws SchemaException, ConfigurationException {
         if (report == null) {
             throw new IllegalArgumentException("No report defined, cannot determine profile");
         }
