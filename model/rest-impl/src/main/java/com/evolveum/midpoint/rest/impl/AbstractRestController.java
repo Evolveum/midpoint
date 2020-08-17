@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.rest.impl;
 
 import static org.springframework.http.ResponseEntity.status;
@@ -9,6 +15,7 @@ import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
 
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
@@ -54,6 +61,7 @@ class AbstractRestController {
     @Autowired protected AuditService auditService;
     @Autowired protected SecurityHelper securityHelper;
     @Autowired protected TaskManager taskManager;
+    @Autowired protected PrismContext prismContext;
     @Autowired private SystemObjectCache systemObjectCache;
 
     protected Task initRequest() {
@@ -197,7 +205,7 @@ class AbstractRestController {
         task.setChannel(channel);
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
-        record.setInitiator(user);
+        record.setInitiator(user, prismContext);
         record.setParameter(name);
 
         record.setChannel(SchemaConstants.CHANNEL_REST_URI);

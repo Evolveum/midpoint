@@ -29,19 +29,19 @@ public class QAuditItem extends FlexibleRelationalPathBase<MAuditItem> {
 
     public static final String TABLE_NAME = "m_audit_item";
 
-    public static final ColumnMetadata CHANGED_ITEM_PATH =
-            ColumnMetadata.named("CHANGEDITEMPATH").ofType(Types.VARCHAR).withSize(255).notNull();
     public static final ColumnMetadata RECORD_ID =
-            ColumnMetadata.named("RECORD_ID").ofType(Types.BIGINT).withSize(19).notNull();
+            ColumnMetadata.named("record_id").ofType(Types.BIGINT).withSize(19).notNull();
+    public static final ColumnMetadata CHANGED_ITEM_PATH =
+            ColumnMetadata.named("changedItemPath").ofType(Types.VARCHAR).withSize(255).notNull();
 
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final StringPath changedItemPath = createString("changedItemPath", CHANGED_ITEM_PATH);
 
-    public final PrimaryKey<MAuditItem> constraint1 = createPrimaryKey(changedItemPath, recordId);
+    public final PrimaryKey<MAuditItem> constraint1 = createPrimaryKey(recordId, changedItemPath);
     public final ForeignKey<QAuditEventRecord> auditItemFk = createForeignKey(recordId, "ID");
 
     public QAuditItem(String variable) {
-        this(variable, "PUBLIC", TABLE_NAME);
+        this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
     public QAuditItem(String variable, String schema, String table) {

@@ -17,7 +17,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
 @Component
-public class KindIntentFilterHelper extends BaseHelper {
+public class KindIntentFilterHelper extends BaseNotificationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(KindIntentFilterHelper.class);
 

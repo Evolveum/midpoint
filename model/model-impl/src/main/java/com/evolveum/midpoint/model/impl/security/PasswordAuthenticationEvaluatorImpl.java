@@ -34,7 +34,7 @@ public class PasswordAuthenticationEvaluatorImpl extends AuthenticationEvaluator
         }
         if (StringUtils.isBlank(authCtx.getPassword())) {
             recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
-            throw new BadCredentialsException("web.security.provider.password.encoding");
+            throw new BadCredentialsException("web.security.provider.invalid");
         }
     }
 

@@ -1,49 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2018 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<beans
-        xmlns="http://www.springframework.org/schema/beans"
+<beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:context="http://www.springframework.org/schema/context"
-        xsi:schemaLocation="http://www.springframework.org/schema/beans
-     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
-        default-autowire="byName">
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context.xsd">
 
     <context:annotation-config/>
     <context:component-scan base-package="com.evolveum.midpoint.common"/>
     <context:spring-configured/>
 
-    <bean id="matchingRuleRegistry" class="com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory"
-        factory-method="createRegistry">
-    </bean>
+    <bean id="matchingRuleRegistry"
+            class="com.evolveum.midpoint.prism.impl.match.MatchingRuleRegistryFactory"
+            factory-method="createRegistry"/>
 
-    <bean id="polyStringNormalizerRegistry" class="com.evolveum.midpoint.prism.impl.polystring.PolyStringNormalizerRegistryFactory"
-        factory-method="createRegistry">
-    </bean>
+    <bean id="polyStringNormalizerRegistry"
+            class="com.evolveum.midpoint.prism.impl.polystring.PolyStringNormalizerRegistryFactory"
+            factory-method="createRegistry"/>
 
-    <bean id="clock" class="com.evolveum.midpoint.common.Clock">
-    </bean>
+    <bean id="clock" class="com.evolveum.midpoint.common.Clock"/>
 
     <bean id="activationComputer" class="com.evolveum.midpoint.common.ActivationComputer">
-        <property name="clock">
-            <ref bean="clock"/>
-        </property>
+        <property name="clock" ref="clock"/>
     </bean>
 
-    <bean id="localizationService" class="com.evolveum.midpoint.common.LocalizationServiceImpl" init-method="init"/>
+    <bean id="localizationService"
+            class="com.evolveum.midpoint.common.LocalizationServiceImpl"
+            init-method="init"/>
 
     <bean id="messageSource" name="messageSource" class="com.evolveum.midpoint.common.LocalizationMessageSource">
         <constructor-arg ref="localizationService"/>
     </bean>
 
     <bean id="internalsConfigController" class="com.evolveum.midpoint.common.InternalsConfigController">
-        <property name="midpointConfiguration">
-            <ref bean="midpointConfiguration"/>
-        </property>
+        <property name="midpointConfiguration" ref="midpointConfiguration"/>
     </bean>
 
     <bean id="jaxbProvider" class="com.evolveum.midpoint.common.rest.MidpointXmlProvider"/>

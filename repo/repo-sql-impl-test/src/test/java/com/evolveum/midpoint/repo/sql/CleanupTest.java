@@ -1,11 +1,25 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+
+import org.hibernate.Session;
+import org.hibernate.query.Query;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.AfterMethod;
+import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
@@ -19,22 +33,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
-import org.hibernate.query.Query;
-import org.hibernate.Session;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.Test;
-
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.Duration;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class CleanupTest extends BaseSQLRepoTest {
 
@@ -140,51 +139,44 @@ public class CleanupTest extends BaseSQLRepoTest {
     }
 
     private RAuditEventRecord assertAndReturnAuditEventRecord(OperationResult result) {
-         AssertJUnit.assertTrue(result.isSuccess());
+        AssertJUnit.assertTrue(result.isSuccess());
 
-         Session session = getFactory().openSession();
-         try {
-             session.beginTransaction();
+        try (Session session = getFactory().openSession()) {
+            session.beginTransaction();
 
-             Query query = session.createQuery("from " + RAuditEventRecord.class.getSimpleName());
-             List<RAuditEventRecord> records = query.list();
+            Query query = session.createQuery("from " + RAuditEventRecord.class.getSimpleName());
+            List<RAuditEventRecord> records = query.list();
 
-             AssertJUnit.assertEquals(1, records.size());
-                          session.getTransaction().commit();
-             return records.get(0);
-         } finally {
-             session.close();
-         }
-
+            AssertJUnit.assertEquals(1, records.size());
+            session.getTransaction().commit();
+            return records.get(0);
+        }
     }
 
     private void prepareAuditEventRecords() throws Exception {
-         Calendar calendar = create_2013_07_12_12_00_Calendar();
-         for (int i = 0; i < 3; i++) {
-             long timestamp = calendar.getTimeInMillis();
-             AuditEventRecord record = new AuditEventRecord();
-             record.addDelta(createObjectDeltaOperation(i));
-             record.setTimestamp(timestamp);
-             record.addPropertyValue("prop1", "val1");
-             record.addReferenceValue("ref1", ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
-             logger.info("Adding audit record with timestamp {}", new Object[]{new Date(timestamp)});
+        Calendar calendar = create_2013_07_12_12_00_Calendar();
+        for (int i = 0; i < 3; i++) {
+            long timestamp = calendar.getTimeInMillis();
+            AuditEventRecord record = new AuditEventRecord();
+            record.addDelta(createObjectDeltaOperation(i));
+            record.setTimestamp(timestamp);
+            record.addPropertyValue("prop1", "val1");
+            record.addReferenceValue("ref1", ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
+            logger.info("Adding audit record with timestamp {}", new Date(timestamp));
 
-             auditService.audit(record, new NullTaskImpl());
-             calendar.add(Calendar.HOUR_OF_DAY, 1);
-         }
+            auditService.audit(record, new NullTaskImpl());
+            calendar.add(Calendar.HOUR_OF_DAY, 1);
+        }
 
-         Session session = getFactory().openSession();
-         try {
-             session.beginTransaction();
+        try (Session session = getFactory().openSession()) {
+            session.beginTransaction();
 
-             Query query = session.createQuery("select count(*) from " + RAuditEventRecord.class.getSimpleName());
-             Long count = (Long) query.uniqueResult();
+            Query query = session.createQuery("select count(*) from " + RAuditEventRecord.class.getSimpleName());
+            Long count = (Long) query.uniqueResult();
 
-             AssertJUnit.assertEquals(3L, (long) count);
-             session.getTransaction().commit();
-         } finally {
-             session.close();
-         }
+            AssertJUnit.assertEquals(3L, (long) count);
+            session.getTransaction().commit();
+        }
     }
 
     private ObjectDeltaOperation createObjectDeltaOperation(int i) throws Exception {

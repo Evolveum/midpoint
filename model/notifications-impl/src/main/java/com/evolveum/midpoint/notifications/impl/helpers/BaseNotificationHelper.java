@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
  * @author mederly
  */
 @Component
-public abstract class BaseHelper {
+public abstract class BaseNotificationHelper {
 
     protected void logStart(Trace LOGGER, Event event, EventHandlerType eventHandlerType) {
         logStart(LOGGER, event, eventHandlerType, null);

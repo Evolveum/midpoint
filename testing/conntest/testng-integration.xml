@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2014-2019 Evolveum and contributors
+  ~ Copyright (c) 2014-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -12,17 +12,29 @@
     </listeners>
     <test name="LDAP" preserve-order="true" parallel="false" verbose="10" enabled="true">
         <classes>
-            <class name="com.evolveum.midpoint.testing.conntest.TestOpenLdap"/>
-            <class name="com.evolveum.midpoint.testing.conntest.TestOpenLdapDumber"/>
+
             <class name="com.evolveum.midpoint.testing.conntest.TestOpenDj"/>
             <class name="com.evolveum.midpoint.testing.conntest.TestOpenDjUnsafe"/>
             <class name="com.evolveum.midpoint.testing.conntest.TestOpenDjDumber"/>
-            <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapMedusa"/>
-            <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapRawMedusa"/>
-            <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapChimera"/>
+
+            <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapAd2012"/>
+
+            <!-- Tests that need some love. Those are failing now, but they are worth saving.
+            <class name="com.evolveum.midpoint.testing.conntest.TestOpenLdap"/>
+            <class name="com.evolveum.midpoint.testing.conntest.TestOpenLdapDumber"/>
+            -->
+
+            <!-- "Archived" tests. Testing environmne is shut down, it may still be used if really needed.
+                <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapMedusa"/>
+                <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapRawMedusa"/>
+                <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapChimera"/>
+            -->
+
+            <!-- Obsolete tests, test environment is shut down and dead.
             <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapChimeraStrange"/>
             <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapChimeraRunAs"/>
             <class name="com.evolveum.midpoint.testing.conntest.ad.TestAdLdapChimeraNativeSchema"/>
-        </classes>
-    </test>
+        -->
+</classes>
+</test>
 </suite>

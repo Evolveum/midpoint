@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,11 +9,7 @@ package com.evolveum.midpoint.test.ldap;
 
 import static org.testng.AssertJUnit.assertEquals;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -22,7 +18,6 @@ import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
-import com.evolveum.midpoint.util.exception.SystemException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.Validate;
@@ -30,42 +25,22 @@ import org.jetbrains.annotations.NotNull;
 import org.opends.messages.Message;
 import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
-import org.opends.server.core.AddOperation;
-import org.opends.server.core.BindOperation;
-import org.opends.server.core.DeleteOperation;
-import org.opends.server.core.ModifyDNOperation;
-import org.opends.server.core.ModifyOperation;
+import org.opends.server.core.*;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
-import org.opends.server.types.Attribute;
-import org.opends.server.types.AttributeValue;
-import org.opends.server.types.ByteString;
-import org.opends.server.types.DN;
-import org.opends.server.types.DereferencePolicy;
-import org.opends.server.types.DirectoryEnvironmentConfig;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.Entry;
-import org.opends.server.types.InitializationException;
-import org.opends.server.types.LDIFImportConfig;
-import org.opends.server.types.ResultCode;
-import org.opends.server.types.SearchResultEntry;
-import org.opends.server.types.SearchScope;
-import org.opends.server.util.ChangeRecordEntry;
-import org.opends.server.util.EmbeddedUtils;
-import org.opends.server.util.LDIFException;
-import org.opends.server.util.LDIFReader;
-import org.opends.server.util.ModifyChangeRecordEntry;
-import org.opends.server.util.ModifyDNChangeRecordEntry;
+import org.opends.server.types.*;
+import org.opends.server.util.*;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * This class controls embedded OpenDJ instance.
- *
+ * <p>
  * It is used in Unit tests. It configures and starts and stops the instance. It
  * can even manage a "template" configuration of OpenDJ and copy it to working
  * instance configuration.
@@ -74,9 +49,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  */
 public class OpenDJController extends AbstractResourceController {
 
-    private String dataTemplateDir = "test-data";
+    private final String dataTemplateDir = "test-data";
+    private final String ldapSuffix = "dc=example,dc=com";
     private String serverRootDirectoryName = "target/test-data/opendj";
-    private String ldapSuffix = "dc=example,dc=com";
 
     public static final String DEFAULT_TEMPLATE_NAME = "opendj.template";
     public static final String RI_TEMPLATE_NAME = "opendj.template.ri";
@@ -103,11 +78,6 @@ public class OpenDJController extends AbstractResourceController {
         init();
     }
 
-    /**
-     * Initialize
-     *
-     */
-
     private void init() {
         if (!serverRoot.exists()) {
             serverRoot.mkdirs();
@@ -120,7 +90,7 @@ public class OpenDJController extends AbstractResourceController {
 
     /**
      * Get the value of serverRoot.
-     *
+     * <p>
      * The top directory of working OpenDS installation. The OpenDS placed in
      * this directory will be used during the tests.
      *
@@ -132,12 +102,11 @@ public class OpenDJController extends AbstractResourceController {
 
     /**
      * Set the value of serverRoot
-     *
+     * <p>
      * The top directory of working OpenDS installation. The OpenDS placed in
      * this directory will be used during the tests.
      *
-     * @param serverRoot
-     *            new value of serverRoot
+     * @param serverRoot new value of serverRoot
      */
     public void setServerRoot(File serverRoot) {
         this.serverRoot = serverRoot;
@@ -145,7 +114,7 @@ public class OpenDJController extends AbstractResourceController {
 
     /**
      * Get the value of configFile
-     *
+     * <p>
      * File name of primary OpenDS configuration file. Normally
      * <serverRoot>/config/config.ldif
      *
@@ -157,12 +126,11 @@ public class OpenDJController extends AbstractResourceController {
 
     /**
      * Set the value of configFile
-     *
+     * <p>
      * File name of primary OpenDS configuration file. Normally
      * <serverRoot>/config/config.ldif
      *
-     * @param configFile
-     *            new value of configFile
+     * @param configFile new value of configFile
      */
     public void setConfigFile(File configFile) {
         this.configFile = configFile;
@@ -170,7 +138,7 @@ public class OpenDJController extends AbstractResourceController {
 
     /**
      * Get the value of templateServerRoot
-     *
+     * <p>
      * The top directory of template OpenDS installation. All the files from
      * this directory will be copied to the working OpenDS directory
      * (serverRoot). This usually happens before the tests.
@@ -185,18 +153,17 @@ public class OpenDJController extends AbstractResourceController {
         return ldapSuffix;
     }
 
-
     public String getSuffixPeople() {
-        return "ou=People,"+ ldapSuffix;
+        return "ou=People," + ldapSuffix;
     }
 
     public String getAccountDn(String username) {
-        return "uid="+username+","+getSuffixPeople();
+        return "uid=" + username + "," + getSuffixPeople();
     }
 
     /**
      * Get the value of internalConnection
-     *
+     * <p>
      * The connection to the OpenDS instance. It can be used to fetch and
      * manipulate the data.
      *
@@ -209,13 +176,10 @@ public class OpenDJController extends AbstractResourceController {
 
     /**
      * Refresh working OpenDS installation from the template.
-     *
+     * <p>
      * The existing working OpenDS installation (in serverRoot) will be
      * discarded and replaced by a fresh known-state setup (from
      * templateServerRoot).
-     *
-     * @throws IOException
-     * @throws URISyntaxException
      */
     public void refreshFromTemplate(String templateName) throws IOException, URISyntaxException {
         deleteDirectory(serverRoot);
@@ -333,7 +297,6 @@ public class OpenDJController extends AbstractResourceController {
         return startCleanServer(RI_TEMPLATE_NAME);
     }
 
-
     /**
      * Start the embedded OpenDJ directory server using files copied from the specified
      * template.
@@ -345,10 +308,8 @@ public class OpenDJController extends AbstractResourceController {
 
     /**
      * Start the embedded OpenDJ directory server.
-     *
+     * <p>
      * Configuration and databases from serverRoot location will be used.
-     *
-     * @return
      */
     public InternalClientConnection start() {
 
@@ -394,7 +355,6 @@ public class OpenDJController extends AbstractResourceController {
 
     /**
      * Stop the embedded OpenDS server.
-     *
      */
     public void stop() {
         if (EmbeddedUtils.isRunning()) {
@@ -425,12 +385,9 @@ public class OpenDJController extends AbstractResourceController {
     /**
      * Delete a directory and its contents.
      *
-     * @param dir
-     *            The name of the directory to delete.
-     * @throws IOException
-     *             If the directory could not be deleted.
+     * @param dir The name of the directory to delete.
      */
-    public static void deleteDirectory(File dir) throws IOException {
+    public static void deleteDirectory(File dir) {
         if (dir.isDirectory()) {
             // Recursively delete sub-directories and files.
             for (String child : dir.list()) {
@@ -439,23 +396,6 @@ public class OpenDJController extends AbstractResourceController {
         }
 
         dir.delete();
-    }
-
-    public Set<String> asSet(List<Attribute> attributes) {
-        // Just blindly get the fist one now.
-        // There is most likely just one anyway.
-        // TODO: improve that later
-
-        // Attribute attr = attributes.get(0);
-        Set<String> result = new HashSet<>();
-
-        // TODO find newer OpenDS jar
-        // Iterator<AttributeValue> iterator = attr.iterator();
-        // while (iterator.hasNext()) {
-        // result.add(iterator.next().toString());
-        // }
-
-        return result;
     }
 
     // Generic utility methods
@@ -470,7 +410,7 @@ public class OpenDJController extends AbstractResourceController {
             return null;
         }
         if (searchEntries.size() > 1) {
-            AssertJUnit.fail("Multiple matches for Entry UUID "+entryUuid+": "+searchEntries);
+            AssertJUnit.fail("Multiple matches for Entry UUID " + entryUuid + ": " + searchEntries);
         }
         return searchEntries.get(0);
     }
@@ -478,7 +418,7 @@ public class OpenDJController extends AbstractResourceController {
     public Entry searchAndAssertByEntryUuid(String entryUuid) throws DirectoryException {
         Entry entry = searchByEntryUuid(entryUuid);
         if (entry == null) {
-            AssertJUnit.fail("Entry UUID "+entryUuid+" not found");
+            AssertJUnit.fail("Entry UUID " + entryUuid + " not found");
         }
         return entry;
     }
@@ -491,7 +431,7 @@ public class OpenDJController extends AbstractResourceController {
         if (op.getEntriesSent() == 0) {
             return null;
         } else if (op.getEntriesSent() > 1) {
-            AssertJUnit.fail("Found too many entries ("+op.getEntriesSent()+") for filter "+filter);
+            AssertJUnit.fail("Found too many entries (" + op.getEntriesSent() + ") for filter " + filter);
         }
         return op.getSearchEntries().get(0);
     }
@@ -525,14 +465,14 @@ public class OpenDJController extends AbstractResourceController {
         if (op.getEntriesSent() == 0) {
             return null;
         } else if (op.getEntriesSent() > 1) {
-            AssertJUnit.fail("Found too many entries ("+op.getEntriesSent()+") for dn "+dn);
+            AssertJUnit.fail("Found too many entries (" + op.getEntriesSent() + ") for dn " + dn);
         }
         return op.getSearchEntries().get(0);
     }
 
     public Entry fetchAndAssertEntry(String dn, String objectClass) throws DirectoryException {
         Entry entry = fetchEntry(dn);
-        AssertJUnit.assertNotNull("No entry for DN "+dn, entry);
+        AssertJUnit.assertNotNull("No entry for DN " + dn, entry);
         assertDn(entry, dn);
         assertObjectClass(entry, objectClass);
         return entry;
@@ -595,7 +535,7 @@ public class OpenDJController extends AbstractResourceController {
         if (attrs == null || attrs.size() == 0) {
             return null;
         }
-        assertEquals("Too many attributes for name "+name+": ",
+        assertEquals("Too many attributes for name " + name + ": ",
                 1, attrs.size());
         Attribute attribute = attrs.get(0);
         ByteString value = attribute.iterator().next().getValue();
@@ -607,13 +547,11 @@ public class OpenDJController extends AbstractResourceController {
         if (attrs == null || attrs.size() == 0) {
             return null;
         }
-        assertEquals("Too many attributes for name "+name+": ",
+        assertEquals("Too many attributes for name " + name + ": ",
                 1, attrs.size());
         Attribute attribute = attrs.get(0);
         Collection<String> values = new ArrayList<>(attribute.size());
-        Iterator<AttributeValue> iterator = attribute.iterator();
-        while (iterator.hasNext()) {
-            AttributeValue attributeValue = iterator.next();
+        for (AttributeValue attributeValue : attribute) {
             values.add(attributeValue.getValue().toString());
         }
         return values;
@@ -627,70 +565,68 @@ public class OpenDJController extends AbstractResourceController {
     public static void assertDn(Entry response, String expected) throws DirectoryException {
         DN actualDn = response.getDN();
         if (actualDn.compareTo(DN.decode(expected)) != 0) {
-            AssertJUnit.fail("Wrong DN, expected "+expected+" but was "+actualDn.toString());
+            AssertJUnit.fail("Wrong DN, expected " + expected + " but was " + actualDn.toString());
         }
     }
 
     public void assertNoEntry(String dn) throws DirectoryException {
         Entry entry = fetchEntry(dn);
         if (entry != null) {
-            AssertJUnit.fail("Found entry for dn "+dn+" while not expecting it: "+entry);
+            AssertJUnit.fail("Found entry for dn " + dn + " while not expecting it: " + entry);
         }
     }
 
-    public static void assertObjectClass(Entry response, String expected) throws DirectoryException {
+    public static void assertObjectClass(Entry response, String expected) {
         Collection<String> objectClassValues = getAttributeValues(response, "objectClass");
-        AssertJUnit.assertTrue("Wrong objectclass for entry "+getDn(response)+", expected "+expected+" but got "+objectClassValues,
+        AssertJUnit.assertTrue("Wrong objectclass for entry " + getDn(response) + ", expected " + expected + " but got " + objectClassValues,
                 objectClassValues.contains(expected));
     }
 
-    public static void assertNoObjectClass(Entry response, String unexpected) throws DirectoryException {
+    public static void assertNoObjectClass(Entry response, String unexpected) {
         Collection<String> objectClassValues = getAttributeValues(response, "objectClass");
-        AssertJUnit.assertFalse("Unexpected objectclass for entry "+getDn(response)+": "+unexpected+", got "+objectClassValues,
+        AssertJUnit.assertFalse("Unexpected objectclass for entry " + getDn(response) + ": " + unexpected + ", got " + objectClassValues,
                 objectClassValues.contains(unexpected));
     }
 
     public static void assertContainsDn(String message, Collection<String> actualValues, String expectedValue) throws DirectoryException {
-        AssertJUnit.assertNotNull(message+", expected "+expectedValue+", got null", actualValues);
+        AssertJUnit.assertNotNull(message + ", expected " + expectedValue + ", got null", actualValues);
         DN expectedDn = DN.decode(expectedValue);
-        for (String actualValue: actualValues) {
+        for (String actualValue : actualValues) {
             DN actualDn = DN.decode(actualValue);
-            if (actualDn.compareTo(expectedDn)==0) {
+            if (actualDn.compareTo(expectedDn) == 0) {
                 return;
             }
         }
-        AssertJUnit.fail(message+", expected "+expectedValue+", got "+actualValues);
+        AssertJUnit.fail(message + ", expected " + expectedValue + ", got " + actualValues);
     }
 
-    public static void assertDns(String message, Collection<String> actualValues, String... expectedValues) throws DirectoryException {
+    public static void assertDns(String message, Collection<String> actualValues, String... expectedValues) {
         if (actualValues == null && expectedValues.length == 0) {
             return;
         }
         if (!MiscUtil.unorderedCollectionEquals(actualValues, Arrays.asList(expectedValues),
                 (actualValue, expectedValue) -> {
-                    DN actualDn = null;
-                    DN expectedDn = null;
                     try {
-                        actualDn = DN.decode(actualValue);
-                        expectedDn = DN.decode(expectedValue);
+                        DN actualDn = DN.decode(actualValue);
+                        DN expectedDn = DN.decode(expectedValue);
+                        return actualDn.compareTo(expectedDn) == 0;
                     } catch (DirectoryException e) {
-                        throw new SystemException("DN decode problem: "+e.getMessage(), e);
+                        throw new SystemException("DN decode problem: " + e.getMessage(), e);
                     }
-                    return actualDn.compareTo(expectedDn) == 0;
                 })) {
-            AssertJUnit.fail(message+", expected "+ ArrayUtils.toString(expectedValues)+", got "+actualValues);
+            AssertJUnit.fail(message + ", expected " + ArrayUtils.toString(expectedValues) + ", got " + actualValues);
         }
     }
 
     public void assertUniqueMember(Entry groupEntry, String accountDn) throws DirectoryException {
         Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
-        assertContainsDn("No member "+accountDn+" in group "+getDn(groupEntry),
+        assertContainsDn("No member " + accountDn + " in group " + getDn(groupEntry),
                 members, accountDn);
     }
 
-    public void assertUniqueMembers(Entry groupEntry, String... accountDns) throws DirectoryException {
+    public void assertUniqueMembers(Entry groupEntry, String... accountDns) {
         Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
-        assertDns("Wrong members in group "+getDn(groupEntry),
+        assertDns("Wrong members in group " + getDn(groupEntry),
                 members, accountDns);
     }
 
@@ -706,8 +642,8 @@ public class OpenDJController extends AbstractResourceController {
 
     public void assertNoUniqueMember(Entry groupEntry, String accountDn) {
         Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
-        MidPointAsserts.assertNotContainsCaseIgnore("Member "+accountDn+" in group "+getDn(groupEntry),
-                members, accountDn);
+        MidPointAsserts.assertNotContainsCaseIgnore(
+                "Member " + accountDn + " in group " + getDn(groupEntry), members, accountDn);
     }
 
     public void assertUniqueMembers(String groupDn, String... accountDns) throws DirectoryException {
@@ -721,16 +657,16 @@ public class OpenDJController extends AbstractResourceController {
             if (values.length == 0) {
                 return;
             } else {
-                AssertJUnit.fail("Attribute "+name+" does not have any value");
+                AssertJUnit.fail("Attribute " + name + " does not have any value");
             }
         }
-        assertEquals("Too many \"attributes\" for "+name+": ",
+        assertEquals("Too many \"attributes\" for " + name + ": ",
                 1, attrs.size());
         Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
         if (values.length != attribute.size()) {
-            AssertJUnit.fail("Wrong number of values for attribute "+name+", expected "+values.length+" values but got "+attribute.size()+" values: "+attribute);
+            AssertJUnit.fail("Wrong number of values for attribute " + name + ", expected " + values.length + " values but got " + attribute.size() + " values: " + attribute);
         }
-        for (String value: values) {
+        for (String value : values) {
             boolean found = false;
             Iterator<AttributeValue> iterator = attribute.iterator();
             List<String> attrVals = new ArrayList<>();
@@ -743,7 +679,7 @@ public class OpenDJController extends AbstractResourceController {
                 }
             }
             if (!found) {
-                AssertJUnit.fail("Attribute "+name+" does not contain value "+value+", it has values: "+attrVals);
+                AssertJUnit.fail("Attribute " + name + " does not contain value " + value + ", it has values: " + attrVals);
             }
         }
     }
@@ -753,7 +689,7 @@ public class OpenDJController extends AbstractResourceController {
         if (attrs == null || attrs.size() == 0) {
             return;
         }
-        assertEquals("Too many \"attributes\" for "+name+": ",
+        assertEquals("Too many \"attributes\" for " + name + ": ",
                 1, attrs.size());
         Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
         if (attribute.size() == 0) {
@@ -762,7 +698,7 @@ public class OpenDJController extends AbstractResourceController {
         if (attribute.isEmpty()) {
             return;
         }
-        AssertJUnit.fail("Attribute "+name+" exists while not expecting it: "+attribute);
+        AssertJUnit.fail("Attribute " + name + " exists while not expecting it: " + attribute);
     }
 
     public static void assertAttributeLang(Entry entry, String attributeName, String expectedOrigValue, String... params) {
@@ -772,42 +708,42 @@ public class OpenDJController extends AbstractResourceController {
                 // everything is as it should be
                 return;
             }
-            AssertJUnit.fail("Attribute "+attributeName+" does not have any value");
+            AssertJUnit.fail("Attribute " + attributeName + " does not have any value");
         }
-        Map<String,String> expectedLangs = MiscUtil.paramsToMap(params);
+        Map<String, String> expectedLangs = MiscUtil.paramsToMap(params);
         List<String> langsSeen = new ArrayList<>();
         for (Attribute attr : attrs) {
             if (attr.size() == 0) {
-                throw new IllegalArgumentException("No values in attribute "+attributeName+": "+attr);
+                throw new IllegalArgumentException("No values in attribute " + attributeName + ": " + attr);
             }
             if (attr.size() > 1) {
-                throw new IllegalArgumentException("Too many values in attribute "+attributeName+": "+attr);
+                throw new IllegalArgumentException("Too many values in attribute " + attributeName + ": " + attr);
             }
             String attrValue = attr.iterator().next().toString();
             if (attr.getOptions() == null || attr.getOptions().isEmpty()) {
-                assertEquals("Wrong orig value in attribute '"+attributeName+" in entry "+entry.getDN(), expectedOrigValue, attrValue);
+                assertEquals("Wrong orig value in attribute '" + attributeName + " in entry " + entry.getDN(), expectedOrigValue, attrValue);
             } else if (attr.getOptions().size() == 1) {
                 String option = attr.getOptions().iterator().next();
                 if (!option.startsWith("lang-")) {
-                    throw new IllegalArgumentException("Non-lang option "+option+" in attribute "+attributeName+": "+attr);
+                    throw new IllegalArgumentException("Non-lang option " + option + " in attribute " + attributeName + ": " + attr);
                 }
                 String lang = option.substring("lang-".length());
                 String expectedValue = expectedLangs.get(lang);
-                assertEquals("Wrong "+option+" value in attribute '"+attributeName+" in entry "+entry.getDN(), expectedValue, attrValue);
+                assertEquals("Wrong " + option + " value in attribute '" + attributeName + " in entry " + entry.getDN(), expectedValue, attrValue);
                 langsSeen.add(lang);
             } else {
-                throw new IllegalArgumentException("More than one option in attribute "+attributeName+": "+attr);
+                throw new IllegalArgumentException("More than one option in attribute " + attributeName + ": " + attr);
             }
         }
         for (Map.Entry<String, String> expectedLangEntry : expectedLangs.entrySet()) {
             if (!langsSeen.contains(expectedLangEntry.getKey())) {
-                AssertJUnit.fail("No lang "+expectedLangEntry.getKey()+" in attribute "+attributeName+" in entry "+entry.getDN()+"; expected "+expectedLangEntry.getValue());
+                AssertJUnit.fail("No lang " + expectedLangEntry.getKey() + " in attribute " + attributeName + " in entry " + entry.getDN() + "; expected " + expectedLangEntry.getValue());
             }
         }
     }
 
     public void assertActive(Entry response, boolean active) {
-        assertEquals("Unexpected activation of entry "+response, active, isAccountEnabled(response));
+        assertEquals("Unexpected activation of entry " + response, active, isAccountEnabled(response));
     }
 
     public Entry addEntryFromLdifFile(File file) throws IOException, LDIFException {
@@ -830,7 +766,7 @@ public class OpenDJController extends AbstractResourceController {
         List<Entry> retval = new ArrayList<>();
         LDIFImportConfig importConfig = new LDIFImportConfig(filename);
         LDIFReader ldifReader = new LDIFReader(importConfig);
-        for (;;) {
+        for (; ; ) {
             Entry ldifEntry = ldifReader.readEntry();
             if (ldifEntry == null) {
                 break;
@@ -842,10 +778,10 @@ public class OpenDJController extends AbstractResourceController {
     }
 
     public void addEntry(Entry ldapEntry) {
-         AddOperation addOperation = getInternalConnection().processAdd(ldapEntry);
+        AddOperation addOperation = getInternalConnection().processAdd(ldapEntry);
 
         if (ResultCode.SUCCESS != addOperation.getResultCode()) {
-            throw new RuntimeException("LDAP operation error: "+addOperation.getResultCode()+": "+addOperation.getErrorMessage());
+            throw new RuntimeException("LDAP operation error: " + addOperation.getResultCode() + ": " + addOperation.getErrorMessage());
         }
     }
 
@@ -857,23 +793,23 @@ public class OpenDJController extends AbstractResourceController {
         return ldifEntry;
     }
 
-    public ChangeRecordEntry executeRenameChange(File file) throws LDIFException, IOException{
+    public ChangeRecordEntry executeRenameChange(File file) throws LDIFException, IOException {
         return executeRenameChange(file.getPath());
     }
 
-    public ChangeRecordEntry executeRenameChange(String filename) throws LDIFException, IOException{
+    public ChangeRecordEntry executeRenameChange(String filename) throws LDIFException, IOException {
         LDIFImportConfig importConfig = new LDIFImportConfig(filename);
         LDIFReader ldifReader = new LDIFReader(importConfig);
         ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
 
-        if (!(entry instanceof ModifyDNChangeRecordEntry)){
+        if (!(entry instanceof ModifyDNChangeRecordEntry)) {
             throw new LDIFException(new MessageBuilder("Could not execute rename..Bad change").toMessage());
         }
 
-        ModifyDNOperation modifyOperation = getInternalConnection().processModifyDN((ModifyDNChangeRecordEntry)entry);
+        ModifyDNOperation modifyOperation = getInternalConnection().processModifyDN((ModifyDNChangeRecordEntry) entry);
 
         if (ResultCode.SUCCESS != modifyOperation.getResultCode()) {
-            throw new RuntimeException("LDAP operation error: "+modifyOperation.getResultCode()+": "+modifyOperation.getErrorMessage());
+            throw new RuntimeException("LDAP operation error: " + modifyOperation.getResultCode() + ": " + modifyOperation.getErrorMessage());
         }
         return entry;
 
@@ -900,7 +836,7 @@ public class OpenDJController extends AbstractResourceController {
     public void executeLdifChanges(File file) throws IOException, LDIFException {
         LDIFImportConfig importConfig = new LDIFImportConfig(file.getPath());
         LDIFReader ldifReader = new LDIFReader(importConfig);
-        for (;;) {
+        for (; ; ) {
             ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
             if (entry == null) {
                 break;
@@ -918,24 +854,24 @@ public class OpenDJController extends AbstractResourceController {
     }
 
     public ChangeRecordEntry modifyReplace(String entryDn, String attributeName, String value) throws IOException, LDIFException {
-        String ldif = "dn: " + entryDn + "\nchangetype: modify\nreplace: "+attributeName+"\n"+attributeName+": " + value;
+        String ldif = "dn: " + entryDn + "\nchangetype: modify\nreplace: " + attributeName + "\n" + attributeName + ": " + value;
         return executeLdifChange(ldif);
     }
 
     public ChangeRecordEntry modifyAdd(String entryDn, String attributeName, String value) throws IOException, LDIFException {
-        String ldif = "dn: " + entryDn + "\nchangetype: modify\nadd: "+attributeName+"\n"+attributeName+": " + value;
+        String ldif = "dn: " + entryDn + "\nchangetype: modify\nadd: " + attributeName + "\n" + attributeName + ": " + value;
         return executeLdifChange(ldif);
     }
 
     public ChangeRecordEntry modifyDelete(String entryDn, String attributeName, String value) throws IOException, LDIFException {
-        String ldif = "dn: " + entryDn + "\nchangetype: modify\ndelete: "+attributeName+"\n"+attributeName+": " + value;
+        String ldif = "dn: " + entryDn + "\nchangetype: modify\ndelete: " + attributeName + "\n" + attributeName + ": " + value;
         return executeLdifChange(ldif);
     }
 
     public void delete(String entryDn) {
         DeleteOperation deleteOperation = getInternalConnection().processDelete(entryDn);
         if (ResultCode.SUCCESS != deleteOperation.getResultCode()) {
-            throw new RuntimeException("LDAP operation error: "+deleteOperation.getResultCode()+": "+deleteOperation.getErrorMessage());
+            throw new RuntimeException("LDAP operation error: " + deleteOperation.getResultCode() + ": " + deleteOperation.getErrorMessage());
         }
     }
 
@@ -944,7 +880,7 @@ public class OpenDJController extends AbstractResourceController {
                 100, false, "(objectclass=*)", getSearchAttributes());
 
         StringBuilder sb = new StringBuilder();
-        for (SearchResultEntry searchEntry: op.getSearchEntries()) {
+        for (SearchResultEntry searchEntry : op.getSearchEntries()) {
             sb.append(toHumanReadableLdifoid(searchEntry));
             sb.append("\n");
         }
@@ -964,7 +900,7 @@ public class OpenDJController extends AbstractResourceController {
                 dn, SearchScope.SINGLE_LEVEL, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
                 100, false, "(objectclass=*)", getSearchAttributes());
 
-        for (SearchResultEntry searchEntry: op.getSearchEntries()) {
+        for (SearchResultEntry searchEntry : op.getSearchEntries()) {
             ident(sb, indent);
             sb.append(searchEntry.getDN().getRDN());
             sb.append("\n");
@@ -973,7 +909,7 @@ public class OpenDJController extends AbstractResourceController {
     }
 
     private void ident(StringBuilder sb, int indent) {
-        for(int i=0; i < indent; i++) {
+        for (int i = 0; i < indent; i++) {
             sb.append("  ");
         }
     }
@@ -981,8 +917,8 @@ public class OpenDJController extends AbstractResourceController {
     public String toHumanReadableLdifoid(Entry entry) {
         StringBuilder sb = new StringBuilder();
         sb.append("dn: ").append(entry.getDN()).append("\n");
-        for (Attribute attribute: entry.getAttributes()) {
-            for (AttributeValue val: attribute) {
+        for (Attribute attribute : entry.getAttributes()) {
+            for (AttributeValue val : attribute) {
                 sb.append(attribute.getName());
                 sb.append(": ");
                 sb.append(val);
@@ -1042,28 +978,23 @@ public class OpenDJController extends AbstractResourceController {
 
     public void assertPassword(String entryDn, String password) throws DirectoryException {
         if (!checkPassword(entryDn, password)) {
-            AssertJUnit.fail("Expected that entry "+entryDn+" will have password '"+password+"'. But the check failed.");
+            AssertJUnit.fail("Expected that entry " + entryDn + " will have password '" + password + "'. But the check failed.");
         }
     }
 
     public void assertHasObjectClass(Entry entry, String expectedObjectclass) {
         Collection<String> objectclasses = getAttributeValues(entry, "objectClass");
         if (!objectclasses.contains(expectedObjectclass)) {
-            AssertJUnit.fail("Expected that entry "+entry.getDN()+" will have object class '"+expectedObjectclass
-                    +"'. But it has object classes: "+objectclasses);
+            AssertJUnit.fail("Expected that entry " + entry.getDN() + " will have object class '" + expectedObjectclass
+                    + "'. But it has object classes: " + objectclasses);
         }
     }
 
     public void assertHasNoObjectClass(Entry entry, String expectedObjectclass) {
         Collection<String> objectclasses = getAttributeValues(entry, "objectClass");
         if (objectclasses.contains(expectedObjectclass)) {
-            AssertJUnit.fail("Expected that entry "+entry.getDN()+" will NOT have object class '"+expectedObjectclass
-                    +"'. But it was there: "+objectclasses);
+            AssertJUnit.fail("Expected that entry " + entry.getDN() + " will NOT have object class '" + expectedObjectclass
+                    + "'. But it was there: " + objectclasses);
         }
     }
-
-    public int getNumberOfDefaultAccounts() {
-        return 4;
-    }
-
 }

@@ -30,9 +30,9 @@ public class QAuditResource extends FlexibleRelationalPathBase<MAuditResource> {
     public static final String TABLE_NAME = "m_audit_resource";
 
     public static final ColumnMetadata RECORD_ID =
-            ColumnMetadata.named("RECORD_ID").ofType(Types.BIGINT).withSize(19).notNull();
+            ColumnMetadata.named("record_id").ofType(Types.BIGINT).withSize(19).notNull();
     public static final ColumnMetadata RESOURCE_OID =
-            ColumnMetadata.named("RESOURCEOID").ofType(Types.VARCHAR).withSize(255).notNull();
+            ColumnMetadata.named("resourceOid").ofType(Types.VARCHAR).withSize(255).notNull();
 
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
     public final StringPath resourceOid = createString("resourceOid", RESOURCE_OID);
@@ -41,7 +41,7 @@ public class QAuditResource extends FlexibleRelationalPathBase<MAuditResource> {
     public final ForeignKey<QAuditEventRecord> auditResourceFk = createForeignKey(recordId, "ID");
 
     public QAuditResource(String variable) {
-        this(variable, "PUBLIC", TABLE_NAME);
+        this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
     public QAuditResource(String variable, String schema, String table) {

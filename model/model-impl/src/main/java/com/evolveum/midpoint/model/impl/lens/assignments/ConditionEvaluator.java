@@ -45,33 +45,29 @@ class ConditionEvaluator {
         this.ctx = evaluationContext;
     }
 
-    PlusMinusZero computeModeFromCondition(PlusMinusZero initialMode, MappingType condition,
-            ObjectType source, String description, Object loggingDesc, OperationResult result)
+    ConditionState computeConditionState(MappingType condition, ObjectType source, String description, Object loggingDesc,
+            OperationResult result)
             throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         if (condition != null) {
             AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
-            PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTriple = evaluateCondition(condition,
+            PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTripleAbsolute = evaluateConditionAbsolute(condition,
                     source, assignmentPathVariables,
                     description, ctx, result);
-            boolean condOld = ExpressionUtil.computeConditionResult(conditionTriple.getNonPositiveValues());
-            boolean condNew = ExpressionUtil.computeConditionResult(conditionTriple.getNonNegativeValues());
-            PlusMinusZero modeFromCondition = ExpressionUtil.computeConditionResultMode(condOld, condNew);
-            if (modeFromCondition == null) {
-                LOGGER.trace("Evaluated condition in {}: {} -> {}: null (not continuing further)", loggingDesc, condOld, condNew);
-                return null;
-            } else {
-                PlusMinusZero updatedMode = PlusMinusZero.compute(initialMode, modeFromCondition);
-                LOGGER.trace("Evaluated condition in {}: {} -> {}: {} + {} = {}", loggingDesc, condOld, condNew,
-                        initialMode, modeFromCondition, updatedMode);
-                return updatedMode;
-            }
+            PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionTripleRelative = evaluateConditionRelative(condition,
+                    source, assignmentPathVariables,
+                    description, ctx, result);
+            // TODO eliminate repeated "new" computation
+            boolean condOld = ExpressionUtil.computeConditionResult(conditionTripleAbsolute.getNonPositiveValues());
+            boolean condCurrent = ExpressionUtil.computeConditionResult(conditionTripleRelative.getNonPositiveValues());
+            boolean condNew = ExpressionUtil.computeConditionResult(conditionTripleAbsolute.getNonNegativeValues());
+            return ConditionState.from(condOld, condCurrent, condNew);
         } else {
-            return initialMode;
+            return ConditionState.allTrue();
         }
     }
 
-    private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateCondition(MappingType condition,
+    private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateConditionAbsolute(MappingType condition,
             ObjectType source, AssignmentPathVariables assignmentPathVariables, String contextDescription, EvaluationContext<?> ctx,
             OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -79,15 +75,46 @@ class ConditionEvaluator {
                 ctx.ae.mappingFactory.createMappingBuilder();
         builder = builder.mappingBean(condition)
                 .mappingKind(MappingKindType.ASSIGNMENT_CONDITION)
-                .contextDescription(contextDescription)
-                .sourceContext(ctx.ae.focusOdo)
+                .contextDescription("(absolute) " + contextDescription)
+                .sourceContext(ctx.ae.focusOdoAbsolute)
                 .originType(OriginType.ASSIGNMENTS)
                 .originObject(source)
                 .defaultTargetDefinition(ctx.ae.prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
                 .addVariableDefinitions(ctx.ae.getAssignmentEvaluationVariables())
-                .rootNode(ctx.ae.focusOdo)
-                .addVariableDefinition(ExpressionConstants.VAR_FOCUS, ctx.ae.focusOdo)
-                .addVariableDefinition(ExpressionConstants.VAR_USER, ctx.ae.focusOdo)
+                .rootNode(ctx.ae.focusOdoAbsolute)
+                .addVariableDefinition(ExpressionConstants.VAR_FOCUS, ctx.ae.focusOdoAbsolute)
+                .addVariableDefinition(ExpressionConstants.VAR_USER, ctx.ae.focusOdoAbsolute)
+                .addAliasRegistration(ExpressionConstants.VAR_USER, null)
+                .addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
+                .addVariableDefinition(ExpressionConstants.VAR_SOURCE, source, ObjectType.class)
+                .addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT_EVALUATOR, this, AssignmentEvaluator.class);
+        builder = LensUtil.addAssignmentPathVariables(builder, assignmentPathVariables, ctx.ae.prismContext);
+
+        MappingImpl<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> mapping = builder.build();
+
+        ctx.ae.mappingEvaluator.evaluateMapping(mapping, ctx.ae.lensContext, ctx.task, result);
+
+        return mapping.getOutputTriple();
+    }
+
+    // TODO deduplicate, optimize
+    private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> evaluateConditionRelative(MappingType condition,
+            ObjectType source, AssignmentPathVariables assignmentPathVariables, String contextDescription, EvaluationContext<?> ctx,
+            OperationResult result) throws ExpressionEvaluationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
+        MappingBuilder<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> builder =
+                ctx.ae.mappingFactory.createMappingBuilder();
+        builder = builder.mappingBean(condition)
+                .mappingKind(MappingKindType.ASSIGNMENT_CONDITION)
+                .contextDescription("(relative) " + contextDescription)
+                .sourceContext(ctx.ae.focusOdoRelative)
+                .originType(OriginType.ASSIGNMENTS)
+                .originObject(source)
+                .defaultTargetDefinition(ctx.ae.prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
+                .addVariableDefinitions(ctx.ae.getAssignmentEvaluationVariables())
+                .rootNode(ctx.ae.focusOdoRelative)
+                .addVariableDefinition(ExpressionConstants.VAR_FOCUS, ctx.ae.focusOdoRelative)
+                .addVariableDefinition(ExpressionConstants.VAR_USER, ctx.ae.focusOdoRelative)
                 .addAliasRegistration(ExpressionConstants.VAR_USER, null)
                 .addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
                 .addVariableDefinition(ExpressionConstants.VAR_SOURCE, source, ObjectType.class)

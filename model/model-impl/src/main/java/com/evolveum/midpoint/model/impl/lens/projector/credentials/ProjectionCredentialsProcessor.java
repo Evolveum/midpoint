@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.expression.ConfigurableValuePolicySupplier;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
@@ -137,19 +138,21 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             return;
         }
 
-        List<MappingType> outboundMappingTypes = refinedProjDef.getPasswordOutbound();
-        if (outboundMappingTypes == null || outboundMappingTypes.isEmpty()) {
+        List<MappingType> outboundMappingBeans = refinedProjDef.getPasswordOutbound();
+        if (outboundMappingBeans == null || outboundMappingBeans.isEmpty()) {
             LOGGER.trace("No outbound password mapping for {}, skipping credentials processing", rsd);
             return;
         }
 
+        ObjectDeltaObject<F> objectDeltaObject = focusContext.getObjectDeltaObjectAbsolute();
+
         // HACK
-        if (!projCtx.isDoReconciliation() && !projCtx.isAdd() && !isActivated(outboundMappingTypes, focusContext.getDelta())) {
+        if (!projCtx.isDoReconciliation() && !projCtx.isAdd() && !isActivated(outboundMappingBeans, objectDeltaObject.getObjectDelta())) {
             LOGGER.trace("Outbound password mappings not activated for type {}, skipping credentials processing", rsd);
             return;
         }
 
-        ObjectDelta<ShadowType> projDelta = projCtx.getDelta();
+        ObjectDelta<ShadowType> projDelta = projCtx.getCurrentDelta();
         PropertyDelta<ProtectedStringType> projPasswordDelta;
         if (projDelta != null && projDelta.getChangeType() == MODIFY) {
             projPasswordDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
@@ -160,8 +163,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
 
         boolean evaluateWeak = getEvaluateWeak(projCtx);
 
-        ItemDeltaItem<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> focusPasswordIdi = focusContext
-                .getObjectDeltaObject().findIdi(SchemaConstants.PATH_PASSWORD_VALUE);
+        ItemDeltaItem<PrismPropertyValue<ProtectedStringType>, PrismPropertyDefinition<ProtectedStringType>> focusPasswordIdi = objectDeltaObject.findIdi(SchemaConstants.PATH_PASSWORD_VALUE); // TODO wave
 
         ConfigurableValuePolicySupplier valuePolicySupplier = (result1) -> SecurityUtil.getPasswordPolicy(securityPolicy);
 
@@ -240,18 +242,18 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
                 };
 
 
-        mappingEvaluator.evaluateOutboundMapping(context, projCtx, outboundMappingTypes,
+        mappingEvaluator.evaluateOutboundMapping(context, projCtx, outboundMappingBeans,
                 SchemaConstants.PATH_PASSWORD_VALUE, initializer, processor,
                 now, MappingTimeEval.CURRENT, evaluateWeak, "password mapping", task, result);
 
     }
 
-    private <F extends FocusType> boolean isActivated(List<MappingType> outboundMappingTypes, ObjectDelta<F> focusDelta) {
+    private <F extends FocusType> boolean isActivated(List<MappingType> outboundMappingBeans, ObjectDelta<F> focusDelta) {
         if (focusDelta == null) {
             return false;
         }
-        for (MappingType outboundMappingType: outboundMappingTypes) {
-            List<VariableBindingDefinitionType> sources = outboundMappingType.getSource();
+        for (MappingType outboundMappingBean: outboundMappingBeans) {
+            List<VariableBindingDefinitionType> sources = outboundMappingBean.getSource();
             if (sources.isEmpty()) {
                 // Default source
                 if (focusDelta.hasItemDelta(SchemaConstants.PATH_PASSWORD_VALUE)) {
@@ -301,7 +303,7 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             return;
         }
 
-        ObjectDelta<ShadowType> accountDelta = projectionContext.getDelta();
+        ObjectDelta<ShadowType> accountDelta = projectionContext.getCurrentDelta();
 
         if (accountDelta == null){
             LOGGER.trace("Skipping processing password policies. Shadow delta not specified.");
@@ -375,12 +377,11 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
             final LensProjectionContext projectionContext, XMLGregorianCalendar now, Task task, OperationResult result)
                     throws SchemaException {
 
-        ObjectDelta<ShadowType> accountDelta = projectionContext.getDelta();
-
         if (projectionContext.isDelete()) {
             return;
         }
 
+        ObjectDelta<ShadowType> accountDelta = projectionContext.getCurrentDelta();
         if (accountDelta == null) {
             LOGGER.trace("Skipping application of password metadata. Shadow delta not specified.");
             return;

@@ -7,15 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import com.evolveum.midpoint.prism.AbstractFreezable;
 import com.evolveum.midpoint.prism.delta.AddDeleteReplace;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Describes assignment origin e.g. if it's in object old, current, or in delta; if it's virtual or not.
  */
-public class AssignmentOrigin {
+public class AssignmentOrigin extends AbstractFreezable {
 
     /**
      * Assignment is virtual i.e. not really present in the focus object.
@@ -37,9 +40,9 @@ public class AssignmentOrigin {
     private boolean isOld;
 
     /**
-     * Assignment is present in assignment-related delta (either as ADD, DELETE or REPLACE value).
+     * Assignment is present in the new object.
      */
-    private boolean isChanged;
+    private Boolean isNew;
 
     /**
      * For isChanged: is the assignment in DELTA ADD?
@@ -50,11 +53,6 @@ public class AssignmentOrigin {
      * For isChanged: is the assignment in DELTA DELETE?
      */
     private boolean isInDeltaDelete;
-
-    /**
-     * For isChanged: is the assignment in DELTA REPLACE?
-     */
-    private boolean isInDeltaReplace;
 
     AssignmentOrigin(boolean virtual) {
         this.virtual = virtual;
@@ -78,16 +76,21 @@ public class AssignmentOrigin {
         return virtual;
     }
 
+    public boolean isNew() {
+        return Objects.requireNonNull(isNew, "Cannot ask isNew on unfrozen assignment collection");
+    }
+
+    public void setNew(boolean value) {
+        checkMutable();
+        isNew = value;
+    }
+
     public boolean isCurrent() {
         return isCurrent;
     }
 
     public boolean isOld() {
         return isOld;
-    }
-
-    public boolean isChanged() {
-        return isChanged;
     }
 
     public boolean isInDeltaAdd() {
@@ -98,29 +101,25 @@ public class AssignmentOrigin {
         return isInDeltaDelete;
     }
 
-    public boolean isInDeltaReplace() {
-        return isInDeltaReplace;
-    }
-
     @Override
     public String toString() {
         List<String> labels = new ArrayList<>();
-        addLabel(labels, isCurrent,"current");
         addLabel(labels, isOld,"old");
-        addLabel(labels, isChanged,"changed");
+        addLabel(labels, isCurrent,"current");
+        addLabel(labels, isNew,"new");
         addLabel(labels, isInDeltaAdd, "inDeltaAdd");
         addLabel(labels, isInDeltaDelete, "inDeltaDelete");
-        addLabel(labels, isInDeltaReplace, "inDeltaReplace");
         return String.join(", ", labels.toArray(new String[0]));
     }
 
-    private void addLabel(List<String> labels, boolean flagValue, String label) {
-        if (flagValue) {
+    private void addLabel(List<String> labels, Boolean flagValue, String label) {
+        if (Boolean.TRUE.equals(flagValue)) {
             labels.add(label);
         }
     }
 
-    void updateFlags(SmartAssignmentCollection.Mode mode, AddDeleteReplace deltaSet) {
+    void update(SmartAssignmentCollection.Mode mode, AddDeleteReplace deltaSet) {
+        checkMutable();
         switch (mode) {
             case CURRENT:
                 isCurrent = true;
@@ -128,8 +127,10 @@ public class AssignmentOrigin {
             case OLD:
                 isOld = true;
                 break;
-            case CHANGED:
-                isChanged = true;
+            case NEW:
+                isNew = true;
+                break;
+            case IN_ADD_OR_DELETE_DELTA:
                 updateDeltaSetFlags(deltaSet);
                 break;
             default:
@@ -146,8 +147,7 @@ public class AssignmentOrigin {
                 isInDeltaDelete = true;
                 break;
             case REPLACE:
-                isInDeltaReplace = true;
-                break;
+                throw new AssertionError("REPLACE values are treated in a special way");
             default:
                 throw new AssertionError();
         }
@@ -155,25 +155,42 @@ public class AssignmentOrigin {
 
     /**
      * Assignment is either being added in the current wave or was added in some of the previous waves.
-     * EXPERIMENTAL. USE WITH CARE.
      */
     public boolean isBeingAdded() {
-        return !isOld && (isInDeltaAdd || isInDeltaReplace || isCurrent);
+        return !isOld && isNew();
     }
 
     /**
      * Assignment is either being deleted in the current wave or was deleted in some of the previous waves.
-     * EXPERIMENTAL. USE WITH CARE.
      */
     public boolean isBeingDeleted() {
-        return isOld && (isInDeltaDelete || !isCurrent);        // TODO what about replace deltas?
+        return isOld && !isNew();
     }
 
     /**
      * Assignment was present at the beginning and is not being deleted.
-     * EXPERIMENTAL. USE WITH CARE.
      */
-    public boolean isBeingModified() {
-        return isOld && !isBeingAdded() && !isBeingDeleted();
+    public boolean isBeingKept() {
+        return isOld && isNew();
+    }
+
+    /**
+     * Returns absolute mode of this assignment with regard to focus old state.
+     */
+    public PlusMinusZero getAbsoluteMode() {
+        if (isBeingAdded()) {
+            return PlusMinusZero.PLUS;
+        } else if (isBeingDeleted()) {
+            return PlusMinusZero.MINUS;
+        } else {
+            return PlusMinusZero.ZERO;
+        }
+    }
+
+    @Override
+    public void performFreeze() {
+        if (isNew == null) {
+            isNew = isInDeltaAdd || isCurrent && !isInDeltaDelete;
+        }
     }
 }

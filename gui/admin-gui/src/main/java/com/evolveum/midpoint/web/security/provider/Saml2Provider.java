@@ -1,25 +1,13 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.security.provider;
 
-import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
-import com.evolveum.midpoint.model.api.ModelAuditRecorder;
-import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
-import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
-import com.evolveum.midpoint.security.api.ConnectionEnvironment;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import java.util.Collection;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
@@ -29,8 +17,19 @@ import org.springframework.security.saml.saml2.attribute.Attribute;
 import org.springframework.security.saml.spi.DefaultSamlAuthentication;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
-import java.util.Collection;
-import java.util.List;
+import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.context.PasswordAuthenticationContext;
+import com.evolveum.midpoint.model.api.context.PreAuthenticationContext;
+import com.evolveum.midpoint.security.api.ConnectionEnvironment;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.module.authentication.Saml2ModuleAuthentication;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
  * @author skublik
@@ -41,7 +40,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
     private static final Trace LOGGER = TraceManager.getTrace(Saml2Provider.class);
 
     @Autowired
-    private transient AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
+    private AuthenticationEvaluator<PasswordAuthenticationContext> authenticationEvaluator;
 
     @Override
     protected AuthenticationEvaluator getEvaluator() {
@@ -50,10 +49,10 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
 
     @Override
     protected void writeAutentication(Authentication originalAuthentication, MidpointAuthentication mpAuthentication,
-                                      ModuleAuthentication moduleAuthentication, Authentication token) {
+            ModuleAuthentication moduleAuthentication, Authentication token) {
         Object principal = token.getPrincipal();
         if (principal != null && principal instanceof GuiProfiledPrincipal) {
-            mpAuthentication.setPrincipal((GuiProfiledPrincipal) principal);
+            mpAuthentication.setPrincipal(principal);
         }
 
         moduleAuthentication.setAuthentication(originalAuthentication);
@@ -74,7 +73,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
                 for (Attribute attribute : attributes) {
                     if (attribute != null
                             && ((attribute.getFriendlyName() != null && attribute.getFriendlyName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId())))
-                            || (attribute.getName() != null && attribute.getName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId()))))){
+                            || (attribute.getName() != null && attribute.getName().equals(samlModule.getNamesOfUsernameAttributes().get(samlAuthentication.getAssertingEntityId()))))) {
                         List<Object> values = attribute.getValues();
                         if (values == null) {
                             LOGGER.error("Saml attribute, which define username don't contains value");
@@ -97,7 +96,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
 
-            MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
+            MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
 
             LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
                     authentication.getClass().getSimpleName(), principal.getAuthorities());

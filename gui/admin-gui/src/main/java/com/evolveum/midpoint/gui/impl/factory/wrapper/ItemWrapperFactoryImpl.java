@@ -99,6 +99,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
         }
 
         IW itemWrapper = createWrapperInternal(parent, (I) childItem, status, context);
+        itemWrapper.setMetadata(context.isMetadata());
 
         registerWrapperPanel(itemWrapper);
 

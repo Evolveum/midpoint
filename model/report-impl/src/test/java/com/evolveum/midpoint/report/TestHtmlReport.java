@@ -7,18 +7,13 @@
 package com.evolveum.midpoint.report;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FileFormatTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.List;
-
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * @author skublik
@@ -27,9 +22,9 @@ import static org.testng.AssertJUnit.assertNotNull;
 public class TestHtmlReport extends BasicNewReportTest {
 
     @Override
-    protected ExportConfigurationType getExportConfiguration() {
-        ExportConfigurationType config = new ExportConfigurationType();
-        config.setType(ExportType.HTML);
+    protected FileFormatConfigurationType getFileFormatConfiguration() {
+        FileFormatConfigurationType config = new FileFormatConfigurationType();
+        config.setType(FileFormatTypeType.HTML);
         return config;
     }
 

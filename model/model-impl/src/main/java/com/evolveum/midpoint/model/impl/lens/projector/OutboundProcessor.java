@@ -20,10 +20,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -55,9 +52,7 @@ public class OutboundProcessor {
             ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 
         ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
-        ObjectDelta<ShadowType> projectionDelta = projCtx.getDelta();
-
-        if (projectionDelta != null && projectionDelta.getChangeType() == ChangeType.DELETE) {
+        if (projCtx.isDelete()) {
             LOGGER.trace("Processing outbound expressions for {} skipped, DELETE account delta", discr);
             // No point in evaluating outbound
             return;
@@ -65,10 +60,11 @@ public class OutboundProcessor {
 
         LOGGER.trace("Processing outbound expressions for {} starting", discr);
 
-        ObjectDeltaObject<AH> focusOdo = context.getFocusContext().getObjectDeltaObject();
+        // Each projection is evaluated in a single wave only. So we take into account all changes of focus from wave 0 to this one.
+        ObjectDeltaObject<AH> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();
 
-        OutboundConstruction<AH> outboundConstruction = new OutboundConstruction<AH>(projCtx);
-        outboundConstruction.setFocusOdo(focusOdo);
+        OutboundConstruction<AH> outboundConstruction = new OutboundConstruction<>(projCtx);
+        outboundConstruction.setFocusOdoAbsolute(focusOdoAbsolute);
         outboundConstruction.setLensContext(context);
         outboundConstruction.setObjectResolver(objectResolver);
         outboundConstruction.setPrismContext(prismContext);

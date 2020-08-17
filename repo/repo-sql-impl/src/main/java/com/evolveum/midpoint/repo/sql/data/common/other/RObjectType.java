@@ -29,7 +29,7 @@ public enum RObjectType {
     TASK(RTask.class, TaskType.class),
     USER(RUser.class, UserType.class),
     REPORT(RReport.class, ReportType.class),
-    REPORT_OUTPUT(RReportOutput.class, ReportOutputType.class),
+    REPORT_DATA(RReportData.class, ReportDataType.class),
     OBJECT_TEMPLATE(RObjectTemplate.class, ObjectTemplateType.class),
     NODE(RNode.class, NodeType.class),
     ORG(ROrg.class, OrgType.class),

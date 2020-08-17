@@ -7,6 +7,11 @@
 
 package com.evolveum.midpoint.prism.impl.delta.builder;
 
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
@@ -19,18 +24,14 @@ import com.evolveum.midpoint.prism.impl.delta.ReferenceDeltaImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 /**
  * Grammar:
- *
- *  ObjectDelta ::= (ItemDelta)* ( 'OBJECT-DELTA(oid)' | 'ITEM-DELTA' | 'ITEM-DELTAS' )
- *
- *  ItemDelta ::= 'ITEM(...)' ( ( 'ADD-VALUES(...)' 'DELETE-VALUES(...)'? ) | 'DELETE-VALUES(...)' | 'REPLACE-VALUES(...)' )
- *
+ * <p>
+ * ObjectDelta ::= (ItemDelta)* ( 'OBJECT-DELTA(oid)' | 'ITEM-DELTA' | 'ITEM-DELTAS' )
+ * <p>
+ * ItemDelta ::= 'ITEM(...)' ( ( 'ADD-VALUES(...)' 'DELETE-VALUES(...)'? ) | 'DELETE-VALUES(...)' | 'REPLACE-VALUES(...)' )
+ * <p>
  * EXPERIMENTAL IMPLEMENTATION.
  *
  * @author mederly
@@ -38,12 +39,12 @@ import java.util.*;
 @Experimental
 public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_MaybeDelete, S_ValuesEntry {
 
-    final private Class<T> objectClass;
-    final private ComplexTypeDefinition containerCTD;
-    final private PrismContext prismContext;
+    private final Class<T> objectClass;
+    private final ComplexTypeDefinition containerCTD;
+    private final PrismContext prismContext;
 
     // BEWARE - although these are final, their content may (and does) vary. Not much clean.
-    private final List<ItemDelta<?,?>> deltas;
+    private final List<ItemDelta<?, ?>> deltas;
     private final ItemDelta currentDelta;
 
     public DeltaBuilder(Class<T> objectClass, PrismContext prismContext) throws SchemaException {
@@ -57,7 +58,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         currentDelta = null;
     }
 
-    public DeltaBuilder(Class<T> objectClass, ComplexTypeDefinition containerCTD, PrismContext prismContext, List<ItemDelta<?,?>> deltas, ItemDelta currentDelta) {
+    public DeltaBuilder(Class<T> objectClass, ComplexTypeDefinition containerCTD, PrismContext prismContext, List<ItemDelta<?, ?>> deltas, ItemDelta currentDelta) {
         this.objectClass = objectClass;
         this.containerCTD = containerCTD;
         this.prismContext = prismContext;
@@ -108,7 +109,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         } else {
             throw new IllegalStateException("Unsupported definition type: " + definition);
         }
-        List<ItemDelta<?,?>> newDeltas = deltas;
+        List<ItemDelta<?, ?>> newDeltas = deltas;
         if (currentDelta != null) {
             newDeltas.add(currentDelta);
         }
@@ -134,7 +135,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     @Override
     public <T> S_ValuesEntry property(ItemPath path, PrismPropertyDefinition<T> definition) {
         PropertyDelta<Object> newDelta = new PropertyDeltaImpl(path, definition, prismContext);
-        List<ItemDelta<?,?>> newDeltas = deltas;
+        List<ItemDelta<?, ?>> newDeltas = deltas;
         if (currentDelta != null) {
             newDeltas.add(currentDelta);
         }
@@ -157,7 +158,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
 
     @Override
     public ItemDelta asItemDelta() {
-        List<ItemDelta<?,?>> allDeltas = getAllDeltas();
+        List<ItemDelta<?, ?>> allDeltas = getAllDeltas();
         if (allDeltas.size() > 1) {
             throw new IllegalStateException("Too many deltas to fit into item delta: " + allDeltas.size());
         } else if (allDeltas.size() == 1) {
@@ -168,11 +169,11 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
     }
 
     @Override
-    public List<ItemDelta<?,?>> asItemDeltas() {
+    public List<ItemDelta<?, ?>> asItemDeltas() {
         return getAllDeltas();
     }
 
-    private List<ItemDelta<?,?>> getAllDeltas() {
+    private List<ItemDelta<?, ?>> getAllDeltas() {
         if (currentDelta != null) {
             deltas.add(currentDelta);
         }
@@ -339,8 +340,6 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         return this;
     }
 
-
-
     @Override
     public S_ItemEntry mod(PlusMinusZero plusMinusZero, Object... realValues) {
         return modRealValues(plusMinusZero, Arrays.asList(realValues));
@@ -412,7 +411,7 @@ public class DeltaBuilder<T extends Containerable> implements S_ItemEntry, S_May
         return this;
     }
 
-    private PrismValue toPrismValue(ItemDelta<?,?> currentDelta, @NotNull Object v) {
+    private PrismValue toPrismValue(ItemDelta<?, ?> currentDelta, @NotNull Object v) {
         if (currentDelta instanceof PropertyDelta<?>) {
             return new PrismPropertyValueImpl<>(v);
         } else if (currentDelta instanceof ContainerDelta<?>) {

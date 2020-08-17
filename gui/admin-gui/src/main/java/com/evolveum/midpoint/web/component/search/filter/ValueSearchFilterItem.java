@@ -152,12 +152,11 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         this.filter = filter;
     }
 
-    //todo which filter types do we want to support here
     public Object getValue() {
         if (value instanceof PrismValue) {
             return ((PrismValue) value).getRealValue();
         }
-        return null;
+        return value;
     }
 
     public FilterName getFilterTypeName() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,12 +7,23 @@
 
 package com.evolveum.midpoint.web.security;
 
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -21,35 +32,20 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
+public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-/**
- * Created by Viliam Repan (lazyman).
- */
-public class AuditedAccessDeniedHandler<SecurityHelper> extends MidpointAccessDeniedHandler {
-
-    @Autowired
-    private TaskManager taskManager;
-    @Autowired
-    private AuditService auditService;
+    @Autowired private TaskManager taskManager;
+    @Autowired private AuditService auditService;
+    @Autowired private PrismContext prismContext;
 
     @Override
     protected boolean handleInternal(HttpServletRequest request, HttpServletResponse response,
-                       AccessDeniedException accessDeniedException) throws IOException, ServletException {
+            AccessDeniedException accessDeniedException) throws IOException, ServletException {
 
         boolean ended = super.handleInternal(request, response, accessDeniedException);
         if (ended) {
-            return ended;
+            return true;
         }
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -73,7 +69,7 @@ public class AuditedAccessDeniedHandler<SecurityHelper> extends MidpointAccessDe
         task.setChannel(channel);
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
-        record.setInitiator(user);
+        record.setInitiator(user, prismContext);
         record.setParameter(WebComponentUtil.getName(user, false));
 
         record.setChannel(channel);

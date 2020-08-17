@@ -33,14 +33,13 @@ import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -59,11 +58,15 @@ import static com.evolveum.midpoint.prism.delta.PlusMinusZero.ZERO;
  */
 public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements EvaluatedAssignment<AH>, ShortDumpable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedAssignmentImpl.class);
-
     @NotNull private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
     private final boolean evaluatedOld;
+
+    /**
+     * Constructions collected from this assignment. They are categorized to plus/minus/zero sets
+     * according to holding assignment relativity mode (absolute w.r.t. focus, relative w.r.t. primary assignment).
+     */
     @NotNull private final DeltaSetTriple<Construction<AH, EvaluatedConstructionImpl<AH>>> constructionTriple;
+
     @NotNull private final DeltaSetTriple<PersonaConstruction<AH>> personaConstructionTriple;
     @NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles;
     @NotNull private final Collection<PrismReferenceValue> orgRefVals = new ArrayList<>();
@@ -94,11 +97,35 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     private String tenantOid;
 
     private PrismObject<?> target;
-    private boolean isValid; // TODO define!
+
+    /**
+     * Is the primary (evaluated) assignment valid in the new focus state, i.e.
+     *  - active according to the activation and lifecycle state,
+     *  - condition evaluated to true in the new state.
+     */
+    private boolean valid;
+
+    /**
+     * Was the first (evaluated) assignment valid in the old focus state, i.e.
+     *  - was it present in the old object at all,
+     *  - was it active according to the activation and lifecycle state,
+     *  - was condition evaluated to true in the old state (FIXME CURRENTLY NOT IMPLEMENTED)
+     *
+     * TODO verify and fix the algorithms - MID-6404
+     */
     private boolean wasValid;
-    private boolean forceRecon;         // used also to force recomputation of parentOrgRefs
+
+    /**
+     * TODO describe MID-6404
+     *
+     * (used also to force recomputation of parentOrgRefs)
+     */
+    private boolean forceRecon;
+
+    /**
+     * Origin of the primary assignment.
+     */
     @NotNull private final AssignmentOrigin origin;
-    private final Collection<String> policySituations = new HashSet<>();
 
     private final PrismContext prismContext;
 
@@ -318,11 +345,11 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
 
     @Override
     public boolean isValid() {
-        return isValid;
+        return valid;
     }
 
     public void setValid(boolean isValid) {
-        this.isValid = isValid;
+        this.valid = isValid;
     }
 
     public void setWasValid(boolean wasValid) {
@@ -337,26 +364,28 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         this.forceRecon = forceRecon;
     }
 
-    // System configuration is used only to provide $configuration script variable (MID-2372)
-    public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, PrismObject<SystemConfigurationType> systemConfiguration,
+    /**
+     * Evaluates constructions in this assignment.
+     *
+     * @param focusOdoAbsolute Absolute focus ODO. It must not be relative one, because constructions are applied on resource
+     *                         objects. And resource objects' old state is related to focus object old state. (These projections
+     *                         are _not_ changed iteratively, perhaps except for wave restarting.)
+     *
+     * @param systemConfiguration It is used only to provide $configuration script variable (MID-2372).
+     */
+    public void evaluateConstructions(ObjectDeltaObject<AH> focusOdoAbsolute, PrismObject<SystemConfigurationType> systemConfiguration,
             Consumer<ResourceType> resourceConsumer, Task task, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException,
             CommunicationException {
         for (Construction<AH,EvaluatedConstructionImpl<AH>> construction : constructionTriple.getAllValues()) {
-            construction.setFocusOdo(focusOdo);
+            construction.setFocusOdoAbsolute(focusOdoAbsolute);
             construction.setSystemConfiguration(systemConfiguration);
             construction.setWasValid(wasValid);
-            LOGGER.trace("Evaluating construction '{}' in {}", construction, construction.getSource());
             construction.evaluate(task, result);
             if (resourceConsumer != null && construction.getResource() != null) {
                 resourceConsumer.accept(construction.getResource());
             }
         }
-    }
-
-    @VisibleForTesting
-    public void evaluateConstructions(ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
-        evaluateConstructions(focusOdo, null, null, task, result);
     }
 
     @NotNull
@@ -412,11 +441,6 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     @Override
-    public Collection<String> getPolicySituations() {
-        return policySituations;
-    }
-
-    @Override
     public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         boolean hasException = processRuleExceptions(this, rule, triggers);
 
@@ -432,7 +456,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
 
         if (!hasException) {
-            LensUtil.triggerRule(rule, triggers, policySituations);
+            LensUtil.triggerRule(rule, triggers);
         }
     }
 
@@ -456,10 +480,10 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         DebugUtil.debugDumpWithLabelLn(sb, "assignment new", String.valueOf(assignmentIdi.getItemNew()), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "evaluatedOld", evaluatedOld, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "target", String.valueOf(target), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "isValid", isValid, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "valid", valid, indent + 1);
         if (forceRecon) {
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, "forceRecon", forceRecon, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, "forceRecon", true, indent + 1);
         }
         sb.append("\n");
         if (constructionTriple.isEmpty()) {
@@ -588,6 +612,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * @return mode (adding, deleting, keeping) with respect to the *current* object (not the old one)
      */
     @NotNull
+    @Experimental
     public PlusMinusZero getMode() {
         if (assignmentIdi.getItemNew() == null || assignmentIdi.getItemNew().isEmpty()) {
             return MINUS;
@@ -598,4 +623,11 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
     }
 
+    /**
+     * Returns absolute mode of this assignment with regard to focus old state.
+     */
+    @NotNull
+    public PlusMinusZero getAbsoluteMode() {
+        return origin.getAbsoluteMode();
+    }
 }

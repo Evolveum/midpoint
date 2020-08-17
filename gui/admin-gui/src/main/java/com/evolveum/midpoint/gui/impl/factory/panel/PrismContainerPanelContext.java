@@ -8,6 +8,7 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.prism.*;
 import org.apache.wicket.model.IModel;
 
@@ -20,6 +21,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 public class PrismContainerPanelContext<C extends Containerable> extends ItemPanelContext<C, PrismContainerWrapper<C>>{
 
     private IModel<PrismContainerValueWrapper<C>> valueWrapperModel;
+    private ItemPanelSettings settings;
 
     public PrismContainerPanelContext(IModel<PrismContainerWrapper<C>> itemWrapper) {
         super(itemWrapper);
@@ -36,5 +38,11 @@ public class PrismContainerPanelContext<C extends Containerable> extends ItemPan
         return valueWrapperModel;
     }
 
+    public void setSettings(ItemPanelSettings settings) {
+        this.settings = settings;
+    }
 
+    public ItemPanelSettings getSettings() {
+        return settings;
+    }
 }

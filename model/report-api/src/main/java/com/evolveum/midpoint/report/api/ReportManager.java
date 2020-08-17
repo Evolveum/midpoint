@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportParameterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
 
@@ -36,7 +36,19 @@ public interface ReportManager {
      * @param report
      * @param parentResult describes report which has to be created
      */
-    void runReport(PrismObject<ReportType> object, PrismContainer<ReportParameterType> params, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+    void runReport(PrismObject<ReportType> report, PrismContainer<ReportParameterType> params, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            SecurityViolationException;
+
+    /**
+     * todo comments [lazyman]
+     *
+     * @param report
+     * @param parentResult describes report which has to be created
+     */
+    void importReport(PrismObject<ReportType> report, PrismObject<ReportDataType> reportData, Task task, OperationResult parentResult)
+            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+            SecurityViolationException;
 
     /**
      * todo comments [lazyman]
@@ -50,14 +62,14 @@ public interface ReportManager {
     /**
      * todo comments [lazyman]
      *
-     * @param reportOutputOid
+     * @param reportDataOid
      * @param parentResult
      * @return
      */
-    InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult)
+    InputStream getReportDataStream(String reportDataOid, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
             ConfigurationException, ExpressionEvaluationException, IOException;
 
 
-    void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception;
+    void deleteReportData(ReportDataType reportData, OperationResult parentResult) throws Exception;
 }

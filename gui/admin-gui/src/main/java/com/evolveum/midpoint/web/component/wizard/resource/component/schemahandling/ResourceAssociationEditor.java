@@ -100,7 +100,7 @@ public class ResourceAssociationEditor extends BasePanel<ResourceObjectAssociati
 
     private PrismObject<ResourceType> resource;
     private ResourceObjectTypeDefinitionType objectType;
-    @NotNull final private SchemaHandlingStep parentStep;
+    @NotNull private final SchemaHandlingStep parentStep;
 
     public ResourceAssociationEditor(String id, IModel<ResourceObjectAssociationType> model,
             ResourceObjectTypeDefinitionType objectType, PrismObject<ResourceType> resource, SchemaHandlingStep parentStep,

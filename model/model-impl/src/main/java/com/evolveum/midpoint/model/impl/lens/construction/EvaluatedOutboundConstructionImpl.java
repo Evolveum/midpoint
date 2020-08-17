@@ -97,11 +97,10 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
                     PrettyPrinter.prettyPrint(refinedAttributeDefinition.getItemName()) + " in " + getProjectionContext().getResource();
             MappingBuilder<PrismPropertyValue<?>, RefinedAttributeDefinition<?>> builder =
                     getConstruction().getMappingFactory().createMappingBuilder(outboundMappingType, mappingShortDesc);
-            //noinspection ConstantConditions
             builder = builder.originObject(getProjectionContext().getResource())
                     .originType(OriginType.OUTBOUND);
             MappingImpl<PrismPropertyValue<?>, RefinedAttributeDefinition<?>> evaluatedMapping = evaluateMapping(builder, attributeName, refinedAttributeDefinition,
-                    getConstruction().getFocusOdo(), projectionOdo, operation, getConstruction().getRefinedObjectClassDefinition(), null, getConstruction().getLensContext(), getProjectionContext(), task, result);
+                    getConstruction().getFocusOdoAbsolute(), projectionOdo, operation, getConstruction().getRefinedObjectClassDefinition(), null, getConstruction().getLensContext(), getProjectionContext(), task, result);
 
             if (evaluatedMapping != null) {
                 addAttributeMapping(evaluatedMapping);
@@ -137,7 +136,7 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
 
             PrismContainerDefinition<ShadowAssociationType> outputDefinition = getConstruction().getAssociationContainerDefinition();
             MappingImpl<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>> evaluatedMapping = evaluateMapping(mappingBuilder,
-                    assocName, outputDefinition, getConstruction().getFocusOdo(), projectionOdo, operation, getConstruction().getRefinedObjectClassDefinition(),
+                    assocName, outputDefinition, getConstruction().getFocusOdoAbsolute(), projectionOdo, operation, getConstruction().getRefinedObjectClassDefinition(),
                     associationDefinition.getAssociationTarget(), getConstruction().getLensContext(), getProjectionContext(), task, result);
 
             if (evaluatedMapping != null) {

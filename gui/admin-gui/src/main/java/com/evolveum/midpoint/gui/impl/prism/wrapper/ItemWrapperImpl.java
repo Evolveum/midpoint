@@ -66,6 +66,9 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     private boolean showInVirtualContainer;
 
+    private boolean isMetadata;
+    private boolean showMetadataDetails;
+
     //consider
     private boolean readOnly;
     private UserInterfaceElementVisibilityType visibleOverwrite;
@@ -509,7 +512,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public QName getTypeName() {
+    public @NotNull QName getTypeName() {
         return getItemDefinition().getTypeName();
     }
 
@@ -750,5 +753,25 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
 
         return false;
+    }
+
+    @Override
+    public boolean isMetadata() {
+        return isMetadata;
+    }
+
+    @Override
+    public void setMetadata(boolean metadata) {
+        isMetadata = metadata;
+    }
+
+    @Override
+    public void setShowMetadataDetails(boolean showMetadataDetails) {
+        this.showMetadataDetails = showMetadataDetails;
+    }
+
+    @Override
+    public boolean isShowMetadataDetails() {
+        return showMetadataDetails;
     }
 }

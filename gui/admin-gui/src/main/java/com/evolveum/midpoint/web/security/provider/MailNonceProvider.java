@@ -1,10 +1,23 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.security.provider;
+
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
@@ -25,29 +38,16 @@ import com.evolveum.midpoint.web.security.module.authentication.MailNonceAuthent
 import com.evolveum.midpoint.web.security.module.authentication.MailNonceModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author skublik
  */
-
 public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthenticationContext> {
 
     private static final Trace LOGGER = TraceManager.getTrace(MailNonceProvider.class);
 
     @Autowired
-    private transient AuthenticationEvaluator<NonceAuthenticationContext> nonceAuthenticationEvaluator;
+    private AuthenticationEvaluator<NonceAuthenticationContext> nonceAuthenticationEvaluator;
 
     @Autowired
     private SecurityContextManager securityContextManager;
@@ -94,7 +94,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
 
-            MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
+            MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
 
             LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
                     authentication.getClass().getSimpleName(), principal.getAuthorities());
@@ -135,7 +135,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
             throw new UsernameNotFoundException("web.security.provider.invalid");
         }
 
-        SecurityPolicyType securityPolicy  = SecurityUtils.resolveSecurityPolicy(user.asPrismObject(), securityContextManager, manager, modelInteractionService);
+        SecurityPolicyType securityPolicy = SecurityUtils.resolveSecurityPolicy(user.asPrismObject(), securityContextManager, manager, modelInteractionService);
 
         if (securityPolicy == null) {
             LOGGER.debug("Security policy from principal is null");

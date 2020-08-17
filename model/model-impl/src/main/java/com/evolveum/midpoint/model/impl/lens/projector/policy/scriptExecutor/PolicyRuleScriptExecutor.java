@@ -97,13 +97,10 @@ public class PolicyRuleScriptExecutor {
     }
 
     private <O extends ObjectType> void collectFromAssignments(List<EvaluatedPolicyRuleImpl> rules, LensContext<O> context) {
-        DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = context.getEvaluatedAssignmentTriple();
-        if (triple != null) {
-            // We need to apply rules from all the assignments - even those that were deleted.
-            for (EvaluatedAssignmentImpl<?> assignment : triple.getAllValues()) {
-                for (EvaluatedPolicyRuleImpl rule : assignment.getAllTargetsPolicyRules()) {
-                    collectRule(rules, rule);
-                }
+        // We need to apply rules from all the assignments - even those that were deleted.
+        for (EvaluatedAssignmentImpl<?> assignment : context.getAllEvaluatedAssignments()) {
+            for (EvaluatedPolicyRuleImpl rule : assignment.getAllTargetsPolicyRules()) {
+                collectRule(rules, rule);
             }
         }
     }

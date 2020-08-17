@@ -6,14 +6,14 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import org.assertj.core.api.Assertions;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
-import org.assertj.core.api.Assertions;
-
 public class VirtualContainerSpecificationAsserter<RA> extends AbstractAsserter<RA> {
 
-    private VirtualContainersSpecificationType virtualContainer;
+    private final VirtualContainersSpecificationType virtualContainer;
 
     public VirtualContainerSpecificationAsserter(VirtualContainersSpecificationType virtualContainer, RA returnAsserter, String details) {
         super(returnAsserter, details);
@@ -25,7 +25,7 @@ public class VirtualContainerSpecificationAsserter<RA> extends AbstractAsserter<
         return this;
     }
 
-    public VirtualContainerSpecificationAsserter<RA> visibility(UserInterfaceElementVisibilityType visibility){
+    public VirtualContainerSpecificationAsserter<RA> visibility(UserInterfaceElementVisibilityType visibility) {
         Assertions.assertThat(virtualContainer.getVisibility()).isEqualTo(visibility);
         return this;
     }
@@ -40,14 +40,14 @@ public class VirtualContainerSpecificationAsserter<RA> extends AbstractAsserter<
     }
 
     public VirtualContainerItemsSpecificationAsserter<VirtualContainerSpecificationAsserter<RA>> items() {
-        return new VirtualContainerItemsSpecificationAsserter(virtualContainer.getItem(), this, "from virtual container " + virtualContainer);
+        return new VirtualContainerItemsSpecificationAsserter<>(
+                virtualContainer.getItem(), this, "from virtual container " + virtualContainer);
     }
 
     public VirtualContainerSpecificationAsserter<RA> assertItems(int expectedSize) {
         Assertions.assertThat(virtualContainer.getItem()).hasSize(expectedSize);
         return this;
     }
-
 
     @Override
     protected String desc() {

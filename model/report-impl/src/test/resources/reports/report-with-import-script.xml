@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report oid="2b44aa2e-dd86-4842-bcf5-762c8c4a851a">
+    <name>Report with import script</name>
+    <behavior>
+        <importScript xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                      xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+            <s:options>
+                <s:continueOnAnyError>true</s:continueOnAnyError>
+            </s:options>
+            <s:pipeline>
+                <s:search  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
+                    <s:type>UserType</s:type>
+                    <s:searchFilter>
+                        <q:equal>
+                            <q:path>name</q:path>
+                            <c:expression>
+                                <c:script>
+                                    <c:code>username</c:code>
+                                </c:script>
+                            </c:expression>
+                        </q:equal>
+                    </s:searchFilter>
+                </s:search>
+                <s:execute>
+                    <s:forWholeInput>true</s:forWholeInput>
+                    <s:script>
+                        <s:code>
+                            if (input == null || input.getData().isEmpty()){
+                                log.error("Couldn't find user with name" + username + ". Skip this line.")
+                            }
+                        </s:code>
+                    </s:script>
+                </s:execute>
+                <s:modify>
+                    <s:parameter>
+                        <s:name>delta</s:name>
+                        <s:execute>
+                            <s:parameter>
+                                <s:name>outputItem</s:name>
+                                <c:value>ObjectDeltaType</c:value>
+                            </s:parameter>
+                            <s:script>
+                                <s:code>
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+                                    import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+                                    import java.text.SimpleDateFormat;
+                                    import java.util.GregorianCalendar;
+                                    import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+                                    import javax.xml.datatype.DatatypeFactory;
+                                    import com.evolveum.midpoint.schema.DeltaConvertor;
+
+                                    log.info("-----------START-----------");
+                                    log.info("username: " + username);
+                                    log.info("role_name: " + role_name);
+                                    log.info("action: " + action);
+                                    log.info("valid_from: " + valid_from);
+                                    log.info("valid_to: " + valid_to);
+                                    log.info("input: " + input);
+
+                                    user = input;
+                                    userBefore = user.clone();
+                                    role = midpoint.searchObjectByName(RoleType.class, role_name);
+                                    if (role == null) {
+                                        log.error("Couldn't find role with name " + role_name);
+                                        return null;
+                                    }
+                                    if (action.equals("A")) {
+                                        roleRef = new ObjectReferenceType();
+                                        roleRef.setOid(role.getOid());
+                                        roleRef.setType(RoleType.COMPLEX_TYPE);
+                                        AssignmentType assignment = new AssignmentType();
+                                        assignment.setTargetRef(roleRef);
+
+                                        if (valid_from != null || valid_to != null) {
+                                            activation = new ActivationType();
+                                            format = new SimpleDateFormat("yyyy-MM-dd");
+                                            if (valid_from != null) {
+                                                date = format.parse(valid_from);
+                                                cal = new GregorianCalendar();
+                                                cal.setTime(date);
+                                                xmlGregCal =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                activation.setValidFrom(xmlGregCal);
+                                            }
+
+                                            if (valid_to != null) {
+                                                date = format.parse(valid_to);
+                                                cal = new GregorianCalendar();
+                                                cal.setTime(date);
+                                                xmlGregCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                activation.setValidTo(xmlGregCal);
+                                            }
+                                            assignment.setActivation(activation);
+                                        }
+                                        user.getAssignment().add(assignment);
+                                    } else if (action.equals("M")) {
+                                        for (AssignmentType assignment : user.getAssignment()) {
+                                            if (assignment.getTargetRef() != null &amp;&amp; role.getOid().equals(assignment.getTargetRef().getOid())) {
+                                                if (valid_from != null || valid_to != null) {
+                                                    activation = new ActivationType();
+                                                    format = new SimpleDateFormat("yyyy-MM-dd");
+                                                    if (valid_from != null) {
+                                                        date = format.parse(valid_from);
+                                                        cal = new GregorianCalendar();
+                                                        cal.setTime(date);
+                                                        xmlGregCal =  DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                        activation.setValidFrom(xmlGregCal);
+                                                    }
+
+                                                    if (valid_to != null) {
+                                                        date = format.parse(valid_to);
+                                                        cal = new GregorianCalendar();
+                                                        cal.setTime(date);
+                                                        xmlGregCal = DatatypeFactory.newInstance().newXMLGregorianCalendar(cal);
+                                                        activation.setValidTo(xmlGregCal);
+                                                    }
+                                                    assignment.setActivation(activation);
+                                                }
+                                                break;
+                                            }
+                                        }
+                                    } else if (action.equals("D")) {
+                                        for (AssignmentType assignment : user.getAssignment()) {
+                                            if (assignment.getTargetRef() != null &amp;&amp; role.getOid().equals(assignment.getTargetRef().getOid())) {
+                                                user.getAssignment().remove(assignment);
+                                                break;
+                                            }
+                                        }
+                                    } else {
+                                        log.error("Action column have unexpected value '" + action + "'")
+                                        return null;
+                                    }
+                                    if (userBefore.equals(user)) {
+                                        log.error("Couldn't create delta, because user before executing of script is same as after executing of script.")
+                                        return null;
+                                    }
+                                    delta = userBefore.asPrismObject().diff(user.asPrismObject(), EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+                                    log.info("delta: " + delta);
+                                    log.info("-----------FINISH-----------");
+                                    return DeltaConvertor.toObjectDeltaType(delta);
+                                </s:code>
+                            </s:script>
+                        </s:execute>
+                </s:parameter>
+                </s:modify>
+            </s:pipeline>
+        </importScript>
+        <direction>import</direction>
+    </behavior>
+</report>

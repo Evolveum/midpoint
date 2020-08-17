@@ -77,7 +77,7 @@ public class PageAssignmentDetails extends PageBase{
                 }
                 AssignmentEditorDto dto = assignmentModel.getObject();
                 dto.setMinimized(true);
-                dto.setSimpleView(false);
+                dto.setSimpleView(true);
                 storage.getAssignmentShoppingCart().add(dto);
 
                 redirectBack();

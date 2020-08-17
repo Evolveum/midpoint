@@ -279,7 +279,7 @@ public class MiscUtil {
      * value in the date parameter. If the date parameter is null then
      * this method will simply return null.
      */
-    public static XMLGregorianCalendar asXMLGregorianCalendar(java.util.Date date) {
+    public static @Nullable XMLGregorianCalendar asXMLGregorianCalendar(@Nullable Date date) {
         if (date == null) {
             return null;
         } else {
@@ -289,7 +289,8 @@ public class MiscUtil {
         }
     }
 
-    public static XMLGregorianCalendar asXMLGregorianCalendar(Long timeInMillis) {
+    public static @Nullable XMLGregorianCalendar asXMLGregorianCalendar(
+            @Nullable Long timeInMillis) {
         if (timeInMillis == null || timeInMillis == 0) {
             return null;
         } else {
@@ -299,9 +300,15 @@ public class MiscUtil {
         }
     }
 
-    public static XMLGregorianCalendar asXMLGregorianCalendar(Instant instant) {
+    public static @Nullable XMLGregorianCalendar asXMLGregorianCalendar(@Nullable Instant instant) {
         return instant != null
                 ? asXMLGregorianCalendar(instant.toEpochMilli())
+                : null;
+    }
+
+    public static @Nullable Instant asInstant(@Nullable Long millis) {
+        return millis != null
+                ? Instant.ofEpochMilli(millis)
                 : null;
     }
 
@@ -313,7 +320,7 @@ public class MiscUtil {
      * value in the xgc parameter. If the xgc parameter is null then
      * this method will simply return null.
      */
-    public static java.util.Date asDate(XMLGregorianCalendar xgc) {
+    public static Date asDate(XMLGregorianCalendar xgc) {
         if (xgc == null) {
             return null;
         } else {
@@ -329,7 +336,7 @@ public class MiscUtil {
         }
     }
 
-    public static java.util.Date asDate(int year, int month, int date, int hrs, int min, int sec) {
+    public static Date asDate(int year, int month, int date, int hrs, int min, int sec) {
         Calendar cal = Calendar.getInstance();
         cal.set(year, month - 1, date, hrs, min, sec);
         cal.set(Calendar.MILLISECOND, 0);
@@ -487,7 +494,7 @@ public class MiscUtil {
         return out;
     }
 
-    public static String binaryToHex(byte[] bytes) {
+    public static @NotNull String binaryToHex(@NotNull byte[] bytes) {
         StringBuilder sb = new StringBuilder(bytes.length * 2);
         for (byte b : bytes) {
             sb.append(String.format("%02x", b & 0xff));
@@ -503,6 +510,28 @@ public class MiscUtil {
                     + Character.digit(hex.charAt(i + 1), 16));
         }
         return bytes;
+    }
+
+    private static final int HEX_PREVIEW_LEN = 8;
+
+    /**
+     * Prints couple of bytes from provided byte array as hexadecimal and adds length information.
+     * Returns null if null array is provided.
+     */
+    public static @Nullable String binaryToHexPreview(@Nullable byte[] bytes) {
+        if (bytes == null) {
+            return null;
+        }
+
+        int previewLen = Math.min(bytes.length, HEX_PREVIEW_LEN);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < previewLen; i++) {
+            sb.append(String.format("%02x", bytes[i]));
+        }
+        if (bytes.length > HEX_PREVIEW_LEN) {
+            sb.append("...");
+        }
+        return sb.append(" (").append(bytes.length).append(" B)").toString();
     }
 
     public static String hexToUtf8String(String hex) {
@@ -582,6 +611,17 @@ public class MiscUtil {
         }
     }
     // similar to the above ... todo deduplicate
+
+    @NotNull
+    public static <T, E extends Throwable> T extractSingletonRequired(Collection<T> collection,
+            Supplier<E> multiExceptionSupplier, Supplier<E> noneExceptionSupplier) throws E {
+        T singleton = extractSingleton(collection, multiExceptionSupplier);
+        if (singleton != null) {
+            return singleton;
+        } else {
+            throw noneExceptionSupplier.get();
+        }
+    }
 
     public static <T> T getSingleValue(Collection<T> values, T defaultValue, String contextDescription) {
         if (values.size() == 0) {
@@ -892,5 +932,14 @@ public class MiscUtil {
         }
 
         return enumType.getEnumConstants()[ordinal];
+    }
+
+    /**
+     * Returns ordinal value from nullable enum or returns {@code null}.
+     */
+    public static @Nullable Integer enumOrdinal(@Nullable Enum<?> enumValue) {
+        return enumValue != null
+                ? enumValue.ordinal()
+                : null;
     }
 }

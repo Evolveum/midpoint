@@ -1,12 +1,17 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure;
 
-import java.sql.Blob;
 import java.time.Instant;
 
 import com.querydsl.core.types.PathMetadata;
+import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.DateTimePath;
 import com.querydsl.core.types.dsl.NumberPath;
-import com.querydsl.core.types.dsl.SimplePath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.RelationalPathBase;
@@ -23,6 +28,8 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
  * <li>Extend from this class instead of {@code RelationalPathBase}.</li>
  * <li>Extract constants for all column metadata from {@code addMetadata()} method.
  * Remove index information from them (column order, nothing to do with DB indexes).</li>
+ * <li>Rename the column name to conform with SQL Server (if still relevant), because it is
+ * case-sensitive even about column names if *_CS_* collation is used!</li>
  * <li>Rewrite path fields so they use {@code create*} methods from this super-class.</li>
  * <li>Now {@code addMetadata()} method can be removed, including usages from constructors.</li>
  * <li>Prune constructors, two should be enough (see existing Q-classes).</li>
@@ -44,6 +51,7 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
  */
 public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
 
+    public static final String DEFAULT_SCHEMA_NAME = "PUBLIC";
     private static final long serialVersionUID = -3374516272567011096L;
 
     public FlexibleRelationalPathBase(
@@ -103,8 +111,8 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
     /**
      * Creates BLOB path for a property and registers column metadata for it.
      */
-    protected SimplePath<Blob> createBlob(
+    protected ArrayPath<byte[], Byte> createBlob(
             String property, ColumnMetadata columnMetadata) {
-        return addMetadata(createSimple(property, java.sql.Blob.class), columnMetadata);
+        return addMetadata(createArray(property, byte[].class), columnMetadata);
     }
 }

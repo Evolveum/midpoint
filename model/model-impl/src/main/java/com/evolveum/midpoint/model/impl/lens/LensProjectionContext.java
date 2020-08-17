@@ -22,13 +22,14 @@ import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.impl.lens.construction.Construction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -43,9 +44,6 @@ import org.jvnet.jaxb2_commons.lang.Validate;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -75,8 +73,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      */
     private boolean synchronizationSource;
 
-    private ObjectDelta<ShadowType> secondaryDelta;
-
     /**
      * If set to true: absolute state of this projection was detected by the synchronization.
      * This is mostly for debugging and visibility. It is not used by projection logic.
@@ -94,6 +90,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private transient boolean waveIncomplete = false;
 
     /**
+     * Was the processing of this projection (in its execution wave) complete?
+     * We use this flag to avoid re-processing projections when wave is repeated.
+     */
+    @Experimental
+    private boolean completed;
+
+    /**
      * Definition of account type.
      */
     private ResourceShadowDiscriminator resourceShadowDiscriminator;
@@ -105,8 +108,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * found to be illegal by live sync, were unassigned from user, etc.
      * If set to null the situation is not yet known. Null is a typical value when the context is constructed.
      */
-    private boolean isAssigned;
-    private boolean isAssignedOld;
+    private Boolean isAssigned;
+    private Boolean isAssignedOld;
 
     /**
      * True if the account should be part of the synchronization. E.g. outbound expression should be applied to it.
@@ -164,15 +167,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private SynchronizationSituationType synchronizationSituationResolved = null;
 
     /**
-     * Delta set triple for accounts. Specifies which accounts should be added, removed or stay as they are.
-     * It tells almost nothing about attributes directly although the information about attributes are inside
-     * each account construction (in a form of ValueConstruction that contains attribute delta triples).
+     * Delta set triple for constructions. Specifies which constructions (projections e.g. accounts)
+     * should be added, removed or stay as they are.
      *
-     * Intermediary computation result. It is stored to allow re-computing of account constructions during
+     * It tells almost nothing about attributes directly although the information about attributes are inside
+     * each construction.
+     *
+     * Intermediary computation result. It is stored to allow re-computing of constructions during
      * iterative computations.
      *
      * Source: AssignmentProcessor
      * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
+     *
+     * Note that relativity is taken to focus OLD state, not to the current state.
      */
     private transient DeltaSetTriple<EvaluatedConstructionImpl<?>> evaluatedConstructionDeltaSetTriple;
 
@@ -206,7 +213,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     /**
      * Resource that hosts this projection.
      */
-    transient private ResourceType resource;
+    private transient ResourceType resource;
 
     /**
      * EXPERIMENTAL. A flag that this projection context has to be put into 'history archive'.
@@ -214,19 +221,17 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *
      * TODO implement as non-transient.
      */
-    transient private boolean toBeArchived;
+    private transient boolean toBeArchived;
 
-    transient private String humanReadableName;
+    private transient String humanReadableName;
 
     private Map<String, PrismObject<ShadowType>> entitlementMap = new HashMap<>();
 
-    transient private String humanReadableString;
+    private transient String humanReadableString;
 
     LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
         super(ShadowType.class, lensContext);
         this.resourceShadowDiscriminator = resourceAccountType;
-        this.isAssigned = false;
-        this.isAssignedOld = false;
     }
 
     public ObjectDelta<ShadowType> getSyncDelta() {
@@ -237,75 +242,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.syncDelta = syncDelta;
     }
 
-    @Override
-    public ObjectDelta<ShadowType> getSecondaryDelta() {
-        return secondaryDelta;
-    }
-
-    @Override
-    public Collection<ObjectDelta<ShadowType>> getAllDeltas() {
-        List<ObjectDelta<ShadowType>> deltas = new ArrayList<>(2);
-        ObjectDelta<ShadowType> primaryDelta = getPrimaryDelta();
-        if (primaryDelta != null) {
-            deltas.add(primaryDelta);
-        }
-        if (secondaryDelta != null) {
-            deltas.add(secondaryDelta);
-        }
-        return deltas;
-    }
-
-    @Override
     public ObjectDeltaObject<ShadowType> getObjectDeltaObject() throws SchemaException {
-        PrismObject<ShadowType> base = getObjectCurrent();
-        ObjectDelta<ShadowType> delta = getDelta();
-        if (base == null && delta != null && delta.isModify()) {
+        PrismObject<ShadowType> base = objectCurrent;
+        ObjectDelta<ShadowType> currentDelta = getCurrentDelta();
+        if (base == null && currentDelta != null && currentDelta.isModify()) {
             RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
             if (rOCD != null) {
                 base = rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
             }
         }
-        return new ObjectDeltaObject<>(base, delta, getObjectNew(), getObjectDefinition());
+        return new ObjectDeltaObject<>(base, currentDelta, objectNew, getObjectDefinition());
     }
 
     public boolean hasSecondaryDelta() {
         return secondaryDelta != null && !secondaryDelta.isEmpty();
-    }
-
-    @Override
-    public void setSecondaryDelta(ObjectDelta<ShadowType> secondaryDelta) {
-        this.secondaryDelta = secondaryDelta;
-    }
-
-    public void addSecondaryDelta(ObjectDelta<ShadowType> delta) throws SchemaException {
-        if (secondaryDelta == null) {
-            secondaryDelta = delta;
-        } else {
-            secondaryDelta.merge(delta);
-        }
-    }
-
-    @Override
-    public void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
-        if (secondaryDelta == null) {
-            secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
-            secondaryDelta.setOid(getOid());
-        }
-        LensUtil.setDeltaOldValue(this, itemDelta);
-        secondaryDelta.swallow(itemDelta);
-    }
-
-    @Override
-    public void deleteSecondaryDeltas() {
-        secondaryDelta = null;
-    }
-
-    @Override
-    public void setOid(String oid) {
-        super.setOid(oid);
-        if (secondaryDelta != null) {
-            secondaryDelta.setOid(oid);
-        }
     }
 
     public boolean isSyncAbsoluteTrigger() {
@@ -416,7 +366,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         } else if (synchronizationPolicyDecision != null) {
             return false;
         } else {
-            return ObjectDelta.isAdd(getPrimaryDelta()) || ObjectDelta.isAdd(getSecondaryDelta());
+            return ObjectDelta.isAdd(primaryDelta);
         }
     }
 
@@ -436,7 +386,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         } else if (synchronizationPolicyDecision != null) {
             return false;
         } else {
-            return ObjectDelta.isDelete(syncDelta) || ObjectDelta.isDelete(getPrimaryDelta()) || ObjectDelta.isDelete(getSecondaryDelta());
+            return ObjectDelta.isDelete(syncDelta) || ObjectDelta.isDelete(primaryDelta);
         }
     }
 
@@ -474,7 +424,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return shadowDefinition;
     }
 
-    public boolean isAssigned() {
+    public Boolean isAssigned() {
         return isAssigned;
     }
 
@@ -482,12 +432,24 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         this.isAssigned = isAssigned;
     }
 
-    public boolean isAssignedOld() {
+    public Boolean isAssignedOld() {
         return isAssignedOld;
     }
 
-    public void setAssignedOld(boolean isAssignedOld) {
+    public void setAssignedOld(Boolean isAssignedOld) {
         this.isAssignedOld = isAssignedOld;
+    }
+
+    /**
+     * We want to set "assigned in old state" only once - in projection wave 0 where real "old"
+     * values are known.
+     *
+     * TODO: what should we do with projections that appear later?
+     */
+    public void setAssignedOldIfUnknown(Boolean value) {
+        if (isAssignedOld == null) {
+            setAssignedOld(value);
+        }
     }
 
     public boolean isActive() {
@@ -512,6 +474,18 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setLegalOld(Boolean isLegalOld) {
         this.isLegalOld = isLegalOld;
+    }
+
+    /**
+     * We want to set "legal in old state" only once - in projection wave 0 where real "old"
+     * values are known.
+     *
+     * TODO: what should we do with projections that appear later?
+     */
+    public void setLegalOldIfUnknown(Boolean value) {
+        if (isLegalOld == null) {
+            setLegalOld(value);
+        }
     }
 
     public boolean isExists() {
@@ -825,38 +799,27 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Assuming that oldAccount is already set (or is null if it does not exist)
      */
     public void recompute() throws SchemaException {
-        ObjectDelta<ShadowType> accDelta = getDelta();
-
-        PrismObject<ShadowType> base = getObjectCurrent();
-        if (base == null) {
-            base = getObjectOld();
-        }
-        ObjectDelta<ShadowType> syncDelta = getSyncDelta();
-        if (base == null && syncDelta != null
-                && ChangeType.ADD.equals(syncDelta.getChangeType())) {
-            PrismObject<ShadowType> objectToAdd = syncDelta.getObjectToAdd();
-            if (objectToAdd != null) {
-                PrismObjectDefinition<ShadowType> objectDefinition = objectToAdd.getDefinition();
-                // TODO: remove constructor, use some factory method instead
-                base = getNotNullPrismContext().itemFactory().createObject(objectToAdd.getElementName(), objectDefinition);
-                base = syncDelta.computeChangedObject(base);
-            }
-        }
-
-        if (accDelta == null) {
-            // No change
-            setObjectNew(base);
-            return;
-        }
-
-        if (base == null && accDelta.isModify()) {
+        ObjectDelta<ShadowType> currentDelta = getCurrentDelta();
+        PrismObject<ShadowType> base;
+        if (objectCurrent == null && ObjectDelta.isAdd(syncDelta)) {
+            base = syncDelta.getObjectToAdd();
+        } else if (objectCurrent == null && ObjectDelta.isModify(currentDelta)) {
             RefinedObjectClassDefinition rOCD = getCompositeObjectClassDefinition();
             if (rOCD != null) {
                 base = rOCD.createBlankShadow(resourceShadowDiscriminator.getTag());
+            } else {
+                base = null;
             }
+        } else {
+            base = objectCurrent;
         }
 
-        setObjectNew(accDelta.computeChangedObject(base));
+        if (currentDelta == null) {
+            // No change
+            setObjectNew(base);
+        } else {
+            setObjectNew(currentDelta.computeChangedObject(base));
+        }
     }
 
     public void clearIntermediateResults() {
@@ -873,10 +836,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     public ObjectDelta<ShadowType> getExecutableDelta() throws SchemaException {
         SynchronizationPolicyDecision policyDecision = getSynchronizationPolicyDecision();
-        ObjectDelta<ShadowType> origDelta = getFixedDelta();
+        ObjectDelta<ShadowType> origDelta = getCurrentDelta();
         if (policyDecision == SynchronizationPolicyDecision.ADD) {
             // let's try to retrieve original (non-fixed) delta. Maybe it's ADD delta so we spare fixing it.
-            origDelta = getDelta();
+            origDelta = getSummaryDelta(); // TODO check this
             if (origDelta == null || origDelta.isModify()) {
                 // We need to convert modify delta to ADD
                 ObjectDelta<ShadowType> addDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
@@ -896,7 +859,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 return addDelta;
             }
         } else if (policyDecision == SynchronizationPolicyDecision.KEEP) {
-            // Any delta is OK
+            // (Almost) any delta is OK
+            if (isExists && ObjectDelta.isAdd(origDelta)) {
+                LOGGER.trace("Projection exists and we try to create it anew. This probably means that the primary ADD delta"
+                        + " should be ignored. Using secondary delta only. Current delta is:\n{}\nSecondary delta that will"
+                        + " be used instead is:\n{}", origDelta.debugDumpLazily(), DebugUtil.debugDumpLazily(getSecondaryDelta()));
+                origDelta = getSecondaryDelta();
+            }
         } else if (policyDecision == SynchronizationPolicyDecision.DELETE) {
             ObjectDelta<ShadowType> deleteDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(),
                 ChangeType.DELETE);
@@ -918,6 +887,36 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return origDelta.clone();
         } else {
             return origDelta;
+        }
+    }
+
+    /**
+     * As getPrimaryDelta() but caters for the possibility that an object already exists.
+     * So, if the primary delta is ADD and object already exists, it should be changed somehow,
+     * e.g. to MODIFY delta or to null.
+     *
+     * Actually, the question is what to do with the attribute values if changed to MODIFY.
+     * (a) Should they become REPLACE item deltas? (b) ADD ones?
+     * (c) Or should we compute a difference from objectCurrent to objectToAdd, hoping that
+     * secondary deltas will re-add everything that might be unknowingly removed by this step?
+     * (d) Or should we simply ignore ADD delta altogether, hoping that it was executed
+     * so it need not be repeated?
+     *
+     * And, should not we report AlreadyExistingException instead?
+     *
+     * It seems that (c) i.e. reverting back to objectToAdd is not a good idea at all. For example, this
+     * may erase linkRefs for good.
+     *
+     * For the time being let us proceed with (d), i.e. ignoring such a delta.
+     *
+     * TODO is this OK???? [med]
+     */
+    private ObjectDelta<ShadowType> getFixedPrimaryDelta() {
+        if (ObjectDelta.isAdd(getPrimaryDelta()) && getObjectCurrent() != null) {
+            // Object does exist. Let's ignore the delta - see description above.
+            return null;
+        } else {
+            return getPrimaryDelta(); // nothing to do
         }
     }
 
@@ -1005,17 +1004,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         resetSynchronizationPolicyDecision();
 //        isLegal = null;
 //        isLegalOld = null;
-        isAssigned = false;
-        isAssignedOld = false;  // ??? [med]
+        isAssigned = null;
+//        isAssignedOld = false;  // ??? [med]
         isActive = false;
     }
 
     @Override
     public void normalize() {
         super.normalize();
-        if (secondaryDelta != null) {
-            secondaryDelta.normalize();
-        }
         if (syncDelta != null) {
             syncDelta.normalize();
         }
@@ -1052,20 +1048,17 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (syncDelta != null) {
             prismContext.adopt(syncDelta);
         }
-        if (secondaryDelta != null) {
-            prismContext.adopt(secondaryDelta);
-        }
     }
 
     @Override
     public LensProjectionContext clone(LensContext<? extends ObjectType> lensContext) {
         LensProjectionContext clone = new LensProjectionContext(lensContext, resourceShadowDiscriminator);
-        copyValues(clone, lensContext);
+        copyValues(clone);
         return clone;
     }
 
-    protected void copyValues(LensProjectionContext clone, LensContext<? extends ObjectType> lensContext) {
-        super.copyValues(clone, lensContext);
+    private void copyValues(LensProjectionContext clone) {
+        super.copyValues(clone);
         // do NOT clone transient values such as accountConstructionDeltaSetTriple
         // these are not meant to be cloned and they are also not directly cloneable
         clone.dependencies = this.dependencies;
@@ -1163,9 +1156,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (object == null) {
             return null;
         }
-        if (object.canRepresent(ShadowType.class)) {
-            PrismObject<ShadowType> shadow = (PrismObject<ShadowType>)object;
-            Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
+        if (object.canRepresent(ShadowType.class)) { // probably always the case
+            Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(object);
             if (identifiers == null) {
                 return null;
             }
@@ -1232,23 +1224,26 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (getIteration() != 0) {
             sb.append(", iteration=").append(getIteration()).append(" (").append(getIterationToken()).append(")");
         }
+        if (completed) {
+            sb.append(", completed");
+        }
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), getObjectOld(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("old"), objectOld, indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("current"), getObjectCurrent(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("current"), objectCurrent, indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("new"), getObjectNew(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("new"), objectNew, indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("primary delta"), getPrimaryDelta(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("primary delta"), primaryDelta, indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("secondary delta"), getSecondaryDelta(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("secondary delta"), secondaryDelta, indent + 1);
 
         sb.append("\n");
-        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("sync delta"), getSyncDelta(), indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("sync delta"), syncDelta, indent + 1);
 
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("executed deltas"), getExecutedDeltas(), indent+1);
@@ -1343,8 +1338,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
         if (exportType != LensContext.ExportType.MINIMAL) {
             lensProjectionContextType.setSyncDelta(syncDelta != null ? DeltaConvertor.toObjectDeltaType(syncDelta) : null);
-            lensProjectionContextType
-                    .setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta) : null);
             lensProjectionContextType.setIsAssigned(isAssigned);
             lensProjectionContextType.setIsAssignedOld(isAssignedOld);
             lensProjectionContextType.setIsActive(isActive);
@@ -1457,8 +1450,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     public void forEachDelta(Consumer<ObjectDelta<ShadowType>> consumer) {
         super.forEachDelta(consumer);
-        if (secondaryDelta != null) {
-            consumer.accept(secondaryDelta);
+        if (syncDelta != null) {
+            consumer.accept(syncDelta);
         }
     }
 
@@ -1508,5 +1501,18 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 return "(UNKNOWN)";
             }
         }
+    }
+
+    @Override
+    boolean doesPrimaryDeltaApply() {
+        return true; // TODO is this OK?
+    }
+
+    public boolean isCompleted() {
+        return completed;
+    }
+
+    public void setCompleted(boolean completed) {
+        this.completed = completed;
     }
 }

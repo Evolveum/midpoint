@@ -736,31 +736,28 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private void checkRange(OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         VariableBindingDefinitionType target = mappingBean.getTarget();
-        if (target != null && target.getSet() != null) {
-            checkRangeTarget(result);
+        if (target == null || target.getSet() == null) {
+            return;
         }
-    }
 
-    private void checkRangeTarget(OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         String name;
         if (getOutputPath() != null) {
             name = getOutputPath().lastName().getLocalPart();
         } else {
             name = getOutputDefinition().getItemName().getLocalPart();
         }
+
         if (originalTargetValues == null) {
             throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
         }
-        ValueSetDefinitionType rangeSetDefType = mappingBean.getTarget().getSet();
-        ValueSetDefinition<V, D> setDef = new ValueSetDefinition<>(rangeSetDefType, getOutputDefinition(), expressionProfile, name, "range of " + name + " in " + getMappingContextDescription(), task, result);
-        setDef.init(beans.expressionFactory);
-        setDef.setAdditionalVariables(variables);
+        ValueSetDefinitionType rangeSetDefBean = target.getSet();
+        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(rangeSetDefBean, getOutputDefinition(), expressionProfile, name, "range of " + name + " in " + getMappingContextDescription(), task, result);
+        rangeSetDef.init(beans.expressionFactory);
+        rangeSetDef.setAdditionalVariables(variables);
         for (V originalValue : originalTargetValues) {
-            if (!setDef.contains(originalValue)) {
-                continue;
+            if (rangeSetDef.contains(originalValue)) {
+                addToMinusIfNecessary(originalValue);
             }
-            addToMinusIfNecessary(originalValue);
         }
     }
 

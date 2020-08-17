@@ -12,6 +12,7 @@ import java.util.*;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -123,7 +124,7 @@ public class AuditEventRecord implements DebugDumpable {
      * for the operation. Although initiator is always a user in midPoint 3.7 and earlier,
      * the initiator may be an organization in later midPoint versions.
      */
-    private PrismObject<? extends FocusType> initiator;
+    private PrismReferenceValue initiatorRef;
 
     /**
      * Attorney is the (physical) object who has executed the action. This is the user
@@ -135,7 +136,7 @@ public class AuditEventRecord implements DebugDumpable {
      * a ServiceType (or, very occasionally, maybe RoleType or OrgType - but this does not make
      * much sense).
      */
-    private PrismObject<? extends FocusType> attorney;
+    private PrismReferenceValue attorneyRef;
 
     /**
      * (primary) target (object, the thing acted on): store OID, type, name.
@@ -145,10 +146,10 @@ public class AuditEventRecord implements DebugDumpable {
      * that is available.
      * OPTIONAL
      */
-    private PrismReferenceValue target;
+    private PrismReferenceValue targetRef;
 
-    // user that the target "belongs to"????: store OID, name
-    private PrismObject<? extends FocusType> targetOwner;
+    // user that the target "belongs to"
+    private PrismReferenceValue targetOwnerRef;
 
     // event type
     private AuditEventType eventType;
@@ -286,11 +287,23 @@ public class AuditEventRecord implements DebugDumpable {
      * the initiator may be an organization in later midPoint versions.
      */
     public PrismObject<? extends FocusType> getInitiator() {
-        return initiator;
+        //noinspection unchecked
+        return initiatorRef != null ? initiatorRef.getObject() : null;
     }
 
-    public void setInitiator(PrismObject<? extends FocusType> initiator) {
-        this.initiator = initiator;
+    public void setInitiator(PrismObject<? extends FocusType> initiator, PrismContext prismContext) {
+        this.initiatorRef = createRefValueWithDescription(initiator, prismContext);
+    }
+
+    public PrismReferenceValue getInitiatorRef() {
+        return initiatorRef;
+    }
+
+    /**
+     * It is assumed the ref has oid, type and description set.
+     */
+    public void setInitiatorRef(PrismReferenceValue initiator) {
+        this.initiatorRef = initiator;
     }
 
     /**
@@ -298,38 +311,84 @@ public class AuditEventRecord implements DebugDumpable {
      * This is the user that have logged-in to the user interface. This is the user that
      * pressed the button to execute the action. This is always identity of a user and
      * it will always be a user. It cannot be a company or any other virtual entity.
+     *
+     * @deprecated prefer {@link #getAttorneyRef()} instead
      */
+    @Deprecated
     public PrismObject<? extends FocusType> getAttorney() {
-        return attorney;
+        //noinspection unchecked
+        return attorneyRef != null ? attorneyRef.getObject() : null;
     }
 
-    public void setAttorney(PrismObject<? extends FocusType> attorney) {
-        this.attorney = attorney;
+    /**
+     * @deprecated prefer {@link #setAttorneyRef(PrismReferenceValue)} instead
+     */
+    public void setAttorney(PrismObject<? extends FocusType> attorney, PrismContext prismContext) {
+        this.attorneyRef = attorney != null
+                ? createRefValueWithDescription(attorney, prismContext)
+                : null;
     }
 
-    public PrismReferenceValue getTarget() {
-        return target;
+    public PrismReferenceValue getAttorneyRef() {
+        return attorneyRef;
     }
 
-    public void setTarget(PrismReferenceValue target) {
-        this.target = target;
+    /**
+     * It is assumed the ref has oid, type and description set.
+     */
+    public void setAttorneyRef(PrismReferenceValue attorneyRef) {
+        this.attorneyRef = attorneyRef;
     }
 
-    // Compatibility and convenience
-    public void setTarget(PrismObject<?> targetObject, PrismContext prismContext) {
-        if (targetObject != null) {
-            this.target = ObjectTypeUtil.createObjectRef((ObjectType) targetObject.asObjectable(), prismContext).asReferenceValue();
-        } else {
-            this.target = null;
-        }
+    public PrismReferenceValue getTargetRef() {
+        return targetRef;
+    }
+
+    /**
+     * It is assumed the ref has oid, type and description set.
+     */
+    public void setTargetRef(PrismReferenceValue target) {
+        this.targetRef = target;
+    }
+
+    public void setTarget(PrismObject<?> target, PrismContext prismContext) {
+        this.targetRef = target != null
+                ? createRefValueWithDescription(target, prismContext)
+                : null;
     }
 
     public PrismObject<? extends FocusType> getTargetOwner() {
-        return targetOwner;
+        //noinspection unchecked
+        return targetOwnerRef != null ? targetOwnerRef.getObject() : null;
     }
 
-    public void setTargetOwner(PrismObject<? extends FocusType> targetOwner) {
-        this.targetOwner = targetOwner;
+    public void setTargetOwner(
+            PrismObject<? extends FocusType> targetOwner, PrismContext prismContext) {
+        this.targetOwnerRef = targetOwner != null
+                ? createRefValueWithDescription(targetOwner, prismContext)
+                : null;
+    }
+
+    public PrismReferenceValue getTargetOwnerRef() {
+        return targetOwnerRef;
+    }
+
+    /**
+     * It is assumed the ref has oid, type and description set.
+     */
+    public void setTargetOwnerRef(PrismReferenceValue targetOwnerRef) {
+        this.targetOwnerRef = targetOwnerRef;
+    }
+
+    private @Nullable PrismReferenceValue createRefValueWithDescription(
+            @Nullable PrismObject<?> object, @NotNull PrismContext prismContext) {
+        if (object == null) {
+            return null;
+        }
+
+        PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue(object);
+        refValue.setDescription(object.getBusinessDisplayName());
+        return refValue;
     }
 
     public AuditEventType getEventType() {
@@ -476,22 +535,18 @@ public class AuditEventRecord implements DebugDumpable {
     }
 
     public void checkConsistence() {
+        PrismObject<? extends FocusType> initiator = getInitiator();
         if (initiator != null) {
             initiator.checkConsistence();
         }
-        if (target != null && target.getObject() != null) {
-            target.getObject().checkConsistence();
+        if (targetRef != null && targetRef.getObject() != null) {
+            targetRef.getObject().checkConsistence();
         }
+        PrismObject<? extends FocusType> targetOwner = getTargetOwner();
         if (targetOwner != null) {
             targetOwner.checkConsistence();
         }
         ObjectDeltaOperation.checkConsistence(deltas);
-        //        //TODO: should this be here?
-//        if (result != null && result.getStatus() != null) {
-//            if (result.getStatus() != outcome) {
-//                throw new IllegalStateException("Status in result (" + result.getStatus() + ") differs from outcome (" + outcome + ")");
-//            }
-//        }
     }
 
     public AuditEventRecordType createAuditEventRecordType() {
@@ -507,15 +562,15 @@ public class AuditEventRecord implements DebugDumpable {
         auditRecordType.setHostIdentifier(hostIdentifier);
         auditRecordType.setRemoteHostAddress(remoteHostAddress);
         auditRecordType.setNodeIdentifier(nodeIdentifier);
-        auditRecordType.setInitiatorRef(ObjectTypeUtil.createObjectRef(initiator, true));
-        auditRecordType.setAttorneyRef(ObjectTypeUtil.createObjectRef(attorney, true));
+        auditRecordType.setInitiatorRef(ObjectTypeUtil.createObjectRef(initiatorRef, true));
+        auditRecordType.setAttorneyRef(ObjectTypeUtil.createObjectRef(attorneyRef, true));
         auditRecordType.setMessage(message);
         auditRecordType.setOutcome(OperationResultStatus.createStatusType(outcome));
         auditRecordType.setParameter(parameter);
         auditRecordType.setResult(result);
         auditRecordType.setSessionIdentifier(sessionIdentifier);
-        auditRecordType.setTargetOwnerRef(ObjectTypeUtil.createObjectRef(targetOwner, true));
-        auditRecordType.setTargetRef(ObjectTypeUtil.createObjectRef(target, true));
+        auditRecordType.setTargetOwnerRef(ObjectTypeUtil.createObjectRef(targetOwnerRef, true));
+        auditRecordType.setTargetRef(ObjectTypeUtil.createObjectRef(targetRef, true));
         auditRecordType.setRequestIdentifier(requestIdentifier);
         auditRecordType.setTaskIdentifier(taskIdentifier);
         auditRecordType.setTaskOID(taskOid);
@@ -558,6 +613,7 @@ public class AuditEventRecord implements DebugDumpable {
             referenceEntry.getValue().forEach(v -> referenceType.getValue().add(v.toXml()));
             auditRecordType.getReference().add(referenceType);
         }
+        // TODO MID-5531 convert custom properties too? What about other than string types?
         return auditRecordType;
     }
 
@@ -571,12 +627,12 @@ public class AuditEventRecord implements DebugDumpable {
         clone.hostIdentifier = this.hostIdentifier;
         clone.remoteHostAddress = this.remoteHostAddress;
         clone.nodeIdentifier = this.nodeIdentifier;
-        clone.initiator = this.initiator;
-        clone.attorney = this.attorney;
+        clone.initiatorRef = this.initiatorRef;
+        clone.attorneyRef = this.attorneyRef;
         clone.outcome = this.outcome;
         clone.sessionIdentifier = this.sessionIdentifier;
-        clone.target = this.target;
-        clone.targetOwner = this.targetOwner;
+        clone.targetRef = this.targetRef;
+        clone.targetOwnerRef = this.targetOwnerRef;
         clone.requestIdentifier = this.requestIdentifier;
         clone.taskIdentifier = this.taskIdentifier;
         clone.taskOid = this.taskOid;
@@ -596,8 +652,8 @@ public class AuditEventRecord implements DebugDumpable {
         return "AUDIT[" + formatTimestamp(timestamp) + " eid=" + eventIdentifier
                 + " sid=" + sessionIdentifier + ", rid=" + requestIdentifier + ", tid=" + taskIdentifier
                 + " toid=" + taskOid + ", hid=" + hostIdentifier + ", nid=" + nodeIdentifier + ", raddr=" + remoteHostAddress
-                + ", I=" + formatObject(initiator) + ", A=" + formatObject(attorney)
-                + ", T=" + formatReference(target) + ", TO=" + formatObject(targetOwner) + ", et=" + eventType
+                + ", I=" + formatReference(initiatorRef) + ", A=" + formatReference(attorneyRef)
+                + ", T=" + formatReference(targetRef) + ", TO=" + formatReference(targetOwnerRef) + ", et=" + eventType
                 + ", es=" + eventStage + ", D=" + deltas + ", ch=" + channel + ", o=" + outcome + ", r=" + result + ", p=" + parameter
                 + ", m=" + message
                 + ", cuscolprop=" + customColumnProperty
@@ -625,6 +681,7 @@ public class AuditEventRecord implements DebugDumpable {
             return "null";
         }
         if (refVal.getObject() != null) {
+            //noinspection unchecked
             return formatObject(refVal.getObject());
         }
         return refVal.toString();
@@ -645,10 +702,10 @@ public class AuditEventRecord implements DebugDumpable {
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Host Identifier", hostIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Node Identifier", nodeIdentifier, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Remote Host Address", remoteHostAddress, indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "Initiator", formatObject(initiator), indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "Attorney", formatObject(attorney), indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "Target", formatReference(target), indent + 1);
-        DebugUtil.debugDumpWithLabelToStringLn(sb, "Target Owner", formatObject(targetOwner), indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Initiator", formatReference(initiatorRef), indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Attorney", formatReference(attorneyRef), indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Target", formatReference(targetRef), indent + 1);
+        DebugUtil.debugDumpWithLabelToStringLn(sb, "Target Owner", formatReference(targetOwnerRef), indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Type", eventType, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Event Stage", eventStage, indent + 1);
         DebugUtil.debugDumpWithLabelToStringLn(sb, "Channel", channel, indent + 1);
@@ -682,6 +739,7 @@ public class AuditEventRecord implements DebugDumpable {
             return;
         }
         if (delta.getObjectToAdd() != null) {
+            //noinspection unchecked
             prismContext.adopt(delta.getObjectToAdd().asPrismObject());
         }
         for (ItemDeltaType itemDelta : delta.getItemDelta()) {
@@ -702,8 +760,9 @@ public class AuditEventRecord implements DebugDumpable {
         }
     }
 
-    public void setInitiatorAndLoginParameter(PrismObject<? extends FocusType> initiator) {
-        setInitiator(initiator);
+    public void setInitiatorAndLoginParameter(
+            PrismObject<? extends FocusType> initiator, PrismContext prismContext) {
+        setInitiator(initiator, prismContext);
         String parameter = null;
         if (initiator != null) {
             PolyStringType name = initiator.asObjectable().getName();

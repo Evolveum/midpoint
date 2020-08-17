@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -11,13 +11,19 @@ This context is used to test repository configuration with dataSource option pre
 It fakes JNDI context with simple H2 file DataSource.
 -->
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
-       default-lazy-init="true" default-autowire="byName">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-     <bean id="sampleJNDIDataSource" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close"
-           lazy-init="false">
+    <!--
+    Dependency on repositoryFactory is not strictly necessary here, we just keep it consistent
+    with the datasource that reads sqlConfiguration with SpEL below.
+    -->
+    <bean id="sampleJNDIDataSource"
+            class="com.zaxxer.hikari.HikariDataSource"
+            destroy-method="close"
+            depends-on="repositoryFactory">
         <property name="driverClassName" value="org.h2.Driver"/>
         <property name="jdbcUrl" value="jdbc:h2:file:target/midpoint-home/datasource;DB_CLOSE_ON_EXIT=FALSE;LOCK_MODE=1;LOCK_TIMEOUT=10000"/>
         <property name="username" value="sa"/>
@@ -27,9 +33,14 @@ It fakes JNDI context with simple H2 file DataSource.
         <property name="maximumPoolSize" value="8"/>
     </bean>
 
-
-    <bean id="sampleJNDIDataSourceFromConfig" class="com.zaxxer.hikari.HikariDataSource" destroy-method="close"
-            lazy-init="true">
+    <!--
+    Dependency on repositoryFactory is crucial because it is RepositoryFactory that calls init()
+    on testSqlRepositoryFactory bean, not Spring.
+    -->
+    <bean id="sampleJNDIDataSourceFromConfig"
+            class="com.zaxxer.hikari.HikariDataSource"
+            destroy-method="close"
+            depends-on="repositoryFactory">
         <property name="driverClassName" value="#{testSqlRepositoryFactory.sqlConfiguration.driverClassName}"/>
         <property name="jdbcUrl" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUrl}"/>
         <property name="username" value="#{testSqlRepositoryFactory.sqlConfiguration.jdbcUsername}"/>
@@ -39,22 +50,24 @@ It fakes JNDI context with simple H2 file DataSource.
         <property name="maximumPoolSize" value="8"/>
     </bean>
 
-    <bean id="jndiMock" class="com.evolveum.midpoint.repo.sql.util.JNDIMock" lazy-init="false">
+    <bean id="jndiMock" class="com.evolveum.midpoint.repo.sql.util.JNDIMock">
         <property name="objects">
             <map>
                 <entry key="java:comp/env/jdbc/db"
-                       value="#{systemProperties['config']!=null?sampleJNDIDataSourceFromConfig:sampleJNDIDataSource}"/>
+                        value="#{systemProperties['config']!=null?sampleJNDIDataSourceFromConfig:sampleJNDIDataSource}"/>
             </map>
         </property>
     </bean>
 
-    <bean name="midpointConfiguration" class="com.evolveum.midpoint.init.StartupConfiguration" init-method="init">
-        <constructor-arg value="./target/midpoint-home" />
-        <constructor-arg value="config-test-datasource.xml" />
+    <bean id="midpointConfiguration"
+            class="com.evolveum.midpoint.init.StartupConfiguration"
+            init-method="init">
+        <constructor-arg value="./target/midpoint-home"/>
+        <constructor-arg value="config-test-datasource.xml"/>
     </bean>
 
-    <import resource="ctx-repository-test.xml" />
-    <import resource="classpath:ctx-common.xml" />
-    <import resource="ctx-configuration-sql-test.xml" />
+    <import resource="ctx-repository-test.xml"/>
+    <import resource="classpath:ctx-common.xml"/>
+    <import resource="ctx-configuration-sql-test.xml"/>
 
 </beans>

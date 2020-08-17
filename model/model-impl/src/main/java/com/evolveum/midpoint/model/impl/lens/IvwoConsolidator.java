@@ -93,7 +93,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
     /**
      * Apriori delta is not empty.
      */
-    private final boolean aprioriItemDeltaIsEmpty;
+    private final boolean itemDeltaExists;
 
     /**
      * Value matcher used to compare values (for the purpose of consolidation).
@@ -200,7 +200,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
         existingItemIsEmpty = existingItem == null || existingItem.isEmpty(); // should be hasNoValues, perhaps!
 
         aprioriItemDelta = builder.aprioriItemDelta;
-        aprioriItemDeltaIsEmpty = aprioriItemDelta == null || aprioriItemDelta.isEmpty();
+        itemDeltaExists = builder.itemDeltaExists;
 
         valueMatcher = builder.valueMatcher;
         comparator = builder.comparator;
@@ -563,7 +563,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                     // resource object items mappings, and we currently do not implement metadata computation for them.
                     return false;
                 }
-                if (!aprioriItemDeltaIsEmpty && !skipNormalMappingAPrioriDeltaCheck) {
+                if (itemDeltaExists && !skipNormalMappingAPrioriDeltaCheck) {
                     LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta; " +
                                     "skipping adding in {} (also skipping value metadata computation)",
                             equivalenceClass, itemPath, contextDescription);
@@ -623,7 +623,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 return false;
             }
 
-            if (!hasAtLeastOneStrongMapping && !aprioriItemDeltaIsEmpty && !skipNormalMappingAPrioriDeltaCheck) {
+            if (!hasAtLeastOneStrongMapping && itemDeltaExists && !skipNormalMappingAPrioriDeltaCheck) {
                 LOGGER.trace("Value {} mapping is not strong and the item {} already has a delta, skipping deletion in {}",
                         equivalenceClass, itemPath, contextDescription);
                 return false;

@@ -12,12 +12,20 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportDataType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.notifications.api.events.TaskEvent;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.report.api.ReportConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -25,7 +33,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SimpleReportNotifierType;
 
 /**
@@ -79,15 +86,15 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
     protected String getBody(TaskEvent event, SimpleReportNotifierType configuration, String transport, Task opTask, OperationResult opResult) throws SchemaException {
         Task task = event.getTask();
 
-        String outputOid = task.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME);
+        String outputOid = getReportDataOid(task);
 
         if (outputOid == null || outputOid.isEmpty()) {
             throw new IllegalStateException("Unexpected oid of report output, oid is null or empty");
         }
 
-        PrismObject<ReportOutputType> reportOutput;
+        PrismObject<ReportDataType> reportOutput;
         try {
-            reportOutput = modelService.getObject(ReportOutputType.class, outputOid, null, opTask, opResult);
+            reportOutput = modelService.getObject(ReportDataType.class, outputOid, null, opTask, opResult);
         } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException
                 | ExpressionEvaluationException e) {
             getLogger().error("Could't get Report output with oid " + outputOid, e);
@@ -101,6 +108,19 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
             getLogger().error("Couldn't create body from ReportOutput with oid " + outputOid, e);
             return "";
         }
+    }
+
+    private String getReportDataOid(Task task) {
+        PrismReference reportData = task.getExtensionReferenceOrClone(ReportConstants.REPORT_DATA_PROPERTY_NAME);
+        if (reportData == null && reportData.getRealValue() == null) {
+            PrismProperty<String> reportOutputOid = task.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME);
+            if (reportOutputOid == null){
+                return null;
+            }
+            return reportOutputOid.getRealValue();
+        }
+
+        return reportData.getRealValue().getOid();
     }
 
     @Override

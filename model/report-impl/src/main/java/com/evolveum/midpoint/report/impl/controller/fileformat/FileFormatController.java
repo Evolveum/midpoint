@@ -4,10 +4,13 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.report.impl.controller.export;
+package com.evolveum.midpoint.report.impl.controller.fileformat;
 
+import java.io.IOException;
 import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
@@ -25,7 +28,9 @@ import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.AuditConstants;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -39,31 +44,33 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  * @author skublik
  */
 
-public abstract class ExportController {
+public abstract class FileFormatController {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ExportController.class);
+    private static final Trace LOGGER = TraceManager.getTrace(FileFormatController.class);
 
     protected static final String LABEL_COLUMN = "label";
     protected static final String NUMBER_COLUMN = "number";
     protected static final String STATUS_COLUMN = "status";
 
-    private final static Set<String> HEADS_OF_WIDGET =
+    private static final Set<String> HEADS_OF_WIDGET =
             ImmutableSet.of(LABEL_COLUMN, NUMBER_COLUMN, STATUS_COLUMN);
 
     private final ReportServiceImpl reportService;
-    private final ExportConfigurationType exportConfiguration;
+    private final FileFormatConfigurationType fileFormatConfiguration;
+    private final ReportType report;
 
-    public ExportController(ExportConfigurationType exportConfiguration, ReportServiceImpl reportService) {
-        this.exportConfiguration = exportConfiguration;
+    public FileFormatController(FileFormatConfigurationType fileFormatConfiguration, ReportType report, ReportServiceImpl reportService) {
+        this.fileFormatConfiguration = fileFormatConfiguration;
         this.reportService = reportService;
+        this.report = report;
     }
 
     protected ReportServiceImpl getReportService() {
         return reportService;
     }
 
-    public ExportConfigurationType getExportConfiguration() {
-        return exportConfiguration;
+    public FileFormatConfigurationType getFileFormatConfiguration() {
+        return fileFormatConfiguration;
     }
 
     protected static Set<String> getHeadsOfWidget() {
@@ -139,7 +146,7 @@ public abstract class ExportController {
             }
         }
         if (expression != null) {
-            return evaluateExpression(expression, valueObject, task, result);
+            return evaluateExportExpression(expression, valueObject, task, result);
         }
         if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
             if (valueObject == null) {
@@ -199,17 +206,17 @@ public abstract class ExportController {
 
     protected abstract void appendMultivalueDelimiter(StringBuilder sb);
 
-    private String evaluateExpression(ExpressionType expression, Item valueObject, Task task, OperationResult result) {
+    private String evaluateExportExpression(ExpressionType expression, Item valueObject, Task task, OperationResult result) {
         Object object;
         if (valueObject == null) {
             object = null;
         } else {
             object = valueObject.getRealValue();
         }
-        return evaluateExpression(expression, object, task, result);
+        return evaluateExportExpression(expression, object, task, result);
     }
 
-    private String evaluateExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
+    private String evaluateExportExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
 
         ExpressionVariables variables = new ExpressionVariables();
         if (valueObject == null) {
@@ -220,7 +227,7 @@ public abstract class ExportController {
         Collection<String> values = null;
         try {
             values = ExpressionUtil.evaluateStringExpression(variables, getReportService().getPrismContext(), expression,
-                    null, getReportService().getExpressionFactory(), "value for column", task, result);
+                    determineExpressionProfile(result), getReportService().getExpressionFactory(), "value for column", task, result);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
                 | ConfigurationException | SecurityViolationException e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
@@ -234,16 +241,59 @@ public abstract class ExportController {
         return values.iterator().next();
     }
 
-    protected String getColumnLabel(String name, PrismObjectDefinition<ObjectType> objectDefinition, ItemPath path) {
-        if (path != null) {
-            ItemDefinition def = objectDefinition.findItemDefinition(path);
-            if (def == null) {
-                throw new IllegalArgumentException("Could'n find item for path " + path);
-            }
-            String displayName = def.getDisplayName();
-            return getMessage(displayName);
+    protected Object evaluateImportExpression(ExpressionType expression, String input, Task task, OperationResult result) {
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.put(ExpressionConstants.VAR_INPUT, input, String.class);
+        return evaluateImportExpression(expression, variables, task, result);
+    }
+
+    protected Object evaluateImportExpression(ExpressionType expression, List<String> input, Task task, OperationResult result) {
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.put(ExpressionConstants.VAR_INPUT, input, List.class);
+        return evaluateImportExpression(expression, variables, task, result);
+    }
+
+    private Object evaluateImportExpression(ExpressionType expression, ExpressionVariables variables, Task task, OperationResult result) {
+        Object value = null;
+        try {
+            value = ExpressionUtil.evaluateExpression(null, variables, null, expression,
+                    determineExpressionProfile(result), getReportService().getExpressionFactory(), "value for column", task, result);
+        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+                | ConfigurationException | SecurityViolationException e) {
+            LOGGER.error("Couldn't execute expression " + expression, e);
         }
-        return name;
+        if (value instanceof PrismPropertyValue) {
+            return ((PrismPropertyValue) value).getRealValue();
+        }
+        return value;
+    }
+
+    private ExpressionProfile determineExpressionProfile(OperationResult result) throws SchemaException, ConfigurationException {
+        return getReportService().determineExpressionProfile(report.asPrismContainer(), result);
+    }
+
+    protected String getColumnLabel(GuiObjectColumnType column, PrismContainerDefinition objectDefinition) {
+        ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
+
+        DisplayType columnDisplay = column.getDisplay();
+        String label;
+        if (columnDisplay != null && columnDisplay.getLabel() != null) {
+            label = getMessage(columnDisplay.getLabel().getOrig());
+        } else {
+
+            String name = column.getName();
+            if (path != null) {
+                ItemDefinition def = objectDefinition.findItemDefinition(path);
+                if (def == null) {
+                    throw new IllegalArgumentException("Could'n find item for path " + path);
+                }
+                String displayName = def.getDisplayName();
+                label = getMessage(displayName);
+            } else {
+                label = name;
+            }
+        }
+        return label;
     }
 
     protected PrismObject<ObjectType> getObjectFromReference(Referencable ref) {
@@ -274,7 +324,7 @@ public abstract class ExportController {
         } else {
             object = DefaultColumnUtils.getObjectByAuditColumn(record, path);
         }
-        return evaluateExpression(expression, object, task, result);
+        return evaluateExportExpression(expression, object, task, result);
     }
 
     private String getStringValueByAuditColumn(AuditEventRecord record, ItemPath path) {
@@ -288,7 +338,7 @@ public abstract class ExportController {
             case AuditConstants.EVENT_TYPE_COLUMN:
                 return record.getEventType() == null ? "" : ReportUtils.prettyPrintForReport(record.getEventType());
             case AuditConstants.TARGET_COLUMN:
-                return record.getTarget() == null ? "" : getObjectNameFromRef(record.getTarget().getRealValue());
+                return record.getTargetRef() == null ? "" : getObjectNameFromRef(record.getTargetRef().getRealValue());
             case AuditConstants.TARGET_OWNER_COLUMN:
                 return record.getTargetOwner() == null ? "" : record.getTargetOwner().getName().getOrig();
             case AuditConstants.CHANNEL_COLUMN:
@@ -374,4 +424,8 @@ public abstract class ExportController {
         return (Class<ObjectType>) getReportService().getPrismContext().getSchemaRegistry()
                 .getCompileTimeClassForObjectType(type);
     }
+
+    public abstract void importCollectionReport(ReportType report, VariablesMap listOfVariables, RunningTask task, OperationResult result);
+
+    public abstract List<VariablesMap> createVariablesFromFile(ReportType report, ReportDataType reportData, boolean useImportScript, Task task, OperationResult result) throws IOException;
 }

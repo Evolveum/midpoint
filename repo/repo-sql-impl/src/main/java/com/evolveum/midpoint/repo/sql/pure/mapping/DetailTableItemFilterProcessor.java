@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
 import java.util.function.BiFunction;
@@ -71,7 +77,8 @@ public class DetailTableItemFilterProcessor<Q extends EntityPath<?>, DQ extends 
         // this part takes care of delegation to the nested path, including JOIN creation
         QueryModelMapping<?, DQ, DR> mapping =
                 QueryModelMappingConfig.getByQueryType(detailQueryType);
-        DQ joinPath = mapping.newAlias(context.uniqueAliasName(mapping.defaultAliasName()));
+        String aliasName = context.uniqueAliasName(mapping.defaultAliasName());
+        DQ joinPath = mapping.newAlias(aliasName);
         //noinspection unchecked
         SqlQueryContext<?, DQ, DR> joinContext =
                 ((SqlPathContext<?, Q, ?>) context).leftJoin(joinPath, joinOnPredicate);

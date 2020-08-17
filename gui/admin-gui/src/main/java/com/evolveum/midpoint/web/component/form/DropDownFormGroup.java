@@ -7,11 +7,7 @@
 
 package com.evolveum.midpoint.web.component.form;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
@@ -25,7 +21,11 @@ import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 /**
  * @author lazyman
@@ -49,25 +49,25 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
-                             IModel<String> label, String labelCssClass, String textCssClass, boolean required) {
+            IModel<String> label, String labelCssClass, String textCssClass, boolean required) {
         this(id, value, choices, renderer, label, Model.of(), false, labelCssClass, textCssClass, required, false);
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
-            IModel<String> label, String tooltipKey, boolean isTooltipInModal,  String labelCssClass, String textCssClass, boolean required) {
+            IModel<String> label, String tooltipKey, boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required) {
         this(id, value, choices, renderer, label, Model.of(tooltipKey), isTooltipInModal, labelCssClass, textCssClass, required, false);
     }
 
     public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, IModel<String> tooltipModel,
-            boolean isTooltipInModal,  String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
+            boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
         super(id, value);
 
         initLayout(choices, renderer, label, tooltipModel, isTooltipInModal, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
     }
 
     private void initLayout(IModel<List<T>> choices, IChoiceRenderer<T> renderer, IModel<String> label, final IModel<String> tooltipModel,
-                            boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required,
-                            boolean isSimilarAsPropertyPanel) {
+            boolean isTooltipInModal, String labelCssClass, String textCssClass, final boolean required,
+            boolean isSimilarAsPropertyPanel) {
         WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
         labelContainer.add(new VisibleBehaviour(() -> label != null && StringUtils.isNotEmpty(label.getObject())));
         add(labelContainer);
@@ -76,7 +76,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
         if (StringUtils.isNotEmpty(labelCssClass)) {
             labelContainer.add(AttributeAppender.prepend("class", labelCssClass));
         }
-        if(isSimilarAsPropertyPanel) {
+        if (isSimilarAsPropertyPanel) {
             labelContainer.add(AttributeAppender.prepend("class", " col-xs-2 prism-property-label "));
         } else {
             labelContainer.add(AttributeAppender.prepend("class", " control-label "));
@@ -117,7 +117,7 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
         if (StringUtils.isNotEmpty(textCssClass)) {
             selectWrapper.add(AttributeAppender.prepend("class", textCssClass));
         }
-        if(isSimilarAsPropertyPanel) {
+        if (isSimilarAsPropertyPanel) {
             propertyLabel.add(AttributeAppender.prepend("class", " col-md-10 prism-property-value "));
             rowLabel.add(AttributeAppender.prepend("class", " row "));
         }
@@ -149,8 +149,8 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     }
 
     protected DropDownChoice<T> createDropDown(String id, IModel<List<T>> choices, IChoiceRenderer<T> renderer,
-                                            boolean required) {
-        DropDownChoice<T> choice = new DropDownChoice<T>(id, getModel(), choices, renderer){
+            boolean required) {
+        DropDownChoice<T> choice = new DropDownChoice<T>(id, getModel(), choices, renderer) {
 
             private static final long serialVersionUID = 1L;
 
@@ -171,10 +171,11 @@ public class DropDownFormGroup<T> extends BasePanel<T> {
     }
 
     public DropDownChoice<T> getInput() {
+        //noinspection unchecked
         return (DropDownChoice<T>) get(createComponentPath(ID_PROPERTY_LABEL, ID_ROW, ID_SELECT_WRAPPER, ID_SELECT));
     }
 
-    protected String getNullValidDisplayValue(){
+    protected String getNullValidDisplayValue() {
         return getString("DropDownChoicePanel.empty");
     }
 }

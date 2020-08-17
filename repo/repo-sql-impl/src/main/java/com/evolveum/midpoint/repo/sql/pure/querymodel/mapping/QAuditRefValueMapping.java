@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem.*;
@@ -15,7 +21,7 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordRefer
 public class QAuditRefValueMapping
         extends QueryModelMapping<AuditEventRecordReferenceType, QAuditRefValue, MAuditRefValue> {
 
-    public static final String DEFAULT_ALIAS_NAME = "ai";
+    public static final String DEFAULT_ALIAS_NAME = "aref";
 
     public static final QAuditRefValueMapping INSTANCE = new QAuditRefValueMapping();
 

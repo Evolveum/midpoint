@@ -277,16 +277,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
                 return !AssignmentEditorPanel.this.getModelObject().isMinimized();
             }
         };
-        expandButton.add(new VisibleEnableBehaviour(){
-
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public boolean isVisible(){
-                return !getModel().getObject().isSimpleView();
-            }
-        });
-        expandButton.setOutputMarkupId(true);
+//      expandButton.setOutputMarkupId(true);
         headerRow.add(expandButton);
 
         AjaxButton removeButton = new AjaxButton(ID_REMOVE_BUTTON) {

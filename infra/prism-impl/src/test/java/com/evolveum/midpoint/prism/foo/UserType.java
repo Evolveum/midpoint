@@ -75,25 +75,25 @@ public class UserType
 {
 
     // This is NOT GENERATED. It is supplied here manually for the testing.
-    public final static ItemName F_FULL_NAME = new ItemName(NS_FOO, "fullName");
-    public final static ItemName F_GIVEN_NAME = new ItemName(NS_FOO, "givenName");
-    public final static ItemName F_FAMILY_NAME = new ItemName(NS_FOO, "familyName");
-    public final static ItemName F_ADDITIONAL_NAMES = new ItemName(NS_FOO, "additionalNames");
-    public final static ItemName F_POLY_NAME = new ItemName(NS_FOO, "polyName");
-    public final static ItemName F_ACTIVATION = new ItemName(NS_FOO, "activation");
-    public final static ItemName F_ASSIGNMENT = new ItemName(NS_FOO, "assignment");
-    public final static ItemName F_LOCALITY = new ItemName(NS_FOO, "locality");
-    public final static ItemName F_ACCOUNT_REF = new ItemName(NS_FOO, "accountRef");
-    public final static ItemName F_SPECIAL = new ItemName(NS_FOO, "special");
-    public final static ItemName F_SINGLE_ACTIVATION = new ItemName(NS_FOO, "singleActivation");
-    public final static ItemName F_MULTI_ACTIVATION = new ItemName(NS_FOO, "multiActivation");
-    public final static ItemName F_MULTI_ACTIVATION_COPY = new ItemName(NS_FOO, "multiActivationCopy");
-    public final static ItemName F_SINGLE_CONSTRUCTION = new ItemName(NS_FOO, "singleConstruction");
-    public final static ItemName F_MULTI_CONSTRUCTION = new ItemName(NS_FOO, "multiConstruction");
-    public final static ItemName F_MULTI_CONSTRUCTION_COPY = new ItemName(NS_FOO, "multiConstructionCopy");
-    public final static ItemName F_PASSWORD = new ItemName(NS_FOO, "password");
+    public static final ItemName F_FULL_NAME = new ItemName(NS_FOO, "fullName");
+    public static final ItemName F_GIVEN_NAME = new ItemName(NS_FOO, "givenName");
+    public static final ItemName F_FAMILY_NAME = new ItemName(NS_FOO, "familyName");
+    public static final ItemName F_ADDITIONAL_NAMES = new ItemName(NS_FOO, "additionalNames");
+    public static final ItemName F_POLY_NAME = new ItemName(NS_FOO, "polyName");
+    public static final ItemName F_ACTIVATION = new ItemName(NS_FOO, "activation");
+    public static final ItemName F_ASSIGNMENT = new ItemName(NS_FOO, "assignment");
+    public static final ItemName F_LOCALITY = new ItemName(NS_FOO, "locality");
+    public static final ItemName F_ACCOUNT_REF = new ItemName(NS_FOO, "accountRef");
+    public static final ItemName F_SPECIAL = new ItemName(NS_FOO, "special");
+    public static final ItemName F_SINGLE_ACTIVATION = new ItemName(NS_FOO, "singleActivation");
+    public static final ItemName F_MULTI_ACTIVATION = new ItemName(NS_FOO, "multiActivation");
+    public static final ItemName F_MULTI_ACTIVATION_COPY = new ItemName(NS_FOO, "multiActivationCopy");
+    public static final ItemName F_SINGLE_CONSTRUCTION = new ItemName(NS_FOO, "singleConstruction");
+    public static final ItemName F_MULTI_CONSTRUCTION = new ItemName(NS_FOO, "multiConstruction");
+    public static final ItemName F_MULTI_CONSTRUCTION_COPY = new ItemName(NS_FOO, "multiConstructionCopy");
+    public static final ItemName F_PASSWORD = new ItemName(NS_FOO, "password");
 
-    private final static long serialVersionUID = 201202081233L;
+    private static final long serialVersionUID = 201202081233L;
     @XmlElement(required = true)
     protected String fullName;
     @XmlElement(required = true)

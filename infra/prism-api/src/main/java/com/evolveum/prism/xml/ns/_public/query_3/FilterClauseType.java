@@ -55,10 +55,11 @@ import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 })
 public class FilterClauseType implements Serializable, Cloneable, Equals, HashCode {
 
-    private final static long serialVersionUID = 201105211233L;
+    private static final long serialVersionUID = 201105211233L;
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "FilterType");
+    public static final QName F_MATCHING = new QName(PrismConstants.NS_QUERY, "matching");
+
     protected String matching;
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "FilterType");
-    public final static QName F_MATCHING = new QName(PrismConstants.NS_QUERY, "matching");
 
     /**
      * Creates a new {@code FilterType} instance.
@@ -138,10 +139,11 @@ public class FilterClauseType implements Serializable, Cloneable, Equals, HashCo
         lhsMatching = this.getMatching();
         String rhsMatching;
         rhsMatching = that.getMatching();
-        if (!strategy.equals(LocatorUtils.property(thisLocator, "matching", lhsMatching), LocatorUtils.property(thatLocator, "matching", rhsMatching), lhsMatching, rhsMatching)) {
-            return false;
-        }
-        return true;
+
+        return strategy.equals(
+                LocatorUtils.property(thisLocator, "matching", lhsMatching),
+                LocatorUtils.property(thatLocator, "matching", rhsMatching),
+                lhsMatching, rhsMatching);
     }
 
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")

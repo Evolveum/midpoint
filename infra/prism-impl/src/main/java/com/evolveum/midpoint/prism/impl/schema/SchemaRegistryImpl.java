@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.prism.impl.schema;
 
+import static java.util.Collections.emptyList;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,18 +24,8 @@ import javax.xml.transform.Source;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 
-import com.evolveum.midpoint.prism.impl.*;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.*;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.ArrayListValuedHashMap;
 import org.apache.commons.lang.StringUtils;
@@ -49,17 +41,22 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.impl.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.schema.*;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.util.*;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-
-import static java.util.Collections.emptyList;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Registry and resolver of schema files and resources.
@@ -77,11 +74,13 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     private javax.xml.validation.Schema javaxSchema;
     private EntityResolver builtinSchemaResolver;
-    final private List<SchemaDescriptionImpl> schemaDescriptions = new ArrayList<>();
+
+    private final List<SchemaDescriptionImpl> schemaDescriptions = new ArrayList<>();
     // namespace -> schemas; in case of extension schemas there could be more of them with the same namespace!
-    final private MultiValuedMap<String,SchemaDescription> parsedSchemas = new ArrayListValuedHashMap<>();
+    private final MultiValuedMap<String, SchemaDescription> parsedSchemas = new ArrayListValuedHashMap<>();
     // base type name -> CTD with (merged) extension definition
-    final private Map<QName,ComplexTypeDefinition> extensionSchemas = new HashMap<>();
+    private final Map<QName, ComplexTypeDefinition> extensionSchemas = new HashMap<>();
+
     private boolean initialized = false;
     private DynamicNamespacePrefixMapper namespacePrefixMapper;
     private String defaultNamespace;
@@ -200,8 +199,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         Iterator<Package> pkgIterator = null;
         if (compileTimeClassesPackages != null) {
             if (descriptions.size() != compileTimeClassesPackages.size()) {
-                throw new SchemaException("Mismatch between the size of compileTimeClassesPackages ("+compileTimeClassesPackages.size()
-                        +" and schemas in "+resourcePath+" ("+descriptions.size()+")");
+                throw new SchemaException("Mismatch between the size of compileTimeClassesPackages (" + compileTimeClassesPackages.size()
+                        + " and schemas in " + resourcePath + " (" + descriptions.size() + ")");
             }
             pkgIterator = compileTimeClassesPackages.iterator();
         }
@@ -267,7 +266,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     }
 
     private void loadPrismSchemaFileDescription(File file) throws SchemaException, IOException {
-        if (!(file.getName().matches(".*\\.xsd$"))){
+        if (!(file.getName().matches(".*\\.xsd$"))) {
             LOGGER.trace("Skipping registering {}, because it is not schema definition.", file.getAbsolutePath());
         } else {
             LOGGER.debug("Loading schema from file {}", file);
@@ -312,7 +311,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             // Sort the filenames so we have deterministic order of loading
             // This is useful in tests but may come handy also during customization
             Collections.sort(files);
-            for (File file: files) {
+            for (File file : files) {
                 String name = file.getName();
                 if (name.startsWith(".")) {
                     // skip dotfiles. this will skip SVN data and similar things
@@ -404,8 +403,8 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             initialized = true;
         } catch (SAXException ex) {
             if (ex instanceof SAXParseException) {
-                SAXParseException sex = (SAXParseException)ex;
-                throw new SchemaException("Error parsing schema "+sex.getSystemId()+" line "+sex.getLineNumber()+": "+sex.getMessage(), sex);
+                SAXParseException sex = (SAXParseException) ex;
+                throw new SchemaException("Error parsing schema " + sex.getSystemId() + " line " + sex.getLineNumber() + ": " + sex.getMessage(), sex);
             }
             throw ex;
         }
@@ -499,7 +498,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             namespace = schema.getNamespace();
         }
         LOGGER.trace("Parsed schema {}, namespace: {}, isRuntime: {} in {} ms",
-                schemaDescription.getSourceDescription(), namespace, isRuntime, System.currentTimeMillis()-started);
+                schemaDescription.getSourceDescription(), namespace, isRuntime, System.currentTimeMillis() - started);
         schemaDescription.setSchema(schema);
         detectExtensionSchema(schema);
     }
@@ -541,7 +540,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         PrismSchemaImpl.parseSchemas(schemaElement, entityResolver,
                 wrappedDescriptions, allowDelayedItemDefinitions, getPrismContext());
         LOGGER.trace("Parsed {} schemas in {} ms",
-                wrappedDescriptions.size(), System.currentTimeMillis()-started);
+                wrappedDescriptions.size(), System.currentTimeMillis() - started);
 
         for (SchemaDescription description : wrappedDescriptions) {
             detectExtensionSchema(description.getSchema());
@@ -557,7 +556,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     }
 
     private void detectExtensionSchema(PrismSchema schema) {
-        for (ComplexTypeDefinition def: schema.getDefinitions(ComplexTypeDefinition.class)) {
+        for (ComplexTypeDefinition def : schema.getDefinitions(ComplexTypeDefinition.class)) {
             QName extType = def.getExtensionForType();
             if (extType != null) {
                 LOGGER.trace("Processing {} as an extension for {}", def, extType);
@@ -572,14 +571,14 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     }
 
     private void applySchemaExtensions() throws SchemaException {
-        for (Entry<QName,ComplexTypeDefinition> entry: extensionSchemas.entrySet()) {
+        for (Entry<QName, ComplexTypeDefinition> entry : extensionSchemas.entrySet()) {
             QName typeQName = entry.getKey();
             ComplexTypeDefinition extensionCtd = entry.getValue();
             ComplexTypeDefinition primaryCtd = findComplexTypeDefinitionByType(typeQName);
             PrismContainerDefinition extensionContainer = primaryCtd.findContainerDefinition(
                     new ItemName(primaryCtd.getTypeName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME));
             if (extensionContainer == null) {
-                throw new SchemaException("Attempt to extend type "+typeQName+" with "+extensionCtd.getTypeClass()+" but the original type does not have extension container");
+                throw new SchemaException("Attempt to extend type " + typeQName + " with " + extensionCtd.getTypeClass() + " but the original type does not have extension container");
             }
             extensionContainer.toMutable().setComplexTypeDefinition(extensionCtd.clone());
             extensionContainer.toMutable().setTypeName(extensionCtd.getTypeName());
@@ -647,7 +646,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("SchemaRegistry:");
         sb.append("  Parsed Schemas:");
-        for (String namespace: parsedSchemas.keySet()) {
+        for (String namespace : parsedSchemas.keySet()) {
             sb.append("\n");
             DebugUtil.indentDebugDump(sb, indent + 1);
             sb.append(namespace);
@@ -707,7 +706,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
             prismContainerValue.applyDefinition(containerDefinition, force);
             return;
         }
-        throw new SchemaException("No definition for container "+path+" in type "+typeName);
+        throw new SchemaException("No definition for container " + path + " in type " + typeName);
     }
     //endregion
 
@@ -861,7 +860,6 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         if (objectDefinition == null) {
             throw new SchemaException("No object definition for " + objectClass);
         }
-        //noinspection RedundantCast
         ItemPath path = ItemPath.create((Object[]) itemNames);
         //noinspection unchecked
         return (T) ((ItemDefinition) objectDefinition).findItemDefinition(path, defClass);
@@ -969,7 +967,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     @Override
     public QName resolveUnqualifiedTypeName(QName type) throws SchemaException {
         QName typeFound = null;
-        for (SchemaDescription desc: schemaDescriptions) {
+        for (SchemaDescription desc : schemaDescriptions) {
             QName typeInSchema = new QName(desc.getNamespace(), type.getLocalPart());
             if (desc.getSchema() != null && desc.getSchema().findComplexTypeDefinitionByType(typeInSchema) != null) {
                 if (typeFound != null) {
@@ -1099,8 +1097,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         if (QNameUtil.noNamespace(itemName)) {
             if (complexTypeDefinition != null && complexTypeDefinition.getDefaultNamespace() != null) {
                 itemName = new QName(complexTypeDefinition.getDefaultNamespace(), itemName.getLocalPart());
-            }
-            else {
+            } else {
                 List<String> ignoredNamespaces = complexTypeDefinition != null ?
                         complexTypeDefinition.getIgnoredNamespaces() :
                         null;
@@ -1205,7 +1202,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         if (compileTimePackage == null) {
             return null;            // e.g. for arrays
         }
-        for (SchemaDescription desc: schemaDescriptions) {
+        for (SchemaDescription desc : schemaDescriptions) {
             if (compileTimePackage.equals(desc.getCompileTimeClassesPackage())) {
                 return desc.getSchema();
             }
@@ -1224,7 +1221,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     @Override
     public SchemaDescription findSchemaDescriptionByNamespace(String namespaceURI) {
-        for (SchemaDescription desc: schemaDescriptions) {
+        for (SchemaDescription desc : schemaDescriptions) {
             if (namespaceURI.equals(desc.getNamespace())) {
                 return desc;
             }
@@ -1243,7 +1240,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     @Override
     public SchemaDescription findSchemaDescriptionByPrefix(String prefix) {
-        for (SchemaDescription desc: schemaDescriptions) {
+        for (SchemaDescription desc : schemaDescriptions) {
             if (prefix.equals(desc.getUsualPrefix())) {
                 return desc;
             }
@@ -1357,13 +1354,13 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     //endregion
 
     //region TODO categorize
+
     /**
      * Answers the question: "If the receiver would get itemName without any other information, will it be able to
      * derive suitable typeName from it?" If not, we have to provide explicit type definition for serialization.
-     *
+     * <p>
      * By suitable we mean such that can be used to determine specific object type.
      */
-    @Override
     public boolean hasImplicitTypeDefinition(@NotNull QName itemName, @NotNull QName typeName) {
         List<ItemDefinition> definitions = findItemDefinitionsByElementName(itemName, ItemDefinition.class);
         if (definitions.size() != 1) {

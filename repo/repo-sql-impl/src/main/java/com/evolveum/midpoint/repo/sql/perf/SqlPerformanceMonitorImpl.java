@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,23 +7,19 @@
 
 package com.evolveum.midpoint.repo.sql.perf;
 
-import com.evolveum.midpoint.repo.api.perf.OperationRecord;
-import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
-import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
-import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsClassificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsCollectionStyleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsReportingConfigurationType;
-
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
-/**
- *
- */
+import com.evolveum.midpoint.repo.api.perf.OperationRecord;
+import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.statistics.OperationsPerformanceMonitorImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsClassificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsCollectionStyleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.RepositoryStatisticsReportingConfigurationType;
+
 public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlPerformanceMonitorImpl.class);
@@ -33,12 +29,13 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
     public static final int LEVEL_LOCAL_STATISTICS = 4;
     public static final int LEVEL_DETAILS = 10;
 
-    private int initialLevel = 0;
-    private int level = 0;
+    private final int initialLevel;
+    private final String statisticsFile;
 
+    private int level;
     private boolean perObjectType = false;
 
-    private AtomicLong currentHandle = new AtomicLong();
+    private final AtomicLong currentHandle = new AtomicLong();
 
     /**
      * Operations that were started but not finished yet. Indexed by handle.
@@ -64,7 +61,20 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
      */
     private final PerformanceInformationImpl globalPerformanceInformation = new PerformanceInformationImpl();
 
-    private SqlRepositoryFactory sqlRepositoryFactory;
+    public SqlPerformanceMonitorImpl(int initialLevel, String statisticsFile) {
+        this.initialLevel = initialLevel;
+        this.statisticsFile = statisticsFile;
+        level = initialLevel;
+        outstandingOperations.clear();
+        finishedOperations.clear();
+        globalPerformanceInformation.clear();
+        // at least for this thread; other threads have to do their own homework
+        threadLocalPerformanceInformation.remove();
+
+        // fixme put to better place
+        OperationsPerformanceMonitorImpl.INSTANCE.initialize();
+        LOGGER.info("SQL Performance Monitor initialized (level = {})", level);
+    }
 
     @Override
     public void clearGlobalPerformanceInformation() {
@@ -91,26 +101,13 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
         threadLocalPerformanceInformation.remove();
     }
 
-    public void initialize(SqlRepositoryFactory sqlRepositoryFactory) {
-        outstandingOperations.clear();
-        finishedOperations.clear();
-        globalPerformanceInformation.clear();
-        threadLocalPerformanceInformation.remove();         // at least for this thread; other threads have to do their own homework
-        this.sqlRepositoryFactory = sqlRepositoryFactory;
-        this.level = this.initialLevel = sqlRepositoryFactory.getSqlConfiguration().getPerformanceStatisticsLevel();
-
-        OperationsPerformanceMonitorImpl.INSTANCE.initialize();        // fixme put to better place
-        LOGGER.info("SQL Performance Monitor initialized (level = {})", level);
-    }
-
     public void shutdown() {
         LOGGER.info("SQL Performance Monitor shutting down.");
         synchronized (finishedOperations) {
             if (!finishedOperations.isEmpty()) {
                 LOGGER.info("Statistics:\n{}", OutputFormatter.getFormattedStatistics(finishedOperations, outstandingOperations));
-                String file = sqlRepositoryFactory.getSqlConfiguration().getPerformanceStatisticsFile();
-                if (file != null) {
-                    OutputFormatter.writeStatisticsToFile(file, finishedOperations, outstandingOperations);
+                if (statisticsFile != null) {
+                    OutputFormatter.writeStatisticsToFile(statisticsFile, finishedOperations, outstandingOperations);
                 }
             }
         }
@@ -220,11 +217,20 @@ public class SqlPerformanceMonitorImpl implements PerformanceMonitor {
             newLevel = initialLevel;
         } else {
             switch (collection) {
-                case NONE: newLevel = LEVEL_NONE; break;
-                case GLOBALLY: newLevel = LEVEL_GLOBAL_STATISTICS; break;
-                case GLOBALLY_AND_LOCALLY: newLevel = LEVEL_LOCAL_STATISTICS; break;
-                case OPERATIONS: newLevel = LEVEL_DETAILS; break;
-                default: throw new IllegalArgumentException("collection: " + collection);
+                case NONE:
+                    newLevel = LEVEL_NONE;
+                    break;
+                case GLOBALLY:
+                    newLevel = LEVEL_GLOBAL_STATISTICS;
+                    break;
+                case GLOBALLY_AND_LOCALLY:
+                    newLevel = LEVEL_LOCAL_STATISTICS;
+                    break;
+                case OPERATIONS:
+                    newLevel = LEVEL_DETAILS;
+                    break;
+                default:
+                    throw new IllegalArgumentException("collection: " + collection);
             }
         }
         if (newLevel != level) {

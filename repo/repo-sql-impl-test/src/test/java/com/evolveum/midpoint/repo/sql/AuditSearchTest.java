@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -30,8 +29,10 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -85,11 +86,19 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.setRemoteHostAddress("192.168.10.1");
         record1.setSessionIdentifier("session-1");
         record1.setTarget(target, prismContext);
-        record1.setTargetOwner(targetOwner);
+        record1.setTargetOwner(targetOwner, prismContext);
         record1.addDelta(createDelta(UserType.F_FULL_NAME)); // values are not even necessary
         record1.addDelta(createDelta(UserType.F_FAMILY_NAME));
         record1.addDelta(createDelta(ItemPath.create(
                 ObjectType.F_METADATA, MetadataType.F_REQUEST_TIMESTAMP)));
+        // just want to see two values, that's all
+        record1.addReferenceValue("ref1",
+                ObjectTypeUtil.createObjectRef(targetOid, ObjectTypes.USER).asReferenceValue());
+        record1.addReferenceValue("ref2",
+                ObjectTypeUtil.createObjectRef(targetOid, ObjectTypes.USER).asReferenceValue());
+        record1.addResourceOid("res-oid-1");
+        record1.addResourceOid("res-oid-2");
+        record1.addResourceOid("res-oid-3");
         auditService.audit(record1, NullTaskImpl.INSTANCE);
         record1EventIdentifier = record1.getEventIdentifier();
 
@@ -101,13 +110,14 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.setEventStage(AuditEventStage.EXECUTION);
         record2.setMessage("record2");
         record2.setOutcome(OperationResultStatus.UNKNOWN);
-        record2.setInitiator(initiator);
+        record2.setInitiator(initiator, prismContext);
         record2.setHostIdentifier("127.0.0.1");
         record2.setRemoteHostAddress("192.168.10.2");
         record2.setSessionIdentifier("session-1"); // session-1 on purpose
-        record2.setAttorney(attorney);
+        record2.setAttorney(attorney, prismContext);
         record2.setRequestIdentifier("req-id");
         record2.addDelta(createDelta(UserType.F_FULL_NAME, PolyString.fromOrig("somePolyString")));
+        record2.addDelta(createDelta(UserType.F_GIVEN_NAME));
         auditService.audit(record2, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record3 = new AuditEventRecord();
@@ -449,12 +459,11 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     @Test
     public void test152SearchByInitiatorIsNotNull() throws SchemaException {
         when("searching audit filtered by NOT NULL initiator");
-        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
                 .not()
                 .item(AuditEventRecordType.F_INITIATOR_REF).isNull()
-                .build();
-        SearchResultList<AuditEventRecordType> result =
-                auditService.searchObjects(query, null, null);
+                .build());
 
         then("only audit events with some (NOT NULL) initiator are returned");
         assertThat(result).hasSize(1);
@@ -709,7 +718,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 .build());
 
         then("only audit events with the specified changed items are returned");
-        // this is more the storing part than reading, but it is here to cover all the expectations
+        // this is more about the audit writing than reading, but it is here to cover all the expectations
         assertThat(result).hasSize(1);
         assertThat(result).extracting(aer -> aer.getParameter())
                 .containsExactlyInAnyOrder("1");
@@ -780,10 +789,77 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test270SearchByChangedItemsMultipleValues() throws SchemaException {
+        // this tests multiple values for JOIN path
+        when("searching audit by changed items equal to multiple values");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_GIVEN_NAME),
+                        new ItemPathType(UserType.F_FAMILY_NAME))
+                .build());
+
+        then("audit events with changed items equal to any of the specified values are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2");
+    }
+
+    @Test
+    public void test271SearchByParameterMultipleValues() throws SchemaException {
+        // this tests multiple values for strings
+        when("searching audit by parameter equal to multiple values");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_PARAMETER).eq("1", "2", "4") // 4 is unused, it's OK
+                .build());
+
+        then("audit events with parameter equal to any of the specified values are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2");
+    }
+
+    @Test
+    public void test272SearchByEventTypeMultipleValues() throws SchemaException {
+        // this tests multiple values for enums
+        when("searching audit by event type equal to multiple values");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_EVENT_TYPE).eq(
+                        AuditEventTypeType.ADD_OBJECT, AuditEventTypeType.MODIFY_OBJECT)
+                .build());
+
+        then("audit events with event type equal to any of the specified values are returned");
+        assertThat(result).hasSize(3);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2", "3");
+    }
+
+    @Test
+    public void test273SearchByTimestampMultipleValues() throws SchemaException {
+        // this tests multiple values for timestamps
+        when("searching audit by timestamp equal to multiple values");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                .item(AuditEventRecordType.F_TIMESTAMP).eq(
+                        MiscUtil.asXMLGregorianCalendar(TIMESTAMP_1),
+                        MiscUtil.asXMLGregorianCalendar(TIMESTAMP_3))
+                .build());
+
+        then("audit events with timestamp equal to any of the specified values are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "3");
+    }
+
+    @Test
     public void test300SearchReturnsMappedToManyAttributes() throws SchemaException {
         when("searching audit with query without any conditions and paging");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
-                .queryFor(AuditEventRecordType.class).build());
+                .queryFor(AuditEventRecordType.class)
+                .asc(AuditEventRecordType.F_PARAMETER)
+                .build());
 
         then("all audit events are returned");
         assertThat(result).hasSize(3);
@@ -794,6 +870,11 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         AuditEventRecordPropertyType prop1 = record1.getProperty().get(0);
         assertThat(prop1.getName()).isEqualTo("prop1");
         assertThat(prop1.getValue()).containsExactly("val1");
+        // for other attributes we just use the size check, fetch mechanism is similar
+        assertThat(record1.getChangedItem()).hasSize(4);
+        assertThat(record1.getDelta()).hasSize(1);
+        assertThat(record1.getReference()).hasSize(2);
+        assertThat(record1.getResourceOid()).hasSize(3);
 
         AuditEventRecordType record3 = result.get(2);
         assertThat(record3.getProperty()).as("two different property keys").hasSize(2);
@@ -864,7 +945,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     @Test
     public void test515SearchByMessageNorTimestamp() throws SchemaException {
         when("searching audit filtered by negated (NOT) timestamp OR message condition");
-        ObjectQuery query = prismContext.queryFor(AuditEventRecordType.class)
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
                 .not()
                 .block()
                 .item(AuditEventRecordType.F_TIMESTAMP)
@@ -873,13 +955,49 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 .item(AuditEventRecordType.F_MESSAGE)
                 .endsWith("three").matchingCaseIgnore() // matches only record 3
                 .endBlock()
-                .build();
-        SearchResultList<AuditEventRecordType> result =
-                auditService.searchObjects(query, null, null);
+                .build());
 
         then("only audit events matching neither of conditions are returned");
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getParameter()).isEqualTo("2");
+    }
+
+    @Test
+    public void test520SearchByChangedItemOrAnotherChangedItem() throws SchemaException {
+        // result should be similar to changedItem.eq(multiple values)
+        when("searching audit filtered by changed item OR another changed item");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_GIVEN_NAME))
+                        .or()
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_FAMILY_NAME))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("only audit events having either of (and/or) specified changed items are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2");
+    }
+
+    @Test
+    public void test521SearchByChangedItemAndAnotherChangedItem() throws SchemaException {
+        // result should be similar to changedItem.eq(multiple values)
+        when("searching audit filtered by changed item AND another changed item");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_GIVEN_NAME))
+                        .and()
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_FAMILY_NAME))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("only audit events having both specified changed items are returned");
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -980,7 +1098,16 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 .asc(AuditEventRecordType.F_TIMESTAMP)
                 .build());
 
-        then("count all records is returned, order is ignored");
+        then("count of all records is returned, order is ignored");
+        assertThat(result).isEqualTo(3);
+    }
+
+    @Test
+    public void test930CountWithAllParametersNull() {
+        when("counting audit objects with all parameters null");
+        int result = auditService.countObjects(null, null, null);
+
+        then("count of all records is returned");
         assertThat(result).isEqualTo(3);
     }
 
@@ -994,7 +1121,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 .maxSize(1)
                 .build());
 
-        then("count all records is returned, paging is ignored");
+        then("count of all records is returned, paging is ignored");
         assertThat(result).isEqualTo(3);
     }
 

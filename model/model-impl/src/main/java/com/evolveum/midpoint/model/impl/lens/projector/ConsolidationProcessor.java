@@ -130,40 +130,39 @@ public class ConsolidationProcessor {
 
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(projCtx.getOid());
-        ObjectDelta<ShadowType> existingDelta = projCtx.getDelta();
+        ObjectDelta<ShadowType> existingDelta = projCtx.getSummaryDelta(); // TODO check this
+        LOGGER.trace("Existing delta:\n{}", existingDelta);
 
         // Do not automatically load the full projection now. Even if we have weak mapping.
         // That may be a waste of resources if the weak mapping results in no change anyway.
         // Let's be very very lazy about fetching the account from the resource.
-         if (!projCtx.hasFullShadow() &&
-                 (hasActiveWeakMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveWeakMapping(projCtx.getSqueezedAssociations(), projCtx)
-                         || (hasActiveStrongMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveStrongMapping(projCtx.getSqueezedAssociations(), projCtx)))) {
-             // Full account was not yet loaded. This will cause problems as the weak mapping may be applied even though
+        if (!projCtx.hasFullShadow() &&
+                (hasActiveWeakMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveWeakMapping(projCtx.getSqueezedAssociations(), projCtx)
+                        || (hasActiveStrongMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveStrongMapping(projCtx.getSqueezedAssociations(), projCtx)))) {
+            // Full account was not yet loaded. This will cause problems as the weak mapping may be applied even though
             // it should not be applied and also same changes may be discarded because of unavailability of all
-             // account's attributes. Therefore load the account now, but with doNotDiscovery options.
+            // account's attributes. Therefore load the account now, but with doNotDiscovery options.
 
-             // We also need to get account if there are strong mappings. Strong mappings
-             // should always be applied. So reading the account now will indirectly
-             // trigger reconciliation which makes sure that the strong mappings are
-             // applied.
+            // We also need to get account if there are strong mappings. Strong mappings
+            // should always be applied. So reading the account now will indirectly
+            // trigger reconciliation which makes sure that the strong mappings are
+            // applied.
 
-             // By getting accounts from provisioning, there might be a problem with
-              // resource availability. We need to know, if the account was read full
-              // or we have only the shadow from the repository. If we have only
-              // shadow, the weak mappings may applied even if they should not be.
-             contextLoader.loadFullShadow(context, projCtx, "weak or strong mapping", task, result);
-             if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
-                 return null;
-             }
-         }
+            // By getting accounts from provisioning, there might be a problem with
+            // resource availability. We need to know, if the account was read full
+            // or we have only the shadow from the repository. If we have only
+            // shadow, the weak mappings may applied even if they should not be.
+            contextLoader.loadFullShadow(context, projCtx, "weak or strong mapping", task, result);
+            if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+                return null;
+            }
+        }
 
-         RefinedObjectClassDefinition rOcDef = consolidateAuxiliaryObjectClasses(context, projCtx, addUnchangedValues, objectDelta, existingDelta, result);
-
+        RefinedObjectClassDefinition rOcDef = consolidateAuxiliaryObjectClasses(context, projCtx, addUnchangedValues, objectDelta, existingDelta, result);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Object class definition for {} consolidation:\n{}", projCtx.getResourceShadowDiscriminator(), rOcDef.debugDump());
         }
-
 
         StrengthSelector strengthSelector = projCtx.isAdd() ? StrengthSelector.ALL : StrengthSelector.ALL_EXCEPT_WEAK;
         consolidateAttributes(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, result);
@@ -184,7 +183,7 @@ public class ConsolidationProcessor {
         RefinedResourceSchema refinedSchema = projCtx.getRefinedResourceSchema();
         List<QName> auxOcNames = new ArrayList<>();
         List<RefinedObjectClassDefinition> auxOcDefs = new ArrayList<>();
-        ObjectDelta<ShadowType> projDelta = projCtx.getDelta();
+        ObjectDelta<ShadowType> projDelta = projCtx.getSummaryDelta(); // TODO check this
         if (projDelta != null) {
             auxiliaryObjectClassAPrioriDelta = projDelta.findPropertyDelta(ShadowType.F_AUXILIARY_OBJECT_CLASS);
         }
@@ -215,6 +214,7 @@ public class ConsolidationProcessor {
                     .ivwoTriple(ivwoTriple)
                     .itemDefinition(auxiliaryObjectClassPropertyDef)
                     .aprioriItemDelta(auxiliaryObjectClassAPrioriDelta)
+                    .itemDeltaExists(!ItemDelta.isEmpty(auxiliaryObjectClassAPrioriDelta)) // TODO
                     .itemContainer(projCtx.getObjectNew())
                     .valueMatcher(null)
                     .comparator(null)
@@ -405,6 +405,7 @@ public class ConsolidationProcessor {
                     .ivwoTriple(triple)
                     .itemDefinition(itemDefinition)
                     .aprioriItemDelta(aprioriItemDelta)
+                    .itemDeltaExists(!ItemDelta.isEmpty(aprioriItemDelta))
                     .itemContainer(projCtx.getObjectNew())
                     .valueMatcher(valueMatcher)
                     .comparator(comparator)
@@ -521,7 +522,7 @@ public class ConsolidationProcessor {
                         return true;
                     }
                 }
-                ObjectDelta<ShadowType> projectionDelta = accCtx.getDelta();
+                ObjectDelta<ShadowType> projectionDelta = accCtx.getSummaryDelta(); // TODO check this
                 if (projectionDelta != null) {
                     PropertyDelta<?> aPrioriAttributeDelta = projectionDelta.findPropertyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, entry.getKey()));
                     if (aPrioriAttributeDelta != null && aPrioriAttributeDelta.isDelete()) {
@@ -567,12 +568,7 @@ public class ConsolidationProcessor {
         if (modifyDelta == null || modifyDelta.isEmpty()) {
             return;
         }
-        ObjectDelta<ShadowType> accountSecondaryDelta = accCtx.getSecondaryDelta();
-        if (accountSecondaryDelta != null) {
-            accountSecondaryDelta.merge(modifyDelta);
-        } else {
-            accCtx.setSecondaryDelta(modifyDelta);
-        }
+        accCtx.swallowToSecondaryDelta(modifyDelta.getModifications());
     }
 
     private <V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> consolidateItemWithSync(LensProjectionContext accCtx,
@@ -1081,7 +1077,7 @@ public class ConsolidationProcessor {
 
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(projCtx.getOid());
-        ObjectDelta<ShadowType> existingDelta = projCtx.getDelta();
+        ObjectDelta<ShadowType> existingDelta = projCtx.getSummaryDelta(); // TODO check this
 
         RefinedObjectClassDefinition rOcDef = projCtx.getCompositeObjectClassDefinition();
 
@@ -1095,12 +1091,7 @@ public class ConsolidationProcessor {
         if (objectDelta.isEmpty()) {
             return;
         }
-        ObjectDelta<ShadowType> accountSecondaryDelta = projCtx.getSecondaryDelta();
-        if (accountSecondaryDelta != null) {
-            accountSecondaryDelta.merge(objectDelta);
-        } else {
-            projCtx.setSecondaryDelta(objectDelta);
-        }
+        projCtx.swallowToSecondaryDelta(objectDelta.getModifications());
     }
 
     /**
@@ -1121,6 +1112,16 @@ public class ConsolidationProcessor {
             LOGGER.trace("Primary delta was already consolidated, skipping the consolidation.");
             return;
         }
+
+        doConsolidatePrimaryDelta(context, now, task, parentResult);
+        focusContext.setPrimaryDeltaConsolidated(true);
+    }
+
+    private <F extends ObjectType> void doConsolidatePrimaryDelta(LensContext<F> context, XMLGregorianCalendar now, Task task,
+            OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+
+        LensFocusContext<F> focusContext = context.getFocusContext();
 
         ObjectDelta<F> primaryDelta = focusContext.getPrimaryDelta();
         if (primaryDelta == null || !primaryDelta.isModify() || primaryDelta.getModifications().isEmpty()) {
@@ -1153,8 +1154,9 @@ public class ConsolidationProcessor {
                             .consolidate();
 
             focusContext.setPrimaryDelta(consolidatedPrimaryDelta);
-            focusContext.setPrimaryDeltaConsolidated(true);
             LOGGER.trace("Focus primary delta consolidated to:\n{}", consolidatedPrimaryDelta.debugDumpLazily());
+
+            focusContext.recompute();
         } catch (Throwable t) {
             result.recordFatalError(t);
             throw t;

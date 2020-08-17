@@ -903,7 +903,9 @@ public class AssignmentEditorDto extends SelectableBeanImpl implements Comparabl
 
     @Override
     public AssignmentEditorDto clone(){
-        return new AssignmentEditorDto(UserDtoStatus.ADD, newAssignment, pageBase);
+        AssignmentEditorDto dto = new AssignmentEditorDto(UserDtoStatus.ADD, newAssignment, pageBase);
+        dto.setSimpleView(isSimpleView());
+        return dto;
     }
 
     @Override

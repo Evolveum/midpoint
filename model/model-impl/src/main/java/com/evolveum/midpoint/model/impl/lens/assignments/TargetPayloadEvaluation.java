@@ -7,16 +7,12 @@
 
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
-import com.evolveum.midpoint.model.impl.lens.assignments.TargetEvaluation.TargetValidity;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.model.impl.lens.assignments.Util.isNonNegative;
 
 /**
  * Collects target (i.e. role) payload: authorizations, GUI configuration.
@@ -25,30 +21,30 @@ class TargetPayloadEvaluation<AH extends AssignmentHolderType> extends AbstractE
 
     private static final Trace LOGGER = TraceManager.getTrace(TargetPayloadEvaluation.class);
 
-    private final PlusMinusZero targetRelativityMode;
+    private final ConditionState targetOverallConditionState;
 
-    @NotNull private final TargetValidity targetValidity;
+    @NotNull private final TargetEvaluation.TargetActivation targetActivation;
 
-    TargetPayloadEvaluation(@NotNull AssignmentPathSegmentImpl segment, PlusMinusZero targetRelativityMode,
-            @NotNull TargetValidity targetValidity,
+    TargetPayloadEvaluation(@NotNull AssignmentPathSegmentImpl segment, ConditionState targetOverallConditionState,
+            @NotNull TargetEvaluation.TargetActivation targetActivation,
             @NotNull EvaluationContext<AH> ctx) {
         super(segment, ctx);
-        this.targetRelativityMode = targetRelativityMode;
-        this.targetValidity = targetValidity;
+        this.targetOverallConditionState = targetOverallConditionState;
+        this.targetActivation = targetActivation;
     }
 
     public void evaluate() {
-        assert segment.isAssignmentValid() || segment.direct;
-        assert targetValidity.targetValid;
-        assert targetRelativityMode != null;
+        assert segment.isAssignmentActive() || segment.direct;
+        assert targetActivation.targetActive;
+        assert targetOverallConditionState.isNotAllFalse();
         checkIfAlreadyEvaluated();
 
         ObjectType target = segment.getTarget();
         if (target instanceof AbstractRoleType) {
             if (!segment.isMatchingOrder) {
                 LOGGER.trace("Not collecting payload from target of {} as it is of not matching order: {}", segment, segment.getEvaluationOrder());
-            } else if (!isNonNegative(targetRelativityMode)) {
-                LOGGER.trace("Not collecting payload from target of {} as the target relativity mode is not non-negative: {}", segment, targetRelativityMode);
+            } else if (targetOverallConditionState.isNewFalse()) {
+                LOGGER.trace("Not collecting payload from target of {} as the target relativity mode is not non-negative: {}", segment, targetOverallConditionState);
             } else {
                 for (AuthorizationType authorizationBean : ((AbstractRoleType) target).getAuthorization()) {
                     Authorization authorization = createAuthorization(authorizationBean, target.toString());

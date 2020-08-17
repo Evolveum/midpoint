@@ -6,8 +6,8 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import javax.xml.namespace.QName;
@@ -23,13 +23,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
- *
  */
-public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAsserter<R> {
+public class ObjectReferenceAsserter<O extends ObjectType, R> extends AbstractAsserter<R> {
 
-    final private PrismReferenceValue refVal;
+    private final PrismReferenceValue refVal;
+    private final Class<O> defaultTargetTypeClass;
+
     private PrismObject<? extends O> resolvedTarget = null;
-    final private Class<O> defaultTargetTypeClass;
 
     public ObjectReferenceAsserter(PrismReferenceValue refVal, Class<O> defaultTargetTypeClass) {
         super();
@@ -58,39 +58,42 @@ public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAss
         return refVal.getOid();
     }
 
-    public ObjectReferenceAsserter<O,R> assertOid() {
-        assertNotNull("No OID in "+desc(), refVal.getOid());
+    public ObjectReferenceAsserter<O, R> assertOid() {
+        assertNotNull("No OID in " + desc(), refVal.getOid());
         return this;
     }
 
-    public ObjectReferenceAsserter<O,R> assertOid(String expected) {
-        assertEquals("Wrong OID in "+desc(), expected, refVal.getOid());
+    public ObjectReferenceAsserter<O, R> assertOid(String expected) {
+        assertEquals("Wrong OID in " + desc(), expected, refVal.getOid());
         return this;
     }
 
-    public ObjectReferenceAsserter<O,R> assertOidDifferentThan(String expected) {
-        assertFalse("Wrong OID in "+desc(), expected.equals(refVal.getOid()));
+    public ObjectReferenceAsserter<O, R> assertOidDifferentThan(String expected) {
+        assertThat(refVal.getOid()).withFailMessage("Wrong OID in " + desc())
+                .isNotEqualTo(expected);
         return this;
     }
 
-    public PrismObjectAsserter<O,ObjectReferenceAsserter<O,R>> object() {
-        return new PrismObjectAsserter<>((PrismObject<O>)refVal.getObject(), this, "object in "+desc());
+    public PrismObjectAsserter<O, ObjectReferenceAsserter<O, R>> object() {
+        //noinspection unchecked
+        return new PrismObjectAsserter<>((PrismObject<O>) refVal.getObject(), this, "object in " + desc());
     }
 
     protected PrismObject<O> getResolvedTarget() throws ObjectNotFoundException, SchemaException {
         if (resolvedTarget == null) {
             resolvedTarget = resolveTargetObject();
         }
+        //noinspection unchecked
         return (PrismObject<O>) resolvedTarget;
     }
 
-    public PrismObjectAsserter<O,? extends ObjectReferenceAsserter<O,R>> target() throws ObjectNotFoundException, SchemaException {
-        return new PrismObjectAsserter<>(getResolvedTarget(), this, "object resolved from "+desc());
+    public PrismObjectAsserter<O, ? extends ObjectReferenceAsserter<O, R>> target() throws ObjectNotFoundException, SchemaException {
+        return new PrismObjectAsserter<>(getResolvedTarget(), this, "object resolved from " + desc());
     }
 
-    public PrismObjectAsserter<O,? extends ObjectReferenceAsserter<O,R>> resolveTarget() throws ObjectNotFoundException, SchemaException {
+    public PrismObjectAsserter<O, ? extends ObjectReferenceAsserter<O, R>> resolveTarget() throws ObjectNotFoundException, SchemaException {
         PrismObject<O> object = resolveTargetObject();
-        return new PrismObjectAsserter<>(object, this, "object resolved from "+desc());
+        return new PrismObjectAsserter<>(object, this, "object resolved from " + desc());
     }
 
     protected PrismObject<O> resolveTargetObject() throws ObjectNotFoundException, SchemaException {
@@ -102,6 +105,7 @@ public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAss
         if (targetType == null) {
             return defaultTargetTypeClass;
         }
+        //noinspection unchecked
         return (Class<O>) ObjectTypes.getObjectTypeFromTypeQName(targetType).getClassDefinition();
     }
 
@@ -109,12 +113,12 @@ public class ObjectReferenceAsserter<O extends ObjectType,R> extends AbstractAss
         return descWithDetails(refVal);
     }
 
-    public ObjectReferenceAsserter<O,R> display() {
+    public ObjectReferenceAsserter<O, R> display() {
         display(desc());
         return this;
     }
 
-    public ObjectReferenceAsserter<O,R> display(String message) {
+    public ObjectReferenceAsserter<O, R> display(String message) {
         PrismTestUtil.display(message, refVal);
         return this;
     }

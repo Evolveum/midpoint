@@ -51,6 +51,8 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      * Source object for this assignment path.
      * This is the object holding the assignment or inducement.
      *
+     * If the source is the focus, we use NEW state of the object.
+     * TODO consider if that's correct.
      */
     final AssignmentHolderType source;
 
@@ -61,6 +63,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
     /**
      * Item-delta-item form of the assignment.
+     * TODO which ODO (absolute/relative)? MID-6404
      */
     private final ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi;
 
@@ -99,37 +102,49 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
     //region Data related to segment evaluation
     /**
-     * Is the whole path to SOURCE valid?
+     * Is the whole path to SOURCE active?
      *
-     * By validity we mean that lifecycle state and activation (admin status / time validity)
+     * By "active" we mean that lifecycle state and activation (admin status / time validity)
      * indicate that the object(s) and respective assignment(s) are active. Conditions are not
      * considered here, at least not now.
      *
-     * Also note that the validity of this assignment is not considered.
+     * Also note that the activity of this assignment is NOT considered.
      *
-     * Validity influences the evaluation process. But look for specific code to learn
+     * Activity influences the evaluation process. But look for specific code to learn
      * precisely how.
      */
-    final boolean pathToSourceValid;
+    final boolean pathToSourceActive;
 
     /**
-     * Is assignment itself considered valid (taking lifecycle, activation, and lifecycle state model
-     * into account)? Note that we can evaluate parts of assignments even if they are not valid
+     * Is assignment itself considered active (taking lifecycle, activation, and lifecycle state model
+     * into account)? Note that we can evaluate parts of assignments even if they are not active
      * in this respect.
      *
-     * The assignment can be considered valid even if its source is not valid!
+     * The assignment can be considered active even if its source is not active!
      */
-    private boolean assignmentValid;
+    private boolean assignmentActive;
 
     /**
-     * Relativity mode of the source object.
+     * Aggregated condition state for the path to assignment source (including the source itself).
+     * Condition of the assignment is NOT considered.
      *
-     * For focus, it is zero. For roles in the chain, it is determined by composing relativity
-     * modes given by assignment and role conditions.
+     * Condition state of the ultimate source (i.e. focus) is not considered.
      */
-    final PlusMinusZero sourceRelativityMode;
+    final ConditionState pathToSourceConditionState;
 
     /**
+     * Condition state of the assignment itself.
+     */
+    private ConditionState assignmentConditionState;
+
+    /**
+     * Combination of path-to-source and assignment condition state.
+     */
+    private ConditionState overallConditionState;
+
+    /*
+     * TODO clean up this description
+     *
      * Relativity mode of the assignment. It is determined from the relativity mode of source
      * and the condition of the assignment.
      *
@@ -145,7 +160,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
      * to "dynamic" (plus, minus, zero) point of view. Then we will probably unify validity
      * and relativity mode concepts into one.
      */
-    private PlusMinusZero assignmentRelativityMode;
+//    private PlusMinusZero assignmentRelativityMode;
 
     /**
      * Evaluation order of this segment regarding the focus. If there were no inducements,
@@ -213,10 +228,10 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         isAssignment = builder.isAssignment;
         target = builder.target;
         direct = builder.direct;
-        pathToSourceValid = builder.pathToSourceValid;
-        // assignmentValid not present in builder (it's computed)
-        sourceRelativityMode = builder.sourceRelativityMode;
-        // assignmentRelativityMode not present in builder (it's computed)
+        pathToSourceActive = builder.pathToSourceActive;
+        // assignment activity is not present in builder (it's computed)
+        pathToSourceConditionState = builder.pathToSourceConditionState;
+        // other condition states not present in builder (it's computed)
         evaluationOrder = builder.evaluationOrder;
         isMatchingOrder = builder.isMatchingOrder != null ?
                 builder.isMatchingOrder : computeMatchingOrder(evaluationOrder, assignment);
@@ -243,10 +258,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         this.isAssignment = origin.isAssignment;
         this.target = target;
         this.direct = origin.direct;
-        this.pathToSourceValid = origin.pathToSourceValid;
-        this.assignmentValid = origin.assignmentValid;
-        this.sourceRelativityMode = origin.sourceRelativityMode;
-        this.assignmentRelativityMode = origin.assignmentRelativityMode;
+        this.pathToSourceActive = origin.pathToSourceActive;
+        this.assignmentActive = origin.assignmentActive;
+        this.pathToSourceConditionState = origin.pathToSourceConditionState;
+        this.assignmentConditionState = origin.assignmentConditionState;
+        this.overallConditionState = origin.overallConditionState;
         this.evaluationOrder = origin.evaluationOrder;
         this.isMatchingOrder = origin.isMatchingOrder;
         this.evaluationOrderForTarget = origin.evaluationOrderForTarget;
@@ -325,30 +341,47 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         }
     }
 
-    boolean isAssignmentValid() {
-        return assignmentValid;
+    boolean isAssignmentActive() {
+        return assignmentActive;
     }
 
-    void setAssignmentValid(boolean assignmentValid) {
+    void setAssignmentActive(boolean assignmentActive) {
         checkMutable();
-        this.assignmentValid = assignmentValid;
+        this.assignmentActive = assignmentActive;
     }
 
-    boolean isFullPathValid() {
-        return pathToSourceValid && assignmentValid;
+    boolean isFullPathActive() {
+        return pathToSourceActive && assignmentActive;
     }
 
-    PlusMinusZero getAssignmentRelativityMode() {
-        return assignmentRelativityMode;
+    PlusMinusZero getRelativeAssignmentRelativityMode() {
+        return overallConditionState.getRelativeRelativityMode();
     }
 
-    void setAssignmentRelativityMode(PlusMinusZero assignmentRelativityMode) {
+    PlusMinusZero getAbsoluteAssignmentRelativityMode() {
+        return overallConditionState.getAbsoluteRelativityMode();
+    }
+
+    public ConditionState getAssignmentConditionState() {
+        return assignmentConditionState;
+    }
+
+    public void setAssignmentConditionState(ConditionState assignmentConditionState) {
         checkMutable();
-        this.assignmentRelativityMode = assignmentRelativityMode;
+        this.assignmentConditionState = assignmentConditionState;
     }
 
-    boolean isNonNegativeRelativityMode() {
-        return Util.isNonNegative(assignmentRelativityMode);
+    public ConditionState getOverallConditionState() {
+        return overallConditionState;
+    }
+
+    public void setOverallConditionState(ConditionState overallConditionState) {
+        checkMutable();
+        this.overallConditionState = overallConditionState;
+    }
+
+    boolean isNonNegativeRelativeRelativityMode() {
+        return Util.isNonNegative(getRelativeAssignmentRelativityMode()); // TODO use condition to say this
     }
 
     public EvaluationOrder getEvaluationOrder() {
@@ -388,8 +421,8 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         return result;
     }
 
-    @SuppressWarnings({ "RedundantIfStatement", "BooleanMethodIsAlwaysInverted" })
-    boolean equalsExceptForTarget(Object obj) {
+    @SuppressWarnings({ "RedundantIfStatement" })
+    private boolean equalsExceptForTarget(Object obj) {
         if (this == obj)
             return true;
         if (obj == null)
@@ -501,10 +534,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrder", isMatchingOrder, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "isMatchingOrderForTarget", isMatchingOrderForTarget, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "relation", relation, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "pathToSourceValid", pathToSourceValid, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "assignmentValid", assignmentValid, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "sourceRelativityMode", String.valueOf(sourceRelativityMode), indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "assignmentRelativityMode", String.valueOf(assignmentRelativityMode), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "pathToSourceActive", pathToSourceActive, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "assignmentActive", assignmentActive, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "pathToSourceConditionState", String.valueOf(pathToSourceConditionState), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "assignmentConditionState", String.valueOf(assignmentConditionState), indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "overallConditionState", String.valueOf(overallConditionState), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "lastEqualOrderSegmentIndex", lastEqualOrderSegmentIndex, indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "varThisObject", varThisObject==null?"null":varThisObject.toString(), indent + 1);
         return sb.toString();
@@ -579,8 +613,8 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         private boolean isAssignment;
         private ObjectType target;
         private boolean direct;
-        private boolean pathToSourceValid;
-        private PlusMinusZero sourceRelativityMode;
+        private boolean pathToSourceActive;
+        private ConditionState pathToSourceConditionState;
         private Integer lastEqualOrderSegmentIndex;
         private Boolean isMatchingOrder;
         private EvaluationOrder evaluationOrder;
@@ -650,12 +684,12 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         }
 
         public Builder pathToSourceValid(boolean val) {
-            pathToSourceValid = val;
+            pathToSourceActive = val;
             return this;
         }
 
-        public Builder sourceRelativityMode(PlusMinusZero val) {
-            sourceRelativityMode = val;
+        public Builder pathToSourceConditionState(ConditionState val) {
+            pathToSourceConditionState = val;
             return this;
         }
 

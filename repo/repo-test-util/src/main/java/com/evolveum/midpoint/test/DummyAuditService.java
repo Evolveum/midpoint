@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -15,6 +15,7 @@ import javax.xml.datatype.Duration;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.*;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -227,10 +228,12 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         return deltas.iterator().next();
     }
 
-    public <O extends ObjectType> ObjectDeltaOperation<O> getExecutionDelta(int index, ChangeType changeType, Class<O> typeClass) {
+    public <O extends ObjectType> ObjectDeltaOperation<O> getExecutionDelta(
+            int index, ChangeType changeType, Class<O> typeClass) {
         for (ObjectDeltaOperation<? extends ObjectType> deltaOp : getExecutionDeltas(index)) {
             ObjectDelta<? extends ObjectType> delta = deltaOp.getObjectDelta();
             if (delta.getObjectTypeClass() == typeClass && delta.getChangeType() == changeType) {
+                //noinspection unchecked
                 return (ObjectDeltaOperation<O>) deltaOp;
             }
         }
@@ -354,7 +357,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     public void assertTarget(String expectedOid, AuditEventStage stage) {
         Collection<PrismReferenceValue> targets = new ArrayList<>();
         for (AuditEventRecord record : records) {
-            PrismReferenceValue target = record.getTarget();
+            PrismReferenceValue target = record.getTargetRef();
             if (stage == null || stage == record.getEventStage()) {
                 if (target != null && expectedOid.equals(target.getOid())) {
                     return;
@@ -372,18 +375,24 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assertTarget(expectedOid, AuditEventStage.EXECUTION);
     }
 
-    public <O extends ObjectType, T> void assertPropertyReplace(
-            ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertPropertyReplace(
+            ChangeType expectedChangeType, Class<O> expectedClass,
+            ItemPath propPath, T... expectedValues) {
         assertPropertyReplace(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertPropertyReplace(
-            int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertPropertyReplace(
+            int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         assertPropertyReplace(null, index, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertPropertyReplace(
-            String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertPropertyReplace(
+            String message, int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
 
         ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
         assert deltaOp != null : (message == null ? ""
@@ -407,18 +416,23 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         PrismAsserts.assertValues((message == null ? "" : message + ": ") + "Wrong values to replace in property delta for " + propPath + " in Delta for " + expectedClass + " of type " + expectedChangeType, valuesToReplace, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertOldValue(
-            ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertOldValue(ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         assertOldValue(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertOldValue(
-            int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertOldValue(
+            int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         assertOldValue(null, index, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertOldValue(
-            String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertOldValue(
+            String message, int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
         assert deltaOp != null
                 : (message == null ? "" : message + ": ") + "Delta for " + expectedClass +
@@ -541,15 +555,19 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     }
 
     @Override
-    public int countObjects(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+    public int countObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
         throw new UnsupportedOperationException("countObjects not supported");
     }
 
     @Override
     @NotNull
-    public SearchResultList<AuditEventRecordType> searchObjects(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) {
+    public SearchResultList<AuditEventRecordType> searchObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
         throw new UnsupportedOperationException("searchObjects not supported");
     }
 }

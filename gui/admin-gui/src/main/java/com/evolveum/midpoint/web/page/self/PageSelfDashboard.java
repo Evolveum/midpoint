@@ -1,26 +1,17 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
 
-import static com.evolveum.midpoint.prism.PrismConstants.T_PARENT;
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_CREATE_TIMESTAMP;
 import static java.util.Collections.emptyList;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType.F_CREATE_TIMESTAMP;
 
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.builder.S_FilterEntryOrEmpty;
-import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemsPanel;
-import com.evolveum.midpoint.web.page.admin.cases.CasesListPanel;
-import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
@@ -32,16 +23,14 @@ import org.apache.wicket.model.PropertyModel;
 import org.springframework.security.core.Authentication;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.PredefinedDashboardWidgetId;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.RelationTypes;
@@ -53,11 +42,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.util.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.cases.CaseWorkItemsPanel;
+import com.evolveum.midpoint.web.page.admin.cases.CasesListPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.AsyncDashboardPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAccountsPanel;
 import com.evolveum.midpoint.web.page.admin.home.component.MyAssignmentsPanel;
@@ -67,6 +59,8 @@ import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import com.evolveum.midpoint.web.page.self.component.DashboardSearchPanel;
 import com.evolveum.midpoint.web.page.self.component.LinksPanel;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -107,7 +101,7 @@ public class PageSelfDashboard extends PageSelf {
     private static final int MAX_REQUESTS = 1000;
 
     private final Model<PrismObject<? extends FocusType>> principalModel = new Model<>();
-    private CompiledGuiProfile compiledGuiProfile;
+    private final CompiledGuiProfile compiledGuiProfile;
 
     public PageSelfDashboard() {
         compiledGuiProfile = getPrincipal().getCompiledGuiProfile();
@@ -126,16 +120,17 @@ public class PageSelfDashboard extends PageSelf {
         bc.setIcon(new Model("fa fa-dashboard"));
     }
 
-    private void initLayout(){
+    private void initLayout() {
         DashboardSearchPanel dashboardSearchPanel = new DashboardSearchPanel(ID_SEARCH_PANEL);
         List<String> searchPanelActions = Arrays.asList(AuthorizationConstants.AUTZ_UI_USERS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_USERS_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_RESOURCES_URL, AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_TASKS_URL);
-        dashboardSearchPanel.add(new VisibleEnableBehaviour(){
+        dashboardSearchPanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
+
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.SEARCH);
                 return WebComponentUtil.getElementVisibility(visibilityType, searchPanelActions);
             }
@@ -143,10 +138,11 @@ public class PageSelfDashboard extends PageSelf {
         add(dashboardSearchPanel);
 
         LinksPanel linksPanel = new LinksPanel(ID_LINKS_PANEL, Model.ofList(loadLinksList()));
-        linksPanel.add(new VisibleEnableBehaviour(){
+        linksPanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
+
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 UserInterfaceElementVisibilityType visibilityType = getComponentVisibility(PredefinedDashboardWidgetId.SHORTCUTS);
                 return WebComponentUtil.getElementVisibility(visibilityType);
             }
@@ -164,42 +160,40 @@ public class PageSelfDashboard extends PageSelf {
                 GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_BOX_CSS_CLASSES,
                 true) {
 
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected SecurityContextAwareCallable<CallableResult<List<CaseWorkItemType>>> createCallable(
+                    Authentication auth, IModel callableParameterModel) {
+
+                return new SecurityContextAwareCallable<CallableResult<List<CaseWorkItemType>>>(
+                        getSecurityContextManager(), auth) {
+
+                    @Override
+                    public CallableResult<List<CaseWorkItemType>> callWithContextPrepared() {
+                        return new CallableResult<>(emptyList(), null); // it is ignored anyway - FIXME
+                    }
+                };
+            }
+
+            @Override
+            protected Component getMainComponent(String markupId) {
+                CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, CaseWorkItemsPanel.View.DASHBOARD) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected SecurityContextAwareCallable<CallableResult<List<CaseWorkItemType>>> createCallable(
-                            Authentication auth, IModel callableParameterModel) {
-
-                        return new SecurityContextAwareCallable<CallableResult<List<CaseWorkItemType>>>(
-                                getSecurityContextManager(), auth) {
-
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            public CallableResult<List<CaseWorkItemType>> callWithContextPrepared() {
-                                return new CallableResult<>(emptyList(), null); // it is ignored anyway - FIXME
-                            }
-                        };
-                    }
-
-                    @Override
-                    protected Component getMainComponent(String markupId) {
-                        CaseWorkItemsPanel workItemsPanel = new CaseWorkItemsPanel(markupId, CaseWorkItemsPanel.View.DASHBOARD){
-                            private static final long serialVersionUID = 1L;
-
-                            @Override
-                            protected ObjectFilter getCaseWorkItemsFilter(){
-                                return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
-                                        SecurityUtils.getPrincipalUser(),
-                                        OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
-                                        .desc(F_CREATE_TIMESTAMP)
-                                        .buildFilter();
-                            }
-                        };
-                        workItemsPanel.setOutputMarkupId(true);
-                        return workItemsPanel;
+                    protected ObjectFilter getCaseWorkItemsFilter() {
+                        return QueryUtils.filterForNotClosedStateAndAssignees(getPrismContext().queryFor(CaseWorkItemType.class),
+                                SecurityUtils.getPrincipalUser(),
+                                OtherPrivilegesLimitationType.F_APPROVAL_WORK_ITEMS, getRelationRegistry())
+                                .desc(F_CREATE_TIMESTAMP)
+                                .buildFilter();
                     }
                 };
+                workItemsPanel.setOutputMarkupId(true);
+                return workItemsPanel;
+            }
+        };
 
         workItemsPanel.add(new VisibleEnableBehaviour() {
             @Override
@@ -213,7 +207,7 @@ public class PageSelfDashboard extends PageSelf {
         AsyncDashboardPanel<Object, List<CaseType>> myRequestsPanel =
                 new AsyncDashboardPanel<Object, List<CaseType>>(ID_REQUESTS_PANEL,
                         createStringResource("PageSelfDashboard.myRequests"),
-                         GuiStyleConstants.CLASS_SHADOW_ICON_REQUEST,
+                        GuiStyleConstants.CLASS_SHADOW_ICON_REQUEST,
                         GuiStyleConstants.CLASS_OBJECT_SERVICE_BOX_CSS_CLASSES, true) {
 
                     private static final long serialVersionUID = 1L;
@@ -224,7 +218,6 @@ public class PageSelfDashboard extends PageSelf {
 
                         return new SecurityContextAwareCallable<CallableResult<List<CaseType>>>(
                                 getSecurityContextManager(), auth) {
-                            private static final long serialVersionUID = 1L;
 
                             @Override
                             public CallableResult<List<CaseType>> callWithContextPrepared() {
@@ -247,7 +240,7 @@ public class PageSelfDashboard extends PageSelf {
                             }
 
                             @Override
-                            protected boolean isDashboard(){
+                            protected boolean isDashboard() {
                                 return true;
                             }
                         };
@@ -275,7 +268,7 @@ public class PageSelfDashboard extends PageSelf {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         Validate.notNull(principal, "No principal");
         if (principal.getOid() == null) {
-            throw new IllegalArgumentException("No OID in principal: "+principal);
+            throw new IllegalArgumentException("No OID in principal: " + principal);
         }
 
         Task task = createSimpleTask(OPERATION_LOAD_USER);
@@ -302,60 +295,59 @@ public class PageSelfDashboard extends PageSelf {
 
     private void initMyAccounts(Session session) {
         AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts = new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS,
-                        createStringResource("PageDashboard.accounts"),
-                        GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT,
-                        GuiStyleConstants.CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES,
-                        true) {
+                createStringResource("PageDashboard.accounts"),
+                GuiStyleConstants.CLASS_SHADOW_ICON_ACCOUNT,
+                GuiStyleConstants.CLASS_OBJECT_SHADOW_BOX_CSS_CLASSES,
+                true) {
 
-                    private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-                    @Override
-                    protected SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>> createCallable(
-                            Authentication auth, IModel<Object> callableParameterModel) {
+            @Override
+            protected SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>> createCallable(
+                    Authentication auth, IModel<Object> callableParameterModel) {
 
-                        return new SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>>(
-                                getSecurityContextManager(), auth) {
-
-                            @Override
-                            public AccountCallableResult<List<SimpleAccountDto>> callWithContextPrepared()
-                                    throws Exception {
-                                setupContext(application, session);    // TODO is this correct? [med]
-                                return loadAccounts();
-                            }
-                        };
-                    }
+                return new SecurityContextAwareCallable<CallableResult<List<SimpleAccountDto>>>(
+                        getSecurityContextManager(), auth) {
 
                     @Override
-                    protected Component getMainComponent(String markupId) {
-                        return new MyAccountsPanel(markupId,
-                            new PropertyModel<>(getModel(), CallableResult.F_VALUE));
-                    }
-
-                    @Override
-                    protected void onPostSuccess(AjaxRequestTarget target) {
-                        showFetchResult();
-                        super.onPostSuccess(target);
-                    }
-
-                    @Override
-                    protected void onUpdateError(AjaxRequestTarget target, Exception ex) {
-                        showFetchResult();
-                        super.onUpdateError(target, ex);
-                    }
-
-                    private void showFetchResult() {
-                        AccountCallableResult<List<SimpleAccountDto>> result =
-                                (AccountCallableResult<List<SimpleAccountDto>>) getModel().getObject();
-
-                        PageBase page = (PageBase) getPage();
-                        for (OperationResult res : result.getFetchResults()) {
-                            if (!WebComponentUtil.isSuccessOrHandledError(res)) {
-                                page.showResult(res);
-                            }
-                        }
+                    public AccountCallableResult<List<SimpleAccountDto>> callWithContextPrepared() {
+                        setupContext(application, session);    // TODO is this correct? [med]
+                        return loadAccounts();
                     }
                 };
-        accounts.add(new VisibleEnableBehaviour(){
+            }
+
+            @Override
+            protected Component getMainComponent(String markupId) {
+                return new MyAccountsPanel(markupId,
+                        new PropertyModel<>(getModel(), CallableResult.F_VALUE));
+            }
+
+            @Override
+            protected void onPostSuccess(AjaxRequestTarget target) {
+                showFetchResult();
+                super.onPostSuccess(target);
+            }
+
+            @Override
+            protected void onUpdateError(AjaxRequestTarget target, Exception ex) {
+                showFetchResult();
+                super.onUpdateError(target, ex);
+            }
+
+            private void showFetchResult() {
+                AccountCallableResult<List<SimpleAccountDto>> result =
+                        (AccountCallableResult<List<SimpleAccountDto>>) getModel().getObject();
+
+                PageBase page = (PageBase) getPage();
+                for (OperationResult res : result.getFetchResults()) {
+                    if (!WebComponentUtil.isSuccessOrHandledError(res)) {
+                        page.showResult(res);
+                    }
+                }
+            }
+        };
+        accounts.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -367,7 +359,7 @@ public class PageSelfDashboard extends PageSelf {
         add(accounts);
     }
 
-    private AccountCallableResult<List<SimpleAccountDto>> loadAccounts() throws Exception {
+    private AccountCallableResult<List<SimpleAccountDto>> loadAccounts() {
         LOGGER.debug("Loading accounts.");
 
         AccountCallableResult callableResult = new AccountCallableResult();
@@ -419,29 +411,29 @@ public class PageSelfDashboard extends PageSelf {
                 GuiStyleConstants.CLASS_OBJECT_ROLE_BOX_CSS_CLASSES,
                 true) {
 
-                    private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>> createCallable(
+                    Authentication auth, IModel callableParameterModel) {
+
+                return new SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>>(
+                        getSecurityContextManager(), auth) {
 
                     @Override
-                    protected SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>> createCallable(
-                            Authentication auth, IModel callableParameterModel) {
-
-                        return new SecurityContextAwareCallable<CallableResult<List<AssignmentItemDto>>>(
-                                getSecurityContextManager(), auth) {
-
-                            @Override
-                            public CallableResult<List<AssignmentItemDto>> callWithContextPrepared() throws Exception {
-                                return loadAssignments();
-                            }
-                        };
-                    }
-
-                    @Override
-                    protected Component getMainComponent(String markupId) {
-                        return new MyAssignmentsPanel(markupId,
-                            new PropertyModel<>(getModel(), CallableResult.F_VALUE));
+                    public CallableResult<List<AssignmentItemDto>> callWithContextPrepared() {
+                        return loadAssignments();
                     }
                 };
-        assignedOrgUnits.add(new VisibleEnableBehaviour(){
+            }
+
+            @Override
+            protected Component getMainComponent(String markupId) {
+                return new MyAssignmentsPanel(markupId,
+                        new PropertyModel<>(getModel(), CallableResult.F_VALUE));
+            }
+        };
+        assignedOrgUnits.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -454,7 +446,7 @@ public class PageSelfDashboard extends PageSelf {
 
     }
 
-    private CallableResult<List<AssignmentItemDto>> loadAssignments() throws Exception {
+    private CallableResult<List<AssignmentItemDto>> loadAssignments() {
         LOGGER.debug("Loading assignments.");
         CallableResult callableResult = new CallableResult();
         List<AssignmentItemDto> list = new ArrayList<>();
@@ -472,8 +464,8 @@ public class PageSelfDashboard extends PageSelf {
         PrismContainer assignments = focus.findContainer(UserType.F_ASSIGNMENT);
         List<PrismContainerValue> values = assignments.getValues();
         for (PrismContainerValue assignment : values) {
-            AssignmentType assignmentType = (AssignmentType)assignment.asContainerable();
-            if (assignmentType.getTargetRef() != null && ArchetypeType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())){
+            AssignmentType assignmentType = (AssignmentType) assignment.asContainerable();
+            if (assignmentType.getTargetRef() != null && ArchetypeType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())) {
                 continue;
             }
             AssignmentItemDto item = createAssignmentItem(assignment, task, result);
@@ -521,7 +513,7 @@ public class PageSelfDashboard extends PageSelf {
         }
 
         if (RelationTypes.APPROVER.getRelation().equals(assignment.getValue().getTargetRef().getRelation()) ||
-                RelationTypes.OWNER.getRelation().equals(assignment.getValue().getTargetRef().getRelation())){
+                RelationTypes.OWNER.getRelation().equals(assignment.getValue().getTargetRef().getRelation())) {
             return null;
         }
         PrismReferenceValue refValue = targetRef.getValue();
@@ -543,7 +535,7 @@ public class PageSelfDashboard extends PageSelf {
         return new AssignmentItemDto(type, name, getAssignmentDescription(value), relation);
     }
 
-    private String getAssignmentDescription(PrismObject value){
+    private String getAssignmentDescription(PrismObject value) {
         Object orgIdentifier = null;
         if (OrgType.class.isAssignableFrom(value.getCompileTimeClass())) {
             orgIdentifier = value.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
@@ -554,16 +546,16 @@ public class PageSelfDashboard extends PageSelf {
         return description;
     }
 
-    private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId){
+    private UserInterfaceElementVisibilityType getComponentVisibility(PredefinedDashboardWidgetId componentId) {
         if (compiledGuiProfile == null || compiledGuiProfile.getUserDashboard() == null) {
             return UserInterfaceElementVisibilityType.AUTOMATIC;
         }
         List<DashboardWidgetType> widgetsList = compiledGuiProfile.getUserDashboard().getWidget();
-        if (widgetsList == null || widgetsList.size() == 0){
+        if (widgetsList == null || widgetsList.size() == 0) {
             return UserInterfaceElementVisibilityType.VACANT;
         }
         DashboardWidgetType widget = compiledGuiProfile.findUserDashboardWidget(componentId.getUri());
-        if (widget == null || widget.getVisibility() == null){
+        if (widget == null || widget.getVisibility() == null) {
             return UserInterfaceElementVisibilityType.HIDDEN;
         } else {
             return widget.getVisibility();

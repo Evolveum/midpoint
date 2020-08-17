@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,25 +7,15 @@
 
 package com.evolveum.midpoint.repo.sql.util;
 
-import java.util.Objects;
+import org.jetbrains.annotations.NotNull;
 
-import org.hibernate.dialect.*;
-
+import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public abstract class TemporaryTableDialect {
-
-    /**
-     * Does this dialect support temporary tables?
-     *
-     * @return True if temp tables are supported; false otherwise.
-     */
-    public boolean supportsTemporaryTables() {
-        return true;
-    }
 
     /**
      * Generate a temporary table name given the base table.
@@ -74,30 +64,29 @@ public abstract class TemporaryTableDialect {
         return true;
     }
 
-    public static TemporaryTableDialect getTempTableDialect(Dialect dialect) {
-        Objects.requireNonNull(dialect, "Dialect must not be null");
-
-        if (dialect instanceof H2Dialect) {
-            return new H2TempTableDialect();
+    /**
+     * Returns instance of {@link TemporaryTableDialect} or throws, never returns null.
+     *
+     * @throws SystemException if temporary tables are not supported
+     */
+    public static @NotNull TemporaryTableDialect getTempTableDialect(
+            @NotNull SqlRepositoryConfiguration.Database database) {
+        switch (database) {
+            case H2:
+                return new H2TempTableDialect();
+            case POSTGRESQL:
+                return new PostgreSQLTempTableDialect();
+            case MYSQL:
+            case MARIADB:
+                return new MysqlTempTableDialect();
+            case ORACLE:
+                return new OracleTempTableDialect();
+            case SQLSERVER:
+                return new SQLServerTempTableDialect();
         }
 
-        if (dialect instanceof MySQL5InnoDBDialect) {
-            return new MysqlTempTableDialect();
-        }
-
-        if (dialect instanceof PostgreSQL95Dialect) {
-            return new PostgreSQLTempTableDialect();
-        }
-
-        if (dialect instanceof Oracle12cDialect) {
-            return new OracleTempTableDialect();
-        }
-
-        if (dialect instanceof SQLServer2008Dialect) {
-            return new SQLServerTempTableDialect();
-        }
-
-        throw new SystemException("Unknown dialect " + dialect.getClass().getName());
+        throw new SystemException(
+                "Temporary tables are not supported for database type " + database);
     }
 
     private static class H2TempTableDialect extends TemporaryTableDialect {

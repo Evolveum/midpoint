@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import com.evolveum.midpoint.model.impl.lens.*;
 
@@ -61,6 +62,11 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
      * Delta that lead to the current state of the target object.
      */
     private final ObjectDelta<T> targetAPrioriDelta;
+
+    /**
+     * Function that tells us whether any delta exists for given target item.
+     */
+    private final Function<ItemPath, Boolean> itemDeltaExistsProvider;
 
     /**
      * Definition of the target object.
@@ -112,13 +118,16 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
     private final Collection<ItemDelta<?,?>> itemDeltas = new ArrayList<>();
 
     public DeltaSetTripleMapConsolidation(PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap,
-            PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta, Boolean addUnchangedValuesOverride,
+            PrismObject<T> targetObject, ObjectDelta<T> targetAPrioriDelta,
+            Function<ItemPath, Boolean> itemDeltaExistsProvider,
+            Boolean addUnchangedValuesOverride,
             Consumer<IvwoConsolidatorBuilder> consolidatorBuilderCustomizer,
             PrismObjectDefinition<T> targetDefinition, MappingEvaluationEnvironment env, ModelBeans beans,
             LensContext<?> lensContext, OperationResult parentResult) {
         this.outputTripleMap = outputTripleMap;
         this.targetObject = targetObject;
         this.targetAPrioriDelta = targetAPrioriDelta;
+        this.itemDeltaExistsProvider = itemDeltaExistsProvider;
         this.targetDefinition = targetDefinition;
         this.consolidatorBuilderCustomizer = consolidatorBuilderCustomizer;
         this.env = env;
@@ -132,6 +141,13 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
 
     public void computeItemDeltas() throws ExpressionEvaluationException, SchemaException,
             ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException {
+
+        if (outputTripleMap == null || outputTripleMap.isEmpty()) {
+            // Besides other reasons, this is to avoid creating empty operation results,
+            // cluttering the tracing output.
+            return;
+        }
+
         try {
             this.result = parentResult.createMinorSubresult(OP_CONSOLIDATE);
             LOGGER.trace("Computing deltas in {}, a priori delta:\n{}", env.contextDescription, debugDumpLazily(targetAPrioriDelta));
@@ -223,6 +239,7 @@ public class DeltaSetTripleMapConsolidation<T extends AssignmentHolderType> {
                     .ivwoTriple(deltaSetTriple)
                     .itemDefinition(itemDefinition)
                     .aprioriItemDelta(aprioriItemDelta)
+                    .itemDeltaExists(itemDeltaExistsProvider.apply(itemPath))
                     .existingItem(existingItem)
                     .valueMatcher(null)
                     .comparator(null)

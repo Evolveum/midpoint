@@ -12,7 +12,6 @@
 // Generated on: 2013.01.25 at 04:55:44 PM CET
 //
 
-
 package com.evolveum.prism.xml.ns._public.types_3;
 
 import java.io.Serializable;
@@ -20,26 +19,19 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.JaxbVisitable;
 import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.util.exception.SystemException;
 
-import org.w3c.dom.Element;
-
-
 /**
- *
- *                 Describes a change of a specific object.
+ * Describes a change of a specific object.
  *
  *
  * <p>Java class for ObjectDeltaType complex type.
@@ -74,40 +66,38 @@ import org.w3c.dom.Element;
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ObjectDeltaType", propOrder = {
-    "changeType",
-    "objectType",
-    "objectToAdd",
-    "oid",
-    "itemDelta"
+        "changeType",
+        "objectType",
+        "objectToAdd",
+        "oid",
+        "itemDelta"
 })
 public class ObjectDeltaType implements Serializable, JaxbVisitable {
 
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectDeltaType");
+    public static final QName F_CHANGE_TYPE = new QName(PrismConstants.NS_TYPES, "changeType");
+    public static final QName F_OBJECT_TYPE = new QName(PrismConstants.NS_TYPES, "objectType");
+    public static final QName F_OBJECT_TO_ADD = new QName(PrismConstants.NS_TYPES, "objectToAdd");
+    public static final QName F_ITEM_DETLA = new QName(PrismConstants.NS_TYPES, "itemDelta");
+
     @XmlElement(required = true)
     protected ChangeTypeType changeType;
+
     @XmlElement(required = true)
     protected QName objectType;
+
     protected ObjectType objectToAdd;
+
     @XmlElement(required = true)
     protected String oid;
+
     protected final List<ItemDeltaType> itemDelta = new ArrayList<>();
-
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectDeltaType");
-    public final static QName F_CHANGE_TYPE = new QName(PrismConstants.NS_TYPES, "changeType");
-    public final static QName F_OBJECT_TYPE = new QName(PrismConstants.NS_TYPES, "objectType");
-    public final static QName F_OBJECT_TO_ADD = new QName(PrismConstants.NS_TYPES, "objectToAdd");
-    public final static QName F_ITEM_DETLA = new QName(PrismConstants.NS_TYPES, "itemDelta");
-
-
-
-
 
     /**
      * Gets the value of the changeType property.
      *
-     * @return
-     *     possible object is
-     *     {@link ChangeTypeType }
-     *
+     * @return possible object is
+     * {@link ChangeTypeType }
      */
     public ChangeTypeType getChangeType() {
         return changeType;
@@ -116,10 +106,8 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
     /**
      * Sets the value of the changeType property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link ChangeTypeType }
-     *
+     * @param value allowed object is
+     * {@link ChangeTypeType }
      */
     public void setChangeType(ChangeTypeType value) {
         this.changeType = value;
@@ -128,10 +116,8 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
     /**
      * Gets the value of the objectType property.
      *
-     * @return
-     *     possible object is
-     *     {@link QName }
-     *
+     * @return possible object is
+     * {@link QName }
      */
     public QName getObjectType() {
         return objectType;
@@ -140,10 +126,8 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
     /**
      * Sets the value of the objectType property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link QName }
-     *
+     * @param value allowed object is
+     * {@link QName }
      */
     public void setObjectType(QName value) {
         this.objectType = value;
@@ -151,7 +135,6 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
 
     /**
      * Gets the value of the objectToAdd property.
-     *
      */
     public ObjectType getObjectToAdd() {
         return objectToAdd;
@@ -159,7 +142,6 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
 
     /**
      * Sets the value of the objectToAdd property.
-     *
      */
     public <T extends ObjectType> void setObjectToAdd(T value) {
         this.objectToAdd = value;
@@ -168,10 +150,8 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
     /**
      * Gets the value of the oid property.
      *
-     * @return
-     *     possible object is
-     *     {@link String }
-     *
+     * @return possible object is
+     * {@link String }
      */
     public String getOid() {
         return oid;
@@ -180,10 +160,8 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
     /**
      * Sets the value of the oid property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *
+     * @param value allowed object is
+     * {@link String }
      */
     public void setOid(String value) {
         this.oid = value;
@@ -208,8 +186,6 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
      * <p>
      * Objects of the following type(s) are allowed in the list
      * {@link ItemDeltaType }
-     *
-     *
      */
     public List<ItemDeltaType> getItemDelta() {
         return this.itemDelta;
@@ -229,35 +205,23 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
         ObjectDeltaType other = (ObjectDeltaType) obj;
-        if (changeType != other.changeType)
-            return false;
+        if (changeType != other.changeType) { return false; }
         if (itemDelta == null) {
-            if (other.itemDelta != null)
-                return false;
-        } else if (!itemDelta.equals(other.itemDelta))
-            return false;
+            if (other.itemDelta != null) { return false; }
+        } else if (!itemDelta.equals(other.itemDelta)) { return false; }
         if (objectToAdd == null) {
-            if (other.objectToAdd != null)
-                return false;
-        } else if (!objectToAdd.equals(other.objectToAdd))
-            return false;
+            if (other.objectToAdd != null) { return false; }
+        } else if (!objectToAdd.equals(other.objectToAdd)) { return false; }
         if (objectType == null) {
-            if (other.objectType != null)
-                return false;
-        } else if (!objectType.equals(other.objectType))
-            return false;
+            if (other.objectType != null) { return false; }
+        } else if (!objectType.equals(other.objectType)) { return false; }
         if (oid == null) {
-            if (other.oid != null)
-                return false;
-        } else if (!oid.equals(other.oid))
-            return false;
+            if (other.oid != null) { return false; }
+        } else if (!oid.equals(other.oid)) { return false; }
         return true;
     }
 
@@ -297,7 +261,7 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "", propOrder = {
-        "any"
+            "any"
     })
     public static class ObjectToAdd implements Serializable, JaxbVisitable {
 
@@ -307,11 +271,9 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
         /**
          * Gets the value of the any property.
          *
-         * @return
-         *     possible object is
-         *     {@link Object }
-         *     {@link Element }
-         *
+         * @return possible object is
+         * {@link Object }
+         * {@link Element }
          */
         public JAXBElement<?> getAny() {
             return any;
@@ -320,11 +282,9 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
         /**
          * Sets the value of the any property.
          *
-         * @param value
-         *     allowed object is
-         *     {@link Object }
-         *     {@link Element }
-         *
+         * @param value allowed object is
+         * {@link Object }
+         * {@link Element }
          */
         public void setAny(JAXBElement<?> value) {
             this.any = value;
@@ -338,11 +298,7 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
                     Method clone = any.getClass().getMethod("clone");
                     clone.setAccessible(true);
                     retval.any = (JAXBElement<?>) clone.invoke(any);
-                } catch (NoSuchMethodException e) {
-                    throw new SystemException("Cannot clone objectToAdd: " + any, e);
-                } catch (InvocationTargetException e) {
-                    throw new SystemException("Cannot clone objectToAdd: " + any, e);
-                } catch (IllegalAccessException e) {
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
                     throw new SystemException("Cannot clone objectToAdd: " + any, e);
                 }
             }
@@ -363,7 +319,6 @@ public class ObjectDeltaType implements Serializable, JaxbVisitable {
      *
      * @return copy of the object
      */
-
     public ObjectDeltaType clone() {
 
         ObjectDeltaType clone = new ObjectDeltaType();

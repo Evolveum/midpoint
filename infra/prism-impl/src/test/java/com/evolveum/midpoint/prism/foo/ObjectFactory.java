@@ -33,19 +33,19 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 @XmlRegistry
 public class ObjectFactory {
 
-    private final static QName _Object_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "object");
-    private final static QName _Name_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "name");
-    private final static QName _Resource_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "resource");
-    private final static QName _User_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "user");
-    private final static QName _DisplayName_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "displayName");
-    private final static QName _Account_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "account");
-    private final static QName _Description_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "description");
-    private final static QName _Note_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "note");
-    private final static QName _StatusFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "statusFilter");
-    private final static QName _CategoryFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "categoryFilter");
-    private final static QName _OperationFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "operationFilter");
-    private final static QName _HandlerChain_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "handlerChain");
-    private final static QName _Handler_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "handler");
+    private static final QName _Object_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "object");
+    private static final QName _Name_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "name");
+    private static final QName _Resource_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "resource");
+    private static final QName _User_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "user");
+    private static final QName _DisplayName_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "displayName");
+    private static final QName _Account_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "account");
+    private static final QName _Description_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "description");
+    private static final QName _Note_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "note");
+    private static final QName _StatusFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "statusFilter");
+    private static final QName _CategoryFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "categoryFilter");
+    private static final QName _OperationFilter_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "operationFilter");
+    private static final QName _HandlerChain_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "handlerChain");
+    private static final QName _Handler_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/public/common/common-3", "handler");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.evolveum.midpoint.xml.ns.test.foo_1

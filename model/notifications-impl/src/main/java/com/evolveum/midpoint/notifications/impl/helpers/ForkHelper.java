@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
  * @author mederly
  */
 @Component
-public class ForkHelper extends BaseHelper {
+public class ForkHelper extends BaseNotificationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ForkHelper.class);
 

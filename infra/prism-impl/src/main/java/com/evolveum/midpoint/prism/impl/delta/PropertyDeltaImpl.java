@@ -79,9 +79,8 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
 
     public T getAnyRealValue() {
         PrismPropertyValue<T> anyValue = getAnyValue();
-        return anyValue.getValue();
+        return anyValue != null ? anyValue.getValue() : null;
     }
-
 
     public <P extends PrismProperty> P instantiateEmptyProperty() {
         PrismPropertyDefinition propertyDefinition = getPropertyDefinition();

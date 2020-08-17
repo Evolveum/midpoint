@@ -349,7 +349,16 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             return true;
         }
         FocusType focusObject = ((IModel<SelectableBean<? extends FocusType>>) rowModel).getObject().getValue();
-        return focusObject != null && ActivationStatusType.ENABLED.equals(focusObject.getActivation().getEffectiveStatus());
+        if (focusObject == null) {
+            return false;
+        }
+
+        //TODO is this correct?
+        if (focusObject.getActivation() == null) {
+            return true;
+        }
+
+        return ActivationStatusType.ENABLED == focusObject.getActivation().getEffectiveStatus();
     }
 
     public static boolean isObjectDisabled(IModel<?> rowModel, boolean isHeader) {
@@ -357,7 +366,15 @@ public class FocusListInlineMenuHelper<F extends FocusType> implements Serializa
             return true;
         }
         FocusType focusObject = ((IModel<SelectableBean<? extends FocusType>>) rowModel).getObject().getValue();
-        return focusObject != null && ActivationStatusType.DISABLED.equals(focusObject.getActivation().getEffectiveStatus());
+        if (focusObject == null) {
+            return false;
+        }
+
+        if (focusObject.getActivation() == null) {
+            return false;
+        }
+
+        return ActivationStatusType.DISABLED == focusObject.getActivation().getEffectiveStatus();
     }
     protected boolean isShowConfirmationDialog(ColumnMenuAction action){
         return false;

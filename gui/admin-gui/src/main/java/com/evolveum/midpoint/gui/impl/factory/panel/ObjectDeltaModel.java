@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ThreadContext;
 import org.apache.wicket.model.IModel;
@@ -17,10 +15,11 @@ import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 public class ObjectDeltaModel implements IModel<String> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ObjectDeltaModel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ObjectDeltaModel.class);
 
     private IModel<ObjectDeltaType> baseModel;
     private ModelServiceLocator locator;
@@ -29,7 +28,6 @@ public class ObjectDeltaModel implements IModel<String> {
         this.baseModel = model;
         this.locator = locator;
     }
-
 
     @Override
     public String getObject() {

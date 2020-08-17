@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
 import java.util.function.Function;
@@ -36,9 +42,10 @@ public class CanonicalItemPathItemFilterProcessor
 
     @Override
     public Predicate process(PropertyValueFilter<ItemPathType> filter) throws QueryException {
-        ItemPathType value = getSingleValue(filter);
-        return createBinaryCondition(filter, path, value != null
-                ? context.prismContext().createCanonicalItemPath(value.getItemPath()).asString()
-                : null);
+        ValueFilterValues<ItemPathType> values = new ValueFilterValues<>(filter,
+                value -> context.prismContext()
+                        .createCanonicalItemPath(value.getItemPath())
+                        .asString());
+        return createBinaryCondition(filter, path, values);
     }
 }

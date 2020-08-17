@@ -9,10 +9,12 @@ package com.evolveum.midpoint.model.intest.scripting;
 
 import com.evolveum.midpoint.model.impl.scripting.ExecutionContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
 
 import org.testng.annotations.Listeners;
@@ -34,6 +36,7 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
     private static final File UNASSIGN_CAPTAIN_FROM_JACK_FILE = new File(TEST_DIR, "unassign-captain-from-jack.xml");
     private static final File ASSIGN_CAPTAIN_BY_NAME_TO_JACK_FILE = new File(TEST_DIR, "assign-captain-by-name-to-jack.xml");
     private static final File UNASSIGN_ALL_FROM_JACK_FILE = new File(TEST_DIR, "unassign-all-from-jack.xml");
+    private static final File EXECUTE_CUSTOM_DELTA = new File(TEST_DIR, "execute-custom-delta.xml");
 
     @Override
     String getSuffix() {
@@ -170,6 +173,29 @@ public class TestScriptingBasicNew extends AbstractBasicScriptingTest {
         assertUserAfterByUsername(USER_JACK_USERNAME)
                 .assignments()
                 .assertNone();
+    }
+
+    @Test
+    public void test900ExecuteCustomDelta() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        ExecuteScriptType executeScript = parseExecuteScript(EXECUTE_CUSTOM_DELTA);
+
+        unassignAllRoles(USER_JACK_OID);
+
+        when();
+        ExecutionContext output = evaluator.evaluateExpression(executeScript, VariablesMap.emptyMap(), false, task, result);
+
+        then();
+        dumpOutput(output, result);
+        assertOutputData(output, 1, OperationResultStatus.SUCCESS);
+
+        assertSuccess(result);
+        assertUserAfterByUsername(USER_JACK_USERNAME)
+                .assertAssignments(1)
+                .assignments()
+                    .assertRole(ROLE_SUPERUSER_OID);
     }
 
 }

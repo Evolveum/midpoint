@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -31,7 +31,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
  * @author lazyman
  * @author mederly
  */
-@ContextConfiguration(locations = {"../../../../../ctx-test.xml"})
+@ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
 
@@ -76,7 +76,7 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
 
     private void prepareAuditEventRecords() throws Exception {
         long start = System.currentTimeMillis();
-        for (int i = 0; i < RECORDS;) {
+        for (int i = 0; i < RECORDS; ) {
             AuditEventRecord record = new AuditEventRecord();
             record.addDelta(createObjectDeltaOperation(i));
             record.setTimestamp(System.currentTimeMillis());
@@ -84,7 +84,7 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
             record.addReferenceValue("ref1", ObjectTypeUtil.createObjectRef("oid1", ObjectTypes.USER).asReferenceValue());
             auditService.audit(record, new NullTaskImpl());
             i++;
-            if (i%1000 == 0 || i == RECORDS) {
+            if (i % 1000 == 0 || i == RECORDS) {
                 long duration = System.currentTimeMillis() - start;
                 System.out.println(i + " records created in " + duration + " ms (" + duration / i + " ms per record)");
             }

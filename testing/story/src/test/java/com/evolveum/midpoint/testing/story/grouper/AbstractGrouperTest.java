@@ -1,10 +1,22 @@
 /*
- * Copyright (c) 2019 Evolveum and contributors
+ * Copyright (c) 2019-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.story.grouper;
+
+import static org.testng.AssertJUnit.assertNotNull;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
+import javax.xml.namespace.QName;
+
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.annotations.AfterClass;
 
 import com.evolveum.icf.dummy.resource.ConflictException;
 import com.evolveum.icf.dummy.resource.DummyGroup;
@@ -20,22 +32,11 @@ import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.testing.story.AbstractStoryTest;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.annotation.DirtiesContext.ClassMode;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.annotations.AfterClass;
-
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.net.ConnectException;
-
-import static org.testng.AssertJUnit.assertNotNull;
 
 /**
  * Superclass for all Grouper-like test scenarios.
  */
-@ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public abstract class AbstractGrouperTest extends AbstractStoryTest {
 
@@ -107,9 +108,9 @@ public abstract class AbstractGrouperTest extends AbstractStoryTest {
 
         // These are experimental features, so they need to be explicitly enabled. This will be eliminated later,
         // when we make them enabled by default.
-        sqlRepositoryService.getConfiguration().setEnableIndexOnlyItems(true);
-        sqlRepositoryService.getConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
-        sqlRepositoryService.getConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
+        sqlRepositoryService.sqlConfiguration().setEnableIndexOnlyItems(true);
+        sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
+        sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
 
         openDJController.addEntriesFromLdifFile(LDIF_INITIAL_OBJECTS_FILE);
 

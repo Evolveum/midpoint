@@ -21,7 +21,7 @@ import org.springframework.stereotype.Component;
  * @author mederly
  */
 @Component
-public class ExpressionFilterHelper extends BaseHelper {
+public class ExpressionFilterHelper extends BaseNotificationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ExpressionFilterHelper.class);
 

@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
 import java.sql.Timestamp;
@@ -8,6 +14,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
@@ -20,7 +27,7 @@ import com.evolveum.midpoint.util.MiscUtil;
  * (what else do we want?) to paths of {@link Instant}, {@link Timestamp} and {@link Long}.
  */
 public class TimestampItemFilterProcessor
-        extends SinglePathItemFilterProcessor<PropertyValueFilter<String>> {
+        extends SinglePathItemFilterProcessor<PropertyValueFilter<?>> {
 
     /**
      * Returns the mapper function creating the timestamp filter processor from context.
@@ -37,21 +44,22 @@ public class TimestampItemFilterProcessor
     }
 
     @Override
-    public Predicate process(PropertyValueFilter<String> filter) throws QueryException {
-        Object value = getSingleValue(filter);
-        if (value != null && value.getClass() != path.getType()) {
-            value = convertToPathType(value);
-        }
-
-        return createBinaryCondition(filter, path, value);
+    public Predicate process(PropertyValueFilter<?> filter) throws QueryException {
+        ValueFilterValues<?> values = new ValueFilterValues<>(filter, this::convertToPathType);
+        return createBinaryCondition(filter, path, values);
     }
 
-    private Object convertToPathType(Object value) throws QueryException {
+    private Object convertToPathType(@NotNull Object value) {
+        if (value.getClass() == path.getType()) {
+            return value;
+        }
+
         long timestamp;
         if (value instanceof XMLGregorianCalendar) {
             timestamp = MiscUtil.asLong((XMLGregorianCalendar) value);
         } else {
-            throw new QueryException("Unsupported temporal type " + value.getClass() + " for value: " + value);
+            throw new IllegalArgumentException(
+                    "Unsupported temporal type " + value.getClass() + " for value: " + value);
         }
         Class<?> pathType = path.getType();
         if (Long.class.isAssignableFrom(pathType)) {
@@ -61,7 +69,8 @@ public class TimestampItemFilterProcessor
         } else if (Timestamp.class.isAssignableFrom(pathType)) {
             value = new Timestamp(timestamp);
         } else {
-            throw new QueryException("Unsupported temporal type " + pathType + " for path: " + path);
+            throw new IllegalArgumentException(
+                    "Unsupported temporal type " + pathType + " for path: " + path);
         }
         return value;
     }

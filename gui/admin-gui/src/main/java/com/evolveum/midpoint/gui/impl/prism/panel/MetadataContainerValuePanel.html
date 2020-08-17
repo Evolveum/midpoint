@@ -8,23 +8,19 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <form wicket:id="valueForm">
-        <div wicket:id="valueContainer">
 
-            <div wicket:id="input">
-                <div wicket:id="container"></div>
-<!--                <ul class="nav nav-pills" wicket:id="containers">-->
-<!--                    <li role="presentation">-->
-<!--                        <a href="#" class="label label-default" wicket:id="container"></a>-->
-<!--                    </li>-->
-<!--                </ul>-->
-<!--                <div wicket:id="containerValue"></div>-->
-
-<!--                <div class="tab-content">-->
-<!--                    <div wicket:id="panel" class="tab-pane active" />-->
-<!--                </div>-->
+    <div class="metadata-properties">
+        <div wicket:id="propertiesLabel">
+            <div wicket:id="properties">
+                <div class="row metadata-property" wicket:id="property"/>
             </div>
         </div>
-    </form>
+
+        <div wicket:id="containersLabel">
+            <div wicket:id="containers">
+                <div wicket:id="container"/>
+            </div>
+        </div>
+    </div>
 </wicket:panel>
 </html>

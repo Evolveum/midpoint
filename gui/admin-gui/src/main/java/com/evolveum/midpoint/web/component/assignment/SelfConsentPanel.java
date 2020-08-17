@@ -6,15 +6,6 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,20 +21,27 @@ import com.evolveum.midpoint.gui.api.model.DisplayNameModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.self.PageSelfDashboard;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 public class SelfConsentPanel extends BasePanel<AssignmentType> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(SelfConsentPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(SelfConsentPanel.class);
 
     private static final String ID_DISPLAY_NAME = "displayName";
     private static final String ID_DESCRIPTION = "description";
@@ -69,7 +67,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentType> {
         // ... also, we should use utility method for loading
 
         PrismObject<AbstractRoleType> abstractRole = WebModelServiceUtils
-                        .loadObject(getModelObject().getTargetRef(), parentPage, task, result);
+                .loadObject(getModelObject().getTargetRef(), parentPage, task, result);
 
         if (abstractRole == null) {
             getSession().error("Failed to load target ref");
@@ -180,8 +178,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentType> {
         };
     }
 
-
-        //TODO move to the WebComponentUtil ???
+    //TODO move to the WebComponentUtil ???
     private String getIconCssClass(AssignmentType assignmentType) {
         String currentLifecycle = assignmentType.getLifecycleState();
         if (StringUtils.isBlank(currentLifecycle)) {
@@ -203,7 +200,7 @@ public class SelfConsentPanel extends BasePanel<AssignmentType> {
         return GuiStyleConstants.CLASS_APPROVAL_OUTCOME_ICON_FUTURE_COLORED;
     }
 
-    private boolean isActiveConsent(){
+    private boolean isActiveConsent() {
         String lifecycle = SelfConsentPanel.this.getModelObject().getLifecycleState();
         if (StringUtils.isBlank(lifecycle)) {
             return false;

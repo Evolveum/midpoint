@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -27,7 +28,7 @@ public class ObjectReferenceColumnPanel extends BasePanel<ObjectReferenceType> {
     }
 
     private void initLayout() {
-        ImagePanel imagePanel = new ImagePanel(ID_IMAGE, getIconDisplayType());
+        ImagePanel imagePanel = new ImagePanel(ID_IMAGE, new ReadOnlyModel<>(() -> getIconDisplayType()));
         add(imagePanel);
         add(new Label(ID_NAME, WebComponentUtil.getDisplayNameOrName(getModelObject())));
 

@@ -43,6 +43,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
+ * Tests MID-2422, among others.
+ *
  * @author Radovan Semancik
  * @author mederly
  */

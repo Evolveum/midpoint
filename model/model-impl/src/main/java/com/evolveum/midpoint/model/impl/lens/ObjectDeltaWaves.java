@@ -24,43 +24,41 @@ import java.util.*;
 /**
  * @author semancik
  *
+ * TODO clean up. Put wave number into object delta wave structure. (Because the wave # no longer
+ *  corresponds to the index value.) MID-6406.
  */
 public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<O>>, DebugDumpable, Serializable {
 
     private final List<ObjectDelta<O>> waves = new ArrayList<>();
 
-    /**
-     * Get merged deltas from all the waves.
-     */
-    public ObjectDelta<O> getMergedDeltas() throws SchemaException {
-        return getMergedDeltas(null, -1);
-    }
-
-    /**
-     * Get merged deltas from the waves up to maxWave (including). Optional initial delta may be supplied.
-     * Negative maxWave means to merge all available waves.
-     */
-    public ObjectDelta<O> getMergedDeltas(ObjectDelta<O> initialDelta, int maxWave) throws SchemaException {
-        ObjectDelta<O> merged = null;
-        if (initialDelta != null) {
-            merged = initialDelta.clone();
-        }
-        int waveNum = 0;
-        for (ObjectDelta<O> delta: waves) {
-            if (delta == null) {
-                continue;
-            }
-            if (merged == null) {
-                merged = delta.clone();
-            } else {
-                merged.merge(delta);
-            }
-            if (maxWave >= 0 && waveNum >= maxWave) {
-                break;
-            }
-        }
-        return merged;
-    }
+//    /**
+//     * Get merged deltas from all the waves.
+//     */
+//    ObjectDelta<O> getMergedDeltas() throws SchemaException {
+//        return getMergedDeltas(null, -1);
+//    }
+//
+//    /**
+//     * Get merged deltas from the waves up to maxWave (including). Optional initial delta may be supplied.
+//     * Negative maxWave means to merge all available waves.
+//     */
+//    ObjectDelta<O> getMergedDeltas(ObjectDelta<O> initialDelta, int maxWave) throws SchemaException {
+//        ObjectDelta<O> merged = initialDelta != null ? initialDelta.clone() : null;
+//        int waveNum = 0;
+//        for (ObjectDelta<O> delta: waves) {
+//            if (delta != null) {
+//                if (merged == null) {
+//                    merged = delta.clone();
+//                } else {
+//                    merged.merge(delta);
+//                }
+//                if (maxWave >= 0 && waveNum >= maxWave) {
+//                    break;
+//                }
+//            }
+//        }
+//        return merged;
+//    }
 
     public void setOid(String oid) {
         for (ObjectDelta<O> delta: waves) {
@@ -88,11 +86,9 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
     }
 
     public void normalize() {
-        if (waves != null) {
-            for (ObjectDelta<O> wave: waves) {
-                if (wave != null) {
-                    wave.normalize();
-                }
+        for (ObjectDelta<O> wave: waves) {
+            if (wave != null) {
+                wave.normalize();
             }
         }
     }
@@ -353,7 +349,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
                 sb.append("\n");
                 ObjectDelta<O> delta = waves.get(wave);
                 DebugUtil.indentDebugDump(sb, indent + 1);
-                sb.append("wave ").append(wave).append(":");
+                sb.append("delta:");
                 if (delta == null) {
                     sb.append(" null");
                 } else {
@@ -393,6 +389,9 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
         }
 
         ObjectDeltaWaves<O> retval = new ObjectDeltaWaves<>();
+        if (secondaryDeltas.getWave().isEmpty()) {
+            return retval;
+        }
 
         int max = 0;
         for (ObjectDeltaWaveType odwt : secondaryDeltas.getWave()) {
@@ -401,7 +400,7 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
             }
         }
 
-        ObjectDelta<O>[] wavesAsArray = new ObjectDelta[max+1];
+        ObjectDelta<O>[] wavesAsArray = new ObjectDelta[max + 1];
         for (ObjectDeltaWaveType odwt : secondaryDeltas.getWave()) {
             wavesAsArray[odwt.getNumber()] = DeltaConvertor.createObjectDelta(odwt.getDelta(), prismContext);
         }

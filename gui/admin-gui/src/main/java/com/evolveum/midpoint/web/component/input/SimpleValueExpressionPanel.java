@@ -6,6 +6,15 @@
  */
 package com.evolveum.midpoint.web.component.input;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -13,42 +22,30 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.MultiValueTextPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
-import org.apache.wicket.model.IModel;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+public class SimpleValueExpressionPanel extends BasePanel<ExpressionType> {
 
-/**
- * Created by honchar
- */
-public class SimpleValueExpressionPanel extends BasePanel<ExpressionType>{
     private static final long serialVersionUID = 1L;
 
-    private final static String ID_LITERAL_VALUE_INPUT = "literalValueInput";
-    private final static String ID_LITERAL_VALUE_CONTAINER = "literalValueContainer";
+    private static final String ID_LITERAL_VALUE_INPUT = "literalValueInput";
+    private static final String ID_LITERAL_VALUE_CONTAINER = "literalValueContainer";
     private static final String ID_FEEDBACK = "feedback";
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleValueExpressionPanel.class);
-    private static final String DOT_CLASS = SimpleValueExpressionPanel.class.getName() + ".";
 
-    public SimpleValueExpressionPanel(String id, IModel<ExpressionType> model){
+    public SimpleValueExpressionPanel(String id, IModel<ExpressionType> model) {
         super(id, model);
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         setOutputMarkupId(true);
 
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
@@ -86,7 +83,7 @@ public class SimpleValueExpressionPanel extends BasePanel<ExpressionType>{
                         return false;
                     }
                 },
-                false){
+                false) {
 
             private static final long serialVersionUID = 1L;
 
@@ -101,23 +98,22 @@ public class SimpleValueExpressionPanel extends BasePanel<ExpressionType>{
         literalValueContainer.add(literalValueInput);
     }
 
-    private List<String> getLiteralValues(){
+    private List<String> getLiteralValues() {
         List<String> literalValueList = new ArrayList<>();
-        try{
+        try {
             return ExpressionUtil.getLiteralExpressionValues(getModelObject());
-        } catch (SchemaException ex){
+        } catch (SchemaException ex) {
             LOGGER.error("Couldn't get literal expression value: {}", ex.getLocalizedMessage());
         }
         return literalValueList;
     }
 
-    private boolean isLiteralExpressionValueNotEmpty(){
+    private boolean isLiteralExpressionValueNotEmpty() {
         try {
             return ExpressionUtil.isLiteralExpressionValueNotEmpty(SimpleValueExpressionPanel.this.getModelObject());
-        } catch (SchemaException ex){
+        } catch (SchemaException ex) {
             LOGGER.error("Unable to load literal expression value: {}", ex.getLocalizedMessage());
         }
         return false;
     }
-
 }

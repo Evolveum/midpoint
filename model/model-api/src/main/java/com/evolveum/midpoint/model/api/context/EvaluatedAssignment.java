@@ -101,8 +101,6 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
      */
     int getAllTargetsPolicyRulesCount();
 
-    Collection<String> getPolicySituations();
-
     void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers);
 
 
