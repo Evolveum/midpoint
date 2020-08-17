@@ -32,6 +32,11 @@ public class QAuditItemMapping
     }
 
     @Override
+    protected QAuditItem newAliasInstance(String alias) {
+        return new QAuditItem(alias);
+    }
+
+    @Override
     public SqlTransformer<ItemPathType, MAuditItem> createTransformer(PrismContext prismContext) {
         throw new UnsupportedOperationException("handled by AuditEventRecordSqlTransformer");
     }
