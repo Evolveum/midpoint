@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.sql.*;
+import com.evolveum.midpoint.repo.sql.pure.querydsl.MidpointOracleTemplates;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.support.InstantType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -299,7 +300,7 @@ public class BaseHelper {
                 break;
             case ORACLE:
                 querydslConfiguration =
-                        new Configuration(OracleTemplates.DEFAULT);
+                        new Configuration(MidpointOracleTemplates.DEFAULT);
                 break;
             default:
                 throw new SystemException(

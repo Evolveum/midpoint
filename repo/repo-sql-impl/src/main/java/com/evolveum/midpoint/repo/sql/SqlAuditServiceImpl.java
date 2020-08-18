@@ -349,22 +349,16 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         MAuditEventRecord aerBean = new AuditEventRecordSqlTransformer(prismContext).from(record);
         SQLInsertClause insert = jdbcSession.insert(aer).populate(aerBean);
 
-        // TODO MID-6318: remove this illogical guard and fix TestSecurityMultitenant
-        //  and other tests that need "foo" custom property.
-        //  Agreement with @semancik is to implement logic that adds missing column automatically.
-        //  This also means to fix config.xml, as it does mention foo custom property.
         Map<String, ColumnMetadata> customColumns =
                 QAuditEventRecordMapping.INSTANCE.getExtensionColumns();
-        if (!customColumns.isEmpty()) {
-            for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
-                String propertyName = property.getKey();
-                if (!customColumns.containsKey(propertyName)) {
-                    throw new IllegalArgumentException("Audit event record table doesn't"
-                            + " contains column for property " + propertyName);
-                }
-                // Like insert.set, but that one is too parameter-type-safe for our generic usage here.
-                insert.columns(aer.getPath(propertyName)).values(property.getValue());
+        for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
+            String propertyName = property.getKey();
+            if (!customColumns.containsKey(propertyName)) {
+                throw new IllegalArgumentException("Audit event record table doesn't"
+                        + " contains column for property " + propertyName);
             }
+            // Like insert.set, but that one is too parameter-type-safe for our generic usage here.
+            insert.columns(aer.getPath(propertyName)).values(property.getValue());
         }
 
         return insert.executeWithKey(aer.id);
@@ -503,12 +497,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         AuditEventRecord audit = createAuditEventRecord(resultList);
         final Map<String, ColumnMetadata> customColumns =
                 QAuditEventRecordMapping.INSTANCE.getExtensionColumns();
-        if (!customColumns.isEmpty()) {
-            for (Entry<String, ColumnMetadata> entry :
-                    customColumns.entrySet()) {
-                audit.getCustomColumnProperty().put(entry.getKey(),
-                        resultList.getString(entry.getValue().getName()));
-            }
+        for (Entry<String, ColumnMetadata> entry : customColumns.entrySet()) {
+            audit.getCustomColumnProperty().put(entry.getKey(),
+                    resultList.getString(entry.getValue().getName()));
         }
 
         //query for deltas
