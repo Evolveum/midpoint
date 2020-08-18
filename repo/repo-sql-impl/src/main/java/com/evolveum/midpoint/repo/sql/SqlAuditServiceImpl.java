@@ -82,7 +82,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
  * This is NOT a managed bean, it is completely created by {@link SqlAuditServiceFactory} and any
  * of the dependencies must be dependencies of that factory to assure proper initialization.
  * <p>
- * TODO MID-6318 WIP notes:
+ * Design notes:
  * No repo.sql.data.audit.* entities are used (stage/type enums are OK).
  * Conversion between audit-api classes and SQL/JDBC is all here, the class got inflated, but at
  * least the code doesn't suggest it's reused elsewhere. Cleanup is still expected. :-)
@@ -106,9 +106,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private final PrismContext prismContext;
 
     private final SqlQueryExecutor sqlQueryExecutor;
-
-    // maps from property names to column names
-    private final Map<String, String> customColumns = new HashMap<>();
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
@@ -356,6 +353,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         //  and other tests that need "foo" custom property.
         //  Agreement with @semancik is to implement logic that adds missing column automatically.
         //  This also means to fix config.xml, as it does mention foo custom property.
+        Map<String, ColumnMetadata> customColumns =
+                QAuditEventRecordMapping.INSTANCE.getExtensionColumns();
         if (!customColumns.isEmpty()) {
             for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
                 String propertyName = property.getKey();
@@ -502,9 +501,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             ResultSet resultList, JdbcSession jdbcSession, OperationResult result)
             throws SQLException {
         AuditEventRecord audit = createAuditEventRecord(resultList);
+        final Map<String, ColumnMetadata> customColumns =
+                QAuditEventRecordMapping.INSTANCE.getExtensionColumns();
         if (!customColumns.isEmpty()) {
-            for (Entry<String, String> property : customColumns.entrySet()) {
-                audit.getCustomColumnProperty().put(property.getKey(), resultList.getString(property.getValue()));
+            for (Entry<String, ColumnMetadata> entry :
+                    customColumns.entrySet()) {
+                audit.getCustomColumnProperty().put(entry.getKey(),
+                        resultList.getString(entry.getValue().getName()));
             }
         }
 
@@ -1138,10 +1141,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     public void addCustomColumn(String propertyName, String columnName) {
-        // TODO replace this with QAuditEventRecordMapping.INSTANCE.getExtSomething()
-        customColumns.put(propertyName, columnName);
-
-        ColumnMetadata columnMetadata = ColumnMetadata.named(columnName).ofType(Types.NVARCHAR);
+        ColumnMetadata columnMetadata =
+                ColumnMetadata.named(columnName).ofType(Types.NVARCHAR).withSize(255);
         QAuditEventRecordMapping.INSTANCE.addExtensionColumn(propertyName, columnMetadata);
     }
 }

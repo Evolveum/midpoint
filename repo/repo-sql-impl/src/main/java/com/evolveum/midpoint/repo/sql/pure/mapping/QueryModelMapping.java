@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
@@ -256,6 +253,10 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      */
     public void addExtensionColumn(String propertyName, ColumnMetadata columnMetadata) {
         extensionColumns.put(propertyName, columnMetadata);
+    }
+
+    public Map<String, ColumnMetadata> getExtensionColumns() {
+        return Collections.unmodifiableMap(extensionColumns);
     }
 
     @Override
