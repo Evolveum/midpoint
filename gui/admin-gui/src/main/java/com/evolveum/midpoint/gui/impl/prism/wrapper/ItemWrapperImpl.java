@@ -243,14 +243,13 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
             if (val != null) {
                 if (val.getRealClass() != null) {
                     displayName = val.getRealClass().getSimpleName() + "." + displayName;
+                    String localizedName = localizeName(displayName, displayName);
+                    //try to find by super class name + item name
+                    if (localizedName.equals(displayName) && val.getRealClass().getSuperclass() != null){
+                        return getItemDisplayNameFromSuperClassName(val.getRealClass().getSuperclass(), name.getLocalPart());
+                    }
                 } else if (val.getTypeName() != null) {
                     displayName = val.getTypeName().getLocalPart() + "." + displayName;
-                }
-                String localizedName = localizeName(displayName, displayName);
-                //try to find by super class name + item name
-                if (localizedName.equals(displayName) && val.getRealClass() != null && val.getRealClass().getSuperclass() != null){
-                    String displayNameParentClass = val.getRealClass().getSuperclass().getSimpleName() + "." + name.getLocalPart();
-                    return localizeName(displayNameParentClass, name.getLocalPart());
                 }
             }
         } else {
@@ -258,6 +257,22 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
 
         return localizeName(displayName, name.getLocalPart());
+    }
+
+    private String getItemDisplayNameFromSuperClassName(Class superClass, String itemName){
+        if (superClass == null) {
+            return "";
+        }
+        String displayNameParentClass = superClass.getSimpleName() + "." + itemName;
+        String localizedName = localizeName(displayNameParentClass, displayNameParentClass);
+        if (localizedName.equals(displayNameParentClass) && superClass.getSuperclass() != null){
+            return getItemDisplayNameFromSuperClassName(superClass.getSuperclass(), itemName);
+        }
+        if (!localizedName.equals(displayNameParentClass)){
+            return localizedName;
+        } else {
+            return itemName;
+        }
     }
 
     private String localizeName(String nameKey, String defaultString) {
