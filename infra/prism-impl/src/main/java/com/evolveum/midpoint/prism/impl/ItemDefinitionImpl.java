@@ -10,10 +10,12 @@ package com.evolveum.midpoint.prism.impl;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -61,6 +63,8 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     protected QName substitutionHead;
     protected boolean heterogeneousListItem;
     private PrismReferenceValue valueEnumerationRef;
+
+    private AxiomItemDefinition axiomDef;
 
     private boolean indexOnly = false;
 
@@ -226,6 +230,15 @@ public abstract class ItemDefinitionImpl<I extends Item> extends DefinitionImpl 
     public void setCanAdd(boolean add) {
         checkMutable();
         this.canAdd = add;
+    }
+
+    public void setAxiomDefinition(AxiomItemDefinition def) {
+        checkMutable();
+        this.axiomDef = def;
+    }
+
+    public Optional<AxiomItemDefinition> axiomDefinition() {
+        return Optional.ofNullable(axiomDef);
     }
 
     /**

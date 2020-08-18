@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.prism.impl;
 
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
+import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.TypeDefinition;
@@ -18,6 +20,7 @@ import javax.xml.namespace.QName;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -29,6 +32,7 @@ public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeD
     protected Class<?> compileTimeClass;
     @NotNull final Set<TypeDefinition> staticSubTypes = new HashSet<>();
     protected Integer instantiationOrder;
+    private AxiomTypeDefinition axiomDef;
 
     TypeDefinitionImpl(QName typeName, PrismContext prismContext) {
         super(typeName, prismContext);
@@ -72,6 +76,15 @@ public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeD
     public void setCompileTimeClass(Class<?> compileTimeClass) {
         checkMutable();
         this.compileTimeClass = compileTimeClass;
+    }
+
+    public void setAxiomDefinition(AxiomTypeDefinition def) {
+        checkMutable();
+        this.axiomDef = def;
+    }
+
+    public Optional<AxiomTypeDefinition> axiomDefinition() {
+        return Optional.ofNullable(axiomDef);
     }
 
     protected void copyDefinitionData(TypeDefinitionImpl clone) {

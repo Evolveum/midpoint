@@ -1333,7 +1333,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
         return valueMetadataDefinition;
     }
 
-    private PrismContainerDefinition<?> resolveValueMetadataDefinition() {
+    protected PrismContainerDefinition<?> resolveValueMetadataDefinition() {
         if (!initialized) {
             throw new IllegalStateException("Schema registry is not yet initialized");
         }

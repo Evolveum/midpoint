@@ -942,6 +942,7 @@ public class CodeProcessor {
             equals = recreateMethod(equals, definedClass);
         } else {
             equals = definedClass.method(JMod.PUBLIC, boolean.class, METHOD_EQUALS);
+            equals.param(CLASS_MAP.get(Object.class), "other");
         }
         equals.annotate(CLASS_MAP.get(Override.class));
 

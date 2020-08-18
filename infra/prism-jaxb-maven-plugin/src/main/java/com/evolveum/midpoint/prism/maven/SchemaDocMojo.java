@@ -7,10 +7,8 @@
 
 package com.evolveum.midpoint.prism.maven;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.impl.PrismContextImpl;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.impl.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -29,11 +27,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProjectHelper;
-import org.apache.velocity.Template;
-import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
 import org.codehaus.plexus.archiver.Archiver;
-import org.codehaus.plexus.archiver.ArchiverException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.jetbrains.annotations.NotNull;
 import org.xml.sax.SAXException;
@@ -101,17 +95,11 @@ public class SchemaDocMojo extends AbstractMojo {
         File outDir = initializeOutDir();
         PathGenerator pathGenerator = new PathGenerator(outDir);
 
-        VelocityEngine velocityEngine = createVelocityEngine();
-
         SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-        try {
-            renderSchemaIndex(schemaRegistry, prismContext, velocityEngine, pathGenerator);
-        } catch (IOException e) {
-            throw new MojoExecutionException(e.getMessage(),e);
-        }
+
         for (PrismSchema schema: schemaRegistry.getSchemas()) {
             try {
-                renderSchema(schema, prismContext, velocityEngine, pathGenerator);
+                gemnerateSchema(schema, prismContext, pathGenerator);
             } catch (IOException e) {
                 throw new MojoExecutionException(e.getMessage(),e);
             }
@@ -122,92 +110,17 @@ public class SchemaDocMojo extends AbstractMojo {
         } catch (IOException e) {
             throw new MojoExecutionException(e.getMessage(),e);
         }
-
-        File archiveFile = null;
-        try {
-            archiveFile = generateArchive(outDir, finalName + "-schemadoc.zip");
-        } catch (IOException e) {
-            throw new MojoExecutionException(e.getMessage(),e);
-        } catch (ArchiverException e) {
-            throw new MojoExecutionException(e.getMessage(),e);
-        }
-        projectHelper.attachArtifact(project, "zip", "schemadoc", archiveFile);
+        //projectHelper.attachArtifact(project, "zip", "schemadoc", archiveFile);
 
         getLog().debug( "SchemaDoc plugin finished" );
     }
 
-    private void renderSchemaIndex(SchemaRegistry schemaRegistry, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
-        getLog().debug("Rendering schema index");
-        VelocityContext velocityContext = new VelocityContext();
-        populateVelocityContextBase(velocityContext, prismContext, pathGenerator, null, ".");
-        velocityContext.put(VELOCITY_CONTEXT_VAR_SCHEMA_REGISTRY, schemaRegistry);
 
-        Template template = velocityEngine.getTemplate(TEMPLATE_SCHEMA_INDEX_NAME);
-
-        Writer writer = new FileWriter(pathGenerator.prepareSchemaIndexOutputFile());
-        template.merge(velocityContext, writer);
-        writer.close();
-    }
-
-    private void renderSchema(PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
+    private void gemnerateSchema(PrismSchema schema, PrismContext prismContext, PathGenerator pathGenerator) throws IOException {
         getLog().debug("Processing schema: "+schema);
-        VelocityContext velocityContext = new VelocityContext();
-        populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "..");
-
-        Template template = velocityEngine.getTemplate(TEMPLATE_SCHEMA_NAME);
-
-        Writer writer = new FileWriter(pathGenerator.prepareSchemaOutputFile(schema));
-        template.merge(velocityContext, writer);
-        writer.close();
-
         // Object Definitions
-        for (PrismObjectDefinition objectDefinition: schema.getObjectDefinitions()) {
-            renderObjectDefinition(objectDefinition, schema, prismContext, velocityEngine, pathGenerator);
-        }
 
-        // Types
-        for (ComplexTypeDefinition typeDefinition : schema.getComplexTypeDefinitions()) {
-            renderComplexTypeDefinition(typeDefinition, schema, prismContext, velocityEngine, pathGenerator);
-        }
-
-    }
-
-    private void renderObjectDefinition(PrismObjectDefinition objectDefinition, PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
-        getLog().debug("  Processing object definition: "+objectDefinition);
-
-        VelocityContext velocityContext = new VelocityContext();
-        populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "../..");
-        velocityContext.put(VELOCITY_CONTEXT_VAR_DEFINITION, objectDefinition);
-
-        Template template = velocityEngine.getTemplate(TEMPLATE_OBJECT_DEFINITION_NAME);
-
-        Writer writer = new FileWriter(pathGenerator.prepareObjectDefinitionOutputFile(schema, objectDefinition));
-        template.merge(velocityContext, writer);
-        writer.close();
-    }
-
-    private void renderComplexTypeDefinition(ComplexTypeDefinition typeDefinition, PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
-        getLog().debug("  Processing complex type definition: "+typeDefinition);
-
-        VelocityContext velocityContext = new VelocityContext();
-        populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "../..");
-        velocityContext.put(VELOCITY_CONTEXT_VAR_DEFINITION, typeDefinition);
-
-        Template template = velocityEngine.getTemplate(TEMPLATE_COMPLEX_TYPE_DEFINITION_NAME);
-
-        Writer writer = new FileWriter(pathGenerator.prepareTypeDefinitionOutputFile(schema, typeDefinition));
-        template.merge(velocityContext, writer);
-        writer.close();
-    }
-
-    private void populateVelocityContextBase(VelocityContext velocityContext, PrismContext prismContext, PathGenerator pathGenerator,
-                                             PrismSchema schema, String prefixToBase) {
-        if (schema != null) {
-            velocityContext.put(VELOCITY_CONTEXT_VAR_SCHEMA, schema);
-        }
-        velocityContext.put(VELOCITY_CONTEXT_VAR_PRISM_CONTEXT, prismContext);
-        velocityContext.put(VELOCITY_CONTEXT_VAR_PATH, pathGenerator);
-        velocityContext.put(VELOCITY_CONTEXT_VAR_PREFIX_TO_BASE, prefixToBase);
+        // FIXME: JCode model should be initialized here and start generating files.
     }
 
     private File initializeOutDir() throws MojoFailureException {
@@ -281,36 +194,10 @@ public class SchemaDocMojo extends AbstractMojo {
         return schemaRegistry;
     }
 
-    private VelocityEngine createVelocityEngine() {
-        VelocityEngine ve = new VelocityEngine();
-        ve.setProperty("resource.loader","file");
-        ve.setProperty("file.resource.loader.class","org.apache.velocity.runtime.resource.loader.FileResourceLoader");
-        ve.setProperty("file.resource.loader.path", getTemplateDirName());
-        ve.setProperty("file.resource.loader.cache","true");
-        ve.setProperty("directive.set.null.allowed","true");
-
-        ve.init();
-        return ve;
-    }
-
     private void copyResources(File outDir) throws IOException {
         if (resourcesDir.exists()) {
             MiscUtil.copyDirectory(resourcesDir, outDir);
         }
-    }
-
-
-    private File generateArchive(File outDir, String archiveFilename) throws IOException, ArchiverException {
-        File zipFile = new File(buildDir, archiveFilename);
-        if (zipFile.exists()) {
-            zipFile.delete();
-        }
-
-        zipArchiver.addDirectory(outDir);
-        zipArchiver.setDestFile(zipFile);
-        zipArchiver.createArchive();
-
-        return zipFile;
     }
 
 }

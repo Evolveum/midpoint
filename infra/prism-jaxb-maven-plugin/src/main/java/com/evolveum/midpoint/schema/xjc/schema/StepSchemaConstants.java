@@ -35,9 +35,7 @@ public class StepSchemaConstants {
     }
 
 
-    public boolean run(Outline outline, ErrorHandler errorHandler) throws Exception {
-        Model model = outline.getModel();
-        JCodeModel codeModel = model.codeModel;
+    public boolean run(JCodeModel codeModel) throws Exception {
         JDefinedClass schemaConstants = codeModel._class(SCHEMA_CONSTANTS_GENERATED_CLASS_NAME);
 
         //creating namespaces

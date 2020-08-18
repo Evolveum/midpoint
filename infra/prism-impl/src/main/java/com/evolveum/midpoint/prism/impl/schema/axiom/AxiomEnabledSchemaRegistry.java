@@ -1,6 +1,7 @@
 package com.evolveum.midpoint.prism.impl.schema.axiom;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -18,9 +19,11 @@ import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
 import com.evolveum.axiom.concepts.Lazy;
+import com.evolveum.axiom.lang.antlr.AxiomDecoderContext;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
 import com.evolveum.midpoint.prism.MutableItemDefinition;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
@@ -65,10 +68,17 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
     AxiomSchemaContext currentContext;
     Collection<AxiomModelStatementSource> sources = new HashSet<>();
 
+
+    private Collection<Definition> axiomProvided = new ArrayList<>();
+
     private PrismContainerDefinition<?> valueMetadata;
 
     public AxiomEnabledSchemaRegistry() {
         super();
+    }
+
+    public Collection<Definition> getAxiomProvided() {
+        return axiomProvided;
     }
 
     @Override
@@ -100,6 +110,8 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
         Preconditions.checkState(targetDef != null,"Value metadata type needs to be available");
         valueMetadata = targetDef;
         Preconditions.checkState(targetDef.canModify(), "Value metadata definition not can be modified");
+
+        axiomProvided.add(targetDef);
         copyItemDefs(asMutable(targetDef.getComplexTypeDefinition()),axiomMetadata);
 
     }
@@ -119,23 +131,28 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
     private MutableItemDefinition<?> prismify(AxiomItemDefinition value) {
 
         if(isType(value, PROPERTY_ITEM)) {
-            return prismifyProperty(value);
+            return register(prismifyProperty(value));
         }
 
         if(isType(value, CONTAINER_ITEM)) {
-            return prismifyContainer(value);
+            return register(prismifyContainer(value));
         }
         if(isType(value, REFERENCE_ITEM)) {
-            return prismifyReference(value);
+            return register(prismifyReference(value));
         }
         throw new UnsupportedOperationException("Not implemented mapping for " + value.asComplex().get().type().get().name());
+    }
+
+    private MutableItemDefinition<?> register(MutableItemDefinition<?> prismifyProperty) {
+        axiomProvided.add(prismifyProperty);
+        return prismifyProperty;
     }
 
     private MutableItemDefinition<?> prismifyReference(AxiomItemDefinition value) {
         QName elementName = qName(value.name());
         QName typeName = OBJECT_REFERENCE_TYPE;
         PrismReferenceDefinitionImpl ret = new PrismReferenceDefinitionImpl(elementName, typeName, getPrismContext());
-
+        ret.setAxiomDefinition(value);
 
 
         // FIXME
@@ -147,6 +164,7 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
         QName elementName = qName(value.name());
         ComplexTypeDefinition complexTypeDefinition = prismifyStructured(value.typeDefinition());
         PrismContainerDefinitionImpl<?> container = new PrismContainerDefinitionImpl(elementName, complexTypeDefinition, getPrismContext());
+        container.setAxiomDefinition(value);
         return fillDetails(container, value);
     }
 
@@ -178,6 +196,7 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
 
         PrismPropertyDefinitionImpl<?> property = new PrismPropertyDefinitionImpl<>(
                 elementName, typeName, getPrismContext());
+        property.setAxiomDefinition(value);
         return property;
     }
 
@@ -205,8 +224,10 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
         }
 
         ComplexTypeDefinitionImpl typeDef = new ComplexTypeDefinitionImpl(prismName, getPrismContext());
+        typeDef.setAxiomDefinition(typeDefinition);
         reuseXjcClassIfExists(typeDef);
         copyItemDefs(typeDef, typeDefinition);
+        axiomProvided.add(typeDef);
         return typeDef;
     }
 

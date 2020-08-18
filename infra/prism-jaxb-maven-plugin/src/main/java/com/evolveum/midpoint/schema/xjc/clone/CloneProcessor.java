@@ -19,7 +19,6 @@ import com.sun.tools.xjc.model.CClassInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
-import net.sourceforge.ccxjc.PluginImpl;
 import org.xml.sax.ErrorHandler;
 
 import java.util.Iterator;
@@ -35,8 +34,8 @@ public class CloneProcessor implements Processor {
 
     @Override
     public boolean run(Outline outline, Options opt, ErrorHandler errorHandler) throws Exception {
-        PluginImpl clonePlugin = new PluginImpl();
-        clonePlugin.run(outline, opt, errorHandler);
+        //PluginImpl clonePlugin = new PluginImpl();
+        //clonePlugin.run(outline, opt, errorHandler);
 
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
