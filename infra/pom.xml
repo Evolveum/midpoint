@@ -28,6 +28,7 @@
         <module>common</module>
         <module>test-util</module>
         <module>prism-maven-plugin</module>
+        <module>prism-jaxb-maven-plugin</module>
         <module>prism-api</module>
         <module>prism-impl</module>
     </modules>

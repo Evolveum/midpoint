@@ -11,7 +11,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.schema.xjc.Processor;
-import com.evolveum.midpoint.schema.xjc.schema.SchemaProcessor;
+import com.evolveum.midpoint.schema.xjc.schema.CodeProcessor;
 import com.evolveum.midpoint.schema.xjc.util.ProcessorUtils;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
@@ -105,25 +105,25 @@ public class CloneProcessor implements Processor {
 
         Outline outline = classOutline.parent();
         JVar object = body.decl(impl, "object", JExpr._new(impl));
-        if (ProcessorUtils.hasParentAnnotation(classOutline, SchemaProcessor.A_PRISM_OBJECT)) {
+        if (ProcessorUtils.hasParentAnnotation(classOutline, CodeProcessor.A_PRISM_OBJECT)) {
             JClass type = (JClass) outline.getModel().codeModel._ref(PrismObject.class);
             JVar prism = body.decl(type, "value",
-                    JExpr.invoke(SchemaProcessor.METHOD_AS_PRISM_OBJECT).invoke(METHOD_CLONE));
-            JInvocation invocation = object.invoke(SchemaProcessor.METHOD_SETUP_CONTAINER);
+                    JExpr.invoke(CodeProcessor.METHOD_AS_PRISM_OBJECT).invoke(METHOD_CLONE));
+            JInvocation invocation = object.invoke(CodeProcessor.METHOD_SETUP_CONTAINER);
             invocation.arg(prism);
             body.add(invocation);
-        } else if (ProcessorUtils.hasParentAnnotation(classOutline, SchemaProcessor.A_PRISM_CONTAINER)) {
+        } else if (ProcessorUtils.hasParentAnnotation(classOutline, CodeProcessor.A_PRISM_CONTAINER)) {
             JClass type = (JClass) outline.getModel().codeModel._ref(PrismContainerValue.class);
             JVar prism = body.decl(type, "value",
-                    JExpr.invoke(SchemaProcessor.METHOD_AS_PRISM_CONTAINER_VALUE).invoke(METHOD_CLONE));
-            JInvocation invocation = object.invoke(SchemaProcessor.METHOD_SETUP_CONTAINER_VALUE);
+                    JExpr.invoke(CodeProcessor.METHOD_AS_PRISM_CONTAINER_VALUE).invoke(METHOD_CLONE));
+            JInvocation invocation = object.invoke(CodeProcessor.METHOD_SETUP_CONTAINER_VALUE);
             invocation.arg(prism);
             body.add(invocation);
-        } else if (ProcessorUtils.hasParentAnnotation(classOutline, SchemaProcessor.A_OBJECT_REFERENCE)) {
+        } else if (ProcessorUtils.hasParentAnnotation(classOutline, CodeProcessor.A_OBJECT_REFERENCE)) {
             JClass type = (JClass) outline.getModel().codeModel._ref(PrismReferenceValue.class);
             JVar prism = body.decl(type, "value",
-                    JExpr.invoke(SchemaProcessor.METHOD_AS_REFERENCE_VALUE).invoke(METHOD_CLONE));
-            JInvocation invocation = object.invoke(SchemaProcessor.METHOD_SETUP_REFERENCE_VALUE);
+                    JExpr.invoke(CodeProcessor.METHOD_AS_REFERENCE_VALUE).invoke(METHOD_CLONE));
+            JInvocation invocation = object.invoke(CodeProcessor.METHOD_SETUP_REFERENCE_VALUE);
             invocation.arg(prism);
             body.add(invocation);
         }
@@ -132,8 +132,8 @@ public class CloneProcessor implements Processor {
     }
 
     private boolean isPrism(ClassOutline classOutline) {
-        return ProcessorUtils.hasParentAnnotation(classOutline, SchemaProcessor.A_PRISM_OBJECT)
-                || ProcessorUtils.hasParentAnnotation(classOutline, SchemaProcessor.A_PRISM_CONTAINER)
-                || ProcessorUtils.hasParentAnnotation(classOutline, SchemaProcessor.A_OBJECT_REFERENCE);
+        return ProcessorUtils.hasParentAnnotation(classOutline, CodeProcessor.A_PRISM_OBJECT)
+                || ProcessorUtils.hasParentAnnotation(classOutline, CodeProcessor.A_PRISM_CONTAINER)
+                || ProcessorUtils.hasParentAnnotation(classOutline, CodeProcessor.A_OBJECT_REFERENCE);
     }
 }
