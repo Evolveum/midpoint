@@ -19,7 +19,6 @@ import com.sun.tools.xjc.model.CClassInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
-import net.sourceforge.ccxjc.PluginImpl;
 import org.xml.sax.ErrorHandler;
 
 import java.util.Iterator;

@@ -18,6 +18,11 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.google.common.base.CaseFormat;
+import com.google.common.base.Joiner;
+import com.google.common.base.Strings;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.model.CClassInfo;
 import com.sun.tools.xjc.model.CElementInfo;
@@ -29,7 +34,8 @@ import com.sun.tools.xjc.outline.Outline;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIDeclaration;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIXPluginCustomization;
 import com.sun.xml.xsom.*;
-import org.apache.commons.lang3.Validate;
+
+import org.apache.commons.lang3.ArrayUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jvnet.jaxb2_commons.lang.Equals;
 import org.jvnet.jaxb2_commons.lang.HashCode;
@@ -43,6 +49,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
+import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.Function;
@@ -64,7 +71,7 @@ public class SchemaProcessor extends CodeProcessor {
 
     public boolean run(PrismSchema schema, Outline outline, ErrorHandler errorHandler) throws SAXException {
         try {
-            createClassMap(CLASS_MAP, outline.getModel().codeModel,
+            fillClassMap(CLASS_MAP, outline.getModel().codeModel,
                     PrismReferenceValue.class, PrismReferenceValueImpl.class,
                     PrismReference.class, PrismReferenceImpl.class,
                     PrismObject.class, PrismObjectImpl.class,
@@ -106,7 +113,7 @@ public class SchemaProcessor extends CodeProcessor {
         return true;
     }
 
-    private void createClassMap(Map<Class<?>, JClass> classMap, JCodeModel codeModel, Class<?>... classes) {
+    private void fillClassMap(Map<Class<?>, JClass> classMap, JCodeModel codeModel, Class<?>... classes) {
         for (Class<?> clazz : classes) {
             classMap.put(clazz, (JClass) codeModel._ref(clazz));
         }
@@ -1135,7 +1142,7 @@ public class SchemaProcessor extends CodeProcessor {
     private void createContainerFieldGetterBody(JFieldVar field, ClassOutline classOutline, JMethod method) {
         JBlock body = method.body();
 
-        List<JAnnotationUse> existingAnnotations = (List<JAnnotationUse>) getAnnotations(method);
+        List<JAnnotationUse> existingAnnotations = getAnnotations(method);
         for (JAnnotationUse annotation : existingAnnotations) {
             if (isAnnotationTypeOf(annotation, XmlElement.class)) {
                 Field mfield = getField(JAnnotationUse.class, "memberValues");
@@ -1252,6 +1259,85 @@ public class SchemaProcessor extends CodeProcessor {
                 invocation.arg(visitor);
             }
         }
+    }
+
+    public void process(PrismSchema schema, JCodeModel model) throws JClassAlreadyExistsException {
+        for(Definition def : schema.getDefinitions()) {
+            process(def, model);
+        }
+    }
+
+    private void process(Definition def, JCodeModel model) throws JClassAlreadyExistsException {
+        if(def instanceof ComplexTypeDefinition) {
+            processComplex((ComplexTypeDefinition) def, model);
+        }
+    }
+
+    private final BiMap<Definition, JDefinedClass> defToClass = HashBiMap.create();
+    private final BiMap<JDefinedClass, Definition> classToDef = defToClass.inverse();
+
+    private void processComplex(ComplexTypeDefinition def, JCodeModel model)  {
+        /*if(!def.isObjectMarker()) {
+            return;
+        }*/
+        QName typeName = def.getTypeName();
+        String proposedName = className(typeName);
+        try {
+            JDefinedClass targetClass  = model._getClass(proposedName);
+            if(targetClass  == null) {
+                targetClass = model._class(proposedName);
+                defToClass.put(def, targetClass);
+            } else {
+                Definition other = classToDef.get(targetClass);
+                if(def.equals(other)) {
+                    throw new IllegalStateException(def + "emmited multiple times.");
+                }
+                throw new IllegalStateException("Class " + proposedName + " for " + def + " already exists for def " + other);
+
+            }
+        } catch (JClassAlreadyExistsException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private String className(QName typeName) {
+        final URI uri;
+        try {
+        uri = new URI(typeName.getNamespaceURI());
+        } catch (Exception e) {
+            throw new IllegalArgumentException(e);
+        }
+        String[] domainComponents = uri.getAuthority().toLowerCase().split("\\.");
+        String[] pathComponentsRaw = CaseFormat.LOWER_HYPHEN.to(CaseFormat.LOWER_UNDERSCORE, uri.getPath()).split("/");
+
+        List<String> pathComponents = sanitize(pathComponentsRaw);
+
+        // FIXME: Sanitize keywords
+        ArrayUtils.reverse(domainComponents);
+
+        String rootPackage = Joiner.on(".").skipNulls().join(domainComponents); // FIXME: Add other stuff :D
+        String nestedPackage = Joiner.on(".").skipNulls().join(pathComponents);
+
+        return rootPackage + "." + nestedPackage + "." + CaseFormat.LOWER_CAMEL.to(CaseFormat.UPPER_CAMEL, typeName.getLocalPart());
+    }
+
+    private List<String> sanitize(String[] pathComponents) {
+        ArrayList<String> ret = new ArrayList<>(pathComponents.length);
+        for (String string : pathComponents) {
+            if(Strings.isNullOrEmpty(string)) {
+                continue;
+            }
+            String sanitized;
+            // FIXME: Java Keyword detection
+            if("public".equals(string)) {
+                sanitized = "_public";
+            } else {
+                sanitized = string;
+            }
+            ret.add(sanitized);
+        }
+
+        return ret;
     }
 
 }
