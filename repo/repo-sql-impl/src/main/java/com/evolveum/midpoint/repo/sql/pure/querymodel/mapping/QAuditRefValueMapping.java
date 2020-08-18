@@ -32,6 +32,11 @@ public class QAuditRefValueMapping
     }
 
     @Override
+    protected QAuditRefValue newAliasInstance(String alias) {
+        return new QAuditRefValue(alias);
+    }
+
+    @Override
     public SqlTransformer<AuditEventRecordReferenceType, MAuditRefValue> createTransformer(
             PrismContext prismContext) {
         throw new UnsupportedOperationException("handled by AuditEventRecordSqlTransformer");

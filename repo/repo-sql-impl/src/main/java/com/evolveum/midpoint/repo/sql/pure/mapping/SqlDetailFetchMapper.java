@@ -17,10 +17,10 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.collect.Lists;
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.sql.SQLQuery;
 
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -40,7 +40,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @param <DQ> detail Q-type, this will be the base of the select
  * @param <DR> detail row type (from result)
  */
-public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
+public class SqlDetailFetchMapper<R, I, DQ extends FlexibleRelationalPathBase<DR>, DR> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlDetailFetchMapper.class);
 

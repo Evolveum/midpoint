@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
+
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -55,10 +57,12 @@ public abstract class FileFormatController {
 
     private final ReportServiceImpl reportService;
     private final FileFormatConfigurationType fileFormatConfiguration;
+    private final ReportType report;
 
-    public FileFormatController(FileFormatConfigurationType fileFormatConfiguration, ReportServiceImpl reportService) {
+    public FileFormatController(FileFormatConfigurationType fileFormatConfiguration, ReportType report, ReportServiceImpl reportService) {
         this.fileFormatConfiguration = fileFormatConfiguration;
         this.reportService = reportService;
+        this.report = report;
     }
 
     protected ReportServiceImpl getReportService() {
@@ -223,7 +227,7 @@ public abstract class FileFormatController {
         Collection<String> values = null;
         try {
             values = ExpressionUtil.evaluateStringExpression(variables, getReportService().getPrismContext(), expression,
-                    null, getReportService().getExpressionFactory(), "value for column", task, result);
+                    determineExpressionProfile(result), getReportService().getExpressionFactory(), "value for column", task, result);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
                 | ConfigurationException | SecurityViolationException e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
@@ -253,7 +257,7 @@ public abstract class FileFormatController {
         Object value = null;
         try {
             value = ExpressionUtil.evaluateExpression(null, variables, null, expression,
-                    null, getReportService().getExpressionFactory(), "value for column", task, result);
+                    determineExpressionProfile(result), getReportService().getExpressionFactory(), "value for column", task, result);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
                 | ConfigurationException | SecurityViolationException e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
@@ -262,6 +266,10 @@ public abstract class FileFormatController {
             return ((PrismPropertyValue) value).getRealValue();
         }
         return value;
+    }
+
+    private ExpressionProfile determineExpressionProfile(OperationResult result) throws SchemaException, ConfigurationException {
+        return getReportService().determineExpressionProfile(report.asPrismContainer(), result);
     }
 
     protected String getColumnLabel(GuiObjectColumnType column, PrismContainerDefinition objectDefinition) {

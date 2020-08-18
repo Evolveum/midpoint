@@ -50,8 +50,8 @@ public class CsvController extends FileFormatController {
 
     private static final Trace LOGGER = TraceManager.getTrace(CsvController.class);
 
-    public CsvController(FileFormatConfigurationType fileFormatConfiguration, ReportServiceImpl reportService) {
-        super(fileFormatConfiguration, reportService);
+    public CsvController(FileFormatConfigurationType fileFormatConfiguration, ReportType report, ReportServiceImpl reportService) {
+        super(fileFormatConfiguration, report, reportService);
     }
 
     @Override

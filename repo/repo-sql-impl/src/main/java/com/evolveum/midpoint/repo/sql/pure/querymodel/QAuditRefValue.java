@@ -34,15 +34,15 @@ public class QAuditRefValue extends FlexibleRelationalPathBase<MAuditRefValue> {
     public static final ColumnMetadata RECORD_ID =
             ColumnMetadata.named("record_id").ofType(Types.BIGINT).withSize(19);
     public static final ColumnMetadata NAME =
-            ColumnMetadata.named("name").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("name").ofType(Types.NVARCHAR).withSize(255);
     public static final ColumnMetadata OID =
-            ColumnMetadata.named("oid").ofType(Types.VARCHAR).withSize(36);
+            ColumnMetadata.named("oid").ofType(Types.NVARCHAR).withSize(36);
     public static final ColumnMetadata TARGET_NAME_NORM =
-            ColumnMetadata.named("targetName_norm").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("targetName_norm").ofType(Types.NVARCHAR).withSize(255);
     public static final ColumnMetadata TARGET_NAME_ORIG =
-            ColumnMetadata.named("targetName_orig").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("targetName_orig").ofType(Types.NVARCHAR).withSize(255);
     public static final ColumnMetadata TYPE =
-            ColumnMetadata.named("type").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("type").ofType(Types.NVARCHAR).withSize(255);
 
     public final NumberPath<Long> id = createLong("id", ID);
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);

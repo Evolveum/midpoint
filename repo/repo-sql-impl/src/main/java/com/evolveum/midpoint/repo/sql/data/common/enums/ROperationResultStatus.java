@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.data.common.enums;
+
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.query.definition.JaxbType;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -38,7 +39,13 @@ public enum ROperationResultStatus implements SchemaEnum<OperationResultStatusTy
         return status;
     }
 
-    public static ROperationResultStatus fromSchemaValue(OperationResultStatusType jaxb) {
+    public static @Nullable ROperationResultStatus from(
+            @Nullable OperationResultStatus status) {
+        return fromSchemaValue(OperationResultStatus.createStatusType(status));
+    }
+
+    public static @Nullable ROperationResultStatus fromSchemaValue(
+            @Nullable OperationResultStatusType jaxb) {
         if (jaxb == null) {
             return null;
         }

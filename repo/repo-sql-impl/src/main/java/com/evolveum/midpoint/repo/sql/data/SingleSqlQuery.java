@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,8 +14,9 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * @author skublik
+ * @deprecated use Querydsl from "pure" package and remove this
  */
+@Deprecated
 public class SingleSqlQuery extends SqlQuery {
 
     private final String query;
@@ -40,7 +41,7 @@ public class SingleSqlQuery extends SqlQuery {
         } else {
             stmt = con.prepareStatement(query);
         }
-        addParametersToStatment(parameters, stmt);
+        addParametersToStatement(parameters, stmt);
         return stmt;
     }
 

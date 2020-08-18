@@ -12,6 +12,7 @@ import java.util.*;
 
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -291,15 +292,16 @@ public class AuditEventRecord implements DebugDumpable {
     }
 
     public void setInitiator(PrismObject<? extends FocusType> initiator, PrismContext prismContext) {
-        this.initiatorRef = initiator != null
-                ? prismContext.itemFactory().createReferenceValue(initiator)
-                : null;
+        this.initiatorRef = createRefValueWithDescription(initiator, prismContext);
     }
 
     public PrismReferenceValue getInitiatorRef() {
         return initiatorRef;
     }
 
+    /**
+     * It is assumed the ref has oid, type and description set.
+     */
     public void setInitiatorRef(PrismReferenceValue initiator) {
         this.initiatorRef = initiator;
     }
@@ -309,15 +311,21 @@ public class AuditEventRecord implements DebugDumpable {
      * This is the user that have logged-in to the user interface. This is the user that
      * pressed the button to execute the action. This is always identity of a user and
      * it will always be a user. It cannot be a company or any other virtual entity.
+     *
+     * @deprecated prefer {@link #getAttorneyRef()} instead
      */
+    @Deprecated
     public PrismObject<? extends FocusType> getAttorney() {
         //noinspection unchecked
         return attorneyRef != null ? attorneyRef.getObject() : null;
     }
 
+    /**
+     * @deprecated prefer {@link #setAttorneyRef(PrismReferenceValue)} instead
+     */
     public void setAttorney(PrismObject<? extends FocusType> attorney, PrismContext prismContext) {
         this.attorneyRef = attorney != null
-                ? prismContext.itemFactory().createReferenceValue(attorney)
+                ? createRefValueWithDescription(attorney, prismContext)
                 : null;
     }
 
@@ -325,6 +333,9 @@ public class AuditEventRecord implements DebugDumpable {
         return attorneyRef;
     }
 
+    /**
+     * It is assumed the ref has oid, type and description set.
+     */
     public void setAttorneyRef(PrismReferenceValue attorneyRef) {
         this.attorneyRef = attorneyRef;
     }
@@ -333,13 +344,16 @@ public class AuditEventRecord implements DebugDumpable {
         return targetRef;
     }
 
+    /**
+     * It is assumed the ref has oid, type and description set.
+     */
     public void setTargetRef(PrismReferenceValue target) {
         this.targetRef = target;
     }
 
     public void setTarget(PrismObject<?> target, PrismContext prismContext) {
         this.targetRef = target != null
-                ? prismContext.itemFactory().createReferenceValue(target)
+                ? createRefValueWithDescription(target, prismContext)
                 : null;
     }
 
@@ -351,7 +365,7 @@ public class AuditEventRecord implements DebugDumpable {
     public void setTargetOwner(
             PrismObject<? extends FocusType> targetOwner, PrismContext prismContext) {
         this.targetOwnerRef = targetOwner != null
-                ? prismContext.itemFactory().createReferenceValue(targetOwner)
+                ? createRefValueWithDescription(targetOwner, prismContext)
                 : null;
     }
 
@@ -359,8 +373,22 @@ public class AuditEventRecord implements DebugDumpable {
         return targetOwnerRef;
     }
 
+    /**
+     * It is assumed the ref has oid, type and description set.
+     */
     public void setTargetOwnerRef(PrismReferenceValue targetOwnerRef) {
         this.targetOwnerRef = targetOwnerRef;
+    }
+
+    private @Nullable PrismReferenceValue createRefValueWithDescription(
+            @Nullable PrismObject<?> object, @NotNull PrismContext prismContext) {
+        if (object == null) {
+            return null;
+        }
+
+        PrismReferenceValue refValue = prismContext.itemFactory().createReferenceValue(object);
+        refValue.setDescription(object.getBusinessDisplayName());
+        return refValue;
     }
 
     public AuditEventType getEventType() {
@@ -585,6 +613,7 @@ public class AuditEventRecord implements DebugDumpable {
             referenceEntry.getValue().forEach(v -> referenceType.getValue().add(v.toXml()));
             auditRecordType.getReference().add(referenceType);
         }
+        // TODO MID-5531 convert custom properties too? What about other than string types?
         return auditRecordType;
     }
 
