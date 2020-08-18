@@ -10,11 +10,6 @@
            oid="00000000-0000-0000-0000-000000000541" >
     <name>Reconciliation task</name>
     <superArchetypeRef oid="00000000-0000-0000-0000-000000000521" type="ArchetypeType"/>
-    <assignment>
-        <assignmentRelation>
-            <holderType>TaskType</holderType>
-        </assignmentRelation>
-    </assignment>
     <archetypePolicy>
         <display>
             <label>Reconciliation task</label>
@@ -55,4 +50,17 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>weak</strength>
+                <expression>
+                    <value>Reconciliation</value>
+                </expression>
+                <target>
+                    <c:path>category</c:path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
 </archetype>

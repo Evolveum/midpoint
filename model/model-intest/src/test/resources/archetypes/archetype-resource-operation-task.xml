@@ -10,11 +10,6 @@
            oid="00000000-0000-0000-0000-000000000521" >
     <name>Resource related task</name>
     <superArchetypeRef oid="00000000-0000-0000-0000-000000000511" type="ArchetypeType"/>
-    <assignment>
-        <assignmentRelation>
-            <holderType>TaskType</holderType>
-        </assignmentRelation>
-    </assignment>
     <archetypePolicy>
         <display>
             <icon>
@@ -81,4 +76,30 @@
             </objectDetails>
         </adminGuiConfiguration>
     </archetypePolicy>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>weak</strength>
+                <expression>
+                    <value>tight</value>
+                </expression>
+                <target>
+                    <c:path>binding</c:path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
+    <inducement>
+        <focusMappings>
+            <mapping>
+                <strength>weak</strength>
+                <expression>
+                    <value>suspended</value>
+                </expression>
+                <target>
+                    <c:path>executionStatus</c:path>
+                </target>
+            </mapping>
+        </focusMappings>
+    </inducement>
 </archetype>

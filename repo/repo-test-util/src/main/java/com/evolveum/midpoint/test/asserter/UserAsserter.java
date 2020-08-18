@@ -376,8 +376,8 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     }
 
     @Override
-    public ValueMetadataAsserter<? extends UserAsserter<RA>> valueMetadata(
-            ItemPath path) throws SchemaException {
+    public ValueMetadataAsserter<? extends UserAsserter<RA>> valueMetadata(ItemPath path)
+            throws SchemaException {
         //noinspection unchecked
         return (ValueMetadataAsserter<? extends UserAsserter<RA>>) super.valueMetadata(path);
     }

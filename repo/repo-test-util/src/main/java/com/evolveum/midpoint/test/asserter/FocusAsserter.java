@@ -31,7 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F,RA> {
+public class FocusAsserter<F extends FocusType,RA> extends AssignmentHolderAsserter<F,RA> {
 
     public FocusAsserter(PrismObject<F> focus) {
         super(focus);
