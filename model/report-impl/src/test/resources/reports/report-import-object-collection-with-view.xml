@@ -43,7 +43,7 @@
 
                                 rand_int1 = rand.nextInt(1000);
 
-                                return new PolyString("New nick: " + input)
+                                return new PolyString("Test import: " + input)
                             </code>
                         </script>
                     </expression>
