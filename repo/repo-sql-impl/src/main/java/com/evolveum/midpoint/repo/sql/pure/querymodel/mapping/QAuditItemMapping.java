@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 
-import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem.*;
+import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem.TABLE_NAME;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
@@ -27,8 +27,7 @@ public class QAuditItemMapping
 
     private QAuditItemMapping() {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ItemPathType.class, QAuditItem.class,
-                RECORD_ID, CHANGED_ITEM_PATH);
+                ItemPathType.class, QAuditItem.class);
     }
 
     @Override

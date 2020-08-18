@@ -50,10 +50,6 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
     private final Class<S> schemaType;
     private final Class<Q> queryType;
 
-    // TODO MID-6319: perhaps we will not need all columns after all, only extensionColumns
-    // If unused in 2021, out with it! This will shorten all constructors after removing columns... vararg.
-    private final Map<String, ColumnMetadata> columns = new LinkedHashMap<>();
-
     /**
      * Extension columns, key = propertyName which may differ from ColumnMetadata.getName().
      */
@@ -77,20 +73,11 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType,
-            ColumnMetadata... columns) {
+            @NotNull Class<Q> queryType) {
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
         this.schemaType = schemaType;
         this.queryType = queryType;
-        for (ColumnMetadata column : columns) {
-            this.columns.put(column.getName(), column);
-        }
-    }
-
-    public final QueryModelMapping<S, Q, R> add(ColumnMetadata column) {
-        columns.put(column.getName(), column);
-        return this;
     }
 
     /**
