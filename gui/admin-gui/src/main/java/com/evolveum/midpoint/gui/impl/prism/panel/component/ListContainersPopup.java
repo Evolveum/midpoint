@@ -9,13 +9,6 @@ package com.evolveum.midpoint.gui.impl.prism.panel.component;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -28,8 +21,13 @@ import org.apache.wicket.model.StringResourceModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
@@ -37,20 +35,18 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChang
 
 /**
  * @author katka
- *
  */
-public abstract class ListContainersPopup<C extends Containerable, CV extends PrismContainerValueWrapper<C>> extends BasePanel<CV> implements Popupable {
-
+public abstract class ListContainersPopup<C extends Containerable, CV extends PrismContainerValueWrapper<C>>
+        extends BasePanel<CV> implements Popupable {
 
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ListContainersPopup.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ListContainersPopup.class);
 
     private static final String ID_SELECTED = "selected";
     private static final String ID_DEFINITION = "definition";
     private static final String ID_SELECT = "select";
     private static final String ID_CONTAINERS = "containers";
-
 
     public ListContainersPopup(String id, IModel<CV> model) {
         super(id, model);
@@ -74,7 +70,7 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
                 try {
                     defs = getModelObject().getChildContainers();
                 } catch (SchemaException e) {
-                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot get children containers for {}, reason {}", e, getModelObject(), e.getMessage() );
+                    LoggingUtils.logUnexpectedException(LOGGER, "Cannot get children containers for {}, reason {}", e, getModelObject(), e.getMessage());
                     getSession().error("ListContainersPopup.children.list.failed");
                     defs = new ArrayList<>();
                 }
@@ -111,12 +107,10 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
                 item.add(definition);
             }
 
-
         };
         listView.setOutputMarkupId(true);
         listView.setReuseItems(true);
         add(listView);
-
 
         AjaxButton select = new AjaxButton(ID_SELECT, new StringResourceModel("ListContainerPopup.select")) {
 
@@ -141,7 +135,7 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 
     protected abstract void processSelectedChildren(AjaxRequestTarget target, List<PrismContainerDefinition<?>> selected);
 
-        @Override
+    @Override
     public int getWidth() {
         return 20;
     }
@@ -153,12 +147,12 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
 
     @Override
     public String getWidthUnit() {
-         return "%";
+        return "%";
     }
 
     @Override
     public String getHeightUnit() {
-         return "%";
+        return "%";
     }
 
     @Override
@@ -170,7 +164,6 @@ public abstract class ListContainersPopup<C extends Containerable, CV extends Pr
     public Component getComponent() {
         return this;
     }
-
 
 }
 

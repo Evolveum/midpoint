@@ -87,7 +87,7 @@ public class ObjectReferenceType
     implements Serializable
 {
 
-    private final static long serialVersionUID = 201202081233L;
+    private static final long serialVersionUID = 201202081233L;
     protected String description;
     protected ObjectReferenceType.Filter filter;
     protected ObjectReferenceType.Object object;
@@ -244,7 +244,7 @@ public class ObjectReferenceType
         implements Serializable
     {
 
-        private final static long serialVersionUID = 201202081233L;
+        private static final long serialVersionUID = 201202081233L;
         @XmlAnyElement(lax = true)
         protected List<java.lang.Object> any;
 
@@ -309,7 +309,7 @@ public class ObjectReferenceType
         implements Serializable
     {
 
-        private final static long serialVersionUID = 201202081233L;
+        private static final long serialVersionUID = 201202081233L;
         @XmlAnyElement(lax = true)
         protected List<java.lang.Object> any;
         @XmlAnyAttribute

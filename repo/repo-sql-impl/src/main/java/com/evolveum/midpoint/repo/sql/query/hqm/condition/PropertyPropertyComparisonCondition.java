@@ -7,23 +7,22 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 
+import java.util.Objects;
+
 import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
-import org.apache.commons.lang.Validate;
 
-/**
- * @author mederly
- */
 public class PropertyPropertyComparisonCondition extends PropertyCondition {
 
-    private String rightSidePath;
-    private String operator;
-    private boolean ignoreCase;
+    private final String rightSidePath;
+    private final String operator;
+    private final boolean ignoreCase;
 
     public PropertyPropertyComparisonCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, String rightSidePath, String operator, boolean ignoreCase) {
         super(rootHibernateQuery, propertyPath);
-        Validate.notNull(rightSidePath, "rightSidePath");
-        Validate.notNull(operator, "operator");
+        Objects.requireNonNull(rightSidePath, "rightSidePath");
+        Objects.requireNonNull(operator, "operator");
+
         this.rightSidePath = rightSidePath;
         this.operator = operator;
         this.ignoreCase = ignoreCase;
@@ -48,14 +47,14 @@ public class PropertyPropertyComparisonCondition extends PropertyCondition {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
+        if (!super.equals(o)) { return false; }
 
         PropertyPropertyComparisonCondition that = (PropertyPropertyComparisonCondition) o;
 
-        if (ignoreCase != that.ignoreCase) return false;
-        if (!rightSidePath.equals(that.rightSidePath)) return false;
+        if (ignoreCase != that.ignoreCase) { return false; }
+        if (!rightSidePath.equals(that.rightSidePath)) { return false; }
         return operator.equals(that.operator);
 
     }

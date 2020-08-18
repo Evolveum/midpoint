@@ -11,17 +11,28 @@ import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Optional;
 
 import org.testng.annotations.Test;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomStructuredValue;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomItem;
+import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
+import com.evolveum.axiom.api.stream.AxiomItemTarget;
+import com.evolveum.axiom.lang.antlr.AntlrDecoder;
+import com.evolveum.axiom.lang.antlr.AntlrDecoderContext;
+import com.evolveum.axiom.lang.antlr.AxiomAntlrStatementSource;
+import com.evolveum.axiom.lang.antlr.AxiomDecoderContext;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
+import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomSyntaxException;
 
 
@@ -37,6 +48,20 @@ public class TestAxiomExtension extends AbstractReactorTest {
     private static final String ORDER = DIR + "declaration-order.axiom";
     private static final String LANG_EXT = DIR + "language-extension.axiom";
     private static final String LANG_EXT_USE = DIR + "language-extension-use.axiom";
+    private static final String METADATA_EXT = DIR + "metadata.axiom";
+    private static final AxiomName METADATA_MODIFIED = AxiomName.from("https://example.org/metadata", "modified");
+
+
+    private static final String DERIVED = "multimodel/derived/";
+    private static final String BASE_PERSON = DERIVED + "base-person.axiom";
+    private static final String DERIVED_PERSON = DERIVED + "derived-person.axiom";
+    private static final String JOHN_DOE_SUBSTITUTION_FILE = DIR + "john-doe-substitution.axiomd";
+
+    private static final AxiomName DERIVED_PERSON_TYPE = AxiomName.from("https://example.org/derived", "Person");
+
+    private static final AxiomName NAME = AxiomName.from("https://example.org/base", "name");
+    private static final AxiomName FIRST_NAME = DERIVED_PERSON_TYPE.localName("firstName");
+
 
     @Test
     public void axiomTestExtension() throws IOException, AxiomSyntaxException {
@@ -91,6 +116,34 @@ public class TestAxiomExtension extends AbstractReactorTest {
 
         assertFalse(extension.values().isEmpty(), "Extension statements should be available.");
         assertEquals(2, personDef.get().itemDefinitions().entrySet().size());
+    }
+
+    @Test
+    public void axiomTestMetadata() throws AxiomSyntaxException, IOException {
+        ModelReactorContext context = ModelReactorContext.defaultReactor();
+        context.loadModelFromSource(source(METADATA_EXT));
+        context.loadModelFromSource(source(BASE_PERSON));
+        context.loadModelFromSource(source(DERIVED_PERSON));
+        AxiomSchemaContext schemaContext = context.computeSchemaContext();
+        AxiomTypeDefinition metadataTypeDef = schemaContext.getType(AxiomValue.METADATA_TYPE).get();
+        Map<AxiomName, AxiomItemDefinition> defs = metadataTypeDef.itemDefinitions();
+        assertFalse(defs.isEmpty());
+        metadataTypeDef.itemDefinition(METADATA_MODIFIED).isPresent();
+
+
+        AxiomAntlrStatementSource stream = dataSource(JOHN_DOE_SUBSTITUTION_FILE);
+        AxiomItemTarget target = new AxiomItemTarget(schemaContext);
+        stream.stream(target, AntlrDecoderContext.BUILTIN_DECODERS, AxiomNameResolver.defaultNamespace(DERIVED_PERSON_TYPE.namespace())
+                .orPrefix("mymeta", METADATA_MODIFIED.namespace()));
+        AxiomItem<?> root = target.get();
+        assertEquals(root.name(), DERIVED_PERSON_TYPE.localName("person"));
+        AxiomStructuredValue person = root.onlyValue().asComplex().get();
+        assertEquals(person.item(NAME).get().onlyValue().value(), "John Doe");
+        assertEquals(person.item(FIRST_NAME).get().onlyValue().value(), "John");
+        assertEquals(person.metadata(METADATA_MODIFIED).get().onlyValue().value(), "structure");
+        assertEquals(person.item(FIRST_NAME).get().onlyValue().metadata(METADATA_MODIFIED).get().onlyValue().value(), "substitution");
+
+
     }
 
 }

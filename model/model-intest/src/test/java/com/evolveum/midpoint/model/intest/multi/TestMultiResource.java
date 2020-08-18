@@ -479,7 +479,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
      * MID-2134, MID-3093
      */
     @Test
-    public void test223JackKillDefaultDummyAccounAndRecompute() throws Exception {
+    public void test223JackKillDefaultDummyAccountAndRecompute() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1276,7 +1276,15 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
         // WHEN
         when();
-        unassignAccountFromUser(USER_JACK_OID, RESOURCE_DUMMY_OID, null, task, result);
+
+        // Originally here was unassign (delete assignment) operation. But such assignment does not exist.
+        // Primary delta consolidation (since 4.2) removes such phantom changes.
+        //
+        // So assignment deletion is here replaced by simple unlink operation.
+        //
+        // See MID-6377.
+        ObjectDelta<UserType> delta = createModifyUserUnlinkAccount(USER_JACK_OID, RESOURCE_DUMMY_OID);
+        executeChanges(delta, null, task, result);
 
         // THEN
         then();

@@ -9,10 +9,7 @@ package com.evolveum.midpoint.model.intest;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -265,7 +262,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
         Message message = messages.get(0);          // number of messages was already checked
-        assertEquals("Invalid list of recipients", Arrays.asList("recipient@evolveum.com"), message.getTo());
+        assertEquals("Invalid list of recipients", Collections.singletonList("recipient@evolveum.com"), message.getTo());
         assertTrue("No account name in account password notification", message.getBody().contains("Password for account jack on Dummy Resource is:"));
 
         assertSteadyResources();
@@ -1053,7 +1050,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertSuccess(result);
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
-        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 0, 76);
+        assertCounterIncrement(InternalCounters.PRISM_OBJECT_CLONE_COUNT, 0, 50);
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
         display("User after change execution", userAfter);
@@ -1243,7 +1240,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(0);         // no deltas, as the operation is idempotent
+        dummyAuditService.assertExecutionDeltas(1); // operation changes the metadata (but idempotent from the business point of view) -- MID-6370
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
 
@@ -1255,8 +1252,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
-        checkDummyTransportMessages("simpleUserNotifier", 0);           // op is idempotent
-        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+
+        // MID-6370
+//        checkDummyTransportMessages("simpleUserNotifier", 0);           // op is idempotent
+//        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
         assertSteadyResources();
     }
@@ -2332,6 +2331,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         MappingType value = new MappingType();
 
+        //noinspection unchecked
         PrismProperty<String> property = gossipDefinition.instantiate();
         property.addRealValue("q");
 
@@ -2339,6 +2339,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         Collection<JAXBElement<RawType>> collection = StaticExpressionUtil.serializeValueElements(property, null);
         ObjectFactory of = new ObjectFactory();
         for (JAXBElement<RawType> obj : collection) {
+            //noinspection unchecked
             evaluators.add(of.createValue(obj.getValue()));
         }
 

@@ -12,7 +12,7 @@ package com.evolveum.midpoint.prism;
  */
 public enum ItemProcessing {
 
-    IGNORE("ignore"), MINIMAL("minimal"), AUTO("auto");
+    IGNORE("ignore"), MINIMAL("minimal"), AUTO("auto"), FULL("full");
 
     private final String stringValue;
 

@@ -6,39 +6,30 @@
  */
 package com.evolveum.midpoint.provisioning.ucf.impl.connid;
 
-import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
+import java.time.ZonedDateTime;
+import java.util.*;
+import java.util.Map.Entry;
 import javax.xml.namespace.QName;
+
+import org.identityconnectors.common.security.GuardedString;
+import org.identityconnectors.framework.common.objects.*;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-
-import com.evolveum.midpoint.schema.result.OperationResult;
-import org.identityconnectors.common.security.GuardedString;
-import org.identityconnectors.framework.common.objects.*;
-
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttribute;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,22 +39,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LockoutStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.jetbrains.annotations.NotNull;
-
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 /**
  * @author semancik
- *
  */
 public class ConnIdConvertor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConnIdConvertor.class);
 
-    private String resourceSchemaNamespace;
-    private Protector protector;
+    private final String resourceSchemaNamespace;
+    private final Protector protector;
+    private final LocalizationService localizationService;
+
     private ConnIdNameMapper connIdNameMapper;
-    private LocalizationService localizationService;
 
     ConnIdConvertor(Protector protector, String resourceSchemaNamespace, LocalizationService localizationService) {
         super();
@@ -91,13 +79,11 @@ public class ConnIdConvertor {
      * ResourceObjectDefinition was provided, the object is schema-less. TODO:
      * this still needs to be implemented.
      *
-     * @param co
-     *            ICF ConnectorObject to convert
-     * @param full
-     *            if true it describes if the returned resource object should
-     *            contain all of the attributes defined in the schema, if false
-     *            the returned resource object will contain only attributed with
-     *            the non-null values.
+     * @param co ICF ConnectorObject to convert
+     * @param full if true it describes if the returned resource object should
+     * contain all of the attributes defined in the schema, if false
+     * the returned resource object will contain only attributed with
+     * the non-null values.
      * @return new mapped ResourceObject instance.
      */
     <T extends ShadowType> PrismObject<T> convertToResourceObject(ConnectorObject co,
@@ -124,16 +110,11 @@ public class ConnIdConvertor {
             }
 
             T shadow = shadowPrism.asObjectable();
-            ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) (PrismContainer)shadowPrism.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
+            ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) (PrismContainer) shadowPrism.findOrCreateContainer(ShadowType.F_ATTRIBUTES);
             ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
             shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 
             List<ObjectClassComplexTypeDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
-
-            // too loud
-            //        if (LOGGER.isTraceEnabled()) {
-            //            LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());
-            //        }
 
             for (Attribute icfAttr : co.getAttributes()) {
                 if (icfAttr.is(PredefinedAttributes.AUXILIARY_OBJECT_CLASS_NAME)) {
@@ -369,7 +350,7 @@ public class ConnIdConvertor {
         String connIdAttrName = connIdNameMapper.convertAttributeNameToConnId(mpAttribute, ocDef);
 
         Set<Object> connIdAttributeValues = new HashSet<>();
-        for (PrismPropertyValue<?> pval: mpAttribute.getValues()) {
+        for (PrismPropertyValue<?> pval : mpAttribute.getValues()) {
             connIdAttributeValues.add(ConnIdUtil.convertValueToConnId(pval, protector, mpAttribute.getElementName()));
         }
 
@@ -379,7 +360,6 @@ public class ConnIdConvertor {
             throw new SchemaException(e.getMessage(), e);
         }
     }
-
 
     private <T> T getSingleValue(Attribute icfAttr, Class<T> type) throws SchemaException {
         List<Object> values = icfAttr.getValue();
@@ -408,37 +388,34 @@ public class ConnIdConvertor {
             return null;
         }
         if (connIdValue instanceof ZonedDateTime) {
-            return XmlTypeConverter.createXMLGregorianCalendar((ZonedDateTime)connIdValue);
+            return XmlTypeConverter.createXMLGregorianCalendar((ZonedDateTime) connIdValue);
         }
         if (connIdValue instanceof GuardedString) {
             return fromGuardedString((GuardedString) connIdValue);
         }
         if (connIdValue instanceof Map) {
             // TODO: check type that this is really PolyString
-            return polyStringFromConnIdMap((Map)connIdValue);
+            return polyStringFromConnIdMap((Map) connIdValue);
         }
         return connIdValue;
     }
 
     private ProtectedStringType fromGuardedString(GuardedString icfValue) {
         final ProtectedStringType ps = new ProtectedStringType();
-        icfValue.access(new GuardedString.Accessor() {
-            @Override
-            public void access(char[] passwordChars) {
-                try {
-                    ps.setClearValue(new String(passwordChars));
-                    protector.encrypt(ps);
-                } catch (EncryptionException e) {
-                    throw new IllegalStateException("Protector failed to encrypt password");
-                }
+        icfValue.access(passwordChars -> {
+            try {
+                ps.setClearValue(new String(passwordChars));
+                protector.encrypt(ps);
+            } catch (EncryptionException e) {
+                throw new IllegalStateException("Protector failed to encrypt password");
             }
         });
         return ps;
     }
 
-    private Object polyStringFromConnIdMap(Map<String,String> connIdMap) {
+    private Object polyStringFromConnIdMap(Map<String, String> connIdMap) {
         String orig = null;
-        Map<String,String> lang = null;
+        Map<String, String> lang = null;
         for (Entry<String, String> connIdMapEntry : connIdMap.entrySet()) {
             String key = connIdMapEntry.getKey();
             if (ConnIdUtil.POLYSTRING_ORIG_KEY.equals(key)) {

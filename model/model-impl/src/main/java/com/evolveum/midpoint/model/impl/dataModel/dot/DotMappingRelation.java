@@ -7,17 +7,18 @@
 
 package com.evolveum.midpoint.model.impl.dataModel.dot;
 
+import javax.xml.bind.JAXBElement;
+
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.impl.dataModel.model.MappingRelation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.bind.JAXBElement;
 
 /**
  * @author mederly
@@ -26,7 +27,7 @@ public class DotMappingRelation implements DotRelation {
 
     private static final int MAX_CONSTANT_WIDTH = 50;
 
-    @NotNull final private MappingRelation mappingRelation;
+    @NotNull private final MappingRelation mappingRelation;
 
     DotMappingRelation(@NotNull MappingRelation mappingRelation) {
         this.mappingRelation = mappingRelation;
@@ -51,7 +52,7 @@ public class DotMappingRelation implements DotRelation {
         if (QNameUtil.match(evalElement.getName(), SchemaConstants.C_VALUE)) {
             if (showConstant) {
                 String str = getStringConstant(eval);
-                return "\'" + StringUtils.abbreviate(str, MAX_CONSTANT_WIDTH) + "\'";
+                return '\'' + StringUtils.abbreviate(str, MAX_CONSTANT_WIDTH) + '\'';
             } else {
                 return "constant";
             }
@@ -89,9 +90,12 @@ public class DotMappingRelation implements DotRelation {
     @Override
     public String getEdgeStyle() {
         switch (getMapping().getStrength() != null ? getMapping().getStrength() : MappingStrengthType.NORMAL) {
-            case NORMAL: return "dashed";
-            case STRONG: return "solid";
-            case WEAK: return "dotted";
+            case NORMAL:
+                return "dashed";
+            case STRONG:
+                return "solid";
+            case WEAK:
+                return "dotted";
         }
         return "";
     }
@@ -147,6 +151,5 @@ public class DotMappingRelation implements DotRelation {
             return "";
         }
     }
-
 
 }

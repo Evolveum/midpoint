@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,12 +7,13 @@
 
 package com.evolveum.midpoint.repo.sql.data.audit;
 
-import com.evolveum.midpoint.audit.api.AuditEventType;
+import org.jetbrains.annotations.Nullable;
 
-/**
- * @author lazyman
- */
-public enum RAuditEventType {
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.SchemaEnum;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+
+public enum RAuditEventType implements SchemaEnum<AuditEventTypeType> {
 
     GET_OBJECT(AuditEventType.GET_OBJECT),
 
@@ -52,7 +53,12 @@ public enum RAuditEventType {
         return type;
     }
 
-    public static RAuditEventType toRepo(AuditEventType type) {
+    @Override
+    public AuditEventTypeType getSchemaValue() {
+        return AuditEventType.toSchemaValue(type);
+    }
+
+    public static RAuditEventType from(AuditEventType type) {
         if (type == null) {
             return null;
         }
@@ -64,5 +70,11 @@ public enum RAuditEventType {
         }
 
         throw new IllegalArgumentException("Unknown audit event type '" + type + "'.");
+    }
+
+    public static @Nullable RAuditEventType fromSchemaValue(@Nullable AuditEventTypeType type) {
+        return type != null
+                ? from(AuditEventType.fromSchemaValue(type))
+                : null;
     }
 }

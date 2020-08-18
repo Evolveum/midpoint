@@ -10,14 +10,14 @@ import java.util.Map;
 
 import com.evolveum.axiom.api.AxiomName;
 import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 
 
 interface IdentifierSpaceHolder {
 
-    void register(AxiomName space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context);
+    void register(AxiomName space, Scope scope, AxiomValueIdentifier key, ValueContext<?> context);
 
-    public ValueContext<?> lookup(AxiomName space, IdentifierSpaceKey key);
+    public ValueContext<?> lookup(AxiomName space, AxiomValueIdentifier key);
 
-    Map<IdentifierSpaceKey, ValueContext<?>> space(AxiomName space);
+    Map<AxiomValueIdentifier, ValueContext<?>> space(AxiomName space);
 }

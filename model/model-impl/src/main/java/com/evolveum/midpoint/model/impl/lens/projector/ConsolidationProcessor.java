@@ -9,7 +9,9 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.construction.Construction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
@@ -20,6 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -32,9 +35,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.ObjectUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
@@ -47,6 +52,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
+ * TODO
  *
  * @author Radovan Semancik
  * @author lazyman
@@ -58,17 +64,20 @@ public class ConsolidationProcessor {
 
     private static final String OP_CONSOLIDATE_VALUES = ConsolidationProcessor.class.getName() + ".consolidateValues";
     private static final String OP_CONSOLIDATE_ITEM = ConsolidationProcessor.class.getName() + ".consolidateItem";
+    private static final String OP_CONSOLIDATE_FOCUS_PRIMARY_DELTA = ConsolidationProcessor.class.getName() + ".consolidateFocusPrimaryDelta";
 
     private PrismContainerDefinition<ShadowAssociationType> associationDefinition;
 
     @Autowired private ContextLoader contextLoader;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private PrismContext prismContext;
+    @Autowired private ModelBeans modelBeans;
 
     /**
      * Converts delta set triples to a secondary account deltas.
      */
-    <F extends FocusType> void consolidateValues(LensContext<F> context, LensProjectionContext accCtx, Task task,
+    <F extends FocusType>
+    void consolidateValues(LensContext<F> context, LensProjectionContext accCtx, Task task,
             OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
             //todo filter changes which were already in account sync delta
@@ -109,12 +118,7 @@ public class ConsolidationProcessor {
     }
 
     private boolean wasProjectionDeleted(LensProjectionContext accContext) {
-        ObjectDelta<ShadowType> delta = accContext.getSyncDelta();
-        if (delta != null && ChangeType.DELETE.equals(delta.getChangeType())) {
-            return true;
-        }
-
-        return false;
+        return ObjectDelta.isDelete(accContext.getSyncDelta());
     }
 
     private <F extends FocusType> ObjectDelta<ShadowType> consolidateValuesToModifyDelta(LensContext<F> context,
@@ -126,40 +130,39 @@ public class ConsolidationProcessor {
 
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(projCtx.getOid());
-        ObjectDelta<ShadowType> existingDelta = projCtx.getDelta();
+        ObjectDelta<ShadowType> existingDelta = projCtx.getSummaryDelta(); // TODO check this
+        LOGGER.trace("Existing delta:\n{}", existingDelta);
 
         // Do not automatically load the full projection now. Even if we have weak mapping.
         // That may be a waste of resources if the weak mapping results in no change anyway.
         // Let's be very very lazy about fetching the account from the resource.
-         if (!projCtx.hasFullShadow() &&
-                 (hasActiveWeakMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveWeakMapping(projCtx.getSqueezedAssociations(), projCtx)
-                         || (hasActiveStrongMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveStrongMapping(projCtx.getSqueezedAssociations(), projCtx)))) {
-             // Full account was not yet loaded. This will cause problems as the weak mapping may be applied even though
+        if (!projCtx.hasFullShadow() &&
+                (hasActiveWeakMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveWeakMapping(projCtx.getSqueezedAssociations(), projCtx)
+                        || (hasActiveStrongMapping(projCtx.getSqueezedAttributes(), projCtx) || hasActiveStrongMapping(projCtx.getSqueezedAssociations(), projCtx)))) {
+            // Full account was not yet loaded. This will cause problems as the weak mapping may be applied even though
             // it should not be applied and also same changes may be discarded because of unavailability of all
-             // account's attributes. Therefore load the account now, but with doNotDiscovery options.
+            // account's attributes. Therefore load the account now, but with doNotDiscovery options.
 
-             // We also need to get account if there are strong mappings. Strong mappings
-             // should always be applied. So reading the account now will indirectly
-             // trigger reconciliation which makes sure that the strong mappings are
-             // applied.
+            // We also need to get account if there are strong mappings. Strong mappings
+            // should always be applied. So reading the account now will indirectly
+            // trigger reconciliation which makes sure that the strong mappings are
+            // applied.
 
-             // By getting accounts from provisioning, there might be a problem with
-              // resource availability. We need to know, if the account was read full
-              // or we have only the shadow from the repository. If we have only
-              // shadow, the weak mappings may applied even if they should not be.
-             contextLoader.loadFullShadow(context, projCtx, "weak or strong mapping", task, result);
-             if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
-                 return null;
-             }
-         }
+            // By getting accounts from provisioning, there might be a problem with
+            // resource availability. We need to know, if the account was read full
+            // or we have only the shadow from the repository. If we have only
+            // shadow, the weak mappings may applied even if they should not be.
+            contextLoader.loadFullShadow(context, projCtx, "weak or strong mapping", task, result);
+            if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+                return null;
+            }
+        }
 
-         RefinedObjectClassDefinition rOcDef = consolidateAuxiliaryObjectClasses(context, projCtx, addUnchangedValues, objectDelta, existingDelta);
-
+        RefinedObjectClassDefinition rOcDef = consolidateAuxiliaryObjectClasses(context, projCtx, addUnchangedValues, objectDelta, existingDelta, result);
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Object class definition for {} consolidation:\n{}", projCtx.getResourceShadowDiscriminator(), rOcDef.debugDump());
         }
-
 
         StrengthSelector strengthSelector = projCtx.isAdd() ? StrengthSelector.ALL : StrengthSelector.ALL_EXCEPT_WEAK;
         consolidateAttributes(context, projCtx, addUnchangedValues, rOcDef, objectDelta, existingDelta, strengthSelector, result);
@@ -169,7 +172,7 @@ public class ConsolidationProcessor {
     }
 
     private <F extends FocusType> RefinedObjectClassDefinition consolidateAuxiliaryObjectClasses(LensContext<F> context,
-            LensProjectionContext projCtx, boolean addUnchangedValues, ObjectDelta<ShadowType> objectDelta, ObjectDelta<ShadowType> existingDelta)
+            LensProjectionContext projCtx, boolean addUnchangedValues, ObjectDelta<ShadowType> objectDelta, ObjectDelta<ShadowType> existingDelta, OperationResult result)
                     throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
         ResourceShadowDiscriminator discr = projCtx.getResourceShadowDiscriminator();
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> squeezedAuxiliaryObjectClasses = projCtx.getSqueezedAuxiliaryObjectClasses();
@@ -180,17 +183,14 @@ public class ConsolidationProcessor {
         RefinedResourceSchema refinedSchema = projCtx.getRefinedResourceSchema();
         List<QName> auxOcNames = new ArrayList<>();
         List<RefinedObjectClassDefinition> auxOcDefs = new ArrayList<>();
-        ObjectDelta<ShadowType> projDelta = projCtx.getDelta();
+        ObjectDelta<ShadowType> projDelta = projCtx.getSummaryDelta(); // TODO check this
         if (projDelta != null) {
             auxiliaryObjectClassAPrioriDelta = projDelta.findPropertyDelta(ShadowType.F_AUXILIARY_OBJECT_CLASS);
         }
         for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>> entry : squeezedAuxiliaryObjectClasses.entrySet()) {
             DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> ivwoTriple = entry.getValue();
 
-            LOGGER.trace("CONSOLIDATE auxiliary object classes ({})", discr);
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Auxiliary object class triple:\n{}", ivwoTriple.debugDump());
-            }
+            LOGGER.trace("CONSOLIDATE auxiliary object classes ({}) from triple:\n{}", discr, ivwoTriple.debugDumpLazily());
 
             for (ItemValueWithOrigin<PrismPropertyValue<QName>,PrismPropertyDefinition<QName>> ivwo: ivwoTriple.getAllValues()) {
                 QName auxObjectClassName = ivwo.getItemValue().getValue();
@@ -207,29 +207,36 @@ public class ConsolidationProcessor {
                 auxOcDefs.add(auxOcDef);
             }
 
-            IvwoConsolidator<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>, ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>> consolidator = new IvwoConsolidator<>();
-            consolidator.setItemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS);
-            consolidator.setIvwoTriple(ivwoTriple);
-            consolidator.setItemDefinition(auxiliaryObjectClassPropertyDef);
-            consolidator.setAprioriItemDelta(auxiliaryObjectClassAPrioriDelta);
-            consolidator.setItemContainer(projCtx.getObjectNew());
-            consolidator.setValueMatcher(null);
-            consolidator.setComparator(null);
-            consolidator.setAddUnchangedValues(addUnchangedValues);
-            consolidator.setFilterExistingValues(projCtx.hasFullShadow());
-            consolidator.setExclusiveStrong(false);
-            consolidator.setContextDescription(discr.toHumanReadableDescription());
-            consolidator.setStrengthSelector(StrengthSelector.ALL_EXCEPT_WEAK);
+            //noinspection unchecked
+            try (IvwoConsolidator<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>, ItemValueWithOrigin<PrismPropertyValue<QName>, PrismPropertyDefinition<QName>>>
+                    consolidator = new IvwoConsolidatorBuilder()
+                    .itemPath(ShadowType.F_AUXILIARY_OBJECT_CLASS)
+                    .ivwoTriple(ivwoTriple)
+                    .itemDefinition(auxiliaryObjectClassPropertyDef)
+                    .aprioriItemDelta(auxiliaryObjectClassAPrioriDelta)
+                    .itemDeltaExists(!ItemDelta.isEmpty(auxiliaryObjectClassAPrioriDelta)) // TODO
+                    .itemContainer(projCtx.getObjectNew())
+                    .valueMatcher(null)
+                    .comparator(null)
+                    .addUnchangedValues(addUnchangedValues)
+                    .addUnchangedValuesExceptForNormalMappings(false) // todo
+                    .existingItemKnown(projCtx.hasFullShadow())
+                    .isExclusiveStrong(false)
+                    .contextDescription(discr.toHumanReadableDescription())
+                    .strengthSelector(StrengthSelector.ALL_EXCEPT_WEAK)
+                    .result(result)
+                    .build()) {
 
-            PropertyDelta<QName> propDelta = (PropertyDelta) consolidator.consolidateToDelta();
+                //noinspection unchecked
+                PropertyDelta<QName> propDelta = (PropertyDelta) consolidator.consolidateToDeltaNoMetadata();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Auxiliary object class delta:\n{}",propDelta.debugDump());
+                LOGGER.trace("Auxiliary object class delta:\n{}", propDelta.debugDumpLazily());
+
+                if (!propDelta.isEmpty()) {
+                    objectDelta.addModification(propDelta);
+                }
             }
 
-            if (!propDelta.isEmpty()) {
-                objectDelta.addModification(propDelta);
-            }
         }
 
         RefinedObjectClassDefinition structuralObjectClassDefinition = projCtx.getStructuralObjectClassDefinition();
@@ -238,10 +245,7 @@ public class ConsolidationProcessor {
             throw new IllegalStateException("Structural object class definition for " + discr + " not found in the context, but it should be there");
         }
 
-        RefinedObjectClassDefinition rOcDef = new CompositeRefinedObjectClassDefinitionImpl(
-                structuralObjectClassDefinition, auxOcDefs);
-        return rOcDef;
-
+        return new CompositeRefinedObjectClassDefinitionImpl(structuralObjectClassDefinition, auxOcDefs);
     }
 
     private <F extends FocusType> void consolidateAttributes(LensContext<F> context, LensProjectionContext projCtx,
@@ -286,9 +290,8 @@ public class ConsolidationProcessor {
         ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry);
 
         return (PropertyDelta<T>) consolidateItem(rOcDef, discr, existingDelta, projCtx, addUnchangedValues,
-                attributeDefinition.isExlusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, null, strengthSelector, "attribute "+itemName, result);
+                attributeDefinition.isExclusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, null, strengthSelector, "attribute "+itemName, result);
     }
-
 
     private <F extends FocusType> void consolidateAssociations(LensContext<F> context, LensProjectionContext projCtx,
             boolean addUnchangedValues, RefinedObjectClassDefinition rOcDef, ObjectDelta<ShadowType> objectDelta,
@@ -385,65 +388,62 @@ public class ConsolidationProcessor {
                 .addArbitraryObjectAsParam("itemPath", itemPath)
                 .build();
         try {
-            boolean forceAddUnchangedValues = false;
-            ItemDelta<V,D> existingItemDelta = null;
-            if (existingDelta != null) {
-                existingItemDelta = existingDelta.findItemDelta(itemPath);
-            }
-            if (existingItemDelta != null && existingItemDelta.isReplace()) {
-                // We need to add all values if there is replace delta. Otherwise the zero-set values will be lost
-                forceAddUnchangedValues = true;
-            }
+            ItemDelta<V,D> aprioriItemDelta = existingDelta != null ? existingDelta.findItemDelta(itemPath) : null;
+            boolean aprioriDeltaIsReplace = aprioriItemDelta != null && aprioriItemDelta.isReplace();
+
+            // We need to add all values if there is replace delta. Otherwise the zero-set values will be lost
+            //noinspection UnnecessaryLocalVariable
+            boolean forceAddUnchangedValues = aprioriDeltaIsReplace;
 
             LOGGER.trace("CONSOLIDATE {}\n  ({}) completeShadow={}, addUnchangedValues={}, forceAddUnchangedValues={}",
                     itemDesc, discr, projCtx.hasFullShadow(), addUnchangedValues, forceAddUnchangedValues);
 
+            ItemDelta<V, D> itemDelta;
             // Use the consolidator to do the computation. It does most of the work.
-            IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidator<>();
-            consolidator.setItemPath(itemPath);
-            consolidator.setIvwoTriple(triple);
-            consolidator.setItemDefinition(itemDefinition);
-            consolidator.setAprioriItemDelta(existingItemDelta);
-            consolidator.setItemContainer(projCtx.getObjectNew());
-            consolidator.setValueMatcher(valueMatcher);
-            consolidator.setComparator(comparator);
-            consolidator.setAddUnchangedValues(addUnchangedValues || forceAddUnchangedValues);
-            consolidator.setFilterExistingValues(projCtx.hasFullShadow());
-            consolidator.setExclusiveStrong(isExclusiveStrong);
-            consolidator.setContextDescription(discr.toHumanReadableDescription());
-            if (projCtx.hasFullShadow()) {
-                consolidator.setStrengthSelector(strengthSelector);
-            } else {
-                consolidator.setStrengthSelector(strengthSelector.notWeak());
-            }
+            try (IvwoConsolidator<V,D,ItemValueWithOrigin<V,D>> consolidator = new IvwoConsolidatorBuilder<V,D,ItemValueWithOrigin<V, D>>()
+                    .itemPath(itemPath)
+                    .ivwoTriple(triple)
+                    .itemDefinition(itemDefinition)
+                    .aprioriItemDelta(aprioriItemDelta)
+                    .itemDeltaExists(!ItemDelta.isEmpty(aprioriItemDelta))
+                    .itemContainer(projCtx.getObjectNew())
+                    .valueMatcher(valueMatcher)
+                    .comparator(comparator)
+                    .addUnchangedValues(addUnchangedValues || forceAddUnchangedValues)
+                    .addUnchangedValuesExceptForNormalMappings(false) // todo
+                    .existingItemKnown(projCtx.hasFullShadow())
+                    .isExclusiveStrong(isExclusiveStrong)
+                    .contextDescription(discr.toHumanReadableDescription())
+                    .strengthSelector(projCtx.hasFullShadow() ? strengthSelector : strengthSelector.notWeak())
+                    .result(result)
+                    .build()) {
 
-            ItemDelta<V, D> itemDelta = consolidator.consolidateToDelta();
+                itemDelta = consolidator.consolidateToDeltaNoMetadata();
+            }
 
             LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",discr, itemDelta.debugDumpLazily());
 
-            if (existingItemDelta != null && existingItemDelta.isReplace()) {
+            if (aprioriDeltaIsReplace) {
                 // We cannot filter out any values if there is an replace delta. The replace delta cleans all previous
                 // state and all the values needs to be passed on
                 LOGGER.trace("Skipping consolidation with sync delta as there was a replace delta on top of that already");
             } else {
                 // Also consider a synchronization delta (if it is present). This may filter out some deltas.
                 itemDelta = consolidateItemWithSync(projCtx, itemDelta, valueMatcher);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",discr,itemDelta==null?"null":itemDelta.debugDump());
-                }
+                LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",discr, DebugUtil.debugDumpLazily(itemDelta));
             }
 
             if (itemDelta != null && !itemDelta.isEmpty()) {
-                if (existingItemDelta == null || !existingItemDelta.isReplace()) {
+                if (!aprioriDeltaIsReplace) {
                     // We cannot simplify if there is already a replace delta. This might result in
                     // two replace deltas and therefore some information may be lost
                     itemDelta.simplify();
                 }
 
                 // Validate the delta. i.e. make sure it conforms to schema (that it does not have more values than allowed, etc.)
-                if (existingItemDelta != null) {
+                if (aprioriItemDelta != null) {
                     // Let's make sure that both the previous delta and this delta makes sense
-                    ItemDelta<V,D> mergedDelta = existingItemDelta.clone();
+                    ItemDelta<V,D> mergedDelta = aprioriItemDelta.clone();
                     mergedDelta.merge(itemDelta);
                     mergedDelta.validate();
                 } else {
@@ -451,9 +451,10 @@ public class ConsolidationProcessor {
                 }
 
                 return itemDelta;
+            } else {
+                return null;
             }
 
-            return null;
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
             throw t;
@@ -521,7 +522,7 @@ public class ConsolidationProcessor {
                         return true;
                     }
                 }
-                ObjectDelta<ShadowType> projectionDelta = accCtx.getDelta();
+                ObjectDelta<ShadowType> projectionDelta = accCtx.getSummaryDelta(); // TODO check this
                 if (projectionDelta != null) {
                     PropertyDelta<?> aPrioriAttributeDelta = projectionDelta.findPropertyDelta(ItemPath.create(ShadowType.F_ATTRIBUTES, entry.getKey()));
                     if (aPrioriAttributeDelta != null && aPrioriAttributeDelta.isDelete()) {
@@ -567,23 +568,17 @@ public class ConsolidationProcessor {
         if (modifyDelta == null || modifyDelta.isEmpty()) {
             return;
         }
-        ObjectDelta<ShadowType> accountSecondaryDelta = accCtx.getSecondaryDelta();
-        if (accountSecondaryDelta != null) {
-            accountSecondaryDelta.merge(modifyDelta);
-        } else {
-            accCtx.setSecondaryDelta(modifyDelta);
-        }
+        accCtx.swallowToSecondaryDelta(modifyDelta.getModifications());
     }
 
-    private <V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> consolidateItemWithSync(LensProjectionContext accCtx, ItemDelta<V,D> delta,
-            ValueMatcher<?> valueMatcher) {
-        if (delta == null) {
-            return null;
-        }
+    private <V extends PrismValue,D extends ItemDefinition> ItemDelta<V,D> consolidateItemWithSync(LensProjectionContext accCtx,
+            @NotNull ItemDelta<V,D> delta, ValueMatcher<?> valueMatcher) {
         if (delta instanceof PropertyDelta<?>) {
+            //noinspection unchecked
             return (ItemDelta<V,D>) consolidatePropertyWithSync(accCtx, (PropertyDelta) delta, valueMatcher);
+        } else {
+            return delta;
         }
-        return delta;
     }
 
     /**
@@ -595,12 +590,8 @@ public class ConsolidationProcessor {
      * @param delta  new delta created during consolidation process
      * @return method return updated delta, or null if delta was empty after filtering (removing unnecessary values).
      */
-    private <T> PropertyDelta<T> consolidatePropertyWithSync(LensProjectionContext accCtx, PropertyDelta<T> delta,
-            ValueMatcher<T> valueMatcher) {
-        if (delta == null) {
-            return null;
-        }
-
+    private <T> PropertyDelta<T> consolidatePropertyWithSync(LensProjectionContext accCtx,
+            @NotNull PropertyDelta<T> delta, ValueMatcher<T> valueMatcher) {
         ObjectDelta<ShadowType> syncDelta = accCtx.getSyncDelta();
         if (syncDelta == null) {
             return consolidateWithSyncAbsolute(accCtx, delta, valueMatcher);
@@ -1060,6 +1051,9 @@ public class ConsolidationProcessor {
         return triple;
     }
 
+    /**
+     * TODO
+     */
     <F extends FocusType> void consolidateValuesPostRecon(LensContext<F> context, LensProjectionContext projCtx, Task task,
             OperationResult result) throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
@@ -1079,15 +1073,11 @@ public class ConsolidationProcessor {
             return;
         }
 
-        boolean addUnchangedValues = false;
-        if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD) {
-            addUnchangedValues = true;
-        }
-
+        boolean addUnchangedValues = projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.ADD;
 
         ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.MODIFY);
         objectDelta.setOid(projCtx.getOid());
-        ObjectDelta<ShadowType> existingDelta = projCtx.getDelta();
+        ObjectDelta<ShadowType> existingDelta = projCtx.getSummaryDelta(); // TODO check this
 
         RefinedObjectClassDefinition rOcDef = projCtx.getCompositeObjectClassDefinition();
 
@@ -1101,11 +1091,77 @@ public class ConsolidationProcessor {
         if (objectDelta.isEmpty()) {
             return;
         }
-        ObjectDelta<ShadowType> accountSecondaryDelta = projCtx.getSecondaryDelta();
-        if (accountSecondaryDelta != null) {
-            accountSecondaryDelta.merge(objectDelta);
-        } else {
-            projCtx.setSecondaryDelta(objectDelta);
+        projCtx.swallowToSecondaryDelta(objectDelta.getModifications());
+    }
+
+    /**
+     * Consolidates focus primary delta against current focus object.
+     */
+    <F extends ObjectType> void consolidateFocusPrimaryDelta(LensContext<F> context, XMLGregorianCalendar now,
+            Task task, OperationResult parentResult)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+
+        // pre-operation checks
+        LensFocusContext<F> focusContext = context.getFocusContext();
+        if (focusContext == null) {
+            return;
+        }
+
+        if (focusContext.isPrimaryDeltaConsolidated()) {
+            LOGGER.trace("Primary delta was already consolidated, skipping the consolidation.");
+            return;
+        }
+
+        doConsolidatePrimaryDelta(context, now, task, parentResult);
+        focusContext.setPrimaryDeltaConsolidated(true);
+    }
+
+    private <F extends ObjectType> void doConsolidatePrimaryDelta(LensContext<F> context, XMLGregorianCalendar now, Task task,
+            OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+
+        LensFocusContext<F> focusContext = context.getFocusContext();
+
+        ObjectDelta<F> primaryDelta = focusContext.getPrimaryDelta();
+        if (primaryDelta == null || !primaryDelta.isModify() || primaryDelta.getModifications().isEmpty()) {
+            LOGGER.trace("No MODIFY-type non-empty primary delta, no consolidation.");
+            return;
+        }
+
+        PrismObject<F> currentFocus = focusContext.getObjectCurrent();
+        if (currentFocus == null) {
+            LOGGER.trace("No current focus object, no consolidation.");
+            return;
+        }
+
+        if (focusContext.isOfType(LookupTableType.class)) {
+            // Deltas for lookup table rows have very strange semantics. They cannot be consolidated using
+            // standard algorithms. See MID-6377.
+            LOGGER.trace("Focus primary delta consolidation on lookup table is not supported - skipping.");
+            focusContext.setPrimaryDeltaConsolidated(true);
+            return;
+        }
+
+        // the consolidation
+        OperationResult result = parentResult.createMinorSubresult(OP_CONSOLIDATE_FOCUS_PRIMARY_DELTA);
+        try {
+            LOGGER.trace("Consolidating focus primary delta:\n{}", primaryDelta.debugDumpLazily());
+            MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
+                    "focus primary delta consolidation for " + currentFocus, now, task);
+            ObjectDelta<F> consolidatedPrimaryDelta =
+                    new DeltaConsolidation<>(context, currentFocus, primaryDelta.getModifications(), env, result, modelBeans)
+                            .consolidate();
+
+            focusContext.setPrimaryDelta(consolidatedPrimaryDelta);
+            LOGGER.trace("Focus primary delta consolidated to:\n{}", consolidatedPrimaryDelta.debugDumpLazily());
+
+            focusContext.recompute();
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 }

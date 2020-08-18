@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.rest.impl;
 
 import java.io.File;
@@ -25,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -38,7 +36,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 @RequestMapping({ "/ws/schema", "/rest/schema", "/api/schema" })
 public class ExtensionSchemaRestController extends AbstractRestController {
 
-    @Autowired private PrismContext prismContext;
     @Autowired private SecurityEnforcer securityEnforcer;
 
     @GetMapping(produces = MediaType.TEXT_PLAIN_VALUE)

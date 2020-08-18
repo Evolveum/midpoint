@@ -6,6 +6,18 @@
  */
 package com.evolveum.midpoint.model.impl.lens;
 
+import java.util.*;
+import java.util.Objects;
+import java.util.Map.Entry;
+import java.util.stream.Stream;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
 import com.evolveum.midpoint.model.api.ProgressListener;
@@ -20,6 +32,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.ConflictWatcher;
@@ -38,20 +51,9 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.Objects;
 
 /**
  * @author semancik
- *
  */
 public class LensContext<F extends ObjectType> implements ModelContext<F>, Cloneable {
 
@@ -80,9 +82,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     // For use with personas
     private String ownerOid;
 
-    transient private PrismObject<UserType> cachedOwner;
+    private transient PrismObject<UserType> cachedOwner;
 
-    transient private SecurityPolicyType globalSecurityPolicy;
+    private transient SecurityPolicyType globalSecurityPolicy;
 
     /**
      * Channel that is the source of primary change (GUI, live sync, import,
@@ -97,13 +99,13 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * EXPERIMENTAL. A trace of resource objects that once existed but were
      * unlinked or deleted, and the corresponding contexts were rotten and
      * removed afterwards.
-     *
+     * <p>
      * Necessary to evaluate old state of hasLinkedAccount.
-     *
+     * <p>
      * TODO implement as non-transient. TODO consider storing whole projection
      * contexts here.
      */
-    transient private Collection<ResourceShadowDiscriminator> historicResourceObjects;
+    private transient Collection<ResourceShadowDiscriminator> historicResourceObjects;
 
     private Class<F> focusClass;
 
@@ -122,19 +124,29 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /*
      * Executed deltas from rotten contexts.
      */
-    private List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
+    private final List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<>();
 
-    transient private ObjectTemplateType focusTemplate;
+    private transient ObjectTemplateType focusTemplate;
     private boolean focusTemplateExternallySet;       // todo serialize this
-    transient private ProjectionPolicyType accountSynchronizationSettings;
+    private transient ProjectionPolicyType accountSynchronizationSettings;
 
-    transient private DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple;
+    /**
+     * Delta set triple (plus, minus, zero) for evaluated assignments.
+     * Relativity is determined by looking at current delta (i.e. objectCurrent -> objectNew).
+     * <p>
+     * If you want to know whether the assignment was added or deleted with regards to objectOld,
+     * please check evaluatedAssignment.origin property -
+     * {@link com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin}.
+     * <p>
+     * TODO verify if this is really true
+     */
+    private transient DeltaSetTriple<EvaluatedAssignmentImpl<?>> evaluatedAssignmentTriple;
 
     /**
      * Just a cached copy. Keep it in context so we do not need to reload it all
      * the time.
      */
-    transient private PrismObject<SystemConfigurationType> systemConfiguration;
+    private transient PrismObject<SystemConfigurationType> systemConfiguration;
 
     /**
      * True if we want to reconcile all accounts in this context.
@@ -165,30 +177,30 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      * At this level, isFresh == false means that deeper recomputation has to be
      * carried out.
      */
-    transient private boolean isFresh = false;
+    private transient boolean isFresh = false;
     private boolean isRequestAuthorized = false;
 
     /**
      * Cache of resource instances. It is used to reduce the number of read
      * (getObject) calls for ResourceType objects.
      */
-    transient private Map<String, ResourceType> resourceCache;
+    private transient Map<String, ResourceType> resourceCache;
 
-    transient private PrismContext prismContext;
+    private transient PrismContext prismContext;
 
-    transient private ProvisioningService provisioningService;
+    private transient ProvisioningService provisioningService;
 
     private ModelExecuteOptions options;
 
     /**
      * Used mostly in unit tests.
      */
-    transient private ClockworkInspector inspector;
+    private transient ClockworkInspector inspector;
 
     /**
      * User feedback.
      */
-    transient private Collection<ProgressListener> progressListeners;
+    private transient Collection<ProgressListener> progressListeners;
 
     private Map<String, Long> sequences = new HashMap<>();
 
@@ -198,14 +210,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
      */
     @NotNull private final List<LensProjectionContext> conflictingProjectionContexts = new ArrayList<>();
 
-    transient private boolean preview;
+    private transient boolean preview;
 
-    transient private Map<String,Collection<Containerable>> hookPreviewResultsMap;
+    private transient Map<String, Collection<Containerable>> hookPreviewResultsMap;
 
-    transient private PolicyRuleEnforcerPreviewOutputType policyRuleEnforcerPreviewOutput;
+    private transient PolicyRuleEnforcerPreviewOutputType policyRuleEnforcerPreviewOutput;
 
-    @NotNull transient private final List<ObjectReferenceType> operationApprovedBy = new ArrayList<>();
-    @NotNull transient private final List<String> operationApproverComments = new ArrayList<>();
+    @NotNull private transient final List<ObjectReferenceType> operationApprovedBy = new ArrayList<>();
+    @NotNull private transient final List<String> operationApproverComments = new ArrayList<>();
 
     public LensContext(Class<F> focusClass, PrismContext prismContext,
             ProvisioningService provisioningService) {
@@ -353,6 +365,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return projectionContext;
     }
 
+    @Override
     public ObjectTemplateType getFocusTemplate() {
         return focusTemplate;
     }
@@ -408,7 +421,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return projectionWave;
     }
 
-    public void setProjectionWave(int wave) {
+    private void setProjectionWave(int wave) {
         this.projectionWave = wave;
     }
 
@@ -501,7 +514,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     private void rotProjectionContextsIfNeeded(Holder<Boolean> rotHolder) throws SchemaException {
-        for (LensProjectionContext projectionContext: projectionContexts) {
+        for (LensProjectionContext projectionContext : projectionContexts) {
             if (projectionContext.getWave() != executionWave) {
                 LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", projectionContext);
             } else {
@@ -538,14 +551,17 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     private void rotFocusContextIfNeeded(Holder<Boolean> rotHolder)
             throws SchemaException {
         if (focusContext != null) {
-            ObjectDelta<F> execDelta = focusContext.getWaveDelta(executionWave);
-            if (execDelta != null && !execDelta.isEmpty()) {
+            ObjectDelta<F> execDelta = focusContext.getCurrentDelta(); // TODO!!!
+            if (!ObjectDelta.isEmpty(execDelta)) {
                 LOGGER.debug("Context rot: context rotten because of focus execution delta {}", execDelta);
                 rotHolder.setValue(true);
             }
             if (rotHolder.getValue()) {
                 // It is OK to refresh focus all the time there was any change. This is cheap.
                 focusContext.setFresh(false);
+                // This would be nice but break some tests ... TODO check it
+//                focusContext.setObjectCurrent(null);
+//                focusContext.setObjectNew(null);
             }
         }
     }
@@ -571,7 +587,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public boolean isReconcileFocus() {
-        return doReconciliationForAllProjections ||  ModelExecuteOptions.isReconcileFocus(options);
+        return doReconciliationForAllProjections || ModelExecuteOptions.isReconcileFocus(options);
     }
 
     public boolean isExecutionPhaseOnly() {
@@ -584,6 +600,32 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public DeltaSetTriple<EvaluatedAssignmentImpl<?>> getEvaluatedAssignmentTriple() {
         return evaluatedAssignmentTriple;
+    }
+
+    @NotNull
+    @Override
+    public Stream<EvaluatedAssignmentImpl<?>> getEvaluatedAssignmentsStream() {
+        return evaluatedAssignmentTriple != null ? evaluatedAssignmentTriple.stream() : Stream.empty();
+    }
+
+    @NotNull
+    @Override
+    public Collection<EvaluatedAssignmentImpl<?>> getNonNegativeEvaluatedAssignments() {
+        if (evaluatedAssignmentTriple != null) {
+            return evaluatedAssignmentTriple.getNonNegativeValues();
+        } else {
+            return Collections.emptySet();
+        }
+    }
+
+    @NotNull
+    @Override
+    public Collection<EvaluatedAssignmentImpl<?>> getAllEvaluatedAssignments() {
+        if (evaluatedAssignmentTriple != null) {
+            return evaluatedAssignmentTriple.getAllValues();
+        } else {
+            return Collections.emptySet();
+        }
     }
 
     public void setEvaluatedAssignmentTriple(
@@ -671,11 +713,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     /**
-     * Returns all changes, user and all accounts. Both primary and secondary
-     * changes are returned, but these are not merged. TODO: maybe it would be
-     * better to merge them.
+     * Number of all changes. TODO reconsider this.
      */
-    public Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException {
+    public int getAllChanges() {
         Collection<ObjectDelta<? extends ObjectType>> allChanges = new ArrayList<>();
         if (focusContext != null) {
             addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
@@ -685,10 +725,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             addChangeIfNotNull(allChanges, projCtx.getPrimaryDelta());
             addChangeIfNotNull(allChanges, projCtx.getSecondaryDelta());
         }
-        return allChanges;
+        return allChanges.size();
     }
 
-    public boolean hasAnyPrimaryChange() throws SchemaException {
+    public boolean hasAnyPrimaryChange() {
         if (focusContext != null) {
             if (!ObjectDelta.isEmpty(focusContext.getPrimaryDelta())) {
                 return true;
@@ -718,21 +758,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         if (change != null) {
             changes.add(change);
         }
-    }
-
-    public void replacePrimaryFocusDelta(ObjectDelta<F> newDelta) {
-        focusContext.setPrimaryDelta(newDelta);
-        // todo any other changes have to be done?
-    }
-
-    public void replacePrimaryFocusDeltas(List<ObjectDelta<F>> deltas) throws SchemaException {
-        replacePrimaryFocusDelta(null);
-        if (deltas != null) {
-            for (ObjectDelta<F> delta : deltas) {
-                focusContext.addPrimaryDelta(delta);
-            }
-        }
-        // todo any other changes have to be done?
     }
 
     /**
@@ -817,7 +842,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             try {
                 checkConsistence();
             } catch (IllegalStateException e) {
-                throw new IllegalStateException(e.getMessage()+" in clockwork, state="+state, e);
+                throw new IllegalStateException(e.getMessage() + " in clockwork, state=" + state, e);
             }
         } else {
             checkAbortRequested(); // useful to check as often as realistically possible
@@ -1027,12 +1052,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
         sb.append(projectionContexts.size());
         sb.append(" projections, ");
-        try {
-            Collection<ObjectDelta<? extends ObjectType>> allChanges = getAllChanges();
-            sb.append(allChanges.size());
-        } catch (SchemaException e) {
-            sb.append("[ERROR]");
-        }
+        sb.append(getAllChanges());
         sb.append(" changes, ");
         sb.append("fresh=").append(isFresh);
         sb.append(", reqAutz=").append(isRequestAuthorized);
@@ -1093,7 +1113,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, "Deleted/unlinked resource objects",
                     historicResourceObjects.toString(), indent + 1); // temporary
-                                                                        // impl
+            // impl
         }
 
         return sb.toString();
@@ -1149,7 +1169,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             sb.append("global ");
         }
         sb.append("rule: ").append(rule.toShortString());
-        dumpTriggersCollection(indent+2, sb, rule.getTriggers());
+        dumpTriggersCollection(indent + 2, sb, rule.getTriggers());
         for (PolicyExceptionType exc : rule.getPolicyExceptions()) {
             sb.append("\n");
             DebugUtil.indentDebugDump(sb, indent + 2);
@@ -1252,10 +1272,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     /**
      * 'reduced' means
      * - no full object values (focus, shadow).
-     *
+     * <p>
      * This mode is to be used for re-starting operation after primary-stage approval (here all data are re-loaded; maybe
      * except for objectOld, but let's neglect it for the time being).
-     *
+     * <p>
      * It is also to be used for the FINAL stage, where we need the context basically for information about executed deltas.
      */
     public LensContextType toLensContextType(ExportType exportType) throws SchemaException {
@@ -1309,7 +1329,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         return rv;
     }
 
-    @SuppressWarnings({"unchecked", "raw"})
+    @SuppressWarnings({ "unchecked", "raw" })
     public static LensContext fromLensContextType(LensContextType lensContextType, PrismContext prismContext,
             ProvisioningService provisioningService, Task task, OperationResult parentResult)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, ExpressionEvaluationException {
@@ -1385,7 +1405,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (delta != null && delta.getObjectTypeClass() != null
                 && (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())
-                        || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
+                || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
             // TODO exception can be thrown here (MID-4391) e.g. if resource does not exist any more; consider what to do
             // Currently we are on the safe side by making whole conversion fail
             getProvisioningService().applyDefinition(delta, task, result);
@@ -1534,7 +1554,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     }
 
     public boolean hasProjectionChange() {
-        for (LensProjectionContext projectionContext: getProjectionContexts()) {
+        for (LensProjectionContext projectionContext : getProjectionContexts()) {
             if (projectionContext.getWave() != getExecutionWave()) {
                 continue;
             }
@@ -1549,15 +1569,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             }
         }
         return false;
-    }
-
-    public void deleteSecondaryDeltas() {
-        if (focusContext != null) {
-            focusContext.deleteSecondaryDeltas();
-        }
-        for (LensProjectionContext projectionContext : projectionContexts) {
-            projectionContext.deleteSecondaryDeltas();
-        }
     }
 
     public SecurityPolicyType getGlobalSecurityPolicy() {
@@ -1693,5 +1704,26 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public boolean hasFocusOfType(Class<? extends ObjectType> type) {
         return focusContext != null && focusContext.isOfType(type);
+    }
+
+    public void resetDeltasAfterExecution() {
+        if (focusContext != null) {
+            focusContext.resetDeltasAfterExecution();
+        }
+        // nothing like this for projections (yet)
+    }
+
+    // TEMPORARY!!!
+    public boolean itemDeltaExists(ItemPath path) {
+        return focusContext != null && focusContext.itemDeltaExists(path);
+    }
+
+    public void deleteSecondaryDeltas() {
+        if (focusContext != null) {
+            focusContext.deleteSecondaryDeltas();
+        }
+        for (LensProjectionContext projectionContext : projectionContexts) {
+            projectionContext.deleteSecondaryDeltas();
+        }
     }
 }

@@ -69,8 +69,8 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 
     void evaluate() throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException, PolicyViolationException, ObjectNotFoundException {
         assert ctx.assignmentPath.last() == segment;
-        assert segment.getAssignmentRelativityMode() != null;
-        assert segment.isAssignmentValid() || segment.direct;
+        assert segment.getOverallConditionState().isNotAllFalse();
+        assert segment.isAssignmentActive() || segment.direct;
 
         checkIfAlreadyEvaluated();
 
@@ -118,7 +118,7 @@ class TargetsEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
 //        boolean resolvedTargets = false;
         // TODO CLEAN THIS UP
         // Important: but we still want this to be reflected in roleMembershipRef
-        if (segment.isNonNegativeRelativityMode() && Util.shouldCollectMembership(segment)) {
+        if (segment.isNonNegativeRelativeRelativityMode() && Util.shouldCollectMembership(segment)) {
             if (segment.assignment.getTargetRef().getOid() != null) {
                 ctx.membershipCollector.collect(segment.assignment.getTargetRef(), segment.relation);
             } else {

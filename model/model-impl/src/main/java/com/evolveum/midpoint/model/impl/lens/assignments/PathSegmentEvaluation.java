@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FocusTypeUtil;
@@ -80,13 +79,13 @@ class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEva
 
             ctx.assignmentPath.add(segment);
             try {
-                LOGGER.trace("*** Path (with current segment added):\n{}", ctx.assignmentPath.debugDumpLazily());
-
-                computeValidity();
-                computeMode();
+                computeActivity();
+                computeConditionState();
                 segment.freeze();
 
-                if (segment.getAssignmentRelativityMode() != null) {
+                traceComputedState();
+
+                if (segment.getOverallConditionState().isNotAllFalse()) {
                     // Note that we evaluate payload and targets for both valid and invalid assignments.
                     // 1. Validity and relativity mode is recorded to several kinds of payload items (e.g. constructions).
                     // 2. Other ones (e.g. policy rules) are very important also for invalid assignments.
@@ -110,19 +109,19 @@ class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEva
 
         new PayloadEvaluation<>(segment, ctx).evaluate();
 
-        if (segment.isAssignmentValid() || segment.direct) {
+        if (segment.isAssignmentActive() || segment.direct) {
             targetsEvaluation = new TargetsEvaluation<>(segment, ctx, result);
             targetsEvaluation.evaluate();
         }
     }
 
-    private void computeValidity() {
-        boolean validity;
+    private void computeActivity() {
+        boolean active;
         if (segment.isMatchingOrder) {
             // Validity of segment that is sourced at focus (either directly or indirectly i.e. through inducements)
             // is determined using focus lifecycle state model.
-            AH focusNew = ctx.ae.focusOdo.getNewObject().asObjectable();
-            validity = LensUtil.isAssignmentValid(focusNew, segment.assignment, ctx.ae.now, ctx.ae.activationComputer, ctx.ae.focusStateModel);
+            AH focusNew = ctx.ae.focusOdoAbsolute.getNewObject().asObjectable();
+            active = LensUtil.isAssignmentValid(focusNew, segment.assignment, ctx.ae.now, ctx.ae.activationComputer, ctx.ae.focusStateModel);
         } else {
             // But for other assignments/inducements we consider their validity by regarding their actual source.
             // So, even if (e.g.) focus is in "draft" state, only validity of direct assignments should be influenced by this fact.
@@ -130,23 +129,35 @@ class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEva
             // in active lifecycle states. See also MID-6113.
             //
             // TODO We should consider the assignment source's state model! But we are ignoring it for now.
-            validity = LensUtil.isAssignmentValid(segment.source, segment.assignment, ctx.ae.now, ctx.ae.activationComputer, null);
+            active = LensUtil.isAssignmentValid(segment.source, segment.assignment, ctx.ae.now, ctx.ae.activationComputer, null);
         }
-        segment.setAssignmentValid(validity);
-        LOGGER.trace("Determined validity of segment {} to be {}", segment, validity);
+        segment.setAssignmentActive(active);
+        LOGGER.trace("Determined activity of assignment in {} to be {}", segment, active);
     }
 
-    private void computeMode() throws CommunicationException, ObjectNotFoundException, SchemaException,
+    private void computeConditionState() throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        segment.setAssignmentRelativityMode(determineRelativityMode());
+        segment.setAssignmentConditionState(determineAssignmentConditionState());
+        segment.setOverallConditionState(
+                ConditionState.merge(segment.pathToSourceConditionState, segment.getAssignmentConditionState()));
     }
 
     private AssignmentSegmentEvaluationTraceType recordStart() {
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("*** Evaluate segment: {}", segment);
-            LOGGER.trace("*** Evaluation order - standard:   {}, matching: {}", segment.getEvaluationOrder(), segment.isMatchingOrder);
-            LOGGER.trace("*** Evaluation order - for target: {}, matching: {}", segment.getEvaluationOrderForTarget(), segment.isMatchingOrderForTarget);
-            LOGGER.trace("*** path to source valid: {}", segment.pathToSourceValid);
+            LOGGER.trace("\n"
+                            + "====================================================================\n"
+                            + "            Starting assignment path segment evaluation\n"
+                            + "====================================================================\n"
+                            + "\n"
+                            + "Segment:                        {}\n"
+                            + "Standard order ({}):  {}\n"
+                            + "Target order   ({}):  {}\n"
+                            + "Path to source active:          {}\n"
+                            + "Path to source condition state: {}\n",
+                    segment,
+                    getMatchingText(segment.isMatchingOrder), segment.getEvaluationOrder(),
+                    getMatchingText(segment.isMatchingOrderForTarget), segment.getEvaluationOrderForTarget(),
+                    segment.pathToSourceActive, segment.pathToSourceConditionState);
         }
         if (result.isTracingNormal(AssignmentSegmentEvaluationTraceType.class)) {
             AssignmentSegmentEvaluationTraceType trace = new AssignmentSegmentEvaluationTraceType(ctx.ae.prismContext)
@@ -158,15 +169,37 @@ class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEva
         }
     }
 
+    private void traceComputedState() {
+        LOGGER.trace("\n"
+                        + "--------------------------------------------------------------------\n"
+                        + "              Computed assignment path segment state\n"
+                        + "--------------------------------------------------------------------\n"
+                        + "\n"
+                        + "{}\n\n"
+                        + "Assignment active:                           {}\n"
+                        + "Assignment condition state:                  {}\n"
+                        + "Overall source + assignment condition state: {}\n\n",
+                ctx.assignmentPath.debugDumpLazily(),
+                segment.isAssignmentActive(),
+                segment.getAssignmentConditionState(),
+                segment.getOverallConditionState());
+    }
+
+
+    private String getMatchingText(boolean matching) {
+        return matching ?
+                "matching    " :
+                "not matching";
+    }
+
     private void recordEnd() {
         if (segment.target != null) { // always null here
             result.addContext("segmentTargetName", PolyString.getOrig(segment.getTarget().getName()));
         }
-        result.addReturn("assignmentValid", segment.isAssignmentValid());
-        result.addArbitraryObjectAsReturn("mode", segment.getAssignmentRelativityMode());
-        //result.addReturn("isValid", valid);
+        result.addReturn("assignmentActive", segment.isAssignmentActive());
+        result.addReturn("overallConditionState", String.valueOf(segment.getOverallConditionState()));
         if (trace != null) {
-            trace.setMode(PlusMinusZeroType.fromValue(segment.getAssignmentRelativityMode()));
+            trace.setMode(PlusMinusZeroType.fromValue(segment.getAbsoluteAssignmentRelativityMode())); // TODO
             trace.setTextResult(segment.debugDump());
         }
     }
@@ -210,11 +243,10 @@ class PathSegmentEvaluation<AH extends AssignmentHolderType> extends AbstractEva
         return targetsEvaluation != null ? targetsEvaluation.targets : emptyList();
     }
 
-    private PlusMinusZero determineRelativityMode()
+    private ConditionState determineAssignmentConditionState()
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException,
             ConfigurationException, CommunicationException {
-        return ctx.conditionEvaluator.computeModeFromCondition(
-                segment.sourceRelativityMode,
+        return ctx.conditionEvaluator.computeConditionState(
                 segment.assignment.getCondition(),
                 segment.source,
                 "condition in assignment in " + segment.sourceDescription,

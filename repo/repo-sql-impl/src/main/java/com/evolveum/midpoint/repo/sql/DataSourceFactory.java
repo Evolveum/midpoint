@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,19 +7,20 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.jndi.JndiObjectFactoryBean;
-
+import java.io.Closeable;
+import java.io.IOException;
 import javax.annotation.PreDestroy;
 import javax.naming.NamingException;
 import javax.sql.DataSource;
-import java.io.Closeable;
-import java.io.IOException;
+
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.jndi.JndiObjectFactoryBean;
+
+import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -28,17 +29,18 @@ public class DataSourceFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(DataSourceFactory.class);
 
-    private SqlRepositoryConfiguration configuration;
+    private final SqlRepositoryConfiguration configuration;
 
-    private DataSource internalDataSource;
+    private boolean internalDataSource = false;
+
     private DataSource dataSource;
 
-    public SqlRepositoryConfiguration getConfiguration() {
-        return configuration;
+    public DataSourceFactory(SqlRepositoryConfiguration configuration) {
+        this.configuration = configuration;
     }
 
-    public void setConfiguration(SqlRepositoryConfiguration configuration) {
-        this.configuration = configuration;
+    public SqlRepositoryConfiguration configuration() {
+        return configuration;
     }
 
     public DataSource createDataSource() throws RepositoryServiceFactoryException {
@@ -50,11 +52,11 @@ public class DataSourceFactory {
         try {
             if (StringUtils.isNotEmpty(configuration.getDataSource())) {
                 LOGGER.info("JNDI datasource present in configuration, looking for '{}'.", configuration.getDataSource());
-                dataSource = createJNDIDataSource();
+                dataSource = createJndiDataSource();
             } else {
                 LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}", configuration.getJdbcUrl());
-                internalDataSource = createDataSourceInternal();
-                dataSource = internalDataSource;
+                dataSource = createDataSourceInternal();
+                internalDataSource = true;
             }
             return dataSource;
         } catch (Exception ex) {
@@ -66,14 +68,14 @@ public class DataSourceFactory {
         return dataSource;
     }
 
-    private DataSource createJNDIDataSource() throws IllegalArgumentException, NamingException {
+    private DataSource createJndiDataSource() throws IllegalArgumentException, NamingException {
         JndiObjectFactoryBean factory = new JndiObjectFactoryBean();
         factory.setJndiName(configuration.getDataSource());
         factory.afterPropertiesSet();
         return (DataSource) factory.getObject();
     }
 
-    private HikariConfig createConfig() {
+    private HikariConfig createHikariConfig() {
         HikariConfig config = new HikariConfig();
 
         config.setDriverClassName(configuration.getDriverClassName());
@@ -95,7 +97,6 @@ public class DataSourceFactory {
         }
 
         config.setIsolateInternalQueries(true);
-//        config.setAutoCommit(false);
 
         TransactionIsolation ti = configuration.getTransactionIsolation();
         if (ti != null && TransactionIsolation.SNAPSHOT != ti) {
@@ -106,15 +107,6 @@ public class DataSourceFactory {
             config.addDataSourceProperty("cachePrepStmts", "true");
             config.addDataSourceProperty("prepStmtCacheSize", "250");
             config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
-
-//            config.addDataSourceProperty("useServerPrepStmts", "true");
-//            config.addDataSourceProperty("useLocalSessionState", "true");
-//            config.addDataSourceProperty("useLocalTransactionState", "true");
-//            config.addDataSourceProperty("rewriteBatchedStatements", "true");
-//            config.addDataSourceProperty("cacheResultSetMetadata", "true");
-//            config.addDataSourceProperty("cacheServerConfiguration", "true");
-//            config.addDataSourceProperty("elideSetAutoCommits", "true");
-//            config.addDataSourceProperty("maintainTimeStats", "false");
         }
 
         config.setInitializationFailTimeout(configuration.getInitializationFailTimeout());
@@ -123,15 +115,15 @@ public class DataSourceFactory {
     }
 
     private DataSource createDataSourceInternal() {
-        HikariConfig config = createConfig();
+        HikariConfig config = createHikariConfig();
 
         return new HikariDataSource(config);
     }
 
     @PreDestroy
     public void destroy() throws IOException {
-        if (internalDataSource instanceof Closeable) {
-            ((Closeable) internalDataSource).close();
+        if (internalDataSource && dataSource instanceof Closeable) {
+            ((Closeable) dataSource).close();
         }
     }
 }

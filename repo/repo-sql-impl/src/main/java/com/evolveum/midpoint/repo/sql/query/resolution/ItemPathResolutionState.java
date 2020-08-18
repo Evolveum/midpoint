@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.sql.query.resolution;
 
+import java.util.Objects;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -16,33 +18,31 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.Validate;
 
 /**
  * Describes current state in ItemPath resolution.
- *
+ * <p>
  * We know what remains to be resolved.
  * We know the HQL item we are pointing to.
  * We know last transition - how we got here.
- *
+ * <p>
  * This object is unmodifiable.
- *
- * @author mederly
  */
 public class ItemPathResolutionState implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemPathResolutionState.class);
 
-    final private ItemPath remainingItemPath;
-    final private HqlDataInstance hqlDataInstance;
-    final private JpaLinkDefinition lastTransition;                   // how we got here (optional)
+    private final ItemPath remainingItemPath;
+    private final HqlDataInstance hqlDataInstance;
+    private final JpaLinkDefinition lastTransition; // how we got here (optional)
 
-    final private ItemPathResolver itemPathResolver;                // provides auxiliary functionality
+    private final ItemPathResolver itemPathResolver; // provides auxiliary functionality
 
     ItemPathResolutionState(ItemPath pathToResolve, HqlDataInstance hqlDataInstance, ItemPathResolver itemPathResolver) {
-        Validate.notNull(pathToResolve, "pathToResolve");
-        Validate.notNull(hqlDataInstance, "hqlDataInstance");
-        Validate.notNull(itemPathResolver, "itemPathResolver");
+        Objects.requireNonNull(pathToResolve, "pathToResolve");
+        Objects.requireNonNull(hqlDataInstance, "hqlDataInstance");
+        Objects.requireNonNull(itemPathResolver, "itemPathResolver");
+
         this.remainingItemPath = pathToResolve;
         this.hqlDataInstance = hqlDataInstance;
         this.lastTransition = null;
@@ -59,7 +59,7 @@ public class ItemPathResolutionState implements DebugDumpable {
 
     /**
      * Executes transition to next state. Modifies query context by adding joins as necessary.
-     *
+     * <p>
      * Precondition: !isFinal()
      * Precondition: adequate transition exists
      *
@@ -83,7 +83,7 @@ public class ItemPathResolutionState implements DebugDumpable {
         DataSearchResult<?> result = hqlDataInstance.getJpaDefinition().nextLinkDefinition(remainingItemPath, itemDefinition, prismContext);
         LOGGER.trace("nextLinkDefinition on '{}' returned '{}'", remainingItemPath, result != null ? result.getLinkDefinition() : "(null)");
         if (result == null) {       // sorry we failed (however, this should be caught before -> so IllegalStateException)
-            throw new IllegalStateException("Couldn't find '" + remainingItemPath + "' in " + hqlDataInstance.getJpaDefinition() +", looks like item can't be used in search.");
+            throw new IllegalStateException("Couldn't find '" + remainingItemPath + "' in " + hqlDataInstance.getJpaDefinition() + ", looks like item can't be used in search.");
         }
         JpaLinkDefinition linkDefinition = result.getLinkDefinition();
         String newHqlPath;

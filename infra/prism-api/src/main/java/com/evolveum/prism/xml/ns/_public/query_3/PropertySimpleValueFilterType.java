@@ -72,15 +72,19 @@ public class PropertySimpleValueFilterType
         extends FilterClauseType
         implements Serializable, Cloneable, Equals, HashCode {
 
-    private final static long serialVersionUID = 201105211233L;
+    private static final long serialVersionUID = 201105211233L;
+
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "PropertySimpleValueFilterType");
+    public static final QName F_VALUE = new QName(PrismConstants.NS_QUERY, "value");
+
     @XmlAnyElement
     protected Element property;
+
     @Raw
     protected Object value;
+
     @XmlAnyElement(lax = true)
     protected Object any;
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "PropertySimpleValueFilterType");
-    public final static QName F_VALUE = new QName(PrismConstants.NS_QUERY, "value");
 
     /**
      * Creates a new {@code PropertySimpleValueFilterType} instance.

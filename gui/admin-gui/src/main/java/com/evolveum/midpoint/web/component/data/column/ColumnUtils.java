@@ -607,10 +607,7 @@ public class ColumnUtils {
 
                                 @Override
                                 public void onClick(AjaxRequestTarget target) {
-                                    CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
-                                    CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-
-                                    dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
+                                    dispatchToObjectDetailsPage(assigneeRef, pageBase, false);
                                 }
                             };
                             assigneeLinkPanel.setOutputMarkupId(true);

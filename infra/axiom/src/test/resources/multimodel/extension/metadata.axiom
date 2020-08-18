@@ -1,0 +1,12 @@
+model example-metadata {
+    namespace "https://example.org/metadata";
+
+    metadata ExampleMetadata {
+
+        item modified {
+            type String;
+        }
+
+    }
+
+}

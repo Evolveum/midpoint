@@ -1013,7 +1013,7 @@ public class ResourceObjectConverter {
         }
         Comparator comparator = (Comparator<PrismPropertyValue<?>>) (o1, o2) -> {
             //noinspection unchecked
-            if (o1.equals(o2, EquivalenceStrategy.IGNORE_METADATA, matchingRule)) {
+            if (o1.equals(o2, EquivalenceStrategy.REAL_VALUE, matchingRule)) {
                 return 0;
             } else {
                 return 1;

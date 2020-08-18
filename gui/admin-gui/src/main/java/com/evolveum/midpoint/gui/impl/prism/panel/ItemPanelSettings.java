@@ -6,11 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import java.io.Serializable;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-
-import java.io.Serializable;
 
 public class ItemPanelSettings implements Serializable {
 

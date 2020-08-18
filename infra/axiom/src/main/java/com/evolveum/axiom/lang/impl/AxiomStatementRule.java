@@ -11,7 +11,7 @@ import com.evolveum.axiom.api.AxiomItem;
 import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomTypeDefinition;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.lang.spi.AxiomSemanticException;
 import com.evolveum.axiom.reactor.Dependency;
 
@@ -31,7 +31,7 @@ public interface AxiomStatementRule<V> {
 
         AxiomItemDefinition itemDefinition();
 
-        Dependency<NamespaceContext> namespace(AxiomName name, IdentifierSpaceKey namespaceId);
+        Dependency<NamespaceContext> namespace(AxiomName name, AxiomValueIdentifier namespaceId);
 
         <T> Dependency<AxiomItem<T>> child(AxiomItemDefinition item, Class<T> valueType);
 
@@ -39,15 +39,15 @@ public interface AxiomStatementRule<V> {
 
         <T> Dependency<AxiomValue<T>> onlyItemValue(AxiomItemDefinition item, Class<T> valueType);
 
-        Dependency<AxiomValueContext<?>> modify(AxiomName identifierSpace, IdentifierSpaceKey identifier);
+        Dependency<AxiomValueContext<?>> modify(AxiomName identifierSpace, AxiomValueIdentifier identifier);
 
         Dependency<AxiomValueContext<?>> modify();
 
-        Dependency.Search<AxiomValue<?>> global(AxiomName identifierSpace, IdentifierSpaceKey identifier);
+        Dependency.Search<AxiomValue<?>> global(AxiomName identifierSpace, AxiomValueIdentifier identifier);
 
-        Dependency.Search<AxiomValueReference<?>> reference(AxiomName identifierSpace, IdentifierSpaceKey identifier);
+        Dependency.Search<AxiomValueReference<?>> reference(AxiomName identifierSpace, AxiomValueIdentifier identifier);
 
-        Dependency.Search<AxiomValue<?>> namespaceValue(AxiomName space, IdentifierSpaceKey itemName);
+        Dependency.Search<AxiomValue<?>> namespaceValue(AxiomName space, AxiomValueIdentifier itemName);
 
         Dependency<V> finalValue();
 
@@ -91,13 +91,13 @@ public interface AxiomStatementRule<V> {
 
         Optional<V> optionalValue();
 
-        Search<AxiomItemValue<?>> requireGlobal(AxiomIdentifier space, IdentifierSpaceKey key);
+        Search<AxiomItemValue<?>> requireGlobal(AxiomIdentifier space, AxiomValueIdentifier key);
 
         Dependency<AxiomItemValue<?>> requireChild(AxiomItemDefinition required);
 
-        Dependency<NamespaceContext> requireNamespace(AxiomIdentifier name, IdentifierSpaceKey namespaceId);
+        Dependency<NamespaceContext> requireNamespace(AxiomIdentifier name, AxiomValueIdentifier namespaceId);
 
-        Dependency<AxiomValueContext<?>> modify(AxiomIdentifier identifierSpace, IdentifierSpaceKey identifier);
+        Dependency<AxiomValueContext<?>> modify(AxiomIdentifier identifierSpace, AxiomValueIdentifier identifier);
 
         Dependency<AxiomItemValue<?>> require(AxiomValueContext<?> ext);*/
     }

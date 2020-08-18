@@ -12,6 +12,7 @@ import java.util.function.Supplier;
 import com.evolveum.midpoint.gui.impl.component.ContainerListPanel;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -208,6 +209,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends ContainerLis
             query = getPrismContext().queryFactory().createQuery();
         }
         query.addFilter(view.getFilter());
+        OperationResult result = new OperationResult(DOT_CLASS + "evaluateExpressionsInFilter");
+        query.addFilter(WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, getPageBase()));
         return query;
 
     }

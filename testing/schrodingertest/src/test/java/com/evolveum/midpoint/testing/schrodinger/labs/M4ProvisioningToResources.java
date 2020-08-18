@@ -26,10 +26,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
 import java.io.File;
+import java.io.IOException;
 
 /**
  * @author skublik
@@ -43,7 +45,6 @@ public class M4ProvisioningToResources extends AbstractLabTest {
     private static final File CSV_3_RESOURCE_FILE_4_2 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-4-2.xml");
     private static final File CSV_1_RESOURCE_FILE_4_3 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-1-document-access-4-3.xml");
     private static final File CSV_3_RESOURCE_FILE_4_4 = new File(LAB_OBJECTS_DIRECTORY + "resources/localhost-csvfile-3-ldap-4-4.xml");
-
 
     @Test(groups={"M4"}, dependsOnGroups={"M3"})
     public void mod04test01BasicProvisioningToMultipleResources() {
@@ -153,7 +154,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                             .clickSearchInResource()
                                 .table()
                                     .search()
-                                        .byItem("Distinguished Name")
+                                        .byItemName("Distinguished Name")
                                             .inputValue("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                                         .updateSearch()
                                         .and()
@@ -163,7 +164,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                 .selectTabProjections()
                     .table()
                         .search()
-                            .byItem("Resource")
+                            .byItemName("Resource")
                                 .inputRefOid("10000000-9999-9999-0000-a000ff000003")
                             .updateSearch()
                         .and()
@@ -278,7 +279,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                         .selectTabProjections()
                             .table()
                                 .search()
-                                    .byItem("Name")
+                                    .byItemName("Name")
                                         .inputValue("jim tiberius kirk")
                                         .updateSearch()
                                     .and())
@@ -305,7 +306,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                 .selectTabProjections()
                     .table()
                         .search()
-                            .byItem("Name")
+                            .byItemName("Name")
                                 .inputValue(accountName)
                             .updateSearch()
                         .and())

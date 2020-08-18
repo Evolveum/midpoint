@@ -6,18 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.util.exception.SchemaException;
-
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author katka
@@ -29,10 +28,6 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
     private static final String ID_HEADER = "header";
 
-    /**
-     * @param id
-     * @param model
-     */
     public PrismContainerPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
@@ -54,7 +49,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
     @Override
     protected Component createHeaderPanel() {
-        return new PrismContainerHeaderPanel(ID_HEADER, getModel()) {
+        return new PrismContainerHeaderPanel<C>(ID_HEADER, getModel()) {
             @Override
             protected void onExpandClick(AjaxRequestTarget target) {
                 PrismContainerWrapper<C> wrapper = PrismContainerPanel.this.getModelObject();
@@ -79,7 +74,8 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
     @Override
     protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
-        PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> panel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), getSettings().copy()) {
+        ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
+        PrismContainerValuePanel<C, PrismContainerValueWrapper<C>> panel = new PrismContainerValuePanel<C, PrismContainerValueWrapper<C>>("value", item.getModel(), settings) {
 
             @Override
             protected void removeValue(PrismContainerValueWrapper<C> valueToRemove, AjaxRequestTarget target) throws SchemaException {
@@ -90,6 +86,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
         return panel;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     protected <PV extends PrismValue> PV createNewValue(PrismContainerWrapper<C> itemWrapper) {
         return (PV) itemWrapper.getItem().createNewValue();

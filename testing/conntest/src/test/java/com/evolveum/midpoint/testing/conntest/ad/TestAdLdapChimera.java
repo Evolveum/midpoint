@@ -18,18 +18,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
- * @author semancik
+ * Old "chimera/hydra" servers in Lozorno. DEPRECATED.
  *
+ * @author semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-conntest-test-main.xml"})
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
-
-    @Override
-    protected String getResourceOid() {
-        return "eced6d24-73e3-11e5-8457-93eff15a6b85";
-    }
 
     @Override
     protected File getResourceFile() {
@@ -42,8 +38,18 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
     }
 
     @Override
-    protected int getLdapServerPort() {
-        return 636;
+    protected String getLdapSubServerHost() {
+        return "hydra.ad.evolveum.com";
+    }
+
+    @Override
+    protected String getLdapSuffix() {
+        return "DC=ad,DC=evolveum,DC=com";
+    }
+
+    @Override
+    protected String getLdapSubSuffix() {
+        return "DC=sub,DC=ad,DC=evolveum,DC=com";
     }
 
     @Override
@@ -57,6 +63,11 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
     }
 
     @Override
+    protected int getNumberOfAllAccounts() {
+        return 18;
+    }
+
+    @Override
     protected void assertAccountDisabled(PrismObject<ShadowType> shadow) {
         assertAdministrativeStatus(shadow, ActivationStatusType.DISABLED);
     }
@@ -66,4 +77,28 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
         assertAdministrativeStatus(shadow, ActivationStatusType.ENABLED);
     }
 
+    @Override
+    protected String getAccountJackSid() {
+        return "S-1-5-21-3305462238-3617280118-659738602-4878";
+    }
+
+    @Override
+    protected boolean hasExchange() {
+        return true;
+    }
+
+    @Override
+    protected boolean isVagueTest() {
+        return true;
+    }
+
+    @Override
+    protected int getNormalNumberOfLdapConnectorInstances() {
+        return 2;
+    }
+
+    @Override
+    protected String getExpected182FirstShadow() {
+        return "CN=Adolf Supperior,"+getPeopleLdapSuffix();
+    }
 }

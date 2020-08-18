@@ -38,7 +38,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
 import org.apache.commons.lang.StringUtils;
@@ -621,5 +620,9 @@ public class ObjectImporter {
         }
     }
 
+    public void importObject(PrismObject object, ImportOptionsType options, Task task, OperationResult result) {
+
+        importParsedObject(object, result, options, task);
+    }
 }
 

@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.story;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
@@ -14,11 +15,10 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.assertNoRepoThread
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -34,7 +34,6 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -63,7 +62,6 @@ import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.asserter.ShadowReferenceAsserter;
 import com.evolveum.midpoint.test.asserter.UserAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
-import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
@@ -262,6 +260,12 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
     }
 
+//    @Override
+//    protected TracingProfileType getTestMethodTracingProfile() {
+//        return createModelAndProvisioningLoggingTracingProfile()
+//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+//    }
+
     /**
      * Initialize embedded OpenDJ instance Note: this is not in the abstract
      * superclass so individual tests may avoid starting OpenDJ.
@@ -403,8 +407,13 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         PrismObject<ShadowType> jackFromRepo = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
         display("account jack after provisioning", jackFromRepo);
 
-        ReferenceDelta linkRefDelta = prismContext.deltaFactory().reference().createModificationAdd(UserType.class, UserType.F_LINK_REF, ObjectTypeUtil.createObjectRef(jackieAccount, SchemaConstants.ORG_DEFAULT).asReferenceValue());
-        repositoryService.modifyObject(UserType.class, USER_JACK_OID, Arrays.asList(linkRefDelta), parentResult);
+        ReferenceDelta linkRefDelta =
+                prismContext.deltaFactory().reference().createModificationAdd(
+                        UserType.class, UserType.F_LINK_REF,
+                        ObjectTypeUtil.createObjectRef(jackieAccount, SchemaConstants.ORG_DEFAULT)
+                                .asReferenceValue());
+        repositoryService.modifyObject(UserType.class, USER_JACK_OID,
+                Collections.singletonList(linkRefDelta), parentResult);
 
         // Check if user object was modified in the repo
         assertUserOneAccountRef(USER_JACK_OID);
@@ -491,8 +500,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         OperationResult parentResult = new OperationResult("Add account already exist linked");
 
-        // GIVEN
-        //adding user jakie. we already have user jack with the account identifier jackie.
+        given("User jackie added, previous user jack already having the account identifier jackie.");
         assertNoRepoThreadLocalCache();
         addObject(USER_JACKIE_FILE, task, parentResult);
         PrismObject<UserType> userJackieBefore = getUser(USER_JACKIE_OID);
@@ -503,22 +511,22 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertLinks(1)
                 .links()
                 .link(ACCOUNT_JACKIE_OID);
-//        //check if the jackie account already exists on the resource
+        //check if the jackie account already exists on the resource
 
         PrismObject<ShadowType> existingJackieAccount = getShadowRepo(ACCOUNT_JACKIE_OID);
         display("Jack's account: ", existingJackieAccount);
 
-        // WHEN
+        when("Adding account on the resource to user jackie...");
         assignAccountToUser(USER_JACKIE_OID, RESOURCE_OPENDJ_OID, "internal");
 
-        // THEN
-        //expected thet the dn and ri:uid will be jackie1 because jackie already exists and is liked to another user..
+        then("The dn and ri:uid will be jackie1 because jackie already exists and is liked to another user");
         PrismObject<UserType> userJackieAfter = getUser(USER_JACKIE_OID);
         UserAsserter.forUser(userJackieAfter)
                 .assertLinks(1);
 
         ObjectReferenceType linkRef = userJackieAfter.asObjectable().getLinkRef().iterator().next();
-        assertFalse("Wrong account linked", ACCOUNT_JACKIE_OID.equals(linkRef.getOid()));
+        assertThat(linkRef.getOid()).withFailMessage("Wrong account linked")
+                .isNotEqualTo(ACCOUNT_JACKIE_OID);
 
         PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
         ShadowAsserter.forShadow(shadow)
@@ -541,7 +549,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     @Test
     public void test122AddAccountAlreadyExistUnlinked() throws Exception {
-        // GIVEN
+        given();
         OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_FILE);
         Entry searchResult = openDJController.searchByUid("wturner");
@@ -561,14 +569,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance();
 
-        //WHEN
         when();
         assignAccount(UserType.class, USER_WILL_OID, RESOURCE_OPENDJ_OID, null, task, parentResult);
 
-        // THEN
         then();
         String accountOid = checkUser(USER_WILL_OID, task, parentResult);
-//        MidPointAsserts.assertAssignments(user, 1);
 
         PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class,
                 accountOid, null, task, parentResult);
@@ -581,7 +586,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String identifier = attributes.getPrimaryIdentifier().getRealValue(String.class);
 
         openDJController.searchAndAssertByEntryUuid(identifier);
-
     }
 
     //MID-1595, MID-1577
@@ -825,7 +829,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         String newShadowOid = getLinkRefOid(USER_GUYBRUSH_NOT_FOUND_OID, RESOURCE_OPENDJ_OID);
 
-        assertFalse("Unexpected that new and old shadows have the same oid", ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID.equals(newShadowOid));
+        assertThat(newShadowOid)
+                .withFailMessage("Unexpected that new and old shadows have the same oid")
+                .isNotEqualTo(ACCOUNT_GUYBRUSH_MODIFY_DELETE_OID);
 
         PrismObject<ShadowType> accountAfter = getShadowModel(newShadowOid);
         assertNotNull(accountAfter);
@@ -903,7 +909,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         PrismObject<ShadowType> repoShadowBefore = getShadowRepo(linkRef.getOid());
         assertNotNull("Repo shadow is gone!", repoShadowBefore);
         display("Repository shadow before", repoShadowBefore);
-        assertTrue("Oh my! Shadow is dead!", repoShadowBefore.asObjectable().isDead() != Boolean.TRUE);
+        assertNotSame("Oh my! Shadow is dead!", repoShadowBefore.asObjectable().isDead(), Boolean.TRUE);
 
         // WHEN
         when();
@@ -920,7 +926,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertLinks(1);
 
         ObjectReferenceType linkRefAfter = userAfter.asObjectable().getLinkRef().iterator().next();
-        assertFalse("Old and new shadow with the same oid?", linkRef.getOid().equals(linkRefAfter.getOid()));
+        assertThat(linkRef.getOid()).withFailMessage("Old and new shadow with the same oid?")
+                .isNotEqualTo(linkRefAfter.getOid());
 
         PrismObject<ShadowType> shadowAfter = getShadowModel(linkRefAfter.getOid());
         display("Shadow after", shadowAfter);
@@ -969,7 +976,8 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         ObjectReferenceType linkRefAfter = userAfter.asObjectable().getLinkRef().iterator().next();
         String shadowOidAfter = linkRefAfter.getOid();
-        assertFalse("Old and new shadow with the same oid?", shadowOidBefore.equals(shadowOidAfter));
+        assertThat(shadowOidBefore).withFailMessage("Old and new shadow with the same oid?")
+                .isNotEqualTo(shadowOidAfter);
 
         PrismObject<ShadowType> shadowAfter = getShadowModel(shadowOidAfter);
         display("Shadow after", shadowAfter);
@@ -1009,10 +1017,10 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     }
 
     @Test
-    public void test200StopOpenDj() throws Exception {
+    public void test200StopOpenDj() {
         openDJController.stop();
 
-        assertEquals("Resource is running", false, EmbeddedUtils.isRunning());
+        assertFalse("Resource is running", EmbeddedUtils.isRunning());
     }
 
     @Test
@@ -1067,7 +1075,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 //        checkPostponedAccountWithAttributes(accountOid, "e", "e", "e", "e", FailedOperationTypeType.ADD, false, task, parentResult);
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void test212AddModifyObjectCommunicationProblem() throws Exception {
         // GIVEN
@@ -2391,7 +2398,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         PrismObject<UserType> user = repositoryService.getObject(UserType.class, USER_MORGAN_OID, null, result);
         display("User Morgan: ", user);
-        PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
 
         ExpressionType expression = new ExpressionType();
         ObjectFactory of = new ObjectFactory();
@@ -2438,11 +2444,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         provisioningService.applyDefinition(accountShadow, task, result);
-        assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+        assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
 
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
+        assertShadowModel(accountModel, accountOid, "uid=morgan,ou=users,dc=example,dc=com", resourceTypeOpenDjrepo, RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS);
         ResourceAttribute attributes = ShadowUtil.getAttribute(accountModel, new QName(resourceTypeOpenDjrepo.getNamespace(), "uid"));
         assertEquals("morgan", attributes.getAnyRealValue());
         // TODO: check OpenDJ Account
@@ -2679,8 +2685,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
     /**
      * Checks if the resource is internally consistent, if it has everything it
      * should have.
-     *
-     * @throws SchemaException
      */
     private void checkOpenDjResource(ResourceType resource, String source) throws SchemaException {
         assertNotNull("Resource from " + source + " is null", resource);
@@ -2830,11 +2834,9 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertNotNull("User must not be null", user);
         UserType userType = user.asObjectable();
         assertEquals("User must have one link ref, ", 1, userType.getLinkRef().size());
-        MidPointAsserts.assertAssignments(user, 1);
+        assertAssignments(user, 1);
 
-        String accountOid = userType.getLinkRef().get(0).getOid();
-
-        return accountOid;
+        return userType.getLinkRef().get(0).getOid();
     }
 
     private void assertAttributes(ShadowType shadow, String uid, String givenName, String sn, String cn) {
@@ -2872,17 +2874,17 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         return checkPostponedAccountBasic(faieldAccount, modify, parentResult);
     }
 
-    private Collection<ObjectDelta<? extends ObjectType>> createDeltas(Class type, File requestFile, String objectOid) throws IOException, SchemaException, JAXBException {
+    // TODO found as unused in 2020
+    private Collection<ObjectDelta<? extends ObjectType>> createDeltas(
+            Class type, File requestFile, String objectOid)
+            throws IOException, SchemaException {
 
         try {
-            ObjectDeltaType objectChange = unmarshalValueFromFile(requestFile, ObjectDeltaType.class);
+            ObjectDeltaType objectChange = unmarshalValueFromFile(requestFile);
             objectChange.setOid(objectOid);
 
-            ObjectDelta delta = DeltaConvertor.createObjectDelta(objectChange, prismContext);
-
-            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
-
-            return deltas;
+            ObjectDelta<?> delta = DeltaConvertor.createObjectDelta(objectChange, prismContext);
+            return MiscSchemaUtil.createCollection(delta);
         } catch (Exception ex) {
             logger.error("ERROR while unmarshalling", ex);
             throw ex;

@@ -38,7 +38,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     <T extends Containerable> List<PrismContainerWrapper<T>> getContainers();
 
-    List<? extends ItemWrapper<?, ?>> getNonContainers();
+    List<ItemWrapper<?, ?>> getNonContainers();
 
     List<? extends ItemWrapper<?, ?>> getItems();
 
@@ -71,6 +71,9 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     void setVirtualContainerItems(List<VirtualContainerItemSpecificationType> virtualItems);
     boolean isVirtual();
+
+    boolean isMetadata();
+    void setMetadata(boolean metadata);
 
     PrismContainerDefinition<C> getDefinition();
 

@@ -12,13 +12,13 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.PrismPropertyValueImpl;
-import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
@@ -79,9 +79,8 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
 
     public T getAnyRealValue() {
         PrismPropertyValue<T> anyValue = getAnyValue();
-        return anyValue.getValue();
+        return anyValue != null ? anyValue.getValue() : null;
     }
-
 
     public <P extends PrismProperty> P instantiateEmptyProperty() {
         PrismPropertyDefinition propertyDefinition = getPropertyDefinition();
@@ -236,35 +235,6 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
         return (PrismProperty<T>) super.getItemNewMatchingPath(propertyOld);
     }
 
-    @Override
-    public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, boolean assumeMissingItems) {
-        return (PropertyDelta<T>) super.narrow(object, assumeMissingItems);
-    }
-
-    public PropertyDelta<T> narrow(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy,
-            MatchingRule<T> matchingRule, boolean assumeMissingItems) {
-        Comparator<PrismPropertyValue<T>> comparator = (o1, o2) -> {
-            if (o1.equals(o2, strategy, matchingRule)) {
-                return 0;
-            } else {
-                return 1;
-            }
-        };
-        return (PropertyDelta<T>) super.narrow(object, comparator, assumeMissingItems);
-    }
-
-    public boolean isRedundant(PrismObject<? extends Objectable> object, ParameterizedEquivalenceStrategy strategy,
-            MatchingRule<T> matchingRule, boolean assumeMissingItems) {
-        Comparator<PrismPropertyValue<T>> comparator = (o1, o2) -> {
-            if (o1.equals(o2, strategy, matchingRule)) {
-                return 0;
-            } else {
-                return 1;
-            }
-        };
-        return super.isRedundant(object, comparator, assumeMissingItems);
-    }
-
     public static <O extends Objectable,T> PropertyDelta<T> createDelta(ItemPath propertyPath, PrismObjectDefinition<O> objectDefinition) {
         PrismPropertyDefinition propDef = objectDefinition.findPropertyDefinition(propertyPath);
         return new PropertyDeltaImpl<T>(propertyPath, propDef, objectDefinition.getPrismContext());        // hoping the prismContext is there
@@ -384,5 +354,13 @@ public class PropertyDeltaImpl<T extends Object> extends ItemDeltaImpl<PrismProp
 
     public final void addRealValuesToDelete(Collection<T> values) {
         super.addValuesToDelete(PrismValueCollectionsUtil.wrap(getPrismContext(), values));
+    }
+
+    @Override
+    public PropertyDelta<T> narrow(@NotNull PrismObject<? extends Objectable> object,
+            @NotNull Comparator<PrismPropertyValue<T>> plusComparator,
+            @NotNull Comparator<PrismPropertyValue<T>> minusComparator,
+            boolean assumeMissingItems) {
+        return (PropertyDelta<T>) super.narrow(object, plusComparator, minusComparator, assumeMissingItems);
     }
 }

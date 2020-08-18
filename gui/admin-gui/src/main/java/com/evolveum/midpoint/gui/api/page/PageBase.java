@@ -2788,8 +2788,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return registry.getObjectWrapperFactory(objectDef);
     }
 
-    public <ID extends ItemDefinition> ItemWrapperFactory<?, ?, ?> findWrapperFactory(ID def) {
-        return registry.findWrapperFactory(def);
+    public <ID extends ItemDefinition, C extends Containerable> ItemWrapperFactory<?, ?, ?> findWrapperFactory(ID def, PrismContainerValue<C> parentValue) {
+        return registry.findWrapperFactory(def, parentValue);
     }
 
     public <C extends Containerable> PrismContainerWrapperFactory<C> findContainerWrapperFactory(PrismContainerDefinition<C> def) {
@@ -2798,7 +2798,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue> VW createValueWrapper(IW parentWrapper, PV newValue, ValueStatus status, WrapperContext context) throws SchemaException {
 
-        ItemWrapperFactory<IW, VW, PV> factory = registry.findWrapperFactory(parentWrapper);
+        PrismContainerValue<?> parentValue = null;
+        if (parentWrapper != null) {
+            PrismContainerValueWrapper<?> parentValueWrapper = parentWrapper.getParent();
+            if (parentValueWrapper != null) {
+                parentValue = parentValueWrapper.getNewValue();
+            }
+        }
+        ItemWrapperFactory<IW, VW, PV> factory = registry.findWrapperFactory(parentWrapper, parentValue);
 
         return factory.createValueWrapper(parentWrapper, newValue, status, context);
 
@@ -2815,7 +2822,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
 
-        ItemWrapperFactory<IW, ?,?> factory = registry.findWrapperFactory(item.getDefinition());
+        ItemWrapperFactory<IW, ?,?> factory = registry.findWrapperFactory(item.getDefinition(), null);
 
         ctx.setCreateIfEmpty(true);
         return factory.createWrapper(null, item, status, ctx);
@@ -2827,7 +2834,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
 
-    public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemPanelSettings itemPanelSettings) throws SchemaException{
+    public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemPanelSettings itemPanelSettings) throws SchemaException {
         Class<?> panelClass = getWrapperPanel(typeName);
         if (panelClass == null) {
             ErrorPanel errorPanel = new ErrorPanel(panelId, () -> "Cannot create panel for " + typeName);

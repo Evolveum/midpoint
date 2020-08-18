@@ -7,14 +7,15 @@
 
 package com.evolveum.midpoint.security.api;
 
+import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OtherPrivilegesLimitationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.List;
 
 /**
  * TODO better name ;)
@@ -24,7 +25,7 @@ import java.util.List;
 public class DelegatorWithOtherPrivilegesLimitations implements DebugDumpable {
 
     @NotNull private final UserType delegator;
-    @NotNull final private List<OtherPrivilegesLimitationType> limitations;
+    @NotNull private final List<OtherPrivilegesLimitationType> limitations;
 
     public DelegatorWithOtherPrivilegesLimitations(@NotNull UserType delegator,
             @NotNull List<OtherPrivilegesLimitationType> limitations) {
@@ -48,5 +49,6 @@ public class DelegatorWithOtherPrivilegesLimitations implements DebugDumpable {
         DebugUtil.debugDumpLabelLn(sb, "DelegatorWithOtherPrivilegesLimitations", indent);
         DebugUtil.debugDumpWithLabelLn(sb, "Delegator", ObjectTypeUtil.toShortString(delegator), indent + 1);
         DebugUtil.debugDumpWithLabel(sb, "Limitations", limitations, indent + 1);
-        return sb.toString();    }
+        return sb.toString();
+    }
 }

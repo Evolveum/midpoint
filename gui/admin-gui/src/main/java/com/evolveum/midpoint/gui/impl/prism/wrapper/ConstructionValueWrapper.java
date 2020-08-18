@@ -23,7 +23,7 @@ import org.apache.commons.lang.StringUtils;
 
 public class ConstructionValueWrapper extends PrismContainerValueWrapperImpl<ConstructionType> {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(ConstructionValueWrapper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ConstructionValueWrapper.class);
 
     private PrismObject<ResourceType> resource;
     private transient RefinedResourceSchema resourceSchema;

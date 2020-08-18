@@ -57,19 +57,19 @@ public class ConstructionCollector<AH extends AssignmentHolderType, K extends Hu
 
         evaluatedConstructionMapTriple = prismContext.deltaFactory().createDeltaMapTriple();
 
-        collectToConstructionMapFromEvaluatedAssignments(evaluatedAssignmentTriple.getZeroSet(), PlusMinusZero.ZERO);
-        collectToConstructionMapFromEvaluatedAssignments(evaluatedAssignmentTriple.getPlusSet(), PlusMinusZero.PLUS);
-        collectToConstructionMapFromEvaluatedAssignments(evaluatedAssignmentTriple.getMinusSet(), PlusMinusZero.MINUS);
+        // We cannot decide on zero/plus/minus sets here. What we need is absolute classification of the evaluated assignments
+        // with regard to focus old state.
+        for (EvaluatedAssignmentImpl<AH> evaluatedAssignment : evaluatedAssignmentTriple.getAllValues()) {
+            collectToConstructionMapFromEvaluatedAssignments(evaluatedAssignment, evaluatedAssignment.getAbsoluteMode());
+        }
     }
 
-    private void collectToConstructionMapFromEvaluatedAssignments(Collection<EvaluatedAssignmentImpl<AH>> evaluatedAssignments, PlusMinusZero mode) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        for (EvaluatedAssignmentImpl<AH> evaluatedAssignment: evaluatedAssignments) {
-            LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
-            DeltaSetTriple<AC> constructionTriple = constructionTripleExtractor.apply(evaluatedAssignment);
-            collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getZeroSet(), mode, PlusMinusZero.ZERO);
-            collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getPlusSet(), mode, PlusMinusZero.PLUS);
-            collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getMinusSet(), mode, PlusMinusZero.MINUS);
-        }
+    private void collectToConstructionMapFromEvaluatedAssignments(EvaluatedAssignmentImpl<AH> evaluatedAssignment, PlusMinusZero mode) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+        LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
+        DeltaSetTriple<AC> constructionTriple = constructionTripleExtractor.apply(evaluatedAssignment);
+        collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getZeroSet(), mode, PlusMinusZero.ZERO);
+        collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getPlusSet(), mode, PlusMinusZero.PLUS);
+        collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getMinusSet(), mode, PlusMinusZero.MINUS);
     }
 
     private void collectToConstructionMapFromConstructions(
@@ -91,12 +91,25 @@ public class ConstructionCollector<AH extends AssignmentHolderType, K extends Hu
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         for (EC evaluatedConstruction : evaluatedConstructions) {
-            if (evaluatedConstruction.getConstruction().isIgnored()) {
-                LOGGER.trace("Construction {} is ignored, skipping {}", evaluatedConstruction.getConstruction(), evaluatedConstruction);
+            AbstractConstruction<AH, ?, ?> construction = evaluatedConstruction.getConstruction();
+
+            if (construction.isIgnored()) {
+                LOGGER.trace("Construction {} is ignored, skipping {}", construction, evaluatedConstruction);
                 continue;
             }
 
             PlusMinusZero mode = PlusMinusZero.compute(PlusMinusZero.compute(mode1, mode2), mode3);
+
+            // Ugly and temporary hack - some constructions going to plus/minus sets based on validity change
+            // FIXME MID-6404
+            if (mode == PlusMinusZero.ZERO) {
+                if (!construction.getWasValid() && construction.isValid()) {
+                    mode = PlusMinusZero.PLUS;
+                } else if (construction.getWasValid() && !construction.isValid()) {
+                    mode = PlusMinusZero.MINUS;
+                }
+            }
+
             Map<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMap = evaluatedConstructionMapTriple.getMap(mode);
             if (evaluatedConstructionMap == null) {
                 continue;

@@ -291,8 +291,8 @@ public class SchemaTransformer {
 
         PrismObject<O> object = elementContext.getObjectAny();
 
-        if (object == null ) {
-            if (elementContext.getDelta() == null) {
+        if (object == null) {
+            if (elementContext.getSummaryDelta() == null) { // TODO check this
                 return null;
             } else {
                 throw new IllegalArgumentException("Cannot apply schema and security of null object");

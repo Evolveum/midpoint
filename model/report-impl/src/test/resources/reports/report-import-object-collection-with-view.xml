@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<report oid="2b77aa2e-dd86-4842-bcf5-762c8a9a85de">
+    <name>Object Collection import report with view</name>
+    <behavior>
+        <direction>import</direction>
+    </behavior>
+    <objectCollection>
+        <collection>
+            <collectionRef oid="11b1f98e-f587-4b9f-b92b-72e251dbb266" type="ObjectCollectionType"/>
+        </collection>
+        <view>
+            <column>
+                <name>activationColumn</name>
+                <path>activation/administrativeStatus</path>
+                <previousColumn>nameColumnCollection</previousColumn>
+            </column>
+            <column>
+                <name>validFromColumn</name>
+                <path>activation/validFrom</path>
+                <previousColumn>activationColumn</previousColumn>
+            </column>
+            <column>
+                <name>nickColumn</name>
+                <path>nickName</path>
+                <display>
+                    <label>Nick</label>
+                </display>
+                <previousColumn>validFromColumn</previousColumn>
+                <import>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                import com.evolveum.midpoint.prism.polystring.PolyString
+                                import java.util.Random
+
+                                Random rand = new Random();
+
+                                rand_int1 = rand.nextInt(1000);
+
+                                return new PolyString("Test import: " + input)
+                            </code>
+                        </script>
+                    </expression>
+                </import>
+            </column>
+            <column>
+                <name>assignmentColumn</name>
+                <path>assignment</path>
+                <display>
+                    <label>AssignmentOid</label>
+                </display>
+                <previousColumn>nickColumn</previousColumn>
+                <import>
+                    <expression>
+                        <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
+                            <code>
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+                                import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
+
+                                assignments = new ArrayList();
+
+                                for (String oid : input) {
+                                    if (oid != null) {
+                                        role = new ObjectReferenceType();
+                                        role.setOid(oid);
+                                        role.setType(RoleType.COMPLEX_TYPE);
+
+                                        AssignmentType assignment = new AssignmentType();
+                                        assignment.asPrismContainerValue()
+                                        assignment.setTargetRef(role);
+                                        assignments.add(assignment)
+                                    }
+                                }
+                                return assignments
+                            </code>
+                        </script>
+                    </expression>
+                </import>
+            </column>
+            <column>
+                <name>subtypeColumn</name>
+                <path>subtype</path>
+                <previousColumn>assignmentColumn</previousColumn>
+            </column>
+            <type>UserType</type>
+        </view>
+    </objectCollection>
+</report>

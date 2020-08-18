@@ -119,11 +119,11 @@ public class PolicyStateRecorder {
     }
 
     private static class ComputationResult {
-        final Set<String> oldPolicySituations = new HashSet<>();
-        final Set<String> newPolicySituations = new HashSet<>();
-        final Set<EvaluatedPolicyRuleType> oldTriggeredRules = new HashSet<>();
-        final Set<EvaluatedPolicyRuleType> newTriggeredRules = new HashSet<>();
-        boolean situationsNeedUpdate;
-        boolean rulesNeedUpdate;
+        private final Set<String> oldPolicySituations = new HashSet<>();
+        private final Set<String> newPolicySituations = new HashSet<>();
+        private final Set<EvaluatedPolicyRuleType> oldTriggeredRules = new HashSet<>();
+        private final Set<EvaluatedPolicyRuleType> newTriggeredRules = new HashSet<>();
+        private boolean situationsNeedUpdate;
+        private boolean rulesNeedUpdate;
     }
 }

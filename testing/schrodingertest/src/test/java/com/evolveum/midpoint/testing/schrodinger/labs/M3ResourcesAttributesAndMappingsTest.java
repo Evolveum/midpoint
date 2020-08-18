@@ -106,7 +106,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
 
         //Schema tab
         resourceWizard.clickOnWizardTab("Schema");
-        Assert.assertTrue($(Schrodinger.byElementValue("a", "Schema"))
+        Assert.assertTrue($(By.linkText("Schema"))
                 .shouldBe(Condition.visible)
                 .exists());
         $(By.linkText(CSV_1_ACCOUNT_OBJECT_CLASS_LINK))
@@ -195,7 +195,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                     .selectTabProjections()
                         .table()
                             .search()
-                                .byItem("Name")
+                                .byItemName("Name")
                                     .inputValue("kirk")
                                 .updateSearch()
                             .and()

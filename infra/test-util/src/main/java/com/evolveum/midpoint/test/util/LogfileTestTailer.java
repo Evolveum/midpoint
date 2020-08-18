@@ -6,17 +6,8 @@
  */
 package com.evolveum.midpoint.test.util;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.*;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -27,7 +18,6 @@ import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 
 /**
  * @author semancik
- *
  */
 public class LogfileTestTailer {
 
@@ -41,12 +31,12 @@ public class LogfileTestTailer {
     public static final String LEVEL_TRACE = "TRACE";
 
     // see also the 'optimization' at the beginning of processLogLine() - interfering with these patterns
-    private static final Pattern PATTERN_MARKER = Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+\\(\\S+\\):\\s+"+MARKER+"\\s+(\\w+).*");
-    private static final Pattern PATTERN_MARKER_PREFIX = Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+.*"+MARKER+"\\s+(\\w+).*");
+    private static final Pattern PATTERN_MARKER = Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+\\(\\S+\\):\\s+" + MARKER + "\\s+(\\w+).*");
+    private static final Pattern PATTERN_MARKER_PREFIX = Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+.*" + MARKER + "\\s+(\\w+).*");
     public static final Pattern PATTERN_LEVEL =
             Pattern.compile(".*\\[[^]]*\\](\\s+\\[\\w+\\])?\\s+(\\S+)\\s+(.*)");
 
-    final static Trace LOGGER = TraceManager.getTrace(LogfileTestTailer.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LogfileTestTailer.class);
 
     private String auditLoggerName;
     public Pattern auditPattern;
@@ -74,7 +64,7 @@ public class LogfileTestTailer {
     public LogfileTestTailer(File logFile, String auditLoggerName, boolean skipCurrentContent) throws IOException {
         this.logFile = logFile;
         this.auditLoggerName = auditLoggerName;
-        auditPattern = Pattern.compile(".*\\[[^]]*\\](\\s+\\[[^]]*\\])?\\s+(\\w+)\\s+\\("+auditLoggerName+"\\):\\s*(.*)");
+        auditPattern = Pattern.compile(".*\\[[^]]*\\](\\s+\\[[^]]*\\])?\\s+(\\w+)\\s+\\(" + auditLoggerName + "\\):\\s*(.*)");
         reset();
 
         // doing skipping on FileInputStream instead of BufferedReader, hoping it is faster
@@ -159,7 +149,7 @@ public class LogfileTestTailer {
                 level = matcher.group(2);
                 subsystemName = matcher.group(3);
             }
-            recordMarker(level,subsystemName);
+            recordMarker(level, subsystemName);
         }
 
         // Match audit
@@ -175,7 +165,7 @@ public class LogfileTestTailer {
                     level = matcher.group(2);
                     message = matcher.group(3);
                 }
-                recordAuditMessage(level,message);
+                recordAuditMessage(level, message);
             }
         }
 
@@ -213,7 +203,7 @@ public class LogfileTestTailer {
     }
 
     private String constructKey(String level, String subsystemName) {
-        return level+":"+subsystemName;
+        return level + ":" + subsystemName;
     }
 
     public void assertMarkerLogged(String level, String subsystemName) {
@@ -234,7 +224,7 @@ public class LogfileTestTailer {
     }
 
     public void assertNoAudit() {
-        assert auditMessages.isEmpty() : "Audit messages not empty: "+auditMessages;
+        assert auditMessages.isEmpty() : "Audit messages not empty: " + auditMessages;
     }
 
     public void assertAudit() {
@@ -242,11 +232,11 @@ public class LogfileTestTailer {
     }
 
     public void assertAudit(String message) {
-        assert auditMessages.contains(message) : "No audit message: "+message;
+        assert auditMessages.contains(message) : "No audit message: " + message;
     }
 
     public void assertAuditRequest() {
-        for (String message: auditMessages) {
+        for (String message : auditMessages) {
             if (message.contains("stage REQUEST")) {
                 return;
             }
@@ -254,11 +244,11 @@ public class LogfileTestTailer {
                 return;
             }
         }
-        assert false: "No request audit message";
+        assert false : "No request audit message";
     }
 
     public void assertAuditExecution() {
-        for (String message: auditMessages) {
+        for (String message : auditMessages) {
             if (message.contains("stage EXECUTION")) {
                 return;
             }
@@ -266,25 +256,25 @@ public class LogfileTestTailer {
                 return;
             }
         }
-        assert false: "No execution audit message";
+        assert false : "No execution audit message";
     }
 
     public void assertAudit(int messageCount) {
-        assert auditMessages.size() == messageCount : "Wrong number of audit messages, expected "+messageCount+", was "+auditMessages.size();
+        assert auditMessages.size() == messageCount : "Wrong number of audit messages, expected " + messageCount + ", was " + auditMessages.size();
     }
 
     /**
      * Log all levels in all subsystems.
      */
     public void log() {
-        for (ProfilingDataManager.Subsystem subsystem: ProfilingDataManager.SUBSYSTEMS) {
+        for (ProfilingDataManager.Subsystem subsystem : ProfilingDataManager.SUBSYSTEMS) {
             logAllLevels(LOGGER, subsystem.name());
         }
         logAllLevels(LOGGER, null);
     }
 
     private void logAllLevels(Trace logger, String subsystemName) {
-        String message = MARKER+" "+subsystemName;
+        String message = MARKER + " " + subsystemName;
         String previousSubsystem = OperationInvocationRecord.swapSubsystemMark(subsystemName);
         logger.trace(message);
         logger.debug(message);

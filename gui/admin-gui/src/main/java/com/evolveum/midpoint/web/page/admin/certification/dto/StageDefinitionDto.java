@@ -7,32 +7,30 @@
 
 package com.evolveum.midpoint.web.page.admin.certification.dto;
 
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang3.StringUtils;
-
-import javax.xml.datatype.Duration;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.datatype.Duration;
 
-/**
- * Created by Kate on 15.12.2015.
- */
+import org.apache.commons.lang3.StringUtils;
+
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 public class StageDefinitionDto implements Serializable {
-    public final static String F_NUMBER = "number";
-    public final static String F_NAME = "name";
-    public final static String F_DESCRIPTION = "description";
-    public final static String F_DURATION = "duration";
-    public final static String F_NOTIFY_BEFORE_DEADLINE = "notifyBeforeDeadline";
-    public final static String F_NOTIFY_ONLY_WHEN_NO_DECISION = "notifyOnlyWhenNoDecision";
-    public final static String F_REVIEWER_SPECIFICATION = "reviewerSpecification";
-    public final static String F_REVIEWER_DTO = "reviewerDto";
-    public final static String F_OUTCOME_STRATEGY = "outcomeStrategy";
-    public final static String F_OUTCOME_IF_NO_REVIEWERS = "outcomeIfNoReviewers";
+
+    public static final String F_NUMBER = "number";
+    public static final String F_NAME = "name";
+    public static final String F_DESCRIPTION = "description";
+    public static final String F_DURATION = "duration";
+    public static final String F_NOTIFY_BEFORE_DEADLINE = "notifyBeforeDeadline";
+    public static final String F_NOTIFY_ONLY_WHEN_NO_DECISION = "notifyOnlyWhenNoDecision";
+    public static final String F_REVIEWER_SPECIFICATION = "reviewerSpecification";
+    public static final String F_REVIEWER_DTO = "reviewerDto";
+    public static final String F_OUTCOME_STRATEGY = "outcomeStrategy";
+    public static final String F_OUTCOME_IF_NO_REVIEWERS = "outcomeIfNoReviewers";
 
     private int number;
     private String name;
@@ -70,7 +68,7 @@ public class StageDefinitionDto implements Serializable {
         }
     }
 
-    private String convertDurationListToString(List<Duration> list){
+    private String convertDurationListToString(List<Duration> list) {
         return StringUtils.join(list, ", ");
     }
 

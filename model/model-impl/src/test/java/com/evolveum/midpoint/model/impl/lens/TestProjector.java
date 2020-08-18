@@ -92,7 +92,7 @@ public class TestProjector extends AbstractLensTest {
                 PrismTestUtil.createPolyString("Elaine LeChuck"));
         ObjectDelta<UserType> userDeltaSecondaryClone = userDeltaSecondary.clone();
         focusContext.setPrimaryDelta(userDeltaPrimary);
-        focusContext.setSecondaryDelta(userDeltaSecondary, 0);
+        focusContext.setSecondaryDelta(userDeltaSecondary);
 
         // Account Deltas
         ObjectDelta<ShadowType> accountDeltaPrimary = createModifyAccountShadowReplaceAttributeDelta(
@@ -828,7 +828,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
-        fillContextWithEmtptyAddUserDelta(context);
+        fillContextWithEmptyAddUserDelta(context);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
         context.recompute();
@@ -848,7 +848,7 @@ public class TestProjector extends AbstractLensTest {
         assertSame(context.getFocusContext().getPrimaryDelta().getChangeType(), ChangeType.ADD);
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
-        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_DESCRIPTION, "Came from Monkey Island");
+        PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_DESCRIPTION, "Came from Monkey Island");
 
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
@@ -883,7 +883,7 @@ public class TestProjector extends AbstractLensTest {
 
         LensContext<UserType> context = createUserLensContext();
         context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
-        fillContextWithEmtptyAddUserDelta(context);
+        fillContextWithEmptyAddUserDelta(context);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
         context.recompute();

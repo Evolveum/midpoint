@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -50,7 +50,11 @@ public class AccountOperationListener implements ResourceOperationListener {
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private ChangeNotificationDispatcher provisioningNotificationDispatcher;
     @Autowired private NotificationManager notificationManager;
-    @Autowired @Qualifier("cacheRepositoryService") private transient RepositoryService cacheRepositoryService;
+
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService cacheRepositoryService;
+
     @Autowired private NotificationFunctionsImpl notificationsUtil;
 
     @PostConstruct

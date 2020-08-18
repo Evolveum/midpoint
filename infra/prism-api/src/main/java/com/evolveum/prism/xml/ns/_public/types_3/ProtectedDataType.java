@@ -11,48 +11,40 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
-
 import javax.xml.bind.JAXBElement;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlElementRef;
-import javax.xml.bind.annotation.XmlMixed;
-import javax.xml.bind.annotation.XmlSeeAlso;
-import javax.xml.bind.annotation.XmlTransient;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+
 import org.apache.commons.codec.binary.Base64;
-import com.evolveum.midpoint.prism.JaxbVisitable;
-import com.evolveum.midpoint.prism.JaxbVisitor;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.JaxbVisitable;
 import com.evolveum.midpoint.prism.crypto.ProtectedData;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 
-
 /**
  * This class was originally generated. But it was heavily modified by hand.
- *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ProtectedDataType", propOrder = {
-    "content"
+        "content"
 })
 @XmlSeeAlso({
-    ProtectedByteArrayType.class,
-    ProtectedStringType.class
+        ProtectedByteArrayType.class,
+        ProtectedStringType.class
 })
 public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializable, JaxbVisitable {
     private static final long serialVersionUID = 1L;
 
     public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "ProtectedDataType");
-    public final static QName F_ENCRYPTED_DATA = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "encryptedData");
-    public final static QName F_HASHED_DATA = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "hashedData");
-    public final static QName F_CLEAR_VALUE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "clearValue");
+    public static final QName F_ENCRYPTED_DATA = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "encryptedData");
+    public static final QName F_HASHED_DATA = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "hashedData");
+    public static final QName F_CLEAR_VALUE = new QName("http://prism.evolveum.com/xml/ns/public/types-3", "clearValue");
 
     public static final String NS_XML_ENC = "http://www.w3.org/2001/04/xmlenc#";
     public static final String NS_XML_DSIG = "http://www.w3.org/2000/09/xmldsig#";
@@ -64,7 +56,6 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     public static final QName F_XML_ENC_CIPHER_VALUE = new QName(NS_XML_ENC, "CipherValue");
     public static final QName F_XML_DSIG_KEY_INFO = new QName(NS_XML_DSIG, "KeyInfo");
     public static final QName F_XML_DSIG_KEY_NAME = new QName(NS_XML_DSIG, "KeyName");
-
 
     @XmlTransient
     private EncryptedDataType encryptedDataType;
@@ -81,15 +72,14 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     protected List<Object> content;
 
     /**
-     *
-     *                 TODO
-     *                 May be either encrypted or hashed or provided in the clear (e.g. for debugging).
-     *
-     *                 This type is marked as "mixed" because it may have alternative representation where
-     *                 just the plaintext value is presented as the only value.
-     *
-     *                 This is considered to be primitive built-in type for prism objects.
-     *             Gets the value of the content property.
+     * TODO
+     * May be either encrypted or hashed or provided in the clear (e.g. for debugging).
+     * <p>
+     * This type is marked as "mixed" because it may have alternative representation where
+     * just the plaintext value is presented as the only value.
+     * <p>
+     * This is considered to be primitive built-in type for prism objects.
+     * Gets the value of the content property.
      *
      * <p>
      * This accessor method returns a reference to the live list,
@@ -109,8 +99,6 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
      * {@link Object }
      * {@link String }
      * {@link JAXBElement }{@code <}{@link EncryptedDataType }{@code >}
-     *
-     *
      */
     public List<Object> getContent() {
         if (content == null) {
@@ -185,15 +173,14 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     }
 
     private boolean addContent(Object newObject) {
-        if (newObject instanceof String){
+        if (newObject instanceof String) {
             String s = (String) newObject;
             if (StringUtils.isNotBlank(s)) {
                 clearValue = (T) s;
             }
             return true;
-        } else
-        if (newObject instanceof JAXBElement<?>) {
-            JAXBElement<?> jaxbElement = (JAXBElement<?>)newObject;
+        } else if (newObject instanceof JAXBElement<?>) {
+            JAXBElement<?> jaxbElement = (JAXBElement<?>) newObject;
             if (QNameUtil.match(F_ENCRYPTED_DATA, jaxbElement.getName())) {
                 encryptedDataType = (EncryptedDataType) jaxbElement.getValue();
                 return true;
@@ -201,22 +188,22 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
                 hashedDataType = (HashedDataType) jaxbElement.getValue();
                 return true;
             } else {
-                throw new IllegalArgumentException("Attempt to add unknown JAXB element "+jaxbElement);
+                throw new IllegalArgumentException("Attempt to add unknown JAXB element " + jaxbElement);
             }
         } else if (newObject instanceof Element) {
-            Element element = (Element)newObject;
+            Element element = (Element) newObject;
             QName elementName = DOMUtil.getQName(element);
             if (QNameUtil.match(F_XML_ENC_ENCRYPTED_DATA, elementName)) {
                 encryptedDataType = convertXmlEncToEncryptedDate(element);
                 return true;
-            } else if (QNameUtil.match(F_CLEAR_VALUE, elementName)){
+            } else if (QNameUtil.match(F_CLEAR_VALUE, elementName)) {
                 clearValue = (T) element.getTextContent();
                 return true;
             } else {
-                throw new IllegalArgumentException("Attempt to add unknown DOM element "+elementName);
+                throw new IllegalArgumentException("Attempt to add unknown DOM element " + elementName);
             }
         } else {
-            throw new IllegalArgumentException("Attempt to add unknown object "+newObject+" ("+newObject.getClass()+")");
+            throw new IllegalArgumentException("Attempt to add unknown object " + newObject + " (" + newObject.getClass() + ")");
         }
     }
 
@@ -277,11 +264,11 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
      * Cleartext data may still be the same in both objects. Therefore this method
      * is not suitable for almost any practical purpose. It is here mostly just to keep
      * the Java interface contract.
-     *
+     * <p>
      * See the methods of Protector for a more practical comparison algorithms.
      *
-     *  @see Protector#compareCleartext(ProtectedStringType, ProtectedStringType)
-     *  @see Protector#areEquivalent(ProtectedStringType, ProtectedStringType)
+     * @see Protector#compareCleartext(ProtectedStringType, ProtectedStringType)
+     * @see Protector#areEquivalent(ProtectedStringType, ProtectedStringType)
      */
     @Override
     public boolean equals(Object obj) {
@@ -370,9 +357,10 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
         }
 
         @Override
-        public Iterator<Object> iterator() {
+        public @NotNull Iterator<Object> iterator() {
             return new Iterator<Object>() {
                 private int index = 0;
+
                 @Override
                 public boolean hasNext() {
                     return index == 0;
@@ -431,7 +419,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 
         @Override
         public boolean containsAll(Collection<?> c) {
-            for (Object e: c) {
+            for (Object e : c) {
                 if (!contains(e)) {
                     return false;
                 }
@@ -440,9 +428,9 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
         }
 
         @Override
-        public boolean addAll(Collection<? extends Object> c) {
+        public boolean addAll(Collection<?> c) {
             boolean changed = false;
-            for (Object e: c) {
+            for (Object e : c) {
                 if (add(e)) {
                     changed = true;
                 }
@@ -451,7 +439,7 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
         }
 
         @Override
-        public boolean addAll(int index, Collection<? extends Object> c) {
+        public boolean addAll(int index, Collection<?> c) {
             throw new UnsupportedOperationException("we are too lazy for this");
         }
 
@@ -524,6 +512,5 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
         public List<Object> subList(int fromIndex, int toIndex) {
             throw new UnsupportedOperationException("we are too lazy for this");
         }
-
     }
 }

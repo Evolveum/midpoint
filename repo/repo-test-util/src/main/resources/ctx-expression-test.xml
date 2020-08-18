@@ -1,17 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<beans
-        xmlns="http://www.springframework.org/schema/beans"
+<beans xmlns="http://www.springframework.org/schema/beans"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:context="http://www.springframework.org/schema/context"
-        xsi:schemaLocation="http://www.springframework.org/schema/beans
-     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
-        default-autowire="byName">
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/context
+            http://www.springframework.org/schema/context/spring-context.xsd">
 
     <!-- Spring context for basic expression evaluation to be used in some tests (mostly common or provisioning-impl) -->
 
@@ -20,13 +21,12 @@
 
     <!-- Definition of basic expression factory - just with simple evaluators -->
 
-    <bean id="repoObjectResolver" class="com.evolveum.midpoint.repo.common.RepoObjectResolver" />
+    <bean id="repoObjectResolver" class="com.evolveum.midpoint.repo.common.RepoObjectResolver"/>
 
-    <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory"
-            scope="singleton">
+    <bean id="expressionFactory" class="com.evolveum.midpoint.repo.common.expression.ExpressionFactory">
         <constructor-arg ref="securityContextManager"/>
         <constructor-arg ref="prismContext"/>
-        <constructor-arg ref="localizationService" />
+        <constructor-arg ref="localizationService"/>
         <property name="defaultEvaluatorFactory" ref="asIsExpressionEvaluatorFactory"/>
         <property name="objectResolver" ref="repoObjectResolver"/>
     </bean>

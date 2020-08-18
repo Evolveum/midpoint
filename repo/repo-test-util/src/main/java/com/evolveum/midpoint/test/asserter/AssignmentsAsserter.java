@@ -57,15 +57,15 @@ public class AssignmentsAsserter<F extends FocusType, FA extends FocusAsserter<F
         return this;
     }
 
-    AssignmentAsserter<AssignmentsAsserter<F, FA, RA>> forAssignment(AssignmentType assignment, PrismObject<?> target) {
-        AssignmentAsserter<AssignmentsAsserter<F, FA, RA>> asserter = new AssignmentAsserter<>(assignment, target, this, "assignment in "+desc());
+    AssignmentAsserter<AssignmentsAsserter<F, FA, RA>> forAssignment(AssignmentType assignment) {
+        AssignmentAsserter<AssignmentsAsserter<F, FA, RA>> asserter = new AssignmentAsserter<>(assignment, this, "assignment in "+desc());
         copySetupTo(asserter);
         return asserter;
     }
 
     public AssignmentAsserter<AssignmentsAsserter<F, FA, RA>> single() {
         assertAssignments(1);
-        return forAssignment(getAssignments().get(0), null);
+        return forAssignment(getAssignments().get(0));
     }
 
     PrismObject<F> getFocus() {

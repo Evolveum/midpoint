@@ -1,38 +1,23 @@
 /*
- * Copyright (c) 2016-2018 Evolveum and contributors
+ * Copyright (c) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.impl.security;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.TerminateSessionEvent;
-import com.evolveum.midpoint.common.LocalizationMessageSource;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.security.api.*;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.support.MessageSourceAccessor;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.CredentialsExpiredException;
-import org.springframework.security.authentication.DisabledException;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.test.annotation.DirtiesContext;
@@ -41,32 +26,32 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Listeners;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.TerminateSessionEvent;
 import com.evolveum.midpoint.common.Clock;
+import com.evolveum.midpoint.common.LocalizationMessageSource;
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipalManager;
 import com.evolveum.midpoint.model.api.context.AbstractAuthenticationContext;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.security.api.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_3.UserSessionManagementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
  */
-@ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
+@ContextConfiguration(locations = { "classpath:ctx-model-test-main.xml" })
 @DirtiesContext
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public abstract class TestAbstractAuthenticationEvaluator<V, AC extends AbstractAuthenticationContext, T extends AuthenticationEvaluator<AC>> extends AbstractInternalModelIntegrationTest {
@@ -93,6 +78,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     public abstract V getGoodPasswordGuybrush();
     public abstract V getBadPasswordGuybrush();
     public abstract V get103EmptyPasswordJack();
+    public abstract String getEmptyPasswordExceptionMessageKey();
 
     public abstract AbstractCredentialType getCredentialUsedForAuthentication(UserType user);
     public abstract QName getCredentialType();
@@ -105,7 +91,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
         messages = new MessageSourceAccessor(messageSource);
 
-        ((AuthenticationEvaluatorImpl)getAuthenticationEvaluator()).focusProfileService = new GuiProfiledPrincipalManager() {
+        ((AuthenticationEvaluatorImpl) getAuthenticationEvaluator()).focusProfileService = new GuiProfiledPrincipalManager() {
 
             @Override
             public <F extends FocusType, O extends ObjectType> PrismObject<F> resolveOwner(PrismObject<O> object) throws CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -234,7 +220,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         } catch (BadCredentialsException e) {
             then();
             displayExpectedException(e);
-            assertPasswordEncodingException(e);
+            assertEmptyPasswordException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -243,7 +229,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertFailedLoginsForBehavior(userAfter, 2);
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
     }
-
 
     @Test
     public void test103PasswordLoginEmptyPasswordJack() throws Exception {
@@ -262,7 +247,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         } catch (BadCredentialsException e) {
             then();
             displayExpectedException(e);
-            assertPasswordEncodingException(e);
+            assertEmptyPasswordException(e);
         }
 
         PrismObject<UserType> userAfter = getUser(USER_JACK_OID);
@@ -286,10 +271,14 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
 
             AssertJUnit.fail("Unexpected success");
 
+        } catch (UsernameNotFoundException e) {
+            then();
+            displayExpectedException(e);
+            assertNoUserException(e);
         } catch (BadCredentialsException e) {
             then();
             displayExpectedException(e);
-            assertPasswordEncodingException(e);
+            assertEmptyPasswordException(e);
         }
 
     }
@@ -375,7 +364,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertUserLockout(userAfter, LockoutStatusType.NORMAL);
     }
 
-
     @Test
     public void test130PasswordLoginLockout() throws Exception {
         // GIVEN
@@ -409,7 +397,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             displayExpectedException(e);
             assertBadPasswordException(e);
         }
-
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -554,7 +541,6 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
             displayExpectedException(e);
             assertBadPasswordException(e);
         }
-
 
         XMLGregorianCalendar endTs = clock.currentTimeXMLGregorianCalendar();
 
@@ -915,11 +901,15 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertNotNull("No authentication", authentication);
         assertTrue("authentication: not authenticated", authentication.isAuthenticated());
         MidPointAsserts.assertInstanceOf("authentication", authentication, UsernamePasswordAuthenticationToken.class);
-        assertEquals("authentication: principal mismatch", expectedUsername, ((MidPointPrincipal)authentication.getPrincipal()).getUsername());
+        assertEquals("authentication: principal mismatch", expectedUsername, ((MidPointPrincipal) authentication.getPrincipal()).getUsername());
     }
 
     private void assertBadPasswordException(BadCredentialsException e) {
         assertEquals("Wrong exception meessage (key)", messages.getMessage("web.security.provider.invalid"), getTranslatedMessage(e));
+    }
+
+    private void assertEmptyPasswordException(BadCredentialsException e) {
+        assertEquals("Wrong exception meessage (key)", messages.getMessage(getEmptyPasswordExceptionMessageKey()), getTranslatedMessage(e));
     }
 
     private String getTranslatedMessage(Throwable t) {
@@ -956,25 +946,25 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         if (expected == 0 && getCredentialUsedForAuthentication(user.asObjectable()).getFailedLogins() == null) {
             return;
         }
-        assertEquals("Wrong failed logins in "+user, (Integer)expected, getCredentialUsedForAuthentication(user.asObjectable()).getFailedLogins());
+        assertEquals("Wrong failed logins in " + user, (Integer) expected, getCredentialUsedForAuthentication(user.asObjectable()).getFailedLogins());
     }
 
-    private void assertFailedLoginsForBehavior(PrismObject<UserType> user, int expected){
+    private void assertFailedLoginsForBehavior(PrismObject<UserType> user, int expected) {
         if (expected == 0 && getAuthenticationBehavior(user.asObjectable()).getFailedLogins() == null) {
             return;
         }
-        assertEquals("Wrong failed logins in "+user, (Integer)expected, getAuthenticationBehavior(user.asObjectable()).getFailedLogins());
+        assertEquals("Wrong failed logins in " + user, (Integer) expected, getAuthenticationBehavior(user.asObjectable()).getFailedLogins());
     }
 
     private void assertLastSuccessfulLogin(PrismObject<UserType> user, XMLGregorianCalendar startTs,
             XMLGregorianCalendar endTs) {
         LoginEventType lastSuccessfulLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastSuccessfulLogin();
-        assertNotNull("no last successful login in "+user, lastSuccessfulLogin);
+        assertNotNull("no last successful login in " + user, lastSuccessfulLogin);
         XMLGregorianCalendar successfulLoginTs = lastSuccessfulLogin.getTimestamp();
         TestUtil.assertBetween("wrong last successful login timestamp", startTs, endTs, successfulLoginTs);
 
         LoginEventType lastSuccessfulLoginFromBehavior = getAuthenticationBehavior(user.asObjectable()).getLastSuccessfulLogin();
-        assertNotNull("no last successful login in "+user, lastSuccessfulLoginFromBehavior);
+        assertNotNull("no last successful login in " + user, lastSuccessfulLoginFromBehavior);
         XMLGregorianCalendar successfulLoginTsFromBehavior = lastSuccessfulLoginFromBehavior.getTimestamp();
         TestUtil.assertBetween("wrong last successful login timestamp", startTs, endTs, successfulLoginTsFromBehavior);
     }
@@ -982,12 +972,12 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
     private void assertLastFailedLogin(PrismObject<UserType> user, XMLGregorianCalendar startTs,
             XMLGregorianCalendar endTs) {
         LoginEventType lastFailedLogin = getCredentialUsedForAuthentication(user.asObjectable()).getLastFailedLogin();
-        assertNotNull("no last failed login in "+user, lastFailedLogin);
+        assertNotNull("no last failed login in " + user, lastFailedLogin);
         XMLGregorianCalendar failedLoginTs = lastFailedLogin.getTimestamp();
         TestUtil.assertBetween("wrong last failed login timestamp", startTs, endTs, failedLoginTs);
 
         LoginEventType lastFailedLoginFromBehavior = getAuthenticationBehavior(user.asObjectable()).getLastFailedLogin();
-        assertNotNull("no last failed login in "+user, lastFailedLoginFromBehavior);
+        assertNotNull("no last failed login in " + user, lastFailedLoginFromBehavior);
         XMLGregorianCalendar failedLoginTsFromBehavior = lastFailedLoginFromBehavior.getTimestamp();
         TestUtil.assertBetween("wrong last failed login timestamp", startTs, endTs, failedLoginTsFromBehavior);
     }
@@ -1008,7 +998,7 @@ public abstract class TestAbstractAuthenticationEvaluator<V, AC extends Abstract
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getName().getOrig());
         assertEquals("Bad principal name", USER_JACK_USERNAME, principal.getUsername());
         FocusType user = principal.getFocus();
-        assertNotNull("No user in principal",user);
+        assertNotNull("No user in principal", user);
         assertEquals("Bad name in user in principal", USER_JACK_USERNAME, user.getName().getOrig());
     }
 

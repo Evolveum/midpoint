@@ -63,6 +63,9 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
     @Experimental
     void setValueMetadata(ValueMetadata valueMetadata);
 
+    @Experimental
+    void setValueMetadata(Containerable realValue);
+
     @NotNull
     ItemPath getPath();
 

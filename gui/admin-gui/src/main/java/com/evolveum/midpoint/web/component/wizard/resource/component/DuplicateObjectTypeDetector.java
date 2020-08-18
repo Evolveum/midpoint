@@ -6,22 +6,23 @@
  */
 package com.evolveum.midpoint.web.component.wizard.resource.component;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import org.jetbrains.annotations.NotNull;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author mederly
  */
 public class DuplicateObjectTypeDetector {
 
-    @NotNull final private Set<ObjectTypeRecord> records = new HashSet<>();
-    @NotNull final private Set<ObjectTypeRecord> duplicates = new HashSet<>();
+    @NotNull private final Set<ObjectTypeRecord> records = new HashSet<>();
+    @NotNull private final Set<ObjectTypeRecord> duplicates = new HashSet<>();
 
     public boolean hasDuplicates() {
         return !duplicates.isEmpty();
@@ -61,10 +62,8 @@ public class DuplicateObjectTypeDetector {
 
         @Override
         public boolean equals(Object o) {
-            if (this == o)
-                return true;
-            if (o == null || getClass() != o.getClass())
-                return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false; }
 
             ObjectTypeRecord that = (ObjectTypeRecord) o;
 

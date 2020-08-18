@@ -8,8 +8,17 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
+
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -28,13 +37,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -42,16 +48,12 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
 import com.evolveum.midpoint.web.component.search.filter.ValueSearchFilterItem;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -192,7 +194,15 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
         IColumn<SelectableBean<ValueSearchFilterItem>, String> propertyColumn = new PropertyColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.property"),
-                "value." + ValueSearchFilterItem.F_PROPERTY_NAME);
+                "value." + ValueSearchFilterItem.F_PROPERTY_NAME){
+
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getCssClass() {
+                return getColumnStyleClass();
+            }
+        };
         columns.add(propertyColumn);
 
         IColumn<SelectableBean<ValueSearchFilterItem>, String> valueColumn = new AbstractColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
@@ -201,8 +211,12 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ValueSearchFilterItem>>> item, String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
-                item.add(getPropertyValueField( id, rowModel));
+                item.add(new SwitchablePropertyValuePanel(id, rowModel));
+            }
 
+            @Override
+            public String getCssClass() {
+                return "max-width-column";
             }
         };
         columns.add(valueColumn);
@@ -224,6 +238,11 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 filterPanel.getBaseFormComponent().add(new EnableBehaviour(() -> availableFilterNames.size() > 1));
                 item.add(filterPanel);
             }
+
+            @Override
+            public String getCssClass() {
+                return getColumnStyleClass();
+            }
         };
         columns.add(filterColumn);
 
@@ -242,14 +261,67 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 matchingRulePanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                 item.add(matchingRulePanel);
             }
+
+            @Override
+            public String getCssClass() {
+                return getColumnStyleClass();
+            }
         };
         columns.add(matchingRuleColumn);
 
         CheckBoxColumn<SelectableBean<ValueSearchFilterItem>> negationColumn = new CheckBoxColumn<SelectableBean<ValueSearchFilterItem>>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.applyNegotiation"),
-                "value." + ValueSearchFilterItem.F_APPLY_NEGATION);
+                "value." + ValueSearchFilterItem.F_APPLY_NEGATION){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getCssClass() {
+                return "min-width-column";
+            }
+
+        };
         columns.add(negationColumn);
+
+        InlineMenuButtonColumn<SelectableBean<ValueSearchFilterItem>> actionsColumn = new InlineMenuButtonColumn<SelectableBean<ValueSearchFilterItem>>
+                (getTableMenuItems(), getPageBase()){
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public String getCssClass() {
+                return "min-width-column";
+            }
+        };
+        columns.add(actionsColumn);
+
         return columns;
+    }
+
+    private List<InlineMenuItem> getTableMenuItems(){
+        InlineMenuItem deleteMenuItem = new ButtonInlineMenuItem(createStringResource("PageBase.button.delete")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBean<ValueSearchFilterItem>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        propertyDeletedPerformed(getRowModel(), target);
+                    }
+                };
+            }
+
+            @Override
+            public CompositedIconBuilder getIconCompositedBuilder() {
+                return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
+            }
+        };
+        return Arrays.asList(deleteMenuItem);
+    }
+
+    private String getColumnStyleClass(){
+        return "mid-width-column";
     }
 
     private LoadableModel<List<Property>> getAvailablePropertiesListModel() {
@@ -302,6 +374,14 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         target.add(SearchPropertiesConfigPanel.this);
     }
 
+    private void propertyDeletedPerformed(IModel<SelectableBean<ValueSearchFilterItem>> rowModel, AjaxRequestTarget target) {
+        if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null){
+            return;
+        }
+        getModelObject().deleteSearchFilterItem(rowModel.getObject().getValue().getPropertyDef());
+        target.add(SearchPropertiesConfigPanel.this);
+    }
+
     private DropDownChoicePanel<Property> getPropertyChoicePanel(){
         return (DropDownChoicePanel<Property>) get(createComponentPath(ID_CONFIGURATION_PANEL, ID_PROPERTY_CONFIG_CONTAINER, ID_PROPERTY_CHOICE));
     }
@@ -313,72 +393,15 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         return new ValueSearchFilterItem(property, false);
     }
 
-    private Component getPropertyValueField(String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
-        Component searchItemField = null;
-        ValueSearchFilterItem valueSearchFilter = rowModel.getObject().getValue();
-        ItemDefinition propertyDef = valueSearchFilter.getPropertyDef();
-        if (propertyDef != null) {
-            PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(propertyDef, getPageBase());
-
-            if (propertyDef instanceof PrismReferenceDefinition) {
-                ObjectReferenceType propertyValue = (ObjectReferenceType) valueSearchFilter.getValue();
-                searchItemField = new ReferenceValueSearchPanel(id, Model.of(propertyValue),
-                        (PrismReferenceDefinition) propertyDef);
-            } else if (propertyDef instanceof PrismPropertyDefinition) {
-                List<DisplayableValue> allowedValues = new ArrayList<>();
-                if (((PrismPropertyDefinition) propertyDef).getAllowedValues() != null) {
-                    allowedValues.addAll(((PrismPropertyDefinition) propertyDef).getAllowedValues());
-                }
-                if (lookupTable != null) {
-                    searchItemField = new AutoCompleteTextPanel<String>(id,
-                            new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_VALUE), String.class,
-                            true, lookupTable.asObjectable()) {
-
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public Iterator<String> getIterator(String input) {
-                            return WebComponentUtil.prepareAutoCompleteList(lookupTable.asObjectable(), input,
-                                    ((PageBase) getPage()).getLocalizationService()).iterator();
-                        }
-                    };
-                } else if (CollectionUtils.isNotEmpty(allowedValues)) {
-                    searchItemField = new DropDownChoicePanel<DisplayableValue>(id,
-                            new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_VALUE),
-                            Model.ofList(allowedValues), new IChoiceRenderer<DisplayableValue>() {
-                        private static final long serialVersionUID = 1L;
-
-                        @Override
-                        public Object getDisplayValue(DisplayableValue val) {
-                            return val.getLabel();
-                        }
-
-                        @Override
-                        public String getIdValue(DisplayableValue val, int index) {
-                            return Integer.toString(index);
-                        }
-
-                        @Override
-                        public DisplayableValue getObject(String id, IModel<? extends List<? extends DisplayableValue>> choices) {
-                            return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
-                        }
-                    }, true);
-                } else {
-                    searchItemField = new TextPanel<String>(id, new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_VALUE));
-
-                }
-            }
-        }
-        if (searchItemField != null && searchItemField instanceof InputPanel){
-            ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-        }
-        return searchItemField != null ? searchItemField : new WebMarkupContainer(id);
-    }
-
     @Override
     protected void okButtonClicked(AjaxRequestTarget target){
         ObjectFilter configuredFilter = getModelObject().buildObjectFilter();
         filterConfiguredPerformed(configuredFilter, target);
+    }
+
+    @Override
+    protected void cancelButtonClicked(AjaxRequestTarget target) {
+        getPageBase().hideMainPopup(target);
     }
 
     protected void filterConfiguredPerformed(ObjectFilter configuredFilter, AjaxRequestTarget target){

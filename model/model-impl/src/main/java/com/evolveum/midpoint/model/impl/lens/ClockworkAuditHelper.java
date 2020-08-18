@@ -7,6 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.lens;
 
+import static java.util.Collections.emptyList;
+
+import java.util.Collection;
+import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import org.apache.commons.lang.StringUtils;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
@@ -23,20 +34,11 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommonException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Collection;
-import java.util.List;
-
-import static java.util.Collections.emptyList;
 
 /**
  * Audit-related responsibilities during clockwork processing.
@@ -94,39 +96,30 @@ public class ClockworkAuditHelper {
         PrismObject<? extends ObjectType> primaryObject;
         ObjectDelta<? extends ObjectType> primaryDelta;
         if (context.getFocusContext() != null) {
-            primaryObject = context.getFocusContext().getObjectOld();
-            if (primaryObject == null) {
+            if (context.getFocusContext().getObjectOld() != null) {
+                primaryObject = context.getFocusContext().getObjectOld();
+            } else {
                 primaryObject = context.getFocusContext().getObjectNew();
             }
-            primaryDelta = context.getFocusContext().getDelta();
+            primaryDelta = context.getFocusContext().getSummaryDelta();
         } else {
             Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
             if (projectionContexts == null || projectionContexts.isEmpty()) {
-                throw new IllegalStateException("No focus and no projections in "+context);
+                throw new IllegalStateException("No focus and no projections in " + context);
             }
             if (projectionContexts.size() > 1) {
-                throw new IllegalStateException("No focus and more than one projection in "+context);
+                throw new IllegalStateException("No focus and more than one projection in " + context);
             }
             LensProjectionContext projection = projectionContexts.iterator().next();
-            primaryObject = projection.getObjectOld();
-            if (primaryObject == null) {
+            if (projection.getObjectOld() != null) {
+                primaryObject = projection.getObjectOld();
+            } else {
                 primaryObject = projection.getObjectNew();
             }
-            primaryDelta = projection.getDelta();
+            primaryDelta = projection.getCurrentDelta();
         }
 
-        AuditEventType eventType;
-        if (primaryDelta == null) {
-            eventType = AuditEventType.SYNCHRONIZATION;
-        } else if (primaryDelta.isAdd()) {
-            eventType = AuditEventType.ADD_OBJECT;
-        } else if (primaryDelta.isModify()) {
-            eventType = AuditEventType.MODIFY_OBJECT;
-        } else if (primaryDelta.isDelete()) {
-            eventType = AuditEventType.DELETE_OBJECT;
-        } else {
-            throw new IllegalStateException("Unknown state of delta "+primaryDelta);
-        }
+        AuditEventType eventType = determineEventType(primaryDelta);
 
         AuditEventRecord auditRecord = new AuditEventRecord(eventType, stage);
         auditRecord.setRequestIdentifier(context.getRequestIdentifier());
@@ -176,13 +169,13 @@ public class ClockworkAuditHelper {
             Collection<ObjectDeltaOperation<? extends ObjectType>> clonedDeltas = ObjectDeltaOperation.cloneDeltaCollection(context.getPrimaryChanges());
             checkNamesArePresent(clonedDeltas, primaryObject);
             auditRecord.addDeltas(clonedDeltas);
-            if (auditRecord.getTarget() == null) {
-                auditRecord.setTarget(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas, context.getPrismContext()));
+            if (auditRecord.getTargetRef() == null) {
+                auditRecord.setTargetRef(ModelImplUtils.determineAuditTargetDeltaOps(clonedDeltas, context.getPrismContext()));
             }
         } else if (stage == AuditEventStage.EXECUTION) {
             auditRecord.setOutcome(clone.getStatus());
             Collection<ObjectDeltaOperation<? extends ObjectType>> unauditedExecutedDeltas = context.getUnauditedExecutedDeltas();
-            if (!alwaysAudit && (unauditedExecutedDeltas == null || unauditedExecutedDeltas.isEmpty())) {
+            if (!alwaysAudit && unauditedExecutedDeltas.isEmpty()) {
                 // No deltas, nothing to audit in this wave
                 return;
             }
@@ -190,7 +183,7 @@ public class ClockworkAuditHelper {
             checkNamesArePresent(clonedDeltas, primaryObject);
             auditRecord.addDeltas(clonedDeltas);
         } else {
-            throw new IllegalStateException("Unknown audit stage "+stage);
+            throw new IllegalStateException("Unknown audit stage " + stage);
         }
 
         if (timestamp != null) {
@@ -236,6 +229,23 @@ public class ClockworkAuditHelper {
         }
     }
 
+    @NotNull
+    private AuditEventType determineEventType(ObjectDelta<? extends ObjectType> primaryDelta) {
+        AuditEventType eventType;
+        if (primaryDelta == null) {
+            eventType = AuditEventType.SYNCHRONIZATION;
+        } else if (primaryDelta.isAdd()) {
+            eventType = AuditEventType.ADD_OBJECT;
+        } else if (primaryDelta.isModify()) {
+            eventType = AuditEventType.MODIFY_OBJECT;
+        } else if (primaryDelta.isDelete()) {
+            eventType = AuditEventType.DELETE_OBJECT;
+        } else {
+            throw new IllegalStateException("Unknown state of delta " + primaryDelta);
+        }
+        return eventType;
+    }
+
     private void checkNamesArePresent(Collection<ObjectDeltaOperation<? extends ObjectType>> deltas, PrismObject<? extends ObjectType> primaryObject) {
         if (primaryObject != null) {
             for (ObjectDeltaOperation<? extends ObjectType> delta : deltas) {
@@ -258,11 +268,11 @@ public class ClockworkAuditHelper {
             return;
         }
         Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = auditRecord.getDeltas();
-        if (deltas == null || deltas.isEmpty()) {
+        if (deltas.isEmpty()) {
             return;
         }
         StringBuilder sb = new StringBuilder();
-        for (ObjectDeltaOperation<? extends ObjectType> delta: deltas) {
+        for (ObjectDeltaOperation<? extends ObjectType> delta : deltas) {
             OperationResult executionResult = delta.getExecutionResult();
             if (executionResult != null) {
                 String deltaMessage = executionResult.getMessage();

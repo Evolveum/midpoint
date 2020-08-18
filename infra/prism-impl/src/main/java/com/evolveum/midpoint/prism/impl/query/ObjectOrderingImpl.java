@@ -16,8 +16,8 @@ import com.evolveum.midpoint.prism.query.OrderDirection;
  */
 public final class ObjectOrderingImpl implements ObjectOrdering {
 
-    final private ItemPath orderBy;
-    final private OrderDirection direction;
+    private final ItemPath orderBy;
+    private final OrderDirection direction;
 
     private ObjectOrderingImpl(ItemPath orderBy, OrderDirection direction) {
         if (ItemPath.isEmpty(orderBy)) {
@@ -51,8 +51,8 @@ public final class ObjectOrderingImpl implements ObjectOrdering {
     }
 
     public boolean equals(Object o, boolean exact) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         ObjectOrderingImpl that = (ObjectOrderingImpl) o;
 

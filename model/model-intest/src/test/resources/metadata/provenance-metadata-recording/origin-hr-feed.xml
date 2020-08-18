@@ -1,0 +1,12 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<service xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+         oid="f43bd824-e07e-4a41-950e-00de06881555">
+    <name>HR employee feed</name>
+    <description>Automated feed of employee data from the HR system</description>
+</service>

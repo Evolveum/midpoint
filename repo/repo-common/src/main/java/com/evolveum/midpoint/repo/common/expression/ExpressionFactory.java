@@ -15,12 +15,13 @@ import javax.annotation.PreDestroy;
 import javax.xml.namespace.QName;
 
 import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
+import com.evolveum.midpoint.repo.api.Cacheable;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -37,24 +38,38 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCacheStateInfo
  * Factory for expressions and registry for expression evaluator factories.
  *
  * @author semancik
- *
  */
 public class ExpressionFactory implements Cacheable {
 
-    private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<>();
-    private ExpressionEvaluatorFactory defaultEvaluatorFactory;
-    @NotNull private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<>();
-    final private PrismContext prismContext;
-    private ObjectResolver objectResolver;                    // using setter to allow Spring to handle circular references
-    final private SecurityContextManager securityContextManager;
-    private LocalizationService localizationService;
-    private CacheRegistry cacheRegistry;
+    private final PrismContext prismContext;
+    private final SecurityContextManager securityContextManager;
+    private final LocalizationService localizationService;
+    private final Map<QName, ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<>();
 
-    public ExpressionFactory(SecurityContextManager securityContextManager, PrismContext prismContext,
-            LocalizationService localizationService) {
+    @Autowired private CacheRegistry cacheRegistry;
+
+    @NotNull private Map<ExpressionIdentifier, Expression<?, ?>> cache = new HashMap<>();
+
+    // These are set from XML as properties, I'm not sure whether they can be autowired,
+    // as there are various subclasses for both of them:
+    private ExpressionEvaluatorFactory defaultEvaluatorFactory;
+    private ObjectResolver objectResolver;
+
+    public ExpressionFactory(SecurityContextManager securityContextManager,
+            PrismContext prismContext, LocalizationService localizationService) {
         this.prismContext = prismContext;
         this.securityContextManager = securityContextManager;
         this.localizationService = localizationService;
+    }
+
+    @PostConstruct
+    public void register() {
+        cacheRegistry.registerCacheableService(this);
+    }
+
+    @PreDestroy
+    public void unregister() {
+        cacheRegistry.unregisterCacheableService(this);
     }
 
     public void setObjectResolver(ObjectResolver objectResolver) {
@@ -69,26 +84,13 @@ public class ExpressionFactory implements Cacheable {
         return localizationService;
     }
 
-    public void setCacheRegistry(CacheRegistry cacheRegistry) {
-        this.cacheRegistry = cacheRegistry;
-    }
-
-    @PostConstruct
-    public void register() {
-        cacheRegistry.registerCacheableService(this);
-    }
-
-    @PreDestroy
-    public void unregister() {
-        cacheRegistry.unregisterCacheableService(this);
-    }
-
-    public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,
-            D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+    public <V extends PrismValue, D extends ItemDefinition> Expression<V, D> makeExpression(
+            ExpressionType expressionType, D outputDefinition, ExpressionProfile expressionProfile,
+            String shortDesc, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
         ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
         //noinspection unchecked
-        Expression<V,D> expression = (Expression<V,D>) cache.get(eid);
+        Expression<V, D> expression = (Expression<V, D>) cache.get(eid);
         if (expression == null) {
             expression = createExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
             cache.put(eid, expression);
@@ -96,18 +98,19 @@ public class ExpressionFactory implements Cacheable {
         return expression;
     }
 
-    public <T> Expression<PrismPropertyValue<T>,PrismPropertyDefinition<T>> makePropertyExpression(
-            ExpressionType expressionType, QName outputPropertyName, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+    public <T> Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> makePropertyExpression(
+            ExpressionType expressionType, QName outputPropertyName,
+            ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
         //noinspection unchecked
         PrismPropertyDefinition<T> outputDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(outputPropertyName);
         return makeExpression(expressionType, outputDefinition, expressionProfile, shortDesc, task, result);
     }
 
-    private <V extends PrismValue,D extends ItemDefinition> Expression<V,D> createExpression(ExpressionType expressionType,
+    private <V extends PrismValue, D extends ItemDefinition> Expression<V, D> createExpression(ExpressionType expressionType,
             D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
-                    throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        Expression<V,D> expression = new Expression<>(expressionType, outputDefinition, expressionProfile, objectResolver, securityContextManager, prismContext);
+            throws SchemaException, ObjectNotFoundException, SecurityViolationException {
+        Expression<V, D> expression = new Expression<>(expressionType, outputDefinition, expressionProfile, objectResolver, securityContextManager, prismContext);
         expression.parse(this, shortDesc, task, result);
         return expression;
     }
@@ -166,25 +169,31 @@ public class ExpressionFactory implements Cacheable {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
+            if (this == obj) {
                 return true;
-            if (obj == null)
+            }
+            if (obj == null || getClass() != obj.getClass()) {
                 return false;
-            if (getClass() != obj.getClass())
-                return false;
+            }
+
             ExpressionIdentifier other = (ExpressionIdentifier) obj;
-            if (!getOuterType().equals(other.getOuterType()))
+            if (!getOuterType().equals(other.getOuterType())) {
                 return false;
+            }
             if (expressionType == null) {
-                if (other.expressionType != null)
+                if (other.expressionType != null) {
                     return false;
-            } else if (!expressionType.equals(other.expressionType))
+                }
+            } else if (!expressionType.equals(other.expressionType)) {
                 return false;
+            }
             if (outputDefinition == null) {
-                if (other.outputDefinition != null)
+                if (other.outputDefinition != null) {
                     return false;
-            } else if (!outputDefinition.equals(other.outputDefinition))
+                }
+            } else if (!outputDefinition.equals(other.outputDefinition)) {
                 return false;
+            }
             return true;
         }
 
@@ -207,8 +216,7 @@ public class ExpressionFactory implements Cacheable {
         return Collections.singleton(
                 new SingleCacheStateInformationType(prismContext)
                         .name(ExpressionFactory.class.getName())
-                        .size(cache.size())
-        );
+                        .size(cache.size()));
     }
 
     @Override

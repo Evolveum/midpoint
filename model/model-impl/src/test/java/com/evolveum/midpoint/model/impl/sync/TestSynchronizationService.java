@@ -54,12 +54,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
     public static final File TEST_DIR = new File("src/test/resources/sync");
 
-    public static final File RESOURCE_DUMMY_LIMITED_FILE = new File(TEST_DIR, "resource-dummy-limited.xml");
-    public static final String RESOURCE_DUMMY_LIMITED_OID = "cbe8baa0-64dd-11e8-9760-076bd690e1c4";
-    public static final String RESOURCE_DUMMY_LIMITED_NAME = "limited";
+    private static final File RESOURCE_DUMMY_LIMITED_FILE = new File(TEST_DIR, "resource-dummy-limited.xml");
+    private static final String RESOURCE_DUMMY_LIMITED_OID = "cbe8baa0-64dd-11e8-9760-076bd690e1c4";
+    private static final String RESOURCE_DUMMY_LIMITED_NAME = "limited";
 
-    public static final File SHADOW_PIRATES_DUMMY_FILE = new File(TEST_DIR, "shadow-pirates-dummy.xml");
-    public static final String GROUP_PIRATES_DUMMY_NAME = "pirates";
+    private static final File SHADOW_PIRATES_DUMMY_FILE = new File(TEST_DIR, "shadow-pirates-dummy.xml");
+    private static final String GROUP_PIRATES_DUMMY_NAME = "pirates";
 
     private static final String INTENT_GROUP = "group";
 
@@ -170,7 +170,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getExecutedDeltas().iterator().next().getObjectDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
         assertEquals("Unexpected number of modifications in user secondary delta", 7, userSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_COST_CENTER, "999");
+        PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_COST_CENTER, "999");
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
         LensProjectionContext accCtx = context.findProjectionContext(rat);
@@ -226,7 +226,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 //        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
         assertNotNull("No user secondary delta", userSecondaryDelta);
         assertEquals("Unexpected number of modifications in user secondary delta", 7, userSecondaryDelta.getModifications().size());
-        PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_COST_CENTER);
+        PrismAsserts.assertPropertyDelete(userSecondaryDelta, UserType.F_COST_CENTER, "999");
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(), ShadowKindType.ACCOUNT, null, null, false);
         LensProjectionContext accCtx = context.findProjectionContext(rat);
@@ -962,7 +962,6 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 
         assertNotNull("No focus primary delta", context.getFocusContext().getPrimaryDelta());
         assertFalse("No executed focus deltas", context.getFocusContext().getExecutedDeltas().isEmpty());
-        context.getFocusContext().getExecutedDeltas().iterator().next().getObjectDelta();
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(getDummyResourceObject().getOid(),
                 ShadowKindType.ENTITLEMENT, INTENT_GROUP, null, false);

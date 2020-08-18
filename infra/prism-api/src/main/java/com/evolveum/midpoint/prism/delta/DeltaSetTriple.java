@@ -126,4 +126,10 @@ public interface DeltaSetTriple<T> extends DebugDumpable, ShortDumpable, Seriali
     void debugDumpSets(StringBuilder sb, Consumer<T> dumper, int indent);
 
     String toHumanReadableString();
+
+    default void clear() {
+        clearPlusSet();
+        clearMinusSet();
+        clearZeroSet();
+    }
 }

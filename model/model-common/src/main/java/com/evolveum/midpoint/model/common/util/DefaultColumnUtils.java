@@ -283,7 +283,7 @@ public class DefaultColumnUtils {
             case AuditConstants.EVENT_TYPE_COLUMN:
                 return record.getEventType();
             case AuditConstants.TARGET_COLUMN:
-                return record.getTarget();
+                return record.getTargetRef();
             case AuditConstants.TARGET_OWNER_COLUMN:
                 return record.getTargetOwner();
             case AuditConstants.CHANNEL_COLUMN:

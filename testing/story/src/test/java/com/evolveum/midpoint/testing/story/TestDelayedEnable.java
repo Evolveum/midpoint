@@ -481,13 +481,13 @@ public class TestDelayedEnable extends AbstractStoryTest {
         // WHEN
         when();
 
-        addObject(TASK_DUMMY_HR_FILE, task, result);
+        addObject(TASK_DUMMY_HR_FILE, task, result); // task is imported as closed
 
         // THEN
         then();
         assertSuccess(result);
 
-        waitForTaskStart(TASK_DUMMY_HR_OID, true);
+        rerunTask(TASK_DUMMY_HR_OID);
 
         assertCounterIncrement(InternalCounters.TRIGGER_FIRED_COUNT, 0);
     }

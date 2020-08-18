@@ -7,27 +7,27 @@
 
 package com.evolveum.prism.xml.ns._public.types_3;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 
 /**
- *  Experimental.
+ * Experimental.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "DeltaSetTripleType", propOrder = {
-    "zero",
-    "plus",
-    "minus"
+        "zero",
+        "plus",
+        "minus"
 })
 public class DeltaSetTripleType implements Serializable, JaxbVisitable, Cloneable {
 
@@ -43,10 +43,10 @@ public class DeltaSetTripleType implements Serializable, JaxbVisitable, Cloneabl
     @Raw
     private final List<Object> minus = new ArrayList<>();
 
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "DeltaSetTripleType");
-    public final static QName F_ZERO = new QName(PrismConstants.NS_TYPES, "zero");
-    public final static QName F_PLUS = new QName(PrismConstants.NS_TYPES, "plus");
-    public final static QName F_MINUS = new QName(PrismConstants.NS_TYPES, "minus");
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "DeltaSetTripleType");
+    public static final QName F_ZERO = new QName(PrismConstants.NS_TYPES, "zero");
+    public static final QName F_PLUS = new QName(PrismConstants.NS_TYPES, "plus");
+    public static final QName F_MINUS = new QName(PrismConstants.NS_TYPES, "minus");
 
     public List<Object> getZero() {
         return zero;

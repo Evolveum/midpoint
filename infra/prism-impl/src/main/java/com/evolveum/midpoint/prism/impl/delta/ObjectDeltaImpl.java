@@ -75,7 +75,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
      */
     private Class<O> objectTypeClass;
 
-    transient private PrismContext prismContext;
+    private transient PrismContext prismContext;
 
     public ObjectDeltaImpl(Class<O> objectTypeClass, ChangeType changeType, PrismContext prismContext) {
         Validate.notNull(objectTypeClass,"No objectTypeClass");
@@ -487,7 +487,8 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         }
     }
 
-    public ObjectDeltaImpl<O> narrow(PrismObject<O> existingObject, boolean assumeMissingItems) {
+    public ObjectDeltaImpl<O> narrow(PrismObject<O> existingObject, @NotNull ParameterizedEquivalenceStrategy plusStrategy,
+            @NotNull ParameterizedEquivalenceStrategy minusStrategy, boolean assumeMissingItems) {
         checkMutable();
         if (!isModify()) {
             throw new UnsupportedOperationException("Narrow is supported only for modify deltas");
@@ -495,7 +496,8 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         ObjectDeltaImpl<O> narrowedDelta = new ObjectDeltaImpl<>(this.objectTypeClass, this.changeType, this.prismContext);
         narrowedDelta.oid = this.oid;
         for (ItemDelta<?, ?> modification: modifications) {
-            ItemDelta<?, ?> narrowedModification = modification.narrow(existingObject, assumeMissingItems);
+            ItemDelta<?, ?> narrowedModification = modification.narrow(existingObject, plusStrategy.prismValueComparator(),
+                    minusStrategy.prismValueComparator(), assumeMissingItems);
             if (narrowedModification != null && !narrowedModification.isEmpty()) {
                 narrowedDelta.addModification(narrowedModification);
             }
@@ -582,25 +584,33 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     }
 
     public void mergeModification(ItemDelta<?,?> modificationToMerge) throws SchemaException {
+        swallow(modificationToMerge);
+    }
+
+    /**
+     * Incorporates the property delta into the existing property deltas
+     * (regardless of the change type).
+     *
+     * TODO incorporate equivalence strategy
+     */
+    public void swallow(ItemDelta<?,?> newItemDelta) throws SchemaException {
+        checkMutable();
         if (changeType == ChangeType.ADD) {
-            modificationToMerge.applyTo(objectToAdd);
+            newItemDelta.applyTo(objectToAdd);
         } else if (changeType == ChangeType.MODIFY) {
             // We use 'strict' finding mode because of MID-4690 (TODO)
-            ItemDelta existingModification = findModification(modificationToMerge.getPath(), ItemDelta.class, true);
+            ItemDelta existingModification = findModification(newItemDelta.getPath(), ItemDelta.class, true);
             if (existingModification == null) {
-                addModification(modificationToMerge.clone());
+                addModification(newItemDelta.clone());
             } else {
-                existingModification.merge(modificationToMerge);
+                //noinspection unchecked
+                existingModification.merge(newItemDelta);
             }
-        } // else it is DELETE. There's nothing to do. Merging anything to delete is still delete
+        }
+        // nothing to do for DELETE
     }
-
 
     public void applyTo(PrismObject<O> targetObject) throws SchemaException {
-        applyTo(targetObject, ParameterizedEquivalenceStrategy.DEFAULT_FOR_DELTA_APPLICATION);
-    }
-
-    public void applyTo(PrismObject<O> targetObject, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
         if (isEmpty()) {
             // nothing to do
             return;
@@ -608,14 +618,13 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         if (changeType != ChangeType.MODIFY) {
             throw new IllegalStateException("Can apply only MODIFY delta to object, got " + changeType + " delta");
         }
-        applyTo(targetObject, modifications, strategy);
+        applyTo(targetObject, modifications);
     }
 
     private static <O extends Objectable> void applyTo(PrismObject<O> targetObject,
-            Collection<? extends ItemDelta<?, ?>> modifications,
-            ParameterizedEquivalenceStrategy strategy) throws SchemaException {
+            Collection<? extends ItemDelta<?, ?>> modifications) throws SchemaException {
         for (ItemDelta itemDelta : modifications) {
-            itemDelta.applyTo(targetObject, strategy);
+            itemDelta.applyTo(targetObject);
         }
     }
 
@@ -629,8 +638,7 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     public PrismObject<O> computeChangedObject(PrismObject<O> objectOld) throws SchemaException {
         if (objectOld == null) {
             if (getChangeType() == ChangeType.ADD) {
-                objectOld = getObjectToAdd();
-                return objectOld.clone();
+                return getObjectToAdd().clone();
             } else {
                 //throw new IllegalStateException("Cannot apply "+getChangeType()+" delta to a null old object");
                 // This seems to be quite OK
@@ -648,28 +656,11 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
         return objectNew;
     }
 
-    /**
-     * Incorporates the property delta into the existing property deltas
-     * (regardless of the change type).
-     */
-    public void swallow(ItemDelta<?,?> newItemDelta) throws SchemaException {
-        checkMutable();
-        if (changeType == ChangeType.MODIFY) {
-            // TODO: check for conflict
-            addModification(newItemDelta);
-        } else if (changeType == ChangeType.ADD) {
-            Item item = objectToAdd.findOrCreateItem(newItemDelta.getPath(), newItemDelta.getItemClass());
-            newItemDelta.applyTo(item);
-        }
-        // nothing to do for DELETE
-    }
-
     public void swallow(List<ItemDelta<?, ?>> itemDeltas) throws SchemaException {
         for (ItemDelta<?, ?> itemDelta : itemDeltas) {
             swallow(itemDelta);
         }
     }
-
 
     private Collection<? extends ItemDelta<?,?>> createEmptyModifications() {
         // Lists are easier to debug
@@ -1390,13 +1381,14 @@ public class ObjectDeltaImpl<O extends Objectable> extends AbstractFreezable imp
     }
 
     @Override
-    public boolean isRedundant(PrismObject<O> object, boolean assumeMissingItems) throws SchemaException {
+    public boolean isRedundant(PrismObject<O> object, @NotNull ParameterizedEquivalenceStrategy plusStrategy,
+            @NotNull ParameterizedEquivalenceStrategy minusStrategy, boolean assumeMissingItems) throws SchemaException {
         switch (changeType) {
             case MODIFY:
                 if (object == null) {
                     throw new SchemaException("Cannot apply MODIFY delta to a null object");    // TODO reconsider this exception
                 } else {
-                    return ObjectDelta.isEmpty(narrow(object, assumeMissingItems));
+                    return ObjectDelta.isEmpty(narrow(object, plusStrategy, minusStrategy, assumeMissingItems));
                 }
             case DELETE:
                 return object == null;

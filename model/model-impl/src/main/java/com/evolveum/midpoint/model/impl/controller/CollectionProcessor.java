@@ -12,6 +12,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.assignments.ConditionState;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -115,7 +116,7 @@ public class CollectionProcessor {
                 .evaluationOrderForTarget(EvaluationOrderImpl.zero(relationRegistry))
                 .direct(true) // to be reconsidered - but assignment path is empty, so we consider this to be directly assigned
                 .pathToSourceValid(true)
-                .sourceRelativityMode(PlusMinusZero.ZERO)
+                .pathToSourceConditionState(ConditionState.allTrue())
                 .build();
         assignmentPath.add(assignmentPathSegment);
 
@@ -207,8 +208,8 @@ public class CollectionProcessor {
     public <O extends ObjectType> CollectionStats determineCollectionStats(CompiledObjectCollectionView collectionView, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException, ExpressionEvaluationException {
         CollectionStats stats = new CollectionStats();
         Class<O> targetClass = collectionView.getTargetClass();
-        stats.setObjectCount(countObjects(targetClass, collectionView.getFilter(), collectionView.getOptions(), task, result));
-        stats.setDomainCount(countObjects(targetClass, collectionView.getDomainFilter(), collectionView.getDomainOptions(), task, result));
+        stats.setObjectCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getFilter(), result, task), collectionView.getOptions(), task, result));
+        stats.setDomainCount(countObjects(targetClass, evaluateExpressionsInFilter(collectionView.getDomainFilter(), result, task), collectionView.getDomainOptions(), task, result));
         return stats;
     }
 
@@ -347,8 +348,7 @@ public class CollectionProcessor {
         SearchFilterType collectionFilterType = objectCollectionType.getFilter();
         ObjectFilter collectionFilter;
         if (collectionFilterType != null) {
-            ObjectFilter filterRaw = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
-            collectionFilter = evaluateExpressionsInFilter(filterRaw, result, task);
+            collectionFilter = prismContext.getQueryConverter().parseFilter(collectionFilterType, targetTypeClass);
         } else {
             collectionFilter = null;
         }

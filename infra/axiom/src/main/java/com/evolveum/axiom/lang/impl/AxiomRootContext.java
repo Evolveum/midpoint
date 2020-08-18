@@ -6,12 +6,12 @@
  */
 package com.evolveum.axiom.lang.impl;
 
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 
 public interface AxiomRootContext {
 
     void importIdentifierSpace(NamespaceContext namespaceContext);
 
-    void exportIdentifierSpace(IdentifierSpaceKey namespaceId);
+    void exportIdentifierSpace(AxiomValueIdentifier namespaceId);
 
 }

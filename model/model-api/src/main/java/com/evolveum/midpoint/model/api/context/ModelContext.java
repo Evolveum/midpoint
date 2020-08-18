@@ -10,6 +10,7 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ProgressInformation;
@@ -22,10 +23,8 @@ import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -59,13 +58,24 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     DeltaSetTriple<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentTriple();
 
+    @NotNull
+    Stream<? extends EvaluatedAssignment<?>> getEvaluatedAssignmentsStream();
+
+    @NotNull
+    Collection<? extends EvaluatedAssignment<?>> getNonNegativeEvaluatedAssignments();
+
+    @NotNull
+    Collection<? extends EvaluatedAssignment<?>> getAllEvaluatedAssignments();
+
     PrismContext getPrismContext();       // use with care
+
+    ObjectTemplateType getFocusTemplate();
 
     PrismObject<SystemConfigurationType> getSystemConfiguration();  // beware, may be null - use only as a performance optimization
 
     String getChannel();
 
-    Collection<ObjectDelta<? extends ObjectType>> getAllChanges() throws SchemaException;
+    int getAllChanges() throws SchemaException;
 
     // For diagnostic purposes (this is more detailed than rule-related part of LensContext debugDump,
     // while less detailed than that part of detailed LensContext debugDump).

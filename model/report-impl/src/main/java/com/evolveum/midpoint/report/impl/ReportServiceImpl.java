@@ -13,6 +13,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ScriptingService;
 import com.evolveum.midpoint.model.api.interaction.DashboardService;
 import com.evolveum.midpoint.repo.common.commandline.CommandLineScriptExecutor;
 
@@ -91,6 +92,7 @@ public class ReportServiceImpl implements ReportService {
 //    @Autowired private ExpressionFactory expressionFactory;
     @Autowired private CommandLineScriptExecutor commandLineScriptExecutor;
 //    @Autowired private SchemaHelper schemaHelper;
+    @Autowired private ScriptingService scriptingService;
 
     @Override
     public ObjectQuery parseQuery(PrismObject<ReportType> report, String query, VariablesMap parameters, Task task, OperationResult result) throws SchemaException,
@@ -415,10 +417,13 @@ public class ReportServiceImpl implements ReportService {
         if (expressionResult.size() > 1) {
             throw new ExpressionEvaluationException("Too many results from expression "+context.getContextDescription());
         }
+        if (expressionResult.get(0) == null ) {
+            return null;
+        }
         return expressionResult.get(0).getRealValue();
     }
 
-    private ExpressionProfile determineExpressionProfile(PrismObject<ReportType> report, OperationResult result) throws SchemaException, ConfigurationException {
+    public ExpressionProfile determineExpressionProfile(PrismObject<ReportType> report, OperationResult result) throws SchemaException, ConfigurationException {
         if (report == null) {
             throw new IllegalArgumentException("No report defined, cannot determine profile");
         }
@@ -457,6 +462,12 @@ public class ReportServiceImpl implements ReportService {
     public boolean isAuthorizedToRunReport(PrismObject<ReportType> report, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         AuthorizationParameters<ReportType,ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
         return securityEnforcer.isAuthorized(ModelAuthorizationAction.RUN_REPORT.getUrl(), null, params, null, task, result);
+    }
+
+    @Override
+    public boolean isAuthorizedToImportReport(PrismObject<ReportType> report, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+        AuthorizationParameters<ReportType,ObjectType> params = AuthorizationParameters.Builder.buildObject(report);
+        return securityEnforcer.isAuthorized(ModelAuthorizationAction.IMPORT_REPORT.getUrl(), null, params, null, task, result);
     }
 
     public Clock getClock() {
@@ -501,5 +512,9 @@ public class ReportServiceImpl implements ReportService {
 
     public SchemaHelper getSchemaHelper() {
         return schemaHelper;
+    }
+
+    public ScriptingService getScriptingService() {
+        return scriptingService;
     }
 }

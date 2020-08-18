@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -22,7 +22,7 @@ public class TestAsyncUpdateCachingIndexOnly extends TestAsyncUpdateCaching {
             new File(TEST_DIR, "resource-async-caching-index-only.xml");
 
     @Autowired
-    @Qualifier("sqlRepositoryServiceImpl")
+    @Qualifier("repositoryService") // we're downcasting here to known subtype
     private SqlRepositoryServiceImpl sqlRepositoryService;
 
     @Override
@@ -34,9 +34,9 @@ public class TestAsyncUpdateCachingIndexOnly extends TestAsyncUpdateCaching {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         // These are experimental features, so they need to be explicitly enabled. This will be eliminated later,
         // when we make them enabled by default.
-        sqlRepositoryService.getConfiguration().setEnableIndexOnlyItems(true);
-        sqlRepositoryService.getConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
-        sqlRepositoryService.getConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
+        sqlRepositoryService.sqlConfiguration().setEnableIndexOnlyItems(true);
+        sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesInsertion(true);
+        sqlRepositoryService.sqlConfiguration().setEnableNoFetchExtensionValuesDeletion(true);
 
         super.initSystem(initTask, initResult);
     }

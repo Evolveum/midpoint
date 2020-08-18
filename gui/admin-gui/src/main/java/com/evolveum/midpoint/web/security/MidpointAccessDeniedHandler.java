@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.security;
 
 import java.io.IOException;
@@ -17,12 +16,9 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.access.AccessDeniedHandlerImpl;
 import org.springframework.security.web.csrf.CsrfException;
 
-/**
- * Created by Viliam Repan (lazyman).
- */
 public class MidpointAccessDeniedHandler implements AccessDeniedHandler {
 
-    private AccessDeniedHandler defaultHandler = new AccessDeniedHandlerImpl();
+    private final AccessDeniedHandler defaultHandler = new AccessDeniedHandlerImpl();
 
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,

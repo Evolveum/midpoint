@@ -7,18 +7,16 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm;
 
-import org.apache.commons.lang.Validate;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.Validate;
+
 /**
  * Specifies an entity that is to be used in the query (its name and its alias),
  * along with any entities joined by associations.
- *
- *
  *
  * @author mederly
  */
@@ -29,8 +27,8 @@ public class EntityReference {
 
     /**
      * Joined entities, e.g. for RUser u here could be:
-     *  - u.assignments a
-     *  - u.longs l with l.ownerType = EXTENSION and l.name = 'http://example.com/p#intType'
+     * - u.assignments a
+     * - u.longs l with l.ownerType = EXTENSION and l.name = 'http://example.com/p#intType'
      * etc.
      */
     private List<JoinSpecification> joins = new ArrayList<>();

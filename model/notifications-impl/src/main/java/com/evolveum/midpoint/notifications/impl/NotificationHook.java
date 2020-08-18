@@ -102,12 +102,9 @@ public class NotificationHook implements ChangeHook {
         for (EvaluatedPolicyRule rule : focusContext.getPolicyRules()) {
             emitPolicyEventIfPresent(rule, context, task, result);
         }
-        DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = ((LensContext<?>) context).getEvaluatedAssignmentTriple();
-        if (triple != null) {
-            for (EvaluatedAssignment<?> assignment : triple.getNonNegativeValues()) {
-                for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
-                    emitPolicyEventIfPresent(rule, context, task, result);
-                }
+        for (EvaluatedAssignment<?> assignment : context.getNonNegativeEvaluatedAssignments()) {
+            for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
+                emitPolicyEventIfPresent(rule, context, task, result);
             }
         }
     }

@@ -13,7 +13,6 @@ import java.util.Set;
 import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.Persister;
@@ -273,6 +272,9 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
 
     public void setOwner(RObject owner) {
         this.owner = owner;
+        if (owner != null) {
+            setOwnerOid(owner.getOid());
+        }
     }
 
     public void setOwnerOid(String ownerOid) {
@@ -403,13 +405,13 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
         }
 
         RAssignment that = (RAssignment) o;
-        return Objects.equals(ownerOid, that.ownerOid)
+        return Objects.equals(getOwnerOid(), that.getOwnerOid())
                 && Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ownerOid, id);
+        return Objects.hash(getOwnerOid(), id);
     }
 
     public static void fromJaxb(AssignmentType jaxb, RAssignment repo, RObject parent,
@@ -426,8 +428,8 @@ public class RAssignment implements Container<RObject>, Metadata<RAssignmentRefe
 
     private static void fromJaxb(AssignmentType jaxb, RAssignment repo, RepositoryContext repositoryContext,
             IdGeneratorResult generatorResult) throws DtoTranslationException {
-        Validate.notNull(repo, "Repo object must not be null.");
-        Validate.notNull(jaxb, "JAXB object must not be null.");
+        Objects.requireNonNull(repo, "Repo object must not be null.");
+        Objects.requireNonNull(jaxb, "JAXB object must not be null.");
 
         if (generatorResult != null) {
             repo.setTransient(generatorResult.isTransient(jaxb.asPrismContainerValue()));

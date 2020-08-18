@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2019 Evolveum and contributors
+ * Copyright (C) 2015-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,10 +7,6 @@
 package com.evolveum.midpoint.model.impl.security;
 
 import javax.xml.datatype.Duration;
-
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-
-import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -22,6 +18,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelAuditRecorder;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.model.impl.ModelObjectResolver;
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -31,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.HttpConnectionInformation;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.security.enforcer.api.SecurityEnforcer;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -71,7 +69,7 @@ public class SecurityHelper implements ModelAuditRecorder {
     private void auditLogin(@Nullable String username, @Nullable FocusType focus, @NotNull ConnectionEnvironment connEnv, @NotNull OperationResultStatus status,
             @Nullable String message) {
         String channel = connEnv.getChannel();
-        if(!SecurityUtil.isAuditedLoginAndLogout(getSystemConfig(), channel)){
+        if (!SecurityUtil.isAuditedLoginAndLogout(getSystemConfig(), channel)) {
             return;
         }
         Task task = taskManager.createTaskInstance();
@@ -84,7 +82,7 @@ public class SecurityHelper implements ModelAuditRecorder {
         AuditEventRecord record = new AuditEventRecord(AuditEventType.CREATE_SESSION, AuditEventStage.REQUEST);
         record.setParameter(username);
         if (focus != null) {
-            record.setInitiator(focus.asPrismObject());
+            record.setInitiator(focus.asPrismObject(), prismContext);
         }
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(status);
@@ -96,18 +94,18 @@ public class SecurityHelper implements ModelAuditRecorder {
 
     @Override
     public void auditLogout(ConnectionEnvironment connEnv, Task task) {
-        if(!SecurityUtil.isAuditedLoginAndLogout(getSystemConfig(), connEnv.getChannel())){
+        if (!SecurityUtil.isAuditedLoginAndLogout(getSystemConfig(), connEnv.getChannel())) {
             return;
         }
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
-        record.setInitiatorAndLoginParameter(task.getOwner());
+        record.setInitiatorAndLoginParameter(task.getOwner(), prismContext);
         record.setTimestamp(System.currentTimeMillis());
         record.setOutcome(OperationResultStatus.SUCCESS);
         storeConnectionEnvironment(record, connEnv);
         auditHelper.audit(record, null, task, new OperationResult(SecurityHelper.class.getName() + ".auditLogout"));
     }
 
-    private SystemConfigurationType getSystemConfig(){
+    private SystemConfigurationType getSystemConfig() {
         SystemConfigurationType system = null;
         try {
             system = systemObjectCache.getSystemConfiguration(new OperationResult("LOAD SYSTEM CONFIGURATION")).asObjectable();

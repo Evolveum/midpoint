@@ -1037,9 +1037,9 @@ public class ReportUtils {
                 value = jasperParam.getValue();
             }
             if (value instanceof AuditEventTypeType) {
-                auditParams.put(jasperParam.getKey(), AuditEventType.toAuditEventType((AuditEventTypeType) value));
+                auditParams.put(jasperParam.getKey(), AuditEventType.fromSchemaValue((AuditEventTypeType) value));
             } else if (value instanceof AuditEventStageType) {
-                auditParams.put(jasperParam.getKey(), AuditEventStage.toAuditEventStage((AuditEventStageType) value));
+                auditParams.put(jasperParam.getKey(), AuditEventStage.fromSchemaValue((AuditEventStageType) value));
             } else {
                 auditParams.put(jasperParam.getKey(), value);
             }

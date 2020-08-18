@@ -925,8 +925,19 @@ body .treeview-menu > li > span:hover {
     }
   }
 
+}
+
+.metadata-properties {
+  .metadata-property {
+    padding-left: 20px;
+
+    &.stripe {
+      background-color: @table-stripe-bg-color;
+    }
+  }
 
 }
+
 .prism-header {
 	margin-bottom: 15px;
 	display: block;
@@ -1476,6 +1487,18 @@ th.check, td.check {
 	width: 34px;
 }
 
+th.mid-width-column, td.mid-width-column {
+	width: 180px;
+}
+
+th.min-width-column, td.min-width-column {
+	width: 70px;
+}
+
+th.max-width-column, td.max-width-column {
+	width: 350px;
+}
+
 th.shrink {
 	// We want this column to fit as tightly as possible.
 	// E.g. for columns that have textual label but
@@ -1639,3 +1662,48 @@ display: inline-block;
   vertical-align: middle;
   font-size: 12px;
 }
+
+.panel-default {
+    .panel-default {
+        border-color: #ffffff;
+    }
+}
+
+.metadata-nav > li > a {
+    border-radius: 10px;
+    padding: 5px 10px;
+    float: left;
+}
+
+.acquisition {
+
+}
+
+.acquisition > li {
+  float: left;
+  list-style: none;
+  margin-left: -30px;
+}
+
+.acquisition > li + li {
+  margin-left: 10px;
+  list-style: none;
+}
+
+.acquisition > li + li::before {
+  font-family: "FontAwesome";
+  content: "\f067";
+  float: left;
+  margin-right: 10px;
+}
+
+.yield {
+  margin-bottom: 2px;
+  border-radius: 3px;
+}
+
+.yield-heading {
+  padding: 5px 5px;
+  border-top: 1px solid #dddddd;
+}
+

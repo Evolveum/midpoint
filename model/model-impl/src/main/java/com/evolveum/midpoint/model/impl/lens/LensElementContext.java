@@ -16,18 +16,16 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
@@ -40,14 +38,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * @author semancik
+ * Lens context for a computation element - a focus or a projection.
  *
+ * @author semancik
  */
 public abstract class LensElementContext<O extends ObjectType> implements ModelElementContext<O>, Cloneable {
 
@@ -55,20 +53,118 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     private static final Trace LOGGER = TraceManager.getTrace(LensElementContext.class);
 
-    private PrismObject<O> objectOld;
-    private transient PrismObject<O> objectCurrent;
-    private PrismObject<O> objectNew;
-    private ObjectDelta<O> primaryDelta;
-    @NotNull private final List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<>();
+    /**
+     * Type of object represented by this context.
+     */
     @NotNull private final Class<O> objectTypeClass;
-    private String oid = null;
-    private int iteration;
-    private String iterationToken;
-
-    transient private SecurityPolicyType securityPolicy;
 
     /**
-     * These are policy state modifications that should be applied.
+     * Definition of the object. Lazily evaluated.
+     */
+    private transient PrismObjectDefinition<O> objectDefinition;
+
+    /**
+     * OID of object represented by this context.
+     *
+     * Beware, it can change during the operation e.g. when handling ObjectNotFound exceptions
+     * (or on many other occasions).
+     */
+    protected String oid;
+
+    /**
+     * "Old" state of the object i.e. the one that was present when the clockwork started.
+     * It can be present on the beginning or filled-in during projector execution by the context loaded.
+     *
+     * It is used as an "old state" for resource object mappings (in constructions or resources),
+     * persona mappings, notifications, policy rules, and so on.
+     */
+    protected PrismObject<O> objectOld;
+
+    /**
+     * "Current" state of the object i.e. the one that was present when the current projection
+     * started. (I.e. when the Projector was entered, except for
+     * {@link com.evolveum.midpoint.model.impl.lens.projector.Projector#projectAllWaves(LensContext, String, Task, OperationResult)}
+     * method.
+     *
+     * It is typically filled-in by the context loader.
+     *
+     * It is used as an "old state" for focus mappings (in object template or assigned ones).
+     */
+    protected transient PrismObject<O> objectCurrent;
+
+    /**
+     * Expected state of the object after application of currentDelta i.e. item deltas computed
+     * during current projection.
+     *
+     * This state is computed using the {@link #recompute()} method.
+     */
+    protected PrismObject<O> objectNew;
+
+    /**
+     * Indicates that the objectOld and objectCurrent contain relevant values.
+     * Generally set to true by {@link com.evolveum.midpoint.model.impl.lens.projector.ContextLoader}
+     * and reset to false by {@link LensContext#rot(String)} and {@link LensContext#rotIfNeeded()} methods.
+     */
+    private transient boolean isFresh;
+
+    /**
+     * Primary delta i.e. one that the caller specified that has to be executed.
+     *
+     * Sometimes it is also cleared e.g. in ConsolidationProcessor. TODO is this ok?
+     */
+    protected ObjectDelta<O> primaryDelta;
+
+    /**
+     * Secondary delta for current projection/execution wave.
+     * For focus, it is archived and cleared after execution.
+     */
+    protected ObjectDelta<O> secondaryDelta;
+
+    /**
+     * List of all executed deltas (in fact, {@link LensObjectDeltaOperation} objects).
+     * Updated by {@link ChangeExecutor}.
+     */
+    @NotNull private final List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<>();
+
+    /**
+     * Intention of what we want to do with this projection context.
+     * (The meaning for focus context is unknown.)
+     *
+     * Although there are more values, currently it seems that we use only UNLINK and DELETE ones.
+     *
+     * Set by the client (see {@link com.evolveum.midpoint.model.impl.sync.action.UnlinkAction}
+     * and {@link com.evolveum.midpoint.model.impl.sync.action.DeleteShadowAction}) or automatically
+     * determined from linkRef delete delta by {@link com.evolveum.midpoint.model.impl.lens.projector.ContextLoader}.
+     */
+    private SynchronizationIntent synchronizationIntent;
+
+    /**
+     * Current iteration when computing values for the object.
+     *
+     * The context can be recomputed several times. But we always want to use the same iterationToken if possible.
+     * If there is a random part in the iterationToken expression that we need to avoid recomputing the token otherwise
+     * the value can change all the time (even for the same inputs). Storing the token in the secondary delta is not
+     * enough because secondary deltas can be dropped if the context is re-projected.
+     */
+    private int iteration;
+
+    /**
+     * Current iteration token.
+     */
+    private String iterationToken;
+
+    /**
+     * Security policy related to this object. (It looks like it is currently filled-in only for focus.)
+     */
+    private transient SecurityPolicyType securityPolicy;
+
+    /**
+     * Evaluated policy rules. Currently used only for focus objects.
+     */
+    private final Collection<EvaluatedPolicyRuleImpl> policyRules = new ArrayList<>();
+
+    /**
+     * Policy state modifications that should be applied.
      * Currently we apply them in ChangeExecutor.executeChanges only.
      *
      * In the future we plan to be able to apply some state modifications even
@@ -76,7 +172,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      * But we must be sure what policy state to store, because some constraints might be triggered
      * because of expectation of future state (like conflicting assignment is added etc.)
      * ---
-     * Although placed in LensElementContext, support for this data is currently implemented only for focus, not for projections.
+     * Although placed in LensElementContext, support for this data is currently implemented only
+     * for focus, not for projections.
      */
     @NotNull private final List<ItemDelta<?,?>> pendingObjectPolicyStateModifications = new ArrayList<>();
 
@@ -88,19 +185,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
      */
     @NotNull private final Map<AssignmentSpec, List<ItemDelta<?,?>>> pendingAssignmentPolicyStateModifications = new HashMap<>();
 
-    private SynchronizationIntent synchronizationIntent;
+    /**
+     * Link to the parent context.
+     */
+    private final LensContext<? extends ObjectType> lensContext;
 
-    private transient boolean isFresh = false;
-
-    private LensContext<? extends ObjectType> lensContext;
-
-    private transient PrismObjectDefinition<O> objectDefinition = null;
-
-    private final Collection<EvaluatedPolicyRuleImpl> policyRules = new ArrayList<>();
-    private final Collection<String> policySituations = new ArrayList<>();
-
-    public LensElementContext(@NotNull Class<O> objectTypeClass, LensContext<? extends ObjectType> lensContext) {
-        super();
+    public LensElementContext(@NotNull Class<O> objectTypeClass, @NotNull LensContext<? extends ObjectType> lensContext) {
         Validate.notNull(objectTypeClass, "Object class is null");
         Validate.notNull(lensContext, "Lens context is null");
         this.lensContext = lensContext;
@@ -135,11 +225,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return lensContext;
     }
 
-    protected PrismContext getNotNullPrismContext() {
-        return getLensContext().getNotNullPrismContext();
-    }
-
     @Override
+    @NotNull
     public Class<O> getObjectTypeClass() {
         return objectTypeClass;
     }
@@ -150,6 +237,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     public PrismContext getPrismContext() {
         return lensContext.getPrismContext();
+    }
+
+    PrismContext getNotNullPrismContext() {
+        return lensContext.getNotNullPrismContext();
     }
 
     @Override
@@ -198,7 +289,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return objectNew;
     }
 
-    public void setObjectNew(PrismObject<O> objectNew) {
+    /**
+     * Intentionally not public.
+     * New state of the object should be updated only using {@link #recompute()} method.
+     */
+    void setObjectNew(PrismObject<O> objectNew) {
         this.objectNew = objectNew;
     }
 
@@ -207,39 +302,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return primaryDelta;
     }
 
-    public boolean hasPrimaryDelta() {
+    boolean hasPrimaryDelta() {
         return primaryDelta != null && !primaryDelta.isEmpty();
-    }
-
-    /**
-     * As getPrimaryDelta() but caters for the possibility that an object already exists.
-     * So, if the primary delta is ADD and object already exists, it should be changed somehow,
-     * e.g. to MODIFY delta or to null.
-     *
-     * Actually, the question is what to do with the attribute values if changed to MODIFY.
-     * (a) Should they become REPLACE item deltas? (b) ADD ones?
-     * (c) Or should we compute a difference from objectCurrent to objectToAdd, hoping that
-     * secondary deltas will re-add everything that might be unknowingly removed by this step?
-     * (d) Or should we simply ignore ADD delta altogether, hoping that it was executed
-     * so it need not be repeated?
-     *
-     * And, should not we report AlreadyExistingException instead?
-     *
-     * It seems that (c) i.e. reverting back to objectToAdd is not a good idea at all. For example, this
-     * may erase linkRefs for good.
-     *
-     * For the time being let us proceed with (d), i.e. ignoring such a delta.
-     *
-     * TODO is this OK???? [med]
-     *
-     * @return
-     */
-    public ObjectDelta<O> getFixedPrimaryDelta() {
-        if (primaryDelta == null || !primaryDelta.isAdd() || objectCurrent == null) {
-            return primaryDelta;        // nothing to do
-        }
-        // Object does exist. Let's ignore the delta - see description above.
-        return null;
     }
 
     public void setPrimaryDelta(ObjectDelta<O> primaryDelta) {
@@ -254,6 +318,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 
+    /**
+     * Dangerous. DO NOT USE unless you know what you are doing.
+     * Used from tests and from some scripting hooks.
+     */
+    @VisibleForTesting
     public void swallowToPrimaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException {
         modifyOrCreatePrimaryDelta(
                 delta -> delta.swallow(itemDelta),
@@ -263,6 +332,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
                     newPrimaryDelta.addModification(itemDelta);
                     return newPrimaryDelta;
                 });
+    }
+
+    void deleteSecondaryDeltas() {
+        secondaryDelta = null;
     }
 
     @FunctionalInterface
@@ -287,29 +360,41 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 
-    public abstract void swallowToSecondaryDelta(ItemDelta<?,?> itemDelta) throws SchemaException;
-
-    // TODO deduplicate with swallowToSecondaryDelta in LensFocusContext
-    public ObjectDelta<O> swallowToDelta(ObjectDelta<O> originalDelta, ItemDelta<?,?> propDelta) throws SchemaException {
-        if (originalDelta == null) {
-            originalDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
-            originalDelta.setOid(getOid());
-        } else if (originalDelta.containsModification(propDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {    // todo why literal?
-            return originalDelta;
+    public void swallowToSecondaryDelta(Collection<? extends ItemDelta<?, ?>> itemDeltas) throws SchemaException {
+        for (ItemDelta<?, ?> itemDelta : itemDeltas) {
+            swallowToSecondaryDelta(itemDelta);
         }
-        originalDelta.swallow(propDelta);
-        return originalDelta;
     }
 
-    /**
-     * Returns collection of all deltas that this element context contains.
-     * This is a nice method to use if we want to inspect all deltas (e.g. look for a changed item)
-     * but we want to avoid the overhead of merging all the deltas together.
-     */
-    public abstract Collection<ObjectDelta<O>> getAllDeltas();
+    public void swallowToSecondaryDeltaUnchecked(ItemDelta<?, ?> itemDelta) {
+        try {
+            swallowToSecondaryDelta(itemDelta);
+        } catch (SchemaException e) {
+            throw new SystemException("Unexpected SchemaException while swallowing secondary delta: " + e.getMessage(), e);
+        }
+    }
 
-    @NotNull
-    public List<ItemDelta<?, ?>> getPendingObjectPolicyStateModifications() {
+    public void swallowToSecondaryDelta(ItemDelta<?, ?> itemDelta) throws SchemaException {
+        if (itemDelta == null || itemDelta.isInFactEmpty()) {
+            return;
+        }
+
+        ObjectDelta<O> currentDelta = getCurrentDelta();
+        // TODO change this
+        if (currentDelta != null && currentDelta.containsModification(itemDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {
+            return;
+        }
+
+        LensUtil.setDeltaOldValue(this, itemDelta);
+
+        if (secondaryDelta == null) {
+            secondaryDelta = getPrismContext().deltaFactory().object().create(getObjectTypeClass(), ChangeType.MODIFY);
+            secondaryDelta.setOid(getOid());
+        }
+        secondaryDelta.swallow(itemDelta);
+    }
+
+    @NotNull List<ItemDelta<?, ?>> getPendingObjectPolicyStateModifications() {
         return pendingObjectPolicyStateModifications;
     }
 
@@ -321,8 +406,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         pendingObjectPolicyStateModifications.add(modification);
     }
 
-    @NotNull
-    public Map<AssignmentSpec, List<ItemDelta<?, ?>>> getPendingAssignmentPolicyStateModifications() {
+    @NotNull Map<AssignmentSpec, List<ItemDelta<?, ?>>> getPendingAssignmentPolicyStateModifications() {
         return pendingAssignmentPolicyStateModifications;
     }
 
@@ -336,9 +420,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public boolean isModify() {
-        // TODO I'm not sure why isModify checks both primary and secondary deltas for focus context, while
-        //  isAdd and isDelete care only for the primary delta.
-        return ObjectDelta.isModify(getPrimaryDelta()) || ObjectDelta.isModify(getSecondaryDelta());
+        return ObjectDelta.isModify(getCurrentDelta());
     }
 
     @NotNull
@@ -371,43 +453,63 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return deltas;
     }
 
-    public void markExecutedDeltasAudited() {
-        for(LensObjectDeltaOperation<O> executedDelta: executedDeltas) {
+    void markExecutedDeltasAudited() {
+        for (LensObjectDeltaOperation<O> executedDelta: executedDeltas) {
             executedDelta.setAudited(true);
         }
     }
 
-    public void addToExecutedDeltas(LensObjectDeltaOperation<O> executedDelta) {
-        executedDeltas.add(executedDelta.clone());      // must be cloned because e.g. for ADD deltas the object gets modified afterwards
+    void addToExecutedDeltas(LensObjectDeltaOperation<O> executedDelta) {
+        executedDeltas.add(executedDelta.clone()); // must be cloned because e.g. for ADD deltas the object gets modified afterwards
     }
 
     /**
      * Returns user delta, both primary and secondary (merged together).
      * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
      */
-    public ObjectDelta<O> getDelta() throws SchemaException {
-        return ObjectDeltaCollectionsUtil.union(primaryDelta, getSecondaryDelta());
+    public ObjectDelta<O> getSummaryDelta() {
+        return getCurrentDelta();
     }
 
-    public ObjectDelta<O> getFixedDelta() throws SchemaException {
-        return ObjectDeltaCollectionsUtil.union(getFixedPrimaryDelta(), getSecondaryDelta());
+    public ObjectDelta<O> getCurrentDelta() {
+        if (doesPrimaryDeltaApply()) {
+            try {
+                //noinspection unchecked
+                return ObjectDeltaCollectionsUtil.union(primaryDelta, secondaryDelta);
+            } catch (SchemaException e) {
+                throw new SystemException("Unexpected schema exception while merging deltas: " + e.getMessage(), e);
+            }
+        } else {
+            return CloneUtil.clone(secondaryDelta); // TODO do we need this?
+        }
     }
 
-    public <F extends FocusType> boolean wasAddExecuted() {
+    abstract boolean doesPrimaryDeltaApply();
 
-        for (LensObjectDeltaOperation<O> executedDeltaOperation : getExecutedDeltas()){
+    /**
+     * Returns aggregated secondary deltas (from the beginning of the clockwork execution).
+     * TODO is this true also for projection deltas? These are sometimes manipulated.
+     */
+    @Override
+    public ObjectDelta<O> getSecondaryDelta() {
+        return secondaryDelta;
+    }
+
+    @Override
+    public void setSecondaryDelta(ObjectDelta<O> secondaryDelta) {
+        this.secondaryDelta = secondaryDelta;
+    }
+
+    public boolean wasAddExecuted() {
+        for (LensObjectDeltaOperation<O> executedDeltaOperation : getExecutedDeltas()) {
             ObjectDelta<O> executedDelta = executedDeltaOperation.getObjectDelta();
-            if (!executedDelta.isAdd()){
-                continue;
-            } else if (executedDelta.getObjectToAdd() != null && executedDelta.getObjectTypeClass().equals(getObjectTypeClass())){
+            if (executedDelta.isAdd() && executedDelta.getObjectToAdd() != null &&
+                    executedDelta.getObjectTypeClass().equals(getObjectTypeClass())) {
                 return true;
             }
         }
-
         return false;
     }
-
-    abstract public ObjectDeltaObject<O> getObjectDeltaObject() throws SchemaException;
 
     @Override
     public String getOid() {
@@ -417,7 +519,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return oid;
     }
 
-    public String determineOid() {
+    private String determineOid() {
         if (getObjectOld() != null && getObjectOld().getOid() != null) {
             return getObjectOld().getOid();
         }
@@ -430,9 +532,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         if (getPrimaryDelta() != null && getPrimaryDelta().getOid() != null) {
             return getPrimaryDelta().getOid();
         }
-        if (getSecondaryDelta() != null && getSecondaryDelta().getOid() != null) {
-            return getSecondaryDelta().getOid();
-        }
         return null;
     }
 
@@ -443,6 +542,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         this.oid = oid;
         if (primaryDelta != null && !primaryDelta.isImmutable()) {
             primaryDelta.setOid(oid);
+        }
+        if (secondaryDelta != null) {
+            secondaryDelta.setOid(oid);
         }
         // TODO What if primary delta is immutable ADD delta and objectNew was taken from it?
         //  It would be immutable as well in that case. We will see.
@@ -488,12 +590,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        LensUtil.triggerRule(rule, triggers, policySituations);
-    }
-
-    @NotNull
-    public Collection<String> getPolicySituations() {
-        return policySituations;
+        LensUtil.triggerRule(rule, triggers);
     }
 
     /**
@@ -514,14 +611,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     public void recompute() throws SchemaException {
-        PrismObject<O> base = getObjectCurrentOrOld();
-        ObjectDelta<O> delta = getDelta();
-        if (delta == null) {
-            // No change
-            objectNew = base;
-            return;
+        ObjectDelta<O> currentDelta = getCurrentDelta();
+        if (currentDelta == null) {
+            objectNew = objectCurrent; // No change
+        } else {
+            objectNew = currentDelta.computeChangedObject(objectCurrent);
         }
-        objectNew = delta.computeChangedObject(base);
     }
 
     public void checkConsistence() {
@@ -596,6 +691,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         if (primaryDelta != null && !primaryDelta.isImmutable()) {
             primaryDelta.normalize();
         }
+        if (secondaryDelta != null) {
+            secondaryDelta.normalize();
+        }
     }
 
     public void adopt(PrismContext prismContext) throws SchemaException {
@@ -611,14 +709,15 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         if (primaryDelta != null) {
             prismContext.adopt(primaryDelta);
         }
+        if (secondaryDelta != null) {
+            prismContext.adopt(secondaryDelta);
+        }
         // TODO: object definition?
     }
 
     public abstract LensElementContext<O> clone(LensContext<? extends ObjectType> lensContext);
 
-    void copyValues(LensElementContext<O> clone, LensContext lensContext) {
-        //noinspection unchecked
-        clone.lensContext = lensContext;
+    void copyValues(LensElementContext<O> clone) {
         // This is de-facto immutable
         clone.objectDefinition = this.objectDefinition;
         clone.objectNew = cloneObject(this.objectNew);
@@ -665,7 +764,8 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             }
         }
         if (exportType != LensContext.ExportType.MINIMAL) {
-            lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta) : null);
+            lensElementContextType.setPrimaryDelta(primaryDelta != null ? DeltaConvertor.toObjectDeltaType(primaryDelta.clone()) : null);
+            lensElementContextType.setSecondaryDelta(secondaryDelta != null ? DeltaConvertor.toObjectDeltaType(secondaryDelta.clone()) : null);
             for (LensObjectDeltaOperation<?> executedDelta : executedDeltas) {
                 lensElementContextType.getExecutedDeltas()
                         .add(LensContext.simplifyExecutedDelta(executedDelta).toLensObjectDeltaOperationType());
@@ -752,6 +852,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         if (primaryDelta != null) {
             CryptoUtil.checkEncrypted(primaryDelta);
         }
+        if (secondaryDelta != null) {
+            CryptoUtil.checkEncrypted(secondaryDelta);
+        }
     }
 
     public boolean operationMatches(ChangeTypeType operation) {
@@ -805,7 +908,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         return null;
     }
 
-    public PrismObject<O> getObjectCurrentOrOld() {
+    PrismObject<O> getObjectCurrentOrOld() {
         return objectCurrent != null ? objectCurrent : objectOld;
     }
 
@@ -817,8 +920,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         PrismObject<O> object = getObjectAny();
         return object != null && aClass.isAssignableFrom(object.asObjectable().getClass());
     }
-
-    public abstract void deleteSecondaryDeltas();
 
     public S_ItemEntry deltaBuilder() throws SchemaException {
         return getPrismContext().deltaFor(getObjectTypeClass());
@@ -840,6 +941,9 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         if (primaryDelta != null) {
             consumer.accept(primaryDelta);
         }
+        if (secondaryDelta != null) {
+            consumer.accept(secondaryDelta);
+        }
     }
 
     public void finishBuild() {
@@ -847,5 +951,13 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             primaryDelta.normalize();
             primaryDelta.freeze();
         }
+    }
+
+    int getProjectionWave() {
+        return getLensContext().getProjectionWave();
+    }
+
+    int getExecutionWave() {
+        return getLensContext().getExecutionWave();
     }
 }

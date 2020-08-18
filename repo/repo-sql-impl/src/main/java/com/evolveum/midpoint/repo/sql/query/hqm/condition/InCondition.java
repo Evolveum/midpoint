@@ -7,13 +7,11 @@
 
 package com.evolveum.midpoint.repo.sql.query.hqm.condition;
 
-import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
-import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
-
-import org.apache.commons.lang.Validate;
-
 import java.util.Collection;
 import java.util.Objects;
+
+import com.evolveum.midpoint.repo.sql.query.hqm.HibernateQuery;
+import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 
 /**
  * @author mederly
@@ -25,13 +23,13 @@ public class InCondition extends PropertyCondition {
 
     public InCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, String innerQueryText) {
         super(rootHibernateQuery, propertyPath);
-        Validate.notNull(innerQueryText);
+        Objects.requireNonNull(innerQueryText);
         this.innerQueryText = innerQueryText;
     }
 
     public InCondition(RootHibernateQuery rootHibernateQuery, String propertyPath, Collection<?> values) {
         super(rootHibernateQuery, propertyPath);
-        Validate.notNull(values);
+        Objects.requireNonNull(values);
         this.values = values;
     }
 

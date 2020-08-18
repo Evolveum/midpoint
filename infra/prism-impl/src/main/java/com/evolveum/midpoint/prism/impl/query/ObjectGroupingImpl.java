@@ -15,7 +15,7 @@ import com.evolveum.midpoint.prism.query.ObjectGrouping;
  */
 public class ObjectGroupingImpl implements ObjectGrouping {
 
-    final private ItemPath groupBy;
+    private final ItemPath groupBy;
 
     ObjectGroupingImpl(ItemPath groupBy) {
         if (ItemPath.isEmpty(groupBy)) {
@@ -32,20 +32,20 @@ public class ObjectGroupingImpl implements ObjectGrouping {
         return groupBy;
     }
 
-
     @Override
     public String toString() {
         return groupBy.toString();
     }
 
+    @SuppressWarnings("EqualsWhichDoesntCheckParameterClass") // it does, actually
     @Override
     public boolean equals(Object o) {
         return equals(o, true);
     }
 
     public boolean equals(Object o, boolean exact) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
         ObjectGroupingImpl that = (ObjectGroupingImpl) o;
         if (groupBy != null ? !groupBy.equals(that.groupBy, exact) : that.groupBy != null) {
             return false;

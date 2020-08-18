@@ -7,7 +7,7 @@
 
 package com.evolveum.midpoint.repo.sql.query.definition;
 
-import org.apache.commons.lang.Validate;
+import java.util.Objects;
 
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.type.RObjectExtensionType;
@@ -24,7 +24,7 @@ public class VirtualAnyContainerDefinition extends JpaAnyContainerDefinition<Vir
 
     public VirtualAnyContainerDefinition(RObjectExtensionType ownerType) {
         super(RObject.class); // RObject is artificial - don't want to make jpaClass nullable just for this single situation
-        Validate.notNull(ownerType, "ownerType");
+        Objects.requireNonNull(ownerType, "ownerType");
         this.ownerType = ownerType;
     }
 

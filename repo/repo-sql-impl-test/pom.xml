@@ -170,6 +170,18 @@
             <artifactId>spring-aop</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-sql</artifactId>
+            <version>${querydsl.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.querydsl</groupId>
+            <artifactId>querydsl-core</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -189,16 +201,6 @@
             </activation>
             <build>
                 <plugins>
-                    <plugin>
-                        <artifactId>maven-surefire-plugin</artifactId>
-                        <version>${surefire.version}</version>
-                        <configuration>
-                            <suiteXmlFiles>
-                                <suiteXmlFile>testng-integration.xml</suiteXmlFile>
-                                <suiteXmlFile>testng-db-specific.xml</suiteXmlFile>
-                            </suiteXmlFiles>
-                        </configuration>
-                    </plugin>
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <version>${failsafe.version}</version>

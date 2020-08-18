@@ -15,4 +15,10 @@ public interface MetadataAware {
     MapXNode getMetadataNode();
 
     void setMetadataNode(MapXNode metadata);
+
+    static void cloneMetadata(MetadataAware target, MetadataAware source) {
+        if (source.getMetadataNode() != null) {
+            target.setMetadataNode(source.getMetadataNode().clone());
+        }
+    }
 }

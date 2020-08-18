@@ -7,6 +7,12 @@
 
 package com.evolveum.midpoint.repo.sql.query.resolution;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -14,27 +20,16 @@ import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.any.RAnyValue;
 import com.evolveum.midpoint.repo.sql.data.common.any.RExtItem;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
-import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.query.InterpretationContext;
 import com.evolveum.midpoint.repo.sql.query.QueryDefinitionRegistry;
-import com.evolveum.midpoint.repo.sql.query.definition.JpaAnyItemLinkDefinition;
-import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
-import com.evolveum.midpoint.repo.sql.query.definition.JpaDataNodeDefinition;
-import com.evolveum.midpoint.repo.sql.query.definition.JpaLinkDefinition;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollectionSpecification;
+import com.evolveum.midpoint.repo.sql.query.QueryException;
+import com.evolveum.midpoint.repo.sql.query.definition.*;
 import com.evolveum.midpoint.repo.sql.query.hqm.JoinSpecification;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.ObjectUtils;
-
-import javax.xml.namespace.QName;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Responsible for resolving item paths - i.e. translating them into JPA paths along with creation of necessary joins.
@@ -54,19 +49,20 @@ public class ItemPathResolver {
 
     /**
      * Resolves item path by creating a sequence of resolution states and preparing joins that are used to access JPA properties.
+     *
      * @param itemDefinition Definition for the (final) item pointed to. Optional - necessary only for extension items.
      * @param reuseMultivaluedJoins Creation of new joins for multivalued properties is forbidden.
      */
     public HqlDataInstance resolveItemPath(ItemPath relativePath, ItemDefinition itemDefinition,
-                                           String currentHqlPath, JpaEntityDefinition baseEntityDefinition,
-                                           boolean reuseMultivaluedJoins) throws QueryException {
+            String currentHqlPath, JpaEntityDefinition baseEntityDefinition,
+            boolean reuseMultivaluedJoins) throws QueryException {
         HqlDataInstance<?> baseDataInstance = new HqlDataInstance<>(currentHqlPath, baseEntityDefinition, null);
         return resolveItemPath(relativePath, itemDefinition, baseDataInstance, reuseMultivaluedJoins);
     }
 
     public HqlDataInstance resolveItemPath(ItemPath relativePath, ItemDefinition itemDefinition,
-                                           HqlDataInstance baseDataInstance,
-                                           boolean singletonOnly) throws QueryException {
+            HqlDataInstance baseDataInstance,
+            boolean singletonOnly) throws QueryException {
 
         ItemPathResolutionState currentState = new ItemPathResolutionState(relativePath, baseDataInstance, this);
 
@@ -133,7 +129,7 @@ public class ItemPathResolver {
             String existingAlias = existingJoin.getAlias();
             // we have to create condition for existing alias, to be matched to existing condition
             Condition conditionForExistingAlias = createJoinCondition(existingAlias, joinedItemDefinition, hibernateQuery);
-            if (ObjectUtils.equals(conditionForExistingAlias, existingJoin.getCondition())) {
+            if (Objects.equals(conditionForExistingAlias, existingJoin.getCondition())) {
                 LOGGER.trace("Reusing alias '{}' for joined path '{}'", existingAlias, joinedItemFullPath);
                 return existingAlias;
             }
@@ -168,8 +164,7 @@ public class ItemPathResolver {
                 conjunction.add(hibernateQuery.createFalse());
             }
             condition = conjunction;
-        }
-        else if (joinedItemDefinition.getCollectionSpecification() instanceof VirtualCollectionSpecification) {
+        } else if (joinedItemDefinition.getCollectionSpecification() instanceof VirtualCollectionSpecification) {
             VirtualCollectionSpecification vcd = (VirtualCollectionSpecification) joinedItemDefinition.getCollectionSpecification();
             List<Condition> conditions = new ArrayList<>(vcd.getAdditionalParams().length);
             for (VirtualQueryParam vqp : vcd.getAdditionalParams()) {
@@ -198,14 +193,14 @@ public class ItemPathResolver {
 
         try {
             if (type.isPrimitive()) {
-                return type.getMethod("valueOf", new Class[]{String.class}).invoke(null, value);
+                return type.getMethod("valueOf", new Class[] { String.class }).invoke(null, value);
             }
 
             if (type.isEnum()) {
                 //noinspection unchecked
                 return Enum.valueOf((Class<Enum>) type, value);
             }
-        } catch (NoSuchMethodException|IllegalAccessException|InvocationTargetException |RuntimeException ex) {
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | RuntimeException ex) {
             throw new QueryException("Couldn't transform virtual query parameter '"
                     + param.name() + "' from String to '" + type + "', reason: " + ex.getMessage(), ex);
         }

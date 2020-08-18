@@ -213,6 +213,10 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
         return Model.of(true);
     }
 
+    protected String getStorageKey(){
+        return null;
+    }
+
     public boolean isMultiselect() {
         return multiselect;
     }

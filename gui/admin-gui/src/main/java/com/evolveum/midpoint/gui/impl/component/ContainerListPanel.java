@@ -129,7 +129,7 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
 
                 String searchByName = getSearchByNameParameterValue();
                 if (searchByName != null) {
-                    for (SearchItem item : search.getItems()) {
+                    for (PropertySearchItem item : search.getPropertyItems()) {
                         if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
                             item.setValue(new SearchValue(searchByName));
                         }
@@ -196,17 +196,17 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
         }
         IColumn<SelectableBean<C>, String> column;
         for (GuiObjectColumnType customColumn : customColumns) {
-            if (customColumn.getPath() == null && customColumn.getExpression() == null) {
+            if (customColumn.getPath() == null) { // TODO  && customColumn.getExpression() == null) {
                 continue;
             }
             ItemPath columnPath = customColumn.getPath() == null ? null : customColumn.getPath().getItemPath();
             // TODO this throws an exception for some kinds of invalid paths like e.g. fullName/norm (but we probably should fix prisms in that case!)
-            ExpressionType expression = customColumn.getExpression();
+//            ExpressionType expression = customColumn.getExpression();  TODO check getExpression
             if (columnPath != null) {
                 ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
                         .findContainerDefinitionByCompileTimeClass(getType())
                         .findItemDefinition(columnPath);
-                if (itemDefinition == null && expression == null) {
+                if (itemDefinition == null) { // TODO check  && expression == null) {
                     LOGGER.warn("Unknown path '{}' in a definition of column '{}'", columnPath, customColumn.getName());
                     continue;
                 }
@@ -220,7 +220,7 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
                                         Model.of(customColumn.getName()));
                 if (customColumns.indexOf(customColumn) == 0) {
                     // TODO what if a complex path is provided here?
-                    column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), expression);
+                    column = createNameColumn(columnDisplayModel, customColumn.getPath() == null ? "" : customColumn.getPath().toString(), null); //TODO check expression
                 } else {
                     column = new AbstractExportableColumn<SelectableBean<C>, String>(columnDisplayModel, customColumn.getSortProperty()) {
                         private static final long serialVersionUID = 1L;
@@ -245,23 +245,24 @@ public abstract class ContainerListPanel<C extends Containerable> extends Abstra
                             if (item != null) {
                                 object = item;
                             }
-                            if (expression != null) {
-                                Task task = getPageBase().createSimpleTask("evaluate column expression");
-                                try {
-                                    ExpressionVariables expressionVariables = new ExpressionVariables();
-                                    expressionVariables.put(ExpressionConstants.VAR_OBJECT, object, object.getClass());
-                                    String stringValue = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
-                                            MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
-                                            task, task.getResult()).iterator().next();
-                                    return Model.of(stringValue);
-                                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                                        | ConfigurationException | SecurityViolationException e) {
-                                    LOGGER.error("Couldn't execute expression for name column");
-                                    OperationResult result = task.getResult();
-                                    OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
-                                    return getPageBase().createStringResource(props.getStatusLabelKey());
-                                }
-                            }
+                            // TODO check expression
+//                            if (expression != null) {
+//                                Task task = getPageBase().createSimpleTask("evaluate column expression");
+//                                try {
+//                                    ExpressionVariables expressionVariables = new ExpressionVariables();
+//                                    expressionVariables.put(ExpressionConstants.VAR_OBJECT, object, object.getClass());
+//                                    String stringValue = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
+//                                            MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
+//                                            task, task.getResult()).iterator().next();
+//                                    return Model.of(stringValue);
+//                                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
+//                                        | ConfigurationException | SecurityViolationException e) {
+//                                    LOGGER.error("Couldn't execute expression for name column");
+//                                    OperationResult result = task.getResult();
+//                                    OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
+//                                    return getPageBase().createStringResource(props.getStatusLabelKey());
+//                                }
+//                            }
                             if (item != null) {
                                 if (item.getDefinition() != null && item.getDefinition().getValueEnumerationRef() != null &&
                                         item.getDefinition().getValueEnumerationRef().getOid() != null){

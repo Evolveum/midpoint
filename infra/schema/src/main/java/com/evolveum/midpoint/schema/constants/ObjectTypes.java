@@ -1,25 +1,22 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.constants;
 
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.ResourceBundle;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author lazyman
@@ -72,11 +69,11 @@ public enum ObjectTypes {
 
     REPORT(ReportType.COMPLEX_TYPE, SchemaConstants.C_REPORT, ReportType.class, ObjectManager.MODEL, "reports"),
 
-    REPORT_OUTPUT(ReportOutputType.COMPLEX_TYPE, SchemaConstants.C_REPORT_OUTPUT, ReportOutputType.class,
-                  ObjectManager.MODEL, "reportOutputs"),
+    REPORT_DATA(ReportDataType.COMPLEX_TYPE, SchemaConstants.C_REPORT_DATA, ReportDataType.class,
+            ObjectManager.MODEL, "reportData"),
 
     SECURITY_POLICY(SecurityPolicyType.COMPLEX_TYPE, SchemaConstants.C_SECURITY_POLICY, SecurityPolicyType.class,
-                ObjectManager.MODEL, "securityPolicies"),
+            ObjectManager.MODEL, "securityPolicies"),
 
     LOOKUP_TABLE(LookupTableType.COMPLEX_TYPE, SchemaConstantsGenerated.C_LOOKUP_TABLE, LookupTableType.class,
             ObjectManager.MODEL, "lookupTables"),
@@ -132,6 +129,10 @@ public enum ObjectTypes {
     }
 
     @NotNull private final QName type;
+
+    /**
+     * As of 2020-06, this is used only for ObjectTypeUtil#toShortString+getShortTypeName.
+     */
     @NotNull private final QName elementName;
     @NotNull private final Class<? extends ObjectType> classDefinition;
     @NotNull private final ObjectManager objectManager;
@@ -205,7 +206,7 @@ public enum ObjectTypes {
         // HACK WARNING! FIXME
         // UGLY HORRIBLE TERRIBLE AWFUL HACK FOLLOWS
         // The JAXB fails to correctly process QNames in default namespace (no prefix)
-        // e.g it will not understand this: type="RoleType", even if defatult namespace
+        // e.g it will not understand this: type="RoleType", even if default namespace
         // is set, it will parse it as null namespace.
         // Therefore substitute null namespace with common namespace
         if (typeQName.getNamespaceURI() == null || typeQName.getNamespaceURI().isEmpty()) {
@@ -249,13 +250,13 @@ public enum ObjectTypes {
     public static <O extends ObjectType> Class<O> getObjectTypeClass(QName typeName) {
         for (ObjectTypes type : values()) {
             if (QNameUtil.match(type.getTypeQName(), typeName)) {
+                //noinspection unchecked
                 return (Class<O>) type.getClassDefinition();
             }
         }
         throw new IllegalArgumentException("Unsupported object type " + typeName);
     }
 
-    @SuppressWarnings("unchecked")
     @NotNull
     public static ObjectTypes getObjectType(@NotNull Class<? extends ObjectType> objectType) {
         ObjectTypes rv = getObjectTypeIfKnown(objectType);
@@ -390,4 +391,3 @@ public enum ObjectTypes {
         return new QName(SchemaConstants.NS_C, inputQName.getLocalPart());
     }
 }
-

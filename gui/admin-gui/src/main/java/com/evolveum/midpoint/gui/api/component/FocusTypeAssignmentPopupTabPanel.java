@@ -12,6 +12,11 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.QNameUtil;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Fragment;
@@ -58,8 +63,9 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
         relationContainer.setOutputMarkupId(true);
         parametersPanel.add(relationContainer);
 
-        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, null,
-                getPredefinedRelation() != null ? Arrays.asList(getPredefinedRelation()) : getSupportedRelations(), false));
+        List<QName> relationsList = getPredefinedRelation() != null ? Arrays.asList(getPredefinedRelation()) : getSupportedRelations();
+        relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, getDefaultRelationIfInList(relationsList),
+                relationsList, false));
     }
 
     protected List<QName> getSupportedRelations() {
@@ -67,6 +73,17 @@ public class FocusTypeAssignmentPopupTabPanel<F extends FocusType> extends Abstr
     }
 
     protected QName getPredefinedRelation(){
+        return null;
+    }
+
+    private QName getDefaultRelationIfInList(List<QName> relationsList){
+        if (CollectionUtils.isNotEmpty(relationsList)){
+            for (QName relation : relationsList){
+                if (QNameUtil.match(relation, SchemaConstants.ORG_DEFAULT)){
+                    return SchemaConstants.ORG_DEFAULT;
+                }
+            }
+        }
         return null;
     }
 

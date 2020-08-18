@@ -14,6 +14,8 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.model.common.mapping.metadata.MetadataMappingEvaluator;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.Mapping;
@@ -62,7 +64,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDefinition, MBT extends AbstractMappingType>
         implements Mapping<V, D>, DebugDumpable, PrismValueDeltaSetTripleProducer<V, D> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractMappingImpl.class);
+    static final Trace LOGGER = TraceManager.getTrace(AbstractMappingImpl.class);
 
     // TODO rename these op results when the right time comes
     private static final String OP_EVALUATE_PREPARED = MappingImpl.class.getName() + ".evaluatePrepared";
@@ -229,13 +231,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private final QName mappingQName;
     //endregion
 
-    //region Beans
-    final ExpressionFactory expressionFactory;
-    final PrismContext prismContext;
-    final ObjectResolver objectResolver;
-    final MetadataMappingEvaluator metadataMappingEvaluator;
-    private final SecurityContextManager securityContextManager; // in order to get c:actor variable
-    //endregion
+    /**
+     * Useful Spring beans.
+     */
+    final ModelCommonBeans beans;
 
     //region Working and output properties
 
@@ -287,7 +286,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      */
     private TimeConstraintsEvaluation timeConstraintsEvaluation;
 
-
     /**
      * When the mapping evaluation started. Used only if profiling is turned on.
      */
@@ -318,21 +316,17 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /**
      * Task stored during the evaluation, removed afterwards.
      */
-    private Task task;
+    Task task;
     //endregion
 
     //region Constructors and (relatively) simple getters
-    AbstractMappingImpl(AbstractMappingBuilder<V, D, MBT, ?> builder) {
-        prismContext = builder.getPrismContext();
-        expressionFactory = builder.getExpressionFactory();
+    protected AbstractMappingImpl(AbstractMappingBuilder<V, D, MBT, ?> builder) {
+        beans = builder.getBeans();
         variables = builder.getVariables();
         mappingBean = Objects.requireNonNull(builder.getMappingBean(), "Mapping definition cannot be null");
         mappingKind = builder.getMappingKind();
         implicitSourcePath = builder.getImplicitSourcePath();
         implicitTargetPath = builder.getImplicitTargetPath();
-        objectResolver = builder.getObjectResolver();
-        metadataMappingEvaluator = builder.getMetadataMappingEvaluator();
-        securityContextManager = builder.getSecurityContextManager();
         defaultSource = builder.getDefaultSource();
         defaultTargetDefinition = builder.getDefaultTargetDefinition();
         expressionProfile = builder.getExpressionProfile();
@@ -356,7 +350,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     @SuppressWarnings("CopyConstructorMissesField") // TODO what about the other fields
-    AbstractMappingImpl(AbstractMappingImpl<V, D, MBT> prototype) {
+    protected AbstractMappingImpl(AbstractMappingImpl<V, D, MBT> prototype) {
         this.mappingBean = prototype.mappingBean;
         this.mappingKind = prototype.mappingKind;
         this.implicitSourcePath = prototype.implicitSourcePath;
@@ -364,11 +358,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         this.sources.addAll(prototype.sources);
         this.variables = prototype.variables;
 
-        this.expressionFactory = prototype.expressionFactory;
-        this.prismContext = prototype.prismContext;
-        this.objectResolver = prototype.objectResolver;
-        this.metadataMappingEvaluator = prototype.metadataMappingEvaluator;
-        this.securityContextManager = prototype.securityContextManager;
+        this.beans = prototype.beans;
 
         this.sourceContext = prototype.sourceContext;
         // typedSourceContext as well?
@@ -404,7 +394,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     public ObjectResolver getObjectResolver() {
-        return objectResolver;
+        return beans.objectResolver;
     }
 
     public QName getItemName() {
@@ -556,12 +546,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 .setMinor()
                 .build();
         if (result.isTracingNormal(MappingEvaluationTraceType.class)) {
-            trace = new MappingEvaluationTraceType(prismContext)
+            trace = new MappingEvaluationTraceType(beans.prismContext)
                     .mapping(mappingBean.clone())
                     .mappingKind(mappingKind)
                     .implicitSourcePath(implicitSourcePath != null ? new ItemPathType(implicitSourcePath) : null)
                     .implicitTargetPath(implicitTargetPath != null ? new ItemPathType(implicitTargetPath) : null)
-                    .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext));
+                    .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject, beans.prismContext));
             result.addTrace(trace);
         } else {
             trace = null;
@@ -717,14 +707,14 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             for (Source<?, ?> source : sources) {
                 trace.beginSource()
                         .name(source.getName())
-                        .itemDeltaItem(source.toItemDeltaItemType(prismContext));
+                        .itemDeltaItem(source.toItemDeltaItemType(beans.prismContext));
             }
         }
     }
 
     private void traceOutput() {
         if (trace != null && outputTriple != null) {
-            trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, prismContext));
+            trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, beans.prismContext));
         }
     }
 
@@ -746,31 +736,28 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private void checkRange(OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         VariableBindingDefinitionType target = mappingBean.getTarget();
-        if (target != null && target.getSet() != null) {
-            checkRangeTarget(result);
+        if (target == null || target.getSet() == null) {
+            return;
         }
-    }
 
-    private void checkRangeTarget(OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         String name;
         if (getOutputPath() != null) {
             name = getOutputPath().lastName().getLocalPart();
         } else {
             name = getOutputDefinition().getItemName().getLocalPart();
         }
+
         if (originalTargetValues == null) {
             throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
         }
-        ValueSetDefinitionType rangeSetDefType = mappingBean.getTarget().getSet();
-        ValueSetDefinition<V, D> setDef = new ValueSetDefinition<>(rangeSetDefType, getOutputDefinition(), expressionProfile, name, "range of " + name + " in " + getMappingContextDescription(), task, result);
-        setDef.init(expressionFactory);
-        setDef.setAdditionalVariables(variables);
+        ValueSetDefinitionType rangeSetDefBean = target.getSet();
+        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(rangeSetDefBean, getOutputDefinition(), expressionProfile, name, "range of " + name + " in " + getMappingContextDescription(), task, result);
+        rangeSetDef.init(beans.expressionFactory);
+        rangeSetDef.setAdditionalVariables(variables);
         for (V originalValue : originalTargetValues) {
-            if (!setDef.contains(originalValue)) {
-                continue;
+            if (rangeSetDef.contains(originalValue)) {
+                addToMinusIfNecessary(originalValue);
             }
-            addToMinusIfNecessary(originalValue);
         }
     }
 
@@ -781,7 +768,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
         // remove it!
         if (outputTriple == null) {
-            outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+            outputTriple = beans.prismContext.deltaFactory().createPrismValueDeltaSetTriple();
         }
         LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
         outputTriple.addToMinusSet((V) originalValue.clone());
@@ -1000,7 +987,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
         Visitor visitor = visitable -> {
             if (visitable instanceof PrismValue) {
-                ((PrismValue) visitable).recompute(prismContext);
+                ((PrismValue) visitable).recompute(beans.prismContext);
             }
         };
         outputTriple.accept(visitor);
@@ -1044,16 +1031,16 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         ExpressionType conditionExpressionType = mappingBean.getCondition();
         if (conditionExpressionType == null) {
             // True -> True
-            conditionOutputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
-            conditionOutputTriple.addToZeroSet(prismContext.itemFactory().createPropertyValue(Boolean.TRUE));
+            conditionOutputTriple = beans.prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+            conditionOutputTriple.addToZeroSet(beans.prismContext.itemFactory().createPropertyValue(Boolean.TRUE));
         } else {
             Expression<PrismPropertyValue<Boolean>, PrismPropertyDefinition<Boolean>> expression =
-                    ExpressionUtil.createCondition(conditionExpressionType, expressionProfile, expressionFactory,
+                    ExpressionUtil.createCondition(conditionExpressionType, expressionProfile, beans.expressionFactory,
                             "condition in " + getMappingContextDescription(), task, result);
             ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
                     "condition in " + getMappingContextDescription(), task);
             context.setValuePolicySupplier(valuePolicySupplier);
-            context.setExpressionFactory(expressionFactory);
+            context.setExpressionFactory(beans.expressionFactory);
             context.setDefaultSource(defaultSource);
             context.setMappingQName(mappingQName);
             context.setVariableProducer(variableProducer);
@@ -1064,7 +1051,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private void evaluateExpression(OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             CommunicationException, ConfigurationException, SecurityViolationException {
-        expression = expressionFactory.makeExpression(mappingBean.getExpression(), getOutputDefinition(), expressionProfile,
+        expression = beans.expressionFactory.makeExpression(mappingBean.getExpression(), getOutputDefinition(), expressionProfile,
                 "expression in " + getMappingContextDescription(), task, result);
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(sources, variables,
                 "expression in " + getMappingContextDescription(), task);
@@ -1072,10 +1059,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         context.setSkipEvaluationMinus(!conditionResultOld);
         context.setSkipEvaluationPlus(!conditionResultNew);
         context.setValuePolicySupplier(valuePolicySupplier);
-        context.setExpressionFactory(expressionFactory);
+        context.setExpressionFactory(beans.expressionFactory);
         context.setMappingQName(mappingQName);
         context.setVariableProducer(variableProducer);
-        context.setValueMetadataComputer(createValueMetadataComputer());
+        context.setValueMetadataComputer(createValueMetadataComputer(result));
 
         if (mappingPreExpression != null) {
             mappingPreExpression.mappingPreExpression(context, result);
@@ -1091,7 +1078,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 // so the mapping is applicable.
                 // Returning null would mean that the mapping is not applicable
                 // at all.
-                outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
+                outputTriple = beans.prismContext.deltaFactory().createPrismValueDeltaSetTriple();
             }
 
         } else {
@@ -1112,7 +1099,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
     }
 
-    abstract ValueMetadataComputer createValueMetadataComputer();
+    protected abstract ValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException;
 
     @Override
     public PrismValueDeltaSetTriple<V> getOutputTriple() {
@@ -1299,5 +1288,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     List<MetadataMappingType> getMetadataMappings() {
         return mappingBean instanceof MappingType ?
                 ((MappingType) mappingBean).getMetadataMapping() : null;
+    }
+
+    @NotNull
+    public ModelCommonBeans getBeans() {
+        return beans;
     }
 }

@@ -7,10 +7,16 @@
 
 package com.evolveum.midpoint.model.common.mapping;
 
+import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataComputation;
+import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataProcessingSpec;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingScopeType.TRANSFORMATION;
 
 /**
  * (Traditional) data mapping.
@@ -25,12 +31,32 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
         super(prototype);
     }
 
-    ValueMetadataComputer createValueMetadataComputer() {
-        if (mappingBean.getMetadataMapping().isEmpty()) {
-            return null; // temporary (metadata handling can be inherited - later)
+    protected ValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException {
+        ValueMetadataProcessingSpec processingSpec = createProcessingSpec(result);
+        LOGGER.trace("Value metadata processing spec: {}", processingSpec.shortDumpLazily());
+        if (processingSpec.isEmpty()) {
+            return null;
         } else {
-            return new SimpleValueMetadataComputer(this);
+            return ValueMetadataComputer.named(() -> "Computer for " + getContextDescription(),
+                    (inputValues, computationOpResult) ->
+                            ValueMetadataComputation
+                                    .forMapping(inputValues, processingSpec, this)
+                                    .execute(computationOpResult));
+
         }
+    }
+
+    private ValueMetadataProcessingSpec createProcessingSpec(OperationResult result) throws CommunicationException,
+            ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException {
+        ValueMetadataProcessingSpec processingSpec = ValueMetadataProcessingSpec.forScope(TRANSFORMATION);
+        // TODO What about persona mappings? outbound mappings? We should not use object template for that.
+        processingSpec.populateFromCurrentFocusTemplate(parser.getOutputPath(), beans.objectResolver,
+                getMappingContextDescription(), task, result);
+        processingSpec.addMappings(mappingBean.getMetadataMapping());
+        return processingSpec;
     }
 
     @Override

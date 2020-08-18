@@ -10,12 +10,14 @@ package com.evolveum.midpoint.prism.impl.delta;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
 
 import javax.xml.namespace.QName;
 import java.util.*;
@@ -66,7 +68,7 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
 
     @Override
     public void setDefinition(PrismContainerDefinition<V> definition) {
-        if (!(definition instanceof PrismContainerDefinition)) {
+        if (definition == null) {
             throw new IllegalArgumentException("Cannot apply "+definition+" to container delta");
         }
         // Extra check. It makes no sense to create container delta with object definition
@@ -78,7 +80,7 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
 
     @Override
     public void applyDefinition(PrismContainerDefinition<V> definition) throws SchemaException {
-        if (!(definition instanceof PrismContainerDefinition)) {
+        if (definition == null) {
             throw new IllegalArgumentException("Cannot apply definition "+definition+" to container delta "+this);
         }
         super.applyDefinition(definition);
@@ -206,8 +208,18 @@ public class ContainerDeltaImpl<V extends Containerable> extends ItemDeltaImpl<P
     }
 
     @Override
-    protected boolean isValueEquivalent(PrismContainerValue<V> a, PrismContainerValue<V> b) {
-        if (!super.isValueEquivalent(a, b)) {
+    boolean itemContainsDeletionEquivalentValue(Item<PrismContainerValue<V>, PrismContainerDefinition<V>> container,
+            PrismContainerValue<V> value, @NotNull Comparator<PrismContainerValue<V>> comparator) {
+        if (value.isIdOnly()) {
+            return ((PrismContainer<V>) container).findValue(value.getId()) != null;
+        } else {
+            return container.findValue(value, comparator) != null;
+        }
+    }
+
+    @Override
+    protected boolean isValueEquivalent(PrismContainerValue<V> a, PrismContainerValue<V> b, ParameterizedEquivalenceStrategy strategy) {
+        if (!super.isValueEquivalent(a, b, strategy)) {
             return false;
         }
         if (a.getId() == null || b.getId() == null) {

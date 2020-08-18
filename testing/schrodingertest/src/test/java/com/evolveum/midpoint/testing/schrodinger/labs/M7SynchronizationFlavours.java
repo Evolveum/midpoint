@@ -111,7 +111,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
     public void mod07test03RunningAttributeReconciliation() throws IOException {
         FileUtils.copyFile(CSV_1_SOURCE_FILE_7_3, csv1TargetFile);
 
-        showTask("CSV-1 Reconciliation").clickRunNow();
+        showTask("CSV-1 Reconciliation", "Reconciliation tasks").clickRunNow();
 
         Assert.assertTrue(
                 showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
@@ -195,7 +195,7 @@ public class M7SynchronizationFlavours extends AbstractLabTest{
        return showUser(user).selectTabProjections()
                 .table()
                     .search()
-                        .byItem("Resource")
+                        .byItemName("Resource")
                             .inputRefOid(resourceOid)
                             .updateSearch()
                         .and()

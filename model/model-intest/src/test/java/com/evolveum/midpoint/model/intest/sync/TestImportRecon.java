@@ -1,11 +1,12 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -1627,7 +1628,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
+        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid); // password via inbounds is generated twice
     }
 
     /**
@@ -1781,7 +1782,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 
         displayValue("Dummy resource (azure)", dummyResourceAzure.debugDump());
 
-        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE.oid);
+        assertReconAuditModifications(2, TASK_RECONCILE_DUMMY_AZURE.oid); // password via inbounds is generated twice
     }
 
     @Test
@@ -2704,14 +2705,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             assertNotNull("No request audit record (" + i + ")", requestRecord);
             assertEquals("Got this instead of request audit record (" + i + "): " + requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
             Collection<ObjectDeltaOperation<? extends ObjectType>> requestDeltas = requestRecord.getDeltas();
-            assertTrue("Unexpected delta in request audit record " + requestRecord, requestDeltas == null ||
-                    requestDeltas.isEmpty() || (requestDeltas.size() == 1 && requestDeltas.iterator().next().getObjectDelta().isAdd()));
+            assertTrue("Unexpected delta in request audit record " + requestRecord,
+                    requestDeltas.isEmpty() || requestDeltas.size() == 1 && requestDeltas.iterator().next().getObjectDelta().isAdd());
 
             AuditEventRecord executionRecord = auditRecords.get(i + 1);
             assertNotNull("No execution audit record (" + i + ")", executionRecord);
             assertEquals("Got this instead of execution audit record (" + i + "): " + executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
 
-            assertTrue("Empty deltas in execution audit record " + executionRecord, executionRecord.getDeltas() != null && !executionRecord.getDeltas().isEmpty());
+            assertThat(executionRecord.getDeltas())
+                    .withFailMessage("Empty deltas in execution audit record " + executionRecord)
+                    .isNotEmpty();
             modifications++;
 
             // check next records
@@ -2748,13 +2751,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             assertNotNull("No reconStartRecord audit record", reconStartRecord);
             assertEquals("Wrong stage in reconStartRecord audit record: " + reconStartRecord, AuditEventStage.REQUEST, reconStartRecord.getEventStage());
             assertEquals("Wrong type in reconStartRecord audit record: " + reconStartRecord, AuditEventType.RECONCILIATION, reconStartRecord.getEventType());
-            assertTrue("Unexpected delta in reconStartRecord audit record " + reconStartRecord, reconStartRecord.getDeltas() == null || reconStartRecord.getDeltas().isEmpty());
+            assertTrue("Unexpected delta in reconStartRecord audit record " + reconStartRecord,
+                    reconStartRecord.getDeltas().isEmpty());
             i++;
             break;
         }
 
         int modifications = 0;
-        for (; i < (auditRecords.size() - 1); ) {
+        while (i < (auditRecords.size() - 1)) {
             AuditEventRecord record = auditRecords.get(i);
             assertNotNull("No request audit record (" + i + ")", record);
             i++;
@@ -2772,7 +2776,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
             assertNotNull("No execution audit record (" + i + ")", record);
             assertEquals("Got this instead of execution audit record (" + i + "): " + record, AuditEventStage.EXECUTION, record.getEventStage());
 
-            assertTrue("Empty deltas in execution audit record " + record, record.getDeltas() != null && !record.getDeltas().isEmpty());
+            assertThat(record.getDeltas())
+                    .withFailMessage("Empty deltas in execution audit record " + record)
+                    .isNotEmpty();
             modifications++;
         }
         assertEquals("Unexpected number of audit modifications", expectedModifications, modifications);
@@ -2781,7 +2787,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertNotNull("No reconStopRecord audit record", reconStopRecord);
         assertEquals("Wrong stage in reconStopRecord audit record: " + reconStopRecord, AuditEventStage.EXECUTION, reconStopRecord.getEventStage());
         assertEquals("Wrong type in reconStopRecord audit record: " + reconStopRecord, AuditEventType.RECONCILIATION, reconStopRecord.getEventType());
-        assertTrue("Unexpected delta in reconStopRecord audit record " + reconStopRecord, reconStopRecord.getDeltas() == null || reconStopRecord.getDeltas().isEmpty());
+        assertTrue("Unexpected delta in reconStopRecord audit record " + reconStopRecord, reconStopRecord.getDeltas().isEmpty());
     }
 
     private void assertNoImporterUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
@@ -2810,5 +2816,4 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         }
         assertAdministrativeStatusEnabled(user);
     }
-
 }

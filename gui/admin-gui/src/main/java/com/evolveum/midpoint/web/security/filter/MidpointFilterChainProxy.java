@@ -7,8 +7,13 @@
 
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.FilterChainProxy;
 import org.springframework.security.web.FilterInvocation;
@@ -18,22 +23,21 @@ import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.security.web.firewall.StrictHttpFirewall;
 import org.springframework.security.web.util.UrlUtils;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class MidpointFilterChainProxy extends FilterChainProxy {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointFilterChainProxy.class);
 
-    private final static String FILTER_APPLIED = MidpointFilterChainProxy.class.getName().concat(
-            ".APPLIED");
+    private static final String FILTER_APPLIED =
+            MidpointFilterChainProxy.class.getName().concat(".APPLIED");
 
-    private List<SecurityFilterChain> filterChains;
-    private MidpointFilterChainProxy.FilterChainValidator filterChainValidator = new MidpointFilterChainProxy.NullFilterChainValidator();
+    private final List<SecurityFilterChain> filterChains;
+
+    private MidpointFilterChainProxy.FilterChainValidator filterChainValidator =
+            new MidpointFilterChainProxy.NullFilterChainValidator();
+
     private HttpFirewall firewall = new StrictHttpFirewall();
 
     public MidpointFilterChainProxy(List<SecurityFilterChain> filterChains) {
@@ -47,26 +51,24 @@ public class MidpointFilterChainProxy extends FilterChainProxy {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
-                         FilterChain chain) throws IOException, ServletException {
+            FilterChain chain) throws IOException, ServletException {
 
         boolean clearContext = request.getAttribute(FILTER_APPLIED) == null;
         if (clearContext) {
             try {
                 request.setAttribute(FILTER_APPLIED, Boolean.TRUE);
                 doFilterInternal(request, response, chain);
-            }
-            finally {
+            } finally {
                 SecurityContextHolder.clearContext();
                 request.removeAttribute(FILTER_APPLIED);
             }
-        }
-        else {
+        } else {
             doFilterInternal(request, response, chain);
         }
     }
 
     private void doFilterInternal(ServletRequest request, ServletResponse response,
-                                  FilterChain chain) throws IOException, ServletException {
+            FilterChain chain) throws IOException, ServletException {
 
         FirewalledRequest fwRequest = firewall
                 .getFirewalledRequest((HttpServletRequest) request);
@@ -89,11 +91,8 @@ public class MidpointFilterChainProxy extends FilterChainProxy {
             return;
         }
 
-
-
         MidpointFilterChainProxy.VirtualFilterChain vfc = new MidpointFilterChainProxy.VirtualFilterChain(fwRequest, chain, filters);
         vfc.doFilter(fwRequest, fwResponse);
-        int i = 0;
     }
 
     private List<Filter> getFilters(HttpServletRequest request) {
@@ -125,13 +124,10 @@ public class MidpointFilterChainProxy extends FilterChainProxy {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("FilterChainProxy[");
-        sb.append("Filter Chains: ");
-        sb.append(filterChains);
-        sb.append("]");
-
-        return sb.toString();
+        return "FilterChainProxy["
+                + "Filter Chains: "
+                + filterChains
+                + "]";
     }
 
     private static class VirtualFilterChain implements FilterChain {
@@ -142,7 +138,7 @@ public class MidpointFilterChainProxy extends FilterChainProxy {
         private int currentPosition = 0;
 
         private VirtualFilterChain(FirewalledRequest firewalledRequest,
-                                   FilterChain chain, List<Filter> additionalFilters) {
+                FilterChain chain, List<Filter> additionalFilters) {
             this.originalChain = chain;
             this.additionalFilters = additionalFilters;
             this.size = additionalFilters.size();
@@ -157,8 +153,7 @@ public class MidpointFilterChainProxy extends FilterChainProxy {
                     LOGGER.debug(UrlUtils.buildRequestUrl(firewalledRequest)
                             + " reached end of additional filter chain");
                 }
-            }
-            else {
+            } else {
                 currentPosition++;
 
                 Filter nextFilter = additionalFilters.get(currentPosition - 1);
@@ -172,7 +167,6 @@ public class MidpointFilterChainProxy extends FilterChainProxy {
                 FilterChain chain = this;
                 if (nextFilter instanceof MidpointAuthFilter) {
                     nextFilter.doFilter(request, response, originalChain);
-                    int i =0;
                 } else {
                     nextFilter.doFilter(request, response, chain);
                 }

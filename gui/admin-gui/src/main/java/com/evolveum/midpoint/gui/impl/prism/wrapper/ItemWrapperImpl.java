@@ -66,6 +66,9 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
 
     private boolean showInVirtualContainer;
 
+    private boolean isMetadata;
+    private boolean showMetadataDetails;
+
     //consider
     private boolean readOnly;
     private UserInterfaceElementVisibilityType visibleOverwrite;
@@ -97,7 +100,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
 
         for (VW value : values) {
-            value.addToDelta((ItemDelta) delta);
+            value.addToDelta(delta);
         }
 
         if (delta.isEmpty()) {
@@ -237,10 +240,15 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
                 return localizeName(displayName, displayName);
             }
 
-            if (val != null && val.getTypeName() != null) {
+            if (val != null) {
                 if (val.getRealClass() != null) {
                     displayName = val.getRealClass().getSimpleName() + "." + displayName;
-                } else {
+                    String localizedName = localizeName(displayName, displayName);
+                    //try to find by super class name + item name
+                    if (localizedName.equals(displayName) && val.getRealClass().getSuperclass() != null){
+                        return getItemDisplayNameFromSuperClassName(val.getRealClass().getSuperclass(), name.getLocalPart());
+                    }
+                } else if (val.getTypeName() != null) {
                     displayName = val.getTypeName().getLocalPart() + "." + displayName;
                 }
             }
@@ -249,6 +257,22 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
 
         return localizeName(displayName, name.getLocalPart());
+    }
+
+    private String getItemDisplayNameFromSuperClassName(Class superClass, String itemName){
+        if (superClass == null) {
+            return "";
+        }
+        String displayNameParentClass = superClass.getSimpleName() + "." + itemName;
+        String localizedName = localizeName(displayNameParentClass, displayNameParentClass);
+        if (localizedName.equals(displayNameParentClass) && superClass.getSuperclass() != null){
+            return getItemDisplayNameFromSuperClassName(superClass.getSuperclass(), itemName);
+        }
+        if (!localizedName.equals(displayNameParentClass)){
+            return localizedName;
+        } else {
+            return itemName;
+        }
     }
 
     private String localizeName(String nameKey, String defaultString) {
@@ -509,7 +533,7 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     }
 
     @Override
-    public QName getTypeName() {
+    public @NotNull QName getTypeName() {
         return getItemDefinition().getTypeName();
     }
 
@@ -750,5 +774,25 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         }
 
         return false;
+    }
+
+    @Override
+    public boolean isMetadata() {
+        return isMetadata;
+    }
+
+    @Override
+    public void setMetadata(boolean metadata) {
+        isMetadata = metadata;
+    }
+
+    @Override
+    public void setShowMetadataDetails(boolean showMetadataDetails) {
+        this.showMetadataDetails = showMetadataDetails;
+    }
+
+    @Override
+    public boolean isShowMetadataDetails() {
+        return showMetadataDetails;
     }
 }

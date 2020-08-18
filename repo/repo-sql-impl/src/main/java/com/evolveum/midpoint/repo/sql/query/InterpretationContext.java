@@ -7,6 +7,10 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import java.util.Objects;
+
+import org.hibernate.Session;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
@@ -14,49 +18,39 @@ import com.evolveum.midpoint.repo.sql.query.definition.JpaEntityDefinition;
 import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.resolution.ItemPathResolver;
 import com.evolveum.midpoint.schema.RelationRegistry;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.commons.lang.Validate;
-import org.hibernate.Session;
 
-/**
- * @author lazyman
- * @author mederly
- */
 public class InterpretationContext {
 
-    private static final Trace LOGGER = TraceManager.getTrace(InterpretationContext.class);
+    private final QueryInterpreter interpreter;
+    private final PrismContext prismContext;
+    private final RelationRegistry relationRegistry;
+    private final Session session;
+    private final ExtItemDictionary extItemDictionary;
 
-    private QueryInterpreter interpreter;
-    private PrismContext prismContext;
-    private RelationRegistry relationRegistry;
-    private Session session;
-    private ExtItemDictionary extItemDictionary;
+    private final ItemPathResolver itemPathResolver = new ItemPathResolver(this);
 
-    private ItemPathResolver itemPathResolver = new ItemPathResolver(this);
+    private final Class<? extends Containerable> type;
 
-    private Class<? extends Containerable> type;
-
-    private RootHibernateQuery hibernateQuery;
+    private final RootHibernateQuery hibernateQuery;
 
     /**
      * Definition of the root entity. Root entity corresponds to the ObjectType class that was requested
      * by the search operation, or the one that was refined from abstract types (ObjectType, AbstractRoleType, ...)
      * in the process of restriction construction.
      */
-    private JpaEntityDefinition rootEntityDefinition;
+    private final JpaEntityDefinition rootEntityDefinition;
 
     public InterpretationContext(QueryInterpreter interpreter, Class<? extends Containerable> type,
             PrismContext prismContext, RelationRegistry relationRegistry,
             ExtItemDictionary extItemDictionary, Session session) throws QueryException {
 
-        Validate.notNull(interpreter, "interpreter");
-        Validate.notNull(type, "type");
-        Validate.notNull(prismContext, "prismContext");
-        Validate.notNull(relationRegistry, "relationRegistry");
-        Validate.notNull(extItemDictionary, "extItemDictionary");
-        Validate.notNull(session, "session");
+        Objects.requireNonNull(interpreter, "interpreter");
+        Objects.requireNonNull(type, "type");
+        Objects.requireNonNull(prismContext, "prismContext");
+        Objects.requireNonNull(relationRegistry, "relationRegistry");
+        Objects.requireNonNull(extItemDictionary, "extItemDictionary");
+        Objects.requireNonNull(session, "session");
 
         this.interpreter = interpreter;
         this.type = type;

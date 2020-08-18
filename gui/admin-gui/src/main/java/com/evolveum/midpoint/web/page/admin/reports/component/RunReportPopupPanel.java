@@ -527,10 +527,10 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
                     }
                     if (AuditEventType.class.isAssignableFrom(paramClass)) {
                         paramClass = AuditEventTypeType.class;
-                        realValue = AuditEventType.fromAuditEventType((AuditEventType) realValue);
+                        realValue = AuditEventType.toSchemaValue((AuditEventType) realValue);
                     } else if (AuditEventStage.class.isAssignableFrom(paramClass)) {
                         paramClass = AuditEventStageType.class;
-                        realValue = AuditEventStage.fromAuditEventStage((AuditEventStage) realValue);
+                        realValue = AuditEventStage.toSchemaValue((AuditEventStage) realValue);
                     }
 
                     prop.addRealValue(realValue);

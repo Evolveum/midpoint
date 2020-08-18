@@ -6,33 +6,31 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
-import com.evolveum.midpoint.gui.api.prism.ItemStatus;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import javax.xml.namespace.QName;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by honchar
  */
 public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> {
 
-    private QName customQName = new QName("com.evolveum.midpoint.gui","customExtenstionType");
+    private static final QName CUSTOM_Q_NAME = new QName("com.evolveum.midpoint.gui", "customExtenstionType");
 
-    private static final Trace LOGGER = TraceManager.getTrace(ExpressionWrapper.class);
     private ConstructionType construction;
 
     public ExpressionWrapper(@Nullable PrismContainerValueWrapper parent, PrismProperty<ExpressionType> property, ItemStatus status) {
         super(parent, property, status);
     }
 
-    public boolean isConstructionExpression(){
-        PrismContainerWrapperImpl outboundContainer = getParent() != null ? (PrismContainerWrapperImpl)getParent().getParent() : null;
+    public boolean isConstructionExpression() {
+        PrismContainerWrapperImpl outboundContainer = getParent() != null ? (PrismContainerWrapperImpl) getParent().getParent() : null;
         if (outboundContainer != null && MappingType.class.equals(outboundContainer.getCompileTimeClass())) {
             PrismContainerValueWrapperImpl outboundValue = (PrismContainerValueWrapperImpl) outboundContainer.getParent();
             if (outboundValue != null) {
@@ -50,11 +48,11 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
         return false;
     }
 
-    public boolean isAssociationExpression(){
-        if (!getPath().last().equals(MappingType.F_EXPRESSION.last())){
+    public boolean isAssociationExpression() {
+        if (!getPath().last().equals(MappingType.F_EXPRESSION.last())) {
             return false;
         }
-        PrismContainerWrapperImpl outboundContainer = getParent() != null ? (PrismContainerWrapperImpl)getParent().getParent() : null;
+        PrismContainerWrapperImpl outboundContainer = getParent() != null ? (PrismContainerWrapperImpl) getParent().getParent() : null;
         if (outboundContainer != null && MappingType.class.equals(outboundContainer.getCompileTimeClass())) {
             PrismContainerValueWrapperImpl outboundValue = (PrismContainerValueWrapperImpl) outboundContainer.getParent();
             if (outboundValue != null) {
@@ -69,7 +67,7 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
     }
 
     public boolean isAttributeExpression() {
-        if (!getPath().last().equals(MappingType.F_EXPRESSION.last())){
+        if (!getPath().last().equals(MappingType.F_EXPRESSION.last())) {
             return false;
         }
         PrismContainerWrapperImpl outboundContainer = getParent() != null ? (PrismContainerWrapperImpl) getParent().getParent() : null;
@@ -132,8 +130,7 @@ public class ExpressionWrapper extends PrismPropertyWrapperImpl<ExpressionType> 
     }
 
     @Override
-    public QName getTypeName() {
-        return customQName;
+    public @NotNull QName getTypeName() {
+        return CUSTOM_Q_NAME;
     }
-
 }

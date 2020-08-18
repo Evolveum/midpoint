@@ -7,20 +7,25 @@
 
 package com.evolveum.midpoint.wf.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.ObjectTreeDeltas;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author mederly
  */
 public class ChangesByState<F extends FocusType> implements DebugDumpable {
 
-    @NotNull
-    final private ObjectTreeDeltas<F> applied, beingApplied, waitingToBeApplied, waitingToBeApproved, rejected, canceled;
+    @NotNull private final ObjectTreeDeltas<F> applied;
+    @NotNull private final ObjectTreeDeltas<F> beingApplied;
+    @NotNull private final ObjectTreeDeltas<F> waitingToBeApplied;
+    @NotNull private final ObjectTreeDeltas<F> waitingToBeApproved;
+    @NotNull private final ObjectTreeDeltas<F> rejected;
+    @NotNull private final ObjectTreeDeltas<F> canceled;
 
     public ChangesByState(PrismContext prismContext) {
         applied = new ObjectTreeDeltas<>(prismContext);

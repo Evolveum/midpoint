@@ -9,12 +9,11 @@ package com.evolveum.midpoint.schema.constants;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -91,7 +90,7 @@ public abstract class SchemaConstants {
     public static final ItemName C_CONNECTOR_CONNECTOR_TYPE = new ItemName(NS_C, "connectorType");
     public static final ItemName C_SHADOW = new ItemName(NS_C, "shadow");
     public static final QName C_SHADOW_TYPE = new QName(NS_C, "ShadowType");
-        public static final QName C_ORG_TYPE = new QName(NS_C, "OrgType");
+    public static final QName C_ORG_TYPE = new QName(NS_C, "OrgType");
     public static final ItemName C_ATTRIBUTES = new ItemName(NS_C, "attributes");
     public static final ItemName C_ASSOCIATION = new ItemName(NS_C, "association");
     public static final QName C_CREDENTIALS_TYPE = new QName(NS_C, "CredentialsType");
@@ -104,6 +103,7 @@ public abstract class SchemaConstants {
 
     public static final ItemName C_REPORT = new ItemName(NS_C, "report");
     public static final ItemName C_REPORT_OUTPUT = new ItemName(NS_C, "reportOutput");
+    public static final ItemName C_REPORT_DATA = new ItemName(NS_C, "reportData");
     public static final ItemName C_ITEM_PATH_FIELD = new ItemName(NS_C, "itemPathField");
     public static final QName C_ACTIVATION_STATUS_TYPE = new QName(NS_C, "ActivationStatusType");
     public static final ItemName C_SECURITY_POLICY = new ItemName(NS_C, "securityPolicy");
@@ -277,7 +277,7 @@ public abstract class SchemaConstants {
     public static final String NS_MODEL_EXTENSION = NS_MODEL + "/extension-3";
     public static final ItemName MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME = new ItemName(
             NS_MODEL_EXTENSION, "freshnessInterval"); // unused? TODO consider
-                                                        // removing
+    // removing
     public static final ItemName MODEL_EXTENSION_DRY_RUN = new ItemName(NS_MODEL_EXTENSION, "dryRun");
     public static final ItemName MODEL_EXTENSION_SIMULATE_BEFORE_EXECUTE = new ItemName(NS_MODEL_EXTENSION, "simulateBeforeExecute");
     public static final ItemName MODEL_EXTENSION_RETRY_LIVE_SYNC_ERRORS = new ItemName(NS_MODEL_EXTENSION, "retryLiveSyncErrors");
@@ -630,7 +630,7 @@ public abstract class SchemaConstants {
     public static final String EXECUTE_URI = RECON_HANDLER + "#execute";
 
     //enum defs
-    public final static QName D_LOGGING_LEVEL_TYPE = new QName(SchemaConstantsGenerated.NS_COMMON, "LoggingLevelType");
+    public static final QName D_LOGGING_LEVEL_TYPE = new QName(SchemaConstantsGenerated.NS_COMMON, "LoggingLevelType");
 
     public static final String TRACE_DICTIONARY_PREFIX = "#dictionary#";
 }

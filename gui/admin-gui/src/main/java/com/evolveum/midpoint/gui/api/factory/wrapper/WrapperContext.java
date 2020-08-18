@@ -35,6 +35,7 @@ public class WrapperContext {
 
     private Boolean readOnly;
     private boolean showEmpty;
+    private boolean isMetadata;
 
     private ItemStatus objectStatus;
     private PrismObject<?> object;
@@ -155,6 +156,14 @@ public class WrapperContext {
         this.object = object;
     }
 
+    public void setMetadata(boolean metadata) {
+        isMetadata = metadata;
+    }
+
+    public boolean isMetadata() {
+        return isMetadata;
+    }
+
     public WrapperContext clone() {
         WrapperContext ctx = new WrapperContext(task,result);
         ctx.setAuthzPhase(authzPhase);
@@ -168,6 +177,7 @@ public class WrapperContext {
         ctx.setVirtualContainers(virtualContainers);
         ctx.setVirtualItemSpecification(virtualItemSpecification);
         ctx.setObject(object);
+        ctx.setMetadata(isMetadata);
         return ctx;
     }
 }

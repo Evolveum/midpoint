@@ -30,8 +30,8 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
     protected void checkEnteredCredentials(ConnectionEnvironment connEnv,
             SecurityQuestionsAuthenticationContext authCtx) {
         if (MapUtils.isEmpty(authCtx.getQuestionAnswerMap())) {
-            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty password provided", authCtx.getPrincipalType(), false);
-            throw new BadCredentialsException("web.security.provider.password.encoding");
+            recordAuthenticationBehavior(authCtx.getUsername(), null, connEnv, "empty answers for security questions provided", authCtx.getPrincipalType(), false);
+            throw new BadCredentialsException("web.security.provider.securityQuestion.bad");
         }
 
         Map<String, String> enteredQuestionAnswer = authCtx.getQuestionAnswerMap();
@@ -65,7 +65,7 @@ public class SecurityQuestionAuthenticationEvaluatorImpl
 
         if (securityQuestionsAnswers == null || securityQuestionsAnswers.isEmpty()) {
             recordAuthenticationBehavior(principal.getUsername(),principal, connEnv, "no stored security questions", principal.getFocus().getClass(),false);
-            throw new AuthenticationCredentialsNotFoundException("web.security.provider.password.bad");
+            throw new AuthenticationCredentialsNotFoundException("web.security.provider.securityQuestion.bad");
         }
 
     }

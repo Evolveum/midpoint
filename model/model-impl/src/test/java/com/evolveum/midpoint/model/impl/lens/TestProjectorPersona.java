@@ -88,7 +88,7 @@ public class TestProjectorPersona extends AbstractLensTest {
         assertEquals("Wrong size of personaConstructionTriple zero set", 1, personaConstructionTriple.getZeroSet().size());
         PersonaConstruction<UserType> personaConstruction = personaConstructionTriple.getZeroSet().iterator().next();
         assertNotNull("No personaConstruction", personaConstruction);
-        PersonaConstructionType personaConstructionType = personaConstruction.getConstructionType();
+        PersonaConstructionType personaConstructionType = personaConstruction.getConstructionBean();
         assertNotNull("No personaConstructionType", personaConstructionType);
         assertTrue("Wrong type: " + personaConstructionType.getTargetType(), QNameUtil.match(UserType.COMPLEX_TYPE, personaConstructionType.getTargetType()));
         PrismAsserts.assertEqualsCollectionUnordered("Wrong subtype", personaConstructionType.getTargetSubtype(), "admin");

@@ -266,6 +266,20 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="changedItem" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Represents searchable list of changed item paths related to this audit record.
+                        As of 4.2 this item is only enables usage in Query API against
+                        the repository (DB) and is not to be used otherwise.
+                        This does NOT have to be all the paths touched by audit record related deltas;
+                        e.g. the list of path types stored here may be configurable.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="property" type="tns:AuditEventRecordPropertyType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>

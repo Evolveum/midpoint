@@ -6,23 +6,23 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType;
 
 /**
  * @author semancik
  */
 public class TriggerAsserter<R> extends AbstractAsserter<R> {
 
-    final private TriggerType trigger;
+    private final TriggerType trigger;
 
     public TriggerAsserter(TriggerType trigger) {
         super();
@@ -44,32 +44,32 @@ public class TriggerAsserter<R> extends AbstractAsserter<R> {
     }
 
     public TriggerAsserter<R> assertHandlerUri() {
-        assertNotNull("No handler URI in "+desc(), trigger.getHandlerUri());
+        assertNotNull("No handler URI in " + desc(), trigger.getHandlerUri());
         return this;
     }
 
     public TriggerAsserter<R> assertHandlerUri(String expected) {
-        assertEquals("Wrong handler URI in "+desc(), expected, trigger.getHandlerUri());
+        assertEquals("Wrong handler URI in " + desc(), expected, trigger.getHandlerUri());
         return this;
     }
 
     public TriggerAsserter<R> assertTimestamp() {
-        assertNotNull("No timestamp in "+desc(), trigger.getTimestamp());
+        assertNotNull("No timestamp in " + desc(), trigger.getTimestamp());
         return this;
     }
 
     public TriggerAsserter<R> assertTimestamp(XMLGregorianCalendar expected) {
-        assertEquals("Wrong timestamp in "+desc(), expected, trigger.getTimestamp());
+        assertEquals("Wrong timestamp in " + desc(), expected, trigger.getTimestamp());
         return this;
     }
 
     public TriggerAsserter<R> assertTimestampBetween(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        TestUtil.assertBetween("Wrong timestamp in "+desc(), start, end, trigger.getTimestamp());
+        TestUtil.assertBetween("Wrong timestamp in " + desc(), start, end, trigger.getTimestamp());
         return this;
     }
 
     public TriggerAsserter<R> assertTimestampFutureBetween(XMLGregorianCalendar start, XMLGregorianCalendar end, String durationOffset) {
-        TestUtil.assertBetween("Wrong timestamp in "+desc(),
+        TestUtil.assertBetween("Wrong timestamp in " + desc(),
                 XmlTypeConverter.addDuration(start, durationOffset),
                 XmlTypeConverter.addDuration(end, durationOffset),
                 trigger.getTimestamp());
@@ -86,7 +86,7 @@ public class TriggerAsserter<R> extends AbstractAsserter<R> {
         XMLGregorianCalendar mid = XmlTypeConverter.addDuration(now, offsetDuration);
         XMLGregorianCalendar start = XmlTypeConverter.addMillis(mid, -tolerance);
         XMLGregorianCalendar end = XmlTypeConverter.addMillis(mid, tolerance);
-        TestUtil.assertBetween("Wrong timestamp in "+desc(), start, end, trigger.getTimestamp());
+        TestUtil.assertBetween("Wrong timestamp in " + desc(), start, end, trigger.getTimestamp());
         return this;
     }
 

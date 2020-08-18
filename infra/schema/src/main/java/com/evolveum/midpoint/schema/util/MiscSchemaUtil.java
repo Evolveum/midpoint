@@ -1,12 +1,21 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.util;
 
-import com.evolveum.midpoint.prism.*;
+import java.util.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.prism.ItemProcessing;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -19,28 +28,17 @@ import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.PropertyReferenceListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.util.*;
 
 /**
  * @author Radovan Semancik
- *
  */
 public class MiscSchemaUtil {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MiscSchemaUtil.class);
     private static final Random RND = new Random();
 
     public static ObjectListType toObjectListType(List<PrismObject<? extends ObjectType>> list) {
@@ -51,7 +49,8 @@ public class MiscSchemaUtil {
         return listType;
     }
 
-    public static <T extends ObjectType> List<PrismObject<T>> toList(Class<T> type, ObjectListType listType) {
+    public static <T extends ObjectType> List<PrismObject<T>> toList(
+            Class<T> type, ObjectListType listType) {
         List<PrismObject<T>> list = new ArrayList<>();
         for (ObjectType o : listType.getObject()) {
             list.add((PrismObject<T>) o.asPrismObject());
@@ -64,7 +63,7 @@ public class MiscSchemaUtil {
             return null;
         }
         List<T> objectableList = new ArrayList<>(objectList.size());
-        for (PrismObject<T> object: objectList) {
+        for (PrismObject<T> object : objectList) {
             objectableList.add(object.asObjectable());
         }
         return objectableList;
@@ -84,14 +83,15 @@ public class MiscSchemaUtil {
 
     public static CachingMetadataType generateCachingMetadata() {
         CachingMetadataType cmd = new CachingMetadataType();
-        XMLGregorianCalendar xmlGregorianCalendarNow = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+        XMLGregorianCalendar xmlGregorianCalendarNow =
+                XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         cmd.setRetrievalTimestamp(xmlGregorianCalendarNow);
         cmd.setSerialNumber(generateSerialNumber());
         return cmd;
     }
 
     private static String generateSerialNumber() {
-        return Long.toHexString(RND.nextLong())+"-"+Long.toHexString(RND.nextLong());
+        return Long.toHexString(RND.nextLong()) + "-" + Long.toHexString(RND.nextLong());
     }
 
     public static boolean isNullOrEmpty(ProtectedStringType ps) {
@@ -113,25 +113,28 @@ public class MiscSchemaUtil {
         return list;
     }
 
-    public static Collection<ItemPath> itemReferenceListTypeToItemPathList(PropertyReferenceListType resolve, PrismContext prismContext) {
+    public static Collection<ItemPath> itemReferenceListTypeToItemPathList(
+            PropertyReferenceListType resolve, PrismContext prismContext) {
         Collection<ItemPath> itemPathList = new ArrayList<>(resolve.getProperty().size());
-        for (ItemPathType itemXPathElement: resolve.getProperty()) {
+        for (ItemPathType itemXPathElement : resolve.getProperty()) {
             itemPathList.add(prismContext.toPath(itemXPathElement));
         }
         return itemPathList;
     }
 
-    public static SelectorQualifiedGetOptionsType optionsToOptionsType(Collection<SelectorOptions<GetOperationOptions>> options){
+    public static SelectorQualifiedGetOptionsType optionsToOptionsType(
+            Collection<SelectorOptions<GetOperationOptions>> options) {
         SelectorQualifiedGetOptionsType optionsType = new SelectorQualifiedGetOptionsType();
         List<SelectorQualifiedGetOptionType> retval = new ArrayList<>();
-        for (SelectorOptions<GetOperationOptions> option: options){
+        for (SelectorOptions<GetOperationOptions> option : options) {
             retval.add(selectorOptionToSelectorQualifiedGetOptionType(option));
         }
         optionsType.getOption().addAll(retval);
         return optionsType;
     }
 
-    private static SelectorQualifiedGetOptionType selectorOptionToSelectorQualifiedGetOptionType(SelectorOptions<GetOperationOptions> selectorOption) {
+    private static SelectorQualifiedGetOptionType selectorOptionToSelectorQualifiedGetOptionType(
+            SelectorOptions<GetOperationOptions> selectorOption) {
         OptionObjectSelectorType selectorType = selectorToSelectorType(selectorOption.getSelector());
         GetOperationOptionsType getOptionsType = getOptionsToGetOptionsType(selectorOption.getOptions());
         SelectorQualifiedGetOptionType selectorOptionType = new SelectorQualifiedGetOptionType();
@@ -140,35 +143,37 @@ public class MiscSchemaUtil {
         return selectorOptionType;
     }
 
-     private static OptionObjectSelectorType selectorToSelectorType(ObjectSelector selector) {
-            if (selector == null) {
-                return null;
-            }
-            OptionObjectSelectorType selectorType = new OptionObjectSelectorType();
-            selectorType.setPath(new ItemPathType(selector.getPath()));
-            return selectorType;
+    private static OptionObjectSelectorType selectorToSelectorType(ObjectSelector selector) {
+        if (selector == null) {
+            return null;
         }
+        OptionObjectSelectorType selectorType = new OptionObjectSelectorType();
+        selectorType.setPath(new ItemPathType(selector.getPath()));
+        return selectorType;
+    }
 
-     private static GetOperationOptionsType getOptionsToGetOptionsType(GetOperationOptions options) {
-         GetOperationOptionsType optionsType = new GetOperationOptionsType();
-         optionsType.setRetrieve(RetrieveOption.toRetrieveOptionType(options.getRetrieve()));
-         optionsType.setResolve(options.getResolve());
-         optionsType.setResolveNames(options.getResolveNames());
-         optionsType.setNoFetch(options.getNoFetch());
-         optionsType.setRaw(options.getRaw());
-         optionsType.setTolerateRawData(options.getTolerateRawData());
-         optionsType.setNoDiscovery(options.getDoNotDiscovery());
-         // TODO relational value search query (but it might become obsolete)
-         optionsType.setAllowNotFound(options.getAllowNotFound());
-         optionsType.setPointInTimeType(PointInTimeType.toPointInTimeTypeType(options.getPointInTimeType()));
-         optionsType.setDefinitionProcessing(DefinitionProcessingOption.toDefinitionProcessingOptionType(options.getDefinitionProcessing()));
-         optionsType.setStaleness(options.getStaleness());
-         optionsType.setDistinct(options.getDistinct());
-         return optionsType;
-     }
+    private static GetOperationOptionsType getOptionsToGetOptionsType(GetOperationOptions options) {
+        GetOperationOptionsType optionsType = new GetOperationOptionsType();
+        optionsType.setRetrieve(RetrieveOption.toRetrieveOptionType(options.getRetrieve()));
+        optionsType.setResolve(options.getResolve());
+        optionsType.setResolveNames(options.getResolveNames());
+        optionsType.setNoFetch(options.getNoFetch());
+        optionsType.setRaw(options.getRaw());
+        optionsType.setTolerateRawData(options.getTolerateRawData());
+        optionsType.setNoDiscovery(options.getDoNotDiscovery());
+        // TODO relational value search query (but it might become obsolete)
+        optionsType.setAllowNotFound(options.getAllowNotFound());
+        optionsType.setPointInTimeType(PointInTimeType.toPointInTimeTypeType(options.getPointInTimeType()));
+        optionsType.setDefinitionProcessing(
+                DefinitionProcessingOption.toDefinitionProcessingOptionType(
+                        options.getDefinitionProcessing()));
+        optionsType.setStaleness(options.getStaleness());
+        optionsType.setDistinct(options.getDistinct());
+        return optionsType;
+    }
 
-     public static List<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(
-             SelectorQualifiedGetOptionsType objectOptionsType, PrismContext prismContext) {
+    public static List<SelectorOptions<GetOperationOptions>> optionsTypeToOptions(
+            SelectorQualifiedGetOptionsType objectOptionsType, PrismContext prismContext) {
         if (objectOptionsType == null) {
             return null;
         }
@@ -217,14 +222,13 @@ public class MiscSchemaUtil {
      */
     @SuppressWarnings({ "rawtypes", "unchecked" })
     public static Collection<ObjectDelta<? extends ObjectType>> createCollection(ObjectDelta<?>... deltas) {
-        return (Collection)MiscUtil.createCollection(deltas);
+        return (Collection) MiscUtil.createCollection(deltas);
     }
 
     /**
      * Convenience method that helps avoid some compiler warnings.
      */
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public static Collection<? extends ItemDelta<?,?>> createCollection(ItemDelta<?,?>... deltas) {
+    public static Collection<? extends ItemDelta<?, ?>> createCollection(ItemDelta<?, ?>... deltas) {
         return MiscUtil.createCollection(deltas);
     }
 
@@ -234,7 +238,7 @@ public class MiscSchemaUtil {
             return null;
         }
         Collection<ObjectDelta<? extends ObjectType>> clonedCollection = new ArrayList<>(origCollection.size());
-        for (ObjectDelta<? extends ObjectType> origDelta: origCollection) {
+        for (ObjectDelta<? extends ObjectType> origDelta : origCollection) {
             clonedCollection.add(origDelta.clone());
         }
         return clonedCollection;
@@ -246,7 +250,7 @@ public class MiscSchemaUtil {
             return null;
         }
         Collection<ObjectDeltaOperation<? extends ObjectType>> clonedCollection = new ArrayList<>(origCollection.size());
-        for (ObjectDeltaOperation<? extends ObjectType> origDelta: origCollection) {
+        for (ObjectDeltaOperation<? extends ObjectType> origDelta : origCollection) {
             clonedCollection.add(origDelta.clone());
         }
         return clonedCollection;
@@ -259,16 +263,17 @@ public class MiscSchemaUtil {
         return ref;
     }
 
-    public static <O extends ObjectType> ObjectReferenceType createObjectReference(PrismObject<O> object, Class<? extends ObjectType> implicitReferenceTargetType) {
+    public static <O extends ObjectType> ObjectReferenceType createObjectReference(
+            PrismObject<O> object, Class<? extends ObjectType> implicitReferenceTargetType) {
         ObjectReferenceType ref = new ObjectReferenceType();
         ref.setOid(object.getOid());
-        if (implicitReferenceTargetType == null || !implicitReferenceTargetType.equals(object.getCompileTimeClass())) {
+        if (implicitReferenceTargetType == null
+                || !implicitReferenceTargetType.equals(object.getCompileTimeClass())) {
             ref.setType(ObjectTypes.getObjectType(object.getCompileTimeClass()).getTypeQName());
         }
         ref.setTargetName(PolyString.toPolyStringType(object.getName()));
         return ref;
     }
-
 
     public static boolean equalsIntent(String intent1, String intent2) {
         if (intent1 == null) {
@@ -287,14 +292,14 @@ public class MiscSchemaUtil {
         return expectedKind.equals(actualKind);
     }
 
-
     public static AssignmentPolicyEnforcementType getAssignmentPolicyEnforcementType(
             ProjectionPolicyType accountSynchronizationSettings) {
         if (accountSynchronizationSettings == null) {
             // default
             return AssignmentPolicyEnforcementType.RELATIVE;
         }
-        AssignmentPolicyEnforcementType assignmentPolicyEnforcement = accountSynchronizationSettings.getAssignmentPolicyEnforcement();
+        AssignmentPolicyEnforcementType assignmentPolicyEnforcement =
+                accountSynchronizationSettings.getAssignmentPolicyEnforcement();
         if (assignmentPolicyEnforcement == null) {
             return AssignmentPolicyEnforcementType.RELATIVE;
         }
@@ -315,17 +320,18 @@ public class MiscSchemaUtil {
         return rval;
     }
 
-    public static PropertyLimitationsType getLimitationsType(List<PropertyLimitationsType> limitationsTypes, LayerType layer) throws SchemaException {
+    public static PropertyLimitationsType getLimitationsType(
+            List<PropertyLimitationsType> limitationsTypes, LayerType layer) throws SchemaException {
         if (limitationsTypes == null) {
             return null;
         }
         PropertyLimitationsType found = null;
-        for (PropertyLimitationsType limitType: limitationsTypes) {
-            if (contains(limitType.getLayer(),layer)) {
+        for (PropertyLimitationsType limitType : limitationsTypes) {
+            if (contains(limitType.getLayer(), layer)) {
                 if (found == null) {
                     found = limitType;
                 } else {
-                    throw new SchemaException("Duplicate definition of limitations for layer '"+layer+"'");
+                    throw new SchemaException("Duplicate definition of limitations for layer '" + layer + "'");
                 }
             }
         }
@@ -340,7 +346,7 @@ public class MiscSchemaUtil {
     }
 
     public static boolean contains(Collection<ObjectReferenceType> collection, ObjectReferenceType item) {
-        for (ObjectReferenceType collectionItem: collection) {
+        for (ObjectReferenceType collectionItem : collection) {
             if (matches(collectionItem, item)) {
                 return true;
             }
@@ -390,7 +396,6 @@ public class MiscSchemaUtil {
         }
     }
 
-
     public static boolean referenceMatches(ObjectReferenceType refPattern, ObjectReferenceType ref,
             PrismContext prismContext) {
         if (refPattern.getOid() != null && !refPattern.getOid().equals(ref.getOid())) {
@@ -423,8 +428,8 @@ public class MiscSchemaUtil {
                 // In case both values are objects then compare only OIDs.
                 // that should be enough. Comparing complete objects may be slow
                 // (e.g. if the objects have many assignments)
-                String aOid = ((PrismObject)a).getOid();
-                String bOid = ((PrismObject)b).getOid();
+                String aOid = ((PrismObject) a).getOid();
+                String bOid = ((PrismObject) b).getOid();
                 if (aOid != null && bOid != null) {
                     return aOid.equals(bOid);
                 }
@@ -437,8 +442,8 @@ public class MiscSchemaUtil {
                 // In case both values are objects then compare only OIDs.
                 // that should be enough. Comparing complete objects may be slow
                 // (e.g. if the objects have many assignments)
-                String aOid = ((ObjectType)a).getOid();
-                String bOid = ((ObjectType)b).getOid();
+                String aOid = ((ObjectType) a).getOid();
+                String bOid = ((ObjectType) b).getOid();
                 if (aOid != null && bOid != null) {
                     return aOid.equals(bOid);
                 }
@@ -467,13 +472,17 @@ public class MiscSchemaUtil {
                 return ItemProcessing.MINIMAL;
             case AUTO:
                 return ItemProcessing.AUTO;
+            case FULL:
+                return ItemProcessing.FULL;
             default:
-                throw new IllegalArgumentException("Unknown processing "+type);
+                throw new IllegalArgumentException("Unknown processing " + type);
         }
     }
 
-    public static <O extends ObjectType> boolean canBeAssignedFrom(QName requiredTypeQName, Class<O> providedTypeClass) {
-        Class<? extends ObjectType> requiredTypeClass = ObjectTypes.getObjectTypeFromTypeQName(requiredTypeQName).getClassDefinition();
+    public static <O extends ObjectType> boolean canBeAssignedFrom(
+            QName requiredTypeQName, Class<O> providedTypeClass) {
+        Class<? extends ObjectType> requiredTypeClass =
+                ObjectTypes.getObjectTypeFromTypeQName(requiredTypeQName).getClassDefinition();
         return requiredTypeClass.isAssignableFrom(providedTypeClass);
     }
 
@@ -517,8 +526,8 @@ public class MiscSchemaUtil {
    Each next level contains columns which
    previousColumn == columnNameFromPreviousLevel
     */
-    public static List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns){
-        if (customColumns == null || customColumns.size() == 0){
+    public static List<GuiObjectColumnType> orderCustomColumns(List<GuiObjectColumnType> customColumns) {
+        if (customColumns == null || customColumns.size() == 0) {
             return new ArrayList<>();
         }
         List<GuiObjectColumnType> customColumnsList = new ArrayList<>(customColumns);
@@ -527,28 +536,29 @@ public class MiscSchemaUtil {
         previousColumnValues.add("");
 
         Map<String, String> columnRefsMap = new HashMap<>();
-        for (GuiObjectColumnType column : customColumns){
-            columnRefsMap.put(column.getName(), column.getPreviousColumn() == null ? "" : column.getPreviousColumn());
+        for (GuiObjectColumnType column : customColumns) {
+            columnRefsMap.put(column.getName(),
+                    column.getPreviousColumn() == null ? "" : column.getPreviousColumn());
         }
 
-        List<String> temp = new ArrayList<> ();
+        List<String> temp = new ArrayList<>();
         int index = 0;
-        while (index < customColumns.size()){
+        while (index < customColumns.size()) {
             int sortFrom = index;
-            for (int i = index; i < customColumnsList.size(); i++){
+            for (int i = index; i < customColumnsList.size(); i++) {
                 GuiObjectColumnType column = customColumnsList.get(i);
                 if (previousColumnValues.contains(column.getPreviousColumn()) ||
-                        !columnRefsMap.containsKey(column.getPreviousColumn())){
+                        !columnRefsMap.containsKey(column.getPreviousColumn())) {
                     Collections.swap(customColumnsList, index, i);
                     index++;
                     temp.add(column.getName());
                 }
             }
-            if (temp.size() == 0){
+            if (temp.size() == 0) {
                 temp.add(customColumnsList.get(index).getName());
                 index++;
             }
-            if (index - sortFrom > 1){
+            if (index - sortFrom > 1) {
                 customColumnsList.subList(sortFrom, index - 1)
                         .sort((o1, o2) -> String.CASE_INSENSITIVE_ORDER.compare(o1.getName(), o2.getName()));
             }

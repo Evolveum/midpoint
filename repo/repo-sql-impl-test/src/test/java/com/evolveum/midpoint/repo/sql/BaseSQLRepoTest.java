@@ -93,8 +93,10 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     @Autowired protected LocalSessionFactoryBean sessionFactoryBean;
 
+    // We want existing bean "repositoryService" but downcast to access configuration, etc.
+    // No, we don't want @Repository or anything else in ctx*.xml that creates SRSI bean twice.
     @Autowired
-    @Qualifier("sqlRepositoryServiceImpl")
+    @Qualifier("repositoryService")
     protected SqlRepositoryServiceImpl sqlRepositoryService;
 
     @Autowired protected RepositoryService repositoryService;
@@ -204,7 +206,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     @SuppressWarnings("unused")
     protected SqlRepositoryConfiguration getRepositoryConfiguration() {
-        return ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
+        return ((SqlRepositoryServiceImpl) repositoryService).sqlConfiguration();
     }
 
     protected GetOperationOptionsBuilder getOperationOptionsBuilder() {

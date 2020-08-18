@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.sql.query.matcher;
 
+import com.google.common.base.Strings;
+
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
@@ -15,11 +17,7 @@ import com.evolveum.midpoint.repo.sql.query.hqm.RootHibernateQuery;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.AndCondition;
 import com.evolveum.midpoint.repo.sql.query.hqm.condition.Condition;
 import com.evolveum.midpoint.repo.sql.query.restriction.ItemRestrictionOperation;
-import org.apache.commons.lang.StringUtils;
 
-/**
- * @author lazyman
- */
 public class PolyStringMatcher extends Matcher<PolyString> {
 
     //todo will be changed to QNames later (after query api update)
@@ -40,7 +38,7 @@ public class PolyStringMatcher extends Matcher<PolyString> {
                 || ORIG_IGNORE_CASE.equals(matcher)
                 || NORM_IGNORE_CASE.equals(matcher);
 
-        if (StringUtils.isEmpty(matcher) || DEFAULT.equals(matcher)
+        if (Strings.isNullOrEmpty(matcher) || DEFAULT.equals(matcher)
                 || STRICT.equals(matcher) || STRICT_IGNORE_CASE.equals(matcher)) {
             AndCondition conjunction = hibernateQuery.createAnd();
             conjunction.add(createOrigMatch(hibernateQuery, operation, propertyName, value, ignoreCase));
@@ -56,14 +54,14 @@ public class PolyStringMatcher extends Matcher<PolyString> {
     }
 
     private Condition createNormMatch(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value,
-                                      boolean ignoreCase) throws QueryException {
+            boolean ignoreCase) throws QueryException {
 
         String realValue = value != null ? value.getNorm() : null;
         return basicMatch(hibernateQuery, operation, propertyName + '.' + RPolyString.F_NORM, realValue, ignoreCase);
     }
 
     private Condition createOrigMatch(RootHibernateQuery hibernateQuery, ItemRestrictionOperation operation, String propertyName, PolyString value,
-                                      boolean ignoreCase) throws QueryException {
+            boolean ignoreCase) throws QueryException {
 
         String realValue = value != null ? value.getOrig() : null;
         return basicMatch(hibernateQuery, operation, propertyName + '.' + RPolyString.F_ORIG, realValue, ignoreCase);

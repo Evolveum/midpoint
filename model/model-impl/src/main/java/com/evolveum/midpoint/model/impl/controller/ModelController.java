@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -85,7 +85,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_3.CompareResultType;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
@@ -475,7 +474,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         String requestIdentifier = ModelImplUtils.generateRequestIdentifier();
         auditRecord.setRequestIdentifier(requestIdentifier);
         auditRecord.addDeltas(ObjectDeltaOperation.cloneDeltaCollection(deltas));
-        auditRecord.setTarget(ModelImplUtils.determineAuditTarget(deltas, prismContext));
+        auditRecord.setTargetRef(ModelImplUtils.determineAuditTarget(deltas, prismContext));
         // we don't know auxiliary information (resource, objectName) at this moment -- so we do nothing
         auditHelper.audit(auditRecord, null, task, result);
 
@@ -610,8 +609,8 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             auditRecord.setTimestamp(System.currentTimeMillis());
             auditRecord.setOutcome(result.getStatus());
             auditRecord.setEventStage(AuditEventStage.EXECUTION);
-            auditRecord.getDeltas().clear();
-            auditRecord.getDeltas().addAll(executedDeltas);
+            auditRecord.clearDeltas();
+            auditRecord.addDeltas(executedDeltas);
             auditHelper.audit(auditRecord, null, task, result);
 
             task.markObjectActionExecutedBoundary();
@@ -1314,7 +1313,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
     public OperationResult testResource(String resourceOid, Task task) throws ObjectNotFoundException {
         Validate.notEmpty(resourceOid, "Resource oid must not be null or empty.");
         enterModelMethod();
-        LOGGER.trace("Testing resource OID: {}", new Object[] { resourceOid });
+        LOGGER.trace("Testing resource OID: {}", resourceOid);
 
         OperationResult testResult;
         try {
@@ -1355,8 +1354,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         Validate.notNull(objectClass, "Object class must not be null.");
         Validate.notNull(task, "Task must not be null.");
         enterModelMethod();
-        LOGGER.trace("Launching import from resource with oid {} for object class {}.", new Object[] {
-                resourceOid, objectClass });
+        LOGGER.trace("Launching import from resource with oid {} for object class {}.", resourceOid, objectClass);
 
         OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
         result.addParam("resourceOid", resourceOid);
@@ -1467,6 +1465,26 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         result.addParam(OperationResult.PARAM_LANGUAGE, language);
         try {
             objectImporter.importObjects(input, language, options, task, result);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Import result:\n{}", result.debugDump());
+            }
+            // No need to compute status. The validator inside will do it.
+            // result.computeStatus("Couldn't import object from input stream.");
+        } catch (RuntimeException e) {
+            result.recordFatalError(e.getMessage(), e);     // shouldn't really occur
+        } finally {
+            exitModelMethod();
+        }
+        result.cleanupResult();
+    }
+
+    @Override
+    public void importObject(PrismObject object, ImportOptionsType options, Task task, OperationResult parentResult) {
+        enterModelMethod();
+        OperationResult result = parentResult.createSubresult(IMPORT_OBJECTS_FROM_STREAM);
+        result.addArbitraryObjectAsParam(OperationResult.PARAM_OPTIONS, options);
+        try {
+            objectImporter.importObject(object, options, task, result);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Import result:\n{}", result.debugDump());
             }
@@ -1953,7 +1971,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
         AuditEventRecord auditRecord = new AuditEventRecord(event, stage);
         String requestIdentifier = ModelImplUtils.generateRequestIdentifier();
         auditRecord.setRequestIdentifier(requestIdentifier);
-        auditRecord.setTarget(taskRef);
+        auditRecord.setTargetRef(taskRef);
         ObjectDelta<TaskType> delta;
         if (AuditEventType.DELETE_OBJECT == event) {
             delta = prismContext.deltaFactory().object().createDeleteDelta(TaskType.class, taskRef.getOid());
@@ -1962,7 +1980,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             delta = prismContext.deltaFactory().object().createEmptyModifyDelta(TaskType.class, taskRef.getOid());
         }
         ObjectDeltaOperation<TaskType> odo = new ObjectDeltaOperation<>(delta, parentResult);
-        auditRecord.getDeltas().add(odo);
+        auditRecord.addDelta(odo);
         if (AuditEventStage.EXECUTION == stage) {
             auditRecord.setOutcome(parentResult.getStatus());
         }

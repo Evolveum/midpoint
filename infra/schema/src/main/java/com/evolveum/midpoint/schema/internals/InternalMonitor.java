@@ -18,7 +18,6 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
@@ -35,9 +34,9 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 
     private static final String CLONE_START_TIMESTAMP_KEY = InternalMonitor.class.getName()+".cloneStartTimestamp";
 
-    private static Map<InternalCounters,Long> counterMap = new HashMap<>();
-    private static Map<InternalOperationClasses,Boolean> traceClassMap = new HashMap<>();
-    private static Map<InternalCounters,Boolean> traceCounterMap = new HashMap<>();
+    private static final Map<InternalCounters,Long> COUNTER_MAP = new HashMap<>();
+    private static final Map<InternalOperationClasses,Boolean> TRACE_CLASS_MAP = new HashMap<>();
+    private static final Map<InternalCounters,Boolean> TRACE_COUNTER_MAP = new HashMap<>();
 
     private static CachingStatistics resourceCacheStats = new CachingStatistics();
     private static CachingStatistics connectorCacheStats = new CachingStatistics();
@@ -48,7 +47,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     private static InternalInspector inspector;
 
     public static long getCount(InternalCounters counter) {
-        Long count = counterMap.get(counter);
+        Long count = COUNTER_MAP.get(counter);
         if (count == null) {
             return 0;
         }
@@ -63,17 +62,17 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     }
 
     private static synchronized long recordCountInternal(InternalCounters counter) {
-        Long count = counterMap.get(counter);
+        Long count = COUNTER_MAP.get(counter);
         if (count == null) {
             count = 0L;
         }
         count++;
-        counterMap.put(counter, count);
+        COUNTER_MAP.put(counter, count);
         return count;
     }
 
     public static boolean isTrace(InternalOperationClasses operationClass) {
-        Boolean b = traceClassMap.get(operationClass);
+        Boolean b = TRACE_CLASS_MAP.get(operationClass);
         if (b == null) {
             return false;
         } else {
@@ -82,7 +81,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     }
 
     private static boolean isTrace(InternalCounters counter) {
-        Boolean counterTrace = traceCounterMap.get(counter);
+        Boolean counterTrace = TRACE_COUNTER_MAP.get(counter);
         if (counterTrace != null) {
             return counterTrace;
         }
@@ -94,11 +93,11 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     }
 
     public static void setTrace(InternalOperationClasses operationClass, boolean val) {
-        traceClassMap.put(operationClass, val);
+        TRACE_CLASS_MAP.put(operationClass, val);
     }
 
     public static void setTrace(InternalCounters counter, boolean val) {
-        traceCounterMap.put(counter, val);
+        TRACE_COUNTER_MAP.put(counter, val);
     }
 
     private static void traceOperation(InternalCounters counter, InternalOperationClasses operationClass, long count) {
@@ -125,10 +124,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
                 sb.append(stackElement.toString());
                 sb.append("\n");
             }
-            String params = "";
-            if (paramsSupplier != null) {
-                params = paramsSupplier.get();
-            }
+            String params = paramsSupplier != null ? paramsSupplier.get() : "";
             if (traceAndDebug) {
                 LOGGER.debug("MONITOR {}({}) ({}): {} {}", opName, params, count, immediateClass, immediateMethod);
             }
@@ -214,14 +210,14 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
             }
         }
         if (isTrace(InternalCounters.PRISM_OBJECT_CLONE_COUNT)) {
-            traceOperation("prism object clone", null, count, false);
+            traceOperation("prism object clone", orig::toString, count, false); // Consider setting traceAndDebug as necessary
         }
     }
 
     public static <F extends AssignmentHolderType> void recordRoleEvaluation(F target, boolean fullEvaluation) {
         long count = recordCountInternal(InternalCounters.ROLE_EVALUATION_COUNT);
         if (isTrace(InternalCounters.ROLE_EVALUATION_COUNT)) {
-            traceOperation("roleEvaluation", () -> target.toString() , count, true);
+            traceOperation("roleEvaluation", target::toString, count, true);
         }
         if (inspector != null) {
             inspector.inspectRoleEvaluation(target, fullEvaluation);
@@ -231,7 +227,7 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
     public static <F extends AssignmentHolderType> void recordRoleEvaluationSkip(F target, boolean fullEvaluation) {
         long count = recordCountInternal(InternalCounters.ROLE_EVALUATION_SKIP_COUNT);
         if (isTrace(InternalCounters.ROLE_EVALUATION_SKIP_COUNT)) {
-            traceOperation("roleEvaluationSkip", () -> target.toString() , count, true);
+            traceOperation("roleEvaluationSkip", target::toString, count, true);
         }
     }
 
@@ -245,8 +241,8 @@ public class InternalMonitor implements PrismMonitor, DebugDumpable {
 
     public static void reset() {
         LOGGER.info("MONITOR reset");
-        counterMap.clear();
-        traceClassMap.clear();
+        COUNTER_MAP.clear();
+        TRACE_CLASS_MAP.clear();
         resourceCacheStats = new CachingStatistics();
         connectorCacheStats = new CachingStatistics();
         inspector = null;

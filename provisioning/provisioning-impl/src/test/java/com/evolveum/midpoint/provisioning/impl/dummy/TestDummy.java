@@ -1113,7 +1113,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         ShadowType account = parseObjectType(ACCOUNT_SCRIPT_FILE, ShadowType.class);
         display("Account before add", account);
 
-        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
+        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE);
         displayValue("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         // WHEN
@@ -1162,7 +1162,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
         dummyResource.purgeScriptHistory();
 
-        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
+        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE);
         displayValue("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
@@ -1206,7 +1206,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
         dummyResource.purgeScriptHistory();
 
-        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
+        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE);
         displayValue("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         ObjectDelta<ShadowType> delta = prismContext.deltaFactory().object().createModificationReplaceProperty(ShadowType.class,
@@ -1245,7 +1245,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
         dummyResource.purgeScriptHistory();
 
-        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
+        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE);
         displayValue("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         // WHEN
@@ -1279,7 +1279,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         syncServiceMock.reset();
         dummyResource.purgeScriptHistory();
 
-        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE, OperationProvisioningScriptsType.class);
+        OperationProvisioningScriptsType scriptsType = unmarshalValueFromFile(SCRIPTS_FILE);
         displayValue("Provisioning scripts", PrismTestUtil.serializeAnyDataWrapped(scriptsType));
 
         ProvisioningScriptType script = scriptsType.getScript().get(0);

@@ -297,6 +297,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null, null, false);
         ModelProjectionContext projectionContext = ctx.findProjectionContext(rat);
+
+        LOGGER.trace("hasLinkedAccount: found projection context {} for {}", projectionContext, rat);
         if (projectionContext == null) {
             // but check if it is not among list of deleted contexts
             if (scriptContext == null || scriptContext.isEvaluateNew()) {
@@ -1149,7 +1151,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             LensProjectionContext lensProjectionContext = (LensProjectionContext) modelProjectionContextObject;
             if (lensProjectionContext.getResourceShadowDiscriminator() != null &&
                     resourceOid.equals(lensProjectionContext.getResourceShadowDiscriminator().getResourceOid())) {
-                deltas.add(lensProjectionContext.getDelta());   // union of primary and secondary deltas
+                deltas.add(lensProjectionContext.getSummaryDelta());   // union of primary and secondary deltas
             }
         }
         ObjectDelta<ShadowType> sum = ObjectDeltaCollectionsUtil.summarize(deltas);
@@ -1751,12 +1753,8 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @NotNull
     public Collection<PrismValue> collectAssignedFocusMappingsResults(@NotNull ItemPath path) throws SchemaException {
         ModelContext<ObjectType> lensContext = ModelExpressionThreadLocalHolder.getLensContextRequired();
-        DeltaSetTriple<? extends EvaluatedAssignment<?>> evaluatedAssignmentTriple = lensContext.getEvaluatedAssignmentTriple();
-        if (evaluatedAssignmentTriple == null) {
-            return emptySet();
-        }
         Collection<PrismValue> rv = new HashSet<>();
-        for (EvaluatedAssignment<?> evaluatedAssignment : evaluatedAssignmentTriple.getNonNegativeValues()) {
+        for (EvaluatedAssignment<?> evaluatedAssignment : lensContext.getNonNegativeEvaluatedAssignments()) {
             if (evaluatedAssignment.isValid()) {
                 for (Mapping<?, ?> mapping : evaluatedAssignment.getFocusMappings()) {
                     if (path.equivalent(mapping.getOutputPath())) {
@@ -1768,22 +1766,22 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 }
             }
         }
-        // Ugly hack - MID-4452 - When having an assignment giving focusMapping, and the assignment is being deleted, the
-        // focus mapping is evaluated in wave 0 (results correctly being pushed to the minus set), but also in wave 1.
-        // The results are sent to zero set; and they are not applied only because they are already part of a priori delta.
-        // This causes problems here.
-        //
-        // Until MID-4452 is fixed, here we manually delete the values from the result.
-        ModelElementContext<ObjectType> focusContext = lensContext.getFocusContext();
-        if (focusContext != null) {
-            ObjectDelta<ObjectType> delta = focusContext.getDelta();
-            if (delta != null) {
-                ItemDelta<PrismValue, ItemDefinition> targetItemDelta = delta.findItemDelta(path);
-                if (targetItemDelta != null) {
-                    rv.removeAll(emptyIfNull(targetItemDelta.getValuesToDelete()));
-                }
-            }
-        }
+//        // Ugly hack - MID-4452 - When having an assignment giving focusMapping, and the assignment is being deleted, the
+//        // focus mapping is evaluated in wave 0 (results correctly being pushed to the minus set), but also in wave 1.
+//        // The results are sent to zero set; and they are not applied only because they are already part of a priori delta.
+//        // This causes problems here.
+//        //
+//        // Until MID-4452 is fixed, here we manually delete the values from the result.
+//        ModelElementContext<ObjectType> focusContext = lensContext.getFocusContext();
+//        if (focusContext != null) {
+//            ObjectDelta<ObjectType> delta = focusContext.getDelta();
+//            if (delta != null) {
+//                ItemDelta<PrismValue, ItemDefinition> targetItemDelta = delta.findItemDelta(path);
+//                if (targetItemDelta != null) {
+//                    rv.removeAll(emptyIfNull(targetItemDelta.getValuesToDelete()));
+//                }
+//            }
+//        }
         return rv;
     }
 
@@ -1908,7 +1906,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             return null;
         }
         //noinspection unchecked
-        ObjectReferenceType archetypeRef = archetypeManager.determineArchetypeRef((PrismObject<? extends AssignmentHolderType>) object.asPrismObject(), getCurrentResult());
+        ObjectReferenceType archetypeRef = archetypeManager.determineArchetypeRef((PrismObject<? extends AssignmentHolderType>) object.asPrismObject());
         if (archetypeRef == null) {
             return null;
         }

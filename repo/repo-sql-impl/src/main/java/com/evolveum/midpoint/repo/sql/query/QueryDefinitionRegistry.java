@@ -7,6 +7,9 @@
 
 package com.evolveum.midpoint.repo.sql.query;
 
+import java.util.*;
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
@@ -24,16 +27,10 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.Validate;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationCaseType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author lazyman
@@ -153,9 +150,9 @@ public final class QueryDefinitionRegistry implements DebugDumpable {
     }
 
     public JpaEntityDefinition findEntityDefinition(QName typeName) {
-        Validate.notNull(typeName, "Type name must not be null.");
+        Objects.requireNonNull(typeName, "Type name must not be null.");
 
-        JpaEntityDefinition def = QNameUtil.getKey(DEFINITIONS, typeName);
+        JpaEntityDefinition def = QNameUtil.getByQName(DEFINITIONS, typeName);
         if (def == null) {
             throw new IllegalStateException("Type " + typeName + " couldn't be found in type registry");
         }
@@ -164,7 +161,7 @@ public final class QueryDefinitionRegistry implements DebugDumpable {
 
     // always returns non-null value
     public <T extends Containerable> JpaEntityDefinition findEntityDefinition(Class<T> type) throws QueryException {
-        Validate.notNull(type, "Type must not be null.");
+        Objects.requireNonNull(type, "Type must not be null.");
         return findEntityDefinition(getQNameForType(type));
     }
 

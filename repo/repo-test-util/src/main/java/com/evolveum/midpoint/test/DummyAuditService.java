@@ -1,19 +1,21 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.test;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 
 import java.util.*;
 import javax.xml.datatype.Duration;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.*;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -22,13 +24,18 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -201,7 +208,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     public void assertAnyRequestDeltas() {
         AuditEventRecord requestRecord = getRequestRecord();
         Collection<ObjectDeltaOperation<? extends ObjectType>> requestDeltas = requestRecord.getDeltas();
-        assert requestDeltas != null && !requestDeltas.isEmpty() : "Expected some deltas in audit request record but found none";
+        assert !requestDeltas.isEmpty() : "Expected some deltas in audit request record but found none";
     }
 
     public Collection<ObjectDeltaOperation<? extends ObjectType>> getExecutionDeltas() {
@@ -221,10 +228,12 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         return deltas.iterator().next();
     }
 
-    public <O extends ObjectType> ObjectDeltaOperation<O> getExecutionDelta(int index, ChangeType changeType, Class<O> typeClass) {
+    public <O extends ObjectType> ObjectDeltaOperation<O> getExecutionDelta(
+            int index, ChangeType changeType, Class<O> typeClass) {
         for (ObjectDeltaOperation<? extends ObjectType> deltaOp : getExecutionDeltas(index)) {
             ObjectDelta<? extends ObjectType> delta = deltaOp.getObjectDelta();
             if (delta.getObjectTypeClass() == typeClass && delta.getChangeType() == changeType) {
+                //noinspection unchecked
                 return (ObjectDeltaOperation<O>) deltaOp;
             }
         }
@@ -348,7 +357,7 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     public void assertTarget(String expectedOid, AuditEventStage stage) {
         Collection<PrismReferenceValue> targets = new ArrayList<>();
         for (AuditEventRecord record : records) {
-            PrismReferenceValue target = record.getTarget();
+            PrismReferenceValue target = record.getTargetRef();
             if (stage == null || stage == record.getEventStage()) {
                 if (target != null && expectedOid.equals(target.getOid())) {
                     return;
@@ -366,18 +375,24 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assertTarget(expectedOid, AuditEventStage.EXECUTION);
     }
 
-    public <O extends ObjectType, T> void assertPropertyReplace(
-            ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertPropertyReplace(
+            ChangeType expectedChangeType, Class<O> expectedClass,
+            ItemPath propPath, T... expectedValues) {
         assertPropertyReplace(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertPropertyReplace(
-            int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertPropertyReplace(
+            int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         assertPropertyReplace(null, index, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertPropertyReplace(
-            String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertPropertyReplace(
+            String message, int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
 
         ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
         assert deltaOp != null : (message == null ? ""
@@ -401,18 +416,23 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         PrismAsserts.assertValues((message == null ? "" : message + ": ") + "Wrong values to replace in property delta for " + propPath + " in Delta for " + expectedClass + " of type " + expectedChangeType, valuesToReplace, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertOldValue(
-            ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertOldValue(ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         assertOldValue(null, 0, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertOldValue(
-            int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertOldValue(
+            int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         assertOldValue(null, index, expectedChangeType, expectedClass, propPath, expectedValues);
     }
 
-    public <O extends ObjectType, T> void assertOldValue(
-            String message, int index, ChangeType expectedChangeType, Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
+    @SafeVarargs
+    public final <O extends ObjectType, T> void assertOldValue(
+            String message, int index, ChangeType expectedChangeType,
+            Class<O> expectedClass, ItemPath propPath, T... expectedValues) {
         ObjectDeltaOperation<O> deltaOp = getExecutionDelta(index, expectedChangeType, expectedClass);
         assert deltaOp != null
                 : (message == null ? "" : message + ": ") + "Delta for " + expectedClass +
@@ -453,7 +473,9 @@ public class DummyAuditService implements AuditService, DebugDumpable {
         assertEquals("Wrong outcome of last audit record: " + lastRecord.getOutcome(), OperationResultStatus.SUCCESS, lastRecord.getOutcome());
         // TODO fix "login" "logout" auditing
         assertEquals("Audit session ID does not match", firstRecord.getSessionIdentifier(), lastRecord.getSessionIdentifier());
-        assertFalse("Same login and logout event IDs", firstRecord.getEventIdentifier().equals(lastRecord.getEventIdentifier()));
+        assertThat(firstRecord.getEventIdentifier())
+                .withFailMessage("Same login and logout event IDs")
+                .isNotEqualTo(lastRecord.getEventIdentifier());
         if (expectedChannel != null) {
             assertEquals("Wrong channel in first audit record", expectedChannel, firstRecord.getChannel());
             assertEquals("Wrong channel in last audit record", expectedChannel, lastRecord.getChannel());
@@ -530,5 +552,22 @@ public class DummyAuditService implements AuditService, DebugDumpable {
 
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @Override
+    public int countObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
+        throw new UnsupportedOperationException("countObjects not supported");
+    }
+
+    @Override
+    @NotNull
+    public SearchResultList<AuditEventRecordType> searchObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
+        throw new UnsupportedOperationException("searchObjects not supported");
     }
 }

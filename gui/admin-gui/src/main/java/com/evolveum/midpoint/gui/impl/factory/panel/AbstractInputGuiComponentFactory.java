@@ -13,7 +13,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +35,7 @@ public abstract class AbstractInputGuiComponentFactory<T> implements GuiComponen
     }
 
     @Override
-    public Panel createPanel(PrismPropertyPanelContext<T> panelCtx) {
+    public Component createPanel(PrismPropertyPanelContext<T> panelCtx) {
         InputPanel panel = getPanel(panelCtx);
         return panel;
     }

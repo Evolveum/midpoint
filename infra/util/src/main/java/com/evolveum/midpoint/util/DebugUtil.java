@@ -417,6 +417,18 @@ public class DebugUtil {
         return sb.toString();
     }
 
+    public static <K, V> Object debugDumpMapMultiLineLazily(Map<K, V> map) {
+        if (map == null) {
+            return null;
+        }
+        return new Object() {
+            @Override
+            public String toString() {
+                return debugDumpMapMultiLine(map);
+            }
+        };
+    }
+
     public static <K, V> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
         debugDumpMapMultiLine(sb, map, indent, false);
     }
@@ -601,13 +613,10 @@ public class DebugUtil {
     }
 
     public static Object debugDumpLazily(DebugDumpable dumpable, int indent) {
-        if (dumpable == null) {
-            return null;
-        }
         return new Object() {
             @Override
             public String toString() {
-                return dumpable.debugDump(indent);
+                return debugDump(dumpable, indent);
             }
         };
     }

@@ -14,6 +14,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,9 +25,14 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
@@ -75,9 +82,9 @@ public class LoggerAuditServiceImpl implements AuditService {
                 ", hid=" + record.getHostIdentifier() +
                 ", nid=" + record.getNodeIdentifier() +
                 ", raddr=" + record.getRemoteHostAddress() +
-                ", I=" + formatObject(record.getInitiator()) +
-                ", T=" + formatReference(record.getTarget()) +
-                ", TO=" + formatObject(record.getTargetOwner()) +
+                ", I=" + formatReference(record.getInitiatorRef()) +
+                ", T=" + formatReference(record.getTargetRef()) +
+                ", TO=" + formatReference(record.getTargetOwnerRef()) +
                 ", D=" + formatDeltaSummary(record.getDeltas()) +
                 ", ch=" + record.getChannel() +
                 ", o=" + record.getOutcome() +
@@ -178,6 +185,22 @@ public class LoggerAuditServiceImpl implements AuditService {
     @Override
     public void reindexEntry(AuditEventRecord record) {
         throw new UnsupportedOperationException("Reindex entry not supported");
+    }
 
+    @Override
+    public int countObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
+        throw new UnsupportedOperationException("countObjects not supported");
+    }
+
+    @Override
+    @NotNull
+    public SearchResultList<AuditEventRecordType> searchObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
+        throw new UnsupportedOperationException("searchObjects not supported");
     }
 }

@@ -62,11 +62,13 @@ import com.evolveum.midpoint.util.DebugUtil;
         "paging"
 })
 public class QueryType implements Serializable, Cloneable, DebugDumpable {
-    private final static long serialVersionUID = 201105211233L;
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "QueryType");
-    public final static QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
-    public final static QName F_FILTER = new QName(PrismConstants.NS_QUERY, "filter");
-    public final static QName F_PAGING = new QName(PrismConstants.NS_QUERY, "paging");
+
+    private static final long serialVersionUID = 201105211233L;
+
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "QueryType");
+    public static final QName F_DESCRIPTION = new QName(PrismConstants.NS_QUERY, "description");
+    public static final QName F_FILTER = new QName(PrismConstants.NS_QUERY, "filter");
+    public static final QName F_PAGING = new QName(PrismConstants.NS_QUERY, "paging");
 
     protected String description;
     @XmlElement(required = true)

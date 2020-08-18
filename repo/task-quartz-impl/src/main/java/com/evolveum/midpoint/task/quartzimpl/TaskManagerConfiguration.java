@@ -422,7 +422,7 @@ public class TaskManagerConfiguration {
 
         Configuration c = masterConfig.getConfiguration(MidpointConfiguration.TASK_MANAGER_CONFIGURATION);
 
-        database = sqlConfig != null ? sqlConfig.getDatabase() : null;
+        database = sqlConfig != null ? sqlConfig.getDatabaseType() : null;
 
         String defaultSqlSchemaFile = SCHEMAS.get(database);
         String defaultDriverDelegate = DELEGATES.get(database);

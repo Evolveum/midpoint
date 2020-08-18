@@ -37,7 +37,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CredentialsCapabilityType;
 
-import org.apache.commons.collections4.CollectionUtils;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
+
 import org.apache.commons.lang.BooleanUtils;
 
 import com.evolveum.midpoint.common.ActivationComputer;
@@ -166,9 +167,9 @@ public class LensUtil {
         return new LensProjectionContext(context, rsd);
     }
 
-    public static <V extends PrismValue, D extends ItemDefinition> V cloneAndApplyMetadata(V value, boolean isAssignment,
-            Collection<ItemValueWithOrigin<V, D>> origins) throws SchemaException {
-        return cloneAndApplyMetadata(value, isAssignment, () -> getAutoCreationIdentifier(origins));
+    public static <V extends PrismValue, D extends ItemDefinition> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
+            Collection<? extends ItemValueWithOrigin<V, D>> origins) throws SchemaException {
+        return cloneAndApplyAssignmentOrigin(value, isAssignment, () -> getAutoCreationIdentifier(origins));
     }
 
 //    public static <V extends PrismValue> Collection<V> cloneAndApplyMetadata(Collection<V> values, boolean isAssignment,
@@ -180,17 +181,17 @@ public class LensUtil {
 //        return rv;
 //    }
 
-    public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+    public static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
             PrismValueDeltaSetTripleProducer<?, ?> mapping) throws SchemaException {
-        return cloneAndApplyMetadata(value, isAssignment, mapping::getIdentifier);
+        return cloneAndApplyAssignmentOrigin(value, isAssignment, mapping::getIdentifier);
     }
 
-    public static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+    public static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
             MappingType mapping) throws SchemaException {
-        return cloneAndApplyMetadata(value, isAssignment, mapping::getName);
+        return cloneAndApplyAssignmentOrigin(value, isAssignment, mapping::getName);
     }
 
-    private static <V extends PrismValue> V cloneAndApplyMetadata(V value, boolean isAssignment,
+    private static <V extends PrismValue> V cloneAndApplyAssignmentOrigin(V value, boolean isAssignment,
             Supplier<String> originMappingNameSupplier) throws SchemaException {
         //noinspection unchecked
         V cloned = (V) value.clone();
@@ -207,7 +208,8 @@ public class LensUtil {
         return cloned;
     }
 
-    private static <V extends PrismValue, D extends ItemDefinition> String getAutoCreationIdentifier(Collection<ItemValueWithOrigin<V, D>> origins) {
+    private static <V extends PrismValue, D extends ItemDefinition> String getAutoCreationIdentifier(
+            Collection<? extends ItemValueWithOrigin<V, D>> origins) {
         // let's ignore conflicts (name1 vs name2, named vs unnamed) for now
         for (ItemValueWithOrigin<V, D> origin : origins) {
             if (origin.getMapping() != null && origin.getMapping().getIdentifier() != null) {
@@ -240,7 +242,7 @@ public class LensUtil {
     }
 
     public static <F extends ObjectType> void moveTriggers(LensProjectionContext projCtx, LensFocusContext<F> focusCtx) throws SchemaException {
-        ObjectDelta<ShadowType> projSecondaryDelta = projCtx.getSecondaryDelta();
+        ObjectDelta<ShadowType> projSecondaryDelta = projCtx.getCurrentDelta();
         if (projSecondaryDelta == null) {
             return;
         }
@@ -250,7 +252,7 @@ public class LensUtil {
             ItemDelta projModification = iterator.next();
             LOGGER.trace("MOD: {}\n{}", projModification.getPath(), projModification.debugDumpLazily());
             if (projModification.getPath().equivalent(SchemaConstants.PATH_TRIGGER)) {
-                focusCtx.swallowToProjectionWaveSecondaryDelta(projModification);
+                focusCtx.swallowToSecondaryDelta(projModification);
                 iterator.remove();
             }
         }
@@ -298,28 +300,28 @@ public class LensUtil {
         return idi;
     }
 
-    /**
-     * Extracts the delta from this projection context and also from all other projection contexts that have
-     * equivalent discriminator.
-     */
-    public static <F extends ObjectType, T> PropertyDelta<T> findAPrioriDelta(LensContext<F> context,
-            LensProjectionContext projCtx, ItemPath projectionPropertyPath) throws SchemaException {
-        PropertyDelta<T> aPrioriDelta = null;
-        for (LensProjectionContext aProjCtx: findRelatedContexts(context, projCtx)) {
-            ObjectDelta<ShadowType> aProjDelta = aProjCtx.getDelta();
-            if (aProjDelta != null) {
-                PropertyDelta<T> aPropProjDelta = aProjDelta.findPropertyDelta(projectionPropertyPath);
-                if (aPropProjDelta != null) {
-                    if (aPrioriDelta == null) {
-                        aPrioriDelta = aPropProjDelta.clone();
-                    } else {
-                        aPrioriDelta.merge(aPropProjDelta);
-                    }
-                }
-            }
-        }
-        return aPrioriDelta;
-    }
+//    /**
+//     * Extracts the delta from this projection context and also from all other projection contexts that have
+//     * equivalent discriminator.
+//     */
+//    public static <F extends ObjectType, T> PropertyDelta<T> findAPrioriDelta(LensContext<F> context,
+//            LensProjectionContext projCtx, ItemPath projectionPropertyPath) throws SchemaException {
+//        PropertyDelta<T> aPrioriDelta = null;
+//        for (LensProjectionContext aProjCtx: findRelatedContexts(context, projCtx)) {
+//            ObjectDelta<ShadowType> aProjDelta = aProjCtx.getSummaryDelta(); // TODO check this
+//            if (aProjDelta != null) {
+//                PropertyDelta<T> aPropProjDelta = aProjDelta.findPropertyDelta(projectionPropertyPath);
+//                if (aPropProjDelta != null) {
+//                    if (aPrioriDelta == null) {
+//                        aPrioriDelta = aPropProjDelta.clone();
+//                    } else {
+//                        aPrioriDelta.merge(aPropProjDelta);
+//                    }
+//                }
+//            }
+//        }
+//        return aPrioriDelta;
+//    }
 
     /**
      * Extracts the delta from this projection context and also from all other projection contexts that have
@@ -329,7 +331,7 @@ public class LensUtil {
             LensProjectionContext projCtx) throws SchemaException {
         ObjectDelta<ShadowType> aPrioriDelta = null;
         for (LensProjectionContext aProjCtx: findRelatedContexts(context, projCtx)) {
-            ObjectDelta<ShadowType> aProjDelta = aProjCtx.getDelta();
+            ObjectDelta<ShadowType> aProjDelta = aProjCtx.getSummaryDelta(); // todo check this
             if (aProjDelta != null) {
                 if (aPrioriDelta == null) {
                     aPrioriDelta = aProjDelta.clone();
@@ -407,8 +409,8 @@ public class LensUtil {
         ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
         for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
             ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
-            if (refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() > aDiscr.getOrder())) {
-                if (minOrder < 0 || (aDiscr.getOrder() < minOrder)) {
+            if (refDiscr.equivalent(aDiscr) && aDiscr.getOrder() < refDiscr.getOrder()) {
+                if (minOrder < 0 || aDiscr.getOrder() < minOrder) {
                     minOrder = aDiscr.getOrder();
                     foundCtx = aProjCtx;
                 }
@@ -570,24 +572,24 @@ public class LensUtil {
         return isValid(assignment.getLifecycleState(), assignment.getActivation(), now, activationComputer, focusStateModel);
     }
 
+    @NotNull
     public static <R extends AbstractRoleType> Collection<AssignmentType> getForcedAssignments(LifecycleStateModelType lifecycleModel, String targetLifecycle,
             ObjectResolver objectResolver, PrismContext prismContext, Task task, OperationResult result) throws SchemaException,
-    ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        VirtualAssignmenetSpecification<R> virtualAssignmenetSpecification = LifecycleUtil.getForcedAssignmentSpecification(lifecycleModel, targetLifecycle, prismContext);
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
         Collection<AssignmentType> forcedAssignments = new HashSet<>();
-        if (virtualAssignmenetSpecification != null) {
+
+        VirtualAssignmenetSpecification<R> virtualAssignmentSpecification = LifecycleUtil.getForcedAssignmentSpecification(lifecycleModel, targetLifecycle, prismContext);
+        if (virtualAssignmentSpecification != null) {
 
             ResultHandler<R> handler = (object, parentResult)  -> {
                 AssignmentType assignment = ObjectTypeUtil.createAssignmentTo(object, prismContext);
                 return forcedAssignments.add(assignment);
             };
 
-            objectResolver.searchIterative(virtualAssignmenetSpecification.getType(),
-                   prismContext.queryFactory().createQuery(virtualAssignmenetSpecification.getFilter()), null, handler, task, result);
-
+            objectResolver.searchIterative(virtualAssignmentSpecification.getType(),
+                   prismContext.queryFactory().createQuery(virtualAssignmentSpecification.getFilter()), null, handler, task, result);
         }
-
         return forcedAssignments;
     }
 
@@ -750,7 +752,7 @@ public class LensUtil {
             return;
         }
         PrismObject<F> focusObjectNew = focusContext.getObjectNew();
-        ObjectDelta<F> focusDelta = focusContext.getDelta();
+        ObjectDelta<F> focusDelta = focusContext.getSummaryDelta(); // todo check this
 
         for (ItemConstraintType itemConstraintType : archetypePolicy.getItemConstraint()) {
             processItemConstraint(focusContext, focusDelta, focusObjectNew, itemConstraintType);
@@ -906,16 +908,12 @@ public class LensUtil {
         return objectDeltaOp;
     }
 
-    public static void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers,
-            Collection<String> policySituations) {
-
-        LOGGER.debug("Policy rule {} triggered: {}", rule.getName(), triggers);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Policy rule {} triggered:\n{}", rule.getName(), DebugUtil.debugDump(triggers, 1));
-        }
+    public static void triggerRule(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        String ruleName = rule.getName();
+        LOGGER.debug("Policy rule {} triggered: {}", ruleName, triggers);
+        LOGGER.trace("Policy rule {} triggered:\n{}", ruleName, DebugUtil.debugDumpLazily(triggers, 1));
 
         ((EvaluatedPolicyRuleImpl) rule).addTriggers(triggers);
-        CollectionUtils.addIgnoreNull(policySituations, rule.getPolicySituation());
     }
 
     public static void processRuleWithException(@NotNull EvaluatedPolicyRule rule, Collection<EvaluatedPolicyRuleTrigger <?>> triggers,
@@ -1151,7 +1149,7 @@ public class LensUtil {
         String explicitArchetypeOid = null;
         // Used in cases where archetype assignment haven't had the change to be processed yet.
         // E.g. in case that we are creating a new object with archetype assignment
-        if (object.canRepresent(AssignmentHolderType.class)) {
+        if (object != null && object.canRepresent(AssignmentHolderType.class)) {
             AssignmentHolderType assignmentHolderType = (AssignmentHolderType)object.asObjectable();
             List<ObjectReferenceType> archetypeRefs = assignmentHolderType.getArchetypeRef();
             if (archetypeRefs.isEmpty()) {
@@ -1172,5 +1170,26 @@ public class LensUtil {
             }
         }
         return explicitArchetypeOid;
+    }
+
+    public static void setMappingTarget(MappingType mapping, ItemPathType path) {
+        VariableBindingDefinitionType target = mapping.getTarget();
+        if (target == null) {
+            target = new VariableBindingDefinitionType();
+            target.setPath(path);
+            mapping.setTarget(target);
+        } else if (target.getPath() == null) {
+            target = target.clone();
+            target.setPath(path);
+            mapping.setTarget(target);
+        }
+    }
+
+    public static void rejectNonTolerantSettingIfPresent(ObjectTemplateItemDefinitionType templateItemDefinition,
+            ItemPath itemPath, String contextDescription) {
+        if (templateItemDefinition != null && Boolean.FALSE.equals(templateItemDefinition.isTolerant())) {
+            throw new UnsupportedOperationException("The 'tolerant=false' setting on template items is no longer supported."
+                    + " Please use mapping range instead. In '" + itemPath + "' consolidation in " + contextDescription);
+        }
     }
 }

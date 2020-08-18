@@ -1429,7 +1429,7 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         return parseScriptingExpression(getFile(name));
     }
 
-    private ExecuteScriptType parseExecuteScript(File file) throws IOException, SchemaException {
+    ExecuteScriptType parseExecuteScript(File file) throws IOException, SchemaException {
         return prismContext.parserFor(file).parseRealValue(ExecuteScriptType.class);
     }
 

@@ -8,13 +8,6 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -23,10 +16,13 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -39,6 +35,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -47,13 +44,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> implements RefreshableTabPanel {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskBasicTabPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskBasicTabPanel.class);
     private static final String ID_MAIN_PANEL = "main";
     private static final String ID_HANDLER = "handler";
 
     private static final String DOT_CLASS = TaskBasicTabPanel.class.getName() + ".";
     private static final String OPERATION_UPDATE_WRAPPER = DOT_CLASS + "updateWrapper";
-
 
     public TaskBasicTabPanel(String id, IModel<PrismObjectWrapper<TaskType>> model) {
         super(id, model);
@@ -267,7 +263,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
             pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
         } else if (taskHandler.endsWith("model/focus-validity-scanner/handler-3") || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3#1")
-                    || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3#2")) {
+                || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3#2")) {
             pathsToShow = Arrays.asList(ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME),
                     SchemaConstants.PATH_MODEL_EXTENSION_OBJECT_TYPE,
                     ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
@@ -301,7 +297,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
             return false;
         }
 
-        List<ItemPath> pathsToHide = Arrays.asList(TaskType.F_EXECUTION_STATUS, TaskType.F_NODE, TaskType.F_NODE_AS_OBSERVED,TaskType.F_RESULT_STATUS,
+        List<ItemPath> pathsToHide = Arrays.asList(TaskType.F_EXECUTION_STATUS, TaskType.F_NODE, TaskType.F_NODE_AS_OBSERVED, TaskType.F_RESULT_STATUS,
                 TaskType.F_RESULT, TaskType.F_NEXT_RUN_START_TIMESTAMP, TaskType.F_NEXT_RETRY_TIMESTAMP, TaskType.F_UNPAUSE_ACTION, TaskType.F_TASK_IDENTIFIER,
                 TaskType.F_PARENT, TaskType.F_WAITING_REASON, TaskType.F_STATE_BEFORE_SUSPEND, TaskType.F_CATEGORY, TaskType.F_OTHER_HANDLERS_URI_STACK,
                 TaskType.F_CHANNEL, TaskType.F_DEPENDENT_TASK_REF, TaskType.F_LAST_RUN_START_TIMESTAMP, TaskType.F_LAST_RUN_FINISH_TIMESTAMP, TaskType.F_COMPLETION_TIMESTAMP
@@ -331,8 +327,6 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
             return itemWrapper.isMandatory();
         };
     }
-
-
 
     @Override
     public Collection<Component> getComponentsToUpdate() {

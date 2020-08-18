@@ -1,43 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-     http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
+    <bean id="infraInitialSetup"
+            class="com.evolveum.midpoint.init.InfraInitialSetup"
+            init-method="init"/>
 
-
-    <bean name="infraInitialSetup" class="com.evolveum.midpoint.init.InfraInitialSetup" init-method="init">
-    </bean>
-
-    <bean id="repoInitialSetup" class="com.evolveum.midpoint.init.RepoInitialSetup" init-method="init">
+    <bean id="repoInitialSetup"
+            class="com.evolveum.midpoint.init.RepoInitialSetup"
+            init-method="init">
         <constructor-arg name="repositoryService" ref="repositoryService"/>
     </bean>
 
-    <bean id="repoCacheInitialSetup" class="com.evolveum.midpoint.init.RepoCacheInitialSetup" init-method="init">
+    <bean id="repoCacheInitialSetup"
+            class="com.evolveum.midpoint.init.RepoCacheInitialSetup"
+            init-method="init">
         <constructor-arg name="cacheRepositoryService" ref="cacheRepositoryService"/>
     </bean>
 
-    <bean id="initialDataImport" class="com.evolveum.midpoint.init.InitialDataImport" init-method="init"
-          scope="singleton">
+    <bean id="initialDataImport"
+            class="com.evolveum.midpoint.init.InitialDataImport"
+            init-method="init">
         <property name="model" ref="modelController"/>
-        <property name="taskManager" ref="taskManager" />
+        <property name="taskManager" ref="taskManager"/>
     </bean>
 
-    <bean name="modelInitialSetup" class="com.evolveum.midpoint.init.ModelInitialSetup" init-method="init">
+    <bean id="modelInitialSetup"
+            class="com.evolveum.midpoint.init.ModelInitialSetup"
+            init-method="init">
         <property name="model" ref="modelController"/>
     </bean>
 
-    <bean id="postInitialDataImport" class="com.evolveum.midpoint.init.PostInitialDataImport" init-method="init"
-          scope="singleton">
+    <bean id="postInitialDataImport"
+            class="com.evolveum.midpoint.init.PostInitialDataImport"
+            init-method="init">
         <property name="model" ref="modelController"/>
         <property name="scripting" ref="modelController"/>
-        <property name="taskManager" ref="taskManager" />
+        <property name="taskManager" ref="taskManager"/>
     </bean>
 </beans>

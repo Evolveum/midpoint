@@ -12,7 +12,6 @@
 // Generated on: 2012.02.24 at 02:46:19 PM CET
 //
 
-
 package com.evolveum.midpoint.prism.foo;
 
 import java.io.Serializable;
@@ -27,9 +26,8 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemName;
 
 /**
- *
- *                 ActivationTyps is a container, therefore the following elements are properties.
- *                 This tests the ability to deal with boolean and dateTime properties.
+ * ActivationTyps is a container, therefore the following elements are properties.
+ * This tests the ability to deal with boolean and dateTime properties.
  *
  *
  * <p>Java class for ActivationType complex type.
@@ -49,34 +47,32 @@ import com.evolveum.midpoint.prism.path.ItemName;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ActivationType", propOrder = {
-    "enabled",
-    "validFrom",
-    "validTo"
+        "enabled",
+        "validFrom",
+        "validTo"
 })
 public class ActivationType
-    implements Serializable, Containerable
-{
+        implements Serializable, Containerable {
 
-    private final static long serialVersionUID = 201202081233L;
+    private static final long serialVersionUID = 201202081233L;
+
+    public static final ItemName F_ENABLED = new ItemName(ObjectType.NS_FOO, "enabled");
+    public static final ItemName F_VALID_FROM = new ItemName(ObjectType.NS_FOO, "validFrom");
+    public static final ItemName F_VALID_TO = new ItemName(ObjectType.NS_FOO, "validTo");
+
     protected boolean enabled;
+
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar validFrom;
+
     @XmlSchemaType(name = "dateTime")
     protected XMLGregorianCalendar validTo;
 
-    // This is NOT GENERATED. It is supplied here manually for the testing.
-     public final static ItemName F_ENABLED = new ItemName(ObjectType.NS_FOO, "enabled");
-     public final static ItemName F_VALID_FROM = new ItemName(ObjectType.NS_FOO, "validFrom");
-     public final static ItemName F_VALID_TO = new ItemName(ObjectType.NS_FOO, "validTo");
-
     /**
      * Gets the value of the enabled property.
-     *
      */
     public boolean isEnabled() {
         return enabled;
@@ -84,7 +80,6 @@ public class ActivationType
 
     /**
      * Sets the value of the enabled property.
-     *
      */
     public void setEnabled(boolean value) {
         this.enabled = value;
@@ -93,10 +88,8 @@ public class ActivationType
     /**
      * Gets the value of the validFrom property.
      *
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
      */
     public XMLGregorianCalendar getValidFrom() {
         return validFrom;
@@ -105,10 +98,8 @@ public class ActivationType
     /**
      * Sets the value of the validFrom property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *
+     * @param value allowed object is
+     * {@link XMLGregorianCalendar }
      */
     public void setValidFrom(XMLGregorianCalendar value) {
         this.validFrom = value;
@@ -117,10 +108,8 @@ public class ActivationType
     /**
      * Gets the value of the validTo property.
      *
-     * @return
-     *     possible object is
-     *     {@link XMLGregorianCalendar }
-     *
+     * @return possible object is
+     * {@link XMLGregorianCalendar }
      */
     public XMLGregorianCalendar getValidTo() {
         return validTo;
@@ -129,10 +118,8 @@ public class ActivationType
     /**
      * Sets the value of the validTo property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link XMLGregorianCalendar }
-     *
+     * @param value allowed object is
+     * {@link XMLGregorianCalendar }
      */
     public void setValidTo(XMLGregorianCalendar value) {
         this.validTo = value;

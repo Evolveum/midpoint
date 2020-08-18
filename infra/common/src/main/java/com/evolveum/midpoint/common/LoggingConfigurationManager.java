@@ -7,23 +7,7 @@
 
 package com.evolveum.midpoint.common;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.PrintStream;
-import java.io.UnsupportedEncodingException;
-
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.util.LoggingSchemaUtil;
-import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
-import com.evolveum.midpoint.util.logging.*;
-import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang.StringUtils;
-import org.slf4j.bridge.SLF4JBridgeHandler;
+import java.io.*;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -31,16 +15,27 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.joran.spi.JoranException;
 import ch.qos.logback.core.util.StatusPrinter;
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.common.configuration.api.ProfilingMode;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.LoggingSchemaUtil;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.*;
+import com.evolveum.midpoint.util.statistics.OperationExecutionLogger;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class LoggingConfigurationManager {
 
     public static final String AUDIT_LOGGER_NAME = "com.evolveum.midpoint.audit.log";
 
-    private final static Trace LOGGER = TraceManager.getTrace(LoggingConfigurationManager.class);
+    private static final Trace LOGGER = TraceManager.getTrace(LoggingConfigurationManager.class);
 
     private static final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
     private static final String PROFILING_ASPECT_LOGGER = ProfilingDataManager.class.getName();
@@ -55,7 +50,7 @@ public class LoggingConfigurationManager {
     public static void configure(LoggingConfigurationType config, String version,
             MidpointConfiguration midpointConfiguration, OperationResult result) throws SchemaException {
 
-        OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName()+".configure");
+        OperationResult res = result.createSubresult(LoggingConfigurationManager.class.getName() + ".configure");
 
         if (InternalsConfig.isAvoidLoggingChange()) {
             LOGGER.info("IGNORING change of logging configuration (current config version: {}, new version {}) because avoidLoggingChange=true", currentlyUsedVersion, version);
@@ -86,7 +81,6 @@ public class LoggingConfigurationManager {
 
         //Generate configuration file as string
         String configXml = prepareConfiguration(config, midpointConfiguration);
-
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("New logging configuration:");
@@ -136,7 +130,7 @@ public class LoggingConfigurationManager {
                 }
                 res.appendDetail(internalLogLine);
             }
-            LOGGER.trace("LogBack internal log:\n{}",internalLog);
+            LOGGER.trace("LogBack internal log:\n{}", internalLog);
         } else {
             res.recordSuccess();
         }
@@ -290,7 +284,7 @@ public class LoggingConfigurationManager {
         } else if (appender instanceof SyslogAppenderConfigurationType) {
             prepareSyslogAppenderConfiguration(sb, (SyslogAppenderConfigurationType) appender, config);
         } else {
-            throw new SchemaException("Unknown appender configuration "+appender);
+            throw new SchemaException("Unknown appender configuration " + appender);
         }
         if (createAltForThisAppender) {
             prepareAltAppenderConfiguration(sb, appender, midpointConfiguration);
@@ -409,7 +403,7 @@ public class LoggingConfigurationManager {
 
         //Apply profiling appender filter if necessary
         if (IDM_PROFILE_APPENDER.equals(appender.getName())) {
-            for (ClassLoggerConfigurationType cs: config.getClassLogger()) {
+            for (ClassLoggerConfigurationType cs : config.getClassLogger()) {
                 if (REQUEST_FILTER_LOGGER_CLASS_NAME.equals(cs.getPackage()) || PROFILING_ASPECT_LOGGER.endsWith(cs.getPackage())) {
                     LOGGER.debug("Defining ProfilingLogbackFilter to {} appender.", appender.getName());
                     sb.append(defineProfilingLogbackFilter());

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.querydsl.sql.ColumnMetadata;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -19,14 +20,15 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class InsertQueryBuilder {
 
-    private StringBuilder sbQuery;
-    private StringBuilder sbValues;
+    private final StringBuilder sbQuery;
+    private final StringBuilder sbValues;
+    private final Map<Integer, Object> parameters = new HashMap<>();
+    private final List<Integer> primaryKey = new ArrayList<>();
+
     private int index = 1;
-    private Map<Integer, Object> parameters = new HashMap<Integer, Object>();
-    private List<Integer> primaryKey = new ArrayList<Integer>();
 
     public InsertQueryBuilder(String tableName) {
-        if(StringUtils.isBlank(tableName)) {
+        if (StringUtils.isBlank(tableName)) {
             throw new IllegalArgumentException("Name of table is empty");
         }
         sbQuery = new StringBuilder("INSERT INTO ");
@@ -34,19 +36,31 @@ public class InsertQueryBuilder {
         sbValues = new StringBuilder(" VALUES (");
     }
 
-    public  void addNullParameter(String nameOfparameter) {
-        addParameter(nameOfparameter, null);
+    public void addNullParameter(ColumnMetadata column) {
+        addNullParameter(column.getName());
     }
 
-    public  void addParameter(String nameOfparameter, Object value) {
-        addParameter(nameOfparameter, value, false);
+    public void addNullParameter(String nameOfParameter) {
+        addParameter(nameOfParameter, null);
     }
 
-    public  void addParameter(String nameOfparameter, Object value, boolean isPrimaryKey) {
-        sbQuery.append(parameters.isEmpty() ? "" : ", ").append(nameOfparameter);
+    public void addParameter(ColumnMetadata column, Object value) {
+        addParameter(column.getName(), value);
+    }
+
+    public void addParameter(String nameOfParameter, Object value) {
+        addParameter(nameOfParameter, value, false);
+    }
+
+    public void addParameter(ColumnMetadata column, Object value, boolean isPrimaryKey) {
+        addParameter(column.getName(), value, isPrimaryKey);
+    }
+
+    public void addParameter(String nameOfParameter, Object value, boolean isPrimaryKey) {
+        sbQuery.append(parameters.isEmpty() ? "" : ", ").append(nameOfParameter);
         sbValues.append(parameters.isEmpty() ? "" : ", ").append("?");
         parameters.put(index, value);
-        if(isPrimaryKey) {
+        if (isPrimaryKey) {
             primaryKey.add(index);
         }
         index++;

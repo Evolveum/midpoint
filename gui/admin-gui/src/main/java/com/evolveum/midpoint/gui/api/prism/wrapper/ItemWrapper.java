@@ -85,4 +85,10 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
     void removeAll(ModelServiceLocator locator) throws SchemaException;
 
     <PV extends PrismValue> void add(PV newValueWrapper, ModelServiceLocator locator) throws SchemaException;
+
+    boolean isMetadata();
+    void setMetadata(boolean isMetadata);
+
+    void setShowMetadataDetails(boolean showMetadataDetails);
+    boolean isShowMetadataDetails();
 }

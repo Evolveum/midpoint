@@ -347,10 +347,10 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return asserter;
     }
 
-    public ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>, RA> valueMetadata(ItemPath path) throws SchemaException {
+    public ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>> valueMetadata(ItemPath path) throws SchemaException {
         PrismContainerValue<ValueMetadataType> valueMetadata = getValueMetadata(path);
-        ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>, RA> asserter =
-                new ValueMetadataAsserter<>(this, valueMetadata, String.valueOf(path)); // TODO details
+        ValueMetadataAsserter<? extends PrismObjectAsserter<O, RA>> asserter =
+                new ValueMetadataAsserter<>(valueMetadata, this, String.valueOf(path)); // TODO details
         copySetupTo(asserter);
         return asserter;
     }

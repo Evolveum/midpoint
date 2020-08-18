@@ -17,6 +17,7 @@ import java.util.Optional;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.axiom.api.AxiomName;
+import com.evolveum.axiom.api.AxiomValue;
 import com.evolveum.axiom.api.AxiomValueFactory;
 import com.evolveum.axiom.api.schema.AxiomItemDefinition;
 import com.evolveum.axiom.api.schema.AxiomSchemaContext;
@@ -25,9 +26,10 @@ import com.evolveum.axiom.api.schema.AxiomIdentifierDefinition.Scope;
 import com.evolveum.axiom.api.stream.AxiomBuilderStreamTarget;
 import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn.Type;
+import com.evolveum.axiom.lang.antlr.AntlrDecoderContext;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.api.AxiomBuiltIn;
-import com.evolveum.axiom.lang.api.IdentifierSpaceKey;
+import com.evolveum.axiom.api.AxiomValueIdentifier;
 import com.evolveum.axiom.lang.spi.AxiomIdentifierDefinitionImpl;
 import com.evolveum.axiom.lang.spi.AxiomNameResolver;
 import com.evolveum.axiom.lang.spi.AxiomItemDefinitionImpl;
@@ -50,9 +52,9 @@ public class ModelReactorContext extends
     private static final String AXIOM_MODEL_RESOURCE = "/axiom-model.axiom";
     private static final String AXIOM_TYPES_RESOURCE = "/axiom-types.axiom";
 
-    private static final Lazy<AxiomModelStatementSource> LANGUAGE_SOURCE = source(AXIOM_MODEL_RESOURCE);
-    private static final Lazy<AxiomModelStatementSource> TYPES_SOURCE = source(AXIOM_TYPES_RESOURCE);
-    private static final Lazy<AxiomModelStatementSource> INFRA_SOURCE = source(AXIOM_DATA_RESOURCE);
+    private static final Lazy<AxiomModelStatementSource> LANGUAGE_SOURCE = sourceFromResource(AXIOM_MODEL_RESOURCE);
+    private static final Lazy<AxiomModelStatementSource> TYPES_SOURCE = sourceFromResource(AXIOM_TYPES_RESOURCE);
+    private static final Lazy<AxiomModelStatementSource> INFRA_SOURCE = sourceFromResource(AXIOM_DATA_RESOURCE);
 
 
     public static final Lazy<AxiomSchemaContext> BASE_LANGUAGE = Lazy.from(() -> {
@@ -66,7 +68,7 @@ public class ModelReactorContext extends
         return reactorContext;
     }
 
-    private static Lazy<AxiomModelStatementSource> source(String axiomModelResource) {
+    public static Lazy<AxiomModelStatementSource> sourceFromResource(String axiomModelResource) {
         return Lazy.from(() -> {
             InputStream stream = AxiomBuiltIn.class.getResourceAsStream(axiomModelResource);
             try {
@@ -104,7 +106,7 @@ public class ModelReactorContext extends
     Collection<RuleContextImpl> rules = new ArrayList<>();
 
     private final AxiomSchemaContext boostrapContext;
-    private final Map<IdentifierSpaceKey, CompositeIdentifierSpace> exported = new HashMap<>();
+    private final Map<AxiomValueIdentifier, CompositeIdentifierSpace> exported = new HashMap<>();
 
     Map<Object, AxiomValueContext<?>> globalItems = new HashMap<>();
 
@@ -112,6 +114,7 @@ public class ModelReactorContext extends
 
     Map<AxiomName, AxiomValueFactory<?>> typeFactories = new HashMap<>();
     List<AxiomValueContext<?>> roots = new ArrayList<>();
+    private Collection<LazyValue<?>> lazies = new ArrayList<>();
 
     public ModelReactorContext(AxiomSchemaContext boostrapContext) {
         this.boostrapContext = boostrapContext;
@@ -119,6 +122,7 @@ public class ModelReactorContext extends
 
     public AxiomSchemaContext computeSchemaContext() throws AxiomSemanticException {
         compute();
+        lazies.forEach(LazyValue::materialize);
         return createSchemaContext();
     }
 
@@ -162,7 +166,7 @@ public class ModelReactorContext extends
 
     public ModelReactorContext loadModelFromSource(AxiomModelStatementSource source) {
         SourceContext sourceCtx = new SourceContext(this, source, source.imports(), new CompositeIdentifierSpace());
-        source.stream(new AxiomBuilderStreamTarget(sourceCtx), Optional.empty());
+        source.stream(new AxiomBuilderStreamTarget(sourceCtx), AntlrDecoderContext.BUILTIN_DECODERS);
         return this;
     }
 
@@ -191,15 +195,15 @@ public class ModelReactorContext extends
         return AxiomValueFactory.defaultFactory();
     }
 
-    public void exportIdentifierSpace(IdentifierSpaceKey namespace, IdentifierSpaceHolder localSpace) {
+    public void exportIdentifierSpace(AxiomValueIdentifier namespace, IdentifierSpaceHolder localSpace) {
         exported(namespace).add(localSpace);
     }
 
-    private CompositeIdentifierSpace exported(IdentifierSpaceKey namespace) {
+    private CompositeIdentifierSpace exported(AxiomValueIdentifier namespace) {
         return exported.computeIfAbsent(namespace, k -> new CompositeIdentifierSpace());
     }
 
-    public Dependency<NamespaceContext> namespace(AxiomName name, IdentifierSpaceKey namespaceId) {
+    public Dependency<NamespaceContext> namespace(AxiomName name, AxiomValueIdentifier namespaceId) {
         return Dependency.orNull(exported.get(namespaceId));
     }
 
@@ -222,8 +226,18 @@ public class ModelReactorContext extends
         addActionsFor(valueContext);
     }
 
-    public void register(AxiomName space, Scope scope, IdentifierSpaceKey key, ValueContext<?> context) {
+    public void register(AxiomName space, Scope scope, AxiomValueIdentifier key, ValueContext<?> context) {
         globalSpace.register(space, scope, key, context);
+    }
+
+    AxiomSchemaContext bootstrapContext() {
+        return boostrapContext;
+    }
+
+    public <V> AxiomValue<V> lazyValue(ValueContext<V> valueContext) {
+        LazyValue<V> lazy = new LazyValue<>(valueContext.currentType(), () -> valueContext.get());
+        lazies.add(lazy);
+        return lazy;
     }
 
 }

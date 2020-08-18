@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,31 +7,21 @@
 
 package com.evolveum.midpoint.web.component.refresh;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.util.time.Duration;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
 
 /**
  * Provides simple "auto refresh" panel: buttons for start/stop auto refreshing, requesting manual refresh, and status label.
  *
- * @see Refreshable
- *
  * @author mederly
+ * @see Refreshable
  */
 public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
-
-    private static final transient Trace LOGGER = TraceManager.getTrace(AutoRefreshPanel.class);
 
     private static final String ID_REFRESH_NOW = "refreshNow";
     private static final String ID_START = "startPause";
@@ -81,10 +71,11 @@ public class AutoRefreshPanel extends BasePanel<AutoRefreshDto> {
         return "fa fa-play";
     }
 
-    protected void refreshPerformed(AjaxRequestTarget target) {}
-    protected boolean isRefreshEnabled(){
-        return getModelObject().isEnabled();
+    protected void refreshPerformed(AjaxRequestTarget target) {
     }
 
+    protected boolean isRefreshEnabled() {
+        return getModelObject().isEnabled();
+    }
 
 }

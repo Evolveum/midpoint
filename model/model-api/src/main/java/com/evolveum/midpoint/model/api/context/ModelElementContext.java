@@ -13,7 +13,6 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ArchetypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationIntentType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -38,8 +37,6 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     PrismObject<O> getObjectCurrent();
 
     PrismObject<O> getObjectAny();
-
-    void setObjectNew(PrismObject<O> objectNew);
 
     ObjectDelta<O> getPrimaryDelta();
 
@@ -76,8 +73,9 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
 
     boolean isDelete();
 
-    ObjectDelta<O> getDelta() throws SchemaException;
+    ObjectDelta<O> getSummaryDelta();
 
     ArchetypeType getArchetype();
 
+    ObjectDelta<?> getCurrentDelta();
 }

@@ -100,4 +100,8 @@ public class LoginFormModuleWebSecurityConfig<C extends LoginFormModuleWebSecuri
     public C getConfiguration() {
         return configuration;
     }
+
+    protected SessionRegistry getSessionRegistry() {
+        return sessionRegistry;
+    }
 }

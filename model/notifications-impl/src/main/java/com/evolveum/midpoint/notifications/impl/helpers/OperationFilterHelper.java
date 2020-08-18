@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
  * @author mederly
  */
 @Component
-public class OperationFilterHelper extends BaseHelper {
+public class OperationFilterHelper extends BaseNotificationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationFilterHelper.class);
 

@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.io.Serializable;
+import java.util.List;
+
+import org.apache.commons.collections.CollectionUtils;
+
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
@@ -15,12 +20,10 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections.CollectionUtils;
-
-import java.io.Serializable;
-import java.util.List;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * Used to determine whether tabs have to be refreshed - by comparing instances of this class before and after task update.
@@ -29,7 +32,7 @@ import java.util.List;
  */
 class TaskTabsVisibility implements Serializable {
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskTabsVisibility.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskTabsVisibility.class);
 
     private boolean basicVisible;
     private boolean schedulingVisible;
@@ -53,41 +56,39 @@ class TaskTabsVisibility implements Serializable {
         return schedulingVisible;
     }
 
-    public boolean computeWorkManagementVisible(TaskType taskType){
+    public boolean computeWorkManagementVisible(TaskType taskType) {
         String taskHandler = taskType.getHandlerUri();
         if (WebComponentUtil.hasArchetypeAssignment(taskType, SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value()) || (taskHandler != null &&
                 (taskHandler.endsWith("task/lightweight-partitioning/handler-3")
-                || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
-                || taskHandler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3")
-                || taskHandler.endsWith("task/generic-partitioning/handler-3")
-                || taskHandler.endsWith("task/workers-creation/handler-3")))) {
+                        || taskHandler.endsWith("model/partitioned-focus-validity-scanner/handler-3")
+                        || taskHandler.endsWith("model/synchronization/task/partitioned-reconciliation/handler-3")
+                        || taskHandler.endsWith("task/generic-partitioning/handler-3")
+                        || taskHandler.endsWith("task/workers-creation/handler-3")))) {
             workManagementVisible = true;
         }
         return workManagementVisible;
     }
 
-    public boolean computeCleanupPolicyVisible(){
+    public boolean computeCleanupPolicyVisible() {
         cleanupPolicyVisible = false;   //todo when cleanup policy should be visible?
         return cleanupPolicyVisible;
     }
 
     public boolean computeSubtasksAndThreadsVisible(TaskType task) {
 
-        List<ObjectReferenceType> subtasks =  task.getSubtaskRef();
+        List<ObjectReferenceType> subtasks = task.getSubtaskRef();
         if (CollectionUtils.isEmpty(subtasks)) {
             return subtasksAndThreadsVisible = false;
         }
 
         boolean allEmpty = true;
         for (ObjectReferenceType subtask : subtasks) {
-            if (!subtask.asReferenceValue().isEmpty()){
+            if (!subtask.asReferenceValue().isEmpty()) {
                 allEmpty = false;
             }
         }
 
         return subtasksAndThreadsVisible = !allEmpty;
-
-
 
         // TODO we want to show subtasks always when subtasks exist. Following should be the behavior for tables on subtasks tab.
 //        boolean isThreadsReadable = isTaskItemReadable(taskWrapper, ItemPath.create(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_WORKER_THREADS));
@@ -122,9 +123,9 @@ class TaskTabsVisibility implements Serializable {
 
     public boolean computeOperationVisible(PageTask parentPage, PrismObjectWrapper<TaskType> taskWrapper) {
         PrismContainerWrapper lensContext = null;
-        try{
+        try {
             lensContext = taskWrapper.findContainer(TaskType.F_MODEL_OPERATION_CONTEXT);
-        } catch (SchemaException ex){
+        } catch (SchemaException ex) {
             LOGGER.warn("Unable to find modelOperationContext in task {}", taskWrapper.getObject().asObjectable());
         }
         operationVisible = parentPage.isEditingFocus()
@@ -184,11 +185,11 @@ class TaskTabsVisibility implements Serializable {
         return ModelPublicConstants.EXECUTE_CHANGES_TASK_HANDLER_URI.equals(handlerUri);
     }
 
-    private boolean isTaskItemReadable(PrismObjectWrapper<TaskType> taskWrapper, ItemPath itemPath){
+    private boolean isTaskItemReadable(PrismObjectWrapper<TaskType> taskWrapper, ItemPath itemPath) {
         ItemWrapper taskProperty = null;
         try {
             taskProperty = taskWrapper.findProperty(itemPath);
-        } catch (SchemaException ex){
+        } catch (SchemaException ex) {
             LOGGER.warn("Unable to find {} property in task object {}, {}", itemPath,
                     taskWrapper.getObject().asObjectable(), ex.getLocalizedMessage());
         }
@@ -243,29 +244,19 @@ class TaskTabsVisibility implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (o == null || getClass() != o.getClass())
-            return false;
+        if (this == o) { return true; }
+        if (o == null || getClass() != o.getClass()) { return false; }
 
         TaskTabsVisibility that = (TaskTabsVisibility) o;
 
-        if (basicVisible != that.basicVisible)
-            return false;
-        if (schedulingVisible != that.schedulingVisible)
-            return false;
-        if (subtasksAndThreadsVisible != that.subtasksAndThreadsVisible)
-            return false;
-        if (progressVisible != that.progressVisible)
-            return false;
-        if (workManagementVisible != that.workManagementVisible)
-            return false;
-        if (environmentalPerformanceVisible != that.environmentalPerformanceVisible)
-            return false;
-        if (operationVisible != that.operationVisible)
-            return false;
-        if (errorsVisible != that.errorsVisible)
-            return false;
+        if (basicVisible != that.basicVisible) { return false; }
+        if (schedulingVisible != that.schedulingVisible) { return false; }
+        if (subtasksAndThreadsVisible != that.subtasksAndThreadsVisible) { return false; }
+        if (progressVisible != that.progressVisible) { return false; }
+        if (workManagementVisible != that.workManagementVisible) { return false; }
+        if (environmentalPerformanceVisible != that.environmentalPerformanceVisible) { return false; }
+        if (operationVisible != that.operationVisible) { return false; }
+        if (errorsVisible != that.errorsVisible) { return false; }
         return resultVisible == that.resultVisible;
 
     }

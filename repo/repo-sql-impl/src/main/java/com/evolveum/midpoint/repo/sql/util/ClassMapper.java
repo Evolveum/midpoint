@@ -17,7 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import org.apache.commons.collections4.MultiValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
-import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.Contract;
 
 import javax.xml.namespace.QName;
@@ -50,7 +49,7 @@ public final class ClassMapper {
         TYPES.put(ObjectTypes.TASK, RObjectType.TASK);
         TYPES.put(ObjectTypes.USER, RObjectType.USER);
         TYPES.put(ObjectTypes.REPORT, RObjectType.REPORT);
-        TYPES.put(ObjectTypes.REPORT_OUTPUT, RObjectType.REPORT_OUTPUT);
+        TYPES.put(ObjectTypes.REPORT_DATA, RObjectType.REPORT_DATA);
         TYPES.put(ObjectTypes.OBJECT_TEMPLATE, RObjectType.OBJECT_TEMPLATE);
         TYPES.put(ObjectTypes.NODE, RObjectType.NODE);
         TYPES.put(ObjectTypes.ORG, RObjectType.ORG);
@@ -115,7 +114,7 @@ public final class ClassMapper {
     }
 
     public static Class<? extends RObject> getHQLTypeClass(Class<? extends ObjectType> clazz) {
-        Validate.notNull(clazz, "Class must not be null.");
+        Objects.requireNonNull(clazz, "Class must not be null.");
 
         ObjectTypes type = ObjectTypes.getObjectType(clazz);
         Class<? extends RObject> hqlType = TYPES.get(type).getClazz();

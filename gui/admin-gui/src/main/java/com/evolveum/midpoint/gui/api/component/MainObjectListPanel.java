@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -372,9 +373,11 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 if (!QNameUtil.match(view.getCollection().getCollectionRef().getType(), ArchetypeType.COMPLEX_TYPE)) {
                     collection.setBaseCollectionRef(view.getCollection());
                 } else {
+                    OperationResult result = new OperationResult(MainObjectListPanel.class.getSimpleName() + "." + "evaluateExpressionsInFilter");
                     CollectionRefSpecificationType baseCollection = new CollectionRefSpecificationType();
                     try {
-                        baseCollection.setFilter(getPageBase().getQueryConverter().createSearchFilterType(view.getFilter()));
+                        baseCollection.setFilter(getPageBase().getQueryConverter().createSearchFilterType(
+                                WebComponentUtil.evaluateExpressionsInFilter(view.getFilter(), result, getPageBase())));
                         collection.setBaseCollectionRef(baseCollection);
                     } catch (SchemaException e) {
                         LOGGER.error("Couldn't create filter for archetype");

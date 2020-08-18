@@ -71,6 +71,7 @@ public class Projector {
     @Autowired private ProjectionCredentialsProcessor projectionCredentialsProcessor;
     @Autowired private ActivationProcessor activationProcessor;
     @Autowired private DependencyProcessor dependencyProcessor;
+    @Autowired private ConsolidationProcessor consolidationProcessor;
     @Autowired private Clock clock;
     @Autowired private ClockworkMedic medic;
 
@@ -149,6 +150,7 @@ public class Projector {
         if (result.isTraced()) {
             trace = new ProjectorRunTraceType();
             trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+            trace.setInputLensContextText(context.debugDump());
             result.addTrace(trace);
         } else {
             trace = null;
@@ -168,6 +170,8 @@ public class Projector {
                         partialProcessingOptions::getLoad,
                         Projector.class, context, activityDescription, now, task, result);
             }
+
+            consolidationProcessor.consolidateFocusPrimaryDelta(context, now, task, result);
 
             LOGGER.trace("WAVE {} (executionWave={})", context.getProjectionWave(), context.getExecutionWave());
 
@@ -190,7 +194,7 @@ public class Projector {
                     activationProcessor.processActivationForAllResources(context, activityDescription, now, task, result);
                 }
 
-                dependencyProcessor.sortProjectionsToWaves(context);
+                dependencyProcessor.sortProjectionsToWaves(context, result);
 
                 // In the future we may want the ability to select only some projections to process.
                 for (LensProjectionContext projectionContext : context.getProjectionContexts()) {
@@ -227,6 +231,7 @@ public class Projector {
         } finally {
             result.computeStatusIfUnknown();
             if (trace != null) {
+                trace.setOutputLensContextText(context.debugDump());
                 trace.setOutputLensContext(context.toLensContextType(getExportType(trace, result)));
             }
             if (context.getInspector() != null) {
@@ -247,7 +252,8 @@ public class Projector {
         parentResult.addParam("resourceName", projectionContext.getResourceName());
 
         if (projectionContext.getWave() != context.getProjectionWave()) {
-            // Let's skip accounts that do not belong into this wave.
+            LOGGER.trace("Skipping projection of {} because its wave ({}) is different from current projection wave ({})",
+                    projectionContext, projectionContext.getWave(), context.getProjectionWave());
             return;
         }
 

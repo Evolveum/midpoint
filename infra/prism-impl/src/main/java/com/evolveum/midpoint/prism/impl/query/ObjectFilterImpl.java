@@ -13,7 +13,7 @@ import com.evolveum.midpoint.prism.query.Visitor;
 
 public abstract class ObjectFilterImpl implements ObjectFilter {
 
-    transient protected PrismContext prismContext;
+    protected transient PrismContext prismContext;
 
     public void accept(Visitor visitor) {
         visitor.visit(this);

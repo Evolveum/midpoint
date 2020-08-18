@@ -14,7 +14,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -23,12 +22,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 /**
  * @author semancik
- *
  */
 public class AssignmentAsserter<R> extends AbstractAsserter<R> {
 
-    final private AssignmentType assignment;
-    private PrismObject<?> resolvedTarget = null;
+    private final AssignmentType assignment;
 
     public AssignmentAsserter(AssignmentType assignment) {
         super();
@@ -40,10 +37,9 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
         this.assignment = assignment;
     }
 
-    public AssignmentAsserter(AssignmentType assignment, PrismObject<?> resolvedTarget, R returnAsserter, String detail) {
+    public AssignmentAsserter(AssignmentType assignment, R returnAsserter, String detail) {
         super(returnAsserter, detail);
         this.assignment = assignment;
-        this.resolvedTarget = resolvedTarget;
     }
 
     protected AssignmentType getAssignment() {
@@ -55,17 +51,17 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
     }
 
     public AssignmentAsserter<R> assertTargetOid() {
-        assertNotNull("No target OID in "+desc(), getTargetOid());
+        assertNotNull("No target OID in " + desc(), getTargetOid());
         return this;
     }
 
     public AssignmentAsserter<R> assertTargetOid(String expected) {
-        assertEquals("Wrong target OID in "+desc(), expected, getTargetOid());
+        assertEquals("Wrong target OID in " + desc(), expected, getTargetOid());
         return this;
     }
 
     public AssignmentAsserter<R> assertTargetType(QName expected) {
-        assertEquals("Wrong target type in "+desc(), expected, getAssignment().getTargetRef().getType());
+        assertEquals("Wrong target type in " + desc(), expected, getAssignment().getTargetRef().getType());
         return this;
     }
 
@@ -87,12 +83,12 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
     public AssignmentAsserter<R> assertSubtype(String expected) {
         List<String> subtypes = assignment.getSubtype();
         if (subtypes.isEmpty()) {
-            fail("No subtypes in "+desc()+", expected "+expected);
+            fail("No subtypes in " + desc() + ", expected " + expected);
         }
         if (subtypes.size() > 1) {
-            fail("Too many subtypes in "+desc()+", expected "+expected+", was "+subtypes);
+            fail("Too many subtypes in " + desc() + ", expected " + expected + ", was " + subtypes);
         }
-        assertEquals("Wrong subtype in "+desc(), expected, subtypes.get(0));
+        assertEquals("Wrong subtype in " + desc(), expected, subtypes.get(0));
         return this;
     }
 
@@ -132,12 +128,12 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
         return this;
     }
 
-    public ValueMetadataAsserter<AssignmentAsserter<R>, R> valueMetadata() {
+    public ValueMetadataAsserter<AssignmentAsserter<R>> valueMetadata() {
         //noinspection unchecked
         PrismContainerValue<ValueMetadataType> valueMetadata = (PrismContainerValue<ValueMetadataType>)
                 (PrismContainerValue<?>) assignment.asPrismContainerValue().getValueMetadata();
-        ValueMetadataAsserter<AssignmentAsserter<R>, R> asserter =
-                new ValueMetadataAsserter<>(this, valueMetadata, "."); // TODO details
+        ValueMetadataAsserter<AssignmentAsserter<R>> asserter =
+                new ValueMetadataAsserter<>(valueMetadata, this, "."); // TODO details
         copySetupTo(asserter);
         return asserter;
     }

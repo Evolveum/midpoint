@@ -82,11 +82,11 @@ public abstract class TestAsyncUpdate extends AbstractProvisioningIntegrationTes
 
     protected PrismObject<ResourceType> resource;
 
-    @Override
-    protected TracingProfileType getTestMethodTracingProfile() {
-        return createModelAndProvisioningLoggingTracingProfile()
-                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
-    }
+//    @Override
+//    protected TracingProfileType getTestMethodTracingProfile() {
+//        return createModelAndProvisioningLoggingTracingProfile()
+//                .fileNamePattern(TEST_METHOD_TRACING_FILENAME_PATTERN);
+//    }
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

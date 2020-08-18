@@ -52,17 +52,15 @@ public class ConstructionProcessor {
 
         // We will be collecting the evaluated account constructions into these three maps.
         // It forms a kind of delta set triple for the account constructions.
-        ConstructionCollector<AH, K, ACT, AC, EC> constructionCollector = new ConstructionCollector(context, constructionTripleExtractor, keyGenerator, prismContext);
+        ConstructionCollector<AH, K, ACT, AC, EC> constructionCollector =
+                new ConstructionCollector<>(context, constructionTripleExtractor, keyGenerator, prismContext);
         constructionCollector.collect(evaluatedAssignmentTriple);
         DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple = constructionCollector.getEvaluatedConstructionMapTriple();
-
-//        DeltaMapTriple<K, EvaluatedConstructionPack<AC>> constructionMapTriple = prismContext.deltaFactory().createDeltaMapTriple();
-//        collectToConstructionMaps(context, evaluatedAssignmentTriple, constructionMapTriple, constructionTripleExtractor, keyGenerator);
 
         LOGGER.trace("evaluatedConstructionMapTriple:\n{}", evaluatedConstructionMapTriple.debugDumpLazily(1));
 
         // Now we are processing constructions from all the three sets once again. We will create projection contexts
-        // for them if not yet created. Now we will do the usual routing for converting the delta triples to deltas.
+        // for them if not yet created. Now we will do the usual routine for converting the delta triples to deltas.
         // I.e. zero means unchanged, plus means added, minus means deleted. That will be recorded in the SynchronizationPolicyDecision.
         // We will also collect all the construction triples to projection context. These will be used later for computing
         // actual attribute deltas (in consolidation processor).

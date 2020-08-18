@@ -77,7 +77,7 @@ public class TestExpressionSpec extends AbstractModelImplementationIntegrationTe
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 
-        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
+//        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
         rememberScriptExecutionCount();
     }
 

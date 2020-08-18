@@ -1,10 +1,21 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.security.provider;
+
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.model.api.AuthenticationEvaluator;
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
@@ -19,17 +30,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordCredentialsPolicyType;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-
-import java.util.Collection;
-import java.util.List;
-
 /**
  * @author skublik
  */
@@ -39,7 +39,7 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
     private static final Trace LOGGER = TraceManager.getTrace(PasswordProvider.class);
 
     @Autowired
-    private transient AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
+    private AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator;
 
     public void setPasswordAuthenticationEvaluator(AuthenticationEvaluator<PasswordAuthenticationContext> passwordAuthenticationEvaluator) {
         this.passwordAuthenticationEvaluator = passwordAuthenticationEvaluator;
@@ -66,7 +66,6 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
             if (authentication instanceof UsernamePasswordAuthenticationToken) {
                 String enteredPassword = (String) authentication.getCredentials();
 
-
                 PasswordAuthenticationContext authContext = new PasswordAuthenticationContext(enteredUsername, enteredPassword, focusType, requireAssignment);
                 if (channel != null) {
                     authContext.setSupportActivationByChannel(channel.isSupportActivationByChannel());
@@ -79,7 +78,7 @@ public class PasswordProvider extends AbstractCredentialProvider<PasswordAuthent
                 throw new AuthenticationServiceException("web.security.provider.unavailable");
             }
 
-            MidPointPrincipal principal = (MidPointPrincipal)token.getPrincipal();
+            MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
 
             LOGGER.debug("User '{}' authenticated ({}), authorities: {}", authentication.getPrincipal(),
                     authentication.getClass().getSimpleName(), principal.getAuthorities());

@@ -46,6 +46,8 @@ public interface ModelEvent extends Event {
 
     ObjectDelta<?> getFocusSecondaryDelta();
 
+    ObjectDelta<?> getFocusSummaryDelta() throws SchemaException;
+
     List<ObjectDelta<AssignmentHolderType>> getFocusDeltas();
 
     ObjectDelta<? extends AssignmentHolderType> getSummarizedFocusDeltas() throws SchemaException;

@@ -1,11 +1,18 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.repo.sql;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
@@ -30,12 +37,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
 
 /**
  * Dispatches "system configuration changed" events to relevant objects.
@@ -45,6 +46,12 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 
     private static final Trace LOGGER = TraceManager.getTrace(SystemConfigurationChangeDispatcherImpl.class);
 
+    /*
+     * TODO: this is cyclic dependency repo->this, this->repo (via interfaces, but still).
+     * Can this help? https://www.baeldung.com/spring-events
+     * Also, why is auditService not required? There always is some configured auditService,
+     * at least empty proxy returned by AuditFactory.
+     */
     @Autowired private RepositoryService repositoryService;
     @Autowired(required = false) private AuditService auditService;
     @Autowired private PrismContext prismContext;
@@ -56,17 +63,18 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 
     private String lastVersionApplied = null;
 
-    public synchronized void dispatch(boolean ignoreVersion, boolean allowNotFound,
-            OperationResult result) throws SchemaException {
-        LOGGER.trace("Applying system configuration: lastVersionApplied = {}, ignoreVersion = {}", lastVersionApplied,
-                ignoreVersion);
+    public synchronized void dispatch(
+            boolean ignoreVersion, boolean allowNotFound, OperationResult result)
+            throws SchemaException {
+        LOGGER.trace("Applying system configuration: lastVersionApplied = {}, ignoreVersion = {}",
+                lastVersionApplied, ignoreVersion);
 
-        Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.createReadOnlyCollection();
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                GetOperationOptions.createReadOnlyCollection();
         PrismObject<SystemConfigurationType> configurationObject;
         try {
-            configurationObject = repositoryService
-                    .getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-                            options, result);
+            configurationObject = repositoryService.getObject(SystemConfigurationType.class,
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, result);
         } catch (ObjectNotFoundException e) {
             if (allowNotFound) {
                 LOGGER.debug("System configuration not found");
@@ -115,18 +123,21 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
             try {
                 listener.update(configuration);
             } catch (Throwable t) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Couldn't update system configuration listener {}", t, listener);
+                LoggingUtils.logUnexpectedException(LOGGER,
+                        "Couldn't update system configuration listener {}", t, listener);
                 lastVersionApplied = null;
             }
         }
     }
 
-    private void applyLoggingConfiguration(PrismObject<SystemConfigurationType> configuration, OperationResult result) {
+    private void applyLoggingConfiguration(
+            PrismObject<SystemConfigurationType> configuration, OperationResult result) {
         try {
             LoggingConfigurationType loggingWithProfiling = ProfilingConfigurationManager
                     .checkSystemProfilingConfiguration(configuration);
             if (loggingWithProfiling != null) {
-                LoggingConfigurationManager.configure(loggingWithProfiling, configuration.getVersion(), midpointConfiguration, result);
+                LoggingConfigurationManager.configure(loggingWithProfiling,
+                        configuration.getVersion(), midpointConfiguration, result);
             }
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply logging configuration", t);
@@ -138,7 +149,8 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
         try {
             SecurityUtil.setRemoteHostAddressHeaders(configurationBean);
         } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply configuration of remote host address headers", t);
+            LoggingUtils.logUnexpectedException(LOGGER,
+                    "Couldn't apply configuration of remote host address headers", t);
             lastVersionApplied = null;
         }
     }
@@ -151,9 +163,11 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
                 normalizerConfig = internals.getPolyStringNormalizer();
             }
             prismContext.configurePolyStringNormalizer(normalizerConfig);
-            LOGGER.trace("Applied PolyString normalizer configuration {}", DebugUtil.shortDumpLazily(normalizerConfig));
+            LOGGER.trace("Applied PolyString normalizer configuration {}",
+                    DebugUtil.shortDumpLazily(normalizerConfig));
         } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply PolyString normalizer configuration", t);
+            LoggingUtils.logUnexpectedException(LOGGER,
+                    "Couldn't apply PolyString normalizer configuration", t);
             lastVersionApplied = null;
         }
     }
@@ -162,7 +176,8 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
         try {
             repositoryService.applyFullTextSearchConfiguration(configuration.getFullTextSearch());
         } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply fulltext search configuration", t);
+            LoggingUtils.logUnexpectedException(LOGGER,
+                    "Couldn't apply fulltext search configuration", t);
             lastVersionApplied = null;
         }
     }
@@ -197,7 +212,8 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
                 OperationResult.applyOperationResultHandlingStrategy(Collections.emptyList(), null);
             }
         } catch (Throwable t) {
-            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply operation result handling configuration", t);
+            LoggingUtils.logUnexpectedException(LOGGER,
+                    "Couldn't apply operation result handling configuration", t);
             lastVersionApplied = null;
         }
     }
@@ -213,9 +229,11 @@ public class SystemConfigurationChangeDispatcherImpl implements SystemConfigurat
 
     private void applyRepositoryConfiguration(SystemConfigurationType configuration) {
         try {
+            InternalsConfigurationType internalsConfig = configuration.getInternals();
             RepositoryStatisticsReportingConfigurationType statistics =
-                    configuration.getInternals() != null && configuration.getInternals().getRepository() != null ?
-                    configuration.getInternals().getRepository().getStatistics() : null;
+                    internalsConfig != null && internalsConfig.getRepository() != null
+                            ? internalsConfig.getRepository().getStatistics()
+                            : null;
             repositoryService.getPerformanceMonitor().setConfiguration(statistics);
         } catch (Throwable t) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't apply repository configuration", t);

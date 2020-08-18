@@ -36,7 +36,6 @@ public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefiniti
 
     boolean canModify(LayerType layer);
 
-    @Deprecated // Remove in 4.2
     boolean isIgnored(LayerType layer);
 
     ItemProcessing getProcessing(LayerType layer);
@@ -63,7 +62,7 @@ public interface RefinedAttributeDefinition<T> extends ResourceAttributeDefiniti
 
     boolean isSingleValue(LayerType layer);
 
-    boolean isExlusiveStrong();
+    boolean isExclusiveStrong();
 
     PropertyLimitations getLimitations(LayerType layer);
 
