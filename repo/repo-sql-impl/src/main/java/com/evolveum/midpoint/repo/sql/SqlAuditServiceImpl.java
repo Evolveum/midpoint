@@ -55,6 +55,7 @@ import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.*;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.AuditEventRecordSqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -347,11 +348,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private Long insertAuditEventRecord(
             JdbcSession jdbcSession, AuditEventRecord record) {
-        AuditEventRecordSqlTransformer transformer =
-                new AuditEventRecordSqlTransformer(prismContext);
         QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
-        SQLInsertClause insert = jdbcSession.insert(aer)
-                .populate(transformer.from(record));
+        MAuditEventRecord aerBean = new AuditEventRecordSqlTransformer(prismContext).from(record);
+        SQLInsertClause insert = jdbcSession.insert(aer).populate(aerBean);
 
         // TODO MID-6318: remove this illogical guard and fix TestSecurityMultitenant
         //  and other tests that need "foo" custom property.
@@ -1142,7 +1141,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         // TODO replace this with QAuditEventRecordMapping.INSTANCE.getExtSomething()
         customColumns.put(propertyName, columnName);
 
-        ColumnMetadata columnMetadata = ColumnMetadata.named(columnName).ofType(Types.VARCHAR);
+        ColumnMetadata columnMetadata = ColumnMetadata.named(columnName).ofType(Types.NVARCHAR);
         QAuditEventRecordMapping.INSTANCE.addExtensionColumn(propertyName, columnMetadata);
     }
 }
