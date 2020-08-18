@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.impl.xjc.PrismContainerArrayList;
 import com.evolveum.midpoint.prism.impl.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.prism.impl.xjc.PrismReferenceArrayList;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectReferenceType;
@@ -61,7 +62,7 @@ public class SchemaProcessor extends CodeProcessor {
 
 
 
-    public boolean run(Outline outline, ErrorHandler errorHandler) throws SAXException {
+    public boolean run(PrismSchema schema, Outline outline, ErrorHandler errorHandler) throws SAXException {
         try {
             createClassMap(CLASS_MAP, outline.getModel().codeModel,
                     PrismReferenceValue.class, PrismReferenceValueImpl.class,
@@ -79,10 +80,12 @@ public class SchemaProcessor extends CodeProcessor {
                     Referencable.class, Raw.class, Enum.class, XmlEnum.class, PolyStringType.class, XmlTypeConverter.class,
                     PrismObjectValue.class, PrismObjectValueImpl.class);
 
+
             StepSchemaConstants stepSchemaConstants = new StepSchemaConstants();
             stepSchemaConstants.run(outline, errorHandler);
 
             Map<String, JFieldVar> namespaceFields = stepSchemaConstants.getNamespaceFields();
+
             addComplexType(outline, namespaceFields);
             addContainerName(outline, namespaceFields);
             addFieldQNames(outline, namespaceFields);
@@ -221,7 +224,6 @@ public class SchemaProcessor extends CodeProcessor {
 
             createDefaultConstructor(definedClass);
             createPrismContextObjectableConstructor(definedClass);
-
             createAsPrismObject(definedClass);
 
             if (!isDirectPrismObject) {

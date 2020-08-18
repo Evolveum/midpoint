@@ -35,8 +35,8 @@ public class CloneProcessor implements Processor {
 
     @Override
     public boolean run(Outline outline, Options opt, ErrorHandler errorHandler) throws Exception {
-        PluginImpl clonePlugin = new PluginImpl();
-        clonePlugin.run(outline, opt, errorHandler);
+        //PluginImpl clonePlugin = new PluginImpl();
+        //clonePlugin.run(outline, opt, errorHandler);
 
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
