@@ -279,7 +279,7 @@ public class MiscUtil {
      * value in the date parameter. If the date parameter is null then
      * this method will simply return null.
      */
-    public static XMLGregorianCalendar asXMLGregorianCalendar(java.util.Date date) {
+    public static @Nullable XMLGregorianCalendar asXMLGregorianCalendar(@Nullable Date date) {
         if (date == null) {
             return null;
         } else {
@@ -289,7 +289,8 @@ public class MiscUtil {
         }
     }
 
-    public static XMLGregorianCalendar asXMLGregorianCalendar(Long timeInMillis) {
+    public static @Nullable XMLGregorianCalendar asXMLGregorianCalendar(
+            @Nullable Long timeInMillis) {
         if (timeInMillis == null || timeInMillis == 0) {
             return null;
         } else {
@@ -299,9 +300,15 @@ public class MiscUtil {
         }
     }
 
-    public static XMLGregorianCalendar asXMLGregorianCalendar(Instant instant) {
+    public static @Nullable XMLGregorianCalendar asXMLGregorianCalendar(@Nullable Instant instant) {
         return instant != null
                 ? asXMLGregorianCalendar(instant.toEpochMilli())
+                : null;
+    }
+
+    public static @Nullable Instant asInstant(@Nullable Long millis) {
+        return millis != null
+                ? Instant.ofEpochMilli(millis)
                 : null;
     }
 
@@ -313,7 +320,7 @@ public class MiscUtil {
      * value in the xgc parameter. If the xgc parameter is null then
      * this method will simply return null.
      */
-    public static java.util.Date asDate(XMLGregorianCalendar xgc) {
+    public static Date asDate(XMLGregorianCalendar xgc) {
         if (xgc == null) {
             return null;
         } else {
@@ -329,7 +336,7 @@ public class MiscUtil {
         }
     }
 
-    public static java.util.Date asDate(int year, int month, int date, int hrs, int min, int sec) {
+    public static Date asDate(int year, int month, int date, int hrs, int min, int sec) {
         Calendar cal = Calendar.getInstance();
         cal.set(year, month - 1, date, hrs, min, sec);
         cal.set(Calendar.MILLISECOND, 0);
@@ -925,5 +932,14 @@ public class MiscUtil {
         }
 
         return enumType.getEnumConstants()[ordinal];
+    }
+
+    /**
+     * Returns ordinal value from nullable enum or returns {@code null}.
+     */
+    public static @Nullable Integer enumOrdinal(@Nullable Enum<?> enumValue) {
+        return enumValue != null
+                ? enumValue.ordinal()
+                : null;
     }
 }

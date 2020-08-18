@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -48,7 +49,11 @@ public interface AuditService {
     void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler auditResultHandler, OperationResult result);
 
     /**
-     * Reindex items, e.g. if new columns were created for audit table according to which the search should be possible
+     * Reindex audit record - <b>currently does nothing</b>.
+     * Previously it effectively created missing changed items detail entities,
+     * which is less and less useful nowadays.
+     * TODO: In the future we may consider reindexing of new columns, but the functionality
+     * is currently not fully specified.
      */
     void reindexEntry(AuditEventRecord record);
 
@@ -73,12 +78,15 @@ public interface AuditService {
     /**
      * @see com.evolveum.midpoint.repo.api.RepositoryService#countObjects
      */
-    int countObjects(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
-            throws SchemaException;
+    int countObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult);
 
     @NotNull
-    SearchResultList<AuditEventRecordType> searchObjects(ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
+    SearchResultList<AuditEventRecordType> searchObjects(
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult)
             throws SchemaException;
 }

@@ -32,6 +32,11 @@ public class QAuditDeltaMapping
     }
 
     @Override
+    protected QAuditDelta newAliasInstance(String alias) {
+        return new QAuditDelta(alias);
+    }
+
+    @Override
     public SqlTransformer<ObjectDeltaOperationType, MAuditDelta> createTransformer(
             PrismContext prismContext) {
         throw new UnsupportedOperationException("handled by AuditEventRecordSqlTransformer");

@@ -25,11 +25,11 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * Common supertype for mapping items/attributes between schema (prism) classes and query types.
@@ -46,15 +46,21 @@ import com.evolveum.midpoint.util.exception.SystemException;
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
  */
-public abstract class QueryModelMapping<S, Q extends EntityPath<R>, R> {
+public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
 
     private final String tableName;
     private final String defaultAliasName;
     private final Class<S> schemaType;
     private final Class<Q> queryType;
 
-    // TODO MID-6319: support for extension columns + null default alias after every change (in synchronized block)
+    // TODO MID-6319: perhaps we will not need all columns after all, only extensionColumns
+    // If unused in 2021, out with it! This will shorten all constructors after removing columns... vararg.
     private final Map<String, ColumnMetadata> columns = new LinkedHashMap<>();
+
+    /**
+     * Extension columns, key = propertyName which may differ from ColumnMetadata.getName().
+     */
+    private final Map<String, ColumnMetadata> extensionColumns = new LinkedHashMap<>();
 
     private final Map<QName, ItemSqlMapper> itemFilterProcessorMapping = new LinkedHashMap<>();
     private final Map<QName, SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers = new HashMap<>();
@@ -203,12 +209,21 @@ public abstract class QueryModelMapping<S, Q extends EntityPath<R>, R> {
     }
 
     public Q newAlias(String alias) {
-        try {
-            return queryType.getConstructor(String.class).newInstance(alias);
-        } catch (ReflectiveOperationException e) {
-            throw new SystemException("Invalid constructor for type " + queryType, e);
+        Q entityPath = newAliasInstance(alias);
+        for (Map.Entry<String, ColumnMetadata> entry : extensionColumns.entrySet()) {
+            String propertyName = entry.getKey();
+            ColumnMetadata columnMetadata = entry.getValue();
+            // TODO any treatment of different types should be here, now String path is implied
+            entityPath.createString(propertyName, columnMetadata);
         }
+        return entityPath;
     }
+
+    /**
+     * Method returning new instance of {@link EntityPath} - to be implemented by sub-mapping.
+     * This will create entity path without any extension columns, see {@link #newAlias} for that.
+     */
+    protected abstract Q newAliasInstance(String alias);
 
     public synchronized Q defaultAlias() {
         if (defaultAlias == null) {
@@ -234,6 +249,13 @@ public abstract class QueryModelMapping<S, Q extends EntityPath<R>, R> {
      */
     public final SqlDetailFetchMapper<R, ?, ?, ?> detailFetchMapper(ItemName itemName) {
         return detailFetchMappers.get(itemName);
+    }
+
+    /**
+     * Registers extension columns. At this moment all are treated as strings.
+     */
+    public void addExtensionColumn(String propertyName, ColumnMetadata columnMetadata) {
+        extensionColumns.put(propertyName, columnMetadata);
     }
 
     @Override

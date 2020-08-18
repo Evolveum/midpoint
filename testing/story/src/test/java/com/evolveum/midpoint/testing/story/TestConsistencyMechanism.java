@@ -500,8 +500,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         OperationResult parentResult = new OperationResult("Add account already exist linked");
 
-        // GIVEN
-        //adding user jakie. we already have user jack with the account identifier jackie.
+        given("User jackie added, previous user jack already having the account identifier jackie.");
         assertNoRepoThreadLocalCache();
         addObject(USER_JACKIE_FILE, task, parentResult);
         PrismObject<UserType> userJackieBefore = getUser(USER_JACKIE_OID);
@@ -512,16 +511,15 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertLinks(1)
                 .links()
                 .link(ACCOUNT_JACKIE_OID);
-//        //check if the jackie account already exists on the resource
+        //check if the jackie account already exists on the resource
 
         PrismObject<ShadowType> existingJackieAccount = getShadowRepo(ACCOUNT_JACKIE_OID);
         display("Jack's account: ", existingJackieAccount);
 
-        // WHEN
+        when("Adding account on the resource to user jackie...");
         assignAccountToUser(USER_JACKIE_OID, RESOURCE_OPENDJ_OID, "internal");
 
-        // THEN
-        //expected thet the dn and ri:uid will be jackie1 because jackie already exists and is liked to another user..
+        then("The dn and ri:uid will be jackie1 because jackie already exists and is liked to another user");
         PrismObject<UserType> userJackieAfter = getUser(USER_JACKIE_OID);
         UserAsserter.forUser(userJackieAfter)
                 .assertLinks(1);
@@ -551,7 +549,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     @Test
     public void test122AddAccountAlreadyExistUnlinked() throws Exception {
-        // GIVEN
+        given();
         OperationResult parentResult = new OperationResult("Add account already exist unlinked.");
         Entry entry = openDJController.addEntryFromLdifFile(LDIF_WILL_FILE);
         Entry searchResult = openDJController.searchByUid("wturner");
@@ -571,14 +569,11 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         Task task = taskManager.createTaskInstance();
 
-        //WHEN
         when();
         assignAccount(UserType.class, USER_WILL_OID, RESOURCE_OPENDJ_OID, null, task, parentResult);
 
-        // THEN
         then();
         String accountOid = checkUser(USER_WILL_OID, task, parentResult);
-//        MidPointAsserts.assertAssignments(user, 1);
 
         PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class,
                 accountOid, null, task, parentResult);
@@ -591,7 +586,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         String identifier = attributes.getPrimaryIdentifier().getRealValue(String.class);
 
         openDJController.searchAndAssertByEntryUuid(identifier);
-
     }
 
     //MID-1595, MID-1577

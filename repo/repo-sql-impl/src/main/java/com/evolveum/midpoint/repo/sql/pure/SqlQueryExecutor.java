@@ -8,7 +8,6 @@ package com.evolveum.midpoint.repo.sql.pure;
 
 import java.util.Collection;
 
-import com.querydsl.core.types.EntityPath;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -37,7 +36,7 @@ public class SqlQueryExecutor {
         this.baseHelper = baseHelper;
     }
 
-    public <S, Q extends EntityPath<R>, R> int count(
+    public <S, Q extends FlexibleRelationalPathBase<R>, R> int count(
             @NotNull Class<S> schemaType,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)
@@ -56,7 +55,7 @@ public class SqlQueryExecutor {
         }
     }
 
-    public <S, Q extends EntityPath<R>, R> SearchResultList<S> list(
+    public <S, Q extends FlexibleRelationalPathBase<R>, R> SearchResultList<S> list(
             @NotNull Class<S> schemaType,
             ObjectQuery query,
             Collection<SelectorOptions<GetOperationOptions>> options)

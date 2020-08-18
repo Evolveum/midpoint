@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -46,47 +45,22 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractTreeTablePanel.class);
 
-    protected static final int CONFIRM_DELETE = 0;
-    protected static final int CONFIRM_DELETE_ROOT = 1;
-    protected static final int CONFIRM_DELETE_MANAGER = 2;
-    protected static final int CONFIRM_DELETE_MEMBER = 3;
-
     protected static final String DOT_CLASS = AbstractTreeTablePanel.class.getName() + ".";
-    protected static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
-    protected static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
-    protected static final String OPERATION_MOVE_OBJECTS = DOT_CLASS + "moveObjects";
-    protected static final String OPERATION_MOVE_OBJECT = DOT_CLASS + "moveObject";
-    protected static final String OPERATION_UPDATE_OBJECTS = DOT_CLASS + "updateObjects";
-    protected static final String OPERATION_UPDATE_OBJECT = DOT_CLASS + "updateObject";
-    protected static final String OPERATION_RECOMPUTE = DOT_CLASS + "recompute";
-    protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
 
     protected static final String ID_TREE = "tree";
     protected static final String ID_TREE_CONTAINER = "treeContainer";
     protected static final String ID_CONTAINER_CHILD_ORGS = "childOrgContainer";
-    protected static final String ID_CONTAINER_MANAGER = "managerContainer";
-    protected static final String ID_CONTAINER_MEMBER = "memberContainer";
     protected static final String ID_CHILD_TABLE = "childUnitTable";
-    protected static final String ID_MANAGER_TABLE = "managerTable";
-    protected static final String ID_MEMBER_TABLE = "memberTable";
     protected static final String ID_FORM = "form";
-    protected static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
-    protected static final String ID_MOVE_POPUP = "movePopup";
-    protected static final String ID_ADD_DELETE_POPUP = "addDeletePopup";
     protected static final String ID_TREE_MENU = "treeMenu";
     protected static final String ID_TREE_HEADER = "treeHeader";
     protected static final String ID_TREE_TITLE = "treeTitle";
     protected static final String ID_SEARCH_FORM = "searchForm";
     protected static final String ID_BASIC_SEARCH = "basicSearch";
     protected static final String ID_SEARCH_SCOPE = "searchScope";
-    protected static final String ID_SEARCH_BY_TYPE = "searchByType";
 
     protected static final String SEARCH_SCOPE_SUBTREE = "subtree";
     protected static final String SEARCH_SCOPE_ONE = "one";
-
-    protected static final ObjectTypes OBJECT_TYPES_DEFAULT = ObjectTypes.OBJECT;
-
-    protected static final List<String> SEARCH_SCOPE_VALUES = Arrays.asList( SEARCH_SCOPE_SUBTREE, SEARCH_SCOPE_ONE);
 
     protected IModel<TreeSelectableBean<OrgType>> selected;
 

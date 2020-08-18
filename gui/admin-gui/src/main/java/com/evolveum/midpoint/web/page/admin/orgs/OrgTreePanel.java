@@ -60,7 +60,7 @@ public class OrgTreePanel extends AbstractTreeTablePanel {
     }
 
     public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator, String treeTitleKey) {
-        this(id, rootOid, selectable, serviceLocator, "", new ArrayList<>());
+        this(id, rootOid, selectable, serviceLocator, treeTitleKey, new ArrayList<>());
     }
 
     public OrgTreePanel(String id, IModel<String> rootOid, boolean selectable, ModelServiceLocator serviceLocator, String treeTitleKey,

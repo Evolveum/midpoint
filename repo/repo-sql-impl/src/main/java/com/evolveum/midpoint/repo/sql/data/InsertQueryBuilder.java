@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.querydsl.sql.ColumnMetadata;
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -35,16 +36,28 @@ public class InsertQueryBuilder {
         sbValues = new StringBuilder(" VALUES (");
     }
 
-    public void addNullParameter(String nameOfparameter) {
-        addParameter(nameOfparameter, null);
+    public void addNullParameter(ColumnMetadata column) {
+        addNullParameter(column.getName());
     }
 
-    public void addParameter(String nameOfparameter, Object value) {
-        addParameter(nameOfparameter, value, false);
+    public void addNullParameter(String nameOfParameter) {
+        addParameter(nameOfParameter, null);
     }
 
-    public void addParameter(String nameOfparameter, Object value, boolean isPrimaryKey) {
-        sbQuery.append(parameters.isEmpty() ? "" : ", ").append(nameOfparameter);
+    public void addParameter(ColumnMetadata column, Object value) {
+        addParameter(column.getName(), value);
+    }
+
+    public void addParameter(String nameOfParameter, Object value) {
+        addParameter(nameOfParameter, value, false);
+    }
+
+    public void addParameter(ColumnMetadata column, Object value, boolean isPrimaryKey) {
+        addParameter(column.getName(), value, isPrimaryKey);
+    }
+
+    public void addParameter(String nameOfParameter, Object value, boolean isPrimaryKey) {
+        sbQuery.append(parameters.isEmpty() ? "" : ", ").append(nameOfParameter);
         sbValues.append(parameters.isEmpty() ? "" : ", ").append("?");
         parameters.put(index, value);
         if (isPrimaryKey) {

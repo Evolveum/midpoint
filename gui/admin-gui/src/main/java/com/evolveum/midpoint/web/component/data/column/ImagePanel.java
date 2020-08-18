@@ -22,6 +22,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.image.ExternalImage;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 /**
@@ -36,7 +37,7 @@ public class ImagePanel extends BasePanel<DisplayType> {
 //    private DisplayType iconDisplayData;
 
     public ImagePanel(String id, IModel<String> iconClassModel, IModel<String> titleModel) {
-        super(id);
+        super(id, new Model<>());
         DisplayType iconDisplayData = new DisplayType();
         IconType icon = new IconType();
         icon.setCssClass(iconClassModel != null ? iconClassModel.getObject() : null);

@@ -31,6 +31,11 @@ public class QAuditResourceMapping
     }
 
     @Override
+    protected QAuditResource newAliasInstance(String alias) {
+        return new QAuditResource(alias);
+    }
+
+    @Override
     public SqlTransformer<String, MAuditResource> createTransformer(
             PrismContext prismContext) {
         throw new UnsupportedOperationException("handled by AuditEventRecordSqlTransformer");

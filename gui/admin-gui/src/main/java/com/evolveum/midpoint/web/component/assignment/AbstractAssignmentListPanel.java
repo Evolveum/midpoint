@@ -6,6 +6,16 @@
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -17,13 +27,6 @@ import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.model.IModel;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.xml.namespace.QName;
 
 /**
  * Created by honchar.
@@ -38,9 +41,9 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
     }
 
     protected void deleteAssignmentPerformed(AjaxRequestTarget target, AssignmentEditorDto dto) {
-        List<AssignmentEditorDto> selected = getSelectedAssignments();
+        List<AssignmentEditorDto> assignmentsToProcess = getAssignmentListToProcess(dto);
 
-        if (dto == null && selected.isEmpty()) {
+        if (dto == null && CollectionUtils.isEmpty(assignmentsToProcess)) {
             warn(getNoAssignmentsSelectedMessage());
             target.add(getPageBase().getFeedbackPanel());
             return;
@@ -57,7 +60,7 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
             @Override
             public String getObject() {
-                return getAssignmentsDeleteMessage(dto, getSelectedAssignments().size());
+                return getAssignmentsDeleteMessage(dto);
             }
         }) {
 
@@ -65,26 +68,26 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                List<AssignmentEditorDto> assignmentsListToDelete;
-                if (dto != null){
-                    assignmentsListToDelete = new ArrayList<>();
-                    assignmentsListToDelete.add(dto);
-                } else {
-                    assignmentsListToDelete = getSelectedAssignments();
-                }
-                deleteAssignmentConfirmedPerformed(target, assignmentsListToDelete);
+                deleteAssignmentConfirmedPerformed(target, dto);
                 reloadMainFormButtons(target);
             }
         };
     }
 
-    protected String getAssignmentsDeleteMessage(AssignmentEditorDto dto, int size){
+    protected List<AssignmentEditorDto> getAssignmentListToProcess(AssignmentEditorDto dto){
+        if (dto != null){
+            return Collections.singletonList(dto);
+        } else {
+            return getModelObject();
+        }
+    }
+
+    protected String getAssignmentsDeleteMessage(AssignmentEditorDto dto){
         if (dto != null){
             return createStringResource("pageUser.message.deleteAssignmentRowConfirm",
                     dto.getName()).getString();
         } else {
-            return createStringResource("AssignmentTablePanel.modal.message.delete",
-                    size).getString();
+            return createStringResource("PageAssignmentsList.deleteAllItemsFromShoppingCartConfirm").getString();
         }
     }
 
@@ -95,16 +98,22 @@ public abstract class AbstractAssignmentListPanel extends BasePanel<List<Assignm
         }
     }
 
-    protected void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target,
-            List<AssignmentEditorDto> toDelete) {
+    protected void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, AssignmentEditorDto dto) {
         List<AssignmentEditorDto> assignments = getAssignmentModel().getObject();
-
-        for (AssignmentEditorDto assignment : toDelete) {
-            if (UserDtoStatus.ADD.equals(assignment.getStatus())) {
-                assignments.remove(assignment);
-            } else {
-                assignment.setStatus(UserDtoStatus.DELETE);
-                assignment.setSelected(false);
+        if (dto != null){
+            assignments.remove(dto);
+        } else {
+            Iterator<AssignmentEditorDto> it = assignments.iterator();
+            while (it.hasNext()){
+                AssignmentEditorDto assignmentEditorDto = it.next();
+                if (assignmentEditorDto.isSelected()){
+                    if (UserDtoStatus.ADD.equals(assignmentEditorDto.getStatus())) {
+                        it.remove();
+                    } else {
+                        assignmentEditorDto.setStatus(UserDtoStatus.DELETE);
+                        assignmentEditorDto.setSelected(false);
+                    }
+                }
             }
         }
         target.add(getPageBase().getFeedbackPanel());

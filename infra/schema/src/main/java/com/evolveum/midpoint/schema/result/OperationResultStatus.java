@@ -1,18 +1,17 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.result;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import org.jetbrains.annotations.NotNull;
 
 /**
- *
  * @author lazyman
- *
  */
 public enum OperationResultStatus {
 
@@ -75,9 +74,10 @@ public enum OperationResultStatus {
      */
     IN_PROGRESS;
 
-    public static OperationResultStatus parseStatusType(OperationResultStatusType statusType) {
+    public static @Nullable OperationResultStatus parseStatusType(
+            @Nullable OperationResultStatusType statusType) {
         if (statusType == null) {
-            return UNKNOWN;
+            return null;
         }
 
         switch (statusType) {
@@ -100,10 +100,10 @@ public enum OperationResultStatus {
         }
     }
 
-    @NotNull
-    public static OperationResultStatusType createStatusType(OperationResultStatus status) {
+    public static @Nullable OperationResultStatusType createStatusType(
+            @Nullable OperationResultStatus status) {
         if (status == null) {
-            return OperationResultStatusType.UNKNOWN;
+            return null;
         }
 
         switch (status) {

@@ -9,13 +9,8 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
-import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -26,13 +21,13 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -42,19 +37,13 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -64,19 +53,15 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreeAssignablePanel;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.page.admin.roles.AvailableRelationDto;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AreaCategoryType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Used as a main component of the Org tree page.
@@ -159,7 +144,7 @@ public class TreeTablePanel extends BasePanel<String> {
         setOutputMarkupId(true);
     }
 
-        private OrgMemberPanel createMemberPanel(OrgType org) {
+    private OrgMemberPanel createMemberPanel(OrgType org) {
         OrgMemberPanel memberPanel = new OrgMemberPanel(ID_MEMBER_PANEL, new Model<>(org)) {
 
             private static final long serialVersionUID = 1L;
@@ -174,53 +159,53 @@ public class TreeTablePanel extends BasePanel<String> {
         return memberPanel;
     }
 
-        private WebMarkupContainer createManagerPanel(OrgType org) {
-            WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
-            managerContainer.setOutputMarkupId(true);
-            managerContainer.setOutputMarkupPlaceholderTag(true);
+    private WebMarkupContainer createManagerPanel(OrgType org) {
+        WebMarkupContainer managerContainer = new WebMarkupContainer(ID_CONTAINER_MANAGER);
+        managerContainer.setOutputMarkupId(true);
+        managerContainer.setOutputMarkupPlaceholderTag(true);
 
-            RepeatingView view = new RepeatingView(ID_MANAGER_TABLE);
-            view.setOutputMarkupId(true);
-            ObjectQuery managersQuery = createManagerQuery(org);
+        RepeatingView view = new RepeatingView(ID_MANAGER_TABLE);
+        view.setOutputMarkupId(true);
+        ObjectQuery managersQuery = createManagerQuery(org);
 
-            OperationResult searchManagersResult = new OperationResult(OPERATION_SEARCH_MANAGERS);
-            Collection<SelectorOptions<GetOperationOptions>> options = getSchemaHelper().getOperationOptionsBuilder()
-                    .distinct()
-                    .item(FocusType.F_JPEG_PHOTO).retrieve()
-                    .build();
-            List<PrismObject<FocusType>> managers = WebModelServiceUtils.searchObjects(FocusType.class,
-                    managersQuery, options, searchManagersResult, getPageBase());
-            Task task = getPageBase().createSimpleTask(OPERATION_LOAD_MANAGERS);
-            for (PrismObject<FocusType> manager : managers) {
-                WrapperContext context = new WrapperContext(task, searchManagersResult);
-                PrismObjectWrapper<FocusType> managerWrapper;
-                try {
-                    managerWrapper = getPageBase().getRegistry().getObjectWrapperFactory(manager.getDefinition()).createObjectWrapper(manager, ItemStatus.NOT_CHANGED, context);
-                } catch (SchemaException e) {
-                    LoggingUtils.logException(LOGGER, "Cannoot create wrapper for {}" + manager, e);
-                    searchManagersResult.recordFatalError(getString("TreeTablePanel.message.createManagerPanel.fatalError", manager), e);
-                    getPageBase().showResult(searchManagersResult);
-                    continue;
-                }
-                WebMarkupContainer managerMarkup = new WebMarkupContainer(view.newChildId());
-
-                FocusSummaryPanel.addSummaryPanel(managerMarkup, manager, managerWrapper, ID_MANAGER_SUMMARY, getPageBase());
-                view.add(managerMarkup);
-
+        OperationResult searchManagersResult = new OperationResult(OPERATION_SEARCH_MANAGERS);
+        Collection<SelectorOptions<GetOperationOptions>> options = getSchemaHelper().getOperationOptionsBuilder()
+                .distinct()
+                .item(FocusType.F_JPEG_PHOTO).retrieve()
+                .build();
+        List<PrismObject<FocusType>> managers = WebModelServiceUtils.searchObjects(FocusType.class,
+                managersQuery, options, searchManagersResult, getPageBase());
+        Task task = getPageBase().createSimpleTask(OPERATION_LOAD_MANAGERS);
+        for (PrismObject<FocusType> manager : managers) {
+            WrapperContext context = new WrapperContext(task, searchManagersResult);
+            PrismObjectWrapper<FocusType> managerWrapper;
+            try {
+                managerWrapper = getPageBase().getRegistry().getObjectWrapperFactory(manager.getDefinition()).createObjectWrapper(manager, ItemStatus.NOT_CHANGED, context);
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Cannoot create wrapper for {}" + manager, e);
+                searchManagersResult.recordFatalError(getString("TreeTablePanel.message.createManagerPanel.fatalError", manager), e);
+                getPageBase().showResult(searchManagersResult);
+                continue;
             }
+            WebMarkupContainer managerMarkup = new WebMarkupContainer(view.newChildId());
 
-            managerContainer.add(view);
-            return managerContainer;
+            FocusSummaryPanel.addSummaryPanel(managerMarkup, manager, managerWrapper, ID_MANAGER_SUMMARY, getPageBase());
+            view.add(managerMarkup);
+
         }
 
-        private ObjectQuery createManagerQuery(OrgType org) {
-            ObjectQuery query = ObjectTypeUtil.createManagerQuery(FocusType.class, org.getOid(),
-                    parentPage.getRelationRegistry(), parentPage.getPrismContext());
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Searching members of org {} with query:\n{}", org.getOid(), query.debugDump());
-            }
-            return query;
+        managerContainer.add(view);
+        return managerContainer;
+    }
+
+    private ObjectQuery createManagerQuery(OrgType org) {
+        ObjectQuery query = ObjectTypeUtil.createManagerQuery(FocusType.class, org.getOid(),
+                parentPage.getRelationRegistry(), parentPage.getPrismContext());
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Searching members of org {} with query:\n{}", org.getOid(), query.debugDump());
         }
+        return query;
+    }
 
     private OrgTreePanel getTreePanel() {
         return (OrgTreePanel) get(ID_TREE_PANEL);
