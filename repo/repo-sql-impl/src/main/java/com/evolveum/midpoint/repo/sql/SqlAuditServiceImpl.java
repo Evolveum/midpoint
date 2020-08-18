@@ -15,7 +15,6 @@ import java.sql.*;
 import java.time.Instant;
 import java.util.Date;
 import java.util.*;
-import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
 import javax.xml.datatype.Duration;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -60,7 +58,6 @@ import com.evolveum.midpoint.repo.sql.pure.querymodel.*;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.AuditEventRecordSqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
@@ -74,7 +71,9 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 /**
@@ -151,28 +150,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private void auditAttempt(AuditEventRecord record) {
         try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
             try {
-                // TODO use new version with Querydsl insert
-//                long id = insertAuditEventRecord(jdbcSession, record);
+                long id = insertAuditEventRecord(jdbcSession, record);
 
                 Connection connection = jdbcSession.connection();
-                SingleSqlQuery query = createAuditInsertStatement(record);
-                String[] keyColumn = { QAuditEventRecord.ID.getName() };
-                PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
-                Long id = null;
-                try {
-                    smtp.executeUpdate();
-                    ResultSet resultSet = smtp.getGeneratedKeys();
-
-                    if (resultSet.next()) {
-                        id = resultSet.getLong(1);
-
-                    }
-                } finally {
-                    smtp.close();
-                }
-                if (id == null) {
-                    throw new IllegalArgumentException("Returned id of new record is null");
-                }
 
                 Database database = sqlConfiguration().getDatabaseType();
                 BatchSqlQuery deltaBatchQuery = new BatchSqlQuery(database);
@@ -246,7 +226,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 if (!resourceOidBatchQuery.isEmpty()) {
                     resourceOidBatchQuery.execute(connection);
                 }
-            } catch (RuntimeException | SQLException | DtoTranslationException ex) {
+            } catch (RuntimeException | SQLException ex) {
                 jdbcSession.handleGeneralException(ex, null);
             }
         }
@@ -373,99 +353,23 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         SQLInsertClause insert = jdbcSession.insert(aer)
                 .populate(transformer.from(record));
 
+        // TODO MID-6318: remove this illogical guard and fix TestSecurityMultitenant
+        //  and other tests that need "foo" custom property.
+        //  Agreement with @semancik is to implement logic that adds missing column automatically.
+        //  This also means to fix config.xml, as it does mention foo custom property.
         if (!customColumns.isEmpty()) {
-            // TODO add custom columns
+            for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
+                String propertyName = property.getKey();
+                if (!customColumns.containsKey(propertyName)) {
+                    throw new IllegalArgumentException("Audit event record table doesn't"
+                            + " contains column for property " + propertyName);
+                }
+                // Like insert.set, but that one is too parameter-type-safe for our generic usage here.
+                insert.columns(aer.getPath(propertyName)).values(property.getValue());
+            }
         }
 
         return insert.executeWithKey(aer.id);
-    }
-
-    @Deprecated // TODO remove after treating custom columns above
-    private SingleSqlQuery createAuditInsertStatement(
-            AuditEventRecord record)
-            throws DtoTranslationException {
-        Objects.requireNonNull(record, "Audit event record must not be null.");
-        InsertQueryBuilder insertBuilder = new InsertQueryBuilder(QAuditEventRecord.TABLE_NAME);
-        if (record.getRepoId() != null) {
-            insertBuilder.addParameter(ID, record.getRepoId());
-        }
-        insertBuilder.addParameter(CHANNEL, record.getChannel());
-        insertBuilder.addParameter(TIMESTAMP, new Timestamp(record.getTimestamp()));
-        insertBuilder.addParameter(EVENT_STAGE, RAuditEventStage.from(record.getEventStage()));
-        insertBuilder.addParameter(EVENT_TYPE, RAuditEventType.from(record.getEventType()));
-        insertBuilder.addParameter(SESSION_IDENTIFIER, record.getSessionIdentifier());
-        insertBuilder.addParameter(EVENT_IDENTIFIER, record.getEventIdentifier());
-        insertBuilder.addParameter(HOST_IDENTIFIER, record.getHostIdentifier());
-        insertBuilder.addParameter(REMOTE_HOST_ADDRESS, record.getRemoteHostAddress());
-        insertBuilder.addParameter(NODE_IDENTIFIER, record.getNodeIdentifier());
-        insertBuilder.addParameter(PARAMETER, record.getParameter());
-        insertBuilder.addParameter(MESSAGE,
-                RUtil.trimString(record.getMessage(), AuditService.MAX_MESSAGE_SIZE));
-        insertBuilder.addParameter(OUTCOME, RUtil.getRepoEnumValue(
-                record.getOutcome() != null ? record.getOutcome().createStatusType() : null,
-                ROperationResultStatus.class));
-        insertBuilder.addParameter(REQUEST_IDENTIFIER, record.getRequestIdentifier());
-        insertBuilder.addParameter(TASK_IDENTIFIER, record.getTaskIdentifier());
-        insertBuilder.addParameter(TASK_OID, record.getTaskOid());
-        insertBuilder.addParameter(RESULT, record.getResult());
-
-        try {
-            if (record.getTargetRef() != null) {
-                PrismReferenceValue target = record.getTargetRef();
-                insertBuilder.addParameter(TARGET_NAME, getOrigName(target));
-                insertBuilder.addParameter(TARGET_OID, target.getOid());
-                insertBuilder.addParameter(TARGET_TYPE,
-                        ClassMapper.getHQLTypeForQName(target.getTargetType()));
-            }
-            if (record.getTargetOwner() != null) {
-                PrismObject<? extends FocusType> targetOwner = record.getTargetOwner();
-                insertBuilder.addParameter(TARGET_OWNER_NAME, getOrigName(targetOwner));
-                insertBuilder.addParameter(TARGET_OWNER_OID, targetOwner.getOid());
-                insertBuilder.addParameter(TARGET_OWNER_TYPE,
-                        ClassMapper.getHQLTypeForClass(targetOwner.getCompileTimeClass()));
-            }
-            if (record.getInitiator() != null) {
-                PrismObject<? extends ObjectType> initiator = record.getInitiator();
-                insertBuilder.addParameter(INITIATOR_NAME, getOrigName(initiator));
-                insertBuilder.addParameter(INITIATOR_OID, initiator.getOid());
-                insertBuilder.addParameter(INITIATOR_TYPE,
-                        ClassMapper.getHQLTypeForClass(initiator.asObjectable().getClass()));
-            }
-            if (record.getAttorney() != null) {
-                PrismObject<? extends FocusType> attorney = record.getAttorney();
-                insertBuilder.addParameter(ATTORNEY_NAME, getOrigName(attorney));
-                insertBuilder.addParameter(ATTORNEY_OID, attorney.getOid());
-            }
-
-            if (!customColumns.isEmpty()) {
-                for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
-                    if (!customColumns.containsKey(property.getKey())) {
-                        throw new IllegalArgumentException("Audit event record table doesn't"
-                                + " contains column for property " + property.getKey());
-                    }
-                    insertBuilder.addParameter(
-                            customColumns.get(property.getKey()), property.getValue());
-                }
-            }
-
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
-
-        return insertBuilder.build();
-    }
-
-    private String getOrigName(PrismObject<?> object) {
-        PolyString name = object.getPropertyRealValue(ObjectType.F_NAME, PolyString.class);
-        return name != null ? name.getOrig() : null;
-    }
-
-    private String getOrigName(PrismReferenceValue refval) {
-        if (refval.getObject() != null) {
-            return getOrigName(refval.getObject());
-        }
-        PolyString name = refval.getTargetName();
-        return name != null ? name.getOrig() : null;
     }
 
     private SingleSqlQuery createAuditItemInsertStatement(Long recordId, String itemPath) {
@@ -1200,10 +1104,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         return true;
     }
 
-    public Map<String, String> getCustomColumns() {
-        return customColumns;
-    }
-
     @Override
     public void applyAuditConfiguration(SystemConfigurationAuditType configuration) {
         this.auditConfiguration = CloneUtil.clone(configuration);
@@ -1236,5 +1136,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         } catch (QueryException e) {
             throw new SystemException(e);
         }
+    }
+
+    public void addCustomColumn(String propertyName, String columnName) {
+        // TODO replace this with QAuditEventRecordMapping.INSTANCE.getExtSomething()
+        customColumns.put(propertyName, columnName);
+
+        ColumnMetadata columnMetadata = ColumnMetadata.named(columnName).ofType(Types.VARCHAR);
+        QAuditEventRecordMapping.INSTANCE.addExtensionColumn(propertyName, columnMetadata);
     }
 }

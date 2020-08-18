@@ -6,8 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
-import com.querydsl.core.types.EntityPath;
-
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.*;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
@@ -25,12 +24,12 @@ public class QueryModelMappingConfig {
             .register(QAuditDeltaMapping.INSTANCE);
 
     // see QueryModelMapping javadoc for type parameter explanation
-    public static <S, Q extends EntityPath<R>, R>
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R>
     QueryModelMapping<S, Q, R> getBySchemaType(Class<S> schemaType) {
         return REGISTRY.getBySchemaType(schemaType);
     }
 
-    public static <S, Q extends EntityPath<R>, R>
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R>
     QueryModelMapping<S, Q, R> getByQueryType(Class<Q> queryType) {
         return REGISTRY.getByQueryType(queryType);
     }

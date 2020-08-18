@@ -13,7 +13,6 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
@@ -46,7 +45,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
  */
-public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathContext<S, Q, R>
+public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
+        extends SqlPathContext<S, Q, R>
         implements FilterProcessor<ObjectFilter> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlQueryContext.class);
@@ -71,9 +71,8 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
     private final SQLQuery<?> sqlQuery;
     private final Configuration querydslConfiguration;
 
-    public static <S, Q extends EntityPath<R>, R> SqlQueryContext<S, Q, R> from(
-            Class<S> schemaType, PrismContext prismContext, Configuration querydslConfiguration)
-            throws QueryException {
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqlQueryContext<S, Q, R> from(
+            Class<S> schemaType, PrismContext prismContext, Configuration querydslConfiguration) {
 
         QueryModelMapping<S, Q, R> rootMapping = QueryModelMappingConfig.getBySchemaType(schemaType);
         return new SqlQueryContext<>(rootMapping, prismContext, querydslConfiguration);
@@ -82,8 +81,7 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
     private SqlQueryContext(
             QueryModelMapping<S, Q, R> rootMapping,
             PrismContext prismContext,
-            Configuration querydslConfiguration)
-            throws QueryException {
+            Configuration querydslConfiguration) {
         super(rootMapping.defaultAlias(), rootMapping, prismContext);
         this.querydslConfiguration = querydslConfiguration;
         sqlQuery = new SQLQuery<>(querydslConfiguration).from(root());
@@ -202,7 +200,7 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
      * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
      */
     @Override
-    public <DQ extends EntityPath<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
+    public <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
             @NotNull DQ newPath,
             @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
         sqlQuery.leftJoin(newPath).on(joinOnPredicateFunction.apply(path(), newPath));

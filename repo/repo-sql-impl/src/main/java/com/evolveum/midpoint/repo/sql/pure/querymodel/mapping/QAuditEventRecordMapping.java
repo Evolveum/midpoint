@@ -109,6 +109,11 @@ public class QAuditEventRecordMapping
     }
 
     @Override
+    protected QAuditEventRecord newAliasInstance(String alias) {
+        return new QAuditEventRecord(alias);
+    }
+
+    @Override
     public AuditEventRecordSqlTransformer createTransformer(PrismContext prismContext) {
         return new AuditEventRecordSqlTransformer(prismContext);
     }
