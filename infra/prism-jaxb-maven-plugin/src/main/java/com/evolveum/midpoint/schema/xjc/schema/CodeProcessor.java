@@ -24,14 +24,18 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.Validate;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Raw;
 import com.evolveum.midpoint.prism.impl.PrismContainerValueImpl;
 import com.evolveum.midpoint.prism.impl.PrismObjectImpl;
+import com.evolveum.midpoint.prism.impl.PrismReferenceValueImpl;
 import com.evolveum.midpoint.prism.impl.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.schema.xjc.PrefixMapper;
 import com.sun.codemodel.JAnnotatable;
@@ -144,7 +148,6 @@ public class CodeProcessor {
         }
     };
 
-
     protected void updateObjectReferenceType(JDefinedClass definedClass, JMethod getReference) {
         JFieldVar typeField = definedClass.fields().get("type");
         JMethod getType = recreateMethod(findMethod(definedClass, "getType"), definedClass);
@@ -176,6 +179,7 @@ public class CodeProcessor {
         setTagetNameInvocation.arg(JExpr.invoke(getReference));
         setTagetNameInvocation.arg(setTargetName.listParams()[0]);
     }
+
     protected void updateObjectReferenceRelation(JDefinedClass definedClass, JMethod asReferenceMethod) {
         JFieldVar typeField = definedClass.fields().get("relation");
         JMethod getType = recreateMethod(findMethod(definedClass, "getRelation"), definedClass);
@@ -189,6 +193,7 @@ public class CodeProcessor {
         JInvocation invocation = body.invoke(JExpr.invoke(asReferenceMethod), "setRelation");
         invocation.arg(setType.listParams()[0]);
     }
+
     protected void updateObjectReferenceOid(JDefinedClass definedClass, JMethod getReference) {
         JFieldVar oidField = definedClass.fields().get("oid");
         JMethod getOid = recreateMethod(findMethod(definedClass, "getOid"), definedClass);
@@ -202,6 +207,7 @@ public class CodeProcessor {
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), setOid.name());
         invocation.arg(setOid.listParams()[0]);
     }
+
     protected void updateObjectReferenceDescription(JDefinedClass definedClass, JMethod getReference) {
         JFieldVar descriptionField = definedClass.fields().get("description");
         JMethod getDescription = recreateMethod(findMethod(definedClass, "getDescription"), definedClass);
@@ -215,6 +221,7 @@ public class CodeProcessor {
         JInvocation invocation = body.invoke(JExpr.invoke(getReference), setDescription.name());
         invocation.arg(setDescription.listParams()[0]);
     }
+
     protected void updateObjectReferenceFilter(JDefinedClass definedClass, JMethod asReferenceValue) {
         JFieldVar filterField = definedClass.fields().get("filter");
 
@@ -233,6 +240,7 @@ public class CodeProcessor {
         invocation.arg(setFilter.listParams()[0]);
         body.add(invocation);
     }
+
     protected void updateObjectReferenceResolutionTime(JDefinedClass definedClass, JMethod asReferenceMethod) {
         JFieldVar typeField = definedClass.fields().get("resolutionTime");
         JMethod getType = recreateMethod(findMethod(definedClass, "getResolutionTime"), definedClass);
@@ -246,6 +254,7 @@ public class CodeProcessor {
         JInvocation invocation = body.invoke(JExpr.invoke(asReferenceMethod), "setResolutionTime");
         invocation.arg(setType.listParams()[0]);
     }
+
     protected void updateObjectReferenceReferentialIntegrity(JDefinedClass definedClass, JMethod asReferenceMethod) {
         JFieldVar typeField = definedClass.fields().get("referentialIntegrity");
         JMethod getType = recreateMethod(findMethod(definedClass, "getReferentialIntegrity"), definedClass);
@@ -259,11 +268,13 @@ public class CodeProcessor {
         JInvocation invocation = body.invoke(JExpr.invoke(asReferenceMethod), "setReferentialIntegrity");
         invocation.arg(setType.listParams()[0]);
     }
+
     protected void updateObjectReferenceGetObject(JDefinedClass definedClass, JMethod asReferenceMethod) {
         JMethod method = definedClass.method(JMod.PUBLIC, PrismObject.class, METHOD_GET_OBJECT);
         JBlock body = method.body();
         body._return(JExpr.invoke(JExpr.invoke(asReferenceMethod), "getObject"));
     }
+
     protected void updateObjectReferenceGetObjectable(JDefinedClass definedClass, JMethod asReferenceMethod) {
         JMethod method = definedClass.method(JMod.PUBLIC, Objectable.class, METHOD_GET_OBJECTABLE);
         JBlock body = method.body();
@@ -271,6 +282,7 @@ public class CodeProcessor {
         invocation.arg(JExpr.invoke(asReferenceMethod));
         body._return(invocation);
     }
+
     protected JMethod findMethod(JDefinedClass definedClass, String methodName) {
         for (JMethod method : definedClass.methods()) {
             if (method.name().equals(methodName)) {
@@ -281,11 +293,13 @@ public class CodeProcessor {
         throw new IllegalArgumentException("Couldn't find method '" + methodName
                 + "' in defined class '" + definedClass.name() + "'");
     }
+
     protected JMethod createDefaultConstructor(JDefinedClass definedClass) {
         JMethod constructor = definedClass.constructor(JMod.PUBLIC);
         constructor.body().invoke("super").invoke("aaa");
         return constructor;
     }
+
     protected JMethod createPrismContextContainerableConstructor(JDefinedClass definedClass, JMethod setupContainerMethod) {
         JMethod constructor = definedClass.constructor(JMod.PUBLIC);
         constructor.param(PrismContext.class, "prismContext");
@@ -297,6 +311,7 @@ public class CodeProcessor {
                         .arg(constructor.params().get(0)));                                      //       prismContext);
         return constructor;
     }
+
     protected JMethod createPrismContextObjectableConstructor(JDefinedClass definedClass) {
         JMethod constructor = definedClass.constructor(JMod.PUBLIC);
         constructor.param(PrismContext.class, "prismContext");
@@ -309,6 +324,7 @@ public class CodeProcessor {
                         .arg(constructor.params().get(0)));
         return constructor;
     }
+
     protected void createAsPrismContainerValueInObject(JDefinedClass definedClass) {
         JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainerValue.class),
                 METHOD_AS_PRISM_CONTAINER_VALUE);
@@ -318,21 +334,23 @@ public class CodeProcessor {
         JBlock body = getContainer.body();
         body._return(JExpr.invoke(METHOD_AS_PRISM_CONTAINER).invoke(METHOD_CONTAINER_GET_VALUE));
     }
+
     protected void createAsPrismContainerValue(JDefinedClass definedClass, JVar containerValueVar) {
-            JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainerValue.class),
-                    METHOD_AS_PRISM_CONTAINER_VALUE);
+        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismContainerValue.class),
+                METHOD_AS_PRISM_CONTAINER_VALUE);
     //        getContainer.annotate(CLASS_MAP.get(XmlTransient.class));
 
             //create method body
-            JBlock body = getContainer.body();
-            body._if(containerValueVar.eq(JExpr._null())).                                              // if (_containerValue == null) {
-                _then()                                                                                 //
-                    .assign(containerValueVar,                                                          //    _containerValue =
-                            JExpr._new(CLASS_MAP.get(PrismContainerValueImpl.class).narrow(new JClass[0]))  //       new PrismContainerValueImpl<>(
-                                    .arg(JExpr._this())                                                 //          this)
-                    );
-            body._return(containerValueVar);
-        }
+        JBlock body = getContainer.body();
+        body._if(containerValueVar.eq(JExpr._null())).                                              // if (_containerValue == null) {
+            _then()                                                                                 //
+                .assign(containerValueVar,                                                          //    _containerValue =
+                        JExpr._new(CLASS_MAP.get(PrismContainerValueImpl.class).narrow(new JClass[0]))  //       new PrismContainerValueImpl<>(
+                                .arg(JExpr._this())                                                 //          this)
+                );
+        body._return(containerValueVar);
+    }
+
     protected void createAsPrismObject(JDefinedClass definedClass) {
         JClass prismObjectClass = CLASS_MAP.get(PrismObject.class);
         JType returnType;
@@ -350,48 +368,50 @@ public class CodeProcessor {
         JBlock body = asPrismObject.body();
         body._return(JExpr.invoke(METHOD_AS_PRISM_CONTAINER));
     }
+
     protected void updateClassAnnotation(JDefinedClass definedClass) {
-            try {
-                List<JAnnotationUse> existingAnnotations = getAnnotations(definedClass);
-                for (JAnnotationUse annotation : existingAnnotations) {
-                    if (isAnnotationTypeOf(annotation, XmlAccessorType.class)) {
-                        Field field = getField(JAnnotationUse.class, "memberValues");
-                        field.setAccessible(true);
-                        Map<String, Object> map = (Map<String, Object>) field.get(annotation);
-                        field.setAccessible(false);
-                        map.clear();
-                        annotation.param("value", XmlAccessType.PROPERTY);
-                    }
-                    if (isAnnotationTypeOf(annotation, XmlType.class)) {
-                        Field field = getField(JAnnotationUse.class, "memberValues");
-                        field.setAccessible(true);
-                        Map<String, Object> map = (Map<String, Object>) field.get(annotation);
-                        Object propOrder = map.get("propOrder");
-                        if (propOrder != null) {
-                            JAnnotationArrayMember paramArray = (JAnnotationArrayMember)propOrder;
-                            Field valField = getField(JAnnotationArrayMember.class, "values");
-                            valField.setAccessible(true);
-                            List<JAnnotationValue> values = (List<JAnnotationValue>) valField.get(paramArray);
-                            for (int i=0; i < values.size(); i++) {
-                                JAnnotationValue jAnnValue = values.get(i);
-                                String value = extractString(jAnnValue);
-                                if (value.startsWith("_")) {
-                                    paramArray.param(value.substring(1));
-                                    values.set(i, values.get(values.size() - 1));
-                                    values.remove(values.size() - 1);
-                                }
+        try {
+            List<JAnnotationUse> existingAnnotations = getAnnotations(definedClass);
+            for (JAnnotationUse annotation : existingAnnotations) {
+                if (isAnnotationTypeOf(annotation, XmlAccessorType.class)) {
+                    Field field = getField(JAnnotationUse.class, "memberValues");
+                    field.setAccessible(true);
+                    Map<String, Object> map = (Map<String, Object>) field.get(annotation);
+                    field.setAccessible(false);
+                    map.clear();
+                    annotation.param("value", XmlAccessType.PROPERTY);
+                }
+                if (isAnnotationTypeOf(annotation, XmlType.class)) {
+                    Field field = getField(JAnnotationUse.class, "memberValues");
+                    field.setAccessible(true);
+                    Map<String, Object> map = (Map<String, Object>) field.get(annotation);
+                    Object propOrder = map.get("propOrder");
+                    if (propOrder != null) {
+                        JAnnotationArrayMember paramArray = (JAnnotationArrayMember)propOrder;
+                        Field valField = getField(JAnnotationArrayMember.class, "values");
+                        valField.setAccessible(true);
+                        List<JAnnotationValue> values = (List<JAnnotationValue>) valField.get(paramArray);
+                        for (int i=0; i < values.size(); i++) {
+                            JAnnotationValue jAnnValue = values.get(i);
+                            String value = extractString(jAnnValue);
+                            if (value.startsWith("_")) {
+                                paramArray.param(value.substring(1));
+                                values.set(i, values.get(values.size() - 1));
+                                values.remove(values.size() - 1);
+                            }
     //                            String valAfter = extractString(values.get(i));
     //                            print("PPPPPPPPPPPPPPPPPPP: "+value+" -> "+valAfter);
-                            }
-                            valField.setAccessible(false);
                         }
-                        field.setAccessible(false);
+                        valField.setAccessible(false);
                     }
+                    field.setAccessible(false);
                 }
-            } catch (Exception ex) {
-                throw new RuntimeException(ex.getMessage(), ex);
             }
+        } catch (Exception ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
         }
+    }
+
     private String extractString(JAnnotationValue jAnnValue) {
         StringWriter writer = new StringWriter();
         JFormatter formatter = new JFormatter(writer);
@@ -399,6 +419,7 @@ public class CodeProcessor {
         String value = writer.getBuffer().toString();
         return value.substring(1, value.length() - 1);
     }
+
     protected boolean isAnnotationTypeOf(JAnnotationUse annotation, Class clazz) {
         try {
             Field field = getField(JAnnotationUse.class, "clazz");
@@ -415,6 +436,7 @@ public class CodeProcessor {
 
         return false;
     }
+
     protected void createToDebugName(JDefinedClass definedClass) {
         JMethod method = definedClass.method(JMod.PUBLIC, String.class, "toDebugName");
         method.annotate(CLASS_MAP.get(Override.class));
@@ -430,6 +452,7 @@ public class CodeProcessor {
         invokeAppendOnBuilder(body, builder, JExpr.lit("]"));
         body._return(JExpr.invoke(builder, "toString"));
     }
+
     protected void createToDebugType(JDefinedClass definedClass) {
         JMethod method = definedClass.method(JMod.PUBLIC, String.class, "toDebugType");
         method.annotate(CLASS_MAP.get(Override.class));
@@ -441,10 +464,12 @@ public class CodeProcessor {
 
         body._return(JExpr.invoke(builder, "toString"));
     }
+
     private void invokeAppendOnBuilder(JBlock body, JVar builder, JExpression expression) {
         JInvocation invocation = body.invoke(builder, "append");
         invocation.arg(expression);
     }
+
     protected void createHashCodeMethod(JDefinedClass definedClass, String baseMethodName) {
         JMethod hashCode = definedClass.getMethod(METHOD_HASH_CODE, new JType[]{});
         if (hashCode == null) {
@@ -456,6 +481,7 @@ public class CodeProcessor {
         JBlock body = hashCode.body();
         body._return(JExpr.invoke(baseMethodName).invoke(METHOD_HASH_CODE));
     }
+
     protected void createToStringMethod(JDefinedClass definedClass, String baseMethod) {
         JMethod toString = definedClass.getMethod("toString", new JType[]{});
         if (toString == null) {
@@ -469,6 +495,7 @@ public class CodeProcessor {
         JInvocation invocation = JExpr.invoke(baseMethod).invoke(METHOD_TO_STRING);
         body._return(invocation);
     }
+
     protected JMethod createSetContainerValueMethod(JDefinedClass definedClass, JVar container) {
             JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_CONTAINER_VALUE);
             JVar methodContainer = setContainer.param(PrismContainerValue.class, "containerValue");
@@ -496,9 +523,10 @@ public class CodeProcessor {
     //        exception.arg(message);
     //        then._throw(exception);
 
-            body.assign(JExpr._this().ref(container), methodContainer);
-            return setContainer;
-        }
+        body.assign(JExpr._this().ref(container), methodContainer);
+        return setContainer;
+    }
+
     protected void createSetContainerValueMethodInObject(JDefinedClass definedClass, JVar container) {
         JMethod setContainerValue = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_CONTAINER_VALUE);
         setContainerValue.annotate(CLASS_MAP.get(Override.class));
@@ -510,6 +538,7 @@ public class CodeProcessor {
         invocation.arg(containerValue);
         body.assign(container, invocation);
     }
+
     protected JMethod createSetContainerMethod(JDefinedClass definedClass, JVar container) {
             JMethod setContainer = definedClass.method(JMod.PUBLIC, void.class, METHOD_SETUP_CONTAINER);
             JVar methodContainer = setContainer.param(PrismObject.class, "container");
@@ -536,6 +565,7 @@ public class CodeProcessor {
             body.assign(JExpr._this().ref(container), methodContainer);
             return setContainer;
         }
+
     protected boolean isAuxiliaryField(JFieldVar fieldVar) {
         String field = fieldVar.name();
         return "serialVersionUID".equals(field) || COMPLEX_TYPE_FIELD_NAME.equals(field)
@@ -543,6 +573,7 @@ public class CodeProcessor {
                 || "otherAttributes".equals(field) && fieldVar.type().name().equals("Map<QName,String>")
                 || isFField(fieldVar);
     }
+
     private boolean isFField(JFieldVar fieldVar) {
         boolean isPublicStaticFinal = (fieldVar.mods().getValue() & (JMod.STATIC | JMod.FINAL)) != 0;
         if (fieldVar.name().startsWith("F_") && isPublicStaticFinal) {
@@ -551,6 +582,7 @@ public class CodeProcessor {
         }
         return false;
     }
+
     protected void createFieldReferenceSetterBody(JFieldVar field, JVar param, JBlock body) {
         JVar cont = body.decl(CLASS_MAP.get(PrismReferenceValue.class), REFERENCE_VALUE_FIELD_NAME,
                 JOp.cond(param.ne(JExpr._null()), JExpr.invoke(param, METHOD_AS_REFERENCE_VALUE), JExpr._null()));
@@ -560,6 +592,7 @@ public class CodeProcessor {
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         invocation.arg(cont);
     }
+
     protected void createFieldReferenceCreateItemBody(JFieldVar field, JMethod method) {
         JClass type = ((JClass) field.type()).getTypeParameters().get(0);
 
@@ -571,6 +604,7 @@ public class CodeProcessor {
         invocation.arg(method.listParams()[0]);
         body._return(decl);
     }
+
     private JExpression constructorExpression(JMethod method, JClass type) {
         JExpression initExpr;
         if (type.isAbstract()) {
@@ -582,20 +616,24 @@ public class CodeProcessor {
         }
         return initExpr;
     }
+
     protected void createFieldReferenceGetValueFrom(JFieldVar field, JMethod method) {
         JBlock body = method.body();
         body._return(JExpr.invoke(method.listParams()[0], METHOD_AS_REFERENCE_VALUE));
     }
+
     protected void createFieldReferenceWillClear(JFieldVar field, JMethod method) {
         JBlock body = method.body();
         JInvocation getObject = JExpr.invoke(method.listParams()[0], "getObject");
         body._return(getObject.eq(JExpr._null()));
     }
+
     protected void createFieldReferenceUseWillClear(JFieldVar field, JMethod method) {
         JBlock body = method.body();
         JInvocation getObject = JExpr.invoke(method.listParams()[0], "getObject");
         body._return(getObject.ne(JExpr._null()));
     }
+
     protected void createFieldReferenceUseCreateItemBody(JFieldVar field, JMethod method) {
         JClass type = ((JClass) field.type()).getTypeParameters().get(0);
 
@@ -607,6 +645,7 @@ public class CodeProcessor {
         invocation.arg(JExpr.invoke(method.listParams()[0], "getObject"));
         body._return(decl);
     }
+
     protected void createFieldReferenceUseGetValueFrom(JFieldVar field, JMethod method) {
             JBlock body = method.body();
 
@@ -626,6 +665,7 @@ public class CodeProcessor {
     //        then._return(forEach.var());
     //        body._return(JExpr._null());
         }
+
     protected boolean isInstantiable(JType type) {
         if (!(type instanceof JClass)) {
             return false;
@@ -641,6 +681,7 @@ public class CodeProcessor {
         }
         return true;
     }
+
     protected JType getContentType(JFieldVar field) {
         boolean multi = isList(field.type());
         JType valueClass;
@@ -651,6 +692,7 @@ public class CodeProcessor {
         }
         return valueClass;
     }
+
     protected void createFieldContainerCreateItemBody(JFieldVar field, JMethod method) {
         JClass list = (JClass) field.type();
         JClass listType = list.getTypeParameters().get(0);
@@ -661,10 +703,12 @@ public class CodeProcessor {
         invocation.arg(method.listParams()[0]);
         body._return(decl);
     }
+
     protected void createFieldContainerGetValueFrom(JFieldVar field, JMethod method) {
         JBlock body = method.body();
         body._return(JExpr.invoke(method.listParams()[0], METHOD_AS_PRISM_CONTAINER_VALUE));
     }
+
     protected boolean isList(JType type) {
         boolean isList = false;
         if (type instanceof JClass) {
@@ -673,9 +717,11 @@ public class CodeProcessor {
 
         return isList;
     }
+
     protected void annotateFieldAsRaw(JFieldVar fieldVar) {
         fieldVar.annotate(CLASS_MAP.get(Raw.class));
     }
+
     protected void annotateMethodWithXmlElement(JMethod method, JFieldVar field) {
         List<JAnnotationUse> existingAnnotations = getAnnotations(method);
         for (JAnnotationUse annotation : existingAnnotations) {
@@ -699,6 +745,7 @@ public class CodeProcessor {
         }
         xmlElement.param("name", field.name());
     }
+
     protected void createFieldSetterBody(JMethod method, JFieldVar field) {
         JBlock body = method.body();
         JInvocation invocation = body.staticInvoke(CLASS_MAP.get(PrismForJAXBUtil.class),
@@ -708,6 +755,7 @@ public class CodeProcessor {
         invocation.arg(JExpr.ref(fieldFPrefixUnderscoredUpperCase(field.name())));
         invocation.arg(method.listParams()[0]);
     }
+
     protected <T> boolean hasAnnotationClass(JAnnotatable method, Class<T> annotationType) {
         List<JAnnotationUse> annotations = getAnnotations(method);
         for (JAnnotationUse annotation : annotations) {
@@ -718,6 +766,7 @@ public class CodeProcessor {
 
         return false;
     }
+
     protected void createFieldGetterBody(JMethod method, JFieldVar field, boolean isList) {
         JBlock body = method.body();
         JInvocation invocation;
@@ -755,6 +804,66 @@ public class CodeProcessor {
 
         body._return(invocation);
     }
+
+    protected JMethod createContainerFluentEnd(JDefinedClass implClass) {
+        String methodName = "end";
+        JMethod method = implClass.method(JMod.PUBLIC, (JType) null, methodName);
+        method.type(method.generify("X"));
+        JBlock body = method.body();
+
+        body._return(JExpr.cast(method.type(),
+                JExpr.invoke(JExpr.cast(CLASS_MAP.get(PrismContainerValue.class),
+                                JExpr.invoke(JExpr.cast(CLASS_MAP.get(PrismContainer.class),
+                                        JExpr.invoke(JExpr.invoke("asPrismContainerValue"),"getParent")), "getParent")),
+                "asContainerable")));
+
+        return method;
+    }
+
+    protected JMethod createReferenceFluentEnd(JDefinedClass implClass) {
+        String methodName = "end";
+        JMethod method = implClass.method(JMod.PUBLIC, (JType) null, methodName);
+        method.type(method.generify("X"));
+        JBlock body = method.body();
+
+        body._return(JExpr.cast(method.type(),
+                JExpr.invoke(JExpr.cast(CLASS_MAP.get(PrismContainerValue.class),
+                                JExpr.invoke(JExpr.cast(CLASS_MAP.get(PrismReference.class),
+                                        JExpr.invoke(JExpr.invoke("asReferenceValue"),"getParent")), "getParent")),
+                "asContainerable")));
+
+        return method;
+    }
+
+    protected void createReferenceStringVersionOidType(JFieldVar field, JDefinedClass implClass, JMethod originalMethod, JType objectReferenceType) {
+        JMethod newMethod = implClass.method(JMod.PUBLIC, originalMethod.type(), originalMethod.name());
+        JVar oid = newMethod.param(String.class, "oid");
+        JVar type = newMethod.param(QName.class, "type");
+        JBlock body = newMethod.body();
+        JVar refVal = body.decl(CLASS_MAP.get(PrismReferenceValue.class), "refVal",
+                JExpr._new(CLASS_MAP.get(PrismReferenceValueImpl.class))
+                        .arg(oid).arg(type));
+        JVar ort = body.decl(objectReferenceType, "ort", JExpr._new(objectReferenceType));
+        body.invoke(ort, METHOD_SETUP_REFERENCE_VALUE).arg(refVal);
+        body._return(JExpr.invoke(originalMethod).arg(ort));
+    }
+
+    protected void createReferenceStringVersionOidTypeRelation(JFieldVar field, JDefinedClass implClass, JMethod originalMethod, JType objectReferenceType) {
+        JMethod newMethod = implClass.method(JMod.PUBLIC, originalMethod.type(), originalMethod.name());
+        JVar oid = newMethod.param(String.class, "oid");
+        JVar type = newMethod.param(QName.class, "type");
+        JVar relation = newMethod.param(QName.class, "relation");
+        JBlock body = newMethod.body();
+        JVar refVal = body.decl(CLASS_MAP.get(PrismReferenceValue.class), "refVal",
+                JExpr._new(CLASS_MAP.get(PrismReferenceValueImpl.class))
+                        .arg(oid).arg(type));
+        body.invoke(refVal, "setRelation").arg(relation);
+        JVar ort = body.decl(objectReferenceType, "ort", JExpr._new(objectReferenceType));
+        body.invoke(ort, METHOD_SETUP_REFERENCE_VALUE).arg(refVal);
+        body._return(JExpr.invoke(originalMethod).arg(ort));
+    }
+
+
     public static void print(String s) {
         if (PRINT_DEBUG_INFO) {
             System.out.println(s);
@@ -763,5 +872,107 @@ public class CodeProcessor {
     public static void printWarning(String s) {
         System.out.println(s);
     }
+
+    public void implementContainerContract(JDefinedClass definedClass) {
+        definedClass._implements(CLASS_MAP.get(Containerable.class));
+
+
+        //inserting MidPointObject field into ObjectType class
+        JVar containerValue = definedClass.field(JMod.PRIVATE, PrismContainerValue.class, CONTAINER_VALUE_FIELD_NAME);
+
+        // default constructor
+        createDefaultConstructor(definedClass);
+
+        //create asPrismContainer
+//        createAsPrismContainer(classOutline, containerValue);
+        createAsPrismContainerValue(definedClass, containerValue);
+
+        //create setContainer
+        JMethod setupContainerMethod = createSetContainerValueMethod(definedClass, containerValue);
+
+        // constructor with prismContext
+        createPrismContextContainerableConstructor(definedClass, setupContainerMethod);
+
+        //create toString, equals, hashCode
+        createToStringMethod(definedClass, METHOD_AS_PRISM_CONTAINER_VALUE);
+        createEqualsMethod(definedClass, METHOD_AS_PRISM_CONTAINER_VALUE);
+        createHashCodeMethod(definedClass, METHOD_AS_PRISM_CONTAINER_VALUE);
+
+        //get container type
+        JMethod getContainerType = definedClass.method(JMod.NONE, QName.class, METHOD_GET_CONTAINER_TYPE);
+//        getContainerType.annotate(CLASS_MAP.get(XmlTransient.class));
+        JBlock body = getContainerType.body();
+        body._return(definedClass.staticRef(COMPLEX_TYPE_FIELD_NAME));
+    }
+
+    public void implementObjectContract(JDefinedClass definedClass) {
+        definedClass._implements(CLASS_MAP.get(Objectable.class));
+
+        //inserting PrismObject field into ObjectType class
+        JVar container = definedClass.field(JMod.PRIVATE, PrismObject.class, CONTAINER_FIELD_NAME);
+
+        //create getContainer
+//        createGetContainerMethod(classOutline, container);
+        //create setContainer
+        createSetContainerMethod(definedClass, container);
+
+        //create asPrismObject()
+        createAsPrismContainer(definedClass, container);
+        // Objectable is also Containerable, we also need these
+        createAsPrismContainerValueInObject(definedClass);
+        createSetContainerValueMethodInObject(definedClass, container);
+
+        print("Creating toString, equals, hashCode methods.");
+        //create toString, equals, hashCode
+        createToStringMethod(definedClass, METHOD_AS_PRISM_CONTAINER);
+        createEqualsMethod(definedClass, METHOD_AS_PRISM_CONTAINER);
+        createHashCodeMethod(definedClass, METHOD_AS_PRISM_CONTAINER);
+        //create toDebugName, toDebugType
+        createToDebugName(definedClass);
+        createToDebugType(definedClass);
+    }
+
+
+    protected void createEqualsMethod(JDefinedClass definedClass, String baseMethod) {
+
+        JMethod equals = definedClass.getMethod(METHOD_EQUALS, new JType[]{CLASS_MAP.get(Object.class)});
+
+        if (equals != null) {
+//            removeOldCustomGeneratedEquals(classOutline, hasParentAnnotation(classOutline, PRISM_OBJECT));  todo can this be removed?
+            equals = recreateMethod(equals, definedClass);
+        } else {
+            equals = definedClass.method(JMod.PUBLIC, boolean.class, METHOD_EQUALS);
+        }
+        equals.annotate(CLASS_MAP.get(Override.class));
+
+        JBlock body = equals.body();
+        JVar obj = equals.listParams()[0];
+        JBlock ifNull = body._if(obj._instanceof(definedClass).not())._then();
+        ifNull._return(JExpr.lit(false));
+
+        JVar other = body.decl(definedClass, "other", JExpr.cast(definedClass, obj));
+
+        JInvocation invocation = JExpr.invoke(baseMethod).invoke(METHOD_EQUIVALENT);
+        invocation.arg(other.invoke(baseMethod));
+        body._return(invocation);
+    }
+
+    protected void createAsPrismContainer(JDefinedClass definedClass, JVar container) {
+        JMethod getContainer = definedClass.method(JMod.PUBLIC, CLASS_MAP.get(PrismObject.class),
+                METHOD_AS_PRISM_CONTAINER);
+
+        //create method body
+        JBlock body = getContainer.body();
+        JBlock then = body._if(container.eq(JExpr._null()))._then();
+
+        JInvocation newContainer = JExpr._new(CLASS_MAP.get(PrismObjectImpl.class));
+        newContainer.arg(JExpr.invoke(METHOD_GET_CONTAINER_NAME));
+        newContainer.arg(JExpr._this().invoke("getClass"));
+//        newContainer.arg(JExpr.dotclass(definedClass));
+        then.assign(container, newContainer);
+
+        body._return(container);
+    }
+
 
 }
