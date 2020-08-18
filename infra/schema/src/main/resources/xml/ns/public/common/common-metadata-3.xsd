@@ -632,6 +632,8 @@
         <xsd:sequence>
             <xsd:element name="acquisition" type="tns:ProvenanceAcquisitionType" minOccurs="0" maxOccurs="unbounded">
             </xsd:element>
+            <xsd:element name="mappingSpec" type="tns:MappingSpecificationType" minOccurs="0" maxOccurs="1">
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -703,6 +705,24 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="MappingSpecificationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                See Axiom.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:operational>true</a:operational>
+                <a:container/>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="assignmentId" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="definitionObjectRef" type="c:ObjectReferenceType" minOccurs="0">
+            </xsd:element>
+            <xsd:element name="mappingName" type="xsd:string" minOccurs="1" maxOccurs="1"/>
+        </xsd:sequence>
+    </xsd:complexType>
 
     <xsd:complexType name="MetadataHandlingType">
         <xsd:annotation>

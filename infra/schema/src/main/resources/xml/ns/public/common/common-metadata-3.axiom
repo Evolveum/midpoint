@@ -219,6 +219,9 @@ prism:model common-metadata {
         type ProvenanceAcquisition;
         maxOccurs "unbounded";
       }
+      container mappingSpec {
+        type MappingSpecification;
+      }
     }
 
     container ProvenanceAcquisition {
@@ -245,5 +248,37 @@ prism:model common-metadata {
       }
     }
 
+    container MappingSpecification {
+        property assignmentId {
+            type String;
+            // Temporary, should be replaced by assignment path later
+        }
+//        We cannot really have path now. We cannot express ordered lists.
+//        container assignmentPath {
+//            documentation "Assignment identifiers that specify the path that was used to evaluate the mapping."
+//            type AssignmentIdentifierPath;
+//        }
+        reference definitionObjectRef {
+            documentation "Object where the mapping is defined";
+        }
+        property mappingName {
+            type String;
+            documentation "Name of the mapping";
+            minOccurs 1;
+        }
+    }
+
+    container AssignmentIdentifierPath {
+        documentation """
+            Path formed by assignment identifiers.
+            It is often used to point to specific abstract role by referencing the identifiers (ids) of assignments/inducement that were traversed to evaluate the role.
+        """;
+        property id {
+            // This needs to be ordered!
+            type String;
+            minOccurs "1";
+            maxOccurs "unbounded";
+        }
+    }
 
 }
