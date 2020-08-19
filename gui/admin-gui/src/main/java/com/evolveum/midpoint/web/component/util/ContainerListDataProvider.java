@@ -11,6 +11,8 @@ import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactor
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -26,6 +28,8 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 
@@ -77,7 +81,7 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
                 LOGGER.trace("Query {} with {}", type.getSimpleName(), query.debugDump());
             }
 
-            List<C> list = getModel().searchContainers(type, query, options, task, result);
+            List<C> list = WebModelServiceUtils.searchContainers(type, query, options, result, getPage());
 
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Query {} resulted in {} containers", type.getSimpleName(), list.size());
@@ -85,8 +89,13 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
 
             for (C object : list) {
                 WrapperContext context = new WrapperContext(task, result);
-                PrismContainerWrapperFactory<C> factory = getPage().findContainerWrapperFactory(object.asPrismContainerValue().getDefinition());
-                getAvailableData().add(factory.createValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context));
+                if (AuditEventRecordType.class.equals(type)){
+                    //TODO fix AuditEventRecordType containers are got without definition
+                    getAvailableData().add(new PrismContainerValueWrapperImpl<>(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED));
+                } else {
+                    PrismContainerWrapperFactory<C> factory = getPage().findContainerWrapperFactory(object.asPrismContainerValue().getDefinition());
+                    getAvailableData().add(factory.createValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context));
+                }
             }
         } catch (Exception ex) {
             result.recordFatalError(getPage().createStringResource("ContainerListDataProvider.message.listContainers.fatalError").getString(), ex);
@@ -130,8 +139,7 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_CONTAINERS);
         try {
-            Task task = getPage().createSimpleTask(OPERATION_COUNT_CONTAINERS);
-            count = getModel().countContainers(type, getQuery(), options, task, result);
+            count = WebModelServiceUtils.countContainers(type, getQuery(), options,  getPage());
         } catch (Exception ex) {
             result.recordFatalError(getPage().createStringResource("ContainerListDataProvider.message.listContainers.fatalError").getString(), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count containers", ex);

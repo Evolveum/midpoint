@@ -10,8 +10,10 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.ContainerListPanel;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -40,7 +42,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
     }
 
     private void initLayout(){
-        ContainerListPanel workItemsPanel = new ContainerListPanel(ID_AUDIT_LOG_VIEWER_TABLE, AuditEventRecordType.class) {
+        ContainerListPanel auditLogViewerTable = new ContainerListPanel(ID_AUDIT_LOG_VIEWER_TABLE, AuditEventRecordType.class) {
 
             @Override
             protected List<IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>> createDefaultColumns() {
@@ -54,41 +56,21 @@ public class AuditLogViewerPanelNew extends BasePanel {
 
             @Override
             protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                return query;
+                return getPageBase().getPrismContext().queryFor(AuditEventRecordType.class).build();
             }
 
-//            @Override
-//            protected Collection<SelectorOptions<GetOperationOptions>> createOptions() {
-//                return AuditLogViewerPanelNew.this.getPageBase().getOperationOptionsBuilder()
-//                        .item(AbstractWorkItemType.F_ASSIGNEE_REF).resolve()
-//                        .item(PrismConstants.T_PARENT, CaseType.F_OBJECT_REF).resolve()
-//                        .item(PrismConstants.T_PARENT, CaseType.F_TARGET_REF).resolve()
-//                        .build();
-//            }
-//
-//            @Override
-//            protected void setDefaultSorting(BaseSortableDataProvider provider){
-//                provider.setSort(CaseWorkItemType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
-//            }
-
-//            @Override
-//            protected IColumn createCheckboxColumn() {
-//                return CaseWorkItemsPanel.this.createCheckboxColumn();
-//            }
-//
-//            @Override
-//            protected IColumn createIconColumn() {
-//                return CaseWorkItemsPanel.this.createIconColumn();
-//            }
-//
             @Override
             protected IColumn createNameColumn(IModel columnNameModel, String itemPath, ExpressionType expression) {
                 return AuditLogViewerPanelNew.this.createNameColumn();
             }
 
+            @Override
+            protected IColumn createIconColumn(){
+                return null;
+            }
         };
-        workItemsPanel.setOutputMarkupId(true);
-        add(workItemsPanel);
+        auditLogViewerTable.setOutputMarkupId(true);
+        add(auditLogViewerTable);
     }
 
     private List<IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>> createColumns(){
