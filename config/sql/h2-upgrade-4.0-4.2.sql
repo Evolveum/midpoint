@@ -40,4 +40,9 @@ ALTER TABLE m_case ALTER COLUMN parentRef_type RENAME TO parentRef_targetType;
 ALTER TABLE m_case ALTER COLUMN requestorRef_type RENAME TO requestorRef_targetType;
 ALTER TABLE m_case ALTER COLUMN targetRef_type RENAME TO targetRef_targetType;
 
+-- 2020-08-19 10:55
+
+ALTER TABLE m_focus ADD COLUMN passwordCreateTimestamp TIMESTAMP;
+ALTER TABLE m_focus ADD COLUMN passwordModifyTimestamp TIMESTAMP;
+
 COMMIT;

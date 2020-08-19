@@ -738,6 +738,8 @@ CREATE TABLE m_focus (
   preferredLanguage       VARCHAR(255),
   telephoneNumber         VARCHAR(255),
   timezone                VARCHAR(255),
+  passwordCreateTimestamp DATETIME(6),
+  passwordModifyTimestamp DATETIME(6),
   oid                     VARCHAR(36)    CHARSET utf8 COLLATE utf8_bin     NOT NULL,
   PRIMARY KEY (oid)
 )

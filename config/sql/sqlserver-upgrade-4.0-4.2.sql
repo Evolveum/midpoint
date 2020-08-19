@@ -72,3 +72,9 @@ sp_rename 'm_case.requestorRef_type', 'requestorRef_targetType', 'COLUMN';
 GO
 sp_rename 'm_case.targetRef_type', 'targetRef_targetType', 'COLUMN';
 GO
+
+-- 2020-08-19 10:55
+
+ALTER TABLE m_focus ADD passwordCreateTimestamp DATETIME2;
+ALTER TABLE m_focus ADD passwordModifyTimestamp DATETIME2;
+GO

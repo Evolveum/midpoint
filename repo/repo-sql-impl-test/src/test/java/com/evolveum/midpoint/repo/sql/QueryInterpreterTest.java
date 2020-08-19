@@ -34,6 +34,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -4690,6 +4691,33 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery(session, ObjectType.class, q, false);
             String expected = "";
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test735QueryPasswordCreateTimestamp() throws Exception {
+        Session session = open();
+
+        try {
+            /*
+             *  ### user: Equal (name, "asdf", PolyStringNorm)
+             */
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+                            PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                            .gt(DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar())).build();
+
+            String expected = "select\n" +
+                    "  u.oid, u.fullObject\n" +
+                    "from\n" +
+                    "  RUser u\n" +
+                    "where\n" +
+                    "  u.passwordCreateTimestamp > :passwordCreateTimestamp";
+
+            String real = getInterpretedQuery(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
             close(session);
