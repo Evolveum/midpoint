@@ -399,9 +399,10 @@ public class DefaultColumnUtils {
             propertiesToGet.add(TaskType.F_SUBTASK_REF);
         } else if (ResourceType.class.isAssignableFrom(type)) {
             propertiesToGet.add(ResourceType.F_CONNECTOR_REF);
-        } else if (ShadowType.class.isAssignableFrom(type)) {
-            getOperationOptionsBuilder = getOperationOptionsBuilder.raw();
         }
+//        } else if (ShadowType.class.isAssignableFrom(type)) {
+//            getOperationOptionsBuilder = getOperationOptionsBuilder.raw();
+//        }
         return getOperationOptionsBuilder
                 .items(propertiesToGet.toArray(new Object[0])).retrieve()
                 .build();

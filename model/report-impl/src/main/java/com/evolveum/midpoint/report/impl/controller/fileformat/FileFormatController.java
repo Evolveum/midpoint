@@ -146,7 +146,11 @@ public abstract class FileFormatController {
             }
         }
         if (expression != null) {
-            return evaluateExportExpression(expression, valueObject, task, result);
+            Object value = evaluateExportExpression(expression, valueObject, task, result);
+            if (value instanceof List) {
+                return processListOfRealValues((List)value);
+            }
+            return processListOfRealValues(Collections.singletonList(value));
         }
         if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
             if (valueObject == null) {
@@ -167,19 +171,29 @@ public abstract class FileFormatController {
             return "";
         }
         @NotNull List<PrismValue> values = valueObject.getValues();
+        return processListOfRealValues(values);
+    }
+
+    private String processListOfRealValues(Collection values) {
         StringBuilder sb = new StringBuilder();
         values.forEach(value -> {
             if (!sb.toString().isEmpty()) {
                 appendMultivalueDelimiter(sb);
             }
             if (value instanceof PrismPropertyValue) {
-                Object realObject = value.getRealValue();
+                Object realObject = ((PrismPropertyValue)value).getRealValue();
                 if (realObject == null) {
                     realObject = "";
+                } else if (realObject instanceof Collection) {
+                    realObject = processListOfRealValues((Collection) realObject);
+                } else {
+                    realObject = ReportUtils.prettyPrintForReport(realObject);
                 }
-                sb.append(ReportUtils.prettyPrintForReport(realObject));
+                sb.append(realObject);
             } else if (value instanceof PrismReferenceValue) {
                 sb.append(getObjectNameFromRef(((PrismReferenceValue) value).getRealValue()));
+            } else {
+                sb.append(ReportUtils.prettyPrintForReport(value));
             }
         });
         return sb.toString();
@@ -206,7 +220,7 @@ public abstract class FileFormatController {
 
     protected abstract void appendMultivalueDelimiter(StringBuilder sb);
 
-    private String evaluateExportExpression(ExpressionType expression, Item valueObject, Task task, OperationResult result) {
+    private Object evaluateExportExpression(ExpressionType expression, Item valueObject, Task task, OperationResult result) {
         Object object;
         if (valueObject == null) {
             object = null;
@@ -216,7 +230,7 @@ public abstract class FileFormatController {
         return evaluateExportExpression(expression, object, task, result);
     }
 
-    private String evaluateExportExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
+    private Object evaluateExportExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
 
         ExpressionVariables variables = new ExpressionVariables();
         if (valueObject == null) {
@@ -224,21 +238,18 @@ public abstract class FileFormatController {
         } else {
             variables.put(ExpressionConstants.VAR_OBJECT, valueObject, valueObject.getClass());
         }
-        Collection<String> values = null;
+        Object values = null;
         try {
-            values = ExpressionUtil.evaluateStringExpression(variables, getReportService().getPrismContext(), expression,
+            values = ExpressionUtil.evaluateExpression(null, variables, null, expression,
                     determineExpressionProfile(result), getReportService().getExpressionFactory(), "value for column", task, result);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
                 | ConfigurationException | SecurityViolationException e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
         }
-        if (values == null || values.isEmpty()) {
+        if (values == null || (values instanceof Collection && ((Collection)values).isEmpty())) {
             return "";
         }
-        if (values.size() != 1) {
-            throw new IllegalArgumentException("Expected collection with one value, but it is " + values);
-        }
-        return values.iterator().next();
+        return values;
     }
 
     protected Object evaluateImportExpression(ExpressionType expression, String input, Task task, OperationResult result) {
@@ -324,7 +335,11 @@ public abstract class FileFormatController {
         } else {
             object = DefaultColumnUtils.getObjectByAuditColumn(record, path);
         }
-        return evaluateExportExpression(expression, object, task, result);
+        Object value = evaluateExportExpression(expression, object, task, result);
+        if (value instanceof Collection) {
+            return processListOfRealValues((Collection)value);
+        }
+        return processListOfRealValues(Collections.singletonList(value));
     }
 
     private String getStringValueByAuditColumn(AuditEventRecord record, ItemPath path) {
