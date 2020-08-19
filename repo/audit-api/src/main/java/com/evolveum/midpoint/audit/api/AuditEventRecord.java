@@ -279,6 +279,10 @@ public class AuditEventRecord implements DebugDumpable {
         this.remoteHostAddress = remoteHostAddress;
     }
 
+    public void setInitiator(PrismObject<? extends FocusType> initiator, PrismContext prismContext) {
+        this.initiatorRef = createRefValueWithDescription(initiator, prismContext);
+    }
+
     /**
      * Initiator is the (legal) entity on behalf of whom is the action executed.
      * It is the subject of the operation. Authorizations of the initiator are used
@@ -286,15 +290,6 @@ public class AuditEventRecord implements DebugDumpable {
      * for the operation. Although initiator is always a user in midPoint 3.7 and earlier,
      * the initiator may be an organization in later midPoint versions.
      */
-    public PrismObject<? extends FocusType> getInitiator() {
-        //noinspection unchecked
-        return initiatorRef != null ? initiatorRef.getObject() : null;
-    }
-
-    public void setInitiator(PrismObject<? extends FocusType> initiator, PrismContext prismContext) {
-        this.initiatorRef = createRefValueWithDescription(initiator, prismContext);
-    }
-
     public PrismReferenceValue getInitiatorRef() {
         return initiatorRef;
     }
@@ -306,29 +301,18 @@ public class AuditEventRecord implements DebugDumpable {
         this.initiatorRef = initiator;
     }
 
-    /**
-     * Attorney is the (physical) user who have executed the action.
-     * This is the user that have logged-in to the user interface. This is the user that
-     * pressed the button to execute the action. This is always identity of a user and
-     * it will always be a user. It cannot be a company or any other virtual entity.
-     *
-     * @deprecated prefer {@link #getAttorneyRef()} instead
-     */
-    @Deprecated
-    public PrismObject<? extends FocusType> getAttorney() {
-        //noinspection unchecked
-        return attorneyRef != null ? attorneyRef.getObject() : null;
-    }
-
-    /**
-     * @deprecated prefer {@link #setAttorneyRef(PrismReferenceValue)} instead
-     */
     public void setAttorney(PrismObject<? extends FocusType> attorney, PrismContext prismContext) {
         this.attorneyRef = attorney != null
                 ? createRefValueWithDescription(attorney, prismContext)
                 : null;
     }
 
+    /**
+     * Attorney is the (physical) user who have executed the action.
+     * This is the user that have logged-in to the user interface. This is the user that
+     * pressed the button to execute the action. This is always identity of a user and
+     * it will always be a user. It cannot be a company or any other virtual entity.
+     */
     public PrismReferenceValue getAttorneyRef() {
         return attorneyRef;
     }
@@ -355,11 +339,6 @@ public class AuditEventRecord implements DebugDumpable {
         this.targetRef = target != null
                 ? createRefValueWithDescription(target, prismContext)
                 : null;
-    }
-
-    public PrismObject<? extends FocusType> getTargetOwner() {
-        //noinspection unchecked
-        return targetOwnerRef != null ? targetOwnerRef.getObject() : null;
     }
 
     public void setTargetOwner(
@@ -535,16 +514,14 @@ public class AuditEventRecord implements DebugDumpable {
     }
 
     public void checkConsistence() {
-        PrismObject<? extends FocusType> initiator = getInitiator();
-        if (initiator != null) {
-            initiator.checkConsistence();
+        if (initiatorRef != null && initiatorRef.getObject() != null) {
+            initiatorRef.getObject().checkConsistence();
         }
         if (targetRef != null && targetRef.getObject() != null) {
             targetRef.getObject().checkConsistence();
         }
-        PrismObject<? extends FocusType> targetOwner = getTargetOwner();
-        if (targetOwner != null) {
-            targetOwner.checkConsistence();
+        if (targetOwnerRef != null && targetOwnerRef.getObject() != null) {
+            targetOwnerRef.getObject().checkConsistence();
         }
         ObjectDeltaOperation.checkConsistence(deltas);
     }
@@ -617,6 +594,7 @@ public class AuditEventRecord implements DebugDumpable {
         return auditRecordType;
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod") // it's wrong, but intended
     public AuditEventRecord clone() {
         AuditEventRecord clone = new AuditEventRecord();
         clone.channel = this.channel;
