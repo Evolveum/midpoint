@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 
+import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.MESSAGE;
+
 import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
@@ -180,6 +182,9 @@ public class AuditEventRecordSqlTransformer
 
     /**
      * Transforms {@link AuditEventRecord} to {@link MAuditEventRecord} without any subentities.
+     * <p>
+     * Design notes: Arguably, this code could be in {@link MAuditEventRecord}.
+     * Also the
      */
     public MAuditEventRecord from(AuditEventRecord record) {
         MAuditEventRecord bean = new MAuditEventRecord();
@@ -204,7 +209,7 @@ public class AuditEventRecordSqlTransformer
             bean.initiatorType = targetTypeToRepoOrdinal(initiator);
         }
 
-        bean.message = record.getMessage();
+        bean.message = trim(record.getMessage(), MESSAGE);
         bean.nodeIdentifier = record.getNodeIdentifier();
         bean.outcome = MiscUtil.enumOrdinal(ROperationResultStatus.from(record.getOutcome()));
         bean.parameter = record.getParameter();

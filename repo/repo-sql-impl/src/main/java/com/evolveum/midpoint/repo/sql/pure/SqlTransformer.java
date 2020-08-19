@@ -6,11 +6,13 @@
  */
 package com.evolveum.midpoint.repo.sql.pure;
 
+import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -103,5 +105,17 @@ public abstract class SqlTransformer<S, R> {
         return repoObjectTypeId != null
                 ? RObjectType.fromOrdinal(repoObjectTypeId)
                 : null;
+    }
+
+    /**
+     * Trimming the value to the column size from column metadata (must be specified).
+     */
+    protected @Nullable String trim(
+            @Nullable String value, @NotNull ColumnMetadata columnMetadata) {
+        if (!columnMetadata.hasSize()) {
+            throw new IllegalArgumentException(
+                    "trimString with column metadata without specified size: " + columnMetadata);
+        }
+        return RUtil.trimString(value, columnMetadata.getSize());
     }
 }

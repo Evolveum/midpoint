@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 
-import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditPropertyValue.*;
+import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditPropertyValue.TABLE_NAME;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
@@ -27,8 +27,7 @@ public class QAuditPropertyValueMapping
 
     private QAuditPropertyValueMapping() {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
-                AuditEventRecordPropertyType.class, QAuditPropertyValue.class,
-                ID, RECORD_ID, NAME, VALUE);
+                AuditEventRecordPropertyType.class, QAuditPropertyValue.class);
     }
 
     @Override

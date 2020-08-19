@@ -6,11 +6,15 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database.ORACLE;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.Objects;
 
+import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQuery;
@@ -146,6 +150,38 @@ public class JdbcSession implements AutoCloseable {
         } catch (SQLException e) {
             throw new SystemException("Couldn't execute statement: " + sql, e);
         }
+    }
+
+    /**
+     * Alters table adding another column - intended for custom/extension columns.
+     */
+    public void addColumn(String tableName, ColumnMetadata column) {
+        LOGGER.info("Altering table {}, adding column {}.", tableName, column.getName());
+        StringBuilder type = new StringBuilder(getNativeTypeName(column.getJdbcType()));
+        if (column.hasSize()) {
+            type.append('(').append(column.getSize());
+            if (databaseType() == ORACLE && isVarcharType(column.getJdbcType())) {
+                // this properly sizes the varchar for Unicode
+                type.append(" CHAR");
+            }
+            if (column.hasDigits()) {
+                type.append(',').append(column.getDigits());
+            }
+            type.append(')');
+        }
+        if (!column.isNullable()) {
+            type.append(" NOT NULL");
+        }
+        // we don't expect defaults and other features now, can be extended later
+
+        executeStatement("ALTER TABLE " + tableName + " ADD " + column.getName() + " " + type);
+    }
+
+    private boolean isVarcharType(int jdbcType) {
+        return jdbcType == Types.VARCHAR
+                || jdbcType == Types.NVARCHAR
+                || jdbcType == Types.LONGVARCHAR
+                || jdbcType == Types.LONGNVARCHAR;
     }
 
     /**

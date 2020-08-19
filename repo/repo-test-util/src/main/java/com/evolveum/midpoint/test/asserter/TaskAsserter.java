@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.testng.AssertJUnit.assertEquals;
 
-public class TaskAsserter<RA> extends PrismObjectAsserter<TaskType, RA> {
+public class TaskAsserter<RA> extends AssignmentHolderAsserter<TaskType, RA> {
 
     private TaskAsserter(PrismObject<TaskType> object) {
         super(object);
@@ -180,7 +180,7 @@ public class TaskAsserter<RA> extends PrismObjectAsserter<TaskType, RA> {
         return assertExecutionStatus(TaskExecutionStatusType.CLOSED);
     }
 
-    private TaskAsserter<RA> assertExecutionStatus(TaskExecutionStatusType status) {
+    public TaskAsserter<RA> assertExecutionStatus(TaskExecutionStatusType status) {
         assertEquals("Wrong execution status", status, getTaskBean().getExecutionStatus());
         return this;
     }
@@ -197,5 +197,22 @@ public class TaskAsserter<RA> extends PrismObjectAsserter<TaskType, RA> {
     public TaskAsserter<RA> assertPartialError() {
         TestUtil.assertPartialError(getTaskBean().getResult());
         return this;
+    }
+
+    public TaskAsserter<RA> assertCategory(String category) {
+        assertEquals(category, getTaskBean().getCategory());
+        return this;
+    }
+
+    public TaskAsserter<RA> assertBinding(TaskBindingType binding) {
+        assertEquals(binding, getTaskBean().getBinding());
+        return this;
+    }
+
+    @Override
+    public AssignmentsAsserter<TaskType, TaskAsserter<RA>, RA> assignments() {
+        AssignmentsAsserter<TaskType, TaskAsserter<RA>, RA> asserter = new AssignmentsAsserter<>(this, getDetails());
+        copySetupTo(asserter);
+        return asserter;
     }
 }
