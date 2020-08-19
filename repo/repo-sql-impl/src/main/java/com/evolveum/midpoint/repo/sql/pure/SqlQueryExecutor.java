@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sql.pure;
 
 import java.util.Collection;
 
+import com.querydsl.core.Tuple;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -69,7 +70,7 @@ public class SqlQueryExecutor {
         }
         context.processOptions(options);
 
-        PageOf<R> result;
+        PageOf<Tuple> result;
         try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
             result = context.executeQuery(jdbcSession.connection());
         }

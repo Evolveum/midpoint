@@ -56,7 +56,6 @@ import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.*;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.AuditEventRecordSqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.QAuditEventRecordMapping;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
@@ -345,12 +344,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private Long insertAuditEventRecord(
             JdbcSession jdbcSession, AuditEventRecord record) {
-        QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
-        MAuditEventRecord aerBean = new AuditEventRecordSqlTransformer(prismContext).from(record);
+        QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
+        QAuditEventRecord aer = aerMapping.defaultAlias();
+        MAuditEventRecord aerBean = aerMapping.createTransformer(prismContext).from(record);
         SQLInsertClause insert = jdbcSession.insert(aer).populate(aerBean);
 
         Map<String, ColumnMetadata> customColumns =
-                QAuditEventRecordMapping.INSTANCE.getExtensionColumns();
+                aerMapping.getExtensionColumns();
         for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
             String propertyName = property.getKey();
             if (!customColumns.containsKey(propertyName)) {

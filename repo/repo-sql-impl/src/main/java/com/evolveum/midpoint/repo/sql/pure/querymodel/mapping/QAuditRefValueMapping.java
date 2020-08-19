@@ -8,8 +8,6 @@ package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem.TABLE_NAME;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditRefValue;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditRefValue;
@@ -33,11 +31,5 @@ public class QAuditRefValueMapping
     @Override
     protected QAuditRefValue newAliasInstance(String alias) {
         return new QAuditRefValue(alias);
-    }
-
-    @Override
-    public SqlTransformer<AuditEventRecordReferenceType, MAuditRefValue> createTransformer(
-            PrismContext prismContext) {
-        throw new UnsupportedOperationException("handled by AuditEventRecordSqlTransformer");
     }
 }
