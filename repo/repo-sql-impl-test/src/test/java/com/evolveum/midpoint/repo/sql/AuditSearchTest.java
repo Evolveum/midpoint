@@ -876,6 +876,11 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(record1.getDelta()).hasSize(1);
         assertThat(record1.getReference()).hasSize(2);
         assertThat(record1.getResourceOid()).hasSize(3);
+        // we also want to be sure that returned objects have prism definitions
+        assertThat(record1.asPrismContainerValue().getComplexTypeDefinition()).isNotNull();
+        // This one is parent container's definition and it is a bit questionable,
+        // whether it's a responsibility of the repository service.
+        assertThat(record1.asPrismContainerValue().getDefinition()).isNotNull();
 
         AuditEventRecordType record3 = result.get(2);
         assertThat(record3.getProperty()).as("two different property keys").hasSize(2);

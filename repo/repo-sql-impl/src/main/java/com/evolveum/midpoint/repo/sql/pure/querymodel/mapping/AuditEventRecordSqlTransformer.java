@@ -59,7 +59,8 @@ public class AuditEventRecordSqlTransformer
     }
 
     private AuditEventRecordType mapSimpleAttributes(MAuditEventRecord row) {
-        return new AuditEventRecordType()
+        // prismContext in constructor ensures complex type definition
+        return new AuditEventRecordType(prismContext)
                 .channel(row.channel)
                 .eventIdentifier(row.eventIdentifier)
                 .eventStage(auditEventStageTypeFromRepo(row.eventStage))
