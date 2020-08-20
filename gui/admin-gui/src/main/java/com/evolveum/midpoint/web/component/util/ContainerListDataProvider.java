@@ -6,13 +6,19 @@
  */
 package com.evolveum.midpoint.web.component.util;
 
-import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismContainerValueWrapperImpl;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -28,13 +34,6 @@ import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-
-import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Created by honchar
@@ -89,13 +88,8 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
 
             for (C object : list) {
                 WrapperContext context = new WrapperContext(task, result);
-                if (AuditEventRecordType.class.equals(type)){
-                    //TODO fix AuditEventRecordType containers are got without definition
-                    getAvailableData().add(new PrismContainerValueWrapperImpl<>(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED));
-                } else {
-                    PrismContainerWrapperFactory<C> factory = getPage().findContainerWrapperFactory(object.asPrismContainerValue().getDefinition());
-                    getAvailableData().add(factory.createValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context));
-                }
+                PrismContainerWrapperFactory<C> factory = getPage().findContainerWrapperFactory(object.asPrismContainerValue().getDefinition());
+                getAvailableData().add(factory.createValueWrapper(null, object.asPrismContainerValue(), ValueStatus.NOT_CHANGED, context));
             }
         } catch (Exception ex) {
             result.recordFatalError(getPage().createStringResource("ContainerListDataProvider.message.listContainers.fatalError").getString(), ex);
