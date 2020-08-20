@@ -36,8 +36,8 @@ public class QAuditDeltaMapping
     }
 
     @Override
-    public SqlTransformer<ObjectDeltaOperationType, MAuditDelta> createTransformer(
+    public SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> createTransformer(
             PrismContext prismContext) {
-        throw new UnsupportedOperationException("handled by AuditEventRecordSqlTransformer");
+        return new AuditDeltaSqlTransformer(prismContext, this);
     }
 }

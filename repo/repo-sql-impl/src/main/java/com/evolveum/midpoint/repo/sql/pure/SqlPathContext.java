@@ -47,6 +47,9 @@ public abstract class SqlPathContext<S, Q extends FlexibleRelationalPathBase<R>,
         this.prismContext = prismContext;
     }
 
+    /**
+     * Returns entity path of this context.
+     */
     public Q path() {
         return path;
     }

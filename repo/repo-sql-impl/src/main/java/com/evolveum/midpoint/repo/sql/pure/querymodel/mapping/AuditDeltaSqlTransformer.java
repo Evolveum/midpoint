@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditDelta;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -18,10 +19,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  * Simple class with methods for audit event transformation between repo and Prism world.
  */
 public class AuditDeltaSqlTransformer
-        extends SqlTransformer<ObjectDeltaOperationType, MAuditDelta> {
+        extends SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> {
 
-    public AuditDeltaSqlTransformer(PrismContext prismContext) {
-        super(prismContext);
+    public AuditDeltaSqlTransformer(PrismContext prismContext, QAuditDeltaMapping mapping) {
+        super(prismContext, mapping);
     }
 
     public ObjectDeltaOperationType toSchemaObject(MAuditDelta row) throws SchemaException {
