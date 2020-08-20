@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.gui.api.component.autocomplete.LookupTableConverter;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.DisplayableValue;
@@ -25,6 +26,8 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.util.convert.ConversionException;
+import org.apache.wicket.util.convert.IConverter;
 
 import java.io.Serializable;
 import java.util.*;
@@ -108,7 +111,23 @@ public class TextPopupPanel<T extends Serializable> extends SearchPopupPanel<T> 
                 return prepareAutoCompleteList(input).iterator();
             }
 
+            @Override
+            public <C> IConverter<C> getConverter(Class<C> type) {
+                IConverter<C> converter = super.getConverter(type);
+                if (lookup == null) {
+                    return converter;
+                }
 
+                return new LookupTableConverter(converter, lookup.asObjectable(), this, false){
+                    @Override
+                    public Object convertToObject(String value, Locale locale) throws ConversionException {
+                        PropertyModel<Object> label = new PropertyModel<>(TextPopupPanel.this.getModelObject(), SearchValue.F_LABEL);
+                        label.setObject(value);
+                        return super.convertToObject(value, locale);
+                    }
+                };
+
+            }
 
         };
     }
