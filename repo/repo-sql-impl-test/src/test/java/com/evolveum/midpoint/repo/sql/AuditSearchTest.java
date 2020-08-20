@@ -1052,6 +1052,24 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     }
 
     @Test
+    public void test553SearchByCustomColumnPropertyNotEqual() throws SchemaException {
+        when("searching audit filtered by custom column property not equal to value");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .not()
+                        .item(AuditEventRecordType.F_CUSTOM_COLUMN_PROPERTY)
+                        .eq(new AuditEventRecordCustomColumnPropertyType()
+                                .name("foo").value("foo-val"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("audit events having the custom property not equal or NULL are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("2", "3");
+    }
+
+    @Test
     public void test555SearchByCustomColumnPropertyMultiValue() throws SchemaException {
         when("searching audit filtered by custom column property multiple values");
         SearchResultList<AuditEventRecordType> result = searchObjects(
