@@ -72,10 +72,10 @@ public class AuditLogViewerPanelNew extends BasePanel {
                 return null;
             }
 
-            @Override
-            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-                return getPageBase().getPrismContext().queryFor(AuditEventRecordType.class).build();
-            }
+//            @Override
+//            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+//                return getPageBase().getPrismContext().queryFor(AuditEventRecordType.class).build();
+//            }
 
             @Override
             protected IColumn createNameColumn(IModel columnNameModel, String itemPath, ExpressionType expression) {

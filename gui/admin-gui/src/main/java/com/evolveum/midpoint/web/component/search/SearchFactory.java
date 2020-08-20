@@ -10,6 +10,8 @@ package com.evolveum.midpoint.web.component.search;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
 import org.apache.cxf.common.util.CollectionUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -147,6 +149,22 @@ public class SearchFactory {
         SEARCHABLE_OBJECTS.put(ObjectPolicyConfigurationType.class, Arrays.asList(
                 ItemPath.create(ObjectPolicyConfigurationType.F_SUBTYPE),
                 ItemPath.create(ObjectPolicyConfigurationType.F_OBJECT_TEMPLATE_REF)
+        ));
+
+        SEARCHABLE_OBJECTS.put(AuditEventRecordType.class, Arrays.asList(
+                ItemPath.create(AuditEventRecordType.F_TIMESTAMP),
+                ItemPath.create(AuditEventRecordType.F_INITIATOR_REF),
+                ItemPath.create(AuditEventRecordType.F_EVENT_STAGE),
+                ItemPath.create(AuditEventRecordType.F_EVENT_TYPE),
+                ItemPath.create(AuditEventRecordType.F_TARGET_REF),
+                ItemPath.create(AuditEventRecordType.F_TARGET_OWNER_REF),
+                ItemPath.create(AuditEventRecordType.F_CHANGED_ITEM),
+                ItemPath.create(AuditEventRecordType.F_OUTCOME),
+                ItemPath.create(AuditEventRecordType.F_CHANNEL),
+                ItemPath.create(AuditEventRecordType.F_HOST_IDENTIFIER),
+                ItemPath.create(AuditEventRecordType.F_REQUEST_IDENTIFIER),
+                ItemPath.create(AuditEventRecordType.F_REFERENCE),
+                ItemPath.create(AuditEventRecordType.F_RESOURCE_OID)
         ));
     }
 
