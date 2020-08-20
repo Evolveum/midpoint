@@ -86,9 +86,10 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.setTarget(target, prismContext);
         record1.setTargetOwner(targetOwner, prismContext);
         record1.addDelta(createDelta(UserType.F_FULL_NAME)); // values are not even necessary
-        record1.addDelta(createDelta(UserType.F_FAMILY_NAME));
+        record1.addDelta(createDelta(UserType.F_FAMILY_NAME, PolyString.fromOrig("familyNameVal")));
         record1.addDelta(createDelta(ItemPath.create(
-                ObjectType.F_METADATA, MetadataType.F_REQUEST_TIMESTAMP)));
+                ObjectType.F_METADATA, MetadataType.F_REQUEST_TIMESTAMP),
+                MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis())));
         // just want to see two values, that's all
         record1.addReferenceValue("ref1",
                 ObjectTypeUtil.createObjectRef(targetOid, ObjectTypes.USER).asReferenceValue());
@@ -143,7 +144,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
             throws SchemaException {
         ObjectDeltaOperation<UserType> delta = new ObjectDeltaOperation<>();
         delta.setObjectDelta(deltaFor(UserType.class)
-                .item(itemPath).add(values)
+                .item(itemPath).replace(values)
                 .asObjectDelta("any-oid-we-don't-care-here"));
         return delta;
     }
@@ -873,7 +874,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(prop1.getValue()).containsExactly("val1");
         // for other attributes we just use the size check, fetch mechanism is similar
         assertThat(record1.getChangedItem()).hasSize(4);
-        assertThat(record1.getDelta()).hasSize(1);
+        assertThat(record1.getDelta()).hasSize(3)
+                .allMatch(d -> d.getObjectDelta() != null);
         assertThat(record1.getReference()).hasSize(2);
         assertThat(record1.getResourceOid()).hasSize(3);
         // we also want to be sure that returned objects have prism definitions

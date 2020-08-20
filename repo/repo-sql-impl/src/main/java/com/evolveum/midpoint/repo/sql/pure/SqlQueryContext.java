@@ -262,7 +262,8 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     public PageOf<S> transformToSchemaType(PageOf<Tuple> result)
             throws SchemaException, QueryException {
         try {
-            SqlTransformer<S, Q, R> transformer = mapping().createTransformer(prismContext());
+            SqlTransformer<S, Q, R> transformer = mapping()
+                    .createTransformer(prismContext(), querydslConfiguration);
             return result.map(row -> transformer.toSchemaObjectSafe(row, root()));
         } catch (SqlTransformer.SqlTransformationException e) {
             Throwable cause = e.getCause();

@@ -13,6 +13,7 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.Tuple;
+import com.querydsl.sql.Configuration;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -38,14 +39,14 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Simple class with methods for audit event transformation between repo and Prism world.
+ * Transformation of audit event records between repo and Prism world.
  */
 public class AuditEventRecordSqlTransformer
         extends SqlTransformer<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
 
-    public AuditEventRecordSqlTransformer(
-            PrismContext prismContext, QAuditEventRecordMapping mapping) {
-        super(prismContext, mapping);
+    public AuditEventRecordSqlTransformer(PrismContext prismContext,
+            QAuditEventRecordMapping mapping, Configuration querydslConfiguration) {
+        super(prismContext, mapping, querydslConfiguration);
     }
 
     public AuditEventRecordType toSchemaObject(MAuditEventRecord row) throws SchemaException {
@@ -100,10 +101,10 @@ public class AuditEventRecordSqlTransformer
             return;
         }
 
-        SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> transformer =
-                QAuditDeltaMapping.INSTANCE.createTransformer(prismContext);
+        SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> deltaTransformer =
+                QAuditDeltaMapping.INSTANCE.createTransformer(prismContext, querydslConfiguration);
         for (MAuditDelta delta : deltas) {
-            record.delta(transformer.toSchemaObject(delta));
+            record.delta(deltaTransformer.toSchemaObject(delta));
         }
     }
 

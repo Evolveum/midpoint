@@ -526,6 +526,7 @@ public class AuditEventRecord implements DebugDumpable {
         ObjectDeltaOperation.checkConsistence(deltas);
     }
 
+    @Deprecated // should go away with the old audit listRecord
     public AuditEventRecordType createAuditEventRecordType() {
         return createAuditEventRecordType(false);
     }
