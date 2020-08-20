@@ -13,6 +13,9 @@ import javax.persistence.Entity;
 import javax.persistence.Index;
 import javax.persistence.Table;
 import javax.persistence.*;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.repo.sql.query.definition.*;
 
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.*;
@@ -23,10 +26,6 @@ import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.data.common.other.RReferenceType;
-import com.evolveum.midpoint.repo.sql.query.definition.JaxbName;
-import com.evolveum.midpoint.repo.sql.query.definition.QueryEntity;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualCollection;
-import com.evolveum.midpoint.repo.sql.query.definition.VirtualQueryParam;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.IdGeneratorResult;
 import com.evolveum.midpoint.repo.sql.util.MidPointJoinedPersister;
@@ -69,6 +68,11 @@ public abstract class RFocus extends RObject {
     private String locale;
     private String timezone;
     private String preferredLanguage;
+    private XMLGregorianCalendar passwordCreateTimestamp;
+    private XMLGregorianCalendar passwordModifyTimestamp;
+
+    //password Metadata
+    private XMLGregorianCalendar createTimestamp;
 
     @Where(clause = RObjectReference.REFERENCE_TYPE + "= 1")
     @OneToMany(mappedBy = "owner", orphanRemoval = true)
@@ -141,6 +145,18 @@ public abstract class RFocus extends RObject {
         return timezone;
     }
 
+    @JaxbPath(itemPath = { @JaxbName(localPart = "credentials"), @JaxbName(localPart = "password"),
+            @JaxbName(localPart = "metadata"), @JaxbName(localPart = "createTimestamp") })
+    public XMLGregorianCalendar getPasswordCreateTimestamp() {
+        return passwordCreateTimestamp;
+    }
+
+    @JaxbPath(itemPath = { @JaxbName(localPart = "credentials"), @JaxbName(localPart = "password"),
+            @JaxbName(localPart = "metadata"), @JaxbName(localPart = "modifyTimestamp") })
+    public XMLGregorianCalendar getPasswordModifyTimestamp() {
+        return passwordModifyTimestamp;
+    }
+
     public void setLocale(String locale) {
         this.locale = locale;
     }
@@ -183,6 +199,14 @@ public abstract class RFocus extends RObject {
 
     public void setActivation(RActivation activation) {
         this.activation = activation;
+    }
+
+    public void setPasswordCreateTimestamp(XMLGregorianCalendar passwordCreateTimestamp) {
+        this.passwordCreateTimestamp = passwordCreateTimestamp;
+    }
+
+    public void setPasswordModifyTimestamp(XMLGregorianCalendar passwordModifyTimestamp) {
+        this.passwordModifyTimestamp = passwordModifyTimestamp;
     }
 
     @Override
@@ -253,6 +277,12 @@ public abstract class RFocus extends RObject {
         }
 
         repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
+
+        if (jaxb.getCredentials() != null && jaxb.getCredentials().getPassword() != null
+                && jaxb.getCredentials().getPassword().getMetadata() != null) {
+            repo.setPasswordCreateTimestamp(jaxb.getCredentials().getPassword().getMetadata().getCreateTimestamp());
+            repo.setPasswordModifyTimestamp(jaxb.getCredentials().getPassword().getMetadata().getModifyTimestamp());
+        }
     }
 
     @ColumnDefault("false")

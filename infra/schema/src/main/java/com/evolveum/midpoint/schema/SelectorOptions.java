@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -36,8 +36,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDumpable {
     private static final long serialVersionUID = 1L;
 
-    private ObjectSelector selector;
-    private T options;
+    private final ObjectSelector selector;
+    private final T options;
 
     //region Construction
     public SelectorOptions(ObjectSelector selector, T options) {
@@ -110,9 +110,9 @@ public class SelectorOptions<T> implements Serializable, DebugDumpable, ShortDum
         if (options == null) {
             return null;
         }
-        for (SelectorOptions<T> oooption : options) {
-            if (oooption.isRoot()) {
-                return oooption.getOptions();
+        for (SelectorOptions<T> option : options) {
+            if (option.isRoot()) {
+                return option.getOptions();
             }
         }
         return null;

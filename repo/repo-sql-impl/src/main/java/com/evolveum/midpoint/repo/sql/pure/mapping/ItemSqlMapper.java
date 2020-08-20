@@ -42,7 +42,7 @@ public class ItemSqlMapper {
         this(filterProcessorFactory, null);
     }
 
-    public @Nullable Path<?> itemPath(EntityPath<?> root) {
+    public @Nullable Path<?> itemPrimaryPath(EntityPath<?> root) {
         return primaryItemMapping != null ? primaryItemMapping.apply(root) : null;
     }
 

@@ -6,10 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
@@ -53,10 +50,6 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
     private final Class<S> schemaType;
     private final Class<Q> queryType;
 
-    // TODO MID-6319: perhaps we will not need all columns after all, only extensionColumns
-    // If unused in 2021, out with it! This will shorten all constructors after removing columns... vararg.
-    private final Map<String, ColumnMetadata> columns = new LinkedHashMap<>();
-
     /**
      * Extension columns, key = propertyName which may differ from ColumnMetadata.getName().
      */
@@ -80,20 +73,11 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType,
-            ColumnMetadata... columns) {
+            @NotNull Class<Q> queryType) {
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
         this.schemaType = schemaType;
         this.queryType = queryType;
-        for (ColumnMetadata column : columns) {
-            this.columns.put(column.getName(), column);
-        }
-    }
-
-    public final QueryModelMapping<S, Q, R> add(ColumnMetadata column) {
-        columns.put(column.getName(), column);
-        return this;
     }
 
     /**
@@ -177,7 +161,7 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
 
     public final @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?, ?> context)
             throws QueryException {
-        return itemMapping(itemName).itemPath(context.path());
+        return itemMapping(itemName).itemPrimaryPath(context.path());
     }
 
     public final @NotNull ItemSqlMapper itemMapping(ItemName itemName) throws QueryException {
@@ -233,9 +217,11 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Creates {@link SqlTransformer} of row bean to schema type.
+     * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
      */
-    public abstract SqlTransformer<S, R> createTransformer(PrismContext prismContext);
+    public SqlTransformer<S, Q, R> createTransformer(PrismContext prismContext) {
+        throw new UnsupportedOperationException("Bean transformer not supported for " + queryType);
+    }
 
     /**
      * Returns collection of all registered {@link SqlDetailFetchMapper}s.
@@ -256,6 +242,19 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
      */
     public void addExtensionColumn(String propertyName, ColumnMetadata columnMetadata) {
         extensionColumns.put(propertyName, columnMetadata);
+    }
+
+    public Map<String, ColumnMetadata> getExtensionColumns() {
+        return Collections.unmodifiableMap(extensionColumns);
+    }
+
+    public @NotNull Path<?>[] selectExpressionsWithCustomColumns(Q entity) {
+        List<Path<?>> expressions = new ArrayList<>();
+        expressions.add(entity);
+        for (String extensionPropertyName : extensionColumns.keySet()) {
+            expressions.add(entity.getPath(extensionPropertyName));
+        }
+        return expressions.toArray(new Path[0]);
     }
 
     @Override

@@ -9,6 +9,11 @@ package com.evolveum.midpoint.model.impl.lens.assignments;
 
 import static com.evolveum.midpoint.model.impl.lens.assignments.Util.isNonNegative;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -146,6 +151,10 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
             // Computation of isMatchingOrder will ensure that we won't collect any unwanted content.
             evaluateInducements();
 
+            // Evaluation Archetype hierarchy. For now, when there is a superArchetypeRef relation,
+            // we handle it as the inducement
+            evaluateArchetypeHierarchy();
+
             // Respective conditions are evaluated inside
             evaluateTargetPayload();
 
@@ -166,9 +175,27 @@ class TargetEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluati
             PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
         if (target instanceof AbstractRoleType) {
             for (AssignmentType inducement : ((AbstractRoleType) target).getInducement()) {
-                new TargetInducementEvaluation<>(segment, targetOverallConditionState, targetActivation, ctx, result, inducement)
+                new TargetInducementEvaluation<>(segment, targetOverallConditionState, targetActivation, ctx, result, inducement, false)
                         .evaluate();
             }
+        }
+    }
+
+    private void evaluateArchetypeHierarchy() throws CommunicationException, ObjectNotFoundException, ConfigurationException, SchemaException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException {
+        if (ArchetypeType.class.isAssignableFrom(target.getClass())) {
+            ObjectReferenceType superArchetype = ((ArchetypeType) target).getSuperArchetypeRef();
+            if (superArchetype == null) {
+                return;
+            }
+
+            PrismContainerDefinition<AssignmentType> def = target.asPrismObject().getDefinition().findContainerDefinition(ArchetypeType.F_INDUCEMENT);
+            PrismContainer<AssignmentType> inducement = def.instantiate();
+            PrismContainerValue<AssignmentType> inducementValue = inducement.createNewValue();
+            AssignmentType inducementRealValue = inducementValue.asContainerable();
+            inducementRealValue.setTargetRef(superArchetype);
+
+            new TargetInducementEvaluation<>(segment, targetOverallConditionState, targetActivation, ctx, result, inducementRealValue, true)
+                    .evaluate();
         }
     }
 

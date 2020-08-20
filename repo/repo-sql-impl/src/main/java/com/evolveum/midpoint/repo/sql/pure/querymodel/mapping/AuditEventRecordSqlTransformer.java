@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.Tuple;
+
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -22,6 +24,8 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditDelta;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditRefValue;
@@ -37,10 +41,11 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  * Simple class with methods for audit event transformation between repo and Prism world.
  */
 public class AuditEventRecordSqlTransformer
-        extends SqlTransformer<AuditEventRecordType, MAuditEventRecord> {
+        extends SqlTransformer<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
 
-    public AuditEventRecordSqlTransformer(PrismContext prismContext) {
-        super(prismContext);
+    public AuditEventRecordSqlTransformer(
+            PrismContext prismContext, QAuditEventRecordMapping mapping) {
+        super(prismContext, mapping);
     }
 
     public AuditEventRecordType toSchemaObject(MAuditEventRecord row) throws SchemaException {
@@ -94,8 +99,8 @@ public class AuditEventRecordSqlTransformer
             return;
         }
 
-        SqlTransformer<ObjectDeltaOperationType, MAuditDelta> transformer =
-                new AuditDeltaSqlTransformer(prismContext);
+        SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> transformer =
+                QAuditDeltaMapping.INSTANCE.createTransformer(prismContext);
         for (MAuditDelta delta : deltas) {
             record.delta(transformer.toSchemaObject(delta));
         }
@@ -237,8 +242,20 @@ public class AuditEventRecordSqlTransformer
 
     private Integer targetTypeToRepoOrdinal(PrismReferenceValue targetOwner) {
         //noinspection rawtypes
-        Class objectClass = prismContext.getSchemaRegistry().determineClassForType(targetOwner.getTargetType());
+        Class objectClass = prismContext.getSchemaRegistry()
+                .determineClassForType(targetOwner.getTargetType());
         //noinspection unchecked
         return MiscUtil.enumOrdinal(RObjectType.getByJaxbType(objectClass));
+    }
+
+    @Override
+    protected void processExtensionColumns(
+            AuditEventRecordType schemaObject, Tuple tuple, QAuditEventRecord entityPath) {
+        for (String propertyName : mapping.getExtensionColumns().keySet()) {
+            Object customColumnValue = tuple.get(entityPath.getPath(propertyName));
+            schemaObject.getCustomColumnProperty().add(
+                    new AuditEventRecordCustomColumnPropertyType()
+                            .name(propertyName).value((String) customColumnValue));
+        }
     }
 }

@@ -6,12 +6,14 @@
  */
 package com.evolveum.midpoint.repo.sql.pure;
 
+import com.querydsl.core.Tuple;
 import com.querydsl.sql.ColumnMetadata;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -20,14 +22,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * Base class for SQL transformers translating from query beans or tuples to model types.
  *
  * @param <S> schema type
- * @param <R> type of the transformed data, a row, typically a M-class
+ * @param <R> type of the transformed data, a row bean
  */
-public abstract class SqlTransformer<S, R> {
+public abstract class SqlTransformer<S, Q extends FlexibleRelationalPathBase<R>, R> {
 
     protected final PrismContext prismContext;
+    protected final QueryModelMapping<S, Q, R> mapping;
 
-    protected SqlTransformer(PrismContext prismContext) {
+    protected SqlTransformer(PrismContext prismContext, QueryModelMapping<S, Q, R> mapping) {
         this.prismContext = prismContext;
+        this.mapping = mapping;
     }
 
     /**
@@ -42,12 +46,33 @@ public abstract class SqlTransformer<S, R> {
     public abstract S toSchemaObject(R row) throws SchemaException;
 
     /**
+     * Transforms row Tuple containing {@link R} under entity path and extension columns.
+     */
+    public S toSchemaObject(Tuple tuple, Q entityPath) throws SchemaException {
+        S schemaObject = toSchemaObject(tuple.get(entityPath));
+        processExtensionColumns(schemaObject, tuple, entityPath);
+        return schemaObject;
+    }
+
+    protected void processExtensionColumns(S schemaObject, Tuple tuple, Q entityPath) {
+        // empty by default, can be overridden
+    }
+
+    /**
      * Version of {@link #toSchemaObject(Object)} rethrowing checked exceptions as unchecked
      * {@link SqlTransformationException} - this is useful for lambda/method references usages.
      */
     public S toSchemaObjectSafe(R row) {
         try {
             return toSchemaObject(row);
+        } catch (SchemaException e) {
+            throw new SqlTransformationException(e);
+        }
+    }
+
+    public S toSchemaObjectSafe(Tuple row, Q entityPath) {
+        try {
+            return toSchemaObject(row, entityPath);
         } catch (SchemaException e) {
             throw new SqlTransformationException(e);
         }

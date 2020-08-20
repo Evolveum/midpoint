@@ -8,12 +8,17 @@ package com.evolveum.midpoint.repo.sql.pure.mapping;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 
 /**
@@ -31,30 +36,41 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
  */
 public class ValueFilterValues<T> {
 
-    private final PropertyValueFilter<T> filter;
-    private final Function<T, ?> conversionFunction;
+    @NotNull private final PropertyValueFilter<T> filter;
+    @Nullable private final Function<T, ?> conversionFunction;
 
     public ValueFilterValues(PropertyValueFilter<T> filter) {
-        this.filter = filter;
-        conversionFunction = null;
+        this(filter, null);
     }
 
-    public ValueFilterValues(PropertyValueFilter<T> filter, Function<T, ?> conversionFunction) {
-        this.filter = filter;
+    public ValueFilterValues(
+            @NotNull PropertyValueFilter<T> filter,
+            @Nullable Function<T, ?> conversionFunction) {
+        this.filter = Objects.requireNonNull(filter);
         this.conversionFunction = conversionFunction;
     }
 
     /**
      * Returns single value or null or fails if there are multiple values, all converted.
      */
-    public Object singleValue() throws QueryException {
+    public @Nullable Object singleValue() throws QueryException {
         return convert(filter.getSingleValue());
+    }
+
+    /**
+     * Returns single value or null or fails if there are multiple values without conversion.
+     * Null-safe version of {@link ValueFilter#getSingleValue()} followed by
+     * {@link PrismPropertyValue#getRealValue()}.
+     */
+    public @Nullable T singleValueRaw() {
+        final PrismPropertyValue<T> singleValue = filter.getSingleValue();
+        return singleValue != null ? singleValue.getRealValue() : null;
     }
 
     /**
      * Returns multiple values, all converted, or empty list - never null.
      */
-    public List<?> allValues() {
+    public @NotNull List<?> allValues() {
         if (filter.getValues() == null) {
             return Collections.emptyList();
         }
@@ -65,6 +81,18 @@ public class ValueFilterValues<T> {
         }
         return realValueStream
                 .map(conversionFunction)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Returns multiple real values without conversion or empty list - never null.
+     */
+    public @NotNull List<T> allValuesRaw() {
+        if (filter.getValues() == null) {
+            return Collections.emptyList();
+        }
+        return filter.getValues().stream()
+                .map(ppv -> ppv.getRealValue())
                 .collect(Collectors.toList());
     }
 

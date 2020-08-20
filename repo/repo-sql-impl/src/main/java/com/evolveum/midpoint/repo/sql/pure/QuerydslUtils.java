@@ -5,35 +5,11 @@ import java.util.function.BiConsumer;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Expression;
-import com.querydsl.core.types.Path;
-import com.querydsl.sql.RelationalPath;
 import org.jetbrains.annotations.Nullable;
 
 // TODO MID-6318, MID-6319 review what needed (let's say in 2021), drop the rest
 public enum QuerydslUtils {
     ;
-
-    /**
-     * Expand the list of paths (provided as vararg) so that each {@link RelationalPath}
-     * is represented by all its columns - including dynamic/extension columns.
-     * This generates expression array that results in the query of tuples which does not
-     * require any backing beans which are problematic for extension properties.
-     * Currently, Querydsl uses only field/setter access and can't be used to populate custom
-     * property via single universal method, hence using a bean is not an option.
-     * <p>
-     * TODO: maybe we want to convert them to QMap or a tuple?
-     */
-    public static Expression<?>[] expand(Path<?>... paths) {
-        List<Expression<?>> pathsCombined = new ArrayList<>();
-        for (Path<?> path : paths) {
-            if (path instanceof RelationalPath) {
-                pathsCombined.addAll(((RelationalPath<?>) path).getColumns());
-            } else {
-                pathsCombined.add(path);
-            }
-        }
-        return pathsCombined.toArray(new Expression<?>[0]);
-    }
 
     /**
      * Resolves one-to-many relations between two paths from the {@link Tuple}-based result.

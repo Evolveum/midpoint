@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 
-import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem.*;
+import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem.TABLE_NAME;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
@@ -27,8 +27,7 @@ public class QAuditDeltaMapping
 
     private QAuditDeltaMapping() {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
-                ObjectDeltaOperationType.class, QAuditDelta.class,
-                RECORD_ID, CHANGED_ITEM_PATH);
+                ObjectDeltaOperationType.class, QAuditDelta.class);
     }
 
     @Override
@@ -37,8 +36,8 @@ public class QAuditDeltaMapping
     }
 
     @Override
-    public SqlTransformer<ObjectDeltaOperationType, MAuditDelta> createTransformer(
+    public SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> createTransformer(
             PrismContext prismContext) {
-        throw new UnsupportedOperationException("handled by AuditEventRecordSqlTransformer");
+        return new AuditDeltaSqlTransformer(prismContext, this);
     }
 }
