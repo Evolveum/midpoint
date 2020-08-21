@@ -285,9 +285,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     @AfterMethod
     public void finishTestContext(ITestResult testResult) {
         MidpointTestContextWithTask context = MidpointTestContextWithTask.get();
-        MidpointTestContextWithTask.destroy(); // let's destroy it before anything else in this method
-
         displayTestFooter(context.getTestName(), testResult);
+        MidpointTestContextWithTask.destroy(); // let's destroy it before anything else in this method
 
         Task task = context.getTask();
         if (task != null) {
