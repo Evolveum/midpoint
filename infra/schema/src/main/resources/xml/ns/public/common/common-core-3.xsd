@@ -6976,19 +6976,6 @@
                     </xsd:appinfo>
                 </xsd:annotation>
              </xsd:element>
-            <xsd:element name="originRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        <p>
-                            TODO
-                        </p>
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <a:experimental>true</a:experimental>
-                        <!--<a:objectReferenceTargetType>tns:AbstractRoleRef</a:objectReferenceTargetType>-->
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

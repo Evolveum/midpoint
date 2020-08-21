@@ -87,13 +87,12 @@ public class ProjectionValueMetadataCreator {
             return null;
         }
 
-        ResourceObjectTypeDefinitionType def = projectionCtx.getResourceObjectTypeDefinitionType();
-        ObjectReferenceType originRef = def != null ? def.getOriginRef() : null;
+        ProvenanceFeedDefinitionType provenanceFeed = getProvenanceFeed(projectionCtx);
 
         boolean experimentalCodeEnabled = projectionCtx.getLensContext().isExperimentalCodeEnabled();
-        if (originRef == null && !experimentalCodeEnabled) {
-            // In "normal mode" we require experimental code to be enabled (or originRef to be
-            // explicitly set) in order to generate provenance metadata for inbound values.
+        if (provenanceFeed == null && !experimentalCodeEnabled) {
+            // We require either (1) experimental code to be enabled or (2) provenance feed to be
+            // explicitly set in order to generate provenance metadata for inbound values.
             return null;
         }
 
@@ -103,9 +102,14 @@ public class ProjectionValueMetadataCreator {
                         .beginAcquisition()
                             .timestamp(XmlTypeConverter.createXMLGregorianCalendar())
                             .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
-                            .originRef(originRef)
+                            .originRef(provenanceFeed != null ? provenanceFeed.getOriginRef() : null)
                         .<ProvenanceYieldType>end()
                     .<ProvenanceMetadataType>end()
                 .end();
+    }
+
+    private ProvenanceFeedDefinitionType getProvenanceFeed(LensProjectionContext projectionCtx) {
+        ResourceObjectTypeDefinitionType def = projectionCtx.getResourceObjectTypeDefinitionType();
+        return def != null ? def.getProvenance() : null;
     }
 }

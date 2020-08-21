@@ -286,7 +286,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
-     * Now we change givenName: value stays the same but LoA is increased.
+     * Now we change givenName: value stays the same but LoA is increased to normal.
+     * Resulting LoA of fullName should be also normal.
      */
     @Test
     public void test055SimpleMetadataMappingUserModify() throws Exception {
@@ -328,6 +329,9 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .assertPropertyValuesEqual(LOA_PATH, "normal");
     }
 
+    /**
+     * Here we simply recompute a user and observe if the metadata (LoA) is correctly computed on fullName.
+     */
     @Test
     public void test070SimpleMetadataMappingPreview() throws Exception {
         given();
@@ -357,16 +361,25 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     //endregion
 
     //region Scenario 0: Creation metadata recording
+
+    /**
+     * Adding user Paul. We store creation metadata for fulLName.
+     * This test checks that
+     */
     @Test
     public void test080AddPaul() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        XMLGregorianCalendar before = XmlTypeConverter.createXMLGregorianCalendar();
+
         when();
         addObject(USER_PAUL, task, result);
 
         then();
+        XMLGregorianCalendar after = XmlTypeConverter.createXMLGregorianCalendar();
+
         PrismContainerValue<ValueMetadataType> fullNameMetadata1 = assertUserAfter(USER_PAUL.oid)
                 .display()
                 .displayXml()
@@ -402,9 +415,16 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         displayDumpable("full name metadata after add", fullNameMetadata1);
         displayDumpable("full name metadata after recompute", fullNameMetadata2);
 
-        assertThat(fullNameMetadata2.asContainerable().getStorage().getCreateTimestamp())
+        XMLGregorianCalendar createTimestamp1 = fullNameMetadata1.asContainerable().getStorage().getCreateTimestamp();
+        XMLGregorianCalendar createTimestamp2 = fullNameMetadata2.asContainerable().getStorage().getCreateTimestamp();
+
+        assertThat(createTimestamp1).isNotNull();
+        assertThat(createTimestamp2).isNotNull();
+        assertThat(createTimestamp2)
                 .as("create time after recompute")
-                .isEqualTo(fullNameMetadata1.asContainerable().getStorage().getCreateTimestamp());
+                .isEqualTo(createTimestamp1);
+
+        assertBetween("Create timestamp is out of expected range", before, after, createTimestamp1);
     }
     //endregion
 

@@ -11,7 +11,7 @@ prism:model common-metadata {
 
     metadata CommonMetadata {
       prism:container storage {
-        type StorageMetadata;
+        type StorageMetadataType;
         documentation """
           The details when data were stored in midPoint repository. It is about the creation
           (timestamp, originator user, channel, taskRef) and the last modification (the same).
@@ -19,24 +19,24 @@ prism:model common-metadata {
         //operational true;
       }
       prism:container process {
-        type ProcessMetadata;
+        type ProcessMetadataType;
         documentation """
           The details how the data were processed by midPoint processes/tasks.
           Only present if it was approved or otherwise processed by a "process".
         """;
       }
       prism:container provisioning {
-        type ProvisioningMetadata;
+        type ProvisioningMetadataType;
       }
       prism:container transformation {
-        type TransformationMetadata;
+        type TransformationMetadataType;
       }
       prism:container provenance {
-        type ProvenanceMetadata;
+        type ProvenanceMetadataType;
       }
     }
 
-    container StorageMetadata {
+    container StorageMetadataType {
       operational true;
       displayName "Storage Metadata";
 
@@ -110,7 +110,7 @@ prism:model common-metadata {
       }
     }
 
-    prism:container ProcessMetadata {
+    prism:container ProcessMetadataType {
       property requestTimestamp {
         type DateTime;
         documentation """
@@ -139,7 +139,7 @@ prism:model common-metadata {
 
     }
     // FIXME: Convert additional metadata
-    container ProvisioningMetadata {
+    container ProvisioningMetadataType {
       operational true;
       displayName "Provisioning metadata";
       property lastProvisioningTimestamp {
@@ -161,22 +161,22 @@ prism:model common-metadata {
       }
     }
 
-    container TransformationMetadata {
+    container TransformationMetadataType {
       displayName "Transformation Metadata";
       operational true;
       container source {
-        type ValueSource;
+        type ValueSourceType;
         documentation "Source(s) of the value";
         maxOccurs "unbounded";
       }
       container transformer {
-        type ValueTransformer;
+        type ValueTransformerType;
         documentation "Transformer(s) that acted upon the value.";
         maxOccurs "unbounded";
       }
     }
 
-    container ValueSource {
+    container ValueSourceType {
       property kind {
         type Uri;
       }
@@ -195,7 +195,7 @@ prism:model common-metadata {
       }
     }
 
-    container ValueTransformer {
+    container ValueTransformerType {
       property kind {
         type Uri;
       }
@@ -207,24 +207,24 @@ prism:model common-metadata {
       }
     }
 
-    container ProvenanceMetadata {
+    container ProvenanceMetadataType {
       container yield {
-        type ProvenanceYield;
+        type ProvenanceYieldType;
         maxOccurs "unbounded";
       }
     }
 
-    container ProvenanceYield {
+    container ProvenanceYieldType {
       container acquisition {
-        type ProvenanceAcquisition;
+        type ProvenanceAcquisitionType;
         maxOccurs "unbounded";
       }
       container mappingSpec {
-        type MappingSpecification;
+        type MappingSpecificationType;
       }
     }
 
-    container ProvenanceAcquisition {
+    container ProvenanceAcquisitionType {
       documentation """
         Ultimate origin of the data.
         This metadata structure represents the way how the data (or their components) entered the system.
@@ -248,7 +248,7 @@ prism:model common-metadata {
       }
     }
 
-    container MappingSpecification {
+    container MappingSpecificationType {
         property assignmentId {
             type String;
             // Temporary, should be replaced by assignment path later
@@ -268,7 +268,7 @@ prism:model common-metadata {
         }
     }
 
-    container AssignmentIdentifierPath {
+    container AssignmentIdentifierPathType {
         documentation """
             Path formed by assignment identifiers.
             It is often used to point to specific abstract role by referencing the identifiers (ids) of assignments/inducement that were traversed to evaluate the role.
