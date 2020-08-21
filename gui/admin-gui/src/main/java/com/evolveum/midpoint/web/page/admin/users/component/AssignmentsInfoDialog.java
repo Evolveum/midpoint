@@ -12,6 +12,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.GenericColumn;
@@ -73,7 +74,7 @@ public abstract class AssignmentsInfoDialog extends BasePanel<List<AssignmentInf
         content.setOutputMarkupId(true);
         add(content);
 
-        TablePanel<AssignmentInfoDto> table = new TablePanel<>(ID_TABLE, provider, columns);
+        BoxedTablePanel<AssignmentInfoDto> table = new BoxedTablePanel<AssignmentInfoDto>(ID_TABLE, provider, columns);
         table.setOutputMarkupId(true);
         content.add(table);
 
