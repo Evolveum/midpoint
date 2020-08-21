@@ -42,8 +42,8 @@ public abstract class AbstractUnitTest implements MidpointTestMixin {
     @AfterMethod
     public void finishTestContext(ITestResult testResult) {
         SimpleMidpointTestContext context = SimpleMidpointTestContext.get();
-        SimpleMidpointTestContext.destroy();
         displayTestFooter(context.getTestName(), testResult);
+        SimpleMidpointTestContext.destroy();
     }
 
     @Override

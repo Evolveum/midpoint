@@ -50,7 +50,7 @@ public class EventOperationFilterType
         extends EventHandlerType
         implements Serializable, Cloneable, Equals, HashCode {
 
-    private final static long serialVersionUID = 201105211233L;
+    private static final long serialVersionUID = 201105211233L;
     protected List<String> operation;
 
     /**

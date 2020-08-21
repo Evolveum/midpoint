@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,19 +7,19 @@
 
 package com.evolveum.midpoint.prism.impl.query.builder;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.impl.query.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.query.builder.*;
 import com.evolveum.midpoint.util.annotation.Experimental;
-
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * EXPERIMENTAL IMPLEMENTATION.
@@ -30,18 +30,18 @@ import java.util.List;
 @Experimental
 public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
 
-    final private QueryBuilder queryBuilder;
-    final private Class<? extends Containerable> currentClass;          // object we are working on (changes on Exists filter)
-    final private OrFilter currentFilter;
-    final private LogicalSymbol lastLogicalSymbol;
-    final private boolean isNegated;
-    final private R_Filter parentFilter;
-    final private QName typeRestriction;
-    final private ItemPath existsRestriction;
-    final private List<ObjectOrdering> orderingList;
-    final private List<ObjectGrouping> groupingList;
-    final private Integer offset;
-    final private Integer maxSize;
+    private final QueryBuilder queryBuilder;
+    private final Class<? extends Containerable> currentClass;          // object we are working on (changes on Exists filter)
+    private final OrFilter currentFilter;
+    private final LogicalSymbol lastLogicalSymbol;
+    private final boolean isNegated;
+    private final R_Filter parentFilter;
+    private final QName typeRestriction;
+    private final ItemPath existsRestriction;
+    private final List<ObjectOrdering> orderingList;
+    private final List<ObjectGrouping> groupingList;
+    private final Integer offset;
+    private final Integer maxSize;
 
     public R_Filter(QueryBuilder queryBuilder) {
         this.queryBuilder = queryBuilder;
@@ -59,7 +59,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
     }
 
     private R_Filter(QueryBuilder queryBuilder, Class<? extends Containerable> currentClass, OrFilter currentFilter, LogicalSymbol lastLogicalSymbol,
-                     boolean isNegated, R_Filter parentFilter, QName typeRestriction, ItemPath existsRestriction, List<ObjectOrdering> orderingList, List<ObjectGrouping> groupingList, Integer offset, Integer maxSize) {
+            boolean isNegated, R_Filter parentFilter, QName typeRestriction, ItemPath existsRestriction, List<ObjectOrdering> orderingList, List<ObjectGrouping> groupingList, Integer offset, Integer maxSize) {
         this.queryBuilder = queryBuilder;
         this.currentClass = currentClass;
         this.currentFilter = currentFilter;
@@ -328,7 +328,7 @@ public class R_Filter implements S_FilterEntryOrEmpty, S_AtomicFilterExit {
         if (clazz == null) {
             throw new IllegalArgumentException("Item path of '" + existsPath + "' in " + currentClass + " does not point to a valid prism container.");
         }
-        return new R_Filter(queryBuilder, clazz, OrFilterImpl.createOr(), null, false, this, null, existsPath, null, null,null, null);
+        return new R_Filter(queryBuilder, clazz, OrFilterImpl.createOr(), null, false, this, null, existsPath, null, null, null, null);
     }
 
     private <ID extends ItemDefinition> ID resolveItemPath(ItemPath itemPath, Class<ID> type) {

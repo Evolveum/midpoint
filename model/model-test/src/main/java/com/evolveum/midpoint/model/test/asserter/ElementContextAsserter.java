@@ -17,11 +17,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author semancik
- *
  */
-public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O extends ObjectType,RA> extends AbstractAsserter<RA> {
+public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O extends ObjectType, RA> extends AbstractAsserter<RA> {
 
-    final private C elementContext;
+    private final C elementContext;
 
     public ElementContextAsserter(C elementContext) {
         super();
@@ -42,48 +41,48 @@ public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O
         return elementContext;
     }
 
-    public PrismObjectAsserter<O,? extends ElementContextAsserter<C,O,RA>> objectOld() {
-        PrismObjectAsserter<O,ElementContextAsserter<C,O,RA>> asserter = new PrismObjectAsserter<>(
-                elementContext.getObjectOld(), this, "object old in "+desc());
+    public PrismObjectAsserter<O, ? extends ElementContextAsserter<C, O, RA>> objectOld() {
+        PrismObjectAsserter<O, ElementContextAsserter<C, O, RA>> asserter = new PrismObjectAsserter<>(
+                elementContext.getObjectOld(), this, "object old in " + desc());
         copySetupTo(asserter);
         return asserter;
     }
 
-    public PrismObjectAsserter<O,? extends ElementContextAsserter<C,O,RA>> objectCurrent() {
-        PrismObjectAsserter<O,ElementContextAsserter<C,O,RA>> asserter = new PrismObjectAsserter<>(
-                elementContext.getObjectCurrent(), this, "object current in "+desc());
+    public PrismObjectAsserter<O, ? extends ElementContextAsserter<C, O, RA>> objectCurrent() {
+        PrismObjectAsserter<O, ElementContextAsserter<C, O, RA>> asserter = new PrismObjectAsserter<>(
+                elementContext.getObjectCurrent(), this, "object current in " + desc());
         copySetupTo(asserter);
         return asserter;
     }
 
-    public PrismObjectAsserter<O,? extends ElementContextAsserter<C,O,RA>> objectNew() {
-        PrismObjectAsserter<O,? extends ElementContextAsserter<C,O,RA>> asserter = new PrismObjectAsserter<>(
-                elementContext.getObjectNew(), this, "object new in "+desc());
+    public PrismObjectAsserter<O, ? extends ElementContextAsserter<C, O, RA>> objectNew() {
+        PrismObjectAsserter<O, ? extends ElementContextAsserter<C, O, RA>> asserter = new PrismObjectAsserter<>(
+                elementContext.getObjectNew(), this, "object new in " + desc());
         copySetupTo(asserter);
         return asserter;
     }
 
-    public ObjectDeltaAsserter<O, ? extends ElementContextAsserter<C,O,RA>> primaryDelta() {
-        ObjectDeltaAsserter<O, ? extends ElementContextAsserter<C,O,RA>> deltaAsserter = new ObjectDeltaAsserter<>(
-                elementContext.getPrimaryDelta(), this, "primary delta in "+desc());
+    public ObjectDeltaAsserter<O, ? extends ElementContextAsserter<C, O, RA>> primaryDelta() {
+        ObjectDeltaAsserter<O, ? extends ElementContextAsserter<C, O, RA>> deltaAsserter = new ObjectDeltaAsserter<>(
+                elementContext.getPrimaryDelta(), this, "primary delta in " + desc());
         copySetupTo(deltaAsserter);
         return deltaAsserter;
     }
 
-    public ElementContextAsserter<C,O,RA> assertNoPrimaryDelta() {
-        assertNull("Unexpected primary delta in "+desc(), elementContext.getPrimaryDelta());
+    public ElementContextAsserter<C, O, RA> assertNoPrimaryDelta() {
+        assertNull("Unexpected primary delta in " + desc(), elementContext.getPrimaryDelta());
         return this;
     }
 
-    public ObjectDeltaAsserter<O, ? extends ElementContextAsserter<C,O,RA>> secondaryDelta() {
-        ObjectDeltaAsserter<O, ? extends ElementContextAsserter<C,O,RA>> deltaAsserter = new ObjectDeltaAsserter<>(
-                elementContext.getSecondaryDelta(), this, "secondary delta in "+desc());
+    public ObjectDeltaAsserter<O, ? extends ElementContextAsserter<C, O, RA>> secondaryDelta() {
+        ObjectDeltaAsserter<O, ? extends ElementContextAsserter<C, O, RA>> deltaAsserter = new ObjectDeltaAsserter<>(
+                elementContext.getSecondaryDelta(), this, "secondary delta in " + desc());
         copySetupTo(deltaAsserter);
         return deltaAsserter;
     }
 
-    public ElementContextAsserter<C,O,RA> assertNoSecondaryDelta() {
-        assertNull("Unexpected secondary delta in "+desc(), elementContext.getSecondaryDelta());
+    public ElementContextAsserter<C, O, RA> assertNoSecondaryDelta() {
+        assertNull("Unexpected secondary delta in " + desc(), elementContext.getSecondaryDelta());
         return this;
     }
 
@@ -92,12 +91,12 @@ public abstract class ElementContextAsserter<C extends ModelElementContext<O>, O
         return descWithDetails(elementContext);
     }
 
-    public ElementContextAsserter<C,O,RA> display() {
+    public ElementContextAsserter<C, O, RA> display() {
         display(desc());
         return this;
     }
 
-    public ElementContextAsserter<C,O,RA> display(String message) {
+    public ElementContextAsserter<C, O, RA> display(String message) {
         PrismTestUtil.display(message, elementContext);
         return this;
     }

@@ -16,6 +16,8 @@ import java.util.stream.Collectors;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.validation.Validator;
 
+import com.evolveum.midpoint.util.exception.PolicyViolationException;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -47,9 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestMisc extends AbstractInitializedModelIntegrationTest {
-
-    public static final File TEST_DIR = new File("src/test/resources/misc");
+public class TestMisc extends AbstractMiscTest {
 
     protected static final File ROLE_IMPORT_FILTERS_FILE = new File(TEST_DIR, "role-import-filters.xml");
     protected static final String ROLE_IMPORT_FILTERS_OID = "aad19b9a-d511-11e7-8bf7-cfecde275e59";
@@ -373,6 +373,122 @@ public class TestMisc extends AbstractInitializedModelIntegrationTest {
         assertRelationDef(relations, SchemaConstants.ORG_MANAGER, "RelationTypes.manager");
         assertRelationDef(relations, SchemaConstants.ORG_OWNER, "RelationTypes.owner");
         assertEquals("Unexpected number of relation definitions", 7, relations.size());
+    }
+
+    /**
+     * Add indestructible user.
+     * This is add. Nothing special should happen.
+     *
+     * MID-1448
+     */
+    @Test
+    public void test330IndestructibleSkellingtonAdd() throws Exception {
+        // WHEN
+        when();
+        addObject(USER_SKELLINGTON_FILE);
+
+        // THEN
+        then();
+        assertUserAfter(USER_SKELLINGTON_OID)
+                .assertName(USER_SKELLINGTON_NAME)
+                .assertIndestructible();
+    }
+
+    /**
+     * Attempt to delete indestructible user.
+     * This should end up with an error.
+     *
+     * MID-1448
+     */
+    @Test
+    public void test332IndestructibleSkellingtonDelete() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        try {
+            // WHEN
+            when();
+            deleteObject(UserType.class, USER_SKELLINGTON_OID, task, result);
+            assertNotReached();
+        } catch (PolicyViolationException e) {
+            assertFailure(result);
+        }
+
+        // THEN
+        then();
+        assertUserAfter(USER_SKELLINGTON_OID)
+                .assertName(USER_SKELLINGTON_NAME)
+                .assertIndestructible();
+    }
+
+    /**
+     * Attempt to RAW delete indestructible user.
+     * This should end up with an error.
+     *
+     * MID-1448
+     */
+    @Test
+    public void test333IndestructibleSkellingtonDeleteRaw() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        try {
+            // WHEN
+            when();
+            deleteObjectRaw(UserType.class, USER_SKELLINGTON_OID, task, result);
+            assertNotReached();
+        } catch (PolicyViolationException e) {
+            assertFailure(result);
+        }
+
+        // THEN
+        then();
+        assertUserAfter(USER_SKELLINGTON_OID)
+                .assertName(USER_SKELLINGTON_NAME)
+                .assertIndestructible();
+    }
+
+    /**
+     * Modify Skellington to be destructible. This should go well.
+     *
+     * MID-1448
+     */
+    @Test
+    public void test335IndestructibleSkellingtonModify() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // WHEN
+        when();
+        modifyObjectReplaceProperty(UserType.class, USER_SKELLINGTON_OID, UserType.F_INDESTRUCTIBLE, task, result, false);
+
+        // THEN
+        then();
+        assertSuccess(result);
+        assertUserAfter(USER_SKELLINGTON_OID)
+                .assertName(USER_SKELLINGTON_NAME)
+                .assertDestructible();
+    }
+
+    /**
+     * Attempt to delete indestructible user, that is made destructible now.
+     * This should go well.
+     *
+     * MID-1448
+     */
+    @Test
+    public void test339DestructibleSkellingtonDelete() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // WHEN
+        when();
+        deleteObject(UserType.class, USER_SKELLINGTON_OID, task, result);
+
+        // THEN
+        then();
+        assertSuccess(result);
+        assertNoObject(UserType.class, USER_SKELLINGTON_OID);
     }
 
     /**

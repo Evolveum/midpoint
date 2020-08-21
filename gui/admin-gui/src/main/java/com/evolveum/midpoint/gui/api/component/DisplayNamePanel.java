@@ -10,12 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-
-import com.evolveum.midpoint.util.DOMUtil;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -27,31 +21,30 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Trace LOGGER = TraceManager.getTrace(DisplayNamePanel.class);
-
-    private final static String ID_TYPE_IMAGE = "typeImage";
-    private final static String ID_DISPLAY_NAME = "displayName";
-    private final static String ID_IDENTIFIER = "identifier";
-    private final static String ID_RELATION = "relation";
-    private final static String ID_KIND_INTENT = "kindIntent";
-    private final static String ID_DESCRIPTION = "description";
-    private final static String ID_DESCRIPTION_LABELS = "descriptionLabels";
-    private final static String ID_NAVIGATE_TO_OBJECT = "navigateToObject";
+    private static final String ID_TYPE_IMAGE = "typeImage";
+    private static final String ID_DISPLAY_NAME = "displayName";
+    private static final String ID_IDENTIFIER = "identifier";
+    private static final String ID_RELATION = "relation";
+    private static final String ID_KIND_INTENT = "kindIntent";
+    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_DESCRIPTION_LABELS = "descriptionLabels";
+    private static final String ID_NAVIGATE_TO_OBJECT = "navigateToObject";
 
     public DisplayNamePanel(String id, IModel<C> model) {
         super(id, model);
@@ -124,10 +117,9 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
     }
 
     private boolean isObjectPolicyConfigurationType() {
-        if (QNameUtil.match(ObjectPolicyConfigurationType.COMPLEX_TYPE, getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName())) {
-            return true;
-        }
-        return false;
+        return QNameUtil.match(
+                ObjectPolicyConfigurationType.COMPLEX_TYPE,
+                getModelObject().asPrismContainerValue().getComplexTypeDefinition().getTypeName());
     }
 
     protected String createImageModel() {
@@ -142,9 +134,9 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
 
     }
 
-    private IModel<String> createHeaderModel() {
+    protected IModel<String> createHeaderModel() {
         // TODO: align with DisplayNameModel
-        return new ReadOnlyModel<String>(() -> {
+        return new ReadOnlyModel<>(() -> {
             if (getModelObject() == null) {
                 return "";
             }
@@ -170,7 +162,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
                 return "";
             }
 
-            if (QNameUtil.match(DOMUtil.XSD_STRING,name.getDefinition().getTypeName())) {
+            if (QNameUtil.match(DOMUtil.XSD_STRING, name.getDefinition().getTypeName())) {
                 return (String) name.getRealValue();
             } else if (QNameUtil.match(PolyStringType.COMPLEX_TYPE, name.getDefinition().getTypeName())) {
                 return WebComponentUtil.getTranslatedPolyString((PolyString) name.getRealValue());
@@ -181,7 +173,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
 
     }
 
-    private IModel<String> createIdentifierModel() {
+    protected IModel<String> createIdentifierModel() {
         if (getModelObject() == null) {
             return Model.of("");
         }
@@ -227,24 +219,18 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
 
     protected IModel<String> getDescriptionLabelModel() {
         if (getModel().getObject() != null && getModel().getObject().asPrismContainerValue().contains(ObjectType.F_DESCRIPTION)) {
-            return new PropertyModel<String>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart());
+            return new PropertyModel<>(getModel(), ObjectType.F_DESCRIPTION.getLocalPart());
         }
         return null;
     }
 
     protected IModel<List<String>> getDescriptionLabelsModel() {
-        List<String> descriptionLabels = new ArrayList<String>();
+        List<String> descriptionLabels = new ArrayList<>();
         IModel<String> des = getDescriptionLabelModel();
         if (des != null) {
             descriptionLabels.add(des.getObject());
         }
-        return new IModel<List<String>>() {
-
-            @Override
-            public List<String> getObject() {
-                return descriptionLabels;
-            }
-        };
+        return (IModel<List<String>>) () -> descriptionLabels;
     }
 
     protected QName getRelation() {

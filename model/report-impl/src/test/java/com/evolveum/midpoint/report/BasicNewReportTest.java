@@ -6,19 +6,7 @@
  */
 package com.evolveum.midpoint.report;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.testng.annotations.Test;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -28,7 +16,18 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.testng.AssertJUnit.assertNotNull;
+import org.testng.annotations.Test;
+
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author skublik
@@ -36,8 +35,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
 
-    protected final static File USER_WILL_FILE = new File(TEST_DIR_COMMON, "user-will.xml");
-    protected final static String USER_WILL_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
+    protected static final File USER_WILL_FILE = new File(TEST_DIR_COMMON, "user-will.xml");
+    protected static final String USER_WILL_OID = "c0c010c0-d34d-b33f-f00d-111111111122";
 
     public static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
     public static final File COLLECTION_ROLE_FILE = new File(COMMON_DIR, "object-collection-all-role.xml");
@@ -300,10 +299,10 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     protected List<String> basicCheckOutputFile(PrismObject<ReportType> report) throws IOException, SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         File outputFile = findOutputFile(report);
         displayValue("Found report file", outputFile);
-        assertNotNull("No output file for "+report, outputFile);
+        assertNotNull("No output file for " + report, outputFile);
         List<String> lines = Files.readAllLines(Paths.get(outputFile.getPath()));
-        displayValue("Report content ("+lines.size()+" lines)", String.join("\n", lines));
-        outputFile.renameTo(new File(outputFile.getParentFile(), "processed-"+outputFile.getName()));
+        displayValue("Report content (" + lines.size() + " lines)", String.join("\n", lines));
+        outputFile.renameTo(new File(outputFile.getParentFile(), "processed-" + outputFile.getName()));
         return lines;
     }
 
@@ -318,7 +317,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
             return null;
         }
         if (matchingFiles.length > 1) {
-            throw new IllegalStateException("Found more than one output files for "+report+": "+ Arrays.toString(matchingFiles));
+            throw new IllegalStateException("Found more than one output files for " + report + ": " + Arrays.toString(matchingFiles));
         }
         return matchingFiles[0];
     }

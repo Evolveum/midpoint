@@ -6,9 +6,15 @@
  */
 package com.evolveum.midpoint.web.page.admin.server;
 
+import java.util.Collection;
+import java.util.Collections;
+
+import org.apache.wicket.Component;
+import org.apache.wicket.model.IModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -17,11 +23,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.WorkBucketManagementPerformanceInformationType;
-import org.apache.wicket.Component;
-import org.apache.wicket.model.IModel;
-
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  *
@@ -29,10 +30,9 @@ import java.util.Collections;
 public class TaskInternalPerformanceTabPanel extends BasePanel<PrismContainerWrapper<OperationStatsType>> implements RefreshableTabPanel {
     private static final long serialVersionUID = 1L;
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(TaskInternalPerformanceTabPanel.class);
+    private static final Trace LOGGER = TraceManager.getTrace(TaskInternalPerformanceTabPanel.class);
 
     private static final String ID_INFORMATION = "information";
-
 
     //private static final Trace LOGGER = TraceManager.getTrace(TaskInternalPerformanceTabPanel.class);
 
@@ -151,7 +151,6 @@ public class TaskInternalPerformanceTabPanel extends BasePanel<PrismContainerWra
         }
         return sb.toString();
     }
-
 
     @Override
     public Collection<Component> getComponentsToUpdate() {

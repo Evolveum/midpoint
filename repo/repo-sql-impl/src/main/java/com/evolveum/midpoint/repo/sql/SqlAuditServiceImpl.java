@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,73 +8,86 @@ package com.evolveum.midpoint.repo.sql;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
+import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.*;
+import static com.evolveum.midpoint.schema.util.SystemConfigurationAuditUtil.isEscapingInvalidCharacters;
+
 import java.sql.*;
+import java.time.Instant;
 import java.util.Date;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
 import javax.xml.datatype.Duration;
 
+import com.querydsl.sql.ColumnMetadata;
+import com.querydsl.sql.SQLQuery;
+import com.querydsl.sql.dml.DefaultMapper;
+import com.querydsl.sql.dml.SQLInsertClause;
 import org.apache.commons.lang3.StringUtils;
-import org.hibernate.FlushMode;
-import org.hibernate.Session;
-import org.hibernate.dialect.Dialect;
-import org.hibernate.dialect.pagination.LimitHandler;
-import org.hibernate.engine.spi.RowSelection;
-import org.hibernate.query.NativeQuery;
-import org.hibernate.query.Query;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
-import com.evolveum.midpoint.repo.sql.data.BatchSqlQuery;
 import com.evolveum.midpoint.repo.sql.data.SelectQueryBuilder;
-import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
-import com.evolveum.midpoint.repo.sql.data.audit.*;
+import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
+import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
+import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.*;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
-import com.evolveum.midpoint.repo.sql.util.GetObjectResult;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 
 /**
  * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}.
+ * This is NOT a managed bean, it is completely created by {@link SqlAuditServiceFactory} and any
+ * of the dependencies must be dependencies of that factory to assure proper initialization.
+ * <p>
+ * Design notes:
+ * No repo.sql.data.audit.* entities are used (stage/type enums are OK).
+ * Conversion between audit-api classes and SQL/JDBC is all here, the class got inflated, but at
+ * least the code doesn't suggest it's reused elsewhere. Cleanup is still expected. :-)
  */
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
+
+    private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
 
     private static final String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
     private static final String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
@@ -82,24 +95,29 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private static final String OP_LIST_RECORDS_ATTEMPT = "listRecordsAttempt";
     private static final String OP_LOAD_AUDIT_DELTA = "loadAuditDelta";
 
-    @Autowired
-    private BaseHelper baseHelper;
-
-    @Autowired
-    private SqlQueryExecutor sqlQueryExecutor;
-
-    private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
     private static final Integer CLEANUP_AUDIT_BATCH_SIZE = 500;
 
     private static final String QUERY_MAX_RESULT = "setMaxResults";
     private static final String QUERY_FIRST_RESULT = "setFirstResult";
 
-    private final Map<String, String> customColumn = new HashMap<>();
+    private final BaseHelper baseHelper;
+    private final PrismContext prismContext;
+
+    private final SqlQueryExecutor sqlQueryExecutor;
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
-    public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
-        super(repositoryFactory);
+    public SqlAuditServiceImpl(
+            BaseHelper baseHelper,
+            PrismContext prismContext) {
+        this.baseHelper = baseHelper;
+        this.prismContext = prismContext;
+        this.sqlQueryExecutor = new SqlQueryExecutor(baseHelper, prismContext);
+    }
+
+    @Override
+    public SqlRepositoryConfiguration sqlConfiguration() {
+        return baseHelper.getConfiguration();
     }
 
     @Override
@@ -125,8 +143,233 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    private void auditAttempt(AuditEventRecord record) {
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
+            try {
+                long recordId = insertAuditEventRecord(jdbcSession, record);
+
+                Collection<MAuditDelta> deltas =
+                        insertAuditDeltas(jdbcSession, recordId, record.getDeltas());
+                insertChangedItemPaths(jdbcSession, recordId, deltas);
+
+                insertProperties(jdbcSession, recordId, record.getProperties());
+                insertReferences(jdbcSession, recordId, record.getReferences());
+                insertResourceOids(jdbcSession, recordId, record.getResourceOids());
+            } catch (SchemaException | RuntimeException ex) {
+                jdbcSession.handleGeneralException(ex, null);
+            }
+        }
+    }
+
+    /**
+     * Inserts audit event record aggregate root without any subentities.
+     *
+     * @return ID of created audit event record
+     */
+    private Long insertAuditEventRecord(
+            JdbcSession jdbcSession, AuditEventRecord record) {
+        QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
+        QAuditEventRecord aer = aerMapping.defaultAlias();
+        MAuditEventRecord aerBean = aerMapping
+                .createTransformer(prismContext, baseHelper.querydslConfiguration())
+                .from(record);
+        SQLInsertClause insert = jdbcSession.insert(aer).populate(aerBean);
+
+        Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();
+        for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
+            String propertyName = property.getKey();
+            if (!customColumns.containsKey(propertyName)) {
+                throw new IllegalArgumentException("Audit event record table doesn't"
+                        + " contains column for property " + propertyName);
+            }
+            // Like insert.set, but that one is too parameter-type-safe for our generic usage here.
+            insert.columns(aer.getPath(propertyName)).values(property.getValue());
+        }
+
+        return insert.executeWithKey(aer.id);
+    }
+
+    private Collection<MAuditDelta> insertAuditDeltas(
+            JdbcSession jdbcSession, long recordId, Collection<ObjectDeltaOperation<?>> deltas) {
+        // we want to keep only unique deltas, checksum is also part of PK
+        Map<String, MAuditDelta> deltasByChecksum = new HashMap<>();
+        for (ObjectDeltaOperation<?> deltaOperation : deltas) {
+            if (deltaOperation == null) {
+                continue;
+            }
+
+            MAuditDelta mAuditDelta = convertDelta(deltaOperation, recordId);
+            deltasByChecksum.put(mAuditDelta.checksum, mAuditDelta);
+        }
+
+        if (!deltasByChecksum.isEmpty()) {
+            SQLInsertClause insertBatch = jdbcSession.insert(
+                    QAuditDeltaMapping.INSTANCE.defaultAlias());
+            for (MAuditDelta value : deltasByChecksum.values()) {
+                // NULLs are important to keep the value count consistent during the batch
+                insertBatch.populate(value, DefaultMapper.WITH_NULL_BINDINGS).addBatch();
+            }
+            insertBatch.setBatchToBulk(true);
+            insertBatch.execute();
+        }
+        return deltasByChecksum.values();
+    }
+
+    private MAuditDelta convertDelta(ObjectDeltaOperation<?> deltaOperation, long recordId) {
+        MAuditDelta mAuditDelta = new MAuditDelta();
+        mAuditDelta.recordId = recordId;
+
+        try {
+            if (deltaOperation.getObjectDelta() != null) {
+                ObjectDelta<? extends ObjectType> delta = deltaOperation.getObjectDelta();
+
+                DeltaConversionOptions options = DeltaConversionOptions.createSerializeReferenceNames();
+                options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
+                String serializedDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
+
+                // serializedDelta is transient, needed for changed items later
+                mAuditDelta.serializedDelta = serializedDelta;
+                mAuditDelta.delta = RUtil.getBytesFromSerializedForm(serializedDelta, true);
+                mAuditDelta.deltaOid = delta.getOid();
+                mAuditDelta.deltaType = MiscUtil.enumOrdinal(
+                        RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
+            }
+
+            OperationResult executionResult = deltaOperation.getExecutionResult();
+            if (executionResult != null) {
+                OperationResultType jaxb = executionResult.createOperationResultType();
+                if (jaxb != null) {
+                    mAuditDelta.status = MiscUtil.enumOrdinal(
+                            RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
+                    String full = prismContext.xmlSerializer()
+                            .options(SerializationOptions.createEscapeInvalidCharacters())
+                            .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
+                    mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(full, true);
+                }
+            }
+            mAuditDelta.resourceOid = deltaOperation.getResourceOid();
+            if (deltaOperation.getObjectName() != null) {
+                mAuditDelta.objectNameOrig = deltaOperation.getObjectName().getOrig();
+                mAuditDelta.objectNameNorm = deltaOperation.getObjectName().getNorm();
+            }
+            if (deltaOperation.getResourceName() != null) {
+                mAuditDelta.resourceNameOrig = deltaOperation.getResourceName().getOrig();
+                mAuditDelta.resourceNameNorm = deltaOperation.getResourceName().getNorm();
+            }
+            mAuditDelta.checksum = RUtil.computeChecksum(mAuditDelta.delta, mAuditDelta.fullResult);
+        } catch (Exception ex) {
+            throw new SystemException("Problem during audit delta conversion", ex);
+        }
+        return mAuditDelta;
+    }
+
+    private void insertChangedItemPaths(
+            JdbcSession jdbcSession, long recordId, Collection<MAuditDelta> deltas)
+            throws SchemaException {
+        Set<String> changedItemPaths = new HashSet<>();
+        for (MAuditDelta delta : deltas) {
+            ObjectDeltaType deltaBean =
+                    prismContext.parserFor(delta.serializedDelta)
+                            .parseRealValue(ObjectDeltaType.class);
+            for (ItemDeltaType itemDelta : deltaBean.getItemDelta()) {
+                ItemPath path = itemDelta.getPath().getItemPath();
+                CanonicalItemPath canonical = prismContext.createCanonicalItemPath(
+                        path, deltaBean.getObjectType());
+                for (int i = 0; i < canonical.size(); i++) {
+                    changedItemPaths.add(canonical.allUpToIncluding(i).asString());
+                }
+            }
+        }
+        if (!changedItemPaths.isEmpty()) {
+            QAuditItem qAuditItem = QAuditItemMapping.INSTANCE.defaultAlias();
+            SQLInsertClause insertBatch = jdbcSession.insert(qAuditItem);
+            for (String changedItemPath : changedItemPaths) {
+                insertBatch.set(qAuditItem.recordId, recordId)
+                        .set(qAuditItem.changedItemPath, changedItemPath)
+                        .addBatch();
+            }
+            insertBatch.setBatchToBulk(true);
+            insertBatch.execute();
+        }
+    }
+
+    private void insertProperties(
+            JdbcSession jdbcSession, long recordId, Map<String, Set<String>> properties) {
+        if (properties.isEmpty()) {
+            return;
+        }
+
+        QAuditPropertyValue qAuditPropertyValue = QAuditPropertyValueMapping.INSTANCE.defaultAlias();
+        SQLInsertClause insertBatch = jdbcSession.insert(qAuditPropertyValue);
+        for (String propertyName : properties.keySet()) {
+            for (String propertyValue : properties.get(propertyName)) {
+                // id will be generated, but we're not interested in those here
+                insertBatch.set(qAuditPropertyValue.recordId, recordId)
+                        .set(qAuditPropertyValue.name, propertyName)
+                        .set(qAuditPropertyValue.value, propertyValue)
+                        .addBatch();
+            }
+        }
+        if (insertBatch.getBatchCount() == 0) {
+            return; // strange, no values anywhere?
+        }
+
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
+    }
+
+    private void insertReferences(JdbcSession jdbcSession,
+            long recordId, Map<String, Set<AuditReferenceValue>> references) {
+        if (references.isEmpty()) {
+            return;
+        }
+
+        QAuditRefValue qAuditRefValue = QAuditRefValueMapping.INSTANCE.defaultAlias();
+        SQLInsertClause insertBatch = jdbcSession.insert(qAuditRefValue);
+        for (String refName : references.keySet()) {
+            for (AuditReferenceValue refValue : references.get(refName)) {
+                // id will be generated, but we're not interested in those here
+                PolyString targetName = refValue.getTargetName();
+                insertBatch.set(qAuditRefValue.recordId, recordId)
+                        .set(qAuditRefValue.name, refName)
+                        .set(qAuditRefValue.oid, refValue.getOid())
+                        .set(qAuditRefValue.type, RUtil.qnameToString(refValue.getType()))
+                        .set(qAuditRefValue.targetNameOrig,
+                                targetName != null ? targetName.getOrig() : null)
+                        .set(qAuditRefValue.targetNameNorm,
+                                targetName != null ? targetName.getNorm() : null)
+                        .addBatch();
+            }
+        }
+        if (insertBatch.getBatchCount() == 0) {
+            return; // strange, no values anywhere?
+        }
+
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
+    }
+
+    private void insertResourceOids(
+            JdbcSession jdbcSession, long recordId, Set<String> resourceOids) {
+        if (resourceOids.isEmpty()) {
+            return;
+        }
+
+        QAuditResource qAuditResource = QAuditResourceMapping.INSTANCE.defaultAlias();
+        SQLInsertClause insertBatch = jdbcSession.insert(qAuditResource);
+        for (String resourceOid : resourceOids) {
+            insertBatch.set(qAuditResource.recordId, recordId)
+                    .set(qAuditResource.resourceOid, resourceOid)
+                    .addBatch();
+        }
+
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
+    }
+
     @Override
-    public List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult parentResult) {
+    public List<AuditEventRecord> listRecords(
+            String query, Map<String, Object> params, OperationResult parentResult) {
         final String operation = "listRecords";
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
@@ -159,7 +402,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
                 pm.registerOperationNewAttempt(opHandle, attempt);
                 LOGGER.error("Error while trying to list audit records, {}", ex.getMessage(), ex);
-                attemptResult.recordFatalError("Error while trying to list audit records, " + ex.getMessage(), ex);
+                attemptResult.recordFatalError(
+                        "Error while trying to list audit records, " + ex.getMessage(), ex);
             } finally {
                 pm.registerOperationFinish(opHandle, attempt);
                 attemptResult.computeStatus();
@@ -170,7 +414,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     @Override
-    public void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler handler, OperationResult parentResult) {
+    public void listRecordsIterative(String query,
+            Map<String, Object> params, AuditResultHandler handler, OperationResult parentResult) {
         // TODO operation recording ... but beware, this method is called from within listRecords
         //  (fortunately, currently it is not used from the outside, so it does not matter that it skips recording)
         final String operation = "listRecordsIterative";
@@ -188,12 +433,247 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 result.recordFatalError("Error while trying to list audit record " + ex.getMessage() + ", attempt: " + attempt, ex);
             }
         }
-
     }
 
-    // Hibernate-based
+    private void listRecordsIterativeAttempt(String query,
+            Map<String, Object> params, AuditResultHandler handler, OperationResult result) {
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("List records attempt\n  query: {}\n params:\n{}", query,
+                    DebugUtil.debugDump(params, 2));
+        }
+
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+            try {
+                Connection conn = jdbcSession.connection();
+                Database database = sqlConfiguration().getDatabaseType();
+                int count = 0;
+                String basicQuery = query;
+                if (StringUtils.isBlank(query)) {
+                    basicQuery = "select * from m_audit_event "
+                            + (database.equals(Database.ORACLE) ? "" : "as ")
+                            + "aer where 1=1 order by aer.timestampValue desc";
+                }
+                SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
+                setParametersToQuery(queryBuilder, params);
+
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
+                }
+
+                try (PreparedStatement stmt = queryBuilder.build().createPreparedStatement(conn)) {
+                    ResultSet resultList = stmt.executeQuery();
+                    while (resultList.next()) {
+                        AuditEventRecord audit =
+                                createAuditEventRecordAggregate(resultList, jdbcSession, result);
+                        count++;
+                        if (!handler.handle(audit)) {
+                            LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
+                            break;
+                        }
+                    }
+                } finally {
+                    result.computeStatus();
+                }
+
+                LOGGER.trace("List records iterative attempt processed {} records", count);
+            } catch (Exception ex) {
+                jdbcSession.handleGeneralException(ex, result);
+            }
+        }
+    }
+
+    /**
+     * Creates {@link AuditEventRecord} with all its subentities.
+     */
+    @NotNull
+    private AuditEventRecord createAuditEventRecordAggregate(
+            ResultSet resultList, JdbcSession jdbcSession, OperationResult result)
+            throws SQLException {
+        AuditEventRecord audit = createAuditEventRecord(resultList);
+        final Map<String, ColumnMetadata> customColumns =
+                QAuditEventRecordMapping.INSTANCE.getExtensionColumns();
+        for (Entry<String, ColumnMetadata> entry : customColumns.entrySet()) {
+            audit.getCustomColumnProperty().put(entry.getKey(),
+                    resultList.getString(entry.getValue().getName()));
+        }
+
+        //query for deltas
+        String tableAliasPreposition =
+                jdbcSession.databaseType().equals(Database.ORACLE) ? "" : "as ";
+        OperationResult deltaResult = result.createMinorSubresult(OP_LOAD_AUDIT_DELTA);
+        try (PreparedStatement subStmt = jdbcSession.connection().prepareStatement(
+                "select * from m_audit_delta " + tableAliasPreposition
+                        + "delta where delta.record_id=?")) {
+            subStmt.setLong(1, resultList.getLong(QAuditEventRecord.ID.getName()));
+
+            ResultSet subResultList = subStmt.executeQuery();
+            while (subResultList.next()) {
+                try {
+                    ObjectDeltaOperation<?> odo = createObjectDeltaOperation(subResultList);
+                    audit.addDelta(odo);
+                } catch (DtoTranslationException ex) {
+                    LOGGER.error("Cannot convert stored audit delta. Reason: {}", ex.getMessage(), ex);
+                    deltaResult.recordPartialError("Cannot convert stored audit delta. Reason: " + ex.getMessage(), ex);
+                    //do not throw an error. rather audit record without delta than fatal error.
+                }
+            }
+        } finally {
+            deltaResult.computeStatus();
+        }
+
+        //query for properties
+        try (PreparedStatement subStmt = jdbcSession.connection().prepareStatement(
+                "select * from m_audit_prop_value " + tableAliasPreposition
+                        + "prop where prop.record_id=?")) {
+            subStmt.setLong(1, resultList.getLong(QAuditEventRecord.ID.getName()));
+
+            ResultSet subResultList = subStmt.executeQuery();
+            while (subResultList.next()) {
+                audit.addPropertyValue(subResultList.getString(QAuditPropertyValue.NAME.getName()),
+                        subResultList.getString(QAuditPropertyValue.VALUE.getName()));
+            }
+        }
+
+        //query for references
+        try (PreparedStatement subStmt = jdbcSession.connection().prepareStatement(
+                "select * from m_audit_ref_value " + tableAliasPreposition
+                        + "ref where ref.record_id=?")) {
+            subStmt.setLong(1, resultList.getLong(QAuditEventRecord.ID.getName()));
+
+            ResultSet subResultList = subStmt.executeQuery();
+            while (subResultList.next()) {
+                audit.addReferenceValue(subResultList.getString(QAuditRefValue.NAME.getName()),
+                        createAuditReferenceValue(subResultList));
+            }
+        }
+
+        //query for target resource oids
+        try (PreparedStatement subStmt = jdbcSession.connection().prepareStatement(
+                "select * from m_audit_resource " + tableAliasPreposition
+                        + "res where res.record_id=?")) {
+            subStmt.setLong(1, resultList.getLong(QAuditEventRecord.ID.getName()));
+            ResultSet subResultList = subStmt.executeQuery();
+
+            while (subResultList.next()) {
+                audit.addResourceOid(subResultList.getString(QAuditResource.RESOURCE_OID.getName()));
+            }
+        }
+
+        audit.setInitiatorRef(prismRefValue(
+                resultList.getString(QAuditEventRecord.INITIATOR_OID.getName()),
+                resultList.getString(QAuditEventRecord.INITIATOR_NAME.getName()),
+                // TODO: when JDK-8 is gone use Objects.requireNonNullElse
+                defaultIfNull(
+                        repoObjectType(resultList, QAuditEventRecord.INITIATOR_TYPE.getName()),
+                        RObjectType.FOCUS)));
+        audit.setAttorneyRef(prismRefValue(
+                resultList.getString(QAuditEventRecord.ATTORNEY_OID.getName()),
+                resultList.getString(QAuditEventRecord.ATTORNEY_NAME.getName()),
+                RObjectType.FOCUS));
+        audit.setTargetRef(prismRefValue(
+                resultList.getString(QAuditEventRecord.TARGET_OID.getName()),
+                resultList.getString(QAuditEventRecord.TARGET_TYPE.getName()),
+                repoObjectType(resultList, QAuditEventRecord.TARGET_TYPE.getName())));
+        audit.setTargetOwnerRef(prismRefValue(
+                resultList.getString(QAuditEventRecord.TARGET_OWNER_OID.getName()),
+                resultList.getString(QAuditEventRecord.TARGET_OWNER_NAME.getName()),
+                repoObjectType(resultList, QAuditEventRecord.TARGET_OWNER_TYPE.getName())));
+        return audit;
+    }
+
+    private AuditEventRecord createAuditEventRecord(ResultSet resultSet) throws SQLException {
+        AuditEventRecord audit = new AuditEventRecord();
+        audit.setChannel(resultSet.getString(CHANNEL.getName()));
+        audit.setEventIdentifier(resultSet.getString(EVENT_IDENTIFIER.getName()));
+        if (resultSet.getObject(EVENT_STAGE.getName()) != null) {
+            audit.setEventStage(RAuditEventStage.values()[resultSet.getInt(EVENT_STAGE.getName())].getStage());
+        }
+        if (resultSet.getObject(EVENT_TYPE.getName()) != null) {
+            audit.setEventType(RAuditEventType.values()[resultSet.getInt(EVENT_TYPE.getName())].getType());
+        }
+        audit.setHostIdentifier(resultSet.getString(HOST_IDENTIFIER.getName()));
+        audit.setRemoteHostAddress(resultSet.getString(REMOTE_HOST_ADDRESS.getName()));
+        audit.setNodeIdentifier(resultSet.getString(NODE_IDENTIFIER.getName()));
+        audit.setMessage(resultSet.getString(MESSAGE.getName()));
+
+        if (resultSet.getObject(OUTCOME.getName()) != null) {
+            audit.setOutcome(
+                    ROperationResultStatus.values()[resultSet.getInt(OUTCOME.getName())].getStatus());
+        }
+        audit.setParameter(resultSet.getString(PARAMETER.getName()));
+        audit.setResult(resultSet.getString(RESULT.getName()));
+        audit.setSessionIdentifier(resultSet.getString(SESSION_IDENTIFIER.getName()));
+        audit.setRequestIdentifier(resultSet.getString(REQUEST_IDENTIFIER.getName()));
+        audit.setTaskIdentifier(resultSet.getString(TASK_IDENTIFIER.getName()));
+        audit.setTaskOid(resultSet.getString(TASK_OID.getName()));
+        if (resultSet.getTimestamp(TIMESTAMP.getName()) != null) {
+            audit.setTimestamp(resultSet.getTimestamp(TIMESTAMP.getName()).getTime());
+        }
+
+        audit.setRepoId(resultSet.getLong(ID.getName()));
+
+        return audit;
+    }
+
+    @NotNull
+    private ObjectDeltaOperation<?> createObjectDeltaOperation(ResultSet resultSet)
+            throws DtoTranslationException {
+
+        ObjectDeltaOperation<?> odo = new ObjectDeltaOperation<>();
+        try {
+            if (resultSet.getBytes(QAuditDelta.DELTA.getName()) != null) {
+                byte[] data = resultSet.getBytes(QAuditDelta.DELTA.getName());
+                String serializedDelta = RUtil.getSerializedFormFromBytes(data, sqlConfiguration().isUsingSQLServer());
+
+                ObjectDeltaType delta = prismContext.parserFor(serializedDelta)
+                        .parseRealValue(ObjectDeltaType.class);
+                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
+            }
+            if (resultSet.getBytes(QAuditDelta.FULL_RESULT.getName()) != null) {
+                byte[] data = resultSet.getBytes(QAuditDelta.FULL_RESULT.getName());
+                String serializedResult = RUtil.getSerializedFormFromBytes(data, sqlConfiguration().isUsingSQLServer());
+
+                OperationResultType resultType = prismContext.parserFor(serializedResult)
+                        .parseRealValue(OperationResultType.class);
+                odo.setExecutionResult(OperationResult.createOperationResult(resultType));
+            }
+            if (resultSet.getString(QAuditDelta.OBJECT_NAME_ORIG.getName()) != null
+                    || resultSet.getString(QAuditDelta.OBJECT_NAME_NORM.getName()) != null) {
+                odo.setObjectName(new PolyString(
+                        resultSet.getString(QAuditDelta.OBJECT_NAME_ORIG.getName()),
+                        resultSet.getString(QAuditDelta.OBJECT_NAME_NORM.getName())));
+            }
+            odo.setResourceOid(resultSet.getString(QAuditDelta.RESOURCE_OID.getName()));
+            if (resultSet.getString(QAuditDelta.RESOURCE_NAME_ORIG.getName()) != null
+                    || resultSet.getString(QAuditDelta.RESOURCE_NAME_NORM.getName()) != null) {
+                odo.setResourceName(new PolyString(
+                        resultSet.getString(QAuditDelta.RESOURCE_NAME_ORIG.getName()),
+                        resultSet.getString(QAuditDelta.RESOURCE_NAME_NORM.getName())));
+            }
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        return odo;
+    }
+
+    private AuditReferenceValue createAuditReferenceValue(ResultSet resultSet) throws SQLException {
+        PolyString targetName = null;
+        if (resultSet.getString(QAuditRefValue.TARGET_NAME_ORIG.getName()) != null
+                || resultSet.getString(QAuditRefValue.TARGET_NAME_NORM.getName()) != null) {
+            targetName = new PolyString(resultSet.getString(QAuditRefValue.TARGET_NAME_ORIG.getName()),
+                    resultSet.getString(QAuditRefValue.TARGET_NAME_NORM.getName()));
+        }
+        return new AuditReferenceValue(resultSet.getString(QAuditRefValue.OID.getName()),
+                RUtil.stringToQName(resultSet.getString(QAuditRefValue.TYPE.getName())), targetName);
+    }
+
     @Override
     public void reindexEntry(AuditEventRecord record) {
+        LOGGER.warn("Audit reindex does nothing now and probably should not be used.");
+        /* TODO: disabled in 2020 during MID-6318, see Javadoc from interface.
+         * Consider removal if it doesn't get proper meaning in some not so distant time.
         final String operation = "reindexEntry";
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
         long opHandle = pm.registerOperationStart(operation, AuditEventRecord.class);
@@ -212,12 +692,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
-    // Hibernate-based
     private void reindexEntryAttempt(AuditEventRecord record) {
         Session session = baseHelper.beginTransaction();
         try {
-
-            RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, getPrismContext(), null, auditConfiguration);
+            RAuditEventRecord reindexed = RAuditEventRecord.toRepo(record, prismContext, null, auditConfiguration);
             //TODO FIXME temporary hack, merge will eventually load the object to the session if there isn't one,
             // but in this case we force loading object because of "objectDeltaOperation". There is some problem probably
             // during serializing/deserializing which causes constraint violation on primary key..
@@ -227,7 +705,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             session.merge(rRecord);
 
             session.getTransaction().commit();
-
         } catch (DtoTranslationException ex) {
             baseHelper.handleGeneralCheckedException(ex, session, null);
         } catch (RuntimeException ex) {
@@ -235,164 +712,27 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         } finally {
             baseHelper.cleanupSessionAndResult(session, null);
         }
-
+        */
     }
 
-    // Hibernate-based
-    private void listRecordsIterativeAttempt(String query, Map<String, Object> params,
-            AuditResultHandler handler, OperationResult result) {
+    private RObjectType repoObjectType(ResultSet resultList, String columnName)
+            throws SQLException {
+        // Yes, to detect null, you have to check again after reading int. No getInteger there.
+        int ordinalValue = resultList.getInt(columnName);
+        return resultList.wasNull() ? null : RObjectType.fromOrdinal(ordinalValue);
+    }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("List records attempt\n  query: {}\n params:\n{}", query,
-                    DebugUtil.debugDump(params, 2));
+    private PrismReferenceValue prismRefValue(
+            String oid, String description, RObjectType repoObjectType) {
+        if (oid == null) {
+            return null;
         }
 
-        Session session = baseHelper.beginReadOnlyTransaction();
-        try {
-            session.doWork(con -> {
-                Database database = baseHelper.getConfiguration().getDatabase();
-                int count = 0;
-                String basicQuery = query;
-                if (StringUtils.isBlank(query)) {
-                    basicQuery = "select * from m_audit_event "
-                            + (database.equals(Database.ORACLE) ? "" : "as ")
-                            + "aer where 1=1 order by aer.timestampValue desc";
-                }
-                String deltaQuery = "select * from m_audit_delta "
-                        + (database.equals(Database.ORACLE) ? "" : "as ")
-                        + "delta where delta.record_id=?";
-                String propertyQuery = "select * from m_audit_prop_value "
-                        + (database.equals(Database.ORACLE) ? "" : "as ")
-                        + "prop where prop.record_id=?";
-                String refQuery = "select * from m_audit_ref_value "
-                        + (database.equals(Database.ORACLE) ? "" : "as ")
-                        + "ref where ref.record_id=?";
-                String resourceQuery = "select * from m_audit_resource "
-                        + (database.equals(Database.ORACLE) ? "" : "as ")
-                        + "res where res.record_id=?";
-                SelectQueryBuilder queryBuilder = new SelectQueryBuilder(database, basicQuery);
-                setParametersToQuery(queryBuilder, params);
-
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
-                }
-
-                try (PreparedStatement stmt = queryBuilder.build().createPreparedStatement(con)) {
-                    ResultSet resultList = stmt.executeQuery();
-                    while (resultList.next()) {
-
-                        AuditEventRecord audit = RAuditEventRecord.fromRepo(resultList);
-                        if (!customColumn.isEmpty()) {
-                            for (Entry<String, String> property : customColumn.entrySet()) {
-                                audit.getCustomColumnProperty().put(property.getKey(), resultList.getString(property.getValue()));
-                            }
-                        }
-
-                        //query for deltas
-                        PreparedStatement subStmt = con.prepareStatement(deltaQuery);
-                        subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
-                        ResultSet subResultList = subStmt.executeQuery();
-
-                        OperationResult deltaResult = result.createMinorSubresult(OP_LOAD_AUDIT_DELTA);
-                        try {
-                            while (subResultList.next()) {
-                                try {
-                                    ObjectDeltaOperation<?> odo = RObjectDeltaOperation.fromRepo(
-                                            subResultList, getPrismContext(), getConfiguration().isUsingSQLServer());
-                                    audit.addDelta(odo);
-                                } catch (DtoTranslationException ex) {
-                                    LOGGER.error("Cannot convert stored audit delta. Reason: {}", ex.getMessage(), ex);
-                                    deltaResult.recordPartialError("Cannot convert stored audit delta. Reason: " + ex.getMessage(), ex);
-                                    //do not throw an error. rather audit record without delta than fatal error.
-                                }
-                            }
-                        } finally {
-                            subResultList.close();
-                            subStmt.close();
-                            deltaResult.computeStatus();
-                        }
-
-                        //query for properties
-                        subStmt = con.prepareStatement(propertyQuery);
-                        subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
-                        subResultList = subStmt.executeQuery();
-
-                        try {
-                            while (subResultList.next()) {
-                                audit.addPropertyValue(subResultList.getString(RAuditPropertyValue.NAME_COLUMN_NAME),
-                                        subResultList.getString(RAuditPropertyValue.VALUE_COLUMN_NAME));
-                            }
-                        } finally {
-                            subResultList.close();
-                            subStmt.close();
-                        }
-
-                        //query for references
-                        subStmt = con.prepareStatement(refQuery);
-                        subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
-                        subResultList = subStmt.executeQuery();
-
-                        try {
-                            while (subResultList.next()) {
-                                audit.addReferenceValue(subResultList.getString(RAuditReferenceValue.NAME_COLUMN_NAME),
-                                        RAuditReferenceValue.fromRepo(subResultList));
-                            }
-                        } finally {
-                            subResultList.close();
-                            subStmt.close();
-                        }
-
-                        //query for target resource oids
-                        subStmt = con.prepareStatement(resourceQuery);
-                        subStmt.setLong(1, resultList.getLong(RAuditEventRecord.ID_COLUMN_NAME));
-                        subResultList = subStmt.executeQuery();
-
-                        try {
-                            while (subResultList.next()) {
-                                audit.addResourceOid(subResultList.getString(RTargetResourceOid.RESOURCE_OID_COLUMN_NAME));
-                            }
-                        } finally {
-                            subResultList.close();
-                            subStmt.close();
-                        }
-
-                        try {
-                            // TODO what if original name (in audit log) differs from the current one (in repo) ?
-                            audit.setInitiator(resolve(session, resultList.getString(RAuditEventRecord.INITIATOR_OID_COLUMN_NAME),
-                                    resultList.getString(RAuditEventRecord.INITIATOR_NAME_COLUMN_NAME),
-                                    // TODO: when JDK-8 is gone use Objects.requireNonNullElse
-                                    defaultIfNull(RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.INITIATOR_TYPE_COLUMN_NAME)), RObjectType.FOCUS)));
-                            audit.setAttorney(resolve(session, resultList.getString(RAuditEventRecord.ATTORNEY_OID_COLUMN_NAME),
-                                    resultList.getString(RAuditEventRecord.ATTORNEY_NAME_COLUMN_NAME), RObjectType.FOCUS));
-                            audit.setTarget(resolve(session, resultList.getString(RAuditEventRecord.TARGET_OID_COLUMN_NAME),
-                                    resultList.getString(RAuditEventRecord.TARGET_NAME_COLUMN_NAME),
-                                    RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.TARGET_TYPE_COLUMN_NAME))), getPrismContext());
-                            audit.setTargetOwner(resolve(session, resultList.getString(RAuditEventRecord.TARGET_OWNER_OID_COLUMN_NAME),
-                                    resultList.getString(RAuditEventRecord.TARGET_OWNER_NAME_COLUMN_NAME),
-                                    RObjectType.fromOrdinal(resultList.getInt(RAuditEventRecord.TARGET_OWNER_TYPE_COLUMN_NAME))));
-                        } catch (SchemaException ex) {
-                            baseHelper.handleGeneralCheckedException(ex, session, null);
-                        }
-                        count++;
-                        if (!handler.handle(audit)) {
-                            LOGGER.trace("Skipping handling of objects after {} was handled. ", audit);
-                            break;
-                        }
-                    }
-                } finally {
-                    result.computeStatus();
-                }
-
-                LOGGER.trace("List records iterative attempt processed {} records", count);
-            });
-            session.getTransaction().commit();
-
-        } catch (RuntimeException ex) {
-            baseHelper.handleGeneralRuntimeException(ex, session, null);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
-        }
-
+        PrismReferenceValue prv = prismContext.itemFactory().createReferenceValue(oid,
+                prismContext.getSchemaRegistry().determineTypeForClass(
+                        repoObjectType.getJaxbClass()));
+        prv.setDescription(description);
+        return prv;
     }
 
     private void setParametersToQuery(SelectQueryBuilder queryBuilder, Map<String, Object> params) {
@@ -411,152 +751,18 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         queryBuilder.addParameters(params);
     }
 
-    // Hibernate-based
-    // using generic parameter to avoid typing warnings
-    private <X extends ObjectType> PrismObject<X> resolve(Session session, String oid, String defaultName, RObjectType defaultType) throws SchemaException {
-        if (oid == null) {
-            return null;
-        }
-        Query<?> query = session.getNamedQuery("get.object");
-        query.setParameter("oid", oid);
-        query.setResultTransformer(GetObjectResult.RESULT_STYLE.getResultTransformer());
-        GetObjectResult object = (GetObjectResult) query.uniqueResult();
-
-        PrismObject result;
-        if (object != null) {
-            String serializedForm = RUtil.getSerializedFormFromBytes(object.getFullObject());
-            result = getPrismContext().parserFor(serializedForm)
-                    .compat().parse();
-        } else if (defaultType != null) {
-            result = getPrismContext().createObject(defaultType.getJaxbClass());
-            result.asObjectable().setName(PolyStringType.fromOrig(defaultName != null ? defaultName : oid));
-            result.setOid(oid);
-        } else {
-            result = null;
-        }
-        //noinspection unchecked
-        return result;
-    }
-
-    // Hibernate-based
-    private void auditAttempt(AuditEventRecord record) {
-        Session session = baseHelper.beginTransaction();
-        try {
-            SingleSqlQuery query = RAuditEventRecord.toRepo(record, customColumn);
-            session.doWork(connection -> {
-                Database database = getConfiguration().getDatabase();
-                String[] keyColumn = { RAuditEventRecord.ID_COLUMN_NAME };
-                PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
-                Long id = null;
-                try {
-                    smtp.executeUpdate();
-                    ResultSet resultSet = smtp.getGeneratedKeys();
-
-                    if (resultSet.next()) {
-                        id = resultSet.getLong(1);
-
-                    }
-                } finally {
-                    smtp.close();
-                }
-                if (id == null) {
-                    throw new IllegalArgumentException("Returned id of new record is null");
-                }
-
-                BatchSqlQuery deltaBatchQuery = new BatchSqlQuery(database);
-                BatchSqlQuery itemBatchQuery = new BatchSqlQuery(database);
-
-                for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
-                    if (delta == null) {
-                        continue;
-                    }
-
-                    ObjectDelta<?> objectDelta = delta.getObjectDelta();
-                    for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
-                        ItemPath path = itemDelta.getPath();
-                        CanonicalItemPath canonical = getPrismContext().createCanonicalItemPath(path, objectDelta.getObjectTypeClass());
-                        for (int i = 0; i < canonical.size(); i++) {
-
-                            SingleSqlQuery itemQuery = RAuditItem.toRepo(id, canonical.allUpToIncluding(i).asString());
-                            itemBatchQuery.addQueryForBatch(itemQuery);
-                        }
-                    }
-
-                    SingleSqlQuery deltaQuery;
-                    try {
-                        deltaQuery = RObjectDeltaOperation.toRepo(id, delta, getPrismContext(), auditConfiguration);
-                        deltaBatchQuery.addQueryForBatch(deltaQuery);
-                    } catch (DtoTranslationException e) {
-                        baseHelper.handleGeneralCheckedException(e, session, null);
-                    }
-                }
-                if (!deltaBatchQuery.isEmpty()) {
-                    deltaBatchQuery.execute(connection);
-                }
-                if (!itemBatchQuery.isEmpty()) {
-                    itemBatchQuery.execute(connection);
-                }
-
-                BatchSqlQuery propertyBatchQuery = new BatchSqlQuery(database);
-                for (Entry<String, Set<String>> propertyEntry : record.getProperties().entrySet()) {
-                    for (String propertyValue : propertyEntry.getValue()) {
-                        SingleSqlQuery propertyQuery = RAuditPropertyValue.toRepo(
-                                id, propertyEntry.getKey(), RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE));
-//                                val.setTransient(isTransient);
-                        propertyBatchQuery.addQueryForBatch(propertyQuery);
-                    }
-                }
-                if (!propertyBatchQuery.isEmpty()) {
-                    propertyBatchQuery.execute(connection);
-                }
-
-                BatchSqlQuery referenceBatchQuery = new BatchSqlQuery(database);
-                for (Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
-                    for (AuditReferenceValue referenceValue : referenceEntry.getValue()) {
-                        SingleSqlQuery referenceQuery = RAuditReferenceValue.toRepo(id, referenceEntry.getKey(), referenceValue);
-//                                 val.setTransient(isTransient);
-                        referenceBatchQuery.addQueryForBatch(referenceQuery);
-                    }
-                }
-                if (!referenceBatchQuery.isEmpty()) {
-                    referenceBatchQuery.execute(connection);
-                }
-
-                BatchSqlQuery resourceOidBatchQuery = new BatchSqlQuery(database);
-                for (String resourceOid : record.getResourceOids()) {
-                    SingleSqlQuery resourceOidQuery = RTargetResourceOid.toRepo(id, resourceOid);
-                    resourceOidBatchQuery.addQueryForBatch(resourceOidQuery);
-                }
-                if (!resourceOidBatchQuery.isEmpty()) {
-                    resourceOidBatchQuery.execute(connection);
-                }
-            });
-
-            session.getTransaction().commit();
-        } catch (DtoTranslationException ex) {
-            baseHelper.handleGeneralCheckedException(ex, session, null);
-        } catch (RuntimeException ex) {
-            baseHelper.handleGeneralRuntimeException(ex, session, null);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
-        }
-    }
-
-    // Hibernate-based
     @Override
     public void cleanupAudit(CleanupPolicyType policy, OperationResult parentResult) {
         Objects.requireNonNull(policy, "Cleanup policy must not be null.");
         Objects.requireNonNull(parentResult, "Operation result must not be null.");
 
         // TODO review monitoring performance of these cleanup operations
-        //  It looks like the attempts (and wasted time) are not counted correctly
+        // It looks like the attempts (and wasted time) are not counted correctly
         cleanupAuditMaxRecords(policy, parentResult);
         cleanupAuditMaxAge(policy, parentResult);
     }
 
-    // Hibernate-based
     private void cleanupAuditMaxAge(CleanupPolicyType policy, OperationResult parentResult) {
-
         if (policy.getMaxAge() == null) {
             return;
         }
@@ -574,9 +780,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         Date minValue = new Date();
         duration.addTo(minValue);
 
-        // factored out because it produces INFO-level message
-        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
-        checkTemporaryTablesSupport(dialect);
+        checkTemporaryTablesSupport();
 
         long start = System.currentTimeMillis();
         boolean first = true;
@@ -585,7 +789,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             while (true) {
                 try {
                     LOGGER.info("{} audit cleanup, deleting up to {} (duration '{}'), batch size {}{}.",
-                            first ? "Starting" : "Continuing with ", minValue, duration, CLEANUP_AUDIT_BATCH_SIZE,
+                            first ? "Starting" : "Continuing with ",
+                            minValue, duration, CLEANUP_AUDIT_BATCH_SIZE,
                             first ? "" : ", up to now deleted " + totalCountHolder.getValue() + " entries");
                     first = false;
                     int count;
@@ -594,10 +799,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         // (or any other) problem - in any iteration
                         long batchStart = System.currentTimeMillis();
                         LOGGER.debug(
-                                "Starting audit cleanup batch, deleting up to {} (duration '{}'), batch size {}, up to now deleted {} entries.",
+                                "Starting audit cleanup batch, deleting up to {} (duration '{}'),"
+                                        + " batch size {}, up to now deleted {} entries.",
                                 minValue, duration, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
-                        count = batchDeletionAttempt((session, tempTable) -> selectRecordsByMaxAge(session, tempTable, minValue, dialect),
-                                totalCountHolder, batchStart, dialect, parentResult);
+
+                        count = batchDeletionAttempt(
+                                (session, tempTable) -> selectRecordsByMaxAge(session, tempTable, minValue),
+                                totalCountHolder, batchStart, parentResult);
                     } while (count > 0);
                     return;
                 } catch (RuntimeException ex) {
@@ -612,9 +820,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
-    // Hibernate-based
     private void cleanupAuditMaxRecords(CleanupPolicyType policy, OperationResult parentResult) {
-
         if (policy.getMaxRecords() == null) {
             return;
         }
@@ -622,14 +828,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         final String operation = "deletingMaxRecords";
 
         SqlPerformanceMonitorImpl pm = getPerformanceMonitor();
-        long opHandle = pm.registerOperationStart(OP_CLEANUP_AUDIT_MAX_RECORDS, AuditEventRecord.class);
+        long opHandle = pm.registerOperationStart(
+                OP_CLEANUP_AUDIT_MAX_RECORDS, AuditEventRecord.class);
         int attempt = 1;
 
-        Integer recordsToKeep = policy.getMaxRecords();
+        int recordsToKeep = policy.getMaxRecords();
 
-        // factored out because it produces INFO-level message
-        Dialect dialect = Dialect.getDialect(baseHelper.getSessionFactoryBean().getHibernateProperties());
-        checkTemporaryTablesSupport(dialect);
+        checkTemporaryTablesSupport();
 
         long start = System.currentTimeMillis();
         boolean first = true;
@@ -647,10 +852,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                         // (or any other) problem - in any iteration
                         long batchStart = System.currentTimeMillis();
                         LOGGER.debug(
-                                "Starting audit cleanup batch, keeping at most {} records, batch size {}, up to now deleted {} entries.",
+                                "Starting audit cleanup batch, keeping at most {} records,"
+                                        + " batch size {}, up to now deleted {} entries.",
                                 recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE, totalCountHolder.getValue());
-                        count = batchDeletionAttempt((session, tempTable) -> selectRecordsByNumberToKeep(session, tempTable, recordsToKeep, dialect),
-                                totalCountHolder, batchStart, dialect, parentResult);
+
+                        count = batchDeletionAttempt(
+                                (session, tempTable) -> selectRecordsByNumberToKeep(session, tempTable, recordsToKeep),
+                                totalCountHolder, batchStart, parentResult);
                     } while (count > 0);
                     return;
                 } catch (RuntimeException ex) {
@@ -665,203 +873,188 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
-    // Hibernate-based
-    private void checkTemporaryTablesSupport(Dialect dialect) {
-        TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
-
-        if (!ttDialect.supportsTemporaryTables()) {
-            LOGGER.error("Dialect {} doesn't support temporary tables, couldn't cleanup audit logs.",
-                    dialect);
-            throw new SystemException(
-                    "Dialect " + dialect + " doesn't support temporary tables, couldn't cleanup audit logs.");
-        }
-    }
-
-    // Hibernate-based
-    // deletes one batch of records (using recordsSelector to select records according to particular cleanup policy)
-    private int batchDeletionAttempt(BiFunction<Session, String, Integer> recordsSelector, Holder<Integer> totalCountHolder,
-            long batchStart, Dialect dialect, OperationResult subResult) {
-
-        Session session = baseHelper.beginTransaction();
+    private void checkTemporaryTablesSupport() {
+        Database database = sqlConfiguration().getDatabaseType();
         try {
-            TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
+            TemporaryTableDialect.getTempTableDialect(database);
+        } catch (SystemException e) {
+            LOGGER.error("Database type {} doesn't support temporary tables, couldn't cleanup audit logs.",
+                    database);
+            throw new SystemException(
+                    "Database type " + database + " doesn't support temporary tables, couldn't cleanup audit logs.");
+        }
+    }
 
-            // create temporary table
-            final String tempTable = ttDialect.generateTemporaryTableName(RAuditEventRecord.TABLE_NAME);
-            createTemporaryTable(session, dialect, tempTable);
-            LOGGER.trace("Created temporary table '{}'.", tempTable);
+    /**
+     * Deletes one batch of records using recordsSelector to select records
+     * according to particular cleanup policy.
+     */
+    private int batchDeletionAttempt(
+            BiFunction<JdbcSession, String, Integer> recordsSelector,
+            Holder<Integer> totalCountHolder, long batchStart, OperationResult subResult) {
 
-            int count = recordsSelector.apply(session, tempTable);
-            LOGGER.trace("Inserted {} audit record ids ready for deleting.", count);
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
+            try {
+                TemporaryTableDialect ttDialect = TemporaryTableDialect
+                        .getTempTableDialect(sqlConfiguration().getDatabaseType());
 
-            // drop records from m_audit_item, m_audit_event, m_audit_delta, and others
-            session.createNativeQuery(createDeleteQuery(RAuditItem.TABLE_NAME, tempTable,
-                    RAuditItem.COLUMN_RECORD_ID)).executeUpdate();
-            session.createNativeQuery(createDeleteQuery(RObjectDeltaOperation.TABLE_NAME, tempTable,
-                    RObjectDeltaOperation.COLUMN_RECORD_ID)).executeUpdate();
-            session.createNativeQuery(createDeleteQuery(RAuditPropertyValue.TABLE_NAME, tempTable,
-                    RAuditPropertyValue.COLUMN_RECORD_ID)).executeUpdate();
-            session.createNativeQuery(createDeleteQuery(RAuditReferenceValue.TABLE_NAME, tempTable,
-                    RAuditReferenceValue.COLUMN_RECORD_ID)).executeUpdate();
-            session.createNativeQuery(createDeleteQuery(RTargetResourceOid.TABLE_NAME, tempTable,
-                    RTargetResourceOid.COLUMN_RECORD_ID)).executeUpdate();
-            session.createNativeQuery(createDeleteQuery(RAuditEventRecord.TABLE_NAME, tempTable, "id"))
-                    .executeUpdate();
+                // create temporary table
+                final String tempTable =
+                        ttDialect.generateTemporaryTableName(QAuditEventRecord.TABLE_NAME);
+                createTemporaryTable(jdbcSession, tempTable);
+                LOGGER.trace("Created temporary table '{}'.", tempTable);
 
-            // drop temporary table
-            if (ttDialect.dropTemporaryTableAfterUse()) {
-                LOGGER.debug("Dropping temporary table.");
+                int count = recordsSelector.apply(jdbcSession, tempTable);
+                LOGGER.trace("Inserted {} audit record ids ready for deleting.", count);
 
-                String sb = ttDialect.getDropTemporaryTableString()
-                        + ' ' + tempTable;
-                session.createNativeQuery(sb).executeUpdate();
+                // drop records from m_audit_item, m_audit_event, m_audit_delta, and others
+                jdbcSession.executeStatement(
+                        createDeleteQuery(QAuditItem.TABLE_NAME,
+                                tempTable, QAuditItem.RECORD_ID));
+                jdbcSession.executeStatement(
+                        createDeleteQuery(QAuditDelta.TABLE_NAME,
+                                tempTable, QAuditDelta.RECORD_ID));
+                jdbcSession.executeStatement(
+                        createDeleteQuery(QAuditPropertyValue.TABLE_NAME,
+                                tempTable, QAuditPropertyValue.RECORD_ID));
+                jdbcSession.executeStatement(
+                        createDeleteQuery(QAuditRefValue.TABLE_NAME,
+                                tempTable, QAuditRefValue.RECORD_ID));
+                jdbcSession.executeStatement(
+                        createDeleteQuery(QAuditResource.TABLE_NAME,
+                                tempTable, QAuditResource.RECORD_ID));
+                jdbcSession.executeStatement(
+                        createDeleteQuery(QAuditEventRecord.TABLE_NAME,
+                                tempTable, QAuditEventRecord.ID));
+
+                // drop temporary table
+                if (ttDialect.dropTemporaryTableAfterUse()) {
+                    LOGGER.debug("Dropping temporary table.");
+                    jdbcSession.executeStatement(
+                            ttDialect.getDropTemporaryTableString() + ' ' + tempTable);
+                }
+
+                jdbcSession.commit();
+                // commit would happen automatically, but if it fails, we don't change the numbers
+                int totalCount = totalCountHolder.getValue() + count;
+                totalCountHolder.setValue(totalCount);
+                LOGGER.debug("Audit cleanup batch finishing successfully in {} milliseconds; total count = {}",
+                        System.currentTimeMillis() - batchStart, totalCount);
+                return count;
+            } catch (RuntimeException ex) {
+                LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}",
+                        System.currentTimeMillis() - batchStart, ex.getMessage());
+                jdbcSession.handleGeneralRuntimeException(ex, subResult);
+                throw new AssertionError("We shouldn't get here.");
             }
-
-            session.getTransaction().commit();
-            int totalCount = totalCountHolder.getValue() + count;
-            totalCountHolder.setValue(totalCount);
-            LOGGER.debug("Audit cleanup batch finishing successfully in {} milliseconds; total count = {}",
-                    System.currentTimeMillis() - batchStart, totalCount);
-            return count;
-        } catch (RuntimeException ex) {
-            LOGGER.debug("Audit cleanup batch finishing with exception in {} milliseconds; exception = {}",
-                    System.currentTimeMillis() - batchStart, ex.getMessage());
-            baseHelper.handleGeneralRuntimeException(ex, session, subResult);
-            throw new AssertionError("We shouldn't get here.");
         } finally {
-            baseHelper.cleanupSessionAndResult(session, subResult);
+            if (subResult != null && subResult.isUnknown()) {
+                subResult.computeStatus();
+            }
         }
     }
 
-    // Hibernate-based
-    private int selectRecordsByMaxAge(Session session, String tempTable, Date minValue, Dialect dialect) {
+    private int selectRecordsByMaxAge(
+            JdbcSession jdbcSession, String tempTable, Date minValue) {
 
-        // fill temporary table, we don't need to join task on object on
-        // container, oid and id is already in task table
-        String selectString = "select a.id as id from " + RAuditEventRecord.TABLE_NAME + " a"
-                + " where a." + RAuditEventRecord.COLUMN_TIMESTAMP + " < ###TIME###";
+        QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
+        SQLQuery<Long> populateQuery = jdbcSession.query()
+                .select(aer.id)
+                .from(aer)
+                .where(aer.timestamp.lt(Instant.ofEpochMilli(minValue.getTime())))
+                // we limit the query, but we don't care about order, eventually we'll get them all
+                .limit(CLEANUP_AUDIT_BATCH_SIZE);
 
-        // batch size
-        RowSelection rowSelection = new RowSelection();
-        rowSelection.setMaxRows(CLEANUP_AUDIT_BATCH_SIZE);
-        LimitHandler limitHandler = dialect.getLimitHandler();
-        selectString = limitHandler.processSql(selectString, rowSelection);
-
-        // replace ? -> batch size, $ -> ?
-        // Sorry for that .... I just don't know how to write this query in HQL,
-        // nor I'm not sure if limiting max size in
-        // compound insert into ... select ... query via query.setMaxSize()
-        // would work - TODO write more nicely if anybody knows how)
-        selectString = selectString.replace("?", String.valueOf(CLEANUP_AUDIT_BATCH_SIZE));
-        selectString = selectString.replace("###TIME###", "?");
-
-        String queryString = "insert into " + tempTable + " " + selectString;
-        LOGGER.trace("Query string = {}", queryString);
-        NativeQuery query = session.createNativeQuery(queryString);
-        query.setParameter(1, new Timestamp(minValue.getTime()));
-
-        return query.executeUpdate();
+        QAuditTemp tmp = new QAuditTemp("tmp", tempTable);
+        return (int) jdbcSession.insert(tmp).select(populateQuery).execute();
     }
 
-    // Hibernate-based
-    private int selectRecordsByNumberToKeep(Session session, String tempTable, Integer recordsToKeep, Dialect dialect) {
-        CriteriaBuilder cb = session.getCriteriaBuilder();
-        CriteriaQuery cq = cb.createQuery(RAuditEventRecord.class);
-        cq.select(cb.count(cq.from(RAuditEventRecord.class)));
-        Number totalAuditRecords = (Number) session.createQuery(cq).uniqueResult();
-        int recordsToDelete = totalAuditRecords.intValue() - recordsToKeep;
-        if (recordsToDelete <= 0) {
-            recordsToDelete = 0;
-        } else if (recordsToDelete > CLEANUP_AUDIT_BATCH_SIZE) {
-            recordsToDelete = CLEANUP_AUDIT_BATCH_SIZE;
-        }
+    private int selectRecordsByNumberToKeep(
+            JdbcSession jdbcSession, String tempTable, int recordsToKeep) {
+
+        QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
+        long totalAuditRecords = jdbcSession.query().from(aer).fetchCount();
+
+        // we will find the number to delete and limit it to range [0,CLEANUP_AUDIT_BATCH_SIZE]
+        long recordsToDelete = Math.max(0,
+                Math.min(totalAuditRecords - recordsToKeep, CLEANUP_AUDIT_BATCH_SIZE));
         LOGGER.debug("Total audit records: {}, records to keep: {} => records to delete in this batch: {}",
                 totalAuditRecords, recordsToKeep, recordsToDelete);
         if (recordsToDelete == 0) {
             return 0;
         }
 
-        String selectString = "select a.id as id from " + RAuditEventRecord.TABLE_NAME + " a"
-                + " order by a." + RAuditEventRecord.COLUMN_TIMESTAMP + " asc";
+        SQLQuery<Long> populateQuery = jdbcSession.query()
+                .select(aer.id)
+                .from(aer)
+                .orderBy(aer.timestamp.asc())
+                .limit(recordsToDelete);
 
-        // batch size
-        RowSelection rowSelection = new RowSelection();
-        rowSelection.setMaxRows(recordsToDelete);
-        LimitHandler limitHandler = dialect.getLimitHandler();
-        selectString = limitHandler.processSql(selectString, rowSelection);
-        selectString = selectString.replace("?", String.valueOf(recordsToDelete));
-
-        String queryString = "insert into " + tempTable + " " + selectString;
-        LOGGER.trace("Query string = {}", queryString);
-        NativeQuery query = session.createNativeQuery(queryString);
-        return query.executeUpdate();
+        QAuditTemp tmp = new QAuditTemp("tmp", tempTable);
+        return (int) jdbcSession.insert(tmp).select(populateQuery).execute();
     }
 
     /**
      * This method creates temporary table for cleanup audit method.
      */
-    // Hibernate-based
-    private void createTemporaryTable(Session session, final Dialect dialect, final String tempTable) {
-        session.doWork(connection -> {
-            // check if table exists
-            if (!getConfiguration().isUsingPostgreSQL()) {
-                try {
-                    Statement s = connection.createStatement();
-                    s.execute("select id from " + tempTable + " where id = 1");
-
-                    s.close();
-                    // table already exists
-                    return;
-                } catch (Exception ex) {
-                    // we expect this on the first time
-                }
+    private void createTemporaryTable(JdbcSession jdbcSession, final String tempTable) {
+        // check if table exists
+        if (!sqlConfiguration().isUsingPostgreSQL()) {
+            try {
+                jdbcSession.executeStatement("select id from " + tempTable + " where id = 1");
+                // table already exists
+                return;
+            } catch (Exception ex) {
+                // we expect this on the first time
             }
+        }
 
-            TemporaryTableDialect ttDialect = TemporaryTableDialect.getTempTableDialect(dialect);
+        TemporaryTableDialect ttDialect =
+                TemporaryTableDialect.getTempTableDialect(sqlConfiguration().getDatabaseType());
 
-            Statement s = connection.createStatement();
-            s.execute(ttDialect.getCreateTemporaryTableString()
-                    + ' ' + tempTable + " (id "
-                    + dialect.getTypeName(Types.BIGINT)
-                    + " not null)"
-                    + ttDialect.getCreateTemporaryTablePostfix());
-            s.close();
-        });
+        jdbcSession.executeStatement(ttDialect.getCreateTemporaryTableString()
+                + ' ' + tempTable + " (id "
+                + jdbcSession.getNativeTypeName(Types.BIGINT)
+                + " not null)"
+                + ttDialect.getCreateTemporaryTablePostfix());
     }
 
-    private String createDeleteQuery(String objectTable, String tempTable, String idColumnName) {
-        if (getConfiguration().isUsingMySqlCompatible()) {
-            return createDeleteQueryAsJoin(objectTable, tempTable, idColumnName);
-        } else if (getConfiguration().isUsingPostgreSQL()) {
-            return createDeleteQueryAsJoinPostgreSQL(objectTable, tempTable, idColumnName);
+    private String createDeleteQuery(
+            String objectTable, String tempTable, ColumnMetadata idColumn) {
+        if (sqlConfiguration().isUsingMySqlCompatible()) {
+            return createDeleteQueryAsJoin(objectTable, tempTable, idColumn);
+        } else if (sqlConfiguration().isUsingPostgreSQL()) {
+            return createDeleteQueryAsJoinPostgreSQL(objectTable, tempTable, idColumn);
         } else {
             // todo consider using join for other databases as well
-            return createDeleteQueryAsSubquery(objectTable, tempTable, idColumnName);
+            return createDeleteQueryAsSubquery(objectTable, tempTable, idColumn);
         }
     }
 
-    private String createDeleteQueryAsJoin(String objectTable, String tempTable, String idColumnName) {
-        return "DELETE FROM main, temp USING " + objectTable + " AS main INNER JOIN " + tempTable + " as temp "
-                + "WHERE main." + idColumnName + " = temp.id";
+    private String createDeleteQueryAsJoin(
+            String objectTable, String tempTable, ColumnMetadata idColumn) {
+        return "DELETE FROM main, temp USING " + objectTable + " AS main"
+                + " INNER JOIN " + tempTable + " as temp"
+                + " WHERE main." + idColumn.getName() + " = temp.id";
     }
 
-    private String createDeleteQueryAsJoinPostgreSQL(String objectTable, String tempTable, String idColumnName) {
-        return "delete from " + objectTable + " main using " + tempTable + " temp where main." + idColumnName + " = temp.id";
+    private String createDeleteQueryAsJoinPostgreSQL(
+            String objectTable, String tempTable, ColumnMetadata idColumn) {
+        return "delete from " + objectTable + " main using " + tempTable
+                + " temp where main." + idColumn.getName() + " = temp.id";
     }
 
-    private String createDeleteQueryAsSubquery(String objectTable, String tempTable, String idColumnName) {
+    private String createDeleteQueryAsSubquery(
+            String objectTable, String tempTable, ColumnMetadata idColumn) {
         return "delete from " + objectTable
-                + " where " + idColumnName + " in (select id from " + tempTable
+                + " where " + idColumn.getName() + " in (select id from " + tempTable
                 + ')';
     }
 
     public long countObjects(String query, Map<String, Object> params) {
-        long[] count = { 0 };
-        Session session = baseHelper.beginTransaction();
-        try {
-            session.setFlushMode(FlushMode.MANUAL);
-            session.doWork(connection -> {
-                Database database = getConfiguration().getDatabase();
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+            try {
+                Database database = jdbcSession.databaseType();
 
                 String basicQuery = query;
                 if (StringUtils.isBlank(query)) {
@@ -874,32 +1067,30 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
                 LOGGER.trace("List records attempt\n  processed query: {}", queryBuilder);
 
-                try (PreparedStatement stmt = queryBuilder.build().createPreparedStatement(connection)) {
+                try (PreparedStatement stmt =
+                        queryBuilder.build().createPreparedStatement(jdbcSession.connection())) {
                     ResultSet resultList = stmt.executeQuery();
                     if (!resultList.next()) {
-                        throw new IllegalArgumentException("Result set don't have value for select: " + query);
+                        throw new IllegalArgumentException(
+                                "Result set don't have value for select: " + query);
                     }
                     if (resultList.getMetaData().getColumnCount() > 1) {
-                        throw new IllegalArgumentException("Result have more as one value for select: " + query);
+                        throw new IllegalArgumentException(
+                                "Result have more as one value for select: " + query);
                     }
-                    count[0] = resultList.getLong(1);
+                    return resultList.getLong(1);
                 }
-            });
-        } catch (RuntimeException ex) {
-            baseHelper.handleGeneralRuntimeException(ex, session, null);
-        } finally {
-            baseHelper.cleanupSessionAndResult(session, null);
+            } catch (RuntimeException | SQLException ex) {
+                jdbcSession.handleGeneralException(ex, null);
+            }
         }
-        return count[0];
+        // not good, there is not even an operation result to check for error status
+        return 0;
     }
 
     @Override
     public boolean supportsRetrieval() {
         return true;
-    }
-
-    public Map<String, String> getCustomColumn() {
-        return customColumn;
     }
 
     @Override
@@ -909,10 +1100,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     @Override
     public int countObjects(
-            ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult parentResult) {
-
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult) {
         try {
             // TODO MID-6319 do something with the OperationResult... skipped for now
             return sqlQueryExecutor.count(AuditEventRecordType.class, query, options);
@@ -924,16 +1114,44 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     @Override
     @NotNull
     public SearchResultList<AuditEventRecordType> searchObjects(
-            ObjectQuery query,
-            Collection<SelectorOptions<GetOperationOptions>> options,
-            OperationResult parentResult)
+            @Nullable ObjectQuery query,
+            @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
+            @Nullable OperationResult parentResult)
             throws SchemaException {
 
         // TODO MID-6319 do something with the OperationResult... skipped for now
         try {
-            return sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
+            SearchResultList<AuditEventRecordType> result =
+                    sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
+            addContainerDefinition(AuditEventRecordType.class, result);
+            return result;
         } catch (QueryException e) {
             throw new SystemException(e);
         }
+    }
+
+    /**
+     * This enriches collection of returned values with parent container so that
+     * {@link PrismContainer#getDefinition()} is not null.
+     * It is a bit questionable whether this is a responsibility of the repository-level service.
+     * Even without this the values should have {@link PrismContainer#getComplexTypeDefinition()}
+     * if properly created with {@link PrismContext} as constructor parameter.
+     */
+    @SuppressWarnings("SameParameterValue")
+    private <C extends Containerable> void addContainerDefinition(
+            Class<C> containerableType, List<C> containerableValues) throws SchemaException {
+        PrismContainerDefinition<C> containerDefinition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(containerableType);
+        PrismContainer<C> container = containerDefinition.instantiate();
+        for (C containerValue : containerableValues) {
+            //noinspection unchecked
+            container.add(containerValue.asPrismContainerValue());
+        }
+    }
+
+    public void addCustomColumn(String propertyName, String columnName) {
+        ColumnMetadata columnMetadata =
+                ColumnMetadata.named(columnName).ofType(Types.NVARCHAR).withSize(255);
+        QAuditEventRecordMapping.INSTANCE.addExtensionColumn(propertyName, columnMetadata);
     }
 }

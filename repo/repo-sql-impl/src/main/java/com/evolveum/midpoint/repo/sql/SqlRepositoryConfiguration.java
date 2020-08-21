@@ -59,7 +59,7 @@ public class SqlRepositoryConfiguration {
     @SuppressWarnings("deprecation")
     public enum Database {
 
-        // order is important! (the first value is the default)
+        // Order of dialects is important, the first value is the default.
         H2(DRIVER_H2,
                 H2Dialect.class.getName()),
         MYSQL(DRIVER_MYSQL,
@@ -282,6 +282,7 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_JDBC_URL = "jdbcUrl";
     public static final String PROPERTY_DATASOURCE = "dataSource";
     public static final String PROPERTY_USE_ZIP = "useZip";
+    public static final String PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS = "createMissingCustomColumns";
 
     /**
      * Specifies language used for writing fullObject attribute.
@@ -396,6 +397,8 @@ public class SqlRepositoryConfiguration {
     private final boolean skipOrgClosureStructureCheck;
     private final boolean stopOnOrgClosureStartupFailure;
 
+    private final boolean createMissingCustomColumns;
+
     private final long initializationFailTimeout;
 
     private final boolean skipExplicitSchemaValidation;
@@ -486,6 +489,7 @@ public class SqlRepositoryConfiguration {
         idleTimeout = configuration.getLong(PROPERTY_IDLE_TIMEOUT, null);
 
         useZip = configuration.getBoolean(PROPERTY_USE_ZIP, false);
+        createMissingCustomColumns = configuration.getBoolean(PROPERTY_CREATE_MISSING_CUSTOM_COLUMNS, false);
         fullObjectFormat = configuration.getString(
                 PROPERTY_FULL_OBJECT_FORMAT,
                 System.getProperty(PROPERTY_FULL_OBJECT_FORMAT, PrismContext.LANG_XML));
@@ -983,7 +987,11 @@ public class SqlRepositoryConfiguration {
         return skipOrgClosureStructureCheck;
     }
 
-    public Database getDatabase() {
+    public boolean isCreateMissingCustomColumns() {
+        return createMissingCustomColumns;
+    }
+
+    public Database getDatabaseType() {
         return database;
     }
 

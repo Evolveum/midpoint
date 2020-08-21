@@ -184,9 +184,9 @@ public class ReportTaskHandler implements TaskHandler {
         }
         switch (fileFormat.getType()) {
             case HTML:
-                return new HtmlController(fileFormat, reportService);
+                return new HtmlController(fileFormat, parentReport, reportService);
             case CSV:
-                return new CsvController(fileFormat, reportService);
+                return new CsvController(fileFormat, parentReport, reportService);
             default:
                 LOGGER.error("Unsupported ExportType " + fileFormat);
                 throw new IllegalArgumentException("Unsupported ExportType " + fileFormat);

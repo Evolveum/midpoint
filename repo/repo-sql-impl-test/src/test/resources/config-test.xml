@@ -1,7 +1,6 @@
 <?xml version="1.0"?>
-
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -21,10 +20,21 @@
 
             <performanceStatisticsLevel>10</performanceStatisticsLevel>
             <performanceStatisticsFile>./target/performance.log</performanceStatisticsFile>
+
+            <!-- this is here for custom column creation in audit, audit uses default repo conf -->
+            <createMissingCustomColumns>true</createMissingCustomColumns>
         </repository>
         <audit>
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+                <customColumn>
+                    <columnName>cus_foo</columnName>
+                    <eventRecordPropertyName>foo</eventRecordPropertyName>
+                </customColumn>
+                <customColumn>
+                    <columnName>cus_bar</columnName>
+                    <eventRecordPropertyName>bar</eventRecordPropertyName>
+                </customColumn>
             </auditService>
         </audit>
         <icf>

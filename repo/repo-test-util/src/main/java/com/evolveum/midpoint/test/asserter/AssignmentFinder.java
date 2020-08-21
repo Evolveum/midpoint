@@ -8,55 +8,61 @@ package com.evolveum.midpoint.test.asserter;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections4.CollectionUtils;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+
+import java.util.List;
 
 /**
  * @author semancik
  *
  */
-public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, RA>,RA> {
+public class AssignmentFinder<AH extends AssignmentHolderType, AHA extends AssignmentHolderAsserter<AH, RA>,RA> {
 
-    private final AssignmentsAsserter<F,FA,RA> assignmentsAsserter;
+    private final AssignmentsAsserter<AH, AHA,RA> assignmentsAsserter;
     private String targetOid;
     private QName targetType;
     private QName targetRelation;
     private String resourceOid;
+    private QName holderType;
 
-    public AssignmentFinder(AssignmentsAsserter<F,FA,RA> assignmentsAsserter) {
+    public AssignmentFinder(AssignmentsAsserter<AH, AHA,RA> assignmentsAsserter) {
         this.assignmentsAsserter = assignmentsAsserter;
     }
 
-    public AssignmentFinder<F,FA,RA> targetOid(String targetOid) {
+    public AssignmentFinder<AH, AHA,RA> targetOid(String targetOid) {
         this.targetOid = targetOid;
         return this;
     }
 
-    public AssignmentFinder<F,FA,RA> targetRelation(QName targetRelation) {
+    public AssignmentFinder<AH, AHA,RA> targetRelation(QName targetRelation) {
         this.targetRelation = targetRelation;
         return this;
     }
 
-    public AssignmentFinder<F,FA,RA> targetType(QName targetType) {
+    public AssignmentFinder<AH, AHA,RA> targetType(QName targetType) {
         this.targetType = targetType;
         return this;
     }
 
-    public AssignmentFinder<F,FA,RA> resourceOid(String resourceOid) {
+    public AssignmentFinder<AH, AHA,RA> resourceOid(String resourceOid) {
         this.resourceOid = resourceOid;
         return this;
     }
 
-    public AssignmentAsserter<AssignmentsAsserter<F, FA, RA>> find() throws ObjectNotFoundException, SchemaException {
+    public AssignmentFinder<AH, AHA, RA> assignmentRelationHolder(QName holderType) {
+        this.holderType = holderType;
+        return this;
+    }
+
+    public AssignmentAsserter<AssignmentsAsserter<AH, AHA, RA>> find() throws ObjectNotFoundException, SchemaException {
         AssignmentType found = null;
         PrismObject<?> foundTarget = null;
         for (AssignmentType assignment: assignmentsAsserter.getAssignments()) {
@@ -73,10 +79,10 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
         if (found == null) {
             fail("Found no assignment that matches search criteria");
         }
-        return assignmentsAsserter.forAssignment(found, foundTarget);
+        return assignmentsAsserter.forAssignment(found);
     }
 
-    public AssignmentsAsserter<F,FA,RA> assertNone() throws ObjectNotFoundException, SchemaException {
+    public AssignmentsAsserter<AH, AHA,RA> assertNone() throws ObjectNotFoundException, SchemaException {
         for (AssignmentType assignment: assignmentsAsserter.getAssignments()) {
             PrismObject<ShadowType> assignmentTarget = null;
 //            PrismObject<ShadowType> assignmentTarget = assignmentsAsserter.getTarget(assignment.getOid());
@@ -87,7 +93,7 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
         return assignmentsAsserter;
     }
 
-    public AssignmentsAsserter<F,FA,RA> assertAll() throws ObjectNotFoundException, SchemaException {
+    public AssignmentsAsserter<AH, AHA,RA> assertAll() throws ObjectNotFoundException, SchemaException {
         for (AssignmentType assignment: assignmentsAsserter.getAssignments()) {
             PrismObject<ShadowType> assignmentTarget = null;
 //            PrismObject<ShadowType> assignmentTarget = assignmentsAsserter.getTarget(assignment.getOid());
@@ -134,6 +140,22 @@ public class AssignmentFinder<F extends FocusType, FA extends FocusAsserter<F, R
             if (assignment.getConstruction() == null || assignment.getConstruction().getResourceRef() == null
                     || !resourceOid.equals(assignment.getConstruction().getResourceRef().getOid())) {
                 return false;
+            }
+        }
+
+        if (holderType != null) {
+            if (CollectionUtils.isEmpty(assignment.getAssignmentRelation())) {
+                return false;
+            }
+            for (AssignmentRelationType assignmentRelationType : assignment.getAssignmentRelation()) {
+                List<QName> holderTypes = assignmentRelationType.getHolderType();
+                for (QName holder : holderTypes) {
+                    if (QNameUtil.match(holder, holderType)) {
+                        return true;
+                    }
+                }
+                return false;
+
             }
         }
         // TODO: more criteria

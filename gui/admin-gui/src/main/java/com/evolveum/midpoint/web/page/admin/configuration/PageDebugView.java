@@ -9,11 +9,8 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import java.io.Serializable;
 import java.util.Collection;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -30,6 +27,8 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -54,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
         @AuthorizationAction(actionUri = PageAdminConfiguration.AUTH_CONFIGURATION_ALL,
                 label = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_LABEL, description = PageAdminConfiguration.AUTH_CONFIGURATION_ALL_DESCRIPTION),
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_CONFIGURATION_DEBUG_URL,
-                label = "PageDebugView.auth.debug.label", description = "PageDebugView.auth.debug.description")})
+                label = "PageDebugView.auth.debug.label", description = "PageDebugView.auth.debug.description") })
 public class PageDebugView extends PageAdminConfiguration {
     private static final long serialVersionUID = 1L;
 
@@ -74,10 +73,9 @@ public class PageDebugView extends PageAdminConfiguration {
     private String dataLanguage = null;
 
     private IModel<ObjectViewDto<?>> objectViewDtoModel;
-    private DebugViewOptions debugViewConfiguration = new DebugViewOptions();
+    private final DebugViewOptions debugViewConfiguration = new DebugViewOptions();
 
     public PageDebugView() {
-
     }
 
     @Override
@@ -94,7 +92,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        if (objectViewDtoModel == null){
+        if (objectViewDtoModel == null) {
             objectViewDtoModel = initObjectViewObject();
         }
         if (dataLanguage == null) {
@@ -194,7 +192,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
     private CheckBoxPanel createOptionCheckbox(String id, IModel<Boolean> model, String labelKey, String helpKey) {
 
-          return new CheckBoxPanel(id, model, createStringResource(labelKey), createStringResource(helpKey)) {
+        return new CheckBoxPanel(id, model, createStringResource(labelKey), createStringResource(helpKey)) {
 
             private static final long serialVersionUID = 1L;
 
@@ -211,16 +209,17 @@ public class PageDebugView extends PageAdminConfiguration {
         CheckBoxPanel panel = (CheckBoxPanel) get(createComponentPath(ID_FORM, panelId));
         if (panel == null) {
             LOGGER.error("Cannot find panel: {}", panelId);
-             return false;
+            return false;
         }
 
         return panel.getValue();
     }
+
     private Form<?> getMainForm() {
         return (Form<?>) get(ID_FORM);
     }
 
-    private void initAceEditor(Form<?> mainForm){
+    private void initAceEditor(Form<?> mainForm) {
         AceEditor editor = new AceEditor("aceEditor", new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
         editor.setModeForDataLanguage(dataLanguage);
         editor.add(new VisibleBehaviour(() -> !isTrue(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT)));
@@ -239,10 +238,12 @@ public class PageDebugView extends PageAdminConfiguration {
                         dataLanguage = updatedLanguage;
                         target.add(mainForm);
                     }
+
                     @Override
                     protected String getObjectStringRepresentation() {
                         return objectViewDtoModel.getObject().getXml();
                     }
+
                     @Override
                     protected boolean isValidateSchema() {
                         return isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA);
@@ -325,7 +326,7 @@ public class PageDebugView extends PageAdminConfiguration {
                 if (isTrue(DebugViewOptions.ID_REEVALUATE_SEARCH_FILTERS)) {
                     options.reevaluateSearchFilters(true);
                 }
-                if(!isTrue(DebugViewOptions.ID_ENCRYPT)) {
+                if (!isTrue(DebugViewOptions.ID_ENCRYPT)) {
                     options.noCrypt(true);
                 }
 
@@ -343,7 +344,7 @@ public class PageDebugView extends PageAdminConfiguration {
         } else {
             showResult(result);
             //to handle returning back to list objects page instead of edit object page
-            if (getBreadcrumbs().size() >= 3){
+            if (getBreadcrumbs().size() >= 3) {
                 redirectBack(3);
             } else {
                 redirectBack();
@@ -355,23 +356,20 @@ public class PageDebugView extends PageAdminConfiguration {
         parseObject(objectViewDtoModel.getObject().getXml(), (Holder<Objectable>) objectHolder, dataLanguage, isTrue(DebugViewOptions.ID_VALIDATE_SCHEMA), false, Objectable.class, result);
     }
 
+    static class DebugViewOptions implements Serializable {
 
- class DebugViewOptions implements Serializable {
+        private static final long serialVersionUID = 1L;
 
-         private static final long serialVersionUID = 1L;
+        private static final String ID_ENCRYPT = "encrypt";
+        private static final String ID_SAVE_AS_RAW = "saveAsRaw";
+        private static final String ID_REEVALUATE_SEARCH_FILTERS = "reevaluateSearchFilters";
+        private static final String ID_VALIDATE_SCHEMA = "validateSchema";
+        private static final String ID_SWITCH_TO_PLAINTEXT = "switchToPlainText";
 
-        private final static String ID_ENCRYPT = "encrypt";
-        private final static String ID_SAVE_AS_RAW = "saveAsRaw";
-        private final static String ID_REEVALUATE_SEARCH_FILTERS = "reevaluateSearchFilters";
-        private final static String ID_VALIDATE_SCHEMA = "validateSchema";
-        private final static String ID_SWITCH_TO_PLAINTEXT = "switchToPlainText";
-
-        private final boolean encrypt=true;
-        private final boolean saveAsRaw=true;
+        private final boolean encrypt = true;
+        private final boolean saveAsRaw = true;
         private final boolean reevaluateSearchFilters = false;
         private final boolean validateSchema = false;
         private final boolean switchToPlainText = false;
-
     }
-
 }

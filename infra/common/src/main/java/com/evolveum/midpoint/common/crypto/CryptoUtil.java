@@ -6,6 +6,20 @@
  */
 package com.evolveum.midpoint.common.crypto;
 
+import java.io.ByteArrayOutputStream;
+import java.security.Provider;
+import java.security.Security;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
+
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -20,23 +34,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-import org.jetbrains.annotations.NotNull;
-
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
-import java.io.ByteArrayOutputStream;
-import java.security.Provider;
-import java.security.Security;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author semancik
- *
  */
 public class CryptoUtil {
 
@@ -44,7 +44,7 @@ public class CryptoUtil {
 
     /**
      * Encrypts all encryptable values in the object.
-     *
+     * <p>
      * Note: We could use TunnelException here (it would be cleaner) but the tunneled exception could be
      * other than EncryptionException! For example, it could come from RawType, carrying a SchemaException.
      * See MID-6086. So we use throwExceptionAsUnchecked hack instead.
@@ -117,7 +117,7 @@ public class CryptoUtil {
     }
 
     public static void checkEncrypted(Collection<? extends ItemDelta> modifications) {
-        for (ItemDelta<?,?> delta: modifications) {
+        for (ItemDelta<?, ?> delta : modifications) {
             try {
                 delta.accept(createCheckingVisitor());
             } catch (IllegalStateException e) {
@@ -126,29 +126,29 @@ public class CryptoUtil {
         }
     }
 
-    private final static byte [] DEFAULT_IV_BYTES = {
-        (byte) 0x51,(byte) 0x65,(byte) 0x22,(byte) 0x23,
-        (byte) 0x64,(byte) 0x05,(byte) 0x6A,(byte) 0xBE,
-        (byte) 0x51,(byte) 0x65,(byte) 0x22,(byte) 0x23,
-        (byte) 0x64,(byte) 0x05,(byte) 0x6A,(byte) 0xBE,
+    private static final byte[] DEFAULT_IV_BYTES = {
+            (byte) 0x51, (byte) 0x65, (byte) 0x22, (byte) 0x23,
+            (byte) 0x64, (byte) 0x05, (byte) 0x6A, (byte) 0xBE,
+            (byte) 0x51, (byte) 0x65, (byte) 0x22, (byte) 0x23,
+            (byte) 0x64, (byte) 0x05, (byte) 0x6A, (byte) 0xBE,
     };
 
     public static void securitySelfTest(OperationResult parentTestResult) {
-        OperationResult result = parentTestResult.createSubresult(CryptoUtil.class.getName()+".securitySelfTest");
+        OperationResult result = parentTestResult.createSubresult(CryptoUtil.class.getName() + ".securitySelfTest");
 
         // Providers
-        for (Provider provider: Security.getProviders()) {
+        for (Provider provider : Security.getProviders()) {
             String providerName = provider.getName();
-            OperationResult providerResult = result.createSubresult(CryptoUtil.class.getName()+".securitySelfTest.provider."+providerName);
+            OperationResult providerResult = result.createSubresult(CryptoUtil.class.getName() + ".securitySelfTest.provider." + providerName);
             try {
                 providerResult.addContext("info", provider.getInfo());
                 ByteArrayOutputStream os = new ByteArrayOutputStream();
-                provider.storeToXML(os, "Crypto provider "+providerName);
+                provider.storeToXML(os, "Crypto provider " + providerName);
                 String propXml = os.toString();
                 providerResult.addContext("properties", propXml);
                 providerResult.recordSuccess();
             } catch (Throwable e) {
-                LOGGER.error("Security self test (provider properties) failed: {}", e.getMessage() ,e);
+                LOGGER.error("Security self test (provider properties) failed: {}", e.getMessage(), e);
                 providerResult.recordFatalError(e);
             }
         }
@@ -322,7 +322,7 @@ public class CryptoUtil {
     @SuppressWarnings("SameParameterValue")
     private static void securitySelfTestAlgorithm(String algorithmName, String transformationName,
             Integer keySize, boolean critical, OperationResult parentResult) {
-        OperationResult subresult = parentResult.createSubresult(CryptoUtil.class.getName()+".securitySelfTest.algorithm."+algorithmName);
+        OperationResult subresult = parentResult.createSubresult(CryptoUtil.class.getName() + ".securitySelfTest.algorithm." + algorithmName);
         try {
             KeyGenerator keyGenerator = KeyGenerator.getInstance(algorithmName);
             if (keySize != null) {
@@ -334,7 +334,7 @@ public class CryptoUtil {
 
             SecretKey key = keyGenerator.generateKey();
             subresult.addReturn("keyAlgorithm", key.getAlgorithm());
-            subresult.addReturn("keyLength", key.getEncoded().length*8);
+            subresult.addReturn("keyLength", key.getEncoded().length * 8);
             subresult.addReturn("keyFormat", key.getFormat());
             subresult.recordSuccess();
 
@@ -358,7 +358,7 @@ public class CryptoUtil {
             String decryptedString = new String(decryptedBytes);
 
             if (!plainString.equals(decryptedString)) {
-                subresult.recordFatalError("Encryptor roundtrip failed; encrypted="+plainString+", decrypted="+decryptedString);
+                subresult.recordFatalError("Encryptor roundtrip failed; encrypted=" + plainString + ", decrypted=" + decryptedString);
             } else {
                 subresult.recordSuccess();
             }
@@ -367,11 +367,11 @@ public class CryptoUtil {
         } catch (Throwable e) {
             if (critical) {
                 LOGGER.error("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}-{}",
-                        algorithmName, transformationName, keySize, e.getMessage(),e);
+                        algorithmName, transformationName, keySize, e.getMessage(), e);
                 subresult.recordFatalError(e);
             } else {
                 LOGGER.warn("Security self test (algorithmName={}, transformationName={}, keySize={}) failed: {}-{} (failure is expected in some cases)",
-                        algorithmName, transformationName, keySize, e.getMessage(),e);
+                        algorithmName, transformationName, keySize, e.getMessage(), e);
                 subresult.recordWarning(e);
             }
         }

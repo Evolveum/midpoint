@@ -31,7 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F,RA> {
+public class FocusAsserter<F extends FocusType,RA> extends AssignmentHolderAsserter<F,RA> {
 
     public FocusAsserter(PrismObject<F> focus) {
         super(focus);
@@ -136,6 +136,24 @@ public class FocusAsserter<F extends FocusType,RA> extends PrismObjectAsserter<F
     @Override
     public FocusAsserter<F,RA> assertActiveLifecycleState() {
         super.assertActiveLifecycleState();
+        return this;
+    }
+
+    @Override
+    public FocusAsserter<F,RA> assertIndestructible(Boolean expected) {
+        super.assertIndestructible(expected);
+        return this;
+    }
+
+    @Override
+    public FocusAsserter<F,RA> assertIndestructible() {
+        super.assertIndestructible();
+        return this;
+    }
+
+    @Override
+    public FocusAsserter<F,RA> assertDestructible() {
+        super.assertDestructible();
         return this;
     }
 

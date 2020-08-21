@@ -57,8 +57,8 @@ public class HtmlController extends FileFormatController {
     private static final String REPORT_GENERATED_ON = "Widget.generatedOn";
     private static final String NUMBER_OF_RECORDS = "Widget.numberOfRecords";
 
-    public HtmlController(FileFormatConfigurationType fileFormatConfiguration, ReportServiceImpl reportService) {
-        super(fileFormatConfiguration, reportService);
+    public HtmlController(FileFormatConfigurationType fileFormatConfiguration, ReportType report, ReportServiceImpl reportService) {
+        super(fileFormatConfiguration, report, reportService);
     }
 
     @Override

@@ -16,8 +16,6 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
-
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.LDIFException;
@@ -61,6 +59,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.ShadowAsserter;
+import com.evolveum.midpoint.test.asserter.prism.PrismObjectAsserter;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -889,7 +888,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        ShadowType object = unmarshalValueFromFile(ACCOUNT_JACK_FILE, ShadowType.class);
+        ShadowType object = unmarshalValueFromFile(ACCOUNT_JACK_FILE);
 
         System.out.println(SchemaDebugUtil.prettyPrint(object));
         System.out.println(object.asPrismObject().debugDump());

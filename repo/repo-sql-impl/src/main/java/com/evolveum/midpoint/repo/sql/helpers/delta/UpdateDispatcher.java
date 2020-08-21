@@ -16,10 +16,7 @@ import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import javax.persistence.metamodel.ManagedType;
 
@@ -49,6 +46,9 @@ class UpdateDispatcher {
             new MetadataUpdate(object, object, delta, ctx).handleWholeContainerDelta();
         } else if (FocusType.F_JPEG_PHOTO.equivalent(delta.getPath())) {
             new PhotoUpdate(object, delta, ctx).handlePropertyDelta();
+        } else if (ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+                PasswordType.F_METADATA).equivalent(delta.getPath())) {
+            new PasswordMetadataUpdate(object, delta, ctx).handlePropertyDelta();
         } else {
             if (object instanceof RShadow && ShadowType.F_PENDING_OPERATION.equivalent(delta.getPath())) {
                 ctx.shadowPendingOperationModified = true;

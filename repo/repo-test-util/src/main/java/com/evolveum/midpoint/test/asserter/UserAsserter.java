@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import javax.xml.namespace.QName;
 
@@ -116,6 +114,24 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     @Override
     public UserAsserter<RA> assertActiveLifecycleState() {
         super.assertActiveLifecycleState();
+        return this;
+    }
+
+    @Override
+    public UserAsserter<RA> assertIndestructible(Boolean expected) {
+        super.assertIndestructible(expected);
+        return this;
+    }
+
+    @Override
+    public UserAsserter<RA> assertIndestructible() {
+        super.assertIndestructible();
+        return this;
+    }
+
+    @Override
+    public UserAsserter<RA> assertDestructible() {
+        super.assertDestructible();
         return this;
     }
 
@@ -377,7 +393,8 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     }
 
     @Override
-    public ValueMetadataAsserter<? extends UserAsserter<RA>> valueMetadata(ItemPath path) throws SchemaException {
+    public ValueMetadataAsserter<? extends UserAsserter<RA>> valueMetadata(ItemPath path)
+            throws SchemaException {
         //noinspection unchecked
         return (ValueMetadataAsserter<? extends UserAsserter<RA>>) super.valueMetadata(path);
     }

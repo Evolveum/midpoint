@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.web.component.objectdetails;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -165,9 +166,18 @@ public class UserDelegationsTabPanel<F extends FocusType> extends AbstractObject
             }
 
             @Override
-            protected String getAssignmentsDeleteMessage(AssignmentEditorDto dto, int size) {
+            protected String getAssignmentsDeleteMessage(AssignmentEditorDto dto) {
                 return createStringResource("AssignmentTablePanel.modal.message.deleteDelegation",
-                        size).getString();
+                        getSelectedAssignments().size()).getString();
+            }
+
+            @Override
+            protected List<AssignmentEditorDto> getAssignmentListToProcess(AssignmentEditorDto dto){
+                if (dto != null){
+                    return Collections.singletonList(dto);
+                } else {
+                    return getSelectedAssignments();
+                }
             }
 
             @Override

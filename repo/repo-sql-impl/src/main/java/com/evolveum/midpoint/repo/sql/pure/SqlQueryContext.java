@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure;
 
 import java.sql.Connection;
@@ -7,7 +13,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-import com.querydsl.core.types.EntityPath;
+import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.core.types.dsl.ComparableExpressionBase;
@@ -28,22 +34,24 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Context information about SQL query.
  * Works as a kind of accumulator where information are added as the object query is interpreted.
- * It is also used as an entry point for {@link FilterProcessor} execution for this query.
+ * It is also used as an entry point for {@link FilterProcessor} processing for this query.
+ * And finally, it also executes the query, because this way it is more practical to contain
+ * all the needed parametrized types without using Class-type parameters.
+ * <p>
+ * This object <b>does not handle SQL connections or transaction</b> in any way, any connection
+ * needed is provided from the outside.
  *
  * @param <S> schema type, used by encapsulated mapping
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
  */
-public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathContext<S, Q, R>
+public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
+        extends SqlPathContext<S, Q, R>
         implements FilterProcessor<ObjectFilter> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(SqlQueryContext.class);
 
     /**
      * Default page size if pagination is requested, that is offset is set, but maxSize is not.
@@ -65,9 +73,8 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
     private final SQLQuery<?> sqlQuery;
     private final Configuration querydslConfiguration;
 
-    public static <S, Q extends EntityPath<R>, R> SqlQueryContext<S, Q, R> from(
-            Class<S> schemaType, PrismContext prismContext, Configuration querydslConfiguration)
-            throws QueryException {
+    public static <S, Q extends FlexibleRelationalPathBase<R>, R> SqlQueryContext<S, Q, R> from(
+            Class<S> schemaType, PrismContext prismContext, Configuration querydslConfiguration) {
 
         QueryModelMapping<S, Q, R> rootMapping = QueryModelMappingConfig.getBySchemaType(schemaType);
         return new SqlQueryContext<>(rootMapping, prismContext, querydslConfiguration);
@@ -76,8 +83,7 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
     private SqlQueryContext(
             QueryModelMapping<S, Q, R> rootMapping,
             PrismContext prismContext,
-            Configuration querydslConfiguration)
-            throws QueryException {
+            Configuration querydslConfiguration) {
         super(rootMapping.defaultAlias(), rootMapping, prismContext);
         this.querydslConfiguration = querydslConfiguration;
         sqlQuery = new SQLQuery<>(querydslConfiguration).from(root());
@@ -164,18 +170,31 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
         return new SQLQuery<>(conn, querydslConfiguration);
     }
 
-    public PageOf<R> executeQuery(Connection conn) throws QueryException {
-        SQLQuery<R> query = this.sqlQuery.clone(conn)
-                .select(root());
+    /**
+     * Returns page of results with each row represented by a Tuple containing {@link R} and
+     * then individual paths for extension columns, see {@link QueryModelMapping#extensionColumns}.
+     */
+    public PageOf<Tuple> executeQuery(Connection conn) throws QueryException {
+        SQLQuery<?> query = this.sqlQuery.clone(conn);
         if (query.getMetadata().getModifiers().getLimit() == null) {
             query.limit(NO_PAGINATION_LIMIT);
         }
-        LOGGER.debug("SQL query: {}", query);
 
-        List<R> data = query.fetch();
+        // SQL logging is on DEBUG level of: com.querydsl.sql
+        Q entity = root();
+        List<Tuple> data = query
+                .select(mapping().selectExpressionsWithCustomColumns(entity))
+                .fetch();
 
-        for (SqlDetailFetchMapper<R, ?, ?, ?> fetcher : mapping().detailFetchMappers()) {
-            fetcher.execute(() -> newQuery(conn), data);
+        // TODO: run fetchers selectively based on options?
+        if (!mapping().detailFetchMappers().isEmpty()) {
+            // we don't want to extract R if no mappers exist, otherwise we want to do it only once
+            List<R> dataEntities = data.stream()
+                    .map(t -> t.get(entity))
+                    .collect(Collectors.toList());
+            for (SqlDetailFetchMapper<R, ?, ?, ?> fetcher : mapping().detailFetchMappers()) {
+                fetcher.execute(() -> newQuery(conn), dataEntities);
+            }
         }
 
         return new PageOf<>(data, PageOf.PAGE_NO_PAGINATION, 0);
@@ -196,7 +215,7 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
      * @param joinOnPredicateFunction bi-function producing ON predicate for the JOIN
      */
     @Override
-    public <DQ extends EntityPath<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
+    public <DQ extends FlexibleRelationalPathBase<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
             @NotNull DQ newPath,
             @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicateFunction) {
         sqlQuery.leftJoin(newPath).on(joinOnPredicateFunction.apply(path(), newPath));
@@ -237,11 +256,15 @@ public class SqlQueryContext<S, Q extends EntityPath<R>, R> extends SqlPathConte
         }
     }
 
-    public PageOf<S> transformToSchemaType(PageOf<R> result)
+    /**
+     * Transforms result page with (bean + extension columns) tuple to schema type.
+     */
+    public PageOf<S> transformToSchemaType(PageOf<Tuple> result)
             throws SchemaException, QueryException {
         try {
-            SqlTransformer<S, R> transformer = mapping().createTransformer(prismContext());
-            return result.map(transformer::toSchemaObjectSafe);
+            SqlTransformer<S, Q, R> transformer = mapping()
+                    .createTransformer(prismContext(), querydslConfiguration);
+            return result.map(row -> transformer.toSchemaObjectSafe(row, root()));
         } catch (SqlTransformer.SqlTransformationException e) {
             Throwable cause = e.getCause();
             if (cause instanceof SchemaException) {

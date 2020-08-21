@@ -54,7 +54,7 @@ public class FooObjectClass
     implements Serializable
 {
 
-    private final static long serialVersionUID = 201202081233L;
+    private static final long serialVersionUID = 201202081233L;
     @XmlElement(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-types-1")
     protected String uid;
     @XmlElement(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-types-1", required = true)

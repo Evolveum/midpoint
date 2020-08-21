@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.EventHandlerType;
 
 @Component
-public class FocusTypeFilterHelper extends BaseHelper {
+public class FocusTypeFilterHelper extends BaseNotificationHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(FocusTypeFilterHelper.class);
 

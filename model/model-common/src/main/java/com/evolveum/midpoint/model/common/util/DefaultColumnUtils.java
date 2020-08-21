@@ -285,15 +285,15 @@ public class DefaultColumnUtils {
             case AuditConstants.TIME_COLUMN:
                 return record.getTimestamp();
             case AuditConstants.INITIATOR_COLUMN:
-                return record.getInitiator();
+                return record.getInitiatorRef();
             case AuditConstants.EVENT_STAGE_COLUMN:
                 return record.getEventStage();
             case AuditConstants.EVENT_TYPE_COLUMN:
                 return record.getEventType();
             case AuditConstants.TARGET_COLUMN:
-                return record.getTarget();
+                return record.getTargetRef();
             case AuditConstants.TARGET_OWNER_COLUMN:
-                return record.getTargetOwner();
+                return record.getTargetOwnerRef();
             case AuditConstants.CHANNEL_COLUMN:
                 return record.getChannel();
             case AuditConstants.OUTCOME_COLUMN:
@@ -307,7 +307,7 @@ public class DefaultColumnUtils {
             case AuditConstants.NODE_IDENTIFIER_COLUMN:
                 return record.getNodeIdentifier();
             case AuditConstants.ATTORNEY_COLUMN:
-                return record.getAttorney();
+                return record.getAttorneyRef();
             case AuditConstants.RESULT_COLUMN:
                 return record.getResult();
             case AuditConstants.RESOURCE_OID_COLUMN:
@@ -399,9 +399,10 @@ public class DefaultColumnUtils {
             propertiesToGet.add(TaskType.F_SUBTASK_REF);
         } else if (ResourceType.class.isAssignableFrom(type)) {
             propertiesToGet.add(ResourceType.F_CONNECTOR_REF);
-        } else if (ShadowType.class.isAssignableFrom(type)) {
-            getOperationOptionsBuilder = getOperationOptionsBuilder.raw();
         }
+//        } else if (ShadowType.class.isAssignableFrom(type)) {
+//            getOperationOptionsBuilder = getOperationOptionsBuilder.raw();
+//        }
         return getOperationOptionsBuilder
                 .items(propertiesToGet.toArray(new Object[0])).retrieve()
                 .build();

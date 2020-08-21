@@ -39,7 +39,9 @@ public class LookupTableConverter<C> implements IConverter<C> {
     @Override
     public C convertToObject(String value, Locale locale) throws ConversionException {
         for (LookupTableRowType row : lookupTable.getRow()) {
-            if (value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
+            if (value.equals(row.getKey())
+                    || value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
+
                 return originConverter.convertToObject(row.getKey(), locale);
             }
         }

@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
 import java.util.HashMap;
@@ -6,6 +12,8 @@ import java.util.Objects;
 import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.EntityPath;
+
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 
 /**
  * Holds {@link QueryModelMapping} instances obtainable by various key (e.g. schema type Q-name).
@@ -77,7 +85,7 @@ public class QueryModelMappingRegistry {
         return this;
     }
 
-    public <S, Q extends EntityPath<R>, R>
+    public <S, Q extends FlexibleRelationalPathBase<R>, R>
     QueryModelMapping<S, Q, R> getBySchemaType(Class<S> schemaType) {
         //noinspection unchecked
         return (QueryModelMapping<S, Q, R>) Objects.requireNonNull(
@@ -85,7 +93,7 @@ public class QueryModelMappingRegistry {
                 () -> "Missing mapping for schema type " + schemaType);
     }
 
-    public <S, Q extends EntityPath<R>, R>
+    public <S, Q extends FlexibleRelationalPathBase<R>, R>
     QueryModelMapping<S, Q, R> getByQueryType(Class<Q> queryType) {
         //noinspection unchecked
         return (QueryModelMapping<S, Q, R>) Objects.requireNonNull(

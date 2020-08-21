@@ -12,54 +12,48 @@
 // Generated on: 2012.05.20 at 05:41:15 PM CEST
 //
 
-
 package com.evolveum.prism.xml.ns._public.types_3;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.bind.annotation.XmlAccessType;
-import javax.xml.bind.annotation.XmlAccessorType;
-import javax.xml.bind.annotation.XmlAnyElement;
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlType;
+import javax.xml.bind.annotation.*;
 import javax.xml.namespace.QName;
+
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.JaxbVisitable;
 import com.evolveum.midpoint.prism.JaxbVisitor;
 import com.evolveum.midpoint.prism.PrismConstants;
-import org.w3c.dom.Element;
-
 import com.evolveum.midpoint.util.JAXBUtil;
 
-
 /**
- *   TODO update this class by adding missing features (targetName, oid, type, relation).
- *   However, it's quite unclear if it's really necessary.
+ * TODO update this class by adding missing features (targetName, oid, type, relation).
+ * However, it's quite unclear if it's really necessary.
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "ObjectReferenceType", propOrder = {
-    "description",
-    "filter"
+        "description",
+        "filter"
 })
 public class ObjectReferenceType implements Serializable, JaxbVisitable {
 
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectReferenceType");
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_TYPES, "ObjectReferenceType");
 
     protected String description;
     protected ObjectReferenceType.Filter filter;
+
     @XmlAttribute(name = "oid")
     protected String oid;
+
     @XmlAttribute(name = "type")
     protected QName type;
 
     /**
      * Gets the value of the description property.
      *
-     * @return
-     *     possible object is
-     *     {@link String }
-     *
+     * @return possible object is
+     * {@link String }
      */
     public String getDescription() {
         return description;
@@ -68,10 +62,8 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
     /**
      * Sets the value of the description property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *
+     * @param value allowed object is
+     * {@link String }
      */
     public void setDescription(String value) {
         this.description = value;
@@ -80,10 +72,8 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
     /**
      * Gets the value of the filter property.
      *
-     * @return
-     *     possible object is
-     *     {@link ObjectReferenceType.Filter }
-     *
+     * @return possible object is
+     * {@link ObjectReferenceType.Filter }
      */
     public ObjectReferenceType.Filter getFilter() {
         return filter;
@@ -92,10 +82,8 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
     /**
      * Sets the value of the filter property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link ObjectReferenceType.Filter }
-     *
+     * @param value allowed object is
+     * {@link ObjectReferenceType.Filter }
      */
     public void setFilter(ObjectReferenceType.Filter value) {
         this.filter = value;
@@ -104,10 +92,8 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
     /**
      * Gets the value of the oid property.
      *
-     * @return
-     *     possible object is
-     *     {@link String }
-     *
+     * @return possible object is
+     * {@link String }
      */
     public String getOid() {
         return oid;
@@ -116,10 +102,8 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
     /**
      * Sets the value of the oid property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *
+     * @param value allowed object is
+     * {@link String }
      */
     public void setOid(String value) {
         this.oid = value;
@@ -128,10 +112,8 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
     /**
      * Gets the value of the type property.
      *
-     * @return
-     *     possible object is
-     *     {@link QName }
-     *
+     * @return possible object is
+     * {@link QName }
      */
     public QName getType() {
         return type;
@@ -140,10 +122,8 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
     /**
      * Sets the value of the type property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link QName }
-     *
+     * @param value allowed object is
+     * {@link QName }
      */
     public void setType(QName value) {
         this.type = value;
@@ -173,7 +153,7 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
      */
     @XmlAccessorType(XmlAccessType.FIELD)
     @XmlType(name = "", propOrder = {
-        "any"
+            "any"
     })
     public static class Filter {
 
@@ -200,8 +180,6 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
          * Objects of the following type(s) are allowed in the list
          * {@link Element }
          * {@link Object }
-         *
-         *
          */
         public List<Object> getAny() {
             if (any == null) {
@@ -220,18 +198,13 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
 
         @Override
         public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
+            if (this == obj) { return true; }
+            if (obj == null) { return false; }
+            if (getClass() != obj.getClass()) { return false; }
             Filter other = (Filter) obj;
             if (any == null) {
-                if (other.any != null)
-                    return false;
-            } else if (!JAXBUtil.compareElementList(any, other.any, false))
-                return false;
+                if (other.any != null) { return false; }
+            } else if (!JAXBUtil.compareElementList(any, other.any, false)) { return false; }
             return true;
         }
 
@@ -241,7 +214,6 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
         }
 
     }
-
 
     @Override
     public int hashCode() {
@@ -257,33 +229,22 @@ public class ObjectReferenceType implements Serializable, JaxbVisitable {
 
     @Override
     public boolean equals(Object obj) {
-        if (this == obj)
-            return true;
-        if (obj == null)
-            return false;
-        if (getClass() != obj.getClass())
-            return false;
+        if (this == obj) { return true; }
+        if (obj == null) { return false; }
+        if (getClass() != obj.getClass()) { return false; }
         ObjectReferenceType other = (ObjectReferenceType) obj;
         if (description == null) {
-            if (other.description != null)
-                return false;
-        } else if (!description.equals(other.description))
-            return false;
+            if (other.description != null) { return false; }
+        } else if (!description.equals(other.description)) { return false; }
         if (filter == null) {
-            if (other.filter != null)
-                return false;
-        } else if (!filter.equals(other.filter))
-            return false;
+            if (other.filter != null) { return false; }
+        } else if (!filter.equals(other.filter)) { return false; }
         if (oid == null) {
-            if (other.oid != null)
-                return false;
-        } else if (!oid.equals(other.oid))
-            return false;
+            if (other.oid != null) { return false; }
+        } else if (!oid.equals(other.oid)) { return false; }
         if (type == null) {
-            if (other.type != null)
-                return false;
-        } else if (!type.equals(other.type))
-            return false;
+            if (other.type != null) { return false; }
+        } else if (!type.equals(other.type)) { return false; }
         return true;
     }
 

@@ -576,6 +576,8 @@ CREATE TABLE m_focus (
   preferredLanguage       NVARCHAR(255) COLLATE database_default,
   telephoneNumber         NVARCHAR(255) COLLATE database_default,
   timezone                NVARCHAR(255) COLLATE database_default,
+  passwordCreateTimestamp DATETIME2,
+  passwordModifyTimestamp DATETIME2,
   oid                     NVARCHAR(36) COLLATE database_default NOT NULL,
   PRIMARY KEY (oid)
 );

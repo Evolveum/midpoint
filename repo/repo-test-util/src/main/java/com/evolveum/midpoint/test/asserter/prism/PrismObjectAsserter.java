@@ -174,6 +174,23 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         return this;
     }
 
+    public PrismObjectAsserter<O,RA> assertIndestructible(Boolean expected) {
+        assertEquals("Wrong 'indestructible' in "+desc(), expected, getObject().asObjectable().isIndestructible());
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertIndestructible() {
+        assertEquals("Wrong 'indestructible' in "+desc(), Boolean.TRUE, getObject().asObjectable().isIndestructible());
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertDestructible() {
+        if (Boolean.TRUE.equals(getObject().asObjectable().isIndestructible())) {
+            fail("Unexpected indestructible=TRUE in "+desc());
+        }
+        return this;
+    }
+
     public UserAsserter<PrismObjectAsserter<O,RA>> asUser() {
         UserAsserter<PrismObjectAsserter<O,RA>> asserter = new UserAsserter<>((PrismObject<UserType>) getObject(), this, getDetails());
         copySetupTo(asserter);

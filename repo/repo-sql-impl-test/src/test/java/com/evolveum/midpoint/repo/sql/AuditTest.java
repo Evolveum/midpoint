@@ -1,18 +1,19 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.hibernate.Session;
 import org.hibernate.query.Query;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -22,11 +23,18 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.data.audit.*;
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
+import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -123,6 +131,7 @@ public class AuditTest extends BaseSQLRepoTest {
         auditService.audit(record, new NullTaskImpl());
     }
 
+    // TODO MID-6318 migrate to other types, perhaps QAuditEventRecord or utilize searchObject or SqlQueryExecutor at least
     private AuditEventRecord getAuditEventRecord(int expectedCount, int index) {
         try (Session session = getFactory().openSession()) {
             session.beginTransaction();
@@ -131,12 +140,108 @@ public class AuditTest extends BaseSQLRepoTest {
                     RAuditEventRecord.class);
             List<RAuditEventRecord> records = query.list();
             assertThat(records).hasSize(expectedCount);
-            AuditEventRecord eventRecord = RAuditEventRecord.fromRepo(
-                    records.get(index),
-                    prismContext,
-                    baseHelper.getConfiguration().isUsingSQLServer());
+            AuditEventRecord eventRecord = fromRepo(records.get(index));
             session.getTransaction().commit();
             return eventRecord;
         }
+    }
+
+    // TODO MID-6318 both fromRepo methods moved and changed from R* classes, this was the only usage, migrate to non-R types
+    private AuditEventRecord fromRepo(RAuditEventRecord repo) {
+        AuditEventRecord audit = new AuditEventRecord();
+        audit.setChannel(repo.getChannel());
+        audit.setEventIdentifier(repo.getEventIdentifier());
+        if (repo.getEventStage() != null) {
+            audit.setEventStage(repo.getEventStage().getStage());
+        }
+        if (repo.getEventType() != null) {
+            audit.setEventType(repo.getEventType().getType());
+        }
+        audit.setHostIdentifier(repo.getHostIdentifier());
+        audit.setRemoteHostAddress(repo.getRemoteHostAddress());
+        audit.setNodeIdentifier(repo.getNodeIdentifier());
+        audit.setMessage(repo.getMessage());
+
+        if (repo.getOutcome() != null) {
+            audit.setOutcome(repo.getOutcome().getStatus());
+        }
+        audit.setParameter(repo.getParameter());
+        audit.setResult(repo.getResult());
+        audit.setSessionIdentifier(repo.getSessionIdentifier());
+        audit.setRequestIdentifier(repo.getRequestIdentifier());
+        audit.setTaskIdentifier(repo.getTaskIdentifier());
+        audit.setTaskOid(repo.getTaskOID());
+        if (repo.getTimestamp() != null) {
+            audit.setTimestamp(repo.getTimestamp().getTime());
+        }
+
+        for (RTargetResourceOid resourceOID : repo.getResourceOids()) {
+            audit.getResourceOids().add(resourceOID.getResourceOid());
+        }
+
+        List<ObjectDeltaOperation<?>> odos = new ArrayList<>();
+        for (RObjectDeltaOperation rodo : repo.getDeltas()) {
+            try {
+                ObjectDeltaOperation<?> odo = fromRepo(rodo);
+                odos.add(odo);
+            } catch (Exception ex) {
+                // TODO: for now this is OK, if we cannot parse delta, just skip it...
+                // Have to be resolved later.
+            }
+        }
+
+        audit.addDeltas(odos);
+
+        for (RAuditPropertyValue rPropertyValue : repo.getPropertyValues()) {
+            audit.addPropertyValue(rPropertyValue.getName(), rPropertyValue.getValue());
+        }
+        for (RAuditReferenceValue rRefValue : repo.getReferenceValues()) {
+            audit.addReferenceValue(rRefValue.getName(), fromRepo(rRefValue));
+        }
+
+        audit.setRepoId(repo.getId());
+
+        return audit;
+        // initiator, attorney, target, targetOwner
+    }
+
+    private AuditReferenceValue fromRepo(RAuditReferenceValue refValue) {
+        return new AuditReferenceValue(refValue.getOid(),
+                RUtil.stringToQName(refValue.getType()),
+                RPolyString.fromRepo(refValue.getTargetName(), prismContext));
+    }
+
+    @NotNull
+    private ObjectDeltaOperation<?> fromRepo(RObjectDeltaOperation operation)
+            throws DtoTranslationException {
+
+        ObjectDeltaOperation<?> odo = new ObjectDeltaOperation<>();
+        try {
+            if (operation.getDelta() != null) {
+                byte[] data = operation.getDelta();
+                String serializedDelta = RUtil.getSerializedFormFromBytes(data,
+                        baseHelper.getConfiguration().isUsingSQLServer());
+
+                ObjectDeltaType delta = prismContext.parserFor(serializedDelta)
+                        .parseRealValue(ObjectDeltaType.class);
+                odo.setObjectDelta(DeltaConvertor.createObjectDelta(delta, prismContext));
+            }
+            if (operation.getFullResult() != null) {
+                byte[] data = operation.getFullResult();
+                String serializedResult = RUtil.getSerializedFormFromBytes(data,
+                        baseHelper.getConfiguration().isUsingSQLServer());
+
+                OperationResultType resultType = prismContext.parserFor(serializedResult)
+                        .parseRealValue(OperationResultType.class);
+                odo.setExecutionResult(OperationResult.createOperationResult(resultType));
+            }
+            odo.setObjectName(RPolyString.fromRepo(operation.getObjectName(), prismContext));
+            odo.setResourceOid(operation.getResourceOid());
+            odo.setResourceName(RPolyString.fromRepo(operation.getResourceName(), prismContext));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+
+        return odo;
     }
 }

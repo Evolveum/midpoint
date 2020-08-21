@@ -51,10 +51,12 @@ public class PropertyNoValueFilterType
         extends FilterClauseType
         implements Serializable, Cloneable, Equals, HashCode {
 
-    private final static long serialVersionUID = 201105211233L;
+    private static final long serialVersionUID = 201105211233L;
+
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "PropertyNoValueFilterType");
+
     @XmlAnyElement
     protected Element property;
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "PropertyNoValueFilterType");
 
     /**
      * Creates a new {@code PropertyNoValueFilterType} instance.

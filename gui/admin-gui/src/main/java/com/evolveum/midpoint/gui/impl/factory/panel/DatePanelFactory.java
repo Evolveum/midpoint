@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,8 +8,6 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.form.Form;
@@ -22,24 +20,23 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.input.DatePanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
 
 /**
  * @author katka
- *
  */
 @Component
 public class DatePanelFactory extends AbstractInputGuiComponentFactory<XMLGregorianCalendar> {
 
-    private static final long serialVersionUID = 1L;
-
-    @Autowired GuiComponentRegistry registry;
+    @Autowired private GuiComponentRegistry registry;
 
     @PostConstruct
     public void register() {
         registry.addToRegistry(this);
     }
+
     @Override
     public <IW extends ItemWrapper> boolean match(IW wrapper) {
         return DOMUtil.XSD_DATETIME.equals(wrapper.getTypeName());
@@ -49,7 +46,7 @@ public class DatePanelFactory extends AbstractInputGuiComponentFactory<XMLGregor
     protected InputPanel getPanel(PrismPropertyPanelContext<XMLGregorianCalendar> panelCtx) {
         DatePanel panel = new DatePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
 
-        Form form = Form.findForm(panelCtx.getForm());
+        Form<?> form = Form.findForm(panelCtx.getForm());
         DateValidator validator = WebComponentUtil.getRangeValidator(form, SchemaConstants.PATH_ACTIVATION);
         if (ActivationType.F_VALID_FROM.equals(panelCtx.getDefinitionName())) {
             validator.setDateFrom((DateTimeField) panel.getBaseFormComponent());
@@ -59,6 +56,4 @@ public class DatePanelFactory extends AbstractInputGuiComponentFactory<XMLGregor
 
         return panel;
     }
-
-
 }

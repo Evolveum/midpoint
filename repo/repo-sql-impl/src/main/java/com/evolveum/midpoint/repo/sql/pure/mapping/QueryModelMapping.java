@@ -1,9 +1,12 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure.mapping;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
@@ -12,6 +15,7 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.ColumnMetadata;
+import com.querydsl.sql.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,6 +23,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -39,15 +44,17 @@ import com.evolveum.midpoint.util.QNameUtil;
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
  */
-public abstract class QueryModelMapping<S, Q extends EntityPath<R>, R> {
+public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<R>, R> {
 
     private final String tableName;
     private final String defaultAliasName;
     private final Class<S> schemaType;
     private final Class<Q> queryType;
 
-    // TODO MID-6319: support for extension columns + null default alias after every change (in synchronized block)
-    private final Map<String, ColumnMetadata> columns = new LinkedHashMap<>();
+    /**
+     * Extension columns, key = propertyName which may differ from ColumnMetadata.getName().
+     */
+    private final Map<String, ColumnMetadata> extensionColumns = new LinkedHashMap<>();
 
     private final Map<QName, ItemSqlMapper> itemFilterProcessorMapping = new LinkedHashMap<>();
     private final Map<QName, SqlDetailFetchMapper<R, ?, ?, ?>> detailFetchMappers = new HashMap<>();
@@ -67,20 +74,11 @@ public abstract class QueryModelMapping<S, Q extends EntityPath<R>, R> {
             @NotNull String tableName,
             @NotNull String defaultAliasName,
             @NotNull Class<S> schemaType,
-            @NotNull Class<Q> queryType,
-            ColumnMetadata... columns) {
+            @NotNull Class<Q> queryType) {
         this.tableName = tableName;
         this.defaultAliasName = defaultAliasName;
         this.schemaType = schemaType;
         this.queryType = queryType;
-        for (ColumnMetadata column : columns) {
-            this.columns.put(column.getName(), column);
-        }
-    }
-
-    public final QueryModelMapping<S, Q, R> add(ColumnMetadata column) {
-        columns.put(column.getName(), column);
-        return this;
     }
 
     /**
@@ -164,7 +162,7 @@ public abstract class QueryModelMapping<S, Q extends EntityPath<R>, R> {
 
     public final @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?, ?> context)
             throws QueryException {
-        return itemMapping(itemName).itemPath(context.path());
+        return itemMapping(itemName).itemPrimaryPath(context.path());
     }
 
     public final @NotNull ItemSqlMapper itemMapping(ItemName itemName) throws QueryException {
@@ -195,15 +193,24 @@ public abstract class QueryModelMapping<S, Q extends EntityPath<R>, R> {
         return queryType;
     }
 
-    public Q newAlias(String alias) throws QueryException {
-        try {
-            return queryType.getConstructor(String.class).newInstance(alias);
-        } catch (ReflectiveOperationException e) {
-            throw new QueryException("Invalid constructor for type " + queryType, e);
+    public Q newAlias(String alias) {
+        Q entityPath = newAliasInstance(alias);
+        for (Map.Entry<String, ColumnMetadata> entry : extensionColumns.entrySet()) {
+            String propertyName = entry.getKey();
+            ColumnMetadata columnMetadata = entry.getValue();
+            // TODO any treatment of different types should be here, now String path is implied
+            entityPath.createString(propertyName, columnMetadata);
         }
+        return entityPath;
     }
 
-    public synchronized Q defaultAlias() throws QueryException {
+    /**
+     * Method returning new instance of {@link EntityPath} - to be implemented by sub-mapping.
+     * This will create entity path without any extension columns, see {@link #newAlias} for that.
+     */
+    protected abstract Q newAliasInstance(String alias);
+
+    public synchronized Q defaultAlias() {
         if (defaultAlias == null) {
             defaultAlias = newAlias(defaultAliasName);
         }
@@ -211,9 +218,12 @@ public abstract class QueryModelMapping<S, Q extends EntityPath<R>, R> {
     }
 
     /**
-     * Creates {@link SqlTransformer} of row bean to schema type.
+     * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
      */
-    public abstract SqlTransformer<S, R> createTransformer(PrismContext prismContext);
+    public SqlTransformer<S, Q, R> createTransformer(
+            PrismContext prismContext, Configuration querydslConfiguration) {
+        throw new UnsupportedOperationException("Bean transformer not supported for " + queryType);
+    }
 
     /**
      * Returns collection of all registered {@link SqlDetailFetchMapper}s.
@@ -227,6 +237,26 @@ public abstract class QueryModelMapping<S, Q extends EntityPath<R>, R> {
      */
     public final SqlDetailFetchMapper<R, ?, ?, ?> detailFetchMapper(ItemName itemName) {
         return detailFetchMappers.get(itemName);
+    }
+
+    /**
+     * Registers extension columns. At this moment all are treated as strings.
+     */
+    public void addExtensionColumn(String propertyName, ColumnMetadata columnMetadata) {
+        extensionColumns.put(propertyName, columnMetadata);
+    }
+
+    public Map<String, ColumnMetadata> getExtensionColumns() {
+        return Collections.unmodifiableMap(extensionColumns);
+    }
+
+    public @NotNull Path<?>[] selectExpressionsWithCustomColumns(Q entity) {
+        List<Path<?>> expressions = new ArrayList<>();
+        expressions.add(entity);
+        for (String extensionPropertyName : extensionColumns.keySet()) {
+            expressions.add(entity.getPath(extensionPropertyName));
+        }
+        return expressions.toArray(new Path[0]);
     }
 
     @Override

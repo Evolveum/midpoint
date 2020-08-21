@@ -149,7 +149,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
                 if (attachments == null) {
                     attachments = notifierConfig.getAttachment();
-                    if (attachments == null) {
+                    if (attachments == null || attachments.isEmpty()) {
                         attachments = getAttachment(event, notifierConfig, transportName, task, result);
                     }
                 } else if (notifierConfig.getAttachment() != null) {
@@ -224,7 +224,7 @@ public abstract class AbstractGeneralNotifier<E extends Event, N extends General
 
     // for future extension
     @SuppressWarnings("unused")
-    private List<NotificationMessageAttachmentType> getAttachment(E event, N generalNotifierType,
+    protected List<NotificationMessageAttachmentType> getAttachment(E event, N generalNotifierType,
             String transportName, Task task, OperationResult result) {
         return null;
     }

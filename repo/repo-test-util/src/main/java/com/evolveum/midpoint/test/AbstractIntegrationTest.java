@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -35,9 +35,6 @@ import javax.xml.namespace.QName;
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-
-import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
-
 import org.apache.commons.lang.SystemUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -96,6 +93,7 @@ import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.processor.ObjectFactory;
 import com.evolveum.midpoint.schema.processor.*;
+import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.*;
@@ -287,9 +285,8 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     @AfterMethod
     public void finishTestContext(ITestResult testResult) {
         MidpointTestContextWithTask context = MidpointTestContextWithTask.get();
-        MidpointTestContextWithTask.destroy(); // let's destroy it before anything else in this method
-
         displayTestFooter(context.getTestName(), testResult);
+        MidpointTestContextWithTask.destroy(); // let's destroy it before anything else in this method
 
         Task task = context.getTask();
         if (task != null) {
@@ -598,24 +595,27 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         return prismObject.asObjectable();
     }
 
-    protected <T extends ObjectType> T parseObjectType(File file, Class<T> clazz) throws SchemaException, IOException {
-        PrismObject<T> prismObject = prismContext.parseObject(file);
-        return prismObject.asObjectable();
+    /**
+     * Just like {@link #parseObject(File)}, but helps with typing when another method is called
+     * on the returned value (with version without class, local variable is needed).
+     */
+    @SuppressWarnings("unused")
+    protected <T extends ObjectType> T parseObjectType(File file, Class<T> clazz)
+            throws SchemaException, IOException {
+        return parseObjectType(file);
     }
 
-    protected static <T> T unmarshalValueFromFile(File file, Class<T> clazz)
+    protected static <T> T unmarshalValueFromFile(File file)
             throws IOException, SchemaException {
         return PrismTestUtil.parseAnyValue(file);
     }
 
-    protected static <T> T unmarshalValueFromFile(String filePath, Class<T> clazz)
+    /**
+     * Version of {@link #unmarshalValueFromFile} with type inference if another method is chained.
+     */
+    protected static <T> T unmarshalValueFromFile(File file, Class<T> clazz)
             throws IOException, SchemaException {
-        return PrismTestUtil.parseAnyValue(new File(filePath));
-    }
-
-    protected static ObjectType unmarshalValueFromFile(String filePath)
-            throws IOException, SchemaException {
-        return unmarshalValueFromFile(filePath, ObjectType.class);
+        return PrismTestUtil.parseAnyValue(file);
     }
 
     protected PrismObject<ResourceType> addResourceFromFile(
@@ -2009,9 +2009,9 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected TracingProfileType addRepositoryAndSqlLogging(TracingProfileType profile) {
         return profile.getLoggingOverride()
                 .beginLevelOverride()
-                    .logger("com.evolveum.midpoint.repo")
-                    .logger("org.hibernate.SQL")
-                    .level(LoggingLevelType.TRACE)
+                .logger("com.evolveum.midpoint.repo")
+                .logger("org.hibernate.SQL")
+                .level(LoggingLevelType.TRACE)
                 .<LoggingOverrideType>end()
                 .end();
     }
@@ -2755,12 +2755,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected RefinedResourceSchemaAsserter<Void> assertRefinedResourceSchema(PrismObject<ResourceType> resource, String details) throws SchemaException {
         RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, prismContext);
         assertNotNull("No refined schema for " + resource + " (" + details + ")", refinedSchema);
-        RefinedResourceSchemaAsserter<Void> asserter = new RefinedResourceSchemaAsserter(refinedSchema, resource.toString() + " (" + details + ")");
+        RefinedResourceSchemaAsserter<Void> asserter = new RefinedResourceSchemaAsserter<>(
+                refinedSchema, resource.toString() + " (" + details + ")");
         initializeAsserter(asserter);
         return asserter;
     }
 
-    protected ShadowAsserter<Void> assertShadow(PrismObject<ShadowType> shadow, String details) throws ObjectNotFoundException {
+    protected ShadowAsserter<Void> assertShadow(PrismObject<ShadowType> shadow, String details) {
         ShadowAsserter<Void> asserter = ShadowAsserter.forShadow(shadow, details);
         initializeAsserter(asserter);
         asserter.display();
@@ -2911,5 +2912,13 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                 }
             }
         };
+    }
+
+    /**
+     * Returns true if the test runs in IntelliJ IDEA.
+     * Some tests may behave differently when executed from the IDE.
+     */
+    protected boolean runsInIdea() {
+        return System.getProperty("idea.launcher.bin.path") != null;
     }
 }

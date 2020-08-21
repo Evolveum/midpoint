@@ -1,15 +1,10 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (c) 2018-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.component;
-
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
-
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -17,23 +12,27 @@ import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 
 /**
  * @author skublik
  */
+public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
+        extends BasePanel<PrismContainerValueWrapper<C>> {
 
-public abstract class MultivalueContainerDetailsPanel<C extends Containerable> extends BasePanel<PrismContainerValueWrapper<C>> {
     private static final long serialVersionUID = 1L;
 
-    private final static String ID_DISPLAY_NAME = "displayName";
-    private final static String ID_BASIC_PANEL = "basicPanel";
-    protected final static String ID_SPECIFIC_CONTAINERS_PANEL = "specificContainersPanel";
+    private static final String ID_DISPLAY_NAME = "displayName";
+    private static final String ID_BASIC_PANEL = "basicPanel";
+    protected static final String ID_SPECIFIC_CONTAINERS_PANEL = "specificContainersPanel";
 
-    public MultivalueContainerDetailsPanel(String id, IModel<PrismContainerValueWrapper<C>> model){
+    public MultivalueContainerDetailsPanel(String id, IModel<PrismContainerValueWrapper<C>> model) {
         super(id, model);
     }
 
@@ -46,7 +45,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
 
     protected abstract DisplayNamePanel<C> createDisplayNamePanel(String displayNamePanelId);
 
-    private void initLayout(){
+    private void initLayout() {
 
         DisplayNamePanel<C> displayNamePanel = createDisplayNamePanel(ID_DISPLAY_NAME);
 
@@ -61,11 +60,11 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
         return new WebMarkupContainer(contentAreaId);
     }
 
-    protected void addBasicContainerValuePanel(String idPanel){
+    protected void addBasicContainerValuePanel(String idPanel) {
         add(getBasicContainerValuePanel(idPanel));
     }
 
-    protected Panel getBasicContainerValuePanel(String idPanel){
+    protected Panel getBasicContainerValuePanel(String idPanel) {
         ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder()
                 .visibilityHandler(wrapper -> getBasicTabVisibity(wrapper))
                 .editabilityHandler(wrapper -> getBasicTabEditability(wrapper));
@@ -83,7 +82,7 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable> e
         return ItemVisibility.AUTO;
     }
 
-    protected boolean getBasicTabEditability(ItemWrapper<?,?> itemWrapper) {
+    protected boolean getBasicTabEditability(ItemWrapper<?, ?> itemWrapper) {
         return true;
     }
 

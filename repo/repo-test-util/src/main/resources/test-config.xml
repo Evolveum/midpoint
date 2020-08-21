@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (C) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -14,8 +14,9 @@
             <repositoryServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlRepositoryFactory</repositoryServiceFactoryClass>
             <port>5438</port>
             <asServer>true</asServer>
-            <!--<baseDir>target</baseDir>-->
             <dropIfExists>true</dropIfExists>
+            <!-- this is here for custom column creation in audit, audit uses default repo conf -->
+            <createMissingCustomColumns>true</createMissingCustomColumns>
 
             <performanceStatisticsLevel>10</performanceStatisticsLevel>
             <performanceStatisticsFile>./target/performance.log</performanceStatisticsFile>
@@ -28,7 +29,12 @@
                 <auditServiceFactoryClass>com.evolveum.midpoint.audit.impl.LoggerAuditServiceFactory</auditServiceFactoryClass>
             </auditService>
             <auditService>
-                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.testing.TestSqlAuditServiceFactory</auditServiceFactoryClass>
+                <auditServiceFactoryClass>com.evolveum.midpoint.repo.sql.SqlAuditServiceFactory</auditServiceFactoryClass>
+                <!-- Needed for model-intest where the property is used. -->
+                <customColumn>
+                    <columnName>foo</columnName>
+                    <eventRecordPropertyName>foo</eventRecordPropertyName>
+                </customColumn>
             </auditService>
             <auditService>
                 <auditServiceFactoryClass>com.evolveum.midpoint.test.DummyAuditServiceFactory</auditServiceFactoryClass>
@@ -38,12 +44,10 @@
             <jdbcJobStore>false</jdbcJobStore>
             <waitingTasksCheckInterval>5</waitingTasksCheckInterval>
             <testMode>true</testMode>
-            <useThreadInterrupt>whenNecessary</useThreadInterrupt>              <!-- needed for task manager tests -->
+            <useThreadInterrupt>whenNecessary</useThreadInterrupt> <!-- needed for task manager tests -->
         </taskManager>
         <icf>
             <scanClasspath>true</scanClasspath>
-            <!-- <scanDirectory>/C:/tmp</scanDirectory>
-            <scanDirectory>/var/tmp</scanDirectory>  -->
             <scanDirectory>${midpoint.home}/icf-connectors</scanDirectory>
         </icf>
         <keystore>
@@ -59,6 +63,8 @@
             <passwordClear>secret</passwordClear>
             <adBaseDn>DC=ad,DC=evolveum,DC=com</adBaseDn>
             <adUsersDn>CN=Users,DC=ad,DC=evolveum,DC=com</adUsersDn>
+            <ad2012BaseDn>DC=ad2012,DC=lab,DC=evolveum,DC=com</ad2012BaseDn>
+            <ad2012UsersDn>CN=Users,DC=ad2012,DC=lab,DC=evolveum,DC=com</ad2012UsersDn>
         </constants>
     </midpoint>
 </configuration>

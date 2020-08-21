@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.util;
 
 import java.io.*;
@@ -36,6 +35,7 @@ import org.hibernate.persister.entity.Joinable;
 import org.hibernate.tuple.IdentifierProperty;
 import org.hibernate.tuple.entity.EntityMetamodel;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -425,11 +425,11 @@ public final class RUtil {
         return StandardCharsets.UTF_8;
     }
 
-    public static String trimString(String message, int size) {
-        if (message == null || message.length() <= size) {
-            return message;
+    public static @Nullable String trimString(@Nullable String value, int size) {
+        if (value == null || value.length() <= size) {
+            return value;
         }
-        return message.substring(0, size - 4) + "...";
+        return value.substring(0, size - 4) + "...";
     }
 
     public static String fixDBSchemaObjectNameLength(String input) {

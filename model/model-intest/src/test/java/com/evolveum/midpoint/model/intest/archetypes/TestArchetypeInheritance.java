@@ -13,6 +13,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -36,6 +37,9 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
 
     private static final File ARCHETYPE_LIVE_SYNC_FILE = new File(TEST_DIR, "archetype-liveSync-task.xml");
     private static final String ARCHETYPE_LIVE_SYNC_TASK_OID = "00000000-0000-0000-0000-000000000531";
+
+    private static final String TASK_RECON_OID = "00000000-task-0000-0000-000000000001";
+    private static final String TASK_LIVE_SYNC_OID = "00000000-task-0000-0000-000000000002";
 
     private static final ItemName SYNC_TOKEN = new ItemName("http://midpoint.evolveum.com/xml/ns/public/provisioning/liveSync-3", "token");
 
@@ -129,11 +133,11 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
 
     @Test
     public void test110syncTaskArchetypePolicy() throws Exception {
-        TaskType reconTask = new TaskType(prismContext)
+        TaskType syncTask = new TaskType(prismContext)
                 .name("Sync task")
                 .assignment(new AssignmentType(prismContext).targetRef(ARCHETYPE_LIVE_SYNC_TASK_OID, ArchetypeType.COMPLEX_TYPE));
 
-        assertArchetypePolicy(reconTask.asPrismObject())
+        assertArchetypePolicy(syncTask.asPrismObject())
                 .displayType()
                     .assertLabel("Live synchronization task")
                     .assertPluralLabel("Live synchronization tasks")
@@ -200,4 +204,35 @@ public class TestArchetypeInheritance extends AbstractInitializedModelIntegratio
 
 
     }
+
+    @Test
+    public void test200assignArchetypeReconTask() throws Exception {
+        TaskType reconTask = new TaskType(prismContext)
+                .oid(TASK_RECON_OID)
+                .name("Reconciliation task")
+                .assignment(new AssignmentType(prismContext).targetRef(ARCHETYPE_RECON_TASK_OID, ArchetypeType.COMPLEX_TYPE));
+
+        addObject(reconTask.asPrismObject());
+
+        assertTask(TASK_RECON_OID, "created reconciliation task")
+                .assertExecutionStatus(TaskExecutionStatusType.SUSPENDED)
+                .assertCategory(TaskCategory.RECONCILIATION)
+                .assertBinding(TaskBindingType.TIGHT);
+    }
+
+    @Test
+    public void test210assignArchetypeLiveSyncTask() throws Exception {
+        TaskType reconTask = new TaskType(prismContext)
+                .oid(TASK_LIVE_SYNC_OID)
+                .name("Live synchronization task")
+                .assignment(new AssignmentType(prismContext).targetRef(ARCHETYPE_LIVE_SYNC_TASK_OID, ArchetypeType.COMPLEX_TYPE));
+
+        addObject(reconTask.asPrismObject());
+
+        assertTask(TASK_LIVE_SYNC_OID, "created live synchronization task")
+                .assertExecutionStatus(TaskExecutionStatusType.SUSPENDED)
+                .assertCategory(TaskCategory.LIVE_SYNCHRONIZATION)
+                .assertBinding(TaskBindingType.TIGHT);
+    }
+
 }

@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure.querymodel.beans;
 
 import static com.evolveum.midpoint.util.MiscUtil.binaryToHexPreview;
@@ -24,6 +30,9 @@ public class MAuditDelta {
     public String resourceNameOrig;
     public String resourceOid;
     public Integer status;
+
+    // "transient" fields not used by Querydsl
+    public String serializedDelta;
 
     public PolyString getObjectName() {
         return new PolyString(objectNameOrig, objectNameNorm);

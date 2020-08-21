@@ -16,6 +16,7 @@ import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditPropertyValue;
 
@@ -34,9 +35,10 @@ public class QAuditPropertyValue extends FlexibleRelationalPathBase<MAuditProper
     public static final ColumnMetadata RECORD_ID =
             ColumnMetadata.named("record_id").ofType(Types.BIGINT).withSize(19);
     public static final ColumnMetadata NAME =
-            ColumnMetadata.named("name").ofType(Types.VARCHAR).withSize(255);
+            ColumnMetadata.named("name").ofType(Types.NVARCHAR).withSize(255);
     public static final ColumnMetadata VALUE =
-            ColumnMetadata.named("value").ofType(Types.VARCHAR).withSize(1024);
+            ColumnMetadata.named("value").ofType(Types.NVARCHAR)
+                    .withSize(AuditService.MAX_PROPERTY_SIZE);
 
     public final NumberPath<Long> id = createLong("id", ID);
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);
@@ -47,7 +49,7 @@ public class QAuditPropertyValue extends FlexibleRelationalPathBase<MAuditProper
     public final ForeignKey<QAuditEventRecord> auditPropValueFk = createForeignKey(recordId, "ID");
 
     public QAuditPropertyValue(String variable) {
-        this(variable, "PUBLIC", TABLE_NAME);
+        this(variable, DEFAULT_SCHEMA_NAME, TABLE_NAME);
     }
 
     public QAuditPropertyValue(String variable, String schema, String table) {

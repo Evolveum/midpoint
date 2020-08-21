@@ -1,8 +1,13 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure;
 
 import java.util.function.BiFunction;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +33,7 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
  * @param <Q> type of entity path
  * @param <R> row type related to the {@link Q}
  */
-public abstract class SqlPathContext<S, Q extends EntityPath<R>, R> {
+public abstract class SqlPathContext<S, Q extends FlexibleRelationalPathBase<R>, R> {
 
     private final Q path;
     private final QueryModelMapping<S, Q, R> mapping;
@@ -42,6 +47,9 @@ public abstract class SqlPathContext<S, Q extends EntityPath<R>, R> {
         this.prismContext = prismContext;
     }
 
+    /**
+     * Returns entity path of this context.
+     */
     public Q path() {
         return path;
     }
@@ -71,7 +79,8 @@ public abstract class SqlPathContext<S, Q extends EntityPath<R>, R> {
         return notFilterUsed;
     }
 
-    public abstract <DQ extends EntityPath<DR>, DR> SqlQueryContext<?, DQ, DR> leftJoin(
+    public abstract <DQ extends FlexibleRelationalPathBase<DR>, DR>
+    SqlQueryContext<?, DQ, DR> leftJoin(
             @NotNull DQ newPath,
             @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicate);
 

@@ -1,11 +1,23 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.init;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -21,24 +33,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.InternalsConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
-
-import java.io.File;
-import java.util.*;
 
 /**
  * @author lazyman
@@ -52,7 +49,7 @@ public abstract class DataImport {
     protected static final String OPERATION_IMPORT_OBJECT = DOT_CLASS + "importObject";
 
     @Autowired
-    protected transient PrismContext prismContext;
+    protected PrismContext prismContext;
     protected ModelService model;
     protected TaskManager taskManager;
     @Autowired
@@ -100,7 +97,6 @@ public abstract class DataImport {
         return securityContext;
     }
 
-
     protected <O extends ObjectType> void preImportUpdate(PrismObject<O> object) {
         if (object.canRepresent(SystemConfigurationType.class)) {
             SystemConfigurationType systemConfigType = (SystemConfigurationType) object.asObjectable();
@@ -112,8 +108,8 @@ public abstract class DataImport {
                         prismContext.configurePolyStringNormalizer(normalizerConfig);
                         LOGGER.debug("Applied PolyString normalizer configuration {}", DebugUtil.shortDumpLazily(normalizerConfig));
                     } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
-                        LOGGER.error("Error applying polystring normalizer configuration: "+e.getMessage(), e);
-                        throw new SystemException("Error applying polystring normalizer configuration: "+e.getMessage(), e);
+                        LOGGER.error("Error applying polystring normalizer configuration: " + e.getMessage(), e);
+                        throw new SystemException("Error applying polystring normalizer configuration: " + e.getMessage(), e);
                     }
                     // PolyString normalizer configuration applied. But we need to re-normalize the imported object
                     // otherwise it would be normalized in a different way than other objects.

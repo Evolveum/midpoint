@@ -1,27 +1,25 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.query;
+
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import javax.xml.namespace.QName;
-import java.util.List;
-
-/**
- *
- */
-public interface ValueFilter<V extends PrismValue, D extends ItemDefinition> extends ObjectFilter, ItemFilter, Itemable {
+public interface ValueFilter<V extends PrismValue, D extends ItemDefinition>
+        extends ObjectFilter, ItemFilter, Itemable {
 
     @NotNull
     @Override
@@ -43,18 +41,12 @@ public interface ValueFilter<V extends PrismValue, D extends ItemDefinition> ext
 
     void setMatchingRule(@Nullable QName matchingRule);
 
-    //@NotNull
-    //MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem);
-
     @Nullable
     List<V> getValues();
 
-    //@Nullable
-    //List<V> getClonedValues();
-
-//    @Nullable
-//    V getClonedValue();
-
+    /**
+     * Returns single value or {@code null}, throws exception if multiple values are present.
+     */
     @Nullable
     V getSingleValue();
 
@@ -95,7 +87,7 @@ public interface ValueFilter<V extends PrismValue, D extends ItemDefinition> ext
 //    Item getFilterItem() throws SchemaException;
 
     @Override
-    ValueFilter clone();
+    ValueFilter<V, D> clone();
 
     @Override
     boolean equals(Object o, boolean exact);
@@ -108,5 +100,4 @@ public interface ValueFilter<V extends PrismValue, D extends ItemDefinition> ext
 
     @Override
     void checkConsistence(boolean requireDefinitions);
-
 }

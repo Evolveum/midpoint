@@ -14,7 +14,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ConstructionType;
@@ -23,12 +22,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 /**
  * @author semancik
- *
  */
 public class AssignmentAsserter<R> extends AbstractAsserter<R> {
 
-    final private AssignmentType assignment;
-    private PrismObject<?> resolvedTarget = null;
+    private final AssignmentType assignment;
 
     public AssignmentAsserter(AssignmentType assignment) {
         super();
@@ -40,10 +37,9 @@ public class AssignmentAsserter<R> extends AbstractAsserter<R> {
         this.assignment = assignment;
     }
 
-    public AssignmentAsserter(AssignmentType assignment, PrismObject<?> resolvedTarget, R returnAsserter, String detail) {
+    public AssignmentAsserter(AssignmentType assignment, R returnAsserter, String detail) {
         super(returnAsserter, detail);
         this.assignment = assignment;
-        this.resolvedTarget = resolvedTarget;
     }
 
     protected AssignmentType getAssignment() {

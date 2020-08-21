@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.init;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +26,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 public class RepositoryFactory implements RuntimeConfiguration {
 
-    private static final String REPOSITORY_FACTORY_CLASS = "repositoryServiceFactoryClass";
     private static final Trace LOGGER = TraceManager.getTrace(RepositoryFactory.class);
+
+    private static final String REPOSITORY_FACTORY_CLASS = "repositoryServiceFactoryClass";
 
     @Autowired private ApplicationContext applicationContext;
     @Autowired private MidpointConfiguration midpointConfiguration;
@@ -32,6 +36,7 @@ public class RepositoryFactory implements RuntimeConfiguration {
     private RepositoryServiceFactory factory;
     private RepositoryService repositoryService;
 
+    @PostConstruct
     public void init() {
         Configuration config = midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
         try {
@@ -43,8 +48,9 @@ public class RepositoryFactory implements RuntimeConfiguration {
             factory = getFactoryBean(clazz);
             factory.init(config);
         } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "RepositoryServiceFactory implementation class {} failed to " +
-                    "initialize.", ex, config.getString(REPOSITORY_FACTORY_CLASS));
+            LoggingUtils.logException(LOGGER,
+                    "RepositoryServiceFactory implementation class {} failed to initialize.",
+                    ex, config.getString(REPOSITORY_FACTORY_CLASS));
             throw new SystemException("RepositoryServiceFactory implementation class " +
                     config.getString(REPOSITORY_FACTORY_CLASS) + " failed to initialize: " + ex.getMessage(), ex);
         }
@@ -67,6 +73,7 @@ public class RepositoryFactory implements RuntimeConfiguration {
         return applicationContext.getBean(clazz);
     }
 
+    @PreDestroy
     public void destroy() {
         try {
             if (factory != null) {
@@ -88,14 +95,14 @@ public class RepositoryFactory implements RuntimeConfiguration {
         return midpointConfiguration.getConfiguration(MidpointConfiguration.REPOSITORY_CONFIGURATION);
     }
 
-    public synchronized RepositoryService getRepositoryService() {
+    public synchronized RepositoryService createRepositoryService() {
         if (repositoryService != null) {
             return repositoryService;
         }
 
         try {
             LOGGER.debug("Creating repository service using factory {}", factory);
-            repositoryService = factory.getRepositoryService();
+            repositoryService = factory.createRepositoryService();
         } catch (RepositoryServiceFactoryException | RuntimeException ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to get repository service from factory " + factory, ex);
             throw new SystemException("Failed to get repository service from factory " + factory, ex);
@@ -105,9 +112,5 @@ public class RepositoryFactory implements RuntimeConfiguration {
         }
 
         return repositoryService;
-    }
-
-    public RepositoryServiceFactory getFactory() {
-        return factory;
     }
 }

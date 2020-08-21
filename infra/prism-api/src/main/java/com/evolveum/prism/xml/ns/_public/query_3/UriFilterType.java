@@ -43,12 +43,14 @@ public class UriFilterType
         extends FilterClauseType
         implements Serializable, Cloneable, Equals, HashCode {
 
-    private final static long serialVersionUID = 201105211233L;
+    private static final long serialVersionUID = 201105211233L;
+
+    public static final QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "UriFilterType");
+    public static final QName F_URI = new QName(PrismConstants.NS_QUERY, "uri");
+
     @XmlAttribute(name = "uri")
     @XmlSchemaType(name = "anyURI")
     protected String uri;
-    public final static QName COMPLEX_TYPE = new QName(PrismConstants.NS_QUERY, "UriFilterType");
-    public final static QName F_URI = new QName(PrismConstants.NS_QUERY, "uri");
 
     /**
      * Creates a new {@code UriFilterType} instance.
@@ -129,10 +131,10 @@ public class UriFilterType
         lhsUri = this.getUri();
         String rhsUri;
         rhsUri = that.getUri();
-        if (!strategy.equals(LocatorUtils.property(thisLocator, "uri", lhsUri), LocatorUtils.property(thatLocator, "uri", rhsUri), lhsUri, rhsUri)) {
-            return false;
-        }
-        return true;
+        return strategy.equals(
+                LocatorUtils.property(thisLocator, "uri", lhsUri),
+                LocatorUtils.property(thatLocator, "uri", rhsUri),
+                lhsUri, rhsUri);
     }
 
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")

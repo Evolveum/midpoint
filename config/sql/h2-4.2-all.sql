@@ -580,6 +580,8 @@ CREATE TABLE m_focus (
   preferredLanguage       VARCHAR(255),
   telephoneNumber         VARCHAR(255),
   timezone                VARCHAR(255),
+  passwordCreateTimestamp TIMESTAMP,
+  passwordModifyTimestamp TIMESTAMP,
   oid                     VARCHAR(36)           NOT NULL,
   PRIMARY KEY (oid)
 );

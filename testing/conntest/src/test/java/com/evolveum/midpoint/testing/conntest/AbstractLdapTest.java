@@ -209,7 +209,9 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         return false;
     }
 
-    protected abstract String getLdapBindDn();
+    protected String getLdapBindDn() {
+        return "CN=midpoint," + getPeopleLdapSuffix();
+    }
 
     protected abstract String getLdapBindPassword();
 
@@ -962,6 +964,11 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
     }
 
     protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+        if (runsInIdea()) {
+            // IntelliJ IDEA affects management of connector instances in some way.
+            // This makes the number of connector instances different when compared to a test executed from command-line.
+            return;
+        }
         Task task = createTask(AbstractLdapTest.class.getName() + ".assertLdapConnectorInstances");
         OperationResult result = task.getResult();
         List<ConnectorOperationalStatus> stats = provisioningService.getConnectorOperationalStatus(getResourceOid(), task, result);

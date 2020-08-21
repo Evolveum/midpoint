@@ -6,6 +6,11 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.prism.ObjectDeltaTypeAsserter;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -14,18 +19,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationExec
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationTypeType;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-
 /**
  * @author semancik
  */
 public class PendingOperationAsserter<R> extends AbstractAsserter<PendingOperationsAsserter<R>> {
 
-    final private PendingOperationsAsserter<R> pendingOperationsAsserter;
-    final private PendingOperationType pendingOperation;
+    private final PendingOperationsAsserter<R> pendingOperationsAsserter;
+    private final PendingOperationType pendingOperation;
     private String operationDesc;
 
     public PendingOperationAsserter(PendingOperationsAsserter<R> pendingOperationsAsserter, PendingOperationType pendingOperation) {
@@ -42,71 +42,71 @@ public class PendingOperationAsserter<R> extends AbstractAsserter<PendingOperati
     }
 
     public PendingOperationAsserter<R> assertRequestTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        TestUtil.assertBetween("Wrong request timestamp in "+desc(), start, end, pendingOperation.getRequestTimestamp());
+        TestUtil.assertBetween("Wrong request timestamp in " + desc(), start, end, pendingOperation.getRequestTimestamp());
         return this;
     }
 
     public PendingOperationAsserter<R> assertCompletionTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        TestUtil.assertBetween("Wrong completion timestamp in "+desc(), start, end, pendingOperation.getCompletionTimestamp());
+        TestUtil.assertBetween("Wrong completion timestamp in " + desc(), start, end, pendingOperation.getCompletionTimestamp());
         return this;
     }
 
     public PendingOperationAsserter<R> assertHasCompletionTimestamp() {
-        assertNotNull("No completion timestamp in "+desc(), pendingOperation.getCompletionTimestamp());
+        assertNotNull("No completion timestamp in " + desc(), pendingOperation.getCompletionTimestamp());
         return this;
     }
 
     public PendingOperationAsserter<R> assertLastAttemptTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        TestUtil.assertBetween("Wrong last attempt timestamp in "+desc(), start, end, pendingOperation.getLastAttemptTimestamp());
+        TestUtil.assertBetween("Wrong last attempt timestamp in " + desc(), start, end, pendingOperation.getLastAttemptTimestamp());
         return this;
     }
 
     public PendingOperationAsserter<R> assertOperationStartTimestamp(XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        TestUtil.assertBetween("Wrong operation start timestamp in "+desc(), start, end, pendingOperation.getOperationStartTimestamp());
+        TestUtil.assertBetween("Wrong operation start timestamp in " + desc(), start, end, pendingOperation.getOperationStartTimestamp());
         return this;
     }
 
     public PendingOperationAsserter<R> assertExecutionStatus(PendingOperationExecutionStatusType expected) {
-        assertEquals("Wrong execution status in "+desc(), expected, pendingOperation.getExecutionStatus());
+        assertEquals("Wrong execution status in " + desc(), expected, pendingOperation.getExecutionStatus());
         return this;
     }
 
     public PendingOperationAsserter<R> assertResultStatus(OperationResultStatusType expected) {
-        assertEquals("Wrong result status in "+desc(), expected, pendingOperation.getResultStatus());
+        assertEquals("Wrong result status in " + desc(), expected, pendingOperation.getResultStatus());
         return this;
     }
 
     public PendingOperationAsserter<R> assertAttemptNumber(Integer expected) {
-        assertEquals("Wrong attempt number in "+desc(), expected, pendingOperation.getAttemptNumber());
+        assertEquals("Wrong attempt number in " + desc(), expected, pendingOperation.getAttemptNumber());
         return this;
     }
 
     public PendingOperationAsserter<R> assertType(PendingOperationTypeType expected) {
-        assertEquals("Wrong type in "+desc(), expected, pendingOperation.getType());
+        assertEquals("Wrong type in " + desc(), expected, pendingOperation.getType());
         return this;
     }
 
     public PendingOperationAsserter<R> assertAsynchronousOperationReference(String expected) {
-        assertEquals("Wrong asynchronous operation reference in "+desc(), expected, pendingOperation.getAsynchronousOperationReference());
+        assertEquals("Wrong asynchronous operation reference in " + desc(), expected, pendingOperation.getAsynchronousOperationReference());
         return this;
     }
 
     public PendingOperationAsserter<R> assertId() {
-        assertNotNull("No id in "+desc(), pendingOperation.getId());
+        assertNotNull("No id in " + desc(), pendingOperation.getId());
         return this;
     }
 
     public PendingOperationAsserter<R> assertId(Long expected) {
-        assertEquals("Wrong id in "+desc(), expected, pendingOperation.getId());
+        assertEquals("Wrong id in " + desc(), expected, pendingOperation.getId());
         return this;
     }
 
     public ObjectDeltaTypeAsserter<PendingOperationAsserter<R>> delta() {
-        return new ObjectDeltaTypeAsserter<>(pendingOperation.getDelta(), this, "delta in "+desc());
+        return new ObjectDeltaTypeAsserter<>(pendingOperation.getDelta(), this, "delta in " + desc());
     }
 
     protected String desc() {
-        return descWithDetails("pending operation "+operationDesc+" in "+pendingOperationsAsserter.getShadow());
+        return descWithDetails("pending operation " + operationDesc + " in " + pendingOperationsAsserter.getShadow());
     }
 
     public PendingOperationAsserter<R> display() {

@@ -37,6 +37,11 @@
                         <script xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ScriptExpressionEvaluatorType">
                             <code>
                                 import com.evolveum.midpoint.prism.polystring.PolyString
+                                import java.util.Random
+
+                                Random rand = new Random();
+
+                                rand_int1 = rand.nextInt(1000);
 
                                 return new PolyString("Test import: " + input)
                             </code>

@@ -8,9 +8,9 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceValueWrapperImpl;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismReferenceWrapperImpl;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -18,7 +18,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import org.apache.wicket.markup.html.panel.Panel;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -48,6 +48,8 @@ public class LinkedReferencePanelFactory implements GuiComponentFactory<PrismRef
     public <IW extends ItemWrapper> boolean match(IW wrapper) {
         boolean match = QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, wrapper.getTypeName()) &&
                 QNameUtil.match(CaseType.F_PARENT_REF, wrapper.getPath().asSingleName());
+
+        //TODO match methos must not change the state of the wrapper
         if (match){
             try {
                 PrismReferenceValueWrapperImpl valueWrapper = (PrismReferenceValueWrapperImpl)
@@ -57,11 +59,11 @@ public class LinkedReferencePanelFactory implements GuiComponentFactory<PrismRef
                 LOGGER.warn("Unable to set isLink status for PrismReferenceValueWrapper: {}", e.getLocalizedMessage());
             }
         }
-        return match;
+        return wrapper instanceof PrismReferenceWrapper && (match || wrapper.isReadOnly() || wrapper.isMetadata());
     }
 
     @Override
-    public Panel createPanel(PrismReferencePanelContext<ObjectReferenceType> panelCtx) {
+    public org.apache.wicket.Component createPanel(PrismReferencePanelContext<ObjectReferenceType> panelCtx) {
         LinkedReferencePanel panel = new LinkedReferencePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
         panel.setOutputMarkupId(true);
         return panel;

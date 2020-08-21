@@ -1,3 +1,9 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure.querymodel.support;
 
 import java.sql.PreparedStatement;
@@ -12,11 +18,10 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Instant converter for Querydsl.
  * Just like the superclass, but does NOT use calendar parameter for get/set values.
- * TODO: this is rather an experiment:
+ * <p>
  * It is important to use one version consistently, if mixing prepared statements using version
  * with and without calendar parameter, results can be off by default timezone offset.
  * This works for us using JDBC - the question is: What method is used by ORM/JPA?
- * The question is, what is used y
  */
 public class InstantType extends JSR310InstantType {
 

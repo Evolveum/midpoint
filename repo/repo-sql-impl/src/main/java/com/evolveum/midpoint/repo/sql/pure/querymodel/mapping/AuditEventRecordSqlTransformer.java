@@ -1,10 +1,23 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
+
+import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.MESSAGE;
 
 import java.util.List;
 import java.util.Map;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.sql.Configuration;
+
+import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
@@ -12,6 +25,8 @@ import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROperationResultStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditDelta;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditRefValue;
@@ -24,13 +39,14 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
- * Simple class with methods for audit event transformation between repo and Prism world.
+ * Transformation of audit event records between repo and Prism world.
  */
 public class AuditEventRecordSqlTransformer
-        extends SqlTransformer<AuditEventRecordType, MAuditEventRecord> {
+        extends SqlTransformer<AuditEventRecordType, QAuditEventRecord, MAuditEventRecord> {
 
-    public AuditEventRecordSqlTransformer(PrismContext prismContext) {
-        super(prismContext);
+    public AuditEventRecordSqlTransformer(PrismContext prismContext,
+            QAuditEventRecordMapping mapping, Configuration querydslConfiguration) {
+        super(prismContext, mapping, querydslConfiguration);
     }
 
     public AuditEventRecordType toSchemaObject(MAuditEventRecord row) throws SchemaException {
@@ -44,7 +60,8 @@ public class AuditEventRecordSqlTransformer
     }
 
     private AuditEventRecordType mapSimpleAttributes(MAuditEventRecord row) {
-        return new AuditEventRecordType()
+        // prismContext in constructor ensures complex type definition
+        return new AuditEventRecordType(prismContext)
                 .channel(row.channel)
                 .eventIdentifier(row.eventIdentifier)
                 .eventStage(auditEventStageTypeFromRepo(row.eventStage))
@@ -84,10 +101,10 @@ public class AuditEventRecordSqlTransformer
             return;
         }
 
-        SqlTransformer<ObjectDeltaOperationType, MAuditDelta> transformer =
-                new AuditDeltaSqlTransformer(prismContext);
+        SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> deltaTransformer =
+                QAuditDeltaMapping.INSTANCE.createTransformer(prismContext, querydslConfiguration);
         for (MAuditDelta delta : deltas) {
-            record.delta(transformer.toSchemaObject(delta));
+            record.delta(deltaTransformer.toSchemaObject(delta));
         }
     }
 
@@ -168,5 +185,79 @@ public class AuditEventRecordSqlTransformer
         return status != null
                 ? status.getSchemaValue()
                 : null;
+    }
+
+    /**
+     * Transforms {@link AuditEventRecord} to {@link MAuditEventRecord} without any subentities.
+     * <p>
+     * Design notes: Arguably, this code could be in {@link MAuditEventRecord}.
+     * Also the
+     */
+    public MAuditEventRecord from(AuditEventRecord record) {
+        MAuditEventRecord bean = new MAuditEventRecord();
+        bean.id = record.getRepoId(); // this better be null if we want to insert
+        bean.eventIdentifier = record.getEventIdentifier();
+        bean.timestamp = MiscUtil.asInstant(record.getTimestamp());
+        bean.channel = record.getChannel();
+        bean.eventStage = MiscUtil.enumOrdinal(RAuditEventStage.from(record.getEventStage()));
+        bean.eventType = MiscUtil.enumOrdinal(RAuditEventType.from(record.getEventType()));
+        bean.hostIdentifier = record.getHostIdentifier();
+
+        PrismReferenceValue attorney = record.getAttorneyRef();
+        if (attorney != null) {
+            bean.attorneyName = attorney.getDescription();
+            bean.attorneyOid = attorney.getOid();
+        }
+
+        PrismReferenceValue initiator = record.getInitiatorRef();
+        if (initiator != null) {
+            bean.initiatorName = initiator.getDescription();
+            bean.initiatorOid = initiator.getOid();
+            bean.initiatorType = targetTypeToRepoOrdinal(initiator);
+        }
+
+        bean.message = trim(record.getMessage(), MESSAGE);
+        bean.nodeIdentifier = record.getNodeIdentifier();
+        bean.outcome = MiscUtil.enumOrdinal(ROperationResultStatus.from(record.getOutcome()));
+        bean.parameter = record.getParameter();
+        bean.remoteHostAddress = record.getRemoteHostAddress();
+        bean.requestIdentifier = record.getRequestIdentifier();
+        bean.result = record.getResult();
+        bean.sessionIdentifier = record.getSessionIdentifier();
+
+        PrismReferenceValue target = record.getTargetRef();
+        if (target != null) {
+            bean.targetName = target.getDescription();
+            bean.targetOid = target.getOid();
+            bean.targetType = targetTypeToRepoOrdinal(target);
+        }
+        PrismReferenceValue targetOwner = record.getTargetOwnerRef();
+        if (targetOwner != null) {
+            bean.targetOwnerName = targetOwner.getDescription();
+            bean.targetOwnerOid = targetOwner.getOid();
+            bean.targetOwnerType = targetTypeToRepoOrdinal(targetOwner);
+        }
+        bean.taskIdentifier = record.getTaskIdentifier();
+        bean.taskOid = record.getTaskOid();
+        return bean;
+    }
+
+    private Integer targetTypeToRepoOrdinal(PrismReferenceValue targetOwner) {
+        //noinspection rawtypes
+        Class objectClass = prismContext.getSchemaRegistry()
+                .determineClassForType(targetOwner.getTargetType());
+        //noinspection unchecked
+        return MiscUtil.enumOrdinal(RObjectType.getByJaxbType(objectClass));
+    }
+
+    @Override
+    protected void processExtensionColumns(
+            AuditEventRecordType schemaObject, Tuple tuple, QAuditEventRecord entityPath) {
+        for (String propertyName : mapping.getExtensionColumns().keySet()) {
+            Object customColumnValue = tuple.get(entityPath.getPath(propertyName));
+            schemaObject.getCustomColumnProperty().add(
+                    new AuditEventRecordCustomColumnPropertyType()
+                            .name(propertyName).value((String) customColumnValue));
+        }
     }
 }

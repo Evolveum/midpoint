@@ -42,7 +42,7 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
     // FIXME: always null
     protected EquivalenceStrategy defaultEquivalenceStrategy;
 
-    transient protected PrismContext prismContext;
+    protected transient PrismContext prismContext;
 
     PrismValueImpl() {
     }

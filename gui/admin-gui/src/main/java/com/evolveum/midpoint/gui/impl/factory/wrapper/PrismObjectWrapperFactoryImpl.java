@@ -137,7 +137,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
             def.setDisplayName(WebComponentUtil.getOrigStringFromPoly(display.getLabel()));
             def.setDynamic(true);
 
-            ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def);
+            ItemWrapperFactory<?, ?, ?> factory = getRegistry().findWrapperFactory(def, null);
             if (factory == null) {
                 LOGGER.warn("Cannot find factory for {}. Skipping wrapper creation.", def);
                 continue;

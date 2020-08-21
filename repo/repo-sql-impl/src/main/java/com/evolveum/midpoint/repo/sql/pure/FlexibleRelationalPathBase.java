@@ -1,7 +1,16 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure;
 
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.DateTimePath;
@@ -9,6 +18,8 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.RelationalPathBase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
@@ -45,7 +56,11 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
  */
 public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
 
+    public static final String DEFAULT_SCHEMA_NAME = "PUBLIC";
+
     private static final long serialVersionUID = -3374516272567011096L;
+
+    private final Map<String, Path<?>> propertyNameToPath = new LinkedHashMap<>();
 
     public FlexibleRelationalPathBase(
             Class<? extends T> type, PathMetadata metadata, String schema, String table) {
@@ -79,7 +94,7 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
     /**
      * Creates {@link StringPath} and for a property registers column metadata for it.
      */
-    protected StringPath createString(String property, ColumnMetadata columnMetadata) {
+    public StringPath createString(String property, ColumnMetadata columnMetadata) {
         return addMetadata(createString(property), columnMetadata);
     }
 
@@ -107,5 +122,24 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
     protected ArrayPath<byte[], Byte> createBlob(
             String property, ColumnMetadata columnMetadata) {
         return addMetadata(createArray(property, byte[].class), columnMetadata);
+    }
+
+    /**
+     * Works like default {@link RelationalPathBase#addMetadata(Path, ColumnMetadata)}
+     * and on top of it adds the information necessary to use dynamic/extension columns
+     * using methods like {@link #getPath(String)}.
+     */
+    @Override
+    protected <P extends Path<?>> P addMetadata(P path, ColumnMetadata metadata) {
+        propertyNameToPath.put(path.getMetadata().getName(), path);
+        return super.addMetadata(path, metadata);
+    }
+
+    /**
+     * Returns {@link Path} expression by the property name.
+     * This is useful for dynamic/extension columns that are not otherwise directly accessible.
+     */
+    public @Nullable Path<?> getPath(@NotNull String propertyName) {
+        return propertyNameToPath.get(propertyName);
     }
 }

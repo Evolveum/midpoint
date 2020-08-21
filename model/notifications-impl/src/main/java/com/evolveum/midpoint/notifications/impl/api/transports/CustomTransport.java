@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,33 +7,39 @@
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
-import com.evolveum.midpoint.notifications.impl.TransportRegistry;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
+import com.evolveum.midpoint.notifications.impl.TransportRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -41,21 +47,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.CustomTransportConfi
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 
 /**
  * TODO clean up
+ *
  * @author mederly
  */
 @Component
@@ -75,10 +70,7 @@ public class CustomTransport implements Transport {
 
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
-
-    @Autowired
-    private NotificationManager notificationManager;
+    private RepositoryService cacheRepositoryService;
 
     @Autowired private TransportRegistry transportRegistry;
 
@@ -98,7 +90,7 @@ public class CustomTransport implements Transport {
                 .getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
             String msg = "No notifications are configured. Custom notification to " + message.getTo() + " will not be sent.";
-            LOGGER.warn(msg) ;
+            LOGGER.warn(msg);
             result.recordWarning(msg);
             return;
         }
@@ -110,7 +102,7 @@ public class CustomTransport implements Transport {
 
         if (configuration == null) {
             String msg = "Custom configuration '" + configName + "' not found. Custom notification to " + message.getTo() + " will not be sent.";
-            LOGGER.warn(msg) ;
+            LOGGER.warn(msg);
             result.recordWarning(msg);
             return;
         }
@@ -121,12 +113,12 @@ public class CustomTransport implements Transport {
 
         int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(configuration);
 
-        List<String> allowedRecipientTo = new ArrayList<String>();
-        List<String> forbiddenRecipientTo = new ArrayList<String>();
-        List<String> allowedRecipientCc = new ArrayList<String>();
-        List<String> forbiddenRecipientCc = new ArrayList<String>();
-        List<String> allowedRecipientBcc = new ArrayList<String>();
-        List<String> forbiddenRecipientBcc = new ArrayList<String>();
+        List<String> allowedRecipientTo = new ArrayList<>();
+        List<String> forbiddenRecipientTo = new ArrayList<>();
+        List<String> allowedRecipientCc = new ArrayList<>();
+        List<String> forbiddenRecipientCc = new ArrayList<>();
+        List<String> allowedRecipientBcc = new ArrayList<>();
+        List<String> forbiddenRecipientBcc = new ArrayList<>();
 
         String file = configuration.getRedirectToFile();
         if (optionsForFilteringRecipient != 0) {
@@ -138,7 +130,7 @@ public class CustomTransport implements Transport {
                     expressionFactory, MiscSchemaUtil.getExpressionProfile(), LOGGER);
 
             if (file != null) {
-                if(!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
+                if (!forbiddenRecipientTo.isEmpty() || !forbiddenRecipientCc.isEmpty() || !forbiddenRecipientBcc.isEmpty()) {
                     message.setTo(forbiddenRecipientTo);
                     message.setCc(forbiddenRecipientCc);
                     message.setBcc(forbiddenRecipientBcc);
@@ -151,7 +143,7 @@ public class CustomTransport implements Transport {
 
         } else if (file != null) {
             writeToFile(message, file, result);
-               return;
+            return;
         }
 
         try {
@@ -188,7 +180,7 @@ public class CustomTransport implements Transport {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition<String> resultDef = prismContext.definitionFactory().createPropertyDefinition(resultName, DOMUtil.XSD_STRING);
 
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
+        Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task);
         ModelExpressionThreadLocalHolder.evaluateExpressionInContext(expression, params, task, result);
     }

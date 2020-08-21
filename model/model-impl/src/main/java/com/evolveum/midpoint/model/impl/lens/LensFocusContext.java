@@ -48,9 +48,9 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 
     private boolean primaryDeltaConsolidated;
 
-    transient private ArchetypePolicyType archetypePolicyType;
+    private transient ArchetypePolicyType archetypePolicyType;
 
-    transient private ArchetypeType archetype;
+    private transient ArchetypeType archetype;
 
     private boolean primaryDeltaExecuted;
 

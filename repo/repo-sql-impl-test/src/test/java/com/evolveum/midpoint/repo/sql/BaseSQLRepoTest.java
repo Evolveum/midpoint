@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -131,7 +130,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     private volatile boolean initSystemExecuted = false;
 
     @PostConstruct
-    public void beforeMethod() throws Exception {
+    public void initializeTestClass() throws Exception {
         if (initSystemExecuted) {
             logger.trace("initSystem: already called for class {} - IGNORING", getClass().getName());
             return;
@@ -159,7 +158,6 @@ public class BaseSQLRepoTest extends AbstractSpringTest
     }
 
     public void initSystem() throws Exception {
-
     }
 
     protected Session open() {
@@ -206,7 +204,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     @SuppressWarnings("unused")
     protected SqlRepositoryConfiguration getRepositoryConfiguration() {
-        return ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
+        return ((SqlRepositoryServiceImpl) repositoryService).sqlConfiguration();
     }
 
     protected GetOperationOptionsBuilder getOperationOptionsBuilder() {

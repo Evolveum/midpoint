@@ -1,28 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
   -->
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://www.springframework.org/schema/beans
+<beans xmlns="http://www.springframework.org/schema/beans"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+            http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
         default-lazy-init="false">
 
-    <bean name="provisioningService"
+    <bean id="provisioningService"
             class="com.evolveum.midpoint.model.impl.util.mock.MockFactory"
             factory-method="createProvisioningService"/>
 
-    <bean name="repositoryService"
+    <bean id="repositoryService"
             class="com.evolveum.midpoint.model.impl.util.mock.MockFactory"
             factory-method="createRepositoryService"/>
 
-    <bean name="cacheRepositoryService"
+    <bean id="cacheRepositoryService"
             class="com.evolveum.midpoint.model.impl.util.mock.MockFactory"
             factory-method="createRepositoryService"/>
 
-    <bean name="changeNotificationDispatcher"
+    <bean id="changeNotificationDispatcher"
             class="com.evolveum.midpoint.model.impl.util.mock.MockFactory"
             factory-method="createChangeNotificationDispatcher"/>
 </beans>

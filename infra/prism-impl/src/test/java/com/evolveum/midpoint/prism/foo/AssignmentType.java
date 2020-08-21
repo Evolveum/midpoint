@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,7 +11,6 @@
 // Any modifications to this file will be lost upon recompilation of the source schema.
 // Generated on: 2012.02.24 at 02:46:19 PM CET
 //
-
 
 package com.evolveum.midpoint.prism.foo;
 
@@ -43,39 +42,35 @@ import com.evolveum.midpoint.prism.path.ItemName;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "AssignmentType", propOrder = {
-    "description",
-    "note",
-    "accountConstruction"
+        "description",
+        "note",
+        "accountConstruction"
 })
 public class AssignmentType
-    implements Serializable, Containerable
-{
+        implements Serializable, Containerable {
 
-    // This is NOT GENERATED. It is supplied here manually for the testing.
-    public final static ItemName F_DESCRIPTION = new ItemName(ObjectType.NS_FOO, "description");
-    public final static ItemName F_NOTE = new ItemName(ObjectType.NS_FOO, "note");
-    public final static ItemName F_ACCOUNT_CONSTRUCTION = new ItemName(ObjectType.NS_FOO, "accountConstruction");
-    public final static ItemName F_ACTIVATION = new ItemName(ObjectType.NS_FOO, "activation");
+    private static final long serialVersionUID = 201202081233L;
 
-    private final static long serialVersionUID = 201202081233L;
+    public static final ItemName F_DESCRIPTION = new ItemName(ObjectType.NS_FOO, "description");
+    public static final ItemName F_NOTE = new ItemName(ObjectType.NS_FOO, "note");
+    public static final ItemName F_ACCOUNT_CONSTRUCTION = new ItemName(ObjectType.NS_FOO, "accountConstruction");
+    public static final ItemName F_ACTIVATION = new ItemName(ObjectType.NS_FOO, "activation");
+
     protected String description;
     protected String note;
     protected AccountConstructionType accountConstruction;
+
     @XmlAttribute(name = "id")
     protected String id;
 
     /**
      * Gets the value of the description property.
      *
-     * @return
-     *     possible object is
-     *     {@link String }
-     *
+     * @return possible object is
+     * {@link String }
      */
     public String getDescription() {
         return description;
@@ -84,10 +79,8 @@ public class AssignmentType
     /**
      * Sets the value of the description property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *
+     * @param value allowed object is
+     * {@link String }
      */
     public void setDescription(String value) {
         this.description = value;
@@ -104,10 +97,8 @@ public class AssignmentType
     /**
      * Gets the value of the accountConstruction property.
      *
-     * @return
-     *     possible object is
-     *     {@link AccountConstructionType }
-     *
+     * @return possible object is
+     * {@link AccountConstructionType }
      */
     public AccountConstructionType getAccountConstruction() {
         return accountConstruction;
@@ -116,10 +107,8 @@ public class AssignmentType
     /**
      * Sets the value of the accountConstruction property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link AccountConstructionType }
-     *
+     * @param value allowed object is
+     * {@link AccountConstructionType }
      */
     public void setAccountConstruction(AccountConstructionType value) {
         this.accountConstruction = value;
@@ -128,10 +117,8 @@ public class AssignmentType
     /**
      * Gets the value of the id property.
      *
-     * @return
-     *     possible object is
-     *     {@link String }
-     *
+     * @return possible object is
+     * {@link String }
      */
     public String getId() {
         return id;
@@ -140,10 +127,8 @@ public class AssignmentType
     /**
      * Sets the value of the id property.
      *
-     * @param value
-     *     allowed object is
-     *     {@link String }
-     *
+     * @param value allowed object is
+     * {@link String }
      */
     public void setId(String value) {
         this.id = value;
@@ -164,5 +149,4 @@ public class AssignmentType
     public void setupContainerValue(PrismContainerValue container) {
         throw new UnsupportedOperationException();
     }
-
 }

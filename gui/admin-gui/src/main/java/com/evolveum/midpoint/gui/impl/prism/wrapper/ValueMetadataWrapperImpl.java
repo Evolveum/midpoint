@@ -59,7 +59,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
     }
 
     @Override
-    public List<PrismContainerDefinition<Containerable>> getChildContainers() throws SchemaException {
+    public List<PrismContainerDefinition<Containerable>> getChildContainers() {
         throw new UnsupportedOperationException("Cannot create child containers for value metadata");
     }
 
@@ -90,6 +90,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
 //        return (ValueMetadata) metadataValueWrapper.getOldValue();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public PrismContainerValue getOldValue() {
         return null;
@@ -103,7 +104,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
     }
 
     @Override
-    public <D extends ItemDelta<PrismValue, ? extends ItemDefinition>> void addToDelta(D delta) throws SchemaException {
+    public <D extends ItemDelta<PrismValue, ? extends ItemDefinition>> void addToDelta(D delta) {
         throw new UnsupportedOperationException("Cannot compute delta for valueMetadata");
     }
 
@@ -113,7 +114,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
     }
 
     @Override
-    public PrismContainerValueWrapper getValueMetadata() {
+    public ValueMetadataWrapperImpl getValueMetadata() {
         return null;
     }
 
@@ -138,7 +139,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
     }
 
     @Override
-    public List<? extends ItemWrapper<?, ?>> getNonContainers() {
+    public List<ItemWrapper<?, ?>> getNonContainers() {
         return metadataValueWrapper.getNonContainers();
     }
 
@@ -208,13 +209,13 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
     }
 
     @Override
-    public <ID extends ItemDelta> void applyDelta(ID delta) throws SchemaException {
-
+    public <ID extends ItemDelta> void applyDelta(ID delta) {
+        throw new UnsupportedOperationException("apply delta not supported");
     }
 
     @Override
-    public PrismContainerValue<Containerable> getValueToAdd() throws SchemaException {
-        return null;
+    public PrismContainerValue<Containerable> getValueToAdd() {
+        throw new UnsupportedOperationException("getValueToAdd not supported");
     }
 
     @Override
@@ -235,6 +236,16 @@ public class ValueMetadataWrapperImpl implements PrismContainerValueWrapper<Cont
     @Override
     public boolean isVirtual() {
         return false;
+    }
+
+    @Override
+    public boolean isMetadata() {
+        return metadataValueWrapper.isMetadata();
+    }
+
+    @Override
+    public void setMetadata(boolean metadata) {
+        metadataValueWrapper.setMetadata(metadata);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -16,6 +16,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
@@ -145,7 +146,7 @@ public class SearchTest extends BaseSQLRepoTest {
             }
         };
 
-        SqlRepositoryConfiguration config = ((SqlRepositoryServiceImpl) repositoryService).getConfiguration();
+        SqlRepositoryConfiguration config = ((SqlRepositoryServiceImpl) repositoryService).sqlConfiguration();
         int oldBatchSize = config.getIterativeSearchByPagingBatchSize();
         config.setIterativeSearchByPagingBatchSize(batch);
 
@@ -1186,5 +1187,20 @@ public class SearchTest extends BaseSQLRepoTest {
 
         int users = repositoryService.countObjects(UserType.class, null, null, result);
         assertEquals("Wrong # of objects found", users, objects.size());
+    }
+
+    // MID-4575
+    @Test
+    public void testSearchPasswordCreateTimestamp() throws Exception {
+        ObjectQuery query = prismContext.queryFor(UserType.class)
+                .item(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
+                        PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
+                .lt(DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar())).build();
+        OperationResult result = new OperationResult("search");
+        List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
+        result.recomputeStatus();
+        assertTrue(result.isSuccess());
+        assertEquals("Should find one user", 1, users.size());
+        assertEquals("Wrong user name", "atestuserX00002", users.get(0).getName().getOrig());
     }
 }

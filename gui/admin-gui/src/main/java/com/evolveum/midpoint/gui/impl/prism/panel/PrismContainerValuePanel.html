@@ -22,34 +22,22 @@
             <button wicket:id="sortProperties" wicket:message="title:PrismObjectPanel.sortProperties" class="btn btn-box-tool"><i class="fa fa-sort-alpha-asc"></i></button>
             <button wicket:id="addChildContainer" wicket:message="title:PrismObjectPanel.addChildContainer" class="btn btn-box-tool" trigger="hover"><i class="fa fa-plus-circle"></i></button>
             <button wicket:id="removeButton" wicket:message="title:PrismObjectPanel.deleteContainer" class="btn btn-box-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
-            <a class="btn btn-box-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.delete"><i class="fa fa fa-asterisk"/></a>
+            <a class="btn btn-box-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.delete"><i class="fa fa-tag"/></a>
         </div>
         <div class="row">
-            <div class="col-xs-10" wicket:id="metadata"></div>
+            <div class="col-xs-10">
+                <ul class="nav metadata-nav">
+                    <li wicket:id="metadataList">
+                        <a class="label label-default" wicket:id="metadataQName"/>
+                    </li>
+                </ul>
+                <div wicket:id="metadata"></div>
+            </div>
         </div>
+
         <div wicket:id="valueContainer">
 
-            <div wicket:id="input">
-                <div class="prism-properties">
-                    <div wicket:id="propertiesLabel">
-                        <div wicket:id="properties">
-                            <div class="row prism-property" wicket:id="property"/>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-2"/>
-                            <div class="col-md-10" style="padding-left: 70px;">
-                                <div class="show-empty-button" wicket:id="showEmptyButton"/>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div wicket:id="containersLabel">
-                        <div class="prism-containers" wicket:id="containers">
-                            <div class="row prism-container" wicket:id="container"/>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <span wicket:id="input"></span>
             <div class="row" style="margin-left: 15px;">
                 <span wicket:id="feedback" class="text-danger"/>
             </div>

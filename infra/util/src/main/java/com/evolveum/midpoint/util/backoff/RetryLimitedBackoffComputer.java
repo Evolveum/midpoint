@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,12 +7,9 @@
 
 package com.evolveum.midpoint.util.backoff;
 
-/**
- * @author mederly
- */
 public abstract class RetryLimitedBackoffComputer implements BackoffComputer {
 
-    private int maxRetries;
+    private final int maxRetries;
 
     RetryLimitedBackoffComputer(int maxRetries) {
         this.maxRetries = maxRetries;

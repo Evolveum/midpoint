@@ -7,20 +7,9 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component.schemahandling.modal;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.web.component.form.CheckFormGroup;
-import com.evolveum.midpoint.web.component.form.TextFormGroup;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.wizard.resource.dto.PropertyLimitationsTypeDto;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -40,19 +29,31 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.NonEmptyModel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.web.component.form.CheckFormGroup;
+import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.wizard.resource.dto.PropertyLimitationsTypeDto;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnChangeAjaxFormUpdatingBehavior;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyAccessType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PropertyLimitationsType;
 
 /**
- *  @author shood
- * */
-public class LimitationsEditorDialog extends ModalWindow{
+ * @author shood
+ */
+public class LimitationsEditorDialog extends ModalWindow {
 
-    private enum ChangeState{
+    private enum ChangeState {
         SKIP, FIRST, LAST
     }
 
-    private enum PropertyAccess{
+    private enum PropertyAccess {
         Allow, Inherit, Deny
     }
 
@@ -80,13 +81,16 @@ public class LimitationsEditorDialog extends ModalWindow{
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-8";
 
+    private final IModel<List<PropertyLimitationsType>> inputModel;
+    private final IModel<List<PropertyLimitationsTypeDto>> model;
+    @NotNull private final NonEmptyModel<Boolean> readOnlyModel;
+
     private ChangeState changeState = ChangeState.FIRST;
     private boolean initialized;
-    private IModel<List<PropertyLimitationsTypeDto>> model;
-    private IModel<List<PropertyLimitationsType>> inputModel;
-    @NotNull final private NonEmptyModel<Boolean> readOnlyModel;
 
-    public LimitationsEditorDialog(String id, final IModel<List<PropertyLimitationsType>> limitation, NonEmptyModel<Boolean> readOnlyModel) {
+    public LimitationsEditorDialog(String id,
+            IModel<List<PropertyLimitationsType>> limitation,
+            @NotNull NonEmptyModel<Boolean> readOnlyModel) {
         super(id);
 
         this.readOnlyModel = readOnlyModel;
@@ -113,11 +117,11 @@ public class LimitationsEditorDialog extends ModalWindow{
         setContent(content);
     }
 
-    private List<PropertyLimitationsTypeDto> loadLimitationsModel(IModel<List<PropertyLimitationsType>> limList){
+    private List<PropertyLimitationsTypeDto> loadLimitationsModel(IModel<List<PropertyLimitationsType>> limList) {
         List<PropertyLimitationsTypeDto> limitations = new ArrayList<>();
         List<PropertyLimitationsType> limitationTypeList = limList.getObject();
 
-        for(PropertyLimitationsType limitation: limitationTypeList){
+        for (PropertyLimitationsType limitation : limitationTypeList) {
             limitations.add(new PropertyLimitationsTypeDto(limitation));
         }
 
@@ -125,7 +129,7 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     @Override
-    protected void onBeforeRender(){
+    protected void onBeforeRender() {
         super.onBeforeRender();
 
         if (initialized) {
@@ -137,14 +141,14 @@ public class LimitationsEditorDialog extends ModalWindow{
     }
 
     public void initLayout(WebMarkupContainer content) {
-        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form<?> form = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
         form.setOutputMarkupId(true);
         content.add(form);
 
-        ListView repeater = new ListView<PropertyLimitationsTypeDto>(ID_REPEATER, model){
+        ListView<PropertyLimitationsTypeDto> repeater = new ListView<PropertyLimitationsTypeDto>(ID_REPEATER, model) {
 
             @Override
-            protected void populateItem(final ListItem<PropertyLimitationsTypeDto> item){
+            protected void populateItem(final ListItem<PropertyLimitationsTypeDto> item) {
                 WebMarkupContainer linkContainer = new WebMarkupContainer(ID_LIMITATIONS_LINK);
                 linkContainer.setOutputMarkupId(true);
                 linkContainer.add(new AttributeModifier("href", createCollapseItemId(item, true)));
@@ -169,17 +173,13 @@ public class LimitationsEditorDialog extends ModalWindow{
                 limitationBody.setOutputMarkupId(true);
                 limitationBody.setMarkupId(createCollapseItemId(item, false).getObject());
                 if (changeState != ChangeState.SKIP) {
-                    limitationBody.add(new AttributeModifier("class", new IModel<String>() {
-
-                        @Override
-                        public String getObject() {
-                            if (changeState == ChangeState.FIRST && item.getIndex() == 0) {
-                                return "panel-collapse collapse in";
-                            } else if (changeState == ChangeState.LAST && item.getIndex() == (getModelObject().size()-1)) {
-                                return "panel-collapse collapse in";
-                            } else {
-                                return "panel-collapse collapse";
-                            }
+                    limitationBody.add(new AttributeModifier("class", (IModel<String>) () -> {
+                        if (changeState == ChangeState.FIRST && item.getIndex() == 0) {
+                            return "panel-collapse collapse in";
+                        } else if (changeState == ChangeState.LAST && item.getIndex() == (getModelObject().size() - 1)) {
+                            return "panel-collapse collapse in";
+                        } else {
+                            return "panel-collapse collapse";
                         }
                     }));
                 }
@@ -195,9 +195,8 @@ public class LimitationsEditorDialog extends ModalWindow{
         initButtons(form);
     }
 
-    private void initButtons(Form form) {
+    private void initButtons(Form<?> form) {
         AjaxLink<Void> add = new AjaxLink<Void>(ID_BUTTON_ADD) {
-
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -246,21 +245,21 @@ public class LimitationsEditorDialog extends ModalWindow{
         presentation.getCheck().add(prepareAjaxOnComponentTagUpdateBehavior());
         body.add(presentation);
 
-        DropDownChoicePanel add = new DropDownChoicePanel(ID_ACCESS_ADD,
+        DropDownChoicePanel<PropertyAccess> add = new DropDownChoicePanel<>(ID_ACCESS_ADD,
                 getAddPropertyAccessModel(item.getModel()),
                 WebComponentUtil.createReadonlyModelFromEnum(PropertyAccess.class), false);
         FormComponent<PropertyAccess> addInput = add.getBaseFormComponent();
         addInput.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         addInput.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 
-        DropDownChoicePanel read = new DropDownChoicePanel(ID_ACCESS_READ,
+        DropDownChoicePanel<PropertyAccess> read = new DropDownChoicePanel<>(ID_ACCESS_READ,
                 getReadPropertyAccessModel(item.getModel()),
                 WebComponentUtil.createReadonlyModelFromEnum(PropertyAccess.class), false);
         FormComponent<PropertyAccess> readInput = read.getBaseFormComponent();
         readInput.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         readInput.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 
-        DropDownChoicePanel modify = new DropDownChoicePanel(ID_ACCESS_MODIFY,
+        DropDownChoicePanel<PropertyAccess> modify = new DropDownChoicePanel<>(ID_ACCESS_MODIFY,
                 getModifyPropertyAccessModel(item.getModel()),
                 WebComponentUtil.createReadonlyModelFromEnum(PropertyAccess.class), false);
         FormComponent<PropertyAccess> modifyInput = modify.getBaseFormComponent();
@@ -305,70 +304,63 @@ public class LimitationsEditorDialog extends ModalWindow{
         body.add(propertyTooltip);
     }
 
-    private AjaxFormComponentUpdatingBehavior prepareAjaxOnComponentTagUpdateBehavior(){
+    private AjaxFormComponentUpdatingBehavior prepareAjaxOnComponentTagUpdateBehavior() {
         return new AjaxFormComponentUpdatingBehavior("blur") {
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {}
-        };
-    }
-
-    private IModel<String> createLimitationsLabelModel(final ListItem<PropertyLimitationsTypeDto> item){
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                StringBuilder sb = new StringBuilder();
-                PropertyLimitationsTypeDto dto = item.getModelObject();
-                sb.append("#").append(item.getIndex()+1).append(" - ");
-
-                List<LayerType> layers = new ArrayList<>();
-                if (dto.isModel()) {
-                    layers.add(LayerType.MODEL);
-                }
-                if (dto.isPresentation()) {
-                    layers.add(LayerType.PRESENTATION);
-                }
-                if (dto.isSchema()) {
-                    layers.add(LayerType.SCHEMA);
-                }
-                sb.append(StringUtils.join(layers, ", "));
-                sb.append(":");
-
-                if (dto.getLimitationObject().getAccess() != null) {
-                    List<String> accesses = new ArrayList<>();
-                    PropertyAccessType access = dto.getLimitationObject().getAccess();
-                    if (BooleanUtils.isTrue(access.isRead())) {
-                        accesses.add(getString("LimitationsEditorDialog.label.read"));
-                    }
-                    if (BooleanUtils.isTrue(access.isAdd())) {
-                        accesses.add(getString("LimitationsEditorDialog.label.add"));
-                    }
-                    if (BooleanUtils.isTrue(access.isModify())) {
-                        accesses.add(getString("LimitationsEditorDialog.label.modify"));
-                    }
-                    sb.append(StringUtils.join(accesses, ", "));
-                }
-
-                return sb.toString();
+            protected void onUpdate(AjaxRequestTarget target) {
             }
         };
     }
 
-    private IModel<String> createCollapseItemId(final ListItem<PropertyLimitationsTypeDto> item, final boolean appendSelector){
-        return new IModel<String>() {
+    private IModel<String> createLimitationsLabelModel(final ListItem<PropertyLimitationsTypeDto> item) {
+        return (IModel<String>) () -> {
+            StringBuilder sb = new StringBuilder();
+            PropertyLimitationsTypeDto dto = item.getModelObject();
+            sb.append("#").append(item.getIndex() + 1).append(" - ");
 
-            @Override
-            public String getObject() {
-                StringBuilder sb = new StringBuilder();
-
-                if (appendSelector) {
-                    sb.append("#");
-                }
-
-                sb.append("collapse").append(item.getId());
-
-                return sb.toString();
+            List<LayerType> layers = new ArrayList<>();
+            if (dto.isModel()) {
+                layers.add(LayerType.MODEL);
             }
+            if (dto.isPresentation()) {
+                layers.add(LayerType.PRESENTATION);
+            }
+            if (dto.isSchema()) {
+                layers.add(LayerType.SCHEMA);
+            }
+            sb.append(StringUtils.join(layers, ", "));
+            sb.append(":");
+
+            if (dto.getLimitationObject().getAccess() != null) {
+                List<String> accesses = new ArrayList<>();
+                PropertyAccessType access = dto.getLimitationObject().getAccess();
+                if (BooleanUtils.isTrue(access.isRead())) {
+                    accesses.add(getString("LimitationsEditorDialog.label.read"));
+                }
+                if (BooleanUtils.isTrue(access.isAdd())) {
+                    accesses.add(getString("LimitationsEditorDialog.label.add"));
+                }
+                if (BooleanUtils.isTrue(access.isModify())) {
+                    accesses.add(getString("LimitationsEditorDialog.label.modify"));
+                }
+                sb.append(StringUtils.join(accesses, ", "));
+            }
+
+            return sb.toString();
+        };
+    }
+
+    private IModel<String> createCollapseItemId(final ListItem<PropertyLimitationsTypeDto> item, final boolean appendSelector) {
+        return (IModel<String>) () -> {
+            StringBuilder sb = new StringBuilder();
+
+            if (appendSelector) {
+                sb.append("#");
+            }
+
+            sb.append("collapse").append(item.getId());
+
+            return sb.toString();
         };
     }
 
@@ -376,27 +368,27 @@ public class LimitationsEditorDialog extends ModalWindow{
         return PageBase.createStringResourceStatic(this, resourceKey, objects);
     }
 
-    private void addLimitationsPerformed(AjaxRequestTarget target){
+    private void addLimitationsPerformed(AjaxRequestTarget target) {
         changeState = ChangeState.LAST;
         model.getObject().add(new PropertyLimitationsTypeDto(new PropertyLimitationsType()));
         target.add(getContent());
     }
 
-    private void deleteLimitationPerformed(AjaxRequestTarget target, ListItem<PropertyLimitationsTypeDto> item){
+    private void deleteLimitationPerformed(AjaxRequestTarget target, ListItem<PropertyLimitationsTypeDto> item) {
         changeState = ChangeState.SKIP;
         model.getObject().remove(item.getModelObject());
         target.add(getContent());
     }
 
-    private void cancelPerformed(AjaxRequestTarget target){
+    private void cancelPerformed(AjaxRequestTarget target) {
         close(target);
     }
 
-    protected void savePerformed(AjaxRequestTarget target){
+    protected void savePerformed(AjaxRequestTarget target) {
         List<PropertyLimitationsTypeDto> list = model.getObject();
         List<PropertyLimitationsType> outputList = new ArrayList<>();
 
-        for (PropertyLimitationsTypeDto dto: list) {
+        for (PropertyLimitationsTypeDto dto : list) {
             outputList.add(dto.prepareDtoForSave());
         }
 
@@ -405,12 +397,12 @@ public class LimitationsEditorDialog extends ModalWindow{
         close(target);
     }
 
-    private IModel<PropertyAccess> getAddPropertyAccessModel(final IModel<PropertyLimitationsTypeDto> model){
+    private IModel<PropertyAccess> getAddPropertyAccessModel(final IModel<PropertyLimitationsTypeDto> model) {
         return new IModel<PropertyAccess>() {
             @Override
             public PropertyAccess getObject() {
                 Boolean add = model.getObject().getLimitationObject().getAccess().isAdd();
-                if (add == null){
+                if (add == null) {
                     return PropertyAccess.Inherit;
                 } else if (add) {
                     return PropertyAccess.Allow;
@@ -435,14 +427,15 @@ public class LimitationsEditorDialog extends ModalWindow{
             }
         };
     }
+
     private IModel<PropertyAccess> getReadPropertyAccessModel(final IModel<PropertyLimitationsTypeDto> model) {
         return new IModel<PropertyAccess>() {
             @Override
             public PropertyAccess getObject() {
                 Boolean read = model.getObject().getLimitationObject().getAccess().isRead();
                 if (read == null) {
-                    return  PropertyAccess.Inherit;
-                } else if (read){
+                    return PropertyAccess.Inherit;
+                } else if (read) {
                     return PropertyAccess.Allow;
                 } else {
                     return PropertyAccess.Deny;
@@ -465,13 +458,14 @@ public class LimitationsEditorDialog extends ModalWindow{
             }
         };
     }
+
     private IModel<PropertyAccess> getModifyPropertyAccessModel(final IModel<PropertyLimitationsTypeDto> model) {
         return new IModel<PropertyAccess>() {
             @Override
             public PropertyAccess getObject() {
                 Boolean modify = model.getObject().getLimitationObject().getAccess().isModify();
                 if (modify == null) {
-                    return  PropertyAccess.Inherit;
+                    return PropertyAccess.Inherit;
                 } else if (modify) {
                     return PropertyAccess.Allow;
                 } else {

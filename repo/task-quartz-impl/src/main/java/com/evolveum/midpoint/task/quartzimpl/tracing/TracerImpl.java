@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -30,20 +30,17 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.SerializationOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.CompiledTracingProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.Tracer;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -79,7 +76,7 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private transient RepositoryService repositoryService;
+    private RepositoryService repositoryService;
 
     private SystemConfigurationType systemConfiguration; // can be null during some tests
 
@@ -90,7 +87,8 @@ public class TracerImpl implements Tracer, SystemConfigurationChangeListener {
 
     private static final String DEFAULT_FILE_NAME_PATTERN = "trace-%{timestamp}";
 
-    private static final Consumer<Map<String, String>> DEFAULT_TEMPLATE_PARAMETERS_CUSTOMIZER = params -> { };
+    private static final Consumer<Map<String, String>> DEFAULT_TEMPLATE_PARAMETERS_CUSTOMIZER = params -> {
+    };
 
     @NotNull private Consumer<Map<String, String>> templateParametersCustomizer = DEFAULT_TEMPLATE_PARAMETERS_CUSTOMIZER;
 

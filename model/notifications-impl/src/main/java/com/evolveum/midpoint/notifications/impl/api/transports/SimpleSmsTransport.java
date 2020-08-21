@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,40 +7,22 @@
 
 package com.evolveum.midpoint.notifications.impl.api.transports;
 
-import com.evolveum.midpoint.notifications.impl.TransportRegistry;
-import com.evolveum.midpoint.notifications.impl.util.HttpUtil;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.crypto.Protector;
-import com.evolveum.midpoint.repo.common.expression.Expression;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
-import com.evolveum.midpoint.notifications.api.events.Event;
-import com.evolveum.midpoint.notifications.api.transports.Message;
-import com.evolveum.midpoint.notifications.api.transports.Transport;
-import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.auth.AuthScope;
@@ -58,22 +40,36 @@ import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-import javax.xml.namespace.QName;
-
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
+import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.Transport;
+import com.evolveum.midpoint.notifications.impl.NotificationFunctionsImpl;
+import com.evolveum.midpoint.notifications.impl.TransportRegistry;
+import com.evolveum.midpoint.notifications.impl.util.HttpUtil;
+import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.Protector;
+import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.common.expression.Expression;
+import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 /**
  * @author mederly
@@ -90,9 +86,11 @@ public class SimpleSmsTransport implements Transport {
     @Autowired protected PrismContext prismContext;
     @Autowired protected ExpressionFactory expressionFactory;
     @Autowired private TransportRegistry transportRegistry;
+
     @Autowired
     @Qualifier("cacheRepositoryService")
-    private transient RepositoryService cacheRepositoryService;
+    private RepositoryService cacheRepositoryService;
+
     @Autowired protected Protector protector;
 
     @PostConstruct
@@ -110,14 +108,14 @@ public class SimpleSmsTransport implements Transport {
         SystemConfigurationType systemConfiguration = NotificationFunctionsImpl.getSystemConfiguration(cacheRepositoryService, result);
         if (systemConfiguration == null || systemConfiguration.getNotificationConfiguration() == null) {
             String msg = "No notifications are configured. SMS notification to " + message.getTo() + " will not be sent.";
-            LOGGER.warn(msg) ;
+            LOGGER.warn(msg);
             result.recordWarning(msg);
             return;
         }
 
         String smsConfigName = StringUtils.substringAfter(transportName, NAME + ":");
         SmsConfigurationType found = null;
-        for (SmsConfigurationType smsConfigurationType: systemConfiguration.getNotificationConfiguration().getSms()) {
+        for (SmsConfigurationType smsConfigurationType : systemConfiguration.getNotificationConfiguration().getSms()) {
             if (StringUtils.isEmpty(smsConfigName) && smsConfigurationType.getName() == null
                     || StringUtils.isNotEmpty(smsConfigName) && smsConfigName.equals(smsConfigurationType.getName())) {
                 found = smsConfigurationType;
@@ -127,7 +125,7 @@ public class SimpleSmsTransport implements Transport {
 
         if (found == null) {
             String msg = "SMS configuration '" + smsConfigName + "' not found. SMS notification to " + message.getTo() + " will not be sent.";
-            LOGGER.warn(msg) ;
+            LOGGER.warn(msg);
             result.recordWarning(msg);
             return;
         }
@@ -140,8 +138,8 @@ public class SimpleSmsTransport implements Transport {
         String file = smsConfigurationType.getRedirectToFile();
         int optionsForFilteringRecipient = TransportUtil.optionsForFilteringRecipient(smsConfigurationType);
 
-        List<String> allowedRecipientTo = new ArrayList<String>();
-        List<String> forbiddenRecipientTo = new ArrayList<String>();
+        List<String> allowedRecipientTo = new ArrayList<>();
+        List<String> forbiddenRecipientTo = new ArrayList<>();
 
         if (optionsForFilteringRecipient != 0) {
             TransportUtil.validateRecipient(allowedRecipientTo, forbiddenRecipientTo, message.getTo(), smsConfigurationType, task, result,
@@ -157,12 +155,12 @@ public class SimpleSmsTransport implements Transport {
 
         } else if (file != null) {
             writeToFile(message, file, null, emptyList(), null, result);
-               return;
+            return;
         }
 
         if (smsConfigurationType.getGateway().isEmpty()) {
             String msg = "SMS gateway(s) are not defined, notification to " + message.getTo() + " will not be sent.";
-            LOGGER.warn(msg) ;
+            LOGGER.warn(msg);
             result.recordWarning(msg);
             return;
         }
@@ -177,13 +175,13 @@ public class SimpleSmsTransport implements Transport {
         }
 
         if (message.getTo().isEmpty()) {
-            if(optionsForFilteringRecipient != 0) {
+            if (optionsForFilteringRecipient != 0) {
                 String msg = "After recipient validation there is no recipient to send the notification to.";
-                LOGGER.debug(msg) ;
+                LOGGER.debug(msg);
                 result.recordSuccess();
             } else {
                 String msg = "There is no recipient to send the notification to.";
-                LOGGER.warn(msg) ;
+                LOGGER.warn(msg);
                 result.recordWarning(msg);
             }
             return;
@@ -235,15 +233,15 @@ public class SimpleSmsTransport implements Transport {
                     }
                     String proxyUsername = smsGatewayConfigurationType.getProxyUsername();
                     ProtectedStringType proxyPassword = smsGatewayConfigurationType.getProxyPassword();
-                    if(StringUtils.isNotBlank(proxyHost)) {
+                    if (StringUtils.isNotBlank(proxyHost)) {
                         HttpHost proxy;
-                        if(StringUtils.isNotBlank(proxyPort) && isInteger(proxyPort)){
+                        if (StringUtils.isNotBlank(proxyPort) && isInteger(proxyPort)) {
                             int port = Integer.parseInt(proxyPort);
                             proxy = new HttpHost(proxyHost, port);
                         } else {
                             proxy = new HttpHost(proxyHost);
                         }
-                        if(StringUtils.isNotBlank(proxyUsername)) {
+                        if (StringUtils.isNotBlank(proxyUsername)) {
                             String plainProxyPassword = proxyPassword != null ? protector.decryptString(proxyPassword) : null;
                             UsernamePasswordCredentials credentials = new UsernamePasswordCredentials(proxyUsername, plainProxyPassword);
                             provider.setCredentials(new AuthScope(proxy), credentials);
@@ -275,16 +273,14 @@ public class SimpleSmsTransport implements Transport {
                 resultForGateway.recordFatalError(msg, t);
             }
         }
-        LOGGER.warn("No more SMS gateways to try, notification to " + message.getTo() + " will not be sent.") ;
+        LOGGER.warn("No more SMS gateways to try, notification to " + message.getTo() + " will not be sent.");
         result.recordWarning("Notification to " + message.getTo() + " could not be sent.");
     }
 
     private static boolean isInteger(String s) {
         try {
             Integer.parseInt(s);
-        } catch(NumberFormatException e) {
-            return false;
-        } catch(NullPointerException e) {
+        } catch (NumberFormatException | NullPointerException e) {
             return false;
         }
         return true;
@@ -301,12 +297,12 @@ public class SimpleSmsTransport implements Transport {
             }
             String headerName = headerAsString.substring(0, i);
             int headerValueIndex;
-            if (i+1 == headerAsString.length() || headerAsString.charAt(i+1) != ' ') {
+            if (i + 1 == headerAsString.length() || headerAsString.charAt(i + 1) != ' ') {
                 // let's be nice and treat well the wrong case (there's no space after ':')
-                headerValueIndex = i+1;
+                headerValueIndex = i + 1;
             } else {
                 // correct case: ':' followed by space
-                headerValueIndex = i+2;
+                headerValueIndex = i + 2;
             }
             String headerValue = headerAsString.substring(headerValueIndex);
             request.getHeaders().add(headerName, headerValue);
@@ -367,7 +363,7 @@ public class SimpleSmsTransport implements Transport {
             resultDef.setMaxOccurs(-1);
         }
 
-        Expression<PrismPropertyValue<String>,PrismPropertyDefinition<String>> expression =
+        Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression =
                 expressionFactory.makeExpression(expressionType, resultDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = ModelExpressionThreadLocalHolder

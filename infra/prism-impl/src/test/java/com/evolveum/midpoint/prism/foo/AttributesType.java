@@ -12,7 +12,6 @@
 // Generated on: 2012.02.22 at 05:53:26 PM CET
 //
 
-
 package com.evolveum.midpoint.prism.foo;
 
 import java.io.Serializable;
@@ -22,8 +21,8 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlType;
-import org.w3c.dom.Element;
 
+import org.w3c.dom.Element;
 
 /**
  * <p>Java class for AttributesType complex type.
@@ -41,18 +40,16 @@ import org.w3c.dom.Element;
  *   &lt;/complexContent>
  * &lt;/complexType>
  * </pre>
- *
- *
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlType(name = "AttributesType", propOrder = {
-    "any"
+        "any"
 })
 public class AttributesType
-    implements Serializable
-{
+        implements Serializable {
 
-    private final static long serialVersionUID = 201202081233L;
+    private static final long serialVersionUID = 201202081233L;
+
     @XmlAnyElement(lax = true)
     protected List<Object> any;
 
@@ -76,8 +73,6 @@ public class AttributesType
      * Objects of the following type(s) are allowed in the list
      * {@link Object }
      * {@link Element }
-     *
-     *
      */
     public List<Object> getAny() {
         if (any == null) {

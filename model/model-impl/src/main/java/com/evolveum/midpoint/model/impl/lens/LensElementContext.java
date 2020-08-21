@@ -156,7 +156,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     /**
      * Security policy related to this object. (It looks like it is currently filled-in only for focus.)
      */
-    transient private SecurityPolicyType securityPolicy;
+    private transient SecurityPolicyType securityPolicy;
 
     /**
      * Evaluated policy rules. Currently used only for focus objects.

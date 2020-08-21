@@ -1,21 +1,33 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.schema.result;
 
+import static java.util.Collections.emptyList;
+import static java.util.Collections.singletonList;
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType.*;
+
 import java.io.Serializable;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Visitable;
@@ -24,39 +36,24 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
-
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.LocalizationUtil;
+import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
 import com.evolveum.midpoint.util.*;
-
+import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.*;
 import com.evolveum.midpoint.util.statistics.OperationInvocationRecord;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.util.ParamsTypeUtil;
-import com.evolveum.midpoint.util.exception.CommonException;
-
-import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType.*;
-import static java.util.Collections.emptyList;
-import static java.util.Collections.singletonList;
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  * Nested Operation Result.
- *
+ * <p>
  * This class provides information for better error handling in complex
  * operations. It contains a status (success, failure, warning, ...) and an
  * error message. It also contains a set of sub-results - results on inner
  * operations.
- *
+ * <p>
  * This object can be used by GUI to display smart (and interactive) error
  * information. It can also be used by the client code to detect deeper problems
  * in the invocations, retry or otherwise compensate for the errors or decide
@@ -64,13 +61,13 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
  *
  * @author lazyman
  * @author Radovan Semancik
- *
  */
-public class OperationResult implements Serializable, DebugDumpable, ShortDumpable, Cloneable, OperationResultBuilder, Visitable<OperationResult> {
+public class OperationResult
+        implements Serializable, DebugDumpable, ShortDumpable, Cloneable,
+        OperationResultBuilder, Visitable<OperationResult> {
 
     private static final long serialVersionUID = -2467406395542291044L;
     private static final String VARIOUS_VALUES = "[various values]";
-    private static final String INDENT_STRING = "    ";
 
     private static final String TASK_OID_PREFIX = "taskOid:";
     private static final String CASE_OID_PREFIX = "caseOid:";
@@ -94,7 +91,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     public static final String CONTEXT_OID = "oid";
     public static final String CONTEXT_OBJECT = "object";
     public static final String CONTEXT_ITEM = "item";
-    public static final String CONTEXT_TASK = "task";
     public static final String CONTEXT_RESOURCE = "resource";
     public static final String CONTEXT_REASON = "reason";
 
@@ -114,7 +110,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     public static final String DEFAULT = "";
 
     private static long tokenCount = 1000000000000000000L;
-    private String operation;
+
+    private finalString operation;
     private OperationKindType operationKind;
     private OperationResultStatus status;
 
@@ -202,8 +199,8 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     }
 
     public OperationResult(String operation, Map<String, Collection<String>> params, Map<String, Collection<String>> context,
-                           Map<String, Collection<String>> returns, OperationResultStatus status, long token, String messageCode,
-                           String message, LocalizableMessage userFriendlyMessage, Throwable cause, List<OperationResult> subresults) {
+            Map<String, Collection<String>> returns, OperationResultStatus status, long token, String messageCode,
+            String message, LocalizableMessage userFriendlyMessage, Throwable cause, List<OperationResult> subresults) {
         if (StringUtils.isEmpty(operation)) {
             throw new IllegalArgumentException("Operation argument must not be null or empty.");
         }
@@ -475,7 +472,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
                 (subresults == null || subresults.isEmpty());
     }
 
-
     /**
      * Method returns list of operation subresults @{link
      * {@link OperationResult}.
@@ -497,13 +493,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         if (subresults == null || subresults.isEmpty()) {
             return null;
         } else {
-            return subresults.get(subresults.size()-1);
+            return subresults.get(subresults.size() - 1);
         }
     }
 
     public void removeLastSubresult() {
         if (subresults != null && !subresults.isEmpty()) {
-            subresults.remove(subresults.size()-1);
+            subresults.remove(subresults.size() - 1);
         }
     }
 
@@ -526,7 +522,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         if (subresults == null) {
             return null;
         }
-        for (OperationResult subResult: getSubresults()) {
+        for (OperationResult subResult : getSubresults()) {
             if (operation.equals(subResult.getOperation())) {
                 return subResult;
             }
@@ -539,7 +535,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         if (subresults == null) {
             return found;
         }
-        for (OperationResult subResult: getSubresults()) {
+        for (OperationResult subResult : getSubresults()) {
             if (operation.equals(subResult.getOperation())) {
                 found.add(subResult);
             }
@@ -562,7 +558,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     /**
      * Returns true if the result is success.
-     *
+     * <p>
      * This returns true if the result is absolute success. Presence of partial
      * failures or warnings fail this test.
      *
@@ -578,7 +574,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     /**
      * Returns true if the result is acceptable for further processing.
-     *
+     * <p>
      * In other words: if there were no fatal errors. Warnings and partial
      * errors are acceptable. Yet, this test also fails if the operation state
      * is not known.
@@ -599,7 +595,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     public boolean isError() {
         return (status == OperationResultStatus.FATAL_ERROR) ||
-                    (status == OperationResultStatus.PARTIAL_ERROR);
+                (status == OperationResultStatus.PARTIAL_ERROR);
     }
 
     public boolean isFatalError() {
@@ -625,18 +621,16 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         if (isError()) {
             setStatus(OperationResultStatus.HANDLED_ERROR);
         }
-        for(OperationResult subresult: getSubresults()) {
+        for (OperationResult subresult : getSubresults()) {
             subresult.setErrorsHandled();
         }
     }
-
 
     /**
      * Computes operation result status based on subtask status and sets an
      * error message if the status is FATAL_ERROR.
      *
-     * @param errorMessage
-     *            error message
+     * @param errorMessage error message
      */
     public void computeStatus(String errorMessage) {
         computeStatus(errorMessage, errorMessage);
@@ -732,12 +726,12 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
                 newMessage = sub.getMessage();
                 newUserFriendlyMessage = sub.getUserFriendlyMessage();
             }
-            if (newStatus != OperationResultStatus.PARTIAL_ERROR){
-            if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
-                newStatus = OperationResultStatus.HANDLED_ERROR;
-                newMessage = sub.getMessage();
-                newUserFriendlyMessage = sub.getUserFriendlyMessage();
-            }
+            if (newStatus != OperationResultStatus.PARTIAL_ERROR) {
+                if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
+                    newStatus = OperationResultStatus.HANDLED_ERROR;
+                    newMessage = sub.getMessage();
+                    newUserFriendlyMessage = sub.getUserFriendlyMessage();
+                }
             }
             if (sub.getStatus() != OperationResultStatus.SUCCESS
                     && sub.getStatus() != OperationResultStatus.NOT_APPLICABLE) {
@@ -967,8 +961,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     public Stream<OperationResult> getResultStream() {
         return Stream.concat(Stream.of(this),
                 getSubresults().stream()
-                        .map(subresult -> subresult.getResultStream())
-                        .flatMap(stream -> stream));
+                        .flatMap(subresult -> subresult.getResultStream()));
     }
 
     public static final class PreviewResult {
@@ -1077,7 +1070,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
             return null;
         }
         if (values.size() > 1) {
-            throw new IllegalStateException("More than one parameter "+name+" in "+this);
+            throw new IllegalStateException("More than one parameter " + name + " in " + this);
         }
         return values.iterator().next();
     }
@@ -1128,7 +1121,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     @SuppressWarnings("unchecked")
     public OperationResult addParam(String name, Class<?> value) {
         if (value != null && ObjectType.class.isAssignableFrom(value)) {
-            getParams().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
+            getParams().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
         } else {
             getParams().put(name, collectionize(stringify(value)));
         }
@@ -1224,7 +1217,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     @SuppressWarnings("unchecked")
     public OperationResult addContext(String name, Class<?> value) {
         if (value != null && ObjectType.class.isAssignableFrom(value)) {
-            getContext().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
+            getContext().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
         } else {
             getContext().put(name, collectionize(stringify(value)));
         }
@@ -1294,7 +1287,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
             return null;
         }
         if (values.size() > 1) {
-            throw new IllegalStateException("More than one return "+name+" in "+this);
+            throw new IllegalStateException("More than one return " + name + " in " + this);
         }
         return values.iterator().next();
     }
@@ -1326,7 +1319,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     @SuppressWarnings("unchecked")
     public void addReturn(String name, Class<?> value) {
         if (value != null && ObjectType.class.isAssignableFrom(value)) {
-            getReturns().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>)value).getObjectTypeUri()));
+            getReturns().put(name, collectionize(ObjectTypes.getObjectType((Class<? extends ObjectType>) value).getObjectTypeUri()));
         } else {
             getReturns().put(name, collectionize(stringify(value)));
         }
@@ -1347,7 +1340,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     public void addReturn(String name, ObjectDelta<?> value) {
         getReturns().put(name, collectionize(stringify(value)));
     }
-
 
     public void addReturn(String name, String... values) {
         getReturns().put(name, collectionize(values));
@@ -1384,7 +1376,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
             return null;
         }
         Collection<String> out = new ArrayList<>(values.size());
-        for (Object value: values) {
+        for (Object value : values) {
             if (value == null) {
                 out.add(null);
             } else {
@@ -1393,7 +1385,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         }
         return out;
     }
-
 
     /**
      * @return Contains random long number, for better searching in logs.
@@ -1416,7 +1407,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     /**
      * @return Method returns operation result message. Message is required. It
-     *         will be key for translation in admin-gui.
+     * will be key for translation in admin-gui.
      */
     public String getMessage() {
         return message;
@@ -1436,7 +1427,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     /**
      * @return Method returns operation result exception. Not required, can be
-     *         null.
+     * null.
      */
     public Throwable getCause() {
         return cause;
@@ -1556,8 +1547,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
      * Records result from a common exception type. This automatically
      * determines status and also sets appropriate message.
      *
-     * @param exception
-     *            common exception
+     * @param exception common exception
      */
     public void record(CommonException exception) {
         // TODO: switch to a localized message later
@@ -1574,7 +1564,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     /**
      * Returns true if result status is UNKNOWN or any of the subresult status
      * is unknown (recursive).
-     *
+     * <p>
      * May come handy in tests to check if all the operations fill out the
      * status as they should.
      */
@@ -1625,7 +1615,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
         OperationResult opResult = new OperationResult(result.getOperation(), params, context, returns,
                 OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
-                result.getMessageCode(), result.getMessage(), localizableMessage,  null,
+                result.getMessageCode(), result.getMessage(), localizableMessage, null,
                 subresults);
         opResult.operationKind(result.getOperationKind());
         opResult.getQualifiers().addAll(result.getQualifier());
@@ -1836,7 +1826,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     }
 
     private void mergeMap(Map<String, Collection<String>> targetMap, Map<String, Collection<String>> sourceMap) {
-        for (Entry<String, Collection<String>> targetEntry: targetMap.entrySet()) {
+        for (Entry<String, Collection<String>> targetEntry : targetMap.entrySet()) {
             String targetKey = targetEntry.getKey();
             Collection<String> targetValues = targetEntry.getValue();
             if (targetValues != null && targetValues.contains(VARIOUS_VALUES)) {
@@ -1850,7 +1840,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
             // Entries do not match. The target entry needs to be marked as VariousValues
             targetEntry.setValue(createVariousValues());
         }
-        for (Entry<String, Collection<String>> sourceEntry: sourceMap.entrySet()) {
+        for (Entry<String, Collection<String>> sourceEntry : sourceMap.entrySet()) {
             String sourceKey = sourceEntry.getKey();
             if (!targetMap.containsKey(sourceKey)) {
                 targetMap.put(sourceKey, createVariousValues());
@@ -1866,7 +1856,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     private OperationResult findSimilarSubresult(OperationResult subresult) {
         OperationResult similar = null;
-        for (OperationResult sub: getSubresults()) {
+        for (OperationResult sub : getSubresults()) {
             if (sub == subresult) {
                 continue;
             }
@@ -1903,7 +1893,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     /**
      * Removes all the successful minor results. Also checks if the result is roughly consistent
      * and complete. (e.g. does not have unknown operation status, etc.)
-     *
+     * <p>
      * The argument "e" is for easier use of the cleanup in the exceptions handlers. The original exception is passed
      * to the IAE that this method produces for easier debugging.
      */
@@ -1927,12 +1917,12 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         while (iterator.hasNext()) {
             OperationResult subresult = iterator.next();
             if (subresult.getStatus() == OperationResultStatus.UNKNOWN) {
-                String message = "Subresult "+subresult.getOperation()+" of operation "+operation+" is still UNKNOWN during cleanup";
+                String message = "Subresult " + subresult.getOperation() + " of operation " + operation + " is still UNKNOWN during cleanup";
                 LOGGER.error("{}:\n{}", message, this.debugDump(), e);
                 if (e == null) {
                     throw new IllegalStateException(message);
                 } else {
-                    throw new IllegalStateException(message+"; during handling of exception "+e, e);
+                    throw new IllegalStateException(message + "; during handling of exception " + e, e);
                 }
             }
             if (subresult.canCleanup(preserveDuringCleanup)) {
@@ -1951,10 +1941,14 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     @SuppressWarnings("WeakerAccess")
     public static boolean isLesserThan(OperationResultImportanceType x, @NotNull OperationResultImportanceType y) {
         switch (y) {
-            case MAJOR: return x != MAJOR;
-            case NORMAL: return x == MINOR;
-            case MINOR: return false;
-            default: throw new IllegalArgumentException("importance: " + y);
+            case MAJOR:
+                return x != MAJOR;
+            case NORMAL:
+                return x == MINOR;
+            case MINOR:
+                return false;
+            default:
+                throw new IllegalArgumentException("importance: " + y);
         }
     }
 
@@ -2006,7 +2000,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
             sb.append("[p]");
             sb.append(entry.getKey());
             sb.append("=");
-            sb.append(dumpEntry(indent+2, entry.getValue()));
+            sb.append(dumpEntry(entry.getValue()));
             sb.append("\n");
         }
 
@@ -2015,7 +2009,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
             sb.append("[c]");
             sb.append(entry.getKey());
             sb.append("=");
-            sb.append(dumpEntry(indent+2, entry.getValue()));
+            sb.append(dumpEntry(entry.getValue()));
             sb.append("\n");
         }
 
@@ -2024,7 +2018,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
             sb.append("[r]");
             sb.append(entry.getKey());
             sb.append("=");
-            sb.append(dumpEntry(indent+2, entry.getValue()));
+            sb.append(dumpEntry(entry.getValue()));
             sb.append("\n");
         }
 
@@ -2053,7 +2047,7 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         }
     }
 
-    private String dumpEntry(int indent, Collection<String> values) {
+    private String dumpEntry(Collection<String> values) {
         if (values == null) {
             return null;
         }
@@ -2081,10 +2075,9 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
     }
 
     private static void dumpStackTrace(StringBuilder sb, StackTraceElement[] stackTrace, int indent) {
-        for (StackTraceElement aStackTrace : stackTrace) {
+        for (StackTraceElement stackTraceElement : stackTrace) {
             DebugUtil.indentDebugDump(sb, indent);
-            StackTraceElement element = aStackTrace;
-            sb.append(element.toString());
+            sb.append(stackTraceElement.toString());
             sb.append("\n");
         }
     }
@@ -2101,7 +2094,6 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         sb.append(")");
         return sb.toString();
     }
-
 
     public void setBackgroundTaskOid(String oid) {
         setAsynchronousOperationReference(TASK_OID_PREFIX + oid);
@@ -2157,15 +2149,10 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
         }
     }
 
-    // primitive implementation - uncomment it if needed
-//    public OperationResult clone() {
-//        return CloneUtil.clone(this);
-//    }
-
     private static final class OperationStatusKey {
 
-        private String operation;
-        private OperationResultStatus status;
+        private final String operation;
+        private final OperationResultStatus status;
 
         private OperationStatusKey(String operation, OperationResultStatus status) {
             this.operation = operation;
@@ -2174,15 +2161,13 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false; }
 
             OperationStatusKey that = (OperationStatusKey) o;
 
-            if (operation != null ? !operation.equals(that.operation) : that.operation != null) return false;
-            if (status != that.status) return false;
-
-            return true;
+            if (operation != null ? !operation.equals(that.operation) : that.operation != null) { return false; }
+            return status == that.status;
         }
 
         @Override
@@ -2332,8 +2317,12 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof OperationResult)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof OperationResult)) {
+            return false;
+        }
         OperationResult result = (OperationResult) o;
         return token == result.token &&
                 count == result.count &&
@@ -2366,11 +2355,11 @@ public class OperationResult implements Serializable, DebugDumpable, ShortDumpab
 
     @Override
     public int hashCode() {
-        return Objects
-                .hash(operation, qualifiers, status, params, context, returns, token, messageCode, message, userFriendlyMessage, cause, count,
-                        hiddenRecordsCount, subresults, details, summarizeErrors, summarizePartialErrors, summarizeSuccesses,
-                        building, start, end, microseconds, invocationId, traces,
-                        asynchronousOperationReference);
+        return Objects.hash(
+                operation, qualifiers, status, params, context, returns, token, messageCode,
+                message, userFriendlyMessage, cause, count, hiddenRecordsCount, subresults, details,
+                summarizeErrors, summarizePartialErrors, summarizeSuccesses, building, start, end,
+                microseconds, invocationId, traces, asynchronousOperationReference);
     }
 
     public Long getStart() {

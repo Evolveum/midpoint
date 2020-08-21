@@ -14,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -52,12 +54,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
 
 /**
  * @author katka
- *
  */
 @Component
 public class AssignmentCollector {
 
-    private final static Trace LOGGER = TraceManager.getTrace(AssignmentCollector.class);
+    private static final Trace LOGGER = TraceManager.getTrace(AssignmentCollector.class);
 
     @Autowired private ReferenceResolver referenceResolver;
     @Autowired private SystemObjectCache systemObjectCache;
@@ -78,17 +79,10 @@ public class AssignmentCollector {
         LensContext<AH> lensContext = createAuthenticationLensContext(focus, result);
 
         AH focusBean = focus.asObjectable();
-        Collection<AssignmentType> forcedAssignments;
-        try {
-            forcedAssignments = LensUtil.getForcedAssignments(lensContext.getFocusContext().getLifecycleModel(),
-                    focusBean.getLifecycleState(), objectResolver, prismContext, task, result);
-        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
-                | ExpressionEvaluationException e1) {
-            LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", focusBean.getLifecycleState(), e1);
-            forcedAssignments = null;
-        }
+
         Collection<EvaluatedAssignment<AH>> evaluatedAssignments = new ArrayList<>();
 
+        Collection<AssignmentType> forcedAssignments = collectForcedAssignments(focusBean, lensContext.getFocusContext().getLifecycleModel(), task, result);
         if (!focusBean.getAssignment().isEmpty() || forcedAssignments != null) {
             AssignmentEvaluator.Builder<AH> builder =
                     new AssignmentEvaluator.Builder<AH>()
@@ -116,7 +110,7 @@ public class AssignmentCollector {
             AssignmentEvaluator<AH> assignmentEvaluator = builder.build();
 
             evaluatedAssignments.addAll(evaluateAssignments(focusBean, focusBean.getAssignment(),
-                    AssignmentOrigin.createInObject(), assignmentEvaluator,task, result));
+                    AssignmentOrigin.createInObject(), assignmentEvaluator, task, result));
 
             evaluatedAssignments.addAll(evaluateAssignments(focusBean, forcedAssignments,
                     AssignmentOrigin.createVirtual(), assignmentEvaluator, task, result));
@@ -134,12 +128,12 @@ public class AssignmentCollector {
             PrismContainerDefinition<AssignmentType> standardAssignmentDefinition = prismContext.getSchemaRegistry()
                     .findObjectDefinitionByCompileTimeClass(AssignmentHolderType.class)
                     .findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
-            for (AssignmentType assignmentType: emptyIfNull(assignments)) {
+            for (AssignmentType assignmentType : emptyIfNull(assignments)) {
                 try {
                     //noinspection unchecked
                     PrismContainerDefinition<AssignmentType> definition = defaultIfNull(
                             assignmentType.asPrismContainerValue().getDefinition(), standardAssignmentDefinition);
-                    ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> assignmentIdi =
+                    ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi =
                             new ItemDeltaItem<>(LensUtil.createAssignmentSingleValueContainer(assignmentType), definition);
                     EvaluatedAssignment<AH> assignment = assignmentEvaluator.evaluate(assignmentIdi, PlusMinusZero.ZERO, false, focus, focus.toString(), origin, task, result);
                     evaluatedAssignments.add(assignment);
@@ -161,6 +155,17 @@ public class AssignmentCollector {
         return lensContext;
     }
 
+    private <AH extends AssignmentHolderType> Collection<AssignmentType> collectForcedAssignments(AH focusBean, LifecycleStateModelType lifecycleModel, Task task, OperationResult result) {
+        try {
+            return LensUtil.getForcedAssignments(lifecycleModel,
+                    focusBean.getLifecycleState(), objectResolver, prismContext, task, result);
+        } catch (ObjectNotFoundException | CommunicationException | ConfigurationException | SecurityViolationException
+                | ExpressionEvaluationException | SchemaException e) {
+            LOGGER.error("Forced assignments defined for lifecycle {} won't be evaluated", focusBean.getLifecycleState(), e);
+            return null;
+        }
+    }
+
     private <AH extends AssignmentHolderType> ArchetypePolicyType determineObjectPolicyConfiguration(PrismObject<AH> user, OperationResult result) throws SchemaException {
         ArchetypePolicyType archetypePolicy;
         try {
@@ -170,7 +175,7 @@ public class AssignmentCollector {
         }
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Selected policy configuration from subtypes {}:\n{}",
-                    FocusTypeUtil.determineSubTypes(user), archetypePolicy==null?null:archetypePolicy.asPrismContainerValue().debugDump(1));
+                    FocusTypeUtil.determineSubTypes(user), archetypePolicy == null ? null : archetypePolicy.asPrismContainerValue().debugDump(1));
         }
 
         return archetypePolicy;

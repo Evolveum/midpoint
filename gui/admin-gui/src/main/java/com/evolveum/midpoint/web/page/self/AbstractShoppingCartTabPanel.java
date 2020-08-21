@@ -400,6 +400,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                     dto.setAlreadyAssigned(isAlreadyAssigned(obj, dto));
                     dto.setDefualtAssignmentConstraints(roleManagementConfig == null ? null : roleManagementConfig.getDefaultAssignmentConstraints());
                 }
+                dto.setSimpleView(true);
                 return dto;
             }
 

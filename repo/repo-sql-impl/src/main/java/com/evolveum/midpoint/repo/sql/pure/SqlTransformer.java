@@ -1,10 +1,21 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.repo.sql.pure;
 
+import com.querydsl.core.Tuple;
+import com.querydsl.sql.ColumnMetadata;
+import com.querydsl.sql.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.common.other.RObjectType;
+import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
+import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
@@ -12,14 +23,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
  * Base class for SQL transformers translating from query beans or tuples to model types.
  *
  * @param <S> schema type
- * @param <R> type of the transformed data, a row, typically a M-class
+ * @param <R> type of the transformed data, a row bean
  */
-public abstract class SqlTransformer<S, R> {
+public abstract class SqlTransformer<S, Q extends FlexibleRelationalPathBase<R>, R> {
 
     protected final PrismContext prismContext;
+    protected final QueryModelMapping<S, Q, R> mapping;
+    protected final Configuration querydslConfiguration;
 
-    protected SqlTransformer(PrismContext prismContext) {
+    protected SqlTransformer(PrismContext prismContext,
+            QueryModelMapping<S, Q, R> mapping, Configuration querydslConfiguration) {
         this.prismContext = prismContext;
+        this.mapping = mapping;
+        this.querydslConfiguration = querydslConfiguration;
     }
 
     /**
@@ -34,12 +50,33 @@ public abstract class SqlTransformer<S, R> {
     public abstract S toSchemaObject(R row) throws SchemaException;
 
     /**
+     * Transforms row Tuple containing {@link R} under entity path and extension columns.
+     */
+    public S toSchemaObject(Tuple tuple, Q entityPath) throws SchemaException {
+        S schemaObject = toSchemaObject(tuple.get(entityPath));
+        processExtensionColumns(schemaObject, tuple, entityPath);
+        return schemaObject;
+    }
+
+    protected void processExtensionColumns(S schemaObject, Tuple tuple, Q entityPath) {
+        // empty by default, can be overridden
+    }
+
+    /**
      * Version of {@link #toSchemaObject(Object)} rethrowing checked exceptions as unchecked
      * {@link SqlTransformationException} - this is useful for lambda/method references usages.
      */
     public S toSchemaObjectSafe(R row) {
         try {
             return toSchemaObject(row);
+        } catch (SchemaException e) {
+            throw new SqlTransformationException(e);
+        }
+    }
+
+    public S toSchemaObjectSafe(Tuple row, Q entityPath) {
+        try {
+            return toSchemaObject(row, entityPath);
         } catch (SchemaException e) {
             throw new SqlTransformationException(e);
         }
@@ -97,5 +134,17 @@ public abstract class SqlTransformer<S, R> {
         return repoObjectTypeId != null
                 ? RObjectType.fromOrdinal(repoObjectTypeId)
                 : null;
+    }
+
+    /**
+     * Trimming the value to the column size from column metadata (must be specified).
+     */
+    protected @Nullable String trim(
+            @Nullable String value, @NotNull ColumnMetadata columnMetadata) {
+        if (!columnMetadata.hasSize()) {
+            throw new IllegalArgumentException(
+                    "trimString with column metadata without specified size: " + columnMetadata);
+        }
+        return RUtil.trimString(value, columnMetadata.getSize());
     }
 }

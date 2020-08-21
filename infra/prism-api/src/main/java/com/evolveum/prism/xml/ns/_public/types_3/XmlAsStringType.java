@@ -35,9 +35,10 @@ import com.evolveum.midpoint.util.xml.DomAwareHashCodeStrategy;
 })
 public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCode, JaxbVisitable {
 
-    private final static long serialVersionUID = 201105211233L;
+    private static final long serialVersionUID = 201105211233L;
+
     @XmlMixed
-    @XmlAnyElement(lax = false) // JAXB should not try to unmarshal inner elements
+    @XmlAnyElement // JAXB should not try to unmarshal inner elements
     protected List<Object> content;
 
     /**
@@ -97,10 +98,10 @@ public class XmlAsStringType implements Serializable, Cloneable, Equals, HashCod
         lhsContent = this.content != null && !this.content.isEmpty() ? this.getContent() : null;
         List<Object> rhsContent;
         rhsContent = that.content != null && !that.content.isEmpty() ? that.getContent() : null;
-        if (!strategy.equals(LocatorUtils.property(thisLocator, "content", lhsContent), LocatorUtils.property(thatLocator, "content", rhsContent), lhsContent, rhsContent)) {
-            return false;
-        }
-        return true;
+        return strategy.equals(
+                LocatorUtils.property(thisLocator, "content", lhsContent),
+                LocatorUtils.property(thatLocator, "content", rhsContent),
+                lhsContent, rhsContent);
     }
 
     @SuppressWarnings("EqualsWhichDoesntCheckParameterClass")

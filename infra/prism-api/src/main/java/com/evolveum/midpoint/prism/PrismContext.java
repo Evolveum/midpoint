@@ -166,8 +166,9 @@ public interface PrismContext extends ProtectorCreator {
     <C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, Class<O> type,
             ItemPath path) throws SchemaException;
 
-    <C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, QName typeName,
-            ItemPath path) throws SchemaException;
+    <C extends Containerable> void adopt(
+            PrismContainerValue<C> prismContainerValue, QName typeName, ItemPath path)
+            throws SchemaException;
     //endregion
 
     //region Serializing
@@ -327,7 +328,7 @@ public interface PrismContext extends ProtectorCreator {
     /**
      * Temporary
      */
-    CanonicalItemPath createCanonicalItemPath(ItemPath itemPath, Class<? extends Containerable> clazz);
+    CanonicalItemPath createCanonicalItemPath(ItemPath itemPath, QName objectType);
 
     /**
      * Temporary

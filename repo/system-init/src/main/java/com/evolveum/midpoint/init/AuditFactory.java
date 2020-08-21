@@ -9,6 +9,7 @@ package com.evolveum.midpoint.init;
 
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.PostConstruct;
 
 import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
 import org.apache.commons.configuration2.Configuration;
@@ -21,7 +22,6 @@ import org.springframework.beans.factory.config.AutowireCapableBeanFactory;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.api.AuditServiceFactory;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.configuration.api.RuntimeConfiguration;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,7 +30,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 /**
  * Audit factory is a managed component that hides multiple actual {@link AuditServiceFactory}
  * components - and {@link AuditService}s they create - behind a single proxy implementation.
- * This is actually "Audit Service Proxy Factory", the service is returned by {@link #getAuditService()}.
+ * This is actually "Audit Service Proxy Factory", the service is returned by {@link #createAuditService()}.
  * This component takes care of "midpoint/audit" part of the config XML and "auditService" elements there.
  * <p>
  * Initialization process uses configured managed components (Spring beans) of type {@link AuditServiceFactory}.
@@ -45,7 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * While technically this creates {@link AuditService}, hence it is a factory (see its Spring
  * configuration), it is NOT part of {@link AuditServiceFactory} hierarchy.
  */
-public class AuditFactory implements RuntimeConfiguration {
+public class AuditFactory {
 
     private static final Trace LOGGER = TraceManager.getTrace(AuditFactory.class);
 
@@ -60,24 +60,28 @@ public class AuditFactory implements RuntimeConfiguration {
 
     private AuditService auditService;
 
+    @PostConstruct
     public void init() {
-        Configuration config = getCurrentConfiguration();
+        Configuration config =
+                midpointConfiguration.getConfiguration(MidpointConfiguration.AUDIT_CONFIGURATION);
         List<HierarchicalConfiguration<ImmutableNode>> auditServices =
                 ((BaseHierarchicalConfiguration) config).configurationsAt(CONF_AUDIT_SERVICE);
         for (Configuration serviceConfig : auditServices) {
+            String factoryClass = getFactoryClassName(serviceConfig);
             try {
-                String factoryClass = getFactoryClassName(serviceConfig);
                 //noinspection unchecked
-                Class<AuditServiceFactory> clazz = (Class<AuditServiceFactory>) Class.forName(factoryClass);
+                Class<AuditServiceFactory> clazz =
+                        (Class<AuditServiceFactory>) Class.forName(factoryClass);
                 AuditServiceFactory factory = getFactory(clazz);
                 factory.init(serviceConfig);
 
                 serviceFactories.add(factory);
             } catch (Exception ex) {
-                LoggingUtils.logException(LOGGER, "AuditServiceFactory implementation class {} failed to " +
-                        "initialize.", ex, getFactoryClassName(serviceConfig));
+                LoggingUtils.logException(LOGGER,
+                        "AuditServiceFactory implementation class {} failed to initialize.",
+                        ex, factoryClass);
                 throw new SystemException("AuditServiceFactory implementation class "
-                        + getFactoryClassName(serviceConfig) + " failed to initialize: " + ex.getMessage(), ex);
+                        + factoryClass + " failed to initialize: " + ex.getMessage(), ex);
             }
         }
     }
@@ -106,15 +110,12 @@ public class AuditFactory implements RuntimeConfiguration {
         return className;
     }
 
-    public void destroy() {
-    }
-
-    public synchronized AuditService getAuditService() {
+    public synchronized AuditService createAuditService() {
         if (auditService == null) {
             AuditServiceProxy proxy = new AuditServiceProxy();
             for (AuditServiceFactory factory : serviceFactories) {
                 try {
-                    AuditService service = factory.getAuditService();
+                    AuditService service = factory.createAuditService();
                     autowireCapableBeanFactory.autowireBean(service);
                     proxy.registerService(service);
                 } catch (Exception ex) {
@@ -128,15 +129,5 @@ public class AuditFactory implements RuntimeConfiguration {
         }
 
         return auditService;
-    }
-
-    @Override
-    public String getComponentId() {
-        return MidpointConfiguration.AUDIT_CONFIGURATION;
-    }
-
-    @Override
-    public Configuration getCurrentConfiguration() {
-        return midpointConfiguration.getConfiguration(MidpointConfiguration.AUDIT_CONFIGURATION);
     }
 }

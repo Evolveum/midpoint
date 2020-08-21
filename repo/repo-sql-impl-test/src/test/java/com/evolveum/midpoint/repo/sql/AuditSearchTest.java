@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -13,6 +12,7 @@ import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_RES
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -39,10 +39,7 @@ import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordPropertyType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -87,11 +84,12 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.setRemoteHostAddress("192.168.10.1");
         record1.setSessionIdentifier("session-1");
         record1.setTarget(target, prismContext);
-        record1.setTargetOwner(targetOwner);
+        record1.setTargetOwner(targetOwner, prismContext);
         record1.addDelta(createDelta(UserType.F_FULL_NAME)); // values are not even necessary
-        record1.addDelta(createDelta(UserType.F_FAMILY_NAME));
+        record1.addDelta(createDelta(UserType.F_FAMILY_NAME, PolyString.fromOrig("familyNameVal")));
         record1.addDelta(createDelta(ItemPath.create(
-                ObjectType.F_METADATA, MetadataType.F_REQUEST_TIMESTAMP)));
+                ObjectType.F_METADATA, MetadataType.F_REQUEST_TIMESTAMP),
+                MiscUtil.asXMLGregorianCalendar(System.currentTimeMillis())));
         // just want to see two values, that's all
         record1.addReferenceValue("ref1",
                 ObjectTypeUtil.createObjectRef(targetOid, ObjectTypes.USER).asReferenceValue());
@@ -100,6 +98,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record1.addResourceOid("res-oid-1");
         record1.addResourceOid("res-oid-2");
         record1.addResourceOid("res-oid-3");
+        record1.getCustomColumnProperty().put("foo", "foo-val");
         auditService.audit(record1, NullTaskImpl.INSTANCE);
         record1EventIdentifier = record1.getEventIdentifier();
 
@@ -111,14 +110,19 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.setEventStage(AuditEventStage.EXECUTION);
         record2.setMessage("record2");
         record2.setOutcome(OperationResultStatus.UNKNOWN);
-        record2.setInitiator(initiator);
+        record2.setInitiator(initiator, prismContext);
         record2.setHostIdentifier("127.0.0.1");
         record2.setRemoteHostAddress("192.168.10.2");
         record2.setSessionIdentifier("session-1"); // session-1 on purpose
-        record2.setAttorney(attorney);
+        record2.setAttorney(attorney, prismContext);
         record2.setRequestIdentifier("req-id");
         record2.addDelta(createDelta(UserType.F_FULL_NAME, PolyString.fromOrig("somePolyString")));
-        record2.addDelta(createDelta(UserType.F_GIVEN_NAME));
+        record2.addDelta(createDelta(UserType.F_ADDITIONAL_NAME));
+        // these two deltas should collapse into single no-op delta + no changed items for them
+        record2.addDelta(createDeltaWithIgnoredPath(UserType.F_GIVEN_NAME));
+        record2.addDelta(createDeltaWithIgnoredPath(UserType.F_FAMILY_NAME));
+        record2.getCustomColumnProperty().put("foo", "foo-value-2");
+        record2.getCustomColumnProperty().put("bar", "bar-val");
         auditService.audit(record2, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record3 = new AuditEventRecord();
@@ -143,7 +147,17 @@ public class AuditSearchTest extends BaseSQLRepoTest {
             throws SchemaException {
         ObjectDeltaOperation<UserType> delta = new ObjectDeltaOperation<>();
         delta.setObjectDelta(deltaFor(UserType.class)
-                .item(itemPath).add(values)
+                .item(itemPath).replace(values)
+                .asObjectDelta("any-oid-we-don't-care-here"));
+        return delta;
+    }
+
+    @NotNull
+    private ObjectDeltaOperation<UserType> createDeltaWithIgnoredPath(ItemPath itemPath)
+            throws SchemaException {
+        ObjectDeltaOperation<UserType> delta = new ObjectDeltaOperation<>();
+        delta.setObjectDelta(deltaFor(UserType.class)
+                .item(itemPath).add() // this path with ADD without value should be ignored
                 .asObjectDelta("any-oid-we-don't-care-here"));
         return delta;
     }
@@ -794,11 +808,12 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         // this tests multiple values for JOIN path
         when("searching audit by changed items equal to multiple values");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
-                .queryFor(AuditEventRecordType.class)
-                .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
-                        new ItemPathType(UserType.F_GIVEN_NAME),
+                        .queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_ADDITIONAL_NAME),
                         new ItemPathType(UserType.F_FAMILY_NAME))
-                .build());
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
 
         then("audit events with changed items equal to any of the specified values are returned");
         assertThat(result).hasSize(2);
@@ -873,9 +888,19 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(prop1.getValue()).containsExactly("val1");
         // for other attributes we just use the size check, fetch mechanism is similar
         assertThat(record1.getChangedItem()).hasSize(4);
-        assertThat(record1.getDelta()).hasSize(1);
+        assertThat(record1.getDelta()).hasSize(3)
+                .allMatch(d -> d.getObjectDelta() != null);
         assertThat(record1.getReference()).hasSize(2);
         assertThat(record1.getResourceOid()).hasSize(3);
+        // we also want to be sure that returned objects have prism definitions
+        assertThat(record1.asPrismContainerValue().getComplexTypeDefinition()).isNotNull();
+        // This one is parent container's definition and it is a bit questionable,
+        // whether it's a responsibility of the repository service.
+        assertThat(record1.asPrismContainerValue().getDefinition()).isNotNull();
+
+        AuditEventRecordType record2 = result.get(1);
+        // two meaningless deltas collapsed to single no-op delta + there are two normal deltas too
+        assertThat(record2.getDelta()).hasSize(3);
 
         AuditEventRecordType record3 = result.get(2);
         assertThat(record3.getProperty()).as("two different property keys").hasSize(2);
@@ -969,11 +994,11 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         when("searching audit filtered by changed item OR another changed item");
         SearchResultList<AuditEventRecordType> result = searchObjects(
                 prismContext.queryFor(AuditEventRecordType.class)
-                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
-                        new ItemPathType(UserType.F_GIVEN_NAME))
+                        .item(AuditEventRecordType.F_CHANGED_ITEM)
+                        .eq(new ItemPathType(UserType.F_ADDITIONAL_NAME))
                         .or()
-                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
-                        new ItemPathType(UserType.F_FAMILY_NAME))
+                        .item(AuditEventRecordType.F_CHANGED_ITEM)
+                        .eq(new ItemPathType(UserType.F_FAMILY_NAME))
                         .build(),
                 SelectorOptions.create(GetOperationOptions.createDistinct()));
 
@@ -985,20 +1010,146 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
     @Test
     public void test521SearchByChangedItemAndAnotherChangedItem() throws SchemaException {
-        // result should be similar to changedItem.eq(multiple values)
         when("searching audit filtered by changed item AND another changed item");
         SearchResultList<AuditEventRecordType> result = searchObjects(
                 prismContext.queryFor(AuditEventRecordType.class)
-                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
-                        new ItemPathType(UserType.F_GIVEN_NAME))
+                        .item(AuditEventRecordType.F_CHANGED_ITEM)
+                        .eq(new ItemPathType(UserType.F_GIVEN_NAME))
                         .and()
-                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
-                        new ItemPathType(UserType.F_FAMILY_NAME))
+                        .item(AuditEventRecordType.F_CHANGED_ITEM)
+                        .eq(new ItemPathType(UserType.F_FAMILY_NAME))
                         .build(),
                 SelectorOptions.create(GetOperationOptions.createDistinct()));
 
         then("only audit events having both specified changed items are returned");
         assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void test550SearchByCustomColumnProperty() throws SchemaException {
+        when("searching audit filtered by custom column property");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CUSTOM_COLUMN_PROPERTY)
+                        .eq(new AuditEventRecordCustomColumnPropertyType()
+                                .name("foo").value("foo-val"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("only audit events having the specified custom property name and value are returned");
+        assertThat(result).hasSize(1);
+        List<AuditEventRecordCustomColumnPropertyType> customColumnProperty =
+                result.get(0).getCustomColumnProperty();
+        assertThat(customColumnProperty).isNotEmpty()
+                .anyMatch(p -> p.getName().equals("foo") && p.getValue().equals("foo-val"));
+    }
+
+    @Test
+    public void test551SearchByCustomColumnPropertyWrongValue() throws SchemaException {
+        when("searching audit filtered by custom column property using wrong value");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CUSTOM_COLUMN_PROPERTY)
+                        .eq(new AuditEventRecordCustomColumnPropertyType()
+                                .name("foo").value("foo-wrong-val"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("no audit records are returned");
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    public void test552SearchByCustomColumnPropertyStartsWith() throws SchemaException {
+        when("searching audit filtered by custom column property");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CUSTOM_COLUMN_PROPERTY)
+                        .startsWith(new AuditEventRecordCustomColumnPropertyType()
+                                .name("foo").value("foo-val"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("only audit events having the specified custom property name and value are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2");
+    }
+
+    @Test
+    public void test553SearchByCustomColumnPropertyNotEqual() throws SchemaException {
+        when("searching audit filtered by custom column property not equal to value");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .not()
+                        .item(AuditEventRecordType.F_CUSTOM_COLUMN_PROPERTY)
+                        .eq(new AuditEventRecordCustomColumnPropertyType()
+                                .name("foo").value("foo-val"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("audit events having the custom property not equal or NULL are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("2", "3");
+    }
+
+    @Test
+    public void test555SearchByCustomColumnPropertyMultiValue() throws SchemaException {
+        when("searching audit filtered by custom column property multiple values");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CUSTOM_COLUMN_PROPERTY)
+                        .eq(new AuditEventRecordCustomColumnPropertyType()
+                                        .name("foo").value("foo-val"),
+                                new AuditEventRecordCustomColumnPropertyType()
+                                        .name("bar").value("bar-val"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        // any = multivalue for AERCCPType has in effect OR semantics
+        then("audit events having any of specified custom property name and value are returned");
+        assertThat(result).hasSize(2);
+        assertThat(result).extracting(aer -> aer.getParameter())
+                .containsExactlyInAnyOrder("1", "2");
+    }
+
+    @Test
+    public void test556SearchByCustomColumnPropertyAndAnother() throws SchemaException {
+        when("searching audit filtered by custom column properties joined with AND");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CUSTOM_COLUMN_PROPERTY)
+                        .startsWith(new AuditEventRecordCustomColumnPropertyType()
+                                .name("foo").value("foo-val"))
+                        .and()
+                        .item(AuditEventRecordType.F_CUSTOM_COLUMN_PROPERTY)
+                        .eq(new AuditEventRecordCustomColumnPropertyType()
+                                .name("bar").value("bar-val"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("audit events having properties meeting both specified conditions are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getParameter()).isEqualTo("2");
+    }
+
+    @Test
+    public void test558SearchByCustomColumnPropertyWithNullValue() throws SchemaException {
+        when("searching audit filtered by custom column property with null value");
+        SearchResultList<AuditEventRecordType> result = searchObjects(
+                prismContext.queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CUSTOM_COLUMN_PROPERTY)
+                        .eq(new AuditEventRecordCustomColumnPropertyType().name("foo"))
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
+
+        then("audit events with the specified custom property set to NULL are returned");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getParameter()).isEqualTo("3");
+        assertThat(result.get(0).getCustomColumnProperty())
+                .filteredOn(p -> p.getName().equals("foo") && p.getValue() != null)
+                .isEmpty();
     }
 
     @Test
@@ -1099,7 +1250,16 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 .asc(AuditEventRecordType.F_TIMESTAMP)
                 .build());
 
-        then("count all records is returned, order is ignored");
+        then("count of all records is returned, order is ignored");
+        assertThat(result).isEqualTo(3);
+    }
+
+    @Test
+    public void test930CountWithAllParametersNull() {
+        when("counting audit objects with all parameters null");
+        int result = auditService.countObjects(null, null, null);
+
+        then("count of all records is returned");
         assertThat(result).isEqualTo(3);
     }
 
@@ -1113,7 +1273,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
                 .maxSize(1)
                 .build());
 
-        then("count all records is returned, paging is ignored");
+        then("count of all records is returned, paging is ignored");
         assertThat(result).isEqualTo(3);
     }
 
