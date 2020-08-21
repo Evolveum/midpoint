@@ -106,10 +106,10 @@ public class AuditLogViewerPanelNew extends BasePanel {
             protected IColumn createIconColumn() {
                 return null;
             }
-//
-//            protected Search createSearch() {
-//                Search search = super.createSearch();
-//            }
+
+            protected Search createSearch() {
+                return SearchFactory.createContainerSearch(getType(), AuditEventRecordType.F_TIMESTAMP, getPageBase());
+            }
         };
         auditLogViewerTable.setOutputMarkupId(true);
         add(auditLogViewerTable);

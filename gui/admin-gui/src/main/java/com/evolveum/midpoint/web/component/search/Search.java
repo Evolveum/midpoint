@@ -66,16 +66,20 @@ public class Search implements Serializable, DebugDumpable {
 
     private List<ItemDefinition> availableDefinitions = new ArrayList<>();
     private List<SearchItem> items = new ArrayList<>();
+    private ItemPath defaultSearchItemPath;
 
     public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions) {
-        this(type, allDefinitions, false, null);
+
+    }
+    public Search(Class<? extends Containerable> type, ItemPath defaultSearchItemPath, List<SearchItemDefinition> allDefinitions) {
+        this(type, allDefinitions, defaultSearchItemPath, false, null);
     }
 
-    public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions,
+    public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions, ItemPath defaultSearchItemPath,
                   boolean isFullTextSearchEnabled, SearchBoxModeType searchBoxModeType) {
         this.type = type;
         this.allDefinitions = allDefinitions;
-
+        this.defaultSearchItemPath = defaultSearchItemPath;
         this.isFullTextSearchEnabled = isFullTextSearchEnabled;
 
         if (searchBoxModeType != null){
@@ -86,7 +90,14 @@ public class Search implements Serializable, DebugDumpable {
             searchType = SearchBoxModeType.BASIC;
         }
         allDefinitions.stream().forEach(searchItemDef -> availableDefinitions.add(searchItemDef.getDef()));
-//        availableDefinitions.addAll(allDefinitions.values());
+        if (defaultSearchItemPath != null) {
+            allDefinitions.stream().forEach(searchItemDef -> {
+                if (searchItemDef.getPath().equivalent(defaultSearchItemPath)) {
+                    addItem(searchItemDef.getDef());
+                    return;
+                }
+            });
+        }
     }
 
     public List<SearchItem> getItems() {
