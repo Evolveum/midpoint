@@ -8,8 +8,16 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObjectDetailsPage;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.web.component.search.PropertySearchItem;
+import com.evolveum.midpoint.web.component.search.Search;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
 
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,18 +36,18 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.Channel;
 import com.evolveum.midpoint.gui.impl.component.ContainerListPanel;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.data.column.ObjectReferenceColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * Created by honchar
@@ -72,10 +80,22 @@ public class AuditLogViewerPanelNew extends BasePanel {
                 return null;
             }
 
-//            @Override
-//            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
-//                return getPageBase().getPrismContext().queryFor(AuditEventRecordType.class).build();
-//            }
+            @Override
+            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
+                if (getPageStorage().getSearch() == null) {
+                    Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+                    XMLGregorianCalendar todayStartTimestamp = XmlTypeConverter.createXMLGregorianCalendar(todayDate);
+                    ObjectFilter todayTimestampFilter = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
+                            .item(AuditEventRecordType.F_TIMESTAMP)
+                            .gt(todayStartTimestamp)
+                            .buildFilter();
+                    if (query == null) {
+                        query = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class).build();
+                    }
+                    query.addFilter(todayTimestampFilter);
+                }
+                return query;
+            }
 
             @Override
             protected IColumn createNameColumn(IModel columnNameModel, String itemPath, ExpressionType expression) {
@@ -86,6 +106,10 @@ public class AuditLogViewerPanelNew extends BasePanel {
             protected IColumn createIconColumn() {
                 return null;
             }
+//
+//            protected Search createSearch() {
+//                Search search = super.createSearch();
+//            }
         };
         auditLogViewerTable.setOutputMarkupId(true);
         add(auditLogViewerTable);
