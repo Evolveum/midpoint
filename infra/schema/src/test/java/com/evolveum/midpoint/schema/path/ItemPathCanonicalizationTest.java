@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.schema.path;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -15,7 +14,6 @@ import javax.xml.namespace.QName;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.impl.path.CanonicalItemPathImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.AbstractSchemaTest;
@@ -49,7 +47,7 @@ public class ItemPathCanonicalizationTest extends AbstractSchemaTest {
     public void testCanonicalizationSimpleNoNs() {
         ItemPath path = ItemPath.create(UserType.F_NAME.getLocalPart());
         assertCanonical(path, null, "\\#name");
-        assertCanonical(path, UserType.class, "\\" + COMMON + "#name");
+        assertCanonical(path, UserType.COMPLEX_TYPE, "\\" + COMMON + "#name");
     }
 
     @Test
@@ -67,7 +65,7 @@ public class ItemPathCanonicalizationTest extends AbstractSchemaTest {
                 ActivationType.F_ADMINISTRATIVE_STATUS.getLocalPart());
         assertCanonical(path, null, "\\#assignment",
                 "\\#assignment\\#activation", "\\#assignment\\#activation\\#administrativeStatus");
-        assertCanonical(path, UserType.class, "\\" + COMMON + "#assignment",
+        assertCanonical(path, UserType.COMPLEX_TYPE, "\\" + COMMON + "#assignment",
                 "\\" + COMMON + "#assignment\\" + ZERO + "#activation",
                 "\\" + COMMON + "#assignment\\" + ZERO + "#activation\\" + ZERO + "#administrativeStatus");
     }
@@ -85,7 +83,7 @@ public class ItemPathCanonicalizationTest extends AbstractSchemaTest {
                 "\\#assignment\\" + COMMON + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf",
                 "\\#assignment\\" + COMMON + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf\\#x",
                 "\\#assignment\\" + COMMON + "#extension\\http://piracy.org/inventory#store\\" + ONE + "#shelf\\#x\\" + ZERO + "#administrativeStatus");
-        assertCanonical(path, UserType.class,
+        assertCanonical(path, UserType.COMPLEX_TYPE,
                 "\\" + COMMON + "#assignment",
                 "\\" + COMMON + "#assignment\\" + ZERO + "#extension",
                 "\\" + COMMON + "#assignment\\" + ZERO + "#extension\\http://piracy.org/inventory#store",
@@ -107,7 +105,7 @@ public class ItemPathCanonicalizationTest extends AbstractSchemaTest {
                 "\\#assignment\\#extension\\http://piracy.org/inventory#store\\" + ZERO + "#shelf",
                 "\\#assignment\\#extension\\http://piracy.org/inventory#store\\" + ZERO + "#shelf\\" + COMMON + "#activation",
                 "\\#assignment\\#extension\\http://piracy.org/inventory#store\\" + ZERO + "#shelf\\" + COMMON + "#activation\\" + ONE + "#administrativeStatus");
-        assertCanonical(path, UserType.class,
+        assertCanonical(path, UserType.COMPLEX_TYPE,
                 "\\" + COMMON + "#assignment",
                 "\\" + COMMON + "#assignment\\" + ZERO + "#extension",
                 "\\" + COMMON + "#assignment\\" + ZERO + "#extension\\http://piracy.org/inventory#store",
@@ -129,14 +127,13 @@ public class ItemPathCanonicalizationTest extends AbstractSchemaTest {
                 "\\" + COMMON + "#connectorConfiguration\\" + ICFS + "#configurationProperties\\" + ICF + "/bundle/com.evolveum.icf.dummy/com.evolveum.icf.dummy.connector.DummyConnector#uselessString");
     }
 
-    private void assertCanonical(ItemPath path, Class<? extends Containerable> clazz, String... representations) {
-        CanonicalItemPathImpl canonicalItemPath = CanonicalItemPathImpl.create(path, clazz, getPrismContext());
-        System.out.println(path + " => " + canonicalItemPath.asString() + "  (" + clazz + ")");
+    private void assertCanonical(ItemPath path, QName objectType, String... representations) {
+        CanonicalItemPathImpl canonicalItemPath = CanonicalItemPathImpl.create(path, objectType, getPrismContext());
+        System.out.println(path + " => " + canonicalItemPath.asString() + "  (" + objectType + ")");
         for (int i = 0; i < representations.length; i++) {
             String c = canonicalItemPath.allUpToIncluding(i).asString();
             assertEquals("Wrong string representation of length " + (i + 1), representations[i], c);
         }
         assertEquals("Wrong string representation ", representations[representations.length - 1], canonicalItemPath.asString());
     }
-
 }

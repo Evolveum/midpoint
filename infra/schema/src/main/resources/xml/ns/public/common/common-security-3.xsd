@@ -2238,6 +2238,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="oldPasswordIfExists">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        User must supply old password, if exists, to change the password.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OLD_PASSWORD_IF_EXISTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 

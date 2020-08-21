@@ -10,8 +10,6 @@ import java.io.IOException;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
-
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,6 +26,7 @@ import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.AuditConstants;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.RunningTask;
@@ -146,7 +145,11 @@ public abstract class FileFormatController {
             }
         }
         if (expression != null) {
-            return evaluateExportExpression(expression, valueObject, task, result);
+            Object value = evaluateExportExpression(expression, valueObject, task, result);
+            if (value instanceof List) {
+                return processListOfRealValues((List) value);
+            }
+            return processListOfRealValues(Collections.singletonList(value));
         }
         if (DisplayValueType.NUMBER.equals(column.getDisplayValue())) {
             if (valueObject == null) {
@@ -167,19 +170,29 @@ public abstract class FileFormatController {
             return "";
         }
         @NotNull List<PrismValue> values = valueObject.getValues();
+        return processListOfRealValues(values);
+    }
+
+    private String processListOfRealValues(Collection<?> values) {
         StringBuilder sb = new StringBuilder();
         values.forEach(value -> {
             if (!sb.toString().isEmpty()) {
                 appendMultivalueDelimiter(sb);
             }
             if (value instanceof PrismPropertyValue) {
-                Object realObject = value.getRealValue();
+                Object realObject = ((PrismPropertyValue<?>) value).getRealValue();
                 if (realObject == null) {
                     realObject = "";
+                } else if (realObject instanceof Collection) {
+                    realObject = processListOfRealValues((Collection) realObject);
+                } else {
+                    realObject = ReportUtils.prettyPrintForReport(realObject);
                 }
-                sb.append(ReportUtils.prettyPrintForReport(realObject));
+                sb.append(realObject);
             } else if (value instanceof PrismReferenceValue) {
                 sb.append(getObjectNameFromRef(((PrismReferenceValue) value).getRealValue()));
+            } else {
+                sb.append(ReportUtils.prettyPrintForReport(value));
             }
         });
         return sb.toString();
@@ -206,7 +219,7 @@ public abstract class FileFormatController {
 
     protected abstract void appendMultivalueDelimiter(StringBuilder sb);
 
-    private String evaluateExportExpression(ExpressionType expression, Item valueObject, Task task, OperationResult result) {
+    private Object evaluateExportExpression(ExpressionType expression, Item valueObject, Task task, OperationResult result) {
         Object object;
         if (valueObject == null) {
             object = null;
@@ -216,7 +229,7 @@ public abstract class FileFormatController {
         return evaluateExportExpression(expression, object, task, result);
     }
 
-    private String evaluateExportExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
+    private Object evaluateExportExpression(ExpressionType expression, Object valueObject, Task task, OperationResult result) {
 
         ExpressionVariables variables = new ExpressionVariables();
         if (valueObject == null) {
@@ -224,21 +237,18 @@ public abstract class FileFormatController {
         } else {
             variables.put(ExpressionConstants.VAR_OBJECT, valueObject, valueObject.getClass());
         }
-        Collection<String> values = null;
+        Object values = null;
         try {
-            values = ExpressionUtil.evaluateStringExpression(variables, getReportService().getPrismContext(), expression,
+            values = ExpressionUtil.evaluateExpression(null, variables, null, expression,
                     determineExpressionProfile(result), getReportService().getExpressionFactory(), "value for column", task, result);
         } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
                 | ConfigurationException | SecurityViolationException e) {
             LOGGER.error("Couldn't execute expression " + expression, e);
         }
-        if (values == null || values.isEmpty()) {
+        if (values == null || (values instanceof Collection && ((Collection) values).isEmpty())) {
             return "";
         }
-        if (values.size() != 1) {
-            throw new IllegalArgumentException("Expected collection with one value, but it is " + values);
-        }
-        return values.iterator().next();
+        return values;
     }
 
     protected Object evaluateImportExpression(ExpressionType expression, String input, Task task, OperationResult result) {
@@ -324,7 +334,11 @@ public abstract class FileFormatController {
         } else {
             object = DefaultColumnUtils.getObjectByAuditColumn(record, path);
         }
-        return evaluateExportExpression(expression, object, task, result);
+        Object value = evaluateExportExpression(expression, object, task, result);
+        if (value instanceof Collection) {
+            return processListOfRealValues((Collection) value);
+        }
+        return processListOfRealValues(Collections.singletonList(value));
     }
 
     private String getStringValueByAuditColumn(AuditEventRecord record, ItemPath path) {
@@ -332,15 +346,18 @@ public abstract class FileFormatController {
             case AuditConstants.TIME_COLUMN:
                 return ReportUtils.prettyPrintForReport(new Date(record.getTimestamp()));
             case AuditConstants.INITIATOR_COLUMN:
-                return record.getInitiator() == null ? "" : record.getInitiator().getName().getOrig();
+                return record.getInitiatorRef() == null ? ""
+                        : getObjectNameFromRef(record.getInitiatorRef().getRealValue());
             case AuditConstants.EVENT_STAGE_COLUMN:
                 return record.getEventStage() == null ? "" : ReportUtils.prettyPrintForReport(record.getEventStage());
             case AuditConstants.EVENT_TYPE_COLUMN:
                 return record.getEventType() == null ? "" : ReportUtils.prettyPrintForReport(record.getEventType());
             case AuditConstants.TARGET_COLUMN:
-                return record.getTargetRef() == null ? "" : getObjectNameFromRef(record.getTargetRef().getRealValue());
+                return record.getTargetRef() == null ? ""
+                        : getObjectNameFromRef(record.getTargetRef().getRealValue());
             case AuditConstants.TARGET_OWNER_COLUMN:
-                return record.getTargetOwner() == null ? "" : record.getTargetOwner().getName().getOrig();
+                return record.getTargetOwnerRef() == null ? ""
+                        : getObjectNameFromRef(record.getTargetOwnerRef().getRealValue());
             case AuditConstants.CHANNEL_COLUMN:
                 return record.getChannel() == null ? "" : ReportUtils.prettyPrintForReport(QNameUtil.uriToQName(record.getChannel()));
             case AuditConstants.OUTCOME_COLUMN:
@@ -369,7 +386,8 @@ public abstract class FileFormatController {
             case AuditConstants.NODE_IDENTIFIER_COLUMN:
                 return record.getNodeIdentifier() == null ? "" : record.getNodeIdentifier();
             case AuditConstants.ATTORNEY_COLUMN:
-                return record.getAttorney() == null ? "" : record.getAttorney().getName().getOrig();
+                return record.getAttorneyRef() == null ? ""
+                        : getObjectNameFromRef(record.getAttorneyRef().getRealValue());
             case AuditConstants.RESULT_COLUMN:
                 return record.getResult() == null ? "" : record.getResult();
             case AuditConstants.RESOURCE_OID_COLUMN:

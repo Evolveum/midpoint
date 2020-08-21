@@ -127,6 +127,9 @@
                 <!--                         </enc:CipherData> -->
                 <!--                     </enc:EncryptedData> -->
                 <!--                 </value> -->
+                <metadata>
+                    <createTimestamp>2015-04-21T17:30:19.412+02:00</createTimestamp>
+                </metadata>
             </password>
         </credentials>
         <activation>

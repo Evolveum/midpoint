@@ -15,6 +15,7 @@ import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Path;
 import com.querydsl.core.types.Predicate;
 import com.querydsl.sql.ColumnMetadata;
+import com.querydsl.sql.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -161,7 +162,7 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
 
     public final @Nullable Path<?> primarySqlPath(ItemName itemName, SqlPathContext<?, ?, ?> context)
             throws QueryException {
-        return itemMapping(itemName).itemPath(context.path());
+        return itemMapping(itemName).itemPrimaryPath(context.path());
     }
 
     public final @NotNull ItemSqlMapper itemMapping(ItemName itemName) throws QueryException {
@@ -217,9 +218,12 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
     }
 
     /**
-     * Creates {@link SqlTransformer} of row bean to schema type.
+     * Creates {@link SqlTransformer} of row bean to schema type, override if provided.
      */
-    public abstract SqlTransformer<S, R> createTransformer(PrismContext prismContext);
+    public SqlTransformer<S, Q, R> createTransformer(
+            PrismContext prismContext, Configuration querydslConfiguration) {
+        throw new UnsupportedOperationException("Bean transformer not supported for " + queryType);
+    }
 
     /**
      * Returns collection of all registered {@link SqlDetailFetchMapper}s.
@@ -244,6 +248,15 @@ public abstract class QueryModelMapping<S, Q extends FlexibleRelationalPathBase<
 
     public Map<String, ColumnMetadata> getExtensionColumns() {
         return Collections.unmodifiableMap(extensionColumns);
+    }
+
+    public @NotNull Path<?>[] selectExpressionsWithCustomColumns(Q entity) {
+        List<Path<?>> expressions = new ArrayList<>();
+        expressions.add(entity);
+        for (String extensionPropertyName : extensionColumns.keySet()) {
+            expressions.add(entity.getPath(extensionPropertyName));
+        }
+        return expressions.toArray(new Path[0]);
     }
 
     @Override

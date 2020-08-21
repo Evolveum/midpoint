@@ -9,6 +9,8 @@ package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord.TABLE_NAME;
 import static com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType.*;
 
+import com.querydsl.sql.Configuration;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
@@ -67,6 +69,8 @@ public class QAuditEventRecordMapping
         addItemMapping(F_TARGET_REF, RefItemFilterProcessor.mapper(path(q -> q.targetOid)));
         addItemMapping(F_TARGET_OWNER_REF, RefItemFilterProcessor.mapper(path(q -> q.targetOwnerOid)));
 
+        addItemMapping(F_CUSTOM_COLUMN_PROPERTY, AuditCustomColumnItemFilterProcessor.mapper());
+
         // lambdas use lowercase names matching the type parameters from SqlDetailFetchMapper
         addDetailFetchMapper(F_PROPERTY, new SqlDetailFetchMapper<>(
                 r -> r.id,
@@ -106,7 +110,8 @@ public class QAuditEventRecordMapping
     }
 
     @Override
-    public AuditEventRecordSqlTransformer createTransformer(PrismContext prismContext) {
-        return new AuditEventRecordSqlTransformer(prismContext);
+    public AuditEventRecordSqlTransformer createTransformer(
+            PrismContext prismContext, Configuration querydslConfiguration) {
+        return new AuditEventRecordSqlTransformer(prismContext, this, querydslConfiguration);
     }
 }

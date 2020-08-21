@@ -140,7 +140,7 @@ public class PrismForm<T> extends Component<T> {
     public Boolean isPropertyEnabled(String name) {
         SelenideElement property = findProperty(name);
         SelenideElement valueElement = property.parent().$(org.openqa.selenium.By.xpath(".//*[contains(@class,\"form-control\")]"));
-        return valueElement.isEnabled();
+        return (valueElement.exists() && valueElement.isEnabled());
     }
 
     public Boolean compareInputAttributeValues(String name, String... expectedValues) {

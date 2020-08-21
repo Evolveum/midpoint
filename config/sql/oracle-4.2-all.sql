@@ -576,6 +576,8 @@ CREATE TABLE m_focus (
   preferredLanguage       VARCHAR2(255 CHAR),
   telephoneNumber         VARCHAR2(255 CHAR),
   timezone                VARCHAR2(255 CHAR),
+  passwordCreateTimestamp TIMESTAMP,
+  passwordModifyTimestamp TIMESTAMP,
   oid                     VARCHAR2(36 CHAR)          NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;

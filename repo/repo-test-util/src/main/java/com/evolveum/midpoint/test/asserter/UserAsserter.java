@@ -118,6 +118,24 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
         return this;
     }
 
+    @Override
+    public UserAsserter<RA> assertIndestructible(Boolean expected) {
+        super.assertIndestructible(expected);
+        return this;
+    }
+
+    @Override
+    public UserAsserter<RA> assertIndestructible() {
+        super.assertIndestructible();
+        return this;
+    }
+
+    @Override
+    public UserAsserter<RA> assertDestructible() {
+        super.assertDestructible();
+        return this;
+    }
+
     public UserAsserter<RA> assertAdministrativeStatus(ActivationStatusType expected) {
         ActivationType activation = getActivation();
         if (activation == null) {

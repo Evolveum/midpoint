@@ -31,6 +31,9 @@ public class MAuditDelta {
     public String resourceOid;
     public Integer status;
 
+    // "transient" fields not used by Querydsl
+    public String serializedDelta;
+
     public PolyString getObjectName() {
         return new PolyString(objectNameOrig, objectNameNorm);
     }

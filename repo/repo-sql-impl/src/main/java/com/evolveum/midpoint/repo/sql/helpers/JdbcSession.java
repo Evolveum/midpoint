@@ -62,14 +62,13 @@ public class JdbcSession implements AutoCloseable {
         this.querydslConfiguration = querydslConfiguration;
 
         try {
-            connection.setAutoCommit(false);
             // Connection has its transaction isolation set by Hikari, except for obscure ones.
             if (repoConfiguration.getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
                 LOGGER.trace("Setting transaction isolation level SNAPSHOT.");
                 // bit rough from a constructor, but it's safe, connection field is already set
                 executeStatement("SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
             }
-        } catch (SQLException | SystemException e) {
+        } catch (SystemException e) {
             // even for SystemException we want to rewrap it to add this message
             throw new SystemException("SQL connection setup problem for JDBC session", e);
         }
@@ -83,6 +82,21 @@ public class JdbcSession implements AutoCloseable {
     }
 
     /**
+     * Starts transaction with different transaction isolation level.
+     * This level will NOT be reverted to previous level after the end of transaction.
+     * It is advisable to use this only for short-lived JDBC sessions with special requirements.
+     */
+    public JdbcSession startTransaction(int transactionLevel) {
+        try {
+            connection.setTransactionIsolation(transactionLevel);
+        } catch (SQLException e) {
+            throw new SystemException(
+                    "Couldn't change transaction isolation level for JDBC session", e);
+        }
+        return startTransaction(false);
+    }
+
+    /**
      * Starts read-only transaction and returns {@code this}.
      */
     public JdbcSession startReadOnlyTransaction() {
@@ -91,6 +105,12 @@ public class JdbcSession implements AutoCloseable {
 
     public JdbcSession startTransaction(boolean readonly) {
         LOGGER.debug("Starting {}transaction", readonly ? "readonly " : "");
+
+        try {
+            connection.setAutoCommit(false);
+        } catch (SQLException e) {
+            throw new SystemException("SQL connection setup problem for JDBC session", e);
+        }
 
         rollbackForReadOnly = false;
         // Configuration check really means: "Does it support read-only transactions?"
