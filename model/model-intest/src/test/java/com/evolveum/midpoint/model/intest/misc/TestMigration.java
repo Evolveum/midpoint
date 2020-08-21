@@ -26,9 +26,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestMigration extends AbstractInitializedModelIntegrationTest {
-
-    public static final File TEST_DIR = new File("src/test/resources/misc");
+public class TestMigration extends AbstractMiscTest {
 
     // Shadow without primaryIdentifierValue, e.g. shadow how it would look like in midPoint 3.9.
     public static final File SHADOW_ACCOUNT_DUMMY_LOST1_FILE = new File(TEST_DIR, "shadow-dummy-lost1.xml");

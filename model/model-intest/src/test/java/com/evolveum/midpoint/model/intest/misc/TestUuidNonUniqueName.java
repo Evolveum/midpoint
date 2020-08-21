@@ -33,20 +33,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
  */
 @ContextConfiguration(locations = { "classpath:ctx-model-intest-test-main.xml" })
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestUuidNonUniqueName extends AbstractInitializedModelIntegrationTest {
-
-    public static final File TEST_DIR = new File("src/test/resources/misc");
+public class TestUuidNonUniqueName extends AbstractMiscTest {
 
     protected static final File RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_FILE = new File(TEST_DIR, "resource-dummy-uuid-nonunique-name.xml");
     protected static final String RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_OID = "4027de14-2473-11e9-bd83-5f54b071e14f";
     protected static final String RESOURCE_DUMMY_UUID_NONUNIQUE_NAME_NAME = "uuid-nonunique-name";
-
-    protected static final File USER_SKELLINGTON_FILE = new File(TEST_DIR, "user-skellington.xml");
-    protected static final String USER_SKELLINGTON_OID = "637fbaf0-2476-11e9-a181-f73466184d45";
-    protected static final String USER_SKELLINGTON_NAME = "skellington";
-    protected static final String USER_SKELLINGTON_GIVEN_NAME = "Jack";
-    protected static final String USER_SKELLINGTON_FAMILY_NAME = "Skellington";
-    protected static final String USER_SKELLINGTON_FULL_NAME = "Jack Skellington";
 
     String accountJackSparrowUid;
 

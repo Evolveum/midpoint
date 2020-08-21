@@ -244,6 +244,8 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.subtype</a:displayName>
                         <a:displayOrder>15</a:displayOrder>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.2</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -474,6 +476,19 @@
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
                         <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+
+            <xsd:element name="indestructible" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Protection againts accidental deletion.
+                        If set to true then this object cannot be deleted.
+                        If the object needs to be deleted then it has to be modified first to reset this flag.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

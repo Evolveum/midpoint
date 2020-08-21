@@ -10,6 +10,7 @@ import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY
 import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY_JDBC_URL;
 
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.Types;
 import java.util.List;
 import javax.sql.DataSource;
@@ -98,7 +99,9 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
 
             auditService.addCustomColumn(eventRecordPropertyName, columnName);
             if (tableMetadata != null && tableMetadata.get(columnName) == null) {
-                try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
+                // Fails on SQL Server with snapshot transaction, so different isolation is used.
+                try (JdbcSession jdbcSession = baseHelper.newJdbcSession()
+                        .startTransaction(Connection.TRANSACTION_READ_COMMITTED)) {
                     jdbcSession.addColumn(QAuditEventRecord.TABLE_NAME,
                             ColumnMetadata.named(columnName).ofType(Types.VARCHAR).withSize(255));
                 }

@@ -8,9 +8,11 @@ public class SimpleMidpointTestContext implements MidpointTestContext {
             new ThreadLocal<>();
 
     private final ITestResult testResult;
+    private final String originalThreadName;
 
     public SimpleMidpointTestContext(ITestResult testResult) {
         this.testResult = testResult;
+        this.originalThreadName = Thread.currentThread().getName();
     }
 
     @Override
@@ -25,6 +27,7 @@ public class SimpleMidpointTestContext implements MidpointTestContext {
 
     public static SimpleMidpointTestContext create(ITestResult testResult) {
         SimpleMidpointTestContext ctx = new SimpleMidpointTestContext(testResult);
+        Thread.currentThread().setName(ctx.getTestName());
         TEST_CONTEXT_THREAD_LOCAL.set(ctx);
         return ctx;
     }
@@ -34,6 +37,7 @@ public class SimpleMidpointTestContext implements MidpointTestContext {
     }
 
     public static void destroy() {
+        Thread.currentThread().setName(get().originalThreadName);
         TEST_CONTEXT_THREAD_LOCAL.remove();
     }
 }

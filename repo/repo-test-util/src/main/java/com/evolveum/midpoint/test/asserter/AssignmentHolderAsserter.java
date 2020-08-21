@@ -102,6 +102,24 @@ public class AssignmentHolderAsserter<AH extends AssignmentHolderType, RA> exten
         return this;
     }
 
+    @Override
+    public AssignmentHolderAsserter<AH,RA> assertIndestructible(Boolean expected) {
+        super.assertIndestructible(expected);
+        return this;
+    }
+
+    @Override
+    public AssignmentHolderAsserter<AH,RA> assertIndestructible() {
+        super.assertIndestructible();
+        return this;
+    }
+
+    @Override
+    public AssignmentHolderAsserter<AH,RA> assertDestructible() {
+        super.assertDestructible();
+        return this;
+    }
+
     public AssignmentsAsserter<AH, ? extends AssignmentHolderAsserter<AH,RA>, RA> assignments() {
         AssignmentsAsserter<AH,AssignmentHolderAsserter<AH,RA>,RA> asserter = new AssignmentsAsserter<>(this, getDetails());
         copySetupTo(asserter);
