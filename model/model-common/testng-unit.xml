@@ -31,6 +31,7 @@
             <class name="com.evolveum.midpoint.model.common.mapping.TestMappingComplex" />
             <class name="com.evolveum.midpoint.model.common.mapping.TestMappingTime" />
             <class name="com.evolveum.midpoint.model.common.mapping.TestMappingDomain" />
+            <class name="com.evolveum.midpoint.model.common.mapping.TestMappingMetadata" />
         </classes>
     </test>
 

@@ -1726,4 +1726,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             projectionContext.deleteSecondaryDeltas();
         }
     }
+
+    public boolean isExperimentalCodeEnabled() {
+        return systemConfiguration != null && systemConfiguration.asObjectable().getInternals() != null &&
+                Boolean.TRUE.equals(systemConfiguration.asObjectable().getInternals().isEnableExperimentalCode());
+    }
 }

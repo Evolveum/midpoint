@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.util.DebugUtil.debugDumpLazily;
 import java.util.Collection;
 import java.util.function.Supplier;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
@@ -25,10 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -92,6 +89,13 @@ public class ProjectionValueMetadataCreator {
 
         ResourceObjectTypeDefinitionType def = projectionCtx.getResourceObjectTypeDefinitionType();
         ObjectReferenceType originRef = def != null ? def.getOriginRef() : null;
+
+        boolean experimentalCodeEnabled = projectionCtx.getLensContext().isExperimentalCodeEnabled();
+        if (originRef == null && !experimentalCodeEnabled) {
+            // In "normal mode" we require experimental code to be enabled (or originRef to be
+            // explicitly set) in order to generate provenance metadata for inbound values.
+            return null;
+        }
 
         return new ValueMetadataType(prismContext)
                 .beginProvenance()
