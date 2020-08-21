@@ -77,9 +77,9 @@ public class AuditHelper {
             result.recordFatalError(t);
             throw t;
         } finally {
-            if (record.getTarget() != null) {
-                result.addParam("targetOid", record.getTarget().getOid());
-                result.addParam("targetName", record.getTarget().getTargetName());
+            if (record.getTargetRef() != null) {
+                result.addParam("targetOid", record.getTargetRef().getOid());
+                result.addParam("targetName", record.getTargetRef().getTargetName());
             }
             result.computeStatusIfUnknown();
         }

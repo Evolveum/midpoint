@@ -111,7 +111,7 @@ public class OperationResult
 
     private static long tokenCount = 1000000000000000000L;
 
-    private finalString operation;
+    private final String operation;
     private OperationKindType operationKind;
     private OperationResultStatus status;
 

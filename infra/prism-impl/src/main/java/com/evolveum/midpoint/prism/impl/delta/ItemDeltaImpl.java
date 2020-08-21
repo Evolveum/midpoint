@@ -6,15 +6,16 @@
  */
 package com.evolveum.midpoint.prism.impl.delta;
 
+import static java.util.Collections.emptyList;
+
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.*;
 import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.FOR_DELTA_ADD_APPLICATION;
 import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.FOR_DELTA_DELETE_APPLICATION;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import static com.evolveum.midpoint.prism.path.ItemPath.checkNoSpecialSymbols;
+import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.Iterator;
+import java.util.*;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
@@ -36,22 +37,6 @@ import com.evolveum.midpoint.util.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.function.Function;
-
-import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.*;
-import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.FOR_DELTA_ADD_APPLICATION;
-import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.FOR_DELTA_DELETE_APPLICATION;
-import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
-import static com.evolveum.midpoint.prism.path.ItemPath.checkNoSpecialSymbols;
-import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
-
-import static java.util.Collections.emptyList;
 
 /**
  * @author Radovan Semancik
