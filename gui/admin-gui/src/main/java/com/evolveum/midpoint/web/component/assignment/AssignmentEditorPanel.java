@@ -93,7 +93,7 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
     private static final String ID_TYPE_IMAGE = "typeImage";
     private static final String ID_NAME_LABEL = "nameLabel";
     private static final String ID_NAME = "name";
-    private static final String ID_ACTIVATION = "activation";
+//    private static final String ID_ACTIVATION = "activation";
     private static final String ID_ACTIVATION_BLOCK = "activationBlock";
     private static final String ID_EXPAND = "expand";
     protected static final String ID_BODY = "body";
@@ -257,8 +257,8 @@ public class AssignmentEditorPanel extends BasePanel<AssignmentEditorDto> {
         nameLabel.setOutputMarkupId(true);
         name.add(nameLabel);
 
-        Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel().getObject().getActivation(), "-", getPageBase()));
-        headerRow.add(activation);
+//        Label activation = new Label(ID_ACTIVATION, AssignmentsUtil.createActivationTitleModel(getModel().getObject().getActivation(), "-", getPageBase()));
+//        headerRow.add(activation);
 
         ToggleIconButton<Void> expandButton = new ToggleIconButton<Void>(ID_EXPAND, GuiStyleConstants.CLASS_ICON_EXPAND,
                 GuiStyleConstants.CLASS_ICON_COLLAPSE) {
