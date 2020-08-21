@@ -6,9 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
@@ -26,8 +29,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceYieldType;
 
+import java.util.List;
+
 public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetadataType> {
 
+    private static final String ID_YIELD_CONTAINER = "yieldContainer";
     private static final String ID_YIELD_HEADER = "yieldHeader";
     private static final String ID_YIELD = "yield";
     private static final String ID_ACQUISITION_HEADER = "acquisitionHeader";
@@ -35,6 +41,7 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetad
     private static final String ID_ACQUISITION = "acquisition";
     private static final String ID_SHOW_MORE = "showMore";
     private static final String ID_DEFAULT_PANEL = "defaultPanel";
+    private static final String ID_PROVENANCE_DISPLAY = "provenanceDisplayName";
 
     /**
      * @param id
@@ -59,9 +66,28 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetad
     }
 
     private WebMarkupContainer createHeader(IModel<PrismContainerValueWrapper<ProvenanceMetadataType>> model) {
-        WebMarkupContainer container = new WebMarkupContainer(ID_YIELD_HEADER);
+        WebMarkupContainer container = new WebMarkupContainer(ID_YIELD_CONTAINER);
         container.setOutputMarkupId(true);
         container.setOutputMarkupPlaceholderTag(true);
+
+        DisplayNamePanel displayNamePanel = new DisplayNamePanel(ID_PROVENANCE_DISPLAY, new ItemRealValueModel(model)) {
+
+            @Override
+            protected String createImageModel() {
+                return "fa fa-tag";
+            }
+
+            @Override
+            protected IModel<String> createHeaderModel() {
+                return createStringResource("ValueMetadataType.provenance");
+            }
+
+            @Override
+            protected IModel<String> getDescriptionLabelModel() {
+                return createStringResource("ProvenanceMetadataType.displayType");
+            }
+        };
+        container.add(displayNamePanel);
 
         PrismContainerWrapperModel yieldModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, ProvenanceMetadataType.F_YIELD);
         ListView<PrismContainerValueWrapper<ProvenanceYieldType>> yield =
@@ -92,6 +118,10 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetad
                 showMore.setOutputMarkupId(true);
                 showMore.setOutputMarkupPlaceholderTag(true);
                 listItem.add(showMore);
+
+                Label label = new Label(ID_YIELD_HEADER, createStringResource("ProvenanceYieldType.displayType"));
+                listItem.add(label);
+                label.add(new VisibleBehaviour(() -> listItem.getModelObject().isShowEmpty()));
 
                 ItemPanelSettings settings = getSettings().copy();
                 settings.setVisibilityHandler(w -> ItemVisibility.AUTO);

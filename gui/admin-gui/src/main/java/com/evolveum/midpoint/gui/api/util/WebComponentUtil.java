@@ -1342,7 +1342,7 @@ public final class WebComponentUtil {
                             continue;
                         }
                         String sourcePath = source.getPath().toString();
-                        sourceDescription +=sourcePath;
+                        sourceDescription += sourcePath;
                         if (iterator.hasNext()) {
                             sourceDescription += ",";
                         }
@@ -1358,6 +1358,10 @@ public final class WebComponentUtil {
                 }
                 displayName = sourceDescription + " - " + targetDescription;
             }
+        } else if (prismContainerValue.canRepresent(ProvenanceAcquisitionType.class)) {
+            ProvenanceAcquisitionType acquisition = (ProvenanceAcquisitionType) prismContainerValue.asContainerable();
+            displayName = "ProvenanceAcquisitionType.details";
+
         } else {
 
             Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
@@ -1372,6 +1376,23 @@ public final class WebComponentUtil {
         String escaped = org.apache.commons.lang.StringEscapeUtils.escapeHtml(displayName);
         return escaped;
     }
+
+    private static String getAcquisitionDescription(ProvenanceAcquisitionType acquisitionType) {
+        if (acquisitionType == null) {
+            return null;
+        }
+
+        if (acquisitionType.getResourceRef() != null && acquisitionType.getResourceRef().getOid() != null) {
+            return getDisplayName(acquisitionType.getResourceRef());
+        }
+
+        if (acquisitionType.getOriginRef() != null && acquisitionType.getOriginRef().getOid() != null) {
+            return getName(acquisitionType.getOriginRef());
+        }
+
+        return Channel.findChannel(acquisitionType.getChannel()).getResourceKey(); //TODO NPE
+    }
+
 
     public static QName normalizeRelation(QName relation) {
         return getRelationRegistry().normalizeRelation(relation);

@@ -9,10 +9,10 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-        <div class="prism-header" wicket:id="header"/>
         <div class="panel panel-default">
             <div class="panel-body" wicket:id="values">
-                <div wicket:id="yieldHeader">
+                <div wicket:id="yieldContainer">
+                    <div wicket:id="provenanceDisplayName"></div>
                     <div>
                         <div class="yield" wicket:id="yield">
                             <div class="yield-heading">
@@ -20,18 +20,14 @@
                                 <div class="col-md-11 col-xs-10" wicket:id="acquisitionHeader">
                                     <ul class="acquisition">
                                         <li wicket:id="acquisitions">
-                                            <div wicket:id="acquisition"></div>
-<!--                                            <div  wicket:id="details">-->
-<!--                                                <div wicket:id="resource"></div>-->
-<!--                                                <div wicket:id="origin"></div>-->
-<!--                                                <div wicket:id="channel"></div>-->
-<!--                                            </div>-->
+                                            <div class="pull-left" wicket:id="acquisition"></div>
                                         </li>
                                     </ul>
                                 </div>
                                 <button wicket:id="showMore" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
                                         class="btn btn-box-tool expand-collapse-button" trigger="hover"><i class="fa fa-caret-down"></i></button>
                             </div>
+                            <h6 style="padding-left:50px" wicket:id="yieldHeader"></h6>
                             <div class="panel-body" style="width:100%" wicket:id="defaultPanel"/>
                         </div>
 
