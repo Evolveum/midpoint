@@ -610,26 +610,6 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="yield" type="tns:ProvenanceYieldType" minOccurs="0" maxOccurs="unbounded">
-            </xsd:element>
-        </xsd:sequence>
-    </xsd:complexType>
-
-    <xsd:complexType name="ProvenanceYieldType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Yield data structure represent an output or product of data processing.
-                Inbound synchronization _yields_ data values, as do mappings and users entering data in user interface.
-                Each such result will be described by a value of this data structure.
-                Multiple values of this metadata structure indicate several independent sources for the data value that it describes.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <a:operational>true</a:operational>
-                <a:container/>
-                <a:since>4.2</a:since>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:sequence>
             <xsd:element name="acquisition" type="tns:ProvenanceAcquisitionType" minOccurs="0" maxOccurs="unbounded">
             </xsd:element>
             <xsd:element name="mappingSpec" type="tns:MappingSpecificationType" minOccurs="0" maxOccurs="1">

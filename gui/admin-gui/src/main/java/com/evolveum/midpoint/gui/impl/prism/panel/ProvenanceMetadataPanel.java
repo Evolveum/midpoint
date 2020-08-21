@@ -27,9 +27,6 @@ import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceYieldType;
-
-import java.util.List;
 
 public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetadataType> {
 
@@ -89,52 +86,52 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetad
         };
         container.add(displayNamePanel);
 
-        PrismContainerWrapperModel yieldModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, ProvenanceMetadataType.F_YIELD);
-        ListView<PrismContainerValueWrapper<ProvenanceYieldType>> yield =
-                new ListView<PrismContainerValueWrapper<ProvenanceYieldType>>(ID_YIELD, new PropertyModel<>(yieldModel, "values")) {
+//        PrismContainerWrapperModel yieldModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, ProvenanceMetadataType.F_YIELD);
+//        ListView<PrismContainerValueWrapper<ProvenanceYieldType>> yield =
+//                new ListView<PrismContainerValueWrapper<ProvenanceYieldType>>(ID_YIELD, new PropertyModel<>(yieldModel, "values")) {
+//
+//            @Override
+//            protected void populateItem(ListItem<PrismContainerValueWrapper<ProvenanceYieldType>> listItem) {
+//                WebMarkupContainer panel = createAcquisitionPanel(PrismContainerWrapperModel.fromContainerValueWrapper(listItem.getModel(), ProvenanceYieldType.F_ACQUISITION));
+//                listItem.add(panel);
+//
+//                ToggleIconButton<Void> showMore = new ToggleIconButton<Void>(ID_SHOW_MORE,
+//                        GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
+//
+//                    @Override
+//                    public boolean isOn() {
+//                        return listItem.getModelObject().isShowEmpty();
+//                    }
+//
+//                    @Override
+//                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+//                        PrismContainerValueWrapper<ProvenanceYieldType> modelObject = listItem.getModelObject();
+//                        modelObject.setShowEmpty(!modelObject.isShowEmpty());
+//                        ajaxRequestTarget.add(ProvenanceMetadataPanel.this);
+//                    }
+//                };
+//
+//                showMore.setEnabled(true);
+//                showMore.setOutputMarkupId(true);
+//                showMore.setOutputMarkupPlaceholderTag(true);
+//                listItem.add(showMore);
+//
+//                Label label = new Label(ID_YIELD_HEADER, createStringResource("ProvenanceYieldType.displayType"));
+//                listItem.add(label);
+//                label.add(new VisibleBehaviour(() -> listItem.getModelObject().isShowEmpty()));
+//
+//                ItemPanelSettings settings = getSettings().copy();
+//                settings.setVisibilityHandler(w -> ItemVisibility.AUTO);
+//                Component defaultPanel = new MetadataContainerValuePanel<>(ID_DEFAULT_PANEL, listItem.getModel(), settings);
+//                defaultPanel.setOutputMarkupPlaceholderTag(true);
+//                defaultPanel.setOutputMarkupId(true);
+//                defaultPanel.add(new VisibleBehaviour(() -> listItem.getModelObject().isShowEmpty()));
+//                listItem.add(defaultPanel);
+//            }
+//        };
 
-            @Override
-            protected void populateItem(ListItem<PrismContainerValueWrapper<ProvenanceYieldType>> listItem) {
-                WebMarkupContainer panel = createAcquisitionPanel(PrismContainerWrapperModel.fromContainerValueWrapper(listItem.getModel(), ProvenanceYieldType.F_ACQUISITION));
-                listItem.add(panel);
-
-                ToggleIconButton<Void> showMore = new ToggleIconButton<Void>(ID_SHOW_MORE,
-                        GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
-
-                    @Override
-                    public boolean isOn() {
-                        return listItem.getModelObject().isShowEmpty();
-                    }
-
-                    @Override
-                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        PrismContainerValueWrapper<ProvenanceYieldType> modelObject = listItem.getModelObject();
-                        modelObject.setShowEmpty(!modelObject.isShowEmpty());
-                        ajaxRequestTarget.add(ProvenanceMetadataPanel.this);
-                    }
-                };
-
-                showMore.setEnabled(true);
-                showMore.setOutputMarkupId(true);
-                showMore.setOutputMarkupPlaceholderTag(true);
-                listItem.add(showMore);
-
-                Label label = new Label(ID_YIELD_HEADER, createStringResource("ProvenanceYieldType.displayType"));
-                listItem.add(label);
-                label.add(new VisibleBehaviour(() -> listItem.getModelObject().isShowEmpty()));
-
-                ItemPanelSettings settings = getSettings().copy();
-                settings.setVisibilityHandler(w -> ItemVisibility.AUTO);
-                Component defaultPanel = new MetadataContainerValuePanel<>(ID_DEFAULT_PANEL, listItem.getModel(), settings);
-                defaultPanel.setOutputMarkupPlaceholderTag(true);
-                defaultPanel.setOutputMarkupId(true);
-                defaultPanel.add(new VisibleBehaviour(() -> listItem.getModelObject().isShowEmpty()));
-                listItem.add(defaultPanel);
-            }
-        };
-
-        yield.setOutputMarkupId(true);
-        container.add(yield);
+//        yield.setOutputMarkupId(true);
+//        container.add(yield);
 
         return container;
     }

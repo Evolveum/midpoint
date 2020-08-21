@@ -14,20 +14,16 @@
         <_value>Jack</_value>
         <_metadata>
             <provenance>
-                <yield>
-                    <acquisition>
-                        <originRef oid="user" type="ServiceType"/>
-                    </acquisition>
-                </yield>
+                <acquisition>
+                    <originRef oid="user" type="ServiceType"/>
+                </acquisition>
             </provenance>
         </_metadata>
         <_metadata>
             <provenance>
-                <yield>
-                    <acquisition>
-                        <originRef oid="rest" type="ServiceType"/>
-                    </acquisition>
-                </yield>
+                <acquisition>
+                    <originRef oid="rest" type="ServiceType"/>
+                </acquisition>
             </provenance>
         </_metadata>
     </givenName>
@@ -35,11 +31,9 @@
         <_value>Sparrow</_value>
         <_metadata>
             <provenance>
-                <yield>
-                    <acquisition>
-                        <originRef oid="user" type="ServiceType"/>
-                    </acquisition>
-                </yield>
+                <acquisition>
+                    <originRef oid="user" type="ServiceType"/>
+                </acquisition>
             </provenance>
         </_metadata>
     </familyName>

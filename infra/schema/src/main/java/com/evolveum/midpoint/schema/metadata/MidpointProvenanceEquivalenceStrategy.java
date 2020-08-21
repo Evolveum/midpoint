@@ -48,18 +48,16 @@ public class MidpointProvenanceEquivalenceStrategy implements EquivalenceStrateg
     }
 
     public boolean equals(ValueMetadataType metadata1, ValueMetadataType metadata2) {
-        ProvenanceYieldType yield1 = metadata1.getProvenance() != null && metadata1.getProvenance().getYield().size() == 1 ?
-                metadata1.getProvenance().getYield().get(0) : null;
-        ProvenanceYieldType yield2 = metadata2.getProvenance() != null && metadata2.getProvenance().getYield().size() == 1 ?
-                metadata2.getProvenance().getYield().get(0) : null;
-        MappingSpecificationType mappingSpec1 = yield1 != null ? yield1.getMappingSpec() : null;
-        MappingSpecificationType mappingSpec2 = yield2 != null ? yield2.getMappingSpec() : null;
+        ProvenanceMetadataType provenance1 = metadata1.getProvenance();
+        ProvenanceMetadataType provenance2 = metadata2.getProvenance();
+        MappingSpecificationType mappingSpec1 = provenance1 != null ? provenance1.getMappingSpec() : null;
+        MappingSpecificationType mappingSpec2 = provenance2 != null ? provenance2.getMappingSpec() : null;
         if (!equals(mappingSpec1, mappingSpec2)) {
             return false;
         }
 
-        List<ProvenanceAcquisitionType> acquisitions1 = yield1 != null ? yield1.getAcquisition() : Collections.emptyList();
-        List<ProvenanceAcquisitionType> acquisitions2 = yield2 != null ? yield2.getAcquisition() : Collections.emptyList();
+        List<ProvenanceAcquisitionType> acquisitions1 = provenance1 != null ? provenance1.getAcquisition() : Collections.emptyList();
+        List<ProvenanceAcquisitionType> acquisitions2 = provenance2 != null ? provenance2.getAcquisition() : Collections.emptyList();
         return MiscUtil.unorderedCollectionEquals(acquisitions1, acquisitions2, this::equals);
     }
 

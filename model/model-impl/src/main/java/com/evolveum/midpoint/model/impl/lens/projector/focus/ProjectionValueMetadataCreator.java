@@ -98,12 +98,10 @@ public class ProjectionValueMetadataCreator {
 
         return new ValueMetadataType(prismContext)
                 .beginProvenance()
-                    .beginYield()
-                        .beginAcquisition()
-                            .timestamp(XmlTypeConverter.createXMLGregorianCalendar())
-                            .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
-                            .originRef(provenanceFeed != null ? provenanceFeed.getOriginRef() : null)
-                        .<ProvenanceYieldType>end()
+                    .beginAcquisition()
+                        .timestamp(XmlTypeConverter.createXMLGregorianCalendar())
+                        .resourceRef(resourceOid, ResourceType.COMPLEX_TYPE)
+                        .originRef(provenanceFeed != null ? provenanceFeed.getOriginRef() : null)
                     .<ProvenanceMetadataType>end()
                 .end();
     }

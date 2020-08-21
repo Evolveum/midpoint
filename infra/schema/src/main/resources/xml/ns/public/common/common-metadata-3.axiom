@@ -208,13 +208,6 @@ prism:model common-metadata {
     }
 
     container ProvenanceMetadataType {
-      container yield {
-        type ProvenanceYieldType;
-        maxOccurs "unbounded";
-      }
-    }
-
-    container ProvenanceYieldType {
       container acquisition {
         type ProvenanceAcquisitionType;
         maxOccurs "unbounded";

@@ -133,9 +133,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginYield()
-                        .beginAcquisition()
-                            .originRef("hr", ServiceType.COMPLEX_TYPE);
+                    .beginAcquisition()
+                        .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_FAMILY_NAME).add(sparrowHr)
@@ -168,9 +167,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowUserWithOriginRef.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginYield()
-                        .beginAcquisition()
-                            .originRef("user", ServiceType.COMPLEX_TYPE);
+                    .beginAcquisition()
+                        .originRef("user", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_FAMILY_NAME).add(sparrowUserWithOriginRef)
@@ -206,10 +204,9 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackRestWithTs.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginYield()
-                        .beginAcquisition()
-                            .originRef("rest", ServiceType.COMPLEX_TYPE)
-                            .timestamp(now);
+                    .beginAcquisition()
+                        .originRef("rest", ServiceType.COMPLEX_TYPE)
+                        .timestamp(now);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).add(jackRestWithTs)
@@ -225,7 +222,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         PrismPropertyValue<PolyString> jackSparrow = MiscUtil.extractSingleton(outputTriple.getZeroSet());
         assertOrigins(jackSparrow, "user", "rest");
 
-        List<ProvenanceAcquisitionType> acquisitions = ((ValueMetadataType) jackSparrow.getValueMetadata().getValue().asContainerable()).getProvenance().getYield().get(0).getAcquisition();
+        List<ProvenanceAcquisitionType> acquisitions = ((ValueMetadataType) jackSparrow.getValueMetadata().getValue().asContainerable()).getProvenance().getAcquisition();
         XMLGregorianCalendar timestamp = acquisitions.stream().filter(acq -> acq.getOriginRef().getOid().equals("rest"))
                 .findAny()
                 .orElseThrow(() -> new AssertionError("no origin rest value"))
@@ -250,9 +247,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginYield()
-                        .beginAcquisition()
-                            .originRef("hr", ServiceType.COMPLEX_TYPE);
+                    .beginAcquisition()
+                        .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(jackHr)
@@ -285,9 +281,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackRest.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginYield()
-                        .beginAcquisition()
-                            .originRef("rest", ServiceType.COMPLEX_TYPE);
+                    .beginAcquisition()
+                        .originRef("rest", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).delete(jackRest)
@@ -320,9 +315,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowUser.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                    .beginYield()
-                        .beginAcquisition()
-                            .originRef("user", ServiceType.COMPLEX_TYPE);
+                    .beginAcquisition()
+                        .originRef("user", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_FAMILY_NAME).delete(sparrowUser)
@@ -418,9 +412,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                .beginYield()
-                .beginAcquisition()
-                .originRef("hr", ServiceType.COMPLEX_TYPE);
+                    .beginAcquisition()
+                        .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(jackieHr)
@@ -456,18 +449,16 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                .beginYield()
-                .beginAcquisition()
-                .originRef("hr", ServiceType.COMPLEX_TYPE);
+                    .beginAcquisition()
+                        .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         PrismPropertyValue<PolyString> sparrowHr =
                 evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Sparrow"));
         //noinspection unchecked
         ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieHr.getValueMetadata()).createNewValue().asContainerable()
                 .beginProvenance()
-                .beginYield()
-                .beginAcquisition()
-                .originRef("hr", ServiceType.COMPLEX_TYPE);
+                    .beginAcquisition()
+                        .originRef("hr", ServiceType.COMPLEX_TYPE);
 
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(jackieHr)
@@ -508,9 +499,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         assertThat(metadataContainer.size()).isEqualTo(1);
         ValueMetadataType metadata = (ValueMetadataType) metadataContainer.getValue().asContainerable();
         assertThat(metadata.getProvenance()).isNotNull();
-        assertThat(metadata.getProvenance().getYield().size()).isEqualTo(1);
-        assertThat(metadata.getProvenance().getYield().get(0).getAcquisition().size()).isEqualTo(origins.length);
-        Set<String> realOrigins = metadata.getProvenance().getYield().get(0).getAcquisition().stream()
+        assertThat(metadata.getProvenance().getAcquisition().size()).isEqualTo(origins.length);
+        Set<String> realOrigins = metadata.getProvenance().getAcquisition().stream()
                 .map(acq -> acq.getOriginRef().getOid())
                 .collect(Collectors.toSet());
         assertThat(realOrigins).as("real origins").containsExactlyInAnyOrder(origins);

@@ -19,12 +19,7 @@ public class ProvenanceMetadataUtil {
     }
 
     public static boolean hasOrigin(ProvenanceMetadataType provenance, String originOid) {
-        return provenance != null && provenance.getYield().stream()
-                .anyMatch(yield -> hasOrigin(yield, originOid));
-    }
-
-    public static boolean hasOrigin(ProvenanceYieldType yield, String originOid) {
-        return yield.getAcquisition().stream()
+        return provenance.getAcquisition().stream()
                 .anyMatch(acquisition -> hasOrigin(acquisition, originOid));
     }
 
@@ -37,11 +32,6 @@ public class ProvenanceMetadataUtil {
     }
 
     public static boolean hasMappingSpec(ProvenanceMetadataType provenance, MappingSpecificationType mappingSpecification) {
-        return provenance != null && provenance.getYield().stream()
-                .anyMatch(yield -> hasMappingSpec(yield, mappingSpecification));
-    }
-
-    public static boolean hasMappingSpec(ProvenanceYieldType yield, MappingSpecificationType mappingSpecification) {
-        return MidpointProvenanceEquivalenceStrategy.INSTANCE.equals(yield.getMappingSpec(), mappingSpecification);
+        return MidpointProvenanceEquivalenceStrategy.INSTANCE.equals(provenance.getMappingSpec(), mappingSpecification);
     }
 }
