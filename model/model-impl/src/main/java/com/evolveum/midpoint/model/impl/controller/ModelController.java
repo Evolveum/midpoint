@@ -13,6 +13,8 @@ import java.io.*;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.exception.IndestructibilityViolationException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -369,11 +371,13 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                     }
                 }
             }
+
             // Make sure everything is encrypted as needed before logging anything.
             // But before that we need to make sure that we have proper definition, otherwise we
             // might miss some encryptable data in dynamic schemas
             applyDefinitions(deltas, options, task, result);
             ModelImplUtils.encrypt(deltas, protector, options, result);
+
             computePolyStrings(deltas);
 
             LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDumpLazily(deltas, 2), options);
@@ -538,6 +542,7 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
                                     // creating "shadow" existing object for auditing needs.
                                 }
                             }
+                            checkIndestructible(existingObject, task, result1);
                             if (!preAuthorized) {
                                 securityEnforcer.authorize(ModelAuthorizationAction.RAW_OPERATION.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
                                 securityEnforcer.authorize(ModelAuthorizationAction.DELETE.getUrl(), null, AuthorizationParameters.Builder.buildObjectDelete(existingObject), null, task, result1);
@@ -614,6 +619,14 @@ public class ModelController implements ModelService, TaskService, WorkflowServi
             auditHelper.audit(auditRecord, null, task, result);
 
             task.markObjectActionExecutedBoundary();
+        }
+    }
+
+    private <O extends ObjectType> void checkIndestructible(PrismObject<O> existingObject, Task task, OperationResult result) throws IndestructibilityViolationException {
+        if (existingObject != null && Boolean.TRUE.equals(existingObject.asObjectable().isIndestructible())) {
+            IndestructibilityViolationException e = new IndestructibilityViolationException("Attempt to delete indestructible object "+existingObject);
+            ModelImplUtils.recordFatalError(result, e);
+            throw e;
         }
     }
 
