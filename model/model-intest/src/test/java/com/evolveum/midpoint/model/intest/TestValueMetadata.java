@@ -144,7 +144,6 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         addObject(TEMPLATE_REGULAR_USER, initTask, initResult);
         addObject(USER_ALICE, initTask, initResult);
 
-//        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
         setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
@@ -329,6 +328,49 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
+     * Now we change givenName to a different value (with different LoA of high).
+     * Resulting LoA of fullName should be now high.
+     *
+     * The difference in this case is also that we use ADD instead of REPLACE.
+     * (DELETE of old value is automatically added by conversion to delta set triple.)
+     */
+    @Test
+    public void test057SimpleMetadataMappingUserModifyDifferentValue() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismPropertyValue<PolyString> robert = prismContext.itemFactory().createPropertyValue();
+        robert.setValue(PolyString.fromOrig("Robert"));
+        robert.getValueMetadata().createNewValue().findOrCreateProperty(LOA_PATH).setRealValue("high");
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).add(robert)
+                .asObjectDelta(USER_BOB.oid);
+
+        when();
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertUserAfter(USER_BOB.oid)
+                .displayXml()
+                .valueMetadata(UserType.F_GIVEN_NAME)
+                    .singleValue()
+                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .end()
+                    .end()
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .singleValue()
+                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .end()
+                    .end()
+                .assertFullName("Robert Green")
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .singleValue()
+                        .assertPropertyValuesEqual(LOA_PATH, "high");
+    }
+
+    /**
      * Here we simply recompute a user and observe if the metadata (LoA) is correctly computed on fullName.
      */
     @Test
@@ -348,12 +390,10 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         then();
         PrismObject<UserType> userAfter = modelContext.getFocusContext().getObjectNew();
         assertUser(userAfter, "after")
-                .display()
                 .displayXml()
                 .assertFullName("Chuck White")
                 .valueMetadata(UserType.F_FULL_NAME)
                     .singleValue()
-                        .display()
                         .assertPropertyValuesEqual(LOA_PATH, "low")
                         .end();
     }
@@ -363,7 +403,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
     /**
      * Adding user Paul. We store creation metadata for fulLName.
-     * This test checks that
+     * This test checks that the metadata is stored correctly and is not changed on recomputation.
      */
     @Test
     public void test080AddPaul() throws Exception {
@@ -459,14 +499,19 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     //endregion
 
     //region Scenario 9: Provenance metadata
+
+    /**
+     * Leonhard Euler (imported without any information) gets both given name and family name
+     * with provenance of "admin entry".
+     *
+     * We check these properties, as well as (computed) full name.
+     */
     @Test
-    public void test900ProvideNamesByAdmin() throws Exception {
+    public void test200ProvideNamesByAdmin() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
-
-        setGlobalTracingOverride(createModelLoggingTracingProfile());
 
         // @formatter:off
         PrismPropertyValue<PolyString> leonhard = prismContext.itemFactory().createPropertyValue();
@@ -475,9 +520,9 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 new ValueMetadataType(prismContext)
                         .beginProvenance()
                             .beginAcquisition()
-                                .timestamp(now)
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_URI)
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
         // @formatter:on
@@ -489,9 +534,9 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 new ValueMetadataType(prismContext)
                         .beginProvenance()
                             .beginAcquisition()
-                                .timestamp(now)
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_URI)
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
         // @formatter:on
@@ -505,26 +550,53 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         executeChanges(delta, null, task, result);
 
         then();
+
+        // @formatter:off
         assertUserAfter(USER_LEONHARD.oid)
                 .displayXml()
                 .valueMetadataSingle(UserType.F_GIVEN_NAME)
-                    .display()
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertTimestampBetween(now, now)
+                        .end()
                     .end()
+                .end()
 
                 .valueMetadataSingle(UserType.F_FAMILY_NAME)
-                    .display()
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertTimestampBetween(now, now)
+                        .end()
                     .end()
+                .end()
 
                 .valueMetadataSingle(UserType.F_FULL_NAME)
-                    .display()
-                    .end();
+                    .provenance()
+                        .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertTimestampBetween(now, now)
+                        .end()
+                    .end()
+                .end();
+        // @formatter:on
     }
 
+    /**
+     * Now we add the same family name of Euler but with different origin/channel.
+     */
     @Test
-    public void test910AddSameFamilyNameByRest() throws Exception {
+    public void test210AddSameFamilyNameByRest() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        XMLGregorianCalendar before = XmlTypeConverter.createXMLGregorianCalendar();
+        Thread.sleep(10);
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
 
         // @formatter:off
@@ -534,9 +606,9 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 new ValueMetadataType(prismContext)
                         .beginProvenance()
                             .beginAcquisition()
-                                .timestamp(now)
-                                .channel(SchemaConstants.CHANNEL_REST_URI)
                                 .originRef(ORIGIN_SELF_SERVICE_APP.ref())
+                                .channel(SchemaConstants.CHANNEL_REST_LOCAL)
+                                .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
         // @formatter:on
@@ -549,19 +621,154 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         executeChanges(delta, null, task, result);
 
         then();
+        // @formatter:off
         assertUserAfter(USER_LEONHARD.oid)
                 .displayXml()
                 .valueMetadataSingle(UserType.F_GIVEN_NAME)
-                    .display()
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertTimestampBetween(null, before)
+                        .end()
                     .end()
+                .end()
 
                 .valueMetadata(UserType.F_FAMILY_NAME)
-                    .display()
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
                     .end()
+                    .valueForOrigin(ORIGIN_SELF_SERVICE_APP.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
+                                .assertTimestampBetween(now, now)
+                            .end()
+                        .end()
+                    .end()
+                .end()
 
                 .valueMetadataSingle(UserType.F_FULL_NAME)
-                    .display()
-                    .end();
+                    .provenance()
+                        .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                        .assertAcquisitions(2)
+                        .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+                            .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertTimestampBetween(null, before)
+                        .end()
+                        .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
+                            .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
+                            .assertTimestampBetween(now, now)
+                        .end()
+                    .end()
+                .end();
+        // @formatter:on
+    }
+
+    /**
+     * Adding fullName (the same) manually by HR (simulated).
+     */
+    @Test
+    public void test220ReinforceFullNameByHr() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        XMLGregorianCalendar before = XmlTypeConverter.createXMLGregorianCalendar();
+        Thread.sleep(10);
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
+
+        // @formatter:off
+        PrismPropertyValue<PolyString> leonhardEuler = prismContext.itemFactory().createPropertyValue();
+        leonhardEuler.setValue(PolyString.fromOrig("Leonhard Euler"));
+        leonhardEuler.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginProvenance()
+                            .beginAcquisition()
+                                .originRef(ORIGIN_HR_FEED.ref())
+                                .timestamp(now)
+                            .<ProvenanceMetadataType>end()
+                        .<ValueMetadataType>end());
+        // @formatter:on
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_FULL_NAME).add(leonhardEuler)
+                .asObjectDelta(USER_LEONHARD.oid);
+
+        when();
+        executeChanges(delta, null, task, result);
+
+        then();
+        // @formatter:off
+        assertUserAfter(USER_LEONHARD.oid)
+                .displayXml()
+                .valueMetadataSingle(UserType.F_GIVEN_NAME)
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertTimestampBetween(null, before)
+                        .end()
+                    .end()
+                .end()
+
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_SELF_SERVICE_APP.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                            .assertAcquisitions(2)
+                            .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                            .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
+                                .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .assertNoMappingSpec()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_HR_FEED.ref())
+                                .assertChannel(null)
+                                .assertTimestampBetween(now, now);
+        // @formatter:on
     }
 
     @Test

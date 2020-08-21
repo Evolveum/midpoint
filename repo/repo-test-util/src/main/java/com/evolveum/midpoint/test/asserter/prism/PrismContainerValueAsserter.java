@@ -6,11 +6,6 @@
  */
 package com.evolveum.midpoint.test.asserter.prism;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-
 import java.util.Iterator;
 import java.util.List;
 
@@ -27,6 +22,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -35,7 +31,10 @@ import com.evolveum.midpoint.test.asserter.predicates.AssertionPredicateEvaluati
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * @author semancik
@@ -156,7 +155,7 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         }
         assertNotNull("No reference "+refName.getLocalPart()+" in "+desc(), ref);
         List<PrismReferenceValue> refVals = ref.getValues();
-        if (refVals == null || refVals.isEmpty()) {
+        if (refVals.isEmpty()) {
             fail("No values in reference "+refName.getLocalPart()+" in "+desc());
         }
         if (refVals.size() > 1) {
@@ -165,6 +164,30 @@ public class PrismContainerValueAsserter<C extends Containerable, RA> extends Pr
         PrismReferenceValue refVal = refVals.get(0);
         assertNotNull("null value in "+refName.getLocalPart()+" in "+desc(), refVal);
         assertEquals("Wrong "+refName.getLocalPart()+" in "+desc(), expectedOid, refVal.getOid());
+        return this;
+    }
+
+    public <T> PrismContainerValueAsserter<C,RA> assertRefEquals(QName refName, ObjectReferenceType expected) {
+        return assertRefEquals(refName, expected, EquivalenceStrategy.REAL_VALUE);
+    }
+
+    public <T> PrismContainerValueAsserter<C,RA> assertRefEquals(QName refName, ObjectReferenceType expected, EquivalenceStrategy strategy) {
+        PrismReference ref = getPrismValue().findReference(refName);
+        if (ref == null && expected == null) {
+            return this;
+        }
+        assertNotNull("No reference "+refName.getLocalPart()+" in "+desc(), ref);
+        List<PrismReferenceValue> refVals = ref.getValues();
+        if (refVals.isEmpty()) {
+            fail("No values in reference "+refName.getLocalPart()+" in "+desc());
+        }
+        if (refVals.size() > 1) {
+            fail("Too many values in reference "+refName.getLocalPart()+" in "+desc());
+        }
+        PrismReferenceValue refVal = refVals.get(0);
+        assertNotNull("null value in "+refName.getLocalPart()+" in "+desc(), refVal);
+        assertTrue("Wrong " + refName.getLocalPart() + " in " + desc() + ", expected: " + expected + ", real: " + refVal,
+                expected.asReferenceValue().equals(refVal, strategy));
         return this;
     }
 

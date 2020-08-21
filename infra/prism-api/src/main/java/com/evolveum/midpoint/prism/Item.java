@@ -301,6 +301,11 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
         return getValues().size() <= 1;
     }
 
+    default boolean isSingleValueByDefinition() {
+        D definition = getDefinition();
+        return definition != null && definition.isSingleValue();
+    }
+
     //region Add and remove
 
     /**

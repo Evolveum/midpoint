@@ -1528,6 +1528,12 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         List<V> remainingValuesToDelete = new ArrayList<>(emptyIfNull(valuesToDelete));
         List<V> remainingOldValues = new ArrayList<>(itemOld != null ? itemOld.getValues() : emptyList());
 
+        // Very special case for single-valued items: when adding a value different from the one being there
+        // we automatically consider the existing one as deleted
+        if (itemOld != null && itemOld.isSingleValueByDefinition() && CollectionUtils.isNotEmpty(valuesToAdd)) {
+            adaptRemainingValuesToDelete(remainingValuesToDelete, valuesToAdd, itemOld);
+        }
+
         for (V valueToAdd : remainingValuesToAdd) {
             int inDelete = findIndex(remainingValuesToDelete, valueToAdd, REAL_VALUE_CONSIDER_DIFFERENT_IDS, true, false);
             int inOld = findIndex(remainingOldValues, valueToAdd, REAL_VALUE_CONSIDER_DIFFERENT_IDS, false, false);
@@ -1564,6 +1570,25 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         }
 
         return triple;
+    }
+
+    private void adaptRemainingValuesToDelete(List<V> remainingValuesToDelete, Collection<V> valuesToAdd, @NotNull Item<V, D> itemOld) {
+        if (itemOld.hasNoValues()) {
+            return;
+        }
+        if (itemOld.size() > 1) {
+            throw new IllegalStateException("Single-valued item having more than one value: " + itemOld);
+        }
+        V existingValue = itemOld.getValues().get(0);
+        if (existingValue == null) {
+            return; // strange but may happen
+        }
+        for (V valueToAdd : valuesToAdd) {
+            if (valueToAdd != null && !valueToAdd.equals(existingValue, REAL_VALUE_CONSIDER_DIFFERENT_IDS) &&
+                    !ItemCollectionsUtil.contains(remainingValuesToDelete, existingValue, REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
+                remainingValuesToDelete.add(CloneUtil.clone(existingValue));
+            }
+        }
     }
 
     private V cloneAddedWithMergedMetadata(@NotNull V valueToAdd, V valueToDelete, V oldValue) throws SchemaException {

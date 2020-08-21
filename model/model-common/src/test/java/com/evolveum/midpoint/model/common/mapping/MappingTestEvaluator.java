@@ -21,6 +21,8 @@ import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetada
 
 import com.evolveum.midpoint.model.common.mapping.metadata.builtin.ProvenanceBuiltinMapping;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.Clock;
@@ -218,6 +220,8 @@ public class MappingTestEvaluator {
             }
             mappingBuilder.defaultTargetDefinition(targetDefDefinition);
         }
+
+        mappingBuilder.now(XmlTypeConverter.createXMLGregorianCalendar());
 
         return mappingBuilder;
     }

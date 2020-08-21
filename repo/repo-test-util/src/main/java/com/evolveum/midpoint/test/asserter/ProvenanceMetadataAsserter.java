@@ -56,6 +56,11 @@ public class ProvenanceMetadataAsserter<RA extends AbstractAsserter> extends Pri
         return acquisitions.get(0);
     }
 
+    public ProvenanceMetadataAsserter<RA> assertAcquisitions(int number) {
+        assertThat(getProvenance().getAcquisition().size()).as("# of acquisitions").isEqualTo(number);
+        return this;
+    }
+
     public ProvenanceMetadataAsserter<RA> assertNoMappingSpec() {
         assertThat(getProvenance().getMappingSpec()).as("mapping spec").isNull();
         return this;

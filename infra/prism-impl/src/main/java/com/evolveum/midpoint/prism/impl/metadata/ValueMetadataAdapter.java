@@ -468,11 +468,6 @@ public class ValueMetadataAdapter implements ValueMetadata {
     }
 
     @Override
-    public int size() {
-        return delegate.size();
-    }
-
-    @Override
     public PrismContainerValue<Containerable> getAnyValue() {
         return delegate.getAnyValue();
     }
