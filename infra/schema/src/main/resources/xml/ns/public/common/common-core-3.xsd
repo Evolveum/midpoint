@@ -244,6 +244,8 @@
                     <xsd:appinfo>
                         <a:displayName>ObjectType.subtype</a:displayName>
                         <a:displayOrder>15</a:displayOrder>
+                        <a:deprecated>true</a:deprecated>
+                        <a:deprecatedSince>4.2</a:deprecatedSince>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
