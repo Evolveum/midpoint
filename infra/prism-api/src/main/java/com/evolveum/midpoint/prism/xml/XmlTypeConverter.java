@@ -175,10 +175,11 @@ public class XmlTypeConverter {
     }
 
     public static long toMillis(XMLGregorianCalendar xmlCal) {
-        if (xmlCal == null) {
-            return 0;
-        }
-        return xmlCal.toGregorianCalendar().getTimeInMillis();
+        return xmlCal != null ? xmlCal.toGregorianCalendar().getTimeInMillis() : 0;
+    }
+
+    public static Long toMillisNullable(XMLGregorianCalendar xmlCal) {
+        return xmlCal != null ? xmlCal.toGregorianCalendar().getTimeInMillis() : null;
     }
 
     public static Date toDate(XMLGregorianCalendar xmlCal) {

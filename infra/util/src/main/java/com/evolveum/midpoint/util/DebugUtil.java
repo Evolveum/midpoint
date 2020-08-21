@@ -655,9 +655,6 @@ public class DebugUtil {
     }
 
     public static Object debugDumpLazily(Collection<?> dumpables, int indent) {
-        if (dumpables == null || dumpables.isEmpty()) {
-            return dumpables;
-        }
         return new Object() {
             @Override
             public String toString() {
@@ -667,9 +664,6 @@ public class DebugUtil {
     }
 
     public static Object debugDumpLazily(Map<?, ?> dumpables, int indent) {
-        if (dumpables == null || dumpables.isEmpty()) {
-            return dumpables;
-        }
         return new Object() {
             @Override
             public String toString() {

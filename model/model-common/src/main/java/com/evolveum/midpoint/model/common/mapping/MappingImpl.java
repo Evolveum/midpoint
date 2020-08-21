@@ -7,14 +7,19 @@
 
 package com.evolveum.midpoint.model.common.mapping;
 
-import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataComputation;
+import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetadataComputation;
 import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataProcessingSpec;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.repo.common.expression.TransformationValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingScopeType.TRANSFORMATION;
 
@@ -31,7 +36,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
         super(prototype);
     }
 
-    protected ValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
+    protected TransformationValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
         ValueMetadataProcessingSpec processingSpec = createProcessingSpec(result);
@@ -39,12 +44,27 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
         if (processingSpec.isEmpty()) {
             return null;
         } else {
-            return ValueMetadataComputer.named(() -> "Computer for " + getContextDescription(),
-                    (inputValues, computationOpResult) ->
-                            ValueMetadataComputation
-                                    .forMapping(inputValues, processingSpec, this)
-                                    .execute(computationOpResult));
+            return new TransformationValueMetadataComputer() {
+                @Override
+                public ValueMetadataType compute(@NotNull List<PrismValue> inputValues,
+                        @NotNull OperationResult computationOpResult)
+                        throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+                        ConfigurationException, ExpressionEvaluationException {
+                    return TransformationalMetadataComputation
+                            .forMapping(inputValues, processingSpec, MappingImpl.this)
+                            .execute(computationOpResult);
+                }
 
+                @Override
+                public boolean supportsProvenance() throws SchemaException {
+                    return processingSpec.isFullProcessing(ValueMetadataType.F_PROVENANCE);
+                }
+
+                @Override
+                public String toString() {
+                    return "Computer for " + getContextDescription();
+                }
+            };
         }
     }
 

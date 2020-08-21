@@ -176,7 +176,7 @@ public class OpNode {
         if (trace != null || parent == null) {
             return trace;
         } else {
-            return getTraceUpwards(aClass);
+            return parent.getTraceUpwards(aClass);
         }
     }
 

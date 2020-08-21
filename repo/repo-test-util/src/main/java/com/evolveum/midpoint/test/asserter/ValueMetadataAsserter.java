@@ -12,6 +12,8 @@ import com.evolveum.midpoint.prism.ValueSelector;
 import com.evolveum.midpoint.test.asserter.prism.PrismContainerAsserter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
+import static com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil.hasOrigin;
+
 public class ValueMetadataAsserter<RA extends AbstractAsserter> extends PrismContainerAsserter<ValueMetadataType, RA> {
 
     public ValueMetadataAsserter(PrismContainer<ValueMetadataType> valueMetadata, RA parentAsserter, String details) {
@@ -43,8 +45,18 @@ public class ValueMetadataAsserter<RA extends AbstractAsserter> extends PrismCon
         return asserter;
     }
 
+    public ValueMetadataValueAsserter<ValueMetadataAsserter<RA>> valueForOrigin(String originOid) {
+        return value(pcv -> hasOrigin(pcv.asContainerable(), originOid));
+    }
+
     protected String desc() {
         // TODO handling of details
         return "metadata of " + getDetails();
     }
+
+    @Override
+    public ValueMetadataAsserter<RA> display() {
+        return (ValueMetadataAsserter<RA>) super.display();
+    }
+
 }

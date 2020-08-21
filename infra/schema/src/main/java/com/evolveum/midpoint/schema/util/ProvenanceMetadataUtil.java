@@ -7,12 +7,21 @@
 
 package com.evolveum.midpoint.schema.util;
 
+import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
 import com.evolveum.midpoint.util.annotation.Experimental;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceYieldType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @Experimental
 public class ProvenanceMetadataUtil {
+
+    public static boolean hasOrigin(ValueMetadataType metadata, String originOid) {
+        return metadata != null && hasOrigin(metadata.getProvenance(), originOid);
+    }
+
+    public static boolean hasOrigin(ProvenanceMetadataType provenance, String originOid) {
+        return provenance != null && provenance.getYield().stream()
+                .anyMatch(yield -> hasOrigin(yield, originOid));
+    }
 
     public static boolean hasOrigin(ProvenanceYieldType yield, String originOid) {
         return yield.getAcquisition().stream()
@@ -21,5 +30,18 @@ public class ProvenanceMetadataUtil {
 
     public static boolean hasOrigin(ProvenanceAcquisitionType acquisition, String originOid) {
         return acquisition.getOriginRef() != null && originOid.equals(acquisition.getOriginRef().getOid());
+    }
+
+    public static boolean hasMappingSpec(ValueMetadataType metadata, MappingSpecificationType mappingSpecification) {
+        return metadata != null && hasMappingSpec(metadata.getProvenance(), mappingSpecification);
+    }
+
+    public static boolean hasMappingSpec(ProvenanceMetadataType provenance, MappingSpecificationType mappingSpecification) {
+        return provenance != null && provenance.getYield().stream()
+                .anyMatch(yield -> hasMappingSpec(yield, mappingSpecification));
+    }
+
+    public static boolean hasMappingSpec(ProvenanceYieldType yield, MappingSpecificationType mappingSpecification) {
+        return MidpointProvenanceEquivalenceStrategy.INSTANCE.equals(yield.getMappingSpec(), mappingSpecification);
     }
 }

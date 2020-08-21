@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism.impl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.*;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.impl.delta.DeltaFactoryImpl;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.impl.delta.builder.DeltaBuilder;
@@ -89,8 +90,8 @@ public final class PrismContextImpl implements PrismContext {
     @NotNull private final ItemPathParser itemPathParser;
     @NotNull private final SchemaFactory schemaFactory;
 
-    @Experimental
-    private ValueMetadataFactory valueMetadataFactory;
+    @Experimental private ValueMetadataFactory valueMetadataFactory;
+    @Experimental private EquivalenceStrategy provenanceEquivalenceStrategy;
 
     private ParsingMigrator parsingMigrator;
     private PrismMonitor monitor = null;
@@ -674,5 +675,14 @@ public final class PrismContextImpl implements PrismContext {
     @Override
     public ValueMetadataFactory getValueMetadataFactory() {
         return valueMetadataFactory;
+    }
+
+    @Override
+    public EquivalenceStrategy getProvenanceEquivalenceStrategy() {
+        return provenanceEquivalenceStrategy;
+    }
+
+    public void setProvenanceEquivalenceStrategy(EquivalenceStrategy provenanceEquivalenceStrategy) {
+        this.provenanceEquivalenceStrategy = provenanceEquivalenceStrategy;
     }
 }

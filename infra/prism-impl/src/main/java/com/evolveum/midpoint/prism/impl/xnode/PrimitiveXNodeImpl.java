@@ -222,6 +222,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     @Override
     public void accept(Visitor<XNode> visitor) {
         visitor.visit(this);
+        MetadataAware.visitMetadata(this, visitor);
     }
 
     @Override

@@ -201,7 +201,7 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
             Holder<ObjectDeltaObject<F>> focusOdoClonedHolder,
             PathKeyedMap<DeltaSetTriple<? extends ItemValueWithOrigin<?, ?>>> outputTripleMap, String contextDesc,
             VariableBindingDefinitionType source, OperationResult result) throws ExpressionEvaluationException,
-            PolicyViolationException, SchemaException, ConfigurationException, ObjectNotFoundException,
+            SchemaException, ConfigurationException, ObjectNotFoundException,
             CommunicationException, SecurityViolationException {
         if (source.getPath() == null) {
             return;
@@ -237,8 +237,8 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
                     .itemContainer(focusOdo.getNewObject())
                     .valueMatcher(null)
                     .comparator(null)
-                    .addUnchangedValues(true)
-                    .addUnchangedValuesExceptForNormalMappings(false) // todo
+                    .addUnchangedValues(false) // todo
+                    .addUnchangedValuesExceptForNormalMappings(true) // todo
                     .existingItemKnown(true)
                     .isExclusiveStrong(false)
                     .contextDescription(" updating chained source (" + path + ") in " + contextDesc)
@@ -247,6 +247,8 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
                     .result(result)
                     .prismContext(beans.prismContext)
                     .build()) {
+
+            // TODO where is existing item?!
 
             ItemDelta itemDelta = consolidator.consolidateTriples();
             itemDelta.simplify();

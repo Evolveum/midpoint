@@ -24,6 +24,7 @@ import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
@@ -421,4 +422,8 @@ public class Expression<V extends PrismValue,D extends ItemDefinition> {
         return sb.toString();
     }
 
+    @VisibleForTesting
+    public List<ExpressionEvaluator<V>> getEvaluators() {
+        return evaluators;
+    }
 }

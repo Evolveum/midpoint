@@ -34,6 +34,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
     private final ValueSetDefinitionType setDefinitionType;
     private final D itemDefinition;
     private final ExpressionProfile expressionProfile;
+    private final String localContextDescription;
     private final String shortDesc;
     private final Task task;
     private final OperationResult result;
@@ -42,13 +43,15 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
     private ExpressionVariables additionalVariables;
     private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> condition;
 
-    public ValueSetDefinition(ValueSetDefinitionType setDefinitionType, D itemDefinition, ExpressionProfile expressionProfile, String additionalVariableName, String shortDesc, Task task, OperationResult result) {
+    public ValueSetDefinition(ValueSetDefinitionType setDefinitionType, D itemDefinition, ExpressionProfile expressionProfile, String additionalVariableName,
+            String localContextDescription, String shortDesc, Task task, OperationResult result) {
         super();
         this.setDefinitionType = setDefinitionType;
         Validate.notNull(itemDefinition, "No item definition for value set in %s", shortDesc);
         this.itemDefinition = itemDefinition;
         this.expressionProfile = expressionProfile;
         this.additionalVariableName = additionalVariableName;
+        this.localContextDescription = localContextDescription;
         this.shortDesc = shortDesc;
         this.task = task;
         this.result = result;
@@ -103,6 +106,8 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
             variables.addVariableDefinitions(additionalVariables, variables.keySet());
         }
         ExpressionEvaluationContext context = new ExpressionEvaluationContext(null, variables, shortDesc, task);
+        context.setLocalContextDescription(localContextDescription);
+        context.setSkipEvaluationMinus(true);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = condition.evaluate(context, result);
 
         //noinspection SimplifiableIfStatement

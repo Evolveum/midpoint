@@ -46,6 +46,7 @@ public class SchemaXNodeImpl extends XNodeImpl implements SchemaXNode {
     @Override
     public void accept(Visitor visitor) {
         visitor.visit(this);
+        MetadataAware.visitMetadata(this, visitor);
     }
 
     @Override

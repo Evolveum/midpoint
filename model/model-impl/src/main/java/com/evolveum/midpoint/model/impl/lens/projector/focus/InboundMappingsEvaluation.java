@@ -586,7 +586,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
             LOGGER.trace("Collecting {} inbounds for special property {}", inboundMappingBeans.size(), sourcePath);
 
-            PrismObject<F> focus = getCurrentFocus();
+            PrismObject<F> focus = getCurrentFocus(); // TODO check if we should really use current object here
             if (focus == null) {
                 LOGGER.trace("No current/new focus, skipping.");
                 return;
@@ -755,7 +755,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
             PrismObject<ShadowType> shadowNew = projectionContext.getObjectNew();
             PrismObjectDefinition<ShadowType> shadowNewDef = getShadowDefinition(shadowNew);
 
-            PrismObject<F> focus = getCurrentFocus();
+            PrismObject<F> focus = getCurrentFocus(); // TODO check if we should really use current object here
             PrismObjectDefinition<F> focusDef = getFocusDefinition(focus);
 
             // TODO apply metadata only if enabled
@@ -996,8 +996,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
     private void consolidateTriples() throws CommunicationException, ObjectNotFoundException, ConfigurationException,
             SchemaException, SecurityViolationException, ExpressionEvaluationException {
 
-        PrismObject<F> focus = getCurrentFocus();
-        PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focus);
+        PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
+        PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusNew);
         LensFocusContext<F> focusContext = context.getFocusContextRequired();
         ObjectDelta<F> focusAPrioriDelta = focusContext.getCurrentDelta();
 
@@ -1008,7 +1008,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         .skipNormalMappingAPrioriDeltaCheck(true);
 
         DeltaSetTripleMapConsolidation<F> consolidation = new DeltaSetTripleMapConsolidation<>(
-                outputTripleMap, focus, focusAPrioriDelta, context::itemDeltaExists,
+                outputTripleMap, focusNew, focusAPrioriDelta, context::itemDeltaExists,
                 true, customizer, focusDefinition,
                 env, beans, context, result);
         consolidation.computeItemDeltas();
@@ -1043,6 +1043,10 @@ class InboundMappingsEvaluation<F extends FocusType> {
     //endregion
 
     //region Miscellaneous
+
+    // TODO Check relevance of this method. Should we really use current object?
+    //  Fortunately, for inbounds processing it seems that current is usually the same as new,
+    //  because there are no secondary deltas yet. But are we sure?
     private PrismObject<F> getCurrentFocus() {
         if (context.getFocusContext().getObjectCurrent() != null) {
             return context.getFocusContext().getObjectCurrent();

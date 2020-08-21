@@ -693,7 +693,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     }
 
     @Test
-    public void testEmployeeTypeDeltaAreplaceB() throws Exception {
+    public void testEmployeeTypeDeltaAReplaceB() throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(
@@ -721,7 +721,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     }
 
     @Test
-    public void testEmployeeTypeDeltaNullreplaceB() throws Exception {
+    public void testEmployeeTypeDeltaNullReplaceB() throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(
@@ -749,7 +749,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     }
 
     @Test
-    public void testEmployeeTypeDeltaBreplaceB() throws Exception {
+    public void testEmployeeTypeDeltaBReplaceB() throws Exception {
         // GIVEN
         ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFactory().object()
                 .createModificationReplaceProperty(
@@ -777,7 +777,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     }
 
     @Test
-    public void testEmployeeTypeDeltaAaddB() throws Exception {
+    public void testEmployeeTypeDeltaAAddB() throws Exception {
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
                 employeeTypeDeltaABAdd("B", "A");
@@ -789,7 +789,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     }
 
     @Test
-    public void testEmployeeTypeDeltaABaddB() throws Exception {
+    public void testEmployeeTypeDeltaABAddB() throws Exception {
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
                 employeeTypeDeltaABAdd("B", "A", "B");
@@ -801,7 +801,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     }
 
     @Test
-    public void testEmployeeTypeDeltaBaddB() throws Exception {
+    public void testEmployeeTypeDeltaBAddB() throws Exception {
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
                 employeeTypeDeltaABAdd("B", "B");
@@ -813,7 +813,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     }
 
     @Test
-    public void testEmployeeTypeDeltaNulladdB() throws Exception {
+    public void testEmployeeTypeDeltaNullAddB() throws Exception {
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
                 employeeTypeDeltaABAdd("B");
@@ -857,7 +857,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     }
 
     @Test
-    public void testEmployeeTypeDeltaBdeleteB() throws Exception {
+    public void testEmployeeTypeDeltaBDeleteB() throws Exception {
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
                 employeeTypeDeltaDelete("B", "B");
@@ -869,7 +869,7 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     }
 
     @Test
-    public void testEmployeeTypeDeltaABdeleteB() throws Exception {
+    public void testEmployeeTypeDeltaABDeleteB() throws Exception {
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
                 employeeTypeDeltaDelete("B", "A", "B");
@@ -881,27 +881,29 @@ public class TestMappingDynamicSysVar extends AbstractModelCommonTest {
     }
 
     @Test
-    public void testEmployeeTypeDeltaAdeleteB() throws Exception {
+    public void testEmployeeTypeDeltaADeleteB() throws Exception {
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
                 employeeTypeDeltaDelete("B", "A");
 
         // THEN
+        displayDumpable("output triple", outputTriple);
         PrismAsserts.assertTripleZero(outputTriple, "A");
         PrismAsserts.assertTripleNoPlus(outputTriple);
-        PrismAsserts.assertTripleMinus(outputTriple, "B");
+        PrismAsserts.assertTripleNoMinus(outputTriple); // because it's a phantom delete
     }
 
     @Test
-    public void testEmployeeTypeDeltaNulldeleteB() throws Exception {
+    public void testEmployeeTypeDeltaNullDeleteB() throws Exception {
         // WHEN
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple =
                 employeeTypeDeltaDelete("B");
 
         // THEN
+        displayDumpable("output triple", outputTriple);
         PrismAsserts.assertTripleNoZero(outputTriple);
         PrismAsserts.assertTripleNoPlus(outputTriple);
-        PrismAsserts.assertTripleMinus(outputTriple, "B");
+        PrismAsserts.assertTripleMinus(outputTriple); // because it's a phantom delete
     }
 
     public PrismValueDeltaSetTriple<PrismPropertyValue<String>> employeeTypeDeltaDelete(

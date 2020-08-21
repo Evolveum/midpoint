@@ -8,11 +8,11 @@
 package com.evolveum.midpoint.model.impl.lens;
 
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataComputation;
+import com.evolveum.midpoint.model.common.mapping.metadata.ConsolidationMetadataComputation;
 import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataProcessingSpec;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.ValueMetadataComputer;
+import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataComputer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
@@ -25,7 +25,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappi
 @Experimental
 public class LensMetadataUtil {
 
-    public static ValueMetadataComputer createValueMetadataConsolidationComputer(ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
+    public static ConsolidationValueMetadataComputer createValueMetadataConsolidationComputer(ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
@@ -33,10 +33,10 @@ public class LensMetadataUtil {
         if (processingSpec.isEmpty()) {
             return null;
         } else {
-            return ValueMetadataComputer.named(() -> "Computer for consolidation of " + itemPath + " in " + env.contextDescription,
-                    (inputValues, computationOpResult) ->
-                            ValueMetadataComputation
-                                    .forConsolidation(inputValues, processingSpec, beans.commonBeans, env)
+            return ConsolidationValueMetadataComputer.named(() -> "Computer for consolidation of " + itemPath + " in " + env.contextDescription,
+                    (nonNegativeValues, existingValues, computationOpResult) ->
+                            ConsolidationMetadataComputation
+                                    .forConsolidation(nonNegativeValues, existingValues, processingSpec, beans.commonBeans, env)
                                     .execute(computationOpResult));
         }
     }

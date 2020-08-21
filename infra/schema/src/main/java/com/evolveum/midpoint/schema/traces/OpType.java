@@ -25,12 +25,10 @@ import org.apache.commons.text.lookup.StringLookup;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.impl.marshaller.ItemPathParserTemp;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 @Experimental
 public enum OpType {
@@ -64,6 +62,9 @@ public enum OpType {
     ASSIGNMENT_EVALUATION(OperationKindType.ASSIGNMENT_EVALUATION, "Assignment evaluation",
             "com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentTripleEvaluator.evaluateAssignment",
             "Assignment evaluation (→ ${c:assignmentTargetName})"),
+
+    PROJECTOR_PROJECTION(OperationKindType.OTHER,"Projector projection",
+            "com.evolveum.midpoint.model.impl.lens.projector.Projector.projection"),
 
     PROJECTOR_COMPONENT_OTHER(OperationKindType.OTHER,"Projector component",
             "com.evolveum.midpoint.model.impl.lens.projector.Projector.*"),
@@ -222,12 +223,10 @@ public enum OpType {
         case CLOCKWORK_RUN: return "Clockwork run";
         case CLOCKWORK_CLICK: return "Clockwork click";
         case PROJECTOR_PROJECT: return "Projector";
+        case PROJECTOR_PROJECTION:
+            return "Projector projection: " + getParameter(opResult, "resourceName");
         case PROJECTOR_COMPONENT_OTHER:
-            if ("projection".equals(last)) {
-                return "Projector projection: " + getParameter(opResult, "resourceName");
-            } else {
-                return "Projector " + last;
-            }
+            return "Projector " + last;
         case CLOCKWORK_METHOD: return "Clockwork " + last;
 
         case MAPPING_PREPARATION: return "Mapping preparation";

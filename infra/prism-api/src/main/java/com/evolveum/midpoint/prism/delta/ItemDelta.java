@@ -304,9 +304,7 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
     ItemDelta<V,D> cloneWithChangedParentPath(ItemPath newParentPath);
 
-    PrismValueDeltaSetTriple<V> toDeltaSetTriple();
-
-    PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V, D> itemOld);
+    PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V, D> itemOld) throws SchemaException;
 
     void assertDefinitions(String sourceDescription) throws SchemaException;
 

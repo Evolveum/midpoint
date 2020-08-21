@@ -15,6 +15,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
 
+import com.evolveum.midpoint.model.common.mapping.metadata.MetadataMappingEvaluator;
+
+import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetadataMappingsRegistry;
+
+import com.evolveum.midpoint.model.common.mapping.metadata.builtin.ProvenanceBuiltinMapping;
+
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.Clock;
@@ -55,10 +61,13 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 public class MappingTestEvaluator {
 
     public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "mapping");
-    public static final File USER_OLD_FILE = new File(TEST_DIR, "user-jack.xml");
-    public static final File ACCOUNT_FILE = new File(TEST_DIR, "account-jack.xml");
+    private static final File USER_OLD_PLAIN_FILE = new File(TEST_DIR, "user-jack.xml");
+    private static final File USER_OLD_WITH_METADATA_FILE = new File(TEST_DIR, "user-jack-metadata.xml");
+    private static final File ACCOUNT_FILE = new File(TEST_DIR, "account-jack.xml");
     public static final String USER_OLD_OID = "2f9b9299-6f45-498f-bc8e-8d17c6b93b20";
     private static final File PASSWORD_POLICY_FILE = new File(TEST_DIR, "password-policy.xml");
+
+    private boolean withMetadata;
 
     private PrismContext prismContext;
     private MappingFactory mappingFactory;
@@ -69,6 +78,16 @@ public class MappingTestEvaluator {
     }
 
     public void init() throws SchemaException, SAXException, IOException {
+        init(false);
+    }
+
+    public void initWithMetadata() throws SchemaException, SAXException, IOException {
+        init(true);
+    }
+
+    private void init(boolean withMetadata) throws SchemaException, SAXException, IOException {
+        this.withMetadata = withMetadata;
+
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
 
@@ -84,6 +103,14 @@ public class MappingTestEvaluator {
         beans.objectResolver = resolver;
         beans.prismContext = prismContext;
         beans.protector = protector;
+
+        if (withMetadata) {
+            BuiltinMetadataMappingsRegistry builtinMetadataMappingsRegistry = new BuiltinMetadataMappingsRegistry();
+            ProvenanceBuiltinMapping provenanceBuiltinMapping = new ProvenanceBuiltinMapping(prismContext, builtinMetadataMappingsRegistry);
+            provenanceBuiltinMapping.register();
+
+            beans.metadataMappingEvaluator = new MetadataMappingEvaluator(mappingFactory, prismContext, builtinMetadataMappingsRegistry);
+        }
 
         mappingFactory = new MappingFactory();
         mappingFactory.setBeans(beans);
@@ -224,7 +251,7 @@ public class MappingTestEvaluator {
     }
 
     protected PrismObject<UserType> getUserOld() throws SchemaException, EncryptionException, IOException {
-        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_OLD_FILE);
+        PrismObject<UserType> user = PrismTestUtil.parseObject(withMetadata ? USER_OLD_WITH_METADATA_FILE : USER_OLD_PLAIN_FILE);
         ProtectedStringType passwordPs = user.asObjectable().getCredentials().getPassword().getValue();
         protector.encrypt(passwordPs);
         return user;

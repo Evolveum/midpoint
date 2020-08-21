@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.prism.impl;
 
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.LITERAL_IGNORE_METADATA;
 import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.DEFAULT_FOR_EQUALS;
 
 import java.lang.reflect.Array;
@@ -24,28 +25,14 @@ import java.util.stream.Collectors;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.AbstractFreezable;
-import com.evolveum.midpoint.prism.CloneStrategy;
-import com.evolveum.midpoint.prism.ConsistencyCheckScope;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Itemable;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
@@ -442,6 +429,58 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
     @Experimental
     public void addForced(@NotNull V newValue) {
         values.add(newValue);
+    }
+
+
+    @Override
+    public void addRespectingMetadataAndCloning(V value, @NotNull EquivalenceStrategy strategy,
+            EquivalenceStrategy metadataEquivalenceStrategy) throws SchemaException {
+        if (!value.hasValueMetadata()) {
+            add(CloneUtil.clone(value), strategy);
+        } else {
+            V existingValue = findValue(value, strategy);
+            if (existingValue == null) {
+                addInternal(CloneUtil.clone(value), false, null);
+            } else {
+                addMetadataValues(existingValue, value.getValueMetadata(), metadataEquivalenceStrategy);
+            }
+        }
+    }
+
+    private void addMetadataValues(V existingValue, ValueMetadata newMetadata, EquivalenceStrategy metadataEquivalenceStrategy) throws SchemaException {
+        ValueMetadata existingValueMetadata = existingValue.getValueMetadata();
+        for (PrismContainerValue<Containerable> newMetadataValue : newMetadata.getValues()) {
+            PrismContainerValue<Containerable> sameProvenance = existingValueMetadata.findValue(newMetadataValue, metadataEquivalenceStrategy);
+            if (sameProvenance != null) {
+                existingValueMetadata.remove(sameProvenance);
+            }
+            existingValueMetadata.add(newMetadataValue.clone());
+        }
+    }
+
+    @Override
+    public void removeRespectingMetadata(V value, @NotNull EquivalenceStrategy strategy,
+            EquivalenceStrategy metadataEquivalenceStrategy) {
+        if (!value.hasValueMetadata()) {
+            remove(value, strategy);
+        } else {
+            // We do not support the case when we are deleting by ID but only selected metadata.
+            // I.e. if we want to delete metadata we must supply the correct (matching) value.
+            V existingValue = findValue(value, strategy);
+            if (existingValue != null) {
+                removeMetadataValues(existingValue, value.getValueMetadata(), metadataEquivalenceStrategy);
+            } else {
+                // nothing to do here, the value does not exist
+            }
+        }
+    }
+
+    private void removeMetadataValues(V existingValue, ValueMetadata metadataToRemove, EquivalenceStrategy metadataEquivalenceStrategy) {
+        ValueMetadata existingValueMetadata = existingValue.getValueMetadata();
+        existingValueMetadata.removeAll(metadataToRemove.getValues(), metadataEquivalenceStrategy);
+        if (existingValueMetadata.hasNoValues()) {
+            remove(existingValue, LITERAL_IGNORE_METADATA); // should work under any equivalence strategy that does not regard metadata
+        }
     }
 
     @Override

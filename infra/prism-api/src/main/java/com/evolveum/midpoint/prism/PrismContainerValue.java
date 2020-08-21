@@ -252,6 +252,20 @@ public interface PrismContainerValue<C extends Containerable> extends PrismValue
 
     boolean isIdOnly();
 
+    static boolean isIdOnly(PrismValue value) {
+        return value instanceof PrismContainerValue && ((PrismContainerValue<?>) value).isIdOnly();
+    }
+
+    static Long getId(PrismValue value) {
+        return value instanceof PrismContainerValue ? ((PrismContainerValue<?>) value).getId() : null;
+    }
+
+    static boolean idsMatch(PrismValue v1, PrismValue v2) {
+        Long id1 = getId(v1);
+        Long id2 = getId(v2);
+        return id1 != null && id1.equals(id2);
+    }
+
     void assertDefinitions(String sourceDescription) throws SchemaException;
 
     void assertDefinitions(boolean tolerateRaw, String sourceDescription) throws SchemaException;

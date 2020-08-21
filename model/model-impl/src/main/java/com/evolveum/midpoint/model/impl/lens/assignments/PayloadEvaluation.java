@@ -121,7 +121,7 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         if (mappingsBean != null) {
             LOGGER.trace("Request evaluation of focus mappings '{}' in {} ({} mappings)",
                     mappingsBean.getDescription(), segment.source, mappingsBean.getMapping().size());
-            AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
+            @NotNull AssignmentPathVariables assignmentPathVariables = LensUtil.computeAssignmentPathVariables(ctx.assignmentPath);
 
             for (MappingType mappingBean : mappingsBean.getMapping()) {
                 PlusMinusZero relativityMode = segment.getRelativeAssignmentRelativityMode(); /* TODO */

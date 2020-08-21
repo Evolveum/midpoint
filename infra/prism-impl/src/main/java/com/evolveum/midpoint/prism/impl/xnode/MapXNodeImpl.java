@@ -241,6 +241,7 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
                 //throw new IllegalStateException("null value of key " + subentry.key + " in map: " + debugDump());
             }
         }
+        MetadataAware.visitMetadata(this, visitor);
     }
 
     public boolean equals(Object o) {

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<user oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20"
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
+    <name>jack</name>
+    <fullName>Jack Sparrow</fullName>
+    <givenName>
+        <_value>Jack</_value>
+        <_metadata>
+            <provenance>
+                <yield>
+                    <acquisition>
+                        <originRef oid="user" type="ServiceType"/>
+                    </acquisition>
+                </yield>
+            </provenance>
+        </_metadata>
+        <_metadata>
+            <provenance>
+                <yield>
+                    <acquisition>
+                        <originRef oid="rest" type="ServiceType"/>
+                    </acquisition>
+                </yield>
+            </provenance>
+        </_metadata>
+    </givenName>
+    <familyName>
+        <_value>Sparrow</_value>
+        <_metadata>
+            <provenance>
+                <yield>
+                    <acquisition>
+                        <originRef oid="user" type="ServiceType"/>
+                    </acquisition>
+                </yield>
+            </provenance>
+        </_metadata>
+    </familyName>
+    <honorificPrefix>Cpt.</honorificPrefix>
+    <emailAddress/>
+    <employeeType>PIRATE</employeeType>
+    <organizationalUnit>Brethren of the Coast</organizationalUnit>
+    <organizationalUnit>Davie Jones' Locker</organizationalUnit>
+    <locality>Black Pearl</locality>
+    <credentials>
+        <password>
+            <value>
+                <clearValue>d3adM3nT3llN0Tal3s</clearValue>
+            </value>
+        </password>
+    </credentials>
+    <activation>
+        <administrativeStatus>enabled</administrativeStatus>
+        <disableTimestamp>2013-05-30T09:30:00Z</disableTimestamp>
+    </activation>
+
+    <assignment id="111">
+        <construction>
+            <resourceRef oid="2f9b9299-5555-5555-5555-000000001111"/>
+        </construction>
+    </assignment>
+
+</user>

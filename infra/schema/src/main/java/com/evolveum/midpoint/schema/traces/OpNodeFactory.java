@@ -21,6 +21,10 @@ public class OpNodeFactory {
     public static OpNode createOpNode(PrismContext prismContext, OperationResultType result, OpResultInfo info, OpNode parent, TraceInfo traceInfo) {
         if (info.getType() != null) {
             switch (info.getType()) {
+                case CLOCKWORK_RUN:
+                    return new ClockworkRunOpNode(prismContext, result, info, parent, traceInfo);
+                case CLOCKWORK_CLICK:
+                    return new ClockworkClickOpNode(prismContext, result, info, parent, traceInfo);
                 case MAPPING_EVALUATION:
                     return new MappingEvaluationOpNode(prismContext, result, info, parent, traceInfo);
                 case FOCUS_CHANGE_EXECUTION:
@@ -31,6 +35,14 @@ public class OpNodeFactory {
                     return new ValueTupleTransformationOpNode(prismContext, result, info, parent, traceInfo);
                 case ITEM_CONSOLIDATION:
                     return new ItemConsolidationOpNode(prismContext, result, info, parent, traceInfo);
+                case PROJECTOR_PROJECTION:
+                    return new ProjectorProjectionOpNode(prismContext, result, info, parent, traceInfo);
+                case PROJECTOR_INBOUND:
+                case PROJECTOR_ASSIGNMENTS:
+                case PROJECTOR_TEMPLATE_BEFORE_ASSIGNMENTS:
+                case PROJECTOR_TEMPLATE_AFTER_ASSIGNMENTS:
+                case PROJECTOR_COMPONENT_OTHER:
+                    return new ProjectorComponentOpNode(prismContext, result, info, parent, traceInfo);
             }
         }
         return new OpNode(prismContext, result, info, parent, traceInfo);

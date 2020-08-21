@@ -368,6 +368,23 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     boolean remove(V value, @NotNull EquivalenceStrategy strategy);
 
     /**
+     * Adds a value, respecting the metadata. I.e. if equivalent value exists, the metadata are merged.
+     * (Replacing metadata of colliding provenance, adding all the others.)
+     *
+     * If a value is to be added as a whole, it is cloned.
+     */
+    void addRespectingMetadataAndCloning(V value, @NotNull EquivalenceStrategy strategy, EquivalenceStrategy metadataEquivalenceStrategy) throws SchemaException;
+
+    /**
+     * Removes values equivalent to given value from the item; under specified equivalence strategy
+     * OR when values represent the same value via "representsSameValue(.., lax=false)" method.
+     *
+     * Respects metadata, i.e. if value to be removed has metadata specified, this method removes
+     * only particular metadata. Only if this means that all metadata are gone, then the value is deleted.
+     */
+    void removeRespectingMetadata(V value, @NotNull EquivalenceStrategy strategy, EquivalenceStrategy metadataEquivalenceStrategy);
+
+    /**
      * Removes all given values from the item. It is basically a shortcut for repeated
      * {@link #remove(PrismValue, EquivalenceStrategy)} call.
      *

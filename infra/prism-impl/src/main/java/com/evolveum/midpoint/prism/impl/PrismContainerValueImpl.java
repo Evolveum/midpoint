@@ -983,7 +983,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
                 }
             }
         }
-        return this.getId() != null && other.getId() != null && this.getId().equals(other.getId());
+        return this.getId() != null && this.getId().equals(other.getId());
     }
 
     @Override

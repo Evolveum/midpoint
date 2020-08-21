@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.prism.xnode;
 
+import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
 import org.jetbrains.annotations.NotNull;
@@ -29,5 +30,13 @@ public interface MetadataAware {
 
     static void cloneMetadata(MetadataAware target, MetadataAware source) {
         target.setMetadataNodes(CloneUtil.cloneCollectionMembers(source.getMetadataNodes()));
+    }
+
+    static void visitMetadata(MetadataAware object, Visitor visitor) {
+        List<MapXNode> metadataNodes = object.getMetadataNodes();
+        for (MapXNode metadataNode : metadataNodes) {
+            //noinspection unchecked
+            metadataNode.accept(visitor);
+        }
     }
 }

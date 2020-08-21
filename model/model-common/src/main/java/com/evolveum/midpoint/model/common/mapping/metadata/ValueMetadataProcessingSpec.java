@@ -247,7 +247,7 @@ public class ValueMetadataProcessingSpec implements ShortDumpable {
         return null;
     }
 
-    boolean isFullProcessing(ItemPath itemPath) throws SchemaException {
+    public boolean isFullProcessing(ItemPath itemPath) throws SchemaException {
         return getProcessing(itemPath) == ItemProcessingType.FULL;
     }
 

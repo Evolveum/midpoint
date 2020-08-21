@@ -603,6 +603,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         immutable = true;
     }
 
+    public Long getAssignmentId() {
+        AssignmentType assignment = getAssignmentAny();
+        return assignment != null ? assignment.getId() : null;
+    }
+
     public static final class Builder {
         private RelationRegistry relationRegistry;
         private PrismContext prismContext;

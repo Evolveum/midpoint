@@ -230,7 +230,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         }
     }
 
-    private List<SourceTriple<?,?>> createSourceTriplesList() {
+    private List<SourceTriple<?,?>> createSourceTriplesList() throws SchemaException {
         Collection<Source<?, ?>> sources = context.getSources();
         List<SourceTriple<?,?>> sourceTriples = new ArrayList<>(sources.size());
         for (Source<?,?> source: sources) {
@@ -241,7 +241,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         return sourceTriples;
     }
 
-    private SourceTriple<V, D> createSourceTriple(Source<V, D> source) {
+    private SourceTriple<V, D> createSourceTriple(Source<V, D> source) throws SchemaException {
         SourceTriple<V, D> sourceTriple = new SourceTriple<>(source, prismContext);
         ItemDelta<V, D> delta = source.getDelta();
         if (delta != null) {
@@ -258,34 +258,32 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         return sourceTriple;
     }
 
+    /**
+     * We have to ensure that no source would block computation of neither "non-positive"
+     * nor "non-negative" values by not providing any inputs in respective sets.
+     *
+     * TODO Verify the correctness of this algorithm.
+     */
     private void addFakeNullValues(SourceTriple<V, D> sourceTriple, Source<V, D> source) {
-        // Make sure that we properly handle the "null" states, i.e. the states when we enter
-        // "empty" value and exit "empty" value for a property
-        // We need this to properly handle "negative" expressions, i.e. expressions that return non-null
-        // value for null input. We need to make sure such expressions receive the null input when needed
-        boolean oldEmpty = Item.hasNoValues(source.getItemOld());
-        boolean newEmpty = Item.hasNoValues(source.getItemNew());
+        if (sourceTriple.hasZeroSet()) {
+            // This is good. Because we have zero set, it will be applied both for non-positive
+            // and non-negative computations. Nothing has to be done.
+            return;
+        }
 
-        if (oldEmpty) {
-            if (newEmpty) {
-                if (sourceTriple.hasMinusSet()) {
-                    // special case: change empty -> empty, but there is still a delete delta
-                    // so it seems something was deleted. This is strange case, but we prefer the delta over
-                    // the absolute states (which may be out of date).
-                    // Similar case than that of non-empty -> empty (see below)
-                    sourceTriple.addToPlusSet(null);
-                }
-            } else {
-                // change empty -> non-empty: we are removing "null" value
-                sourceTriple.addToMinusSet(null);
-            }
-        } else {
-            if (newEmpty) {
-                // change non-empty -> empty: we are adding "null" value
-                sourceTriple.addToPlusSet(null);
-            } else {
-                // non-empty -> non-empty: nothing to do here
-            }
+        boolean hasPlus = sourceTriple.hasPlusSet();
+        boolean hasMinus = sourceTriple.hasMinusSet();
+
+        if (!hasPlus && !hasMinus) {
+            // We have nothing in plus nor minus sets. Both non-positive/non-negative cases can
+            // be treated by including null into zero set.
+            sourceTriple.addToZeroSet(null);
+        } else if (!hasPlus) {
+            // Only plus set is empty. So let's treat that one.
+            sourceTriple.addToPlusSet(null);
+        } else if (!hasMinus) {
+            // Only minus set is empty. Do the same.
+            sourceTriple.addToMinusSet(null);
         }
     }
 

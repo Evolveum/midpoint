@@ -96,4 +96,8 @@ public class DistinguishedNameMatchingRule implements MatchingRule<String> {
         return matcher.matches();
     }
 
+    @Override
+    public String toString() {
+        return "DistinguishedNameMatchingRule{}";
+    }
 }

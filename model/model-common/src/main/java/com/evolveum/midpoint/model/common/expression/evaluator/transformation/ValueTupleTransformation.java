@@ -15,6 +15,8 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.ValueMetadata;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -330,17 +332,19 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
 
     private void computeAndApplyOutputValueMetadata(List<V> output) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        ValueMetadataComputer valueMetadataComputer = context.getValueMetadataComputer();
+        TransformationValueMetadataComputer valueMetadataComputer = context.getValueMetadataComputer();
         if (valueMetadataComputer != null) {
-            ValueMetadata outputValueMetadata = valueMetadataComputer.compute(valuesTuple, result);
+            ValueMetadataType outputValueMetadata = valueMetadataComputer.compute(valuesTuple, result);
             if (outputValueMetadata != null) {
+                ValueMetadata metadata = combinatorialEvaluation.prismContext.getValueMetadataFactory().createEmpty();
+                metadata.addMetadataValue(outputValueMetadata.asPrismContainerValue());
                 for (int i = 0; i < output.size(); i++) {
                     V oVal = output.get(i);
                     if (oVal != null) {
                         if (i < output.size() - 1) {
-                            oVal.setValueMetadata(outputValueMetadata.clone());
+                            oVal.setValueMetadata(metadata.clone());
                         } else {
-                            oVal.setValueMetadata(outputValueMetadata);
+                            oVal.setValueMetadata(metadata);
                         }
                     }
                 }

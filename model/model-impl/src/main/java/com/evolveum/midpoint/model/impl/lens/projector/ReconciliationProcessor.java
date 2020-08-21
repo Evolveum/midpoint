@@ -112,22 +112,18 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         // Reconcile even if it was not explicitly requested and if we have full shadow
         // reconciliation is cheap if the shadow is already fetched therefore just do it
         if (!projCtx.isDoReconciliation() && !projCtx.isFullShadow()) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Skipping reconciliation of {}: no doReconciliation and no full shadow", projCtx.getHumanReadableName());
-            }
+            LOGGER.trace("Skipping reconciliation of {}: no doReconciliation and no full shadow", projCtx.getHumanReadableName());
             return;
         }
 
         SynchronizationPolicyDecision policyDecision = projCtx.getSynchronizationPolicyDecision();
         if (((policyDecision == SynchronizationPolicyDecision.DELETE) || (policyDecision == SynchronizationPolicyDecision.UNLINK))) {
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Skipping reconciliation of {}: decision={}", projCtx.getHumanReadableName(), policyDecision);
-            }
+            LOGGER.trace("Skipping reconciliation of {}: decision={}", projCtx.getHumanReadableName(), policyDecision);
             return;
         }
 
         if (projCtx.getObjectCurrent() == null) {
-            LOGGER.warn("Can't do reconciliation. Account context doesn't contain current version of account.");
+            LOGGER.warn("Can't do reconciliation. Projection context doesn't contain current version of resource object.");
             return;
         }
 
@@ -144,9 +140,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             projCtx.recompute();
         }
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());
-        }
+        LOGGER.trace("Starting reconciliation of {}", projCtx.getHumanReadableName());
 
         reconcileAuxiliaryObjectClasses(projCtx);
 
@@ -154,15 +148,11 @@ public class ReconciliationProcessor implements ProjectorProcessor {
 
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> squeezedAttributes = projCtx
                 .getSqueezedAttributes();
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
-        }
+        LOGGER.trace("Attribute reconciliation processing {}", projCtx.getHumanReadableName());
         reconcileProjectionAttributes(projCtx, squeezedAttributes, rOcDef);
 
         Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>,PrismContainerDefinition<ShadowAssociationType>>>> squeezedAssociations = projCtx.getSqueezedAssociations();
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Association reconciliation processing {}", projCtx.getHumanReadableName());
-        }
+        LOGGER.trace("Association reconciliation processing {}", projCtx.getHumanReadableName());
         reconcileProjectionAssociations(projCtx, squeezedAssociations, rOcDef, task, result);
 
         reconcileMissingAuxiliaryObjectClassAttributes(projCtx);
@@ -174,9 +164,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
         if (squeezedAuxiliaryObjectClasses == null || squeezedAuxiliaryObjectClasses.isEmpty()) {
             return;
         }
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Auxiliary object class reconciliation processing {}", projCtx.getHumanReadableName());
-        }
+        LOGGER.trace("Auxiliary object class reconciliation processing {}", projCtx.getHumanReadableName());
 
         PrismObject<ShadowType> shadowNew = projCtx.getObjectNew();
         PrismPropertyDefinition<QName> propDef = shadowNew.getDefinition().findPropertyDefinition(ShadowType.F_AUXILIARY_OBJECT_CLASS);
@@ -233,10 +221,7 @@ public class ReconciliationProcessor implements ProjectorProcessor {
             return false;
         }
         Boolean tolerant = auxiliaryObjectClassMappings.isTolerant();
-        if (tolerant == null) {
-            return false;
-        }
-        return tolerant;
+        return tolerant != null && tolerant;
     }
 
     /**

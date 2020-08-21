@@ -93,7 +93,7 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition> {
     }
 
     @Nullable
-    private PrismValueDeltaSetTriple<V> prepareOutputTriple() {
+    private PrismValueDeltaSetTriple<V> prepareOutputTriple() throws SchemaException {
         PrismValueDeltaSetTriple<V> outputTriple = resolutionContext.createOutputTriple(evaluator.prismContext);
         if (outputTriple == null) {
             return null;

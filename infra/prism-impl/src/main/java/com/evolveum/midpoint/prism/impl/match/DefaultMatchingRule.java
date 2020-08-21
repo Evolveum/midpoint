@@ -22,26 +22,17 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
  */
 public class DefaultMatchingRule<T> implements MatchingRule<T> {
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.match.MatchingRule#getUrl()
-     */
     @Override
     public QName getName() {
         return PrismConstants.DEFAULT_MATCHING_RULE_NAME;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.match.MatchingRule#isSupported(java.lang.Class, javax.xml.namespace.QName)
-     */
     @Override
     public boolean supports(QName xsdType) {
         // We support everything. We are the default.
         return true;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.match.MatchingRule#match(java.lang.Object, java.lang.Object)
-     */
     @Override
     public boolean match(T a, T b) {
         if (a == null && b == null) {
@@ -57,9 +48,6 @@ public class DefaultMatchingRule<T> implements MatchingRule<T> {
         return a.equals(b);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
-     */
     @Override
     public T normalize(T original) {
         return original;
@@ -81,4 +69,8 @@ public class DefaultMatchingRule<T> implements MatchingRule<T> {
         return Pattern.matches(regex, valueToMatch);
     }
 
+    @Override
+    public String toString() {
+        return "DefaultMatchingRule{}";
+    }
 }

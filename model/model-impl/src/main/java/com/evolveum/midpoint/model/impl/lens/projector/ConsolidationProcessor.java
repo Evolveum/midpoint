@@ -9,9 +9,7 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.construction.Construction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
@@ -39,7 +37,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import java.util.ArrayList;
@@ -64,14 +61,12 @@ public class ConsolidationProcessor {
 
     private static final String OP_CONSOLIDATE_VALUES = ConsolidationProcessor.class.getName() + ".consolidateValues";
     private static final String OP_CONSOLIDATE_ITEM = ConsolidationProcessor.class.getName() + ".consolidateItem";
-    private static final String OP_CONSOLIDATE_FOCUS_PRIMARY_DELTA = ConsolidationProcessor.class.getName() + ".consolidateFocusPrimaryDelta";
 
     private PrismContainerDefinition<ShadowAssociationType> associationDefinition;
 
     @Autowired private ContextLoader contextLoader;
     @Autowired private MatchingRuleRegistry matchingRuleRegistry;
     @Autowired private PrismContext prismContext;
-    @Autowired private ModelBeans modelBeans;
 
     /**
      * Converts delta set triples to a secondary account deltas.
@@ -219,7 +214,7 @@ public class ConsolidationProcessor {
                     .valueMatcher(null)
                     .comparator(null)
                     .addUnchangedValues(addUnchangedValues)
-                    .addUnchangedValuesExceptForNormalMappings(false) // todo
+                    .addUnchangedValuesExceptForNormalMappings(true) // todo
                     .existingItemKnown(projCtx.hasFullShadow())
                     .isExclusiveStrong(false)
                     .contextDescription(discr.toHumanReadableDescription())
@@ -227,6 +222,8 @@ public class ConsolidationProcessor {
                     .result(result)
                     .prismContext(prismContext)
                     .build()) {
+
+                // TODO what about setting existing item?
 
                 //noinspection unchecked
                 PropertyDelta<QName> propDelta = (PropertyDelta) consolidator.consolidateToDeltaNoMetadata();
@@ -267,7 +264,7 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <T,V extends PrismValue> PropertyDelta<T> consolidateAttribute(RefinedObjectClassDefinition rOcDef,
+    private <T> PropertyDelta<T> consolidateAttribute(RefinedObjectClassDefinition rOcDef,
             ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
             boolean addUnchangedValues, QName itemName,
             DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<T>, PrismPropertyDefinition<T>>> triple,
@@ -309,7 +306,7 @@ public class ConsolidationProcessor {
         }
     }
 
-    private <V extends PrismValue> ContainerDelta<ShadowAssociationType> consolidateAssociation(
+    private ContainerDelta<ShadowAssociationType> consolidateAssociation(
             RefinedObjectClassDefinition rOcDef, ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta,
             LensProjectionContext projCtx, boolean addUnchangedValues, QName associationName,
             DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> triple,
@@ -411,7 +408,7 @@ public class ConsolidationProcessor {
                     .valueMatcher(valueMatcher)
                     .comparator(comparator)
                     .addUnchangedValues(addUnchangedValues || forceAddUnchangedValues)
-                    .addUnchangedValuesExceptForNormalMappings(false) // todo
+                    .addUnchangedValuesExceptForNormalMappings(true) // todo
                     .existingItemKnown(projCtx.hasFullShadow())
                     .isExclusiveStrong(isExclusiveStrong)
                     .contextDescription(discr.toHumanReadableDescription())
@@ -419,6 +416,8 @@ public class ConsolidationProcessor {
                     .result(result)
                     .prismContext(prismContext)
                     .build()) {
+
+                // TODO what about setting existing item?
 
                 itemDelta = consolidator.consolidateToDeltaNoMetadata();
             }
@@ -1094,76 +1093,5 @@ public class ConsolidationProcessor {
             return;
         }
         projCtx.swallowToSecondaryDelta(objectDelta.getModifications());
-    }
-
-    /**
-     * Consolidates focus primary delta against current focus object.
-     */
-    <F extends ObjectType> void consolidateFocusPrimaryDelta(LensContext<F> context, XMLGregorianCalendar now,
-            Task task, OperationResult parentResult)
-            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
-
-        // pre-operation checks
-        LensFocusContext<F> focusContext = context.getFocusContext();
-        if (focusContext == null) {
-            return;
-        }
-
-        if (focusContext.isPrimaryDeltaConsolidated()) {
-            LOGGER.trace("Primary delta was already consolidated, skipping the consolidation.");
-            return;
-        }
-
-        doConsolidatePrimaryDelta(context, now, task, parentResult);
-        focusContext.setPrimaryDeltaConsolidated(true);
-    }
-
-    private <F extends ObjectType> void doConsolidatePrimaryDelta(LensContext<F> context, XMLGregorianCalendar now, Task task,
-            OperationResult parentResult) throws CommunicationException, ObjectNotFoundException, SchemaException,
-            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-
-        LensFocusContext<F> focusContext = context.getFocusContext();
-
-        ObjectDelta<F> primaryDelta = focusContext.getPrimaryDelta();
-        if (primaryDelta == null || !primaryDelta.isModify() || primaryDelta.getModifications().isEmpty()) {
-            LOGGER.trace("No MODIFY-type non-empty primary delta, no consolidation.");
-            return;
-        }
-
-        PrismObject<F> currentFocus = focusContext.getObjectCurrent();
-        if (currentFocus == null) {
-            LOGGER.trace("No current focus object, no consolidation.");
-            return;
-        }
-
-        if (focusContext.isOfType(LookupTableType.class)) {
-            // Deltas for lookup table rows have very strange semantics. They cannot be consolidated using
-            // standard algorithms. See MID-6377.
-            LOGGER.trace("Focus primary delta consolidation on lookup table is not supported - skipping.");
-            focusContext.setPrimaryDeltaConsolidated(true);
-            return;
-        }
-
-        // the consolidation
-        OperationResult result = parentResult.createMinorSubresult(OP_CONSOLIDATE_FOCUS_PRIMARY_DELTA);
-        try {
-            LOGGER.trace("Consolidating focus primary delta:\n{}", primaryDelta.debugDumpLazily());
-            MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
-                    "focus primary delta consolidation for " + currentFocus, now, task);
-            ObjectDelta<F> consolidatedPrimaryDelta =
-                    new DeltaConsolidation<>(context, currentFocus, primaryDelta.getModifications(), env, result, modelBeans)
-                            .consolidate();
-
-            focusContext.setPrimaryDelta(consolidatedPrimaryDelta);
-            LOGGER.trace("Focus primary delta consolidated to:\n{}", consolidatedPrimaryDelta.debugDumpLazily());
-
-            focusContext.recompute();
-        } catch (Throwable t) {
-            result.recordFatalError(t);
-            throw t;
-        } finally {
-            result.computeStatusIfUnknown();
-        }
     }
 }

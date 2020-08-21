@@ -117,7 +117,7 @@ public class ExpressionEvaluationContext {
     /**
      * Computes value metadata in given situation.
      */
-    private ValueMetadataComputer valueMetadataComputer;
+    private TransformationValueMetadataComputer valueMetadataComputer;
 
     public ExpressionEvaluationContext(Collection<Source<?,?>> sources,
             ExpressionVariables variables, String contextDescription, Task task) {
@@ -237,11 +237,11 @@ public class ExpressionEvaluationContext {
         this.variableProducer = variableProducer;
     }
 
-    public ValueMetadataComputer getValueMetadataComputer() {
+    public TransformationValueMetadataComputer getValueMetadataComputer() {
         return valueMetadataComputer;
     }
 
-    public void setValueMetadataComputer(ValueMetadataComputer valueMetadataComputer) {
+    public void setValueMetadataComputer(TransformationValueMetadataComputer valueMetadataComputer) {
         this.valueMetadataComputer = valueMetadataComputer;
     }
 

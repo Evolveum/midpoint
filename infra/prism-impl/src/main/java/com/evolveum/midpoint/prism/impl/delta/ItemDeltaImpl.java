@@ -28,13 +28,14 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.function.Function;
 
-import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.NOT_LITERAL;
-import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE;
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.*;
 import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.FOR_DELTA_ADD_APPLICATION;
 import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.FOR_DELTA_DELETE_APPLICATION;
 import static com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import static com.evolveum.midpoint.prism.path.ItemPath.checkNoSpecialSymbols;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
+
+import static java.util.Collections.emptyList;
 
 /**
  * @author Radovan Semancik
@@ -1046,15 +1047,35 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
     }
 
     private boolean isIn(Collection<V> values, V val, ParameterizedEquivalenceStrategy equivalenceStrategy) {
+        return findIn(values, val, equivalenceStrategy) != null;
+    }
+
+    private V findIn(Collection<V> values, V val, ParameterizedEquivalenceStrategy equivalenceStrategy) {
         if (values == null) {
-            return false;
+            return null;
         }
         for (V v : values) {
             if (v.equals(val, equivalenceStrategy)) {
-                return true;
+                return v;
             }
         }
-        return false;
+        return null;
+    }
+
+    private int findIndex(List<V> values, V val, ParameterizedEquivalenceStrategy equivalenceStrategy,
+            boolean acceptIdOnlyInList, boolean acceptIdOnlyValue) {
+        if (values == null) {
+            return -1;
+        }
+        for (int i = 0; i < values.size(); i++) {
+            V v = values.get(i);
+            if (acceptIdOnlyInList && PrismContainerValue.isIdOnly(v) && PrismContainerValue.idsMatch(v, val) ||
+                    acceptIdOnlyValue && PrismContainerValue.isIdOnly(val) && PrismContainerValue.idsMatch(v, val) ||
+                    v.equals(val, equivalenceStrategy)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -1192,10 +1213,15 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         if (itemDefinition == null) {
             throw new IllegalStateException("Attempt to simplify delta without a definition");
         }
-        if (itemDefinition.isSingleValue() && isAdd()) {
-            valuesToReplace = valuesToAdd;
-            valuesToAdd = null;
-            valuesToDelete = null;
+        if (itemDefinition.isSingleValue() && isAdd() && valuesToAdd.size() == 1) {
+            V valueToAdd = valuesToAdd.iterator().next();
+            if (valueToAdd != null && valueToAdd.hasValueMetadata()) {
+                LOGGER.trace("Not simplifying ADD delta for single-valued item {} because it contains metadata", fullPath);
+            } else {
+                valuesToReplace = valuesToAdd;
+                valuesToAdd = null;
+                valuesToDelete = null;
+            }
         }
     }
 
@@ -1239,7 +1265,16 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
                 PrismContainer<?> container = (PrismContainer<?>)item;
                 ItemPath remainderPath = deltaPath.remainder(itemPath);
                 Item subItem = container.findOrCreateItem(remainderPath, getItemClass(), getDefinition());
-                applyToMatchingPath(subItem);
+                if (subItem != null) {
+                    applyToMatchingPath(subItem);
+                } else {
+                    LOGGER.warn("Couldn't create/find {} in {}", remainderPath, container);
+                    // Item for remainderPath couldn't be created. This is strange but may happen.
+                    // See e.g. TestPolicyStateRecording.test220. User is being added and some deltas
+                    // against his assignments are issued. Unfortunately, it is not possible to summarize
+                    // the delta, because the assignments in the first object ADD delta are ID-less.
+                    // So subsequent MODIFY deltas (that refer to assignment by ID) cannot be applied.
+                }
             } else {
                 throw new SchemaException("Cannot apply delta "+this+" to "+item+" as delta path is below the item path and the item is not a container");
             }
@@ -1254,10 +1289,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
      * Applies delta to item. Assumes that path of the delta and path of the item matches
      * (does not do path checks).
      */
-    public void applyToMatchingPath(Item item) throws SchemaException {
-        if (item == null) { // TODO check when this can be null
-            return;
-        }
+    public void applyToMatchingPath(@NotNull Item item) throws SchemaException {
         applyDefinitionAndCheckCompatibility(item);
         if (valuesToReplace != null) {
             applyValuesToReplace(item);
@@ -1282,21 +1314,28 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
 
     private void applyValuesToAdd(Item item) throws SchemaException {
         if (valuesToAdd != null) {
-            if (item.getDefinition() != null && item.getDefinition().isSingleValue()) {
-                item.clear();
+            if (item.getDefinition() != null && item.getDefinition().isSingleValue() && item.hasAnyValue() && valuesToAdd.size() == 1) {
+                V valueToAdd = valuesToAdd.iterator().next();
+                if (!valueToAdd.equals(item.getValue(), FOR_DELTA_ADD_APPLICATION)) {
+                    item.clear();
+                }
             }
-            // We have to use addAll (not do the selection of values ourselves) because we want to replace already-existing
-            // values with the values provided in the delta.
 
-            //noinspection unchecked
-            item.addAll(CloneUtil.cloneCollectionMembers(valuesToAdd), FOR_DELTA_ADD_APPLICATION);
+            for (V valueToAdd : valuesToAdd) {
+                //noinspection unchecked
+                item.addRespectingMetadataAndCloning(valueToAdd, FOR_DELTA_ADD_APPLICATION, getProvenanceEquivalenceStrategy());
+            }
         }
     }
 
+    private EquivalenceStrategy getProvenanceEquivalenceStrategy() {
+        return Objects.requireNonNull(prismContext, () -> "no prism context in " + this).getProvenanceEquivalenceStrategy();
+    }
+
     private void applyValuesToDelete(Item item) {
-        if (valuesToDelete != null) {
+        for (V valueToDelete : emptyIfNull(valuesToDelete)) {
             //noinspection unchecked
-            item.removeAll(valuesToDelete, FOR_DELTA_DELETE_APPLICATION);
+            item.removeRespectingMetadata(valueToDelete, FOR_DELTA_DELETE_APPLICATION, getProvenanceEquivalenceStrategy());
         }
     }
 
@@ -1474,54 +1513,115 @@ public abstract class ItemDeltaImpl<V extends PrismValue,D extends ItemDefinitio
         return clonedSet;
     }
 
-    public PrismValueDeltaSetTriple<V> toDeltaSetTriple() {
-        return toDeltaSetTriple(null);
+    public PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V,D> itemOld) throws SchemaException {
+        if (isReplace()) {
+            return toDeltaSetTripleForReplace(itemOld);
+        } else {
+            return toDeltaSetTripleForAddDelete(itemOld);
+        }
     }
 
-    public PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V,D> itemOld) {
+    private PrismValueDeltaSetTriple<V> toDeltaSetTripleForAddDelete(Item<V, D> itemOld) throws SchemaException {
         PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTripleImpl<>();
 
-        if (isReplace()) {
-            for (V valueToReplace : valuesToReplace) {
-                if (itemOld != null && isIn(itemOld.getValues(), valueToReplace, NOT_LITERAL)) {
-                    triple.getZeroSet().add(CloneUtil.clone(valueToReplace));
+        List<V> remainingValuesToAdd = new ArrayList<>(emptyIfNull(valuesToAdd));
+        List<V> remainingValuesToDelete = new ArrayList<>(emptyIfNull(valuesToDelete));
+        List<V> remainingOldValues = new ArrayList<>(itemOld != null ? itemOld.getValues() : emptyList());
+
+        for (V valueToAdd : remainingValuesToAdd) {
+            int inDelete = findIndex(remainingValuesToDelete, valueToAdd, REAL_VALUE_CONSIDER_DIFFERENT_IDS, true, false);
+            int inOld = findIndex(remainingOldValues, valueToAdd, REAL_VALUE_CONSIDER_DIFFERENT_IDS, false, false);
+            V valueToDelete = getAndRemove(remainingValuesToDelete, inDelete);
+            V oldValue = getAndRemove(remainingOldValues, inOld);
+            if (oldValue != null) {
+                triple.getZeroSet().add(cloneAddedWithMergedMetadata(valueToAdd, valueToDelete, oldValue));
+            } else {
+                triple.getPlusSet().add(cloneAddedWithMergedMetadata(valueToAdd, valueToDelete, null));
+            }
+        }
+
+        for (V valueToDelete : remainingValuesToDelete) {
+            // valueToDelete is not in remainingValuesToAdd because it would no longer be in remainingValuesToDelete
+            int inOld = findIndex(remainingOldValues, valueToDelete, REAL_VALUE_CONSIDER_DIFFERENT_IDS, false, true);
+            V oldValue = getAndRemove(remainingOldValues, inOld);
+            if (oldValue != null) {
+                // Deleting the value or some metadata only
+                V oldValueReduced = cloneOldWithMergedMetadata(oldValue, valueToDelete);
+                if (oldValueReduced != null) {
+                    triple.getZeroSet().add(oldValueReduced);
                 } else {
-                    triple.getPlusSet().add(CloneUtil.clone(valueToReplace));
+                    // We have to use original oldValue here. The valueToDelete is sometimes just a "specification" of what
+                    // to delete - e.g. ID only PCV, or value with no metadata, etc.
+                    triple.getMinusSet().add(CloneUtil.clone(oldValue));
                 }
+            } else {
+                // Phantom delete -- doing nothing
             }
-            if (itemOld != null) {
-                for (V oldValue : itemOld.getValues()) {
-                    if (isIn(valuesToReplace, oldValue, NOT_LITERAL)) {
-                        // already processed
-                    } else {
-                        triple.getMinusSet().add(CloneUtil.clone(oldValue));
-                    }
-                }
-            }
-        } else {
-            for (V valueToAdd : emptyIfNull(valuesToAdd)) {
-                if (itemOld != null && isIn(itemOld.getValues(), valueToAdd, NOT_LITERAL)) {
-                    triple.getZeroSet().add(CloneUtil.clone(valueToAdd));
-                } else {
-                    triple.getPlusSet().add(CloneUtil.clone(valueToAdd));
-                }
-            }
-            for (V valueToDelete : emptyIfNull(valuesToDelete)) {
-                if (isIn(valuesToAdd, valueToDelete, NOT_LITERAL)) {
-                    // already processed
-                } else {
-                    // We do not try to be smart. There are complications e.g. when deleting PCV by id, etc.
-                    triple.getMinusSet().add(CloneUtil.clone(valueToDelete));
-                }
-            }
-            if (itemOld != null) {
-                for (V oldValue : itemOld.getValues()) {
-                    if (!isIn(valuesToAdd, oldValue, NOT_LITERAL) && !isIn(valuesToDelete, oldValue, NOT_LITERAL)) {
-                        triple.getZeroSet().add(CloneUtil.clone(oldValue));
-                    }
+        }
+
+        for (V remainingOldValue : remainingOldValues) {
+            triple.getZeroSet().add(CloneUtil.clone(remainingOldValue));
+        }
+
+        return triple;
+    }
+
+    private V cloneAddedWithMergedMetadata(@NotNull V valueToAdd, V valueToDelete, V oldValue) throws SchemaException {
+        //noinspection unchecked
+        V result = (V) valueToAdd.clone();
+        boolean deleteAllExistingMetadata = valueToDelete != null && valueToDelete.getValueMetadata().hasNoValues();
+        if (oldValue != null && !deleteAllExistingMetadata) {
+            for (PrismContainerValue<Containerable> existingMetadataValue : oldValue.getValueMetadata().getValues()) {
+                if (!valueToAdd.getValueMetadata().contains(existingMetadataValue, getProvenanceEquivalenceStrategy()) &&
+                        (valueToDelete == null || !valueToDelete.getValueMetadata().contains(existingMetadataValue, getProvenanceEquivalenceStrategy()))) {
+                    result.getValueMetadata().addMetadataValue(existingMetadataValue.clone());
                 }
             }
         }
+        return result;
+    }
+
+    private V cloneOldWithMergedMetadata(@NotNull V oldValue, @NotNull V valueToDelete) {
+        boolean deleteAllExistingMetadata = valueToDelete.getValueMetadata().hasNoValues();
+        if (deleteAllExistingMetadata) {
+            return null;
+        } else {
+            V oldValueCloned = CloneUtil.clone(oldValue);
+            for (PrismContainerValue<Containerable> metadataValueToDelete : valueToDelete.getValueMetadata().getValues()) {
+                oldValueCloned.getValueMetadata().remove(metadataValueToDelete, getProvenanceEquivalenceStrategy());
+            }
+            return oldValueCloned.getValueMetadata().hasAnyValue() ? oldValueCloned : null;
+        }
+    }
+
+    private V getAndRemove(List<V> values, int index) {
+        if (index < 0) {
+            return null;
+        } else {
+            return values.remove(index);
+        }
+    }
+
+    private PrismValueDeltaSetTriple<V> toDeltaSetTripleForReplace(Item<V, D> itemOld) {
+        PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTripleImpl<>();
+
+        List<V> remainingValuesToReplace = new ArrayList<>(emptyIfNull(valuesToReplace));
+        List<V> remainingOldValues = new ArrayList<>(itemOld != null ? itemOld.getValues() : emptyList());
+
+        for (V valueToReplace : remainingValuesToReplace) {
+            int inOld = findIndex(remainingOldValues, valueToReplace, REAL_VALUE_CONSIDER_DIFFERENT_IDS, false, false);
+            V oldValue = getAndRemove(remainingOldValues, inOld);
+            if (oldValue != null) {
+                triple.getZeroSet().add(CloneUtil.clone(valueToReplace));
+            } else {
+                triple.getPlusSet().add(CloneUtil.clone(valueToReplace));
+            }
+        }
+
+        for (V oldValue : remainingOldValues) {
+            triple.getMinusSet().add(CloneUtil.clone(oldValue));
+        }
+
         return triple;
     }
 

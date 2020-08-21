@@ -13,6 +13,8 @@ import java.io.InputStream;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.w3c.dom.Element;
@@ -378,4 +380,7 @@ public interface PrismContext extends ProtectorCreator {
 
     @Experimental
     ValueMetadataFactory getValueMetadataFactory();
+
+    @Experimental
+    EquivalenceStrategy getProvenanceEquivalenceStrategy();
 }
