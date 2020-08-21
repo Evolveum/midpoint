@@ -117,7 +117,10 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.setAttorney(attorney, prismContext);
         record2.setRequestIdentifier("req-id");
         record2.addDelta(createDelta(UserType.F_FULL_NAME, PolyString.fromOrig("somePolyString")));
-        record2.addDelta(createDelta(UserType.F_GIVEN_NAME));
+        record2.addDelta(createDelta(UserType.F_ADDITIONAL_NAME));
+        // these two deltas should collapse into single no-op delta + no changed items for them
+        record2.addDelta(createDeltaWithIgnoredPath(UserType.F_GIVEN_NAME));
+        record2.addDelta(createDeltaWithIgnoredPath(UserType.F_FAMILY_NAME));
         record2.getCustomColumnProperty().put("foo", "foo-value-2");
         record2.getCustomColumnProperty().put("bar", "bar-val");
         auditService.audit(record2, NullTaskImpl.INSTANCE);
@@ -145,6 +148,16 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         ObjectDeltaOperation<UserType> delta = new ObjectDeltaOperation<>();
         delta.setObjectDelta(deltaFor(UserType.class)
                 .item(itemPath).replace(values)
+                .asObjectDelta("any-oid-we-don't-care-here"));
+        return delta;
+    }
+
+    @NotNull
+    private ObjectDeltaOperation<UserType> createDeltaWithIgnoredPath(ItemPath itemPath)
+            throws SchemaException {
+        ObjectDeltaOperation<UserType> delta = new ObjectDeltaOperation<>();
+        delta.setObjectDelta(deltaFor(UserType.class)
+                .item(itemPath).add() // this path with ADD without value should be ignored
                 .asObjectDelta("any-oid-we-don't-care-here"));
         return delta;
     }
@@ -795,11 +808,12 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         // this tests multiple values for JOIN path
         when("searching audit by changed items equal to multiple values");
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
-                .queryFor(AuditEventRecordType.class)
-                .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
-                        new ItemPathType(UserType.F_GIVEN_NAME),
+                        .queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_CHANGED_ITEM).eq(
+                        new ItemPathType(UserType.F_ADDITIONAL_NAME),
                         new ItemPathType(UserType.F_FAMILY_NAME))
-                .build());
+                        .build(),
+                SelectorOptions.create(GetOperationOptions.createDistinct()));
 
         then("audit events with changed items equal to any of the specified values are returned");
         assertThat(result).hasSize(2);
@@ -883,6 +897,10 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         // This one is parent container's definition and it is a bit questionable,
         // whether it's a responsibility of the repository service.
         assertThat(record1.asPrismContainerValue().getDefinition()).isNotNull();
+
+        AuditEventRecordType record2 = result.get(1);
+        // two meaningless deltas collapsed to single no-op delta + there are two normal deltas too
+        assertThat(record2.getDelta()).hasSize(3);
 
         AuditEventRecordType record3 = result.get(2);
         assertThat(record3.getProperty()).as("two different property keys").hasSize(2);
@@ -977,7 +995,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         SearchResultList<AuditEventRecordType> result = searchObjects(
                 prismContext.queryFor(AuditEventRecordType.class)
                         .item(AuditEventRecordType.F_CHANGED_ITEM)
-                        .eq(new ItemPathType(UserType.F_GIVEN_NAME))
+                        .eq(new ItemPathType(UserType.F_ADDITIONAL_NAME))
                         .or()
                         .item(AuditEventRecordType.F_CHANGED_ITEM)
                         .eq(new ItemPathType(UserType.F_FAMILY_NAME))
