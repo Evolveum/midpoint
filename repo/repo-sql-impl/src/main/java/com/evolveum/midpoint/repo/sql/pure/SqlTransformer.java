@@ -8,6 +8,7 @@ package com.evolveum.midpoint.repo.sql.pure;
 
 import com.querydsl.core.Tuple;
 import com.querydsl.sql.ColumnMetadata;
+import com.querydsl.sql.Configuration;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,10 +29,13 @@ public abstract class SqlTransformer<S, Q extends FlexibleRelationalPathBase<R>,
 
     protected final PrismContext prismContext;
     protected final QueryModelMapping<S, Q, R> mapping;
+    protected final Configuration querydslConfiguration;
 
-    protected SqlTransformer(PrismContext prismContext, QueryModelMapping<S, Q, R> mapping) {
+    protected SqlTransformer(PrismContext prismContext,
+            QueryModelMapping<S, Q, R> mapping, Configuration querydslConfiguration) {
         this.prismContext = prismContext;
         this.mapping = mapping;
+        this.querydslConfiguration = querydslConfiguration;
     }
 
     /**

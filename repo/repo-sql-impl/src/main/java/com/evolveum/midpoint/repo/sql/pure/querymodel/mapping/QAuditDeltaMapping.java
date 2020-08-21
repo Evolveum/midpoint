@@ -8,6 +8,8 @@ package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 
 import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem.TABLE_NAME;
 
+import com.querydsl.sql.Configuration;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
@@ -37,7 +39,7 @@ public class QAuditDeltaMapping
 
     @Override
     public SqlTransformer<ObjectDeltaOperationType, QAuditDelta, MAuditDelta> createTransformer(
-            PrismContext prismContext) {
-        return new AuditDeltaSqlTransformer(prismContext, this);
+            PrismContext prismContext, Configuration querydslConfiguration) {
+        return new AuditDeltaSqlTransformer(prismContext, this, querydslConfiguration);
     }
 }

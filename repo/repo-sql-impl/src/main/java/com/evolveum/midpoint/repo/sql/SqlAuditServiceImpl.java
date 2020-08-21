@@ -344,7 +344,9 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             JdbcSession jdbcSession, AuditEventRecord record) {
         QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
         QAuditEventRecord aer = aerMapping.defaultAlias();
-        MAuditEventRecord aerBean = aerMapping.createTransformer(prismContext).from(record);
+        MAuditEventRecord aerBean = aerMapping
+                .createTransformer(prismContext, baseHelper.querydslConfiguration())
+                .from(record);
         SQLInsertClause insert = jdbcSession.insert(aer).populate(aerBean);
 
         Map<String, ColumnMetadata> customColumns =
@@ -1132,6 +1134,13 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
+    /**
+     * This enriches collection of returned values with parent container so that
+     * {@link PrismContainer#getDefinition()} is not null.
+     * It is a bit questionable whether this is a responsibility of the repository-level service.
+     * Even without this the values should have {@link PrismContainer#getComplexTypeDefinition()}
+     * if properly created with {@link PrismContext} as constructor parameter.
+     */
     @SuppressWarnings("SameParameterValue")
     private <C extends Containerable> void addContainerDefinition(
             Class<C> containerableType, List<C> containerableValues) throws SchemaException {
