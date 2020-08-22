@@ -40,6 +40,9 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Tests the value metadata handling.
+ *
+ * TODO add asserts for single focus modification per clockwork run
+ *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -87,19 +90,35 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
             PROVENANCE_METADATA_RECORDING_DIR, "origin-self-service-app.xml", "760fda34-846f-4aac-a5ac-881c0ff23653");
     private static final TestResource<ServiceType> ORIGIN_HR_FEED = new TestResource<>(
             PROVENANCE_METADATA_RECORDING_DIR, "origin-hr-feed.xml", "f43bd824-e07e-4a41-950e-00de06881555");
+    private static final TestResource<ServiceType> ORIGIN_CRM_FEED = new TestResource<>(
+            PROVENANCE_METADATA_RECORDING_DIR, "origin-crm-feed.xml", "28c230b1-7209-4aa0-a5b9-776b22e14960");
     private static final TestResource<TaskType> TASK_HR_IMPORT = new TestResource<>(
             PROVENANCE_METADATA_RECORDING_DIR, "task-hr-import.xml", "da0a48bb-1294-475e-bcd3-51bfb9813885");
     private static final TestResource<TaskType> TASK_HR_RECONCILIATION = new TestResource<>(
             PROVENANCE_METADATA_RECORDING_DIR, "task-hr-reconciliation.xml", "0c1f0434-6409-47b8-b7f5-2f44510385c2");
+    private static final TestResource<TaskType> TASK_CRM_IMPORT = new TestResource<>(
+            PROVENANCE_METADATA_RECORDING_DIR, "task-crm-import.xml", "59a74606-0550-470b-856d-50890c31f3a4");
 
     private static final String ATTR_FIRSTNAME = "firstname";
     private static final String ATTR_LASTNAME = "lastname";
+    private static final String ATTR_ORGANIZATION = "organization";
     private static final DummyTestResource RESOURCE_HR = new DummyTestResource(
             PROVENANCE_METADATA_RECORDING_DIR, "resource-hr.xml", "9a34c3b6-aca5-4f9b-aae4-24f3f2d98ce9", "hr", controller -> {
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 ATTR_FIRSTNAME, String.class, false, false);
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 ATTR_LASTNAME, String.class, false, false);
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                ATTR_ORGANIZATION, String.class, false, true);
+    });
+    private static final DummyTestResource RESOURCE_CRM = new DummyTestResource(
+            PROVENANCE_METADATA_RECORDING_DIR, "resource-crm.xml", "74a73b98-3372-465b-a247-3d695b794170", "crm", controller -> {
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                ATTR_FIRSTNAME, String.class, false, false);
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                ATTR_LASTNAME, String.class, false, false);
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                ATTR_ORGANIZATION, String.class, false, true);
     });
 
     private static final TestResource<UserType> USER_LEONHARD = new TestResource<>(
@@ -133,12 +152,19 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
         addObject(ARCHETYPE_PROVENANCE_METADATA_RECORDING, initTask, initResult);
         addObject(TEMPLATE_PROVENANCE_METADATA_RECORDING, initTask, initResult);
+
         initDummyResource(RESOURCE_HR, initTask, initResult);
+        initDummyResource(RESOURCE_CRM, initTask, initResult);
+
         addObject(ORIGIN_ADMIN_ENTRY, initTask, initResult);
         addObject(ORIGIN_SELF_SERVICE_APP, initTask, initResult);
         addObject(ORIGIN_HR_FEED, initTask, initResult);
+        addObject(ORIGIN_CRM_FEED, initTask, initResult);
+
         addObject(TASK_HR_IMPORT, initTask, initResult);
         addObject(TASK_HR_RECONCILIATION, initTask, initResult);
+        addObject(TASK_CRM_IMPORT, initTask, initResult);
+
         addObject(USER_LEONHARD, initTask, initResult);
 
         addObject(TEMPLATE_REGULAR_USER, initTask, initResult);
@@ -504,7 +530,14 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
      * Leonhard Euler (imported without any information) gets both given name and family name
      * with provenance of "admin entry".
      *
-     * We check these properties, as well as (computed) full name.
+     * Delta:
+     *  - add Leonhard (admin)
+     *  - add Euler (admin)
+     *
+     * After:
+     *  - Leonhard (admin)
+     *  - Euler (admin)
+     *  - Leonhard Euler (m:admin)
      */
     @Test
     public void test200ProvideNamesByAdmin() throws Exception {
@@ -589,6 +622,19 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
     /**
      * Now we add the same family name of Euler but with different origin/channel.
+     *
+     * Before:
+     *  - Leonhard (admin)
+     *  - Euler (admin)
+     *  - Leonhard Euler (m:admin)
+     *
+     * Delta:
+     *  - add Euler (self)
+     *
+     * After:
+     *  - Leonhard (admin)
+     *  - Euler (admin, self)
+     *  - Leonhard Euler (m:admin+self)
      */
     @Test
     public void test210AddSameFamilyNameByRest() throws Exception {
@@ -677,6 +723,19 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
     /**
      * Adding fullName (the same) manually by HR (simulated).
+     *
+     * Before:
+     *  - Leonhard (admin)
+     *  - Euler (admin, self)
+     *  - Leonhard Euler (m:admin+self)
+     *
+     * Delta:
+     *  - add Leonhard Euler (hr)
+     *
+     * After:
+     *  - Leonhard (admin)
+     *  - Euler (admin, self)
+     *  - Leonhard Euler (m:admin+self, hr)
      */
     @Test
     public void test220ReinforceFullNameByHr() throws Exception {
@@ -771,17 +830,221 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         // @formatter:on
     }
 
+    /**
+     * Delete family name REST/self yield. Full name provenance should be updated accordingly.
+     *
+     * Before:
+     *  - Leonhard (admin)
+     *  - Euler (admin, self)
+     *  - Leonhard Euler (m:admin+self, hr)
+     *
+     * Delta:
+     *  - delete Euler (self)
+     *
+     * After:
+     *  - Leonhard (admin)
+     *  - Euler (admin)
+     *  - Leonhard Euler (m:admin, hr)
+     */
     @Test
-    public void test920ImportBlaise() throws Exception {
+    public void test230DeleteFamilyNameRestYield() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        XMLGregorianCalendar before = XmlTypeConverter.createXMLGregorianCalendar();
+        Thread.sleep(10);
+
+        // @formatter:off
+        PrismPropertyValue<PolyString> euler = prismContext.itemFactory().createPropertyValue();
+        euler.setValue(PolyString.fromOrig("Euler"));
+        euler.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginProvenance()
+                            .beginAcquisition()
+                                .originRef(ORIGIN_SELF_SERVICE_APP.ref())
+                                // intentionally not specifying non-key items
+                            .<ProvenanceMetadataType>end()
+                        .<ValueMetadataType>end());
+        // @formatter:on
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_FAMILY_NAME).delete(euler)
+                .asObjectDelta(USER_LEONHARD.oid);
+
+        when();
+
+        executeChanges(delta, null, task, result);
+
+        then();
+        // @formatter:off
+        assertUserAfter(USER_LEONHARD.oid)
+                .displayXml()
+                .valueMetadataSingle(UserType.F_GIVEN_NAME)
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertTimestampBetween(null, before)
+                        .end()
+                    .end()
+                .end()
+
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertSize(1)
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                            .assertAcquisitions(1)
+                            .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .assertNoMappingSpec()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_HR_FEED.ref())
+                                .assertChannel(null)
+                                .assertTimestampBetween(null, before);
+        // @formatter:on
+    }
+
+    /**
+     * Changes given name from Leonhard to Leo. All fullName metadata will be gone with the old value.
+     *
+     * Before:
+     *  - Leonhard (admin)
+     *  - Euler (admin)
+     *  - Leonhard Euler (m:admin, hr)
+     *
+     * Delta:
+     *  - replace givenName: Leo (self)
+     *
+     * After:
+     *  - Leo (self)
+     *  - Euler (admin)
+     *  - Leo Euler (m:admin+self)
+     */
+    @Test
+    public void test240ChangeGivenName() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        XMLGregorianCalendar before = XmlTypeConverter.createXMLGregorianCalendar();
+        Thread.sleep(10);
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
+
+        // @formatter:off
+        PrismPropertyValue<PolyString> leo = prismContext.itemFactory().createPropertyValue();
+        leo.setValue(PolyString.fromOrig("Leo"));
+        leo.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginProvenance()
+                            .beginAcquisition()
+                                .originRef(ORIGIN_SELF_SERVICE_APP.ref())
+                                .channel(SchemaConstants.CHANNEL_REST_LOCAL)
+                                .timestamp(now)
+                            .<ProvenanceMetadataType>end()
+                        .<ValueMetadataType>end());
+        // @formatter:on
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).replace(leo)
+                .asObjectDelta(USER_LEONHARD.oid);
+
+        when();
+
+        executeChanges(delta, null, task, result);
+
+        then();
+        // @formatter:off
+        assertUserAfter(USER_LEONHARD.oid)
+                .displayXml()
+                .valueMetadataSingle(UserType.F_GIVEN_NAME)
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
+                            .assertTimestampBetween(now, now)
+                        .end()
+                    .end()
+                .end()
+
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertSize(1)
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .assertSize(1)
+                    .singleValue()
+                        .provenance()
+                            .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                            .assertAcquisitions(2)
+                            .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                            .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
+                                .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
+                                .assertTimestampBetween(now, now)
+                            .end()
+                        .end()
+                    .end();
+        // @formatter:on
+    }
+
+    /**
+     * Blaise is imported from HR anew.
+     *
+     * After:
+     *  - name:       blaise (hr)
+     *  - givenName:  Blaise (hr)
+     *  - familyName: Pascal (hr)
+     *  - fullName:   Blaise Pascal (m:hr)
+     *  - org:        Department of Hydrostatics (hr)
+     *  - org:        Binomial Club (hr)
+     */
+    @Test
+    public void test300ImportBlaiseFromHr() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
+        // This is necessary because when inbounds start the user has no archetype, therefore no template.
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, TEMPLATE_PROVENANCE_METADATA_RECORDING.oid);
 
         DummyAccount pascal = RESOURCE_HR.controller.addAccount(USER_BLAISE_NAME);
         pascal.addAttributeValue(ATTR_FIRSTNAME, "Blaise");
         pascal.addAttributeValue(ATTR_LASTNAME, "Pascal");
+        pascal.addAttributeValue(ATTR_ORGANIZATION, "Department of Hydrostatics");
+        pascal.addAttributeValue(ATTR_ORGANIZATION, "Binomial Club");
 
         when();
         XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
@@ -796,8 +1059,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .display()
                     .provenance()
                         .singleAcquisition()
-                            .assertResourceRef(RESOURCE_HR.oid)
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
@@ -805,11 +1068,10 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
                 .assertGivenName("Blaise")
                 .valueMetadataSingle(UserType.F_GIVEN_NAME)
-                    .display()
                     .provenance()
                         .singleAcquisition()
-                            .assertResourceRef(RESOURCE_HR.oid)
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
@@ -817,11 +1079,10 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
                 .assertFamilyName("Pascal")
                 .valueMetadataSingle(UserType.F_FAMILY_NAME)
-                    .display()
                     .provenance()
                         .singleAcquisition()
-                            .assertResourceRef(RESOURCE_HR.oid)
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
@@ -829,27 +1090,67 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
                 .assertFullName("Blaise Pascal")
                 .valueMetadataSingle(UserType.F_FULL_NAME)
-                    .display()
+                    .provenance()
+                        .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBetween(start, end)
+                        .end()
+                    .end()
+                .end()
+
+                .assertOrganizations("Department of Hydrostatics", "Binomial Club")
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Department of Hydrostatics"))
                     .provenance()
                         .singleAcquisition()
-                            .assertResourceRef(RESOURCE_HR.oid)
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBetween(start, end)
+                        .end()
+                    .end()
+                .end()
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
                 .end();
     }
 
+    /**
+     * Before:
+     *  - name:       blaise (hr)
+     *  - givenName:  Blaise (hr)
+     *  - familyName: Pascal (hr)
+     *  - fullName:   Blaise Pascal (m:hr)
+     *  - org:        Department of Hydrostatics (hr)
+     *  - org:        Binomial Club (hr)
+     *
+     * Delta:
+     *  - add familyName: Pascal (admin)
+     *
+     * After:
+     *  - name:       blaise (hr)
+     *  - givenName:  Blaise (hr)
+     *  - familyName: Pascal (hr, admin)
+     *  - fullName:   Blaise Pascal (m:hr+admin)
+     *  - org:        Department of Hydrostatics (hr)
+     *  - org:        Binomial Club (hr)
+     */
     @Test
-    public void test930ReinforceFamilyNameByManualEntry() throws Exception {
+    public void test310ReinforceFamilyNameByManualEntry() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        XMLGregorianCalendar before = XmlTypeConverter.createXMLGregorianCalendar();
+        Thread.sleep(10);
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
 
         PrismObject<UserType> blaise = findUserByUsername(USER_BLAISE_NAME);
-
-        setGlobalTracingOverride(addRepositoryAndSqlLogging(createModelLoggingTracingProfile()));
 
         // @formatter:off
         PrismPropertyValue<PolyString> pascal = prismContext.itemFactory().createPropertyValue();
@@ -858,10 +1159,10 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 new ValueMetadataType(prismContext)
                         .beginProvenance()
                             .beginAcquisition()
-                                .timestamp(now)
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_URI)
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
                                 .actorRef(USER_ADMINISTRATOR_OID, UserType.COMPLEX_TYPE)
+                                .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
         // @formatter:on
@@ -880,43 +1181,44 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .displayXml()
                 .assertName("blaise")
                 .valueMetadataSingle(UserType.F_NAME)
-                    .display()
                     .provenance()
                         .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.ref())
                             .assertResourceRef(RESOURCE_HR.oid)
-                            .assertOriginRef(ORIGIN_HR_FEED.oid)
-                            .assertTimestampBetween(null, now)
+                            .assertTimestampBetween(null, before)
                         .end()
                     .end()
                 .end()
 
                 .assertGivenName("Blaise")
                 .valueMetadataSingle(UserType.F_GIVEN_NAME)
-                    .display()
                     .provenance()
                         .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.ref())
                             .assertResourceRef(RESOURCE_HR.oid)
-                            .assertOriginRef(ORIGIN_HR_FEED.oid)
-                            .assertTimestampBetween(null, now)
+                            .assertTimestampBetween(null, before)
                         .end()
                     .end()
                 .end()
 
                 .assertFamilyName("Pascal")
                 .valueMetadata(UserType.F_FAMILY_NAME)
-                    .display()
+                    .assertSize(2)
                     .valueForOrigin(ORIGIN_HR_FEED.oid)
                         .provenance()
                             .singleAcquisition()
+                                .assertOriginRef(ORIGIN_HR_FEED.ref())
                                 .assertResourceRef(RESOURCE_HR.oid)
-                                .assertOriginRef(ORIGIN_HR_FEED.oid)
-                                .assertTimestampBetween(null, now)
+                                .assertTimestampBetween(null, before)
                             .end()
                         .end()
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
                             .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertActorRef(USER_ADMINISTRATOR_OID)
                                 .assertTimestampBetween(now, now)
                             .end()
                         .end()
@@ -931,21 +1233,65 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
-                            .assertTimestampBetween(null, now)
+                            .assertTimestampBetween(null, before)
                         .end()
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+                            .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertActorRef(USER_ADMINISTRATOR_OID)
                             .assertTimestampBetween(now, now)
                         .end()
-                        //.assertSize(2)
+                    .end()
+                .end()
+
+                .assertOrganizations("Department of Hydrostatics", "Binomial Club")
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Department of Hydrostatics"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBetween(null, before)
+                        .end()
+                    .end()
+                .end()
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBetween(null, before)
+                        .end()
                     .end()
                 .end();
     }
 
+    /**
+     * Before:
+     *  - name:       blaise (hr)
+     *  - givenName:  Blaise (hr)
+     *  - familyName: Pascal (hr, admin)
+     *  - fullName:   Blaise Pascal (m:hr+admin)
+     *  - org:        Department of Hydrostatics (hr)
+     *  - org:        Binomial Club (hr)
+     *
+     * Delta:
+     *  - add givenName: Blaise (admin/jim)
+     *
+     * After:
+     *  - name:       blaise (hr)
+     *  - givenName:  Blaise (hr, admin/jim)
+     *  - familyName: Pascal (hr, admin)
+     *  - fullName:   Blaise Pascal (m:hr+admin) [not sure about actor/timestamp]
+     *  - org:        Department of Hydrostatics (hr)
+     *  - org:        Binomial Club (hr)
+     */
     @Test
-    public void test940ReinforceGivenNameByManualEntry() throws Exception {
+    public void test320ReinforceGivenNameByManualEntry() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
+        XMLGregorianCalendar before = XmlTypeConverter.createXMLGregorianCalendar();
+        Thread.sleep(10);
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
 
         PrismObject<UserType> user = findUserByUsername(USER_BLAISE_NAME);
@@ -957,10 +1303,10 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 new ValueMetadataType(prismContext)
                         .beginProvenance()
                             .beginAcquisition()
-                                .timestamp(now)
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_URI)
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
                                 .actorRef(USER_JIM.oid, UserType.COMPLEX_TYPE)
+                                .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
         // @formatter:on
@@ -976,34 +1322,33 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         assertUserAfterByUsername(USER_BLAISE_NAME)
                 .displayXml()
                 .assertName("blaise")
-                .valueMetadata(UserType.F_NAME)
-                    .display()
-//                    .provenance()
-//                        .singleYield()
-//                            .singleAcquisition()
-//                                .assertResourceRef(RESOURCE_HR.oid)
-//                                .assertOriginRef(ORIGIN_HR_FEED.oid)
-//                                .assertTimestampBetween(null, now)
-//                            .end()
-//                        .end()
-//                    .end()
+                .valueMetadataSingle(UserType.F_NAME)
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.ref())
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBetween(null, before)
+                        .end()
+                    .end()
                 .end()
 
                 .assertGivenName("Blaise")
                 .valueMetadata(UserType.F_GIVEN_NAME)
-                    .display()
                     .valueForOrigin(ORIGIN_HR_FEED.oid)
                         .provenance()
                             .singleAcquisition()
+                                .assertOriginRef(ORIGIN_HR_FEED.ref())
                                 .assertResourceRef(RESOURCE_HR.oid)
-                                .assertOriginRef(ORIGIN_HR_FEED.oid)
-                                .assertTimestampBetween(null, now)
+                                .assertTimestampBetween(null, before)
                             .end()
                         .end()
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
                             .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertActorRef(USER_JIM.oid)
                                 .assertTimestampBetween(now, now)
                             .end()
                         .end()
@@ -1012,40 +1357,253 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
                 .assertFamilyName("Pascal")
                 .valueMetadata(UserType.F_FAMILY_NAME)
-                    .display()
-//                    .provenance()
-//                        .singleYield(ORIGIN_HR_FEED.oid)
-//                            .singleAcquisition()
-//                                .assertResourceRef(RESOURCE_HR.oid)
-//                                .assertOriginRef(ORIGIN_HR_FEED.oid)
-//                                .assertTimestampBetween(null, now)
-//                            .end()
-//                        .end()
-//                        .singleYield(ORIGIN_ADMIN_ENTRY.oid)
-//                            .singleAcquisition()
-//                                .assertTimestampBetween(null, now)
-//                            .end()
-//                        .end()
-//                    .end()
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_HR_FEED.ref())
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertActorRef(USER_ADMINISTRATOR_OID)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
                 .end()
 
                 .assertFullName("Blaise Pascal")
                 .valueMetadataSingle(UserType.F_FULL_NAME)
                     .display()
-//                    .provenance()
-//                        .singleYield(ORIGIN_ADMIN_ENTRY.oid)
-//                            .singleAcquisition(ORIGIN_HR_FEED.oid)
-//                                .assertResourceRef(RESOURCE_HR.oid)
-//                                .assertOriginRef(ORIGIN_HR_FEED.oid)
-//                                .assertTimestampBetween(null, now)
-//                            .end()
-//                            .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
-//                                .assertTimestampBetween(now, now)
-//                            .end()
-//                        .end()
-//                        //.assertSize(2)
-//                    .end()
+                    .provenance()
+                        .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                        .singleAcquisition(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertTimestampBetween(null, before)
+                        .end()
+                        .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+                            .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            // not sure about actor (administrator vs. jim) nor timestamp
+                        .end()
+                    .end()
+                .end()
+
+                .assertOrganizations("Department of Hydrostatics", "Binomial Club")
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Department of Hydrostatics"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBetween(null, before)
+                        .end()
+                    .end()
+                .end()
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBetween(null, before)
+                        .end()
+                    .end()
                 .end();
+    }
+
+    /**
+     * Now importing Blaise from CRM. Values are not conflicting. One organization is added.
+     *
+     * Before:
+     *  - name:       blaise (hr)
+     *  - givenName:  Blaise (hr, admin/jim)
+     *  - familyName: Pascal (hr, admin)
+     *  - fullName:   Blaise Pascal (m:hr+admin)
+     *  - org:        Department of Hydrostatics (hr)
+     *  - org:        Binomial Club (hr)
+     *
+     * After:
+     *  - name:       blaise (hr, crm)
+     *  - givenName:  Blaise (hr, admin/jim, crm)
+     *  - familyName: Pascal (hr, admin, crm)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm)
+     *  - org:        Department of Hydrostatics (hr, crm)
+     *  - org:        Binomial Club (hr)
+     *  - org:        Gases (crm)
+     */
+    @Test
+    public void test330ImportBlaiseFromCrm() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        DummyAccount crmAccount = RESOURCE_CRM.controller.addAccount(USER_BLAISE_NAME);
+        crmAccount.addAttributeValue(ATTR_FIRSTNAME, "Blaise");
+        crmAccount.addAttributeValue(ATTR_LASTNAME, "Pascal");
+        crmAccount.addAttributeValue(ATTR_ORGANIZATION, "Department of Hydrostatics");
+        crmAccount.addAttributeValue(ATTR_ORGANIZATION, "Gases");
+
+        when();
+        XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
+        rerunTask(TASK_CRM_IMPORT.oid, result);
+        XMLGregorianCalendar after = clock.currentTimeXMLGregorianCalendar();
+
+        then();
+        assertUserAfterByUsername(USER_BLAISE_NAME)
+                .displayXml()
+                .assertName("blaise")
+                .valueMetadata(UserType.F_NAME)
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_CRM_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_CRM.oid)
+                                .assertTimestampBetween(before, after)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .assertGivenName("Blaise")
+                .valueMetadata(UserType.F_GIVEN_NAME)
+                    .assertSize(3)
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_HR_FEED.ref())
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertActorRef(USER_JIM.oid)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_CRM_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_CRM.oid)
+                                .assertTimestampBetween(before, after)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .assertFamilyName("Pascal")
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertSize(3)
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_HR_FEED.ref())
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertActorRef(USER_ADMINISTRATOR_OID)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_CRM_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_CRM.oid)
+                                .assertTimestampBetween(before, after)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .assertFullName("Blaise Pascal")
+                .valueMetadataSingle(UserType.F_FULL_NAME)
+                    .provenance()
+                        .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                        .assertAcquisitions(3)
+                        .singleAcquisition(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBetween(null, before)
+                        .end()
+                        .singleAcquisition(ORIGIN_CRM_FEED.oid)
+                            .assertResourceRef(RESOURCE_CRM.oid)
+                            .assertTimestampBetween(before, after)
+                        .end()
+                        .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            // not sure about actor (administrator vs. jim) nor timestamp
+                        .end()
+                    .end()
+                .end()
+
+                .assertOrganizations("Department of Hydrostatics", "Binomial Club", "Gases")
+                .valueMetadata(UserType.F_ORGANIZATION, ValueSelector.origEquals("Department of Hydrostatics"))
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_HR_FEED.oid)
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertTimestampBetween(null, before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_CRM_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_CRM_FEED.oid)
+                                .assertResourceRef(RESOURCE_CRM.oid)
+                                .assertTimestampBetween(before, after)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBetween(null, before)
+                        .end()
+                    .end()
+                .end()
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Gases"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_CRM_FEED.oid)
+                            .assertResourceRef(RESOURCE_CRM.oid)
+                            .assertTimestampBetween(before, after)
+                        .end()
+                    .end()
+                .end();
+
     }
 
     @Test
@@ -1057,9 +1615,9 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         RESOURCE_HR.controller.deleteAccount(USER_BLAISE_NAME);
 
         when();
-        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
+//        XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
         rerunTask(TASK_HR_RECONCILIATION.oid, result);
-        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
+//        XMLGregorianCalendar end = clock.currentTimeXMLGregorianCalendar();
 
         then();
         assertUserAfterByUsername(USER_BLAISE_NAME)

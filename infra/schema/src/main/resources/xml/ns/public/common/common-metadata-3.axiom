@@ -226,15 +226,17 @@ prism:model common-metadata {
       """;
       property timestamp {
         type DateTime;
+        operational true;
       }
       property channel {
         type String;
+        operational true;
       }
       reference resourceRef {
         targetType ResourceType;
       }
       reference actorRef {
-
+        operational true;
       }
       reference originRef {
 

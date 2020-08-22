@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.model.common.mapping;
 
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE;
+import static com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil.hasMappingSpec;
+
 import static org.apache.commons.lang3.BooleanUtils.isNotFalse;
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
 
@@ -18,7 +21,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
-import com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -818,17 +820,30 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                         .filter(originalValue -> nonNegativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS))
                         .collect(Collectors.toList());
                 for (V matchingOriginalValue : matchingOriginalValues) {
+
+                    // Looking for metadata with the same mapping spec but not present in "new" value.
+                    // What about the equivalence strategy?
+                    //
+                    // - One option is NOT_LITERAL: This will remove all values that are not exactly the same as the newly
+                    //   computed one. It will provide "clean slate" to reflect even some minor non-real-value affecting changes.
+                    //   The cost is that phantom adds could be generated.
+                    //
+                    // - Another option is REAL_VALUE. This is currently a little bit complicated because some of the metadata
+                    //   that are important is now marked as operational. But we will gradually fix that.
                     List<PrismContainerValue<ValueMetadataType>> matchingMetadata =
                             matchingOriginalValue.<ValueMetadataType>getValueMetadataAsContainer().getValues().stream()
-                                    .filter(md -> ProvenanceMetadataUtil.hasMappingSpec(md.asContainerable(), mappingSpecification))
+                                    .filter(md ->
+                                            hasMappingSpec(md.asContainerable(), mappingSpecification)
+                                                    && !nonNegativeValue.<ValueMetadataType>getValueMetadataAsContainer().contains(md, REAL_VALUE))
                                     .collect(Collectors.toList());
 
                     if (!matchingMetadata.isEmpty()) {
                         PrismValue valueToDelete = matchingOriginalValue.clone();
                         valueToDelete.getValueMetadataAsContainer().clear();
                         valueToDelete.<ValueMetadataType>getValueMetadataAsContainer().addAll(CloneUtil.cloneCollectionMembers(matchingMetadata));
-                        LOGGER.trace("Found an existing value with the metadata indicating it was created by this mapping: putting into minus set:\n{}",
-                                DebugUtil.debugDumpLazily(valueToDelete));
+                        LOGGER.trace("Found an existing value with the metadata indicating it was created by this mapping: putting into minus set:\n{}\nMetadata:\n{}",
+                                DebugUtil.debugDumpLazily(valueToDelete, 1),
+                                DebugUtil.debugDumpLazily(valueToDelete.getValueMetadata(), 1));
                         //noinspection unchecked
                         outputTriple.addToMinusSet((V) valueToDelete);
                     }

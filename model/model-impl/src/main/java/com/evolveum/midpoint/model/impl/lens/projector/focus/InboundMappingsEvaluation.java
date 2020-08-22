@@ -304,7 +304,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 }
 
                 PrismProperty currentAttribute = getCurrentAttribute(attributeName);
-                LOGGER.trace("Collecting attribute inbound mapping for {} from:\n"
+                LOGGER.trace("Collecting attribute inbound mapping for {}. Relevant values are:\n"
                         + "- a priori delta:\n{}\n"
                         + "- a priori attribute delta:\n{}\n"
                         + "- current attribute:\n{}", attributeName,
@@ -411,7 +411,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 PrismContainer<ShadowAssociationType> filteredAssociations = getFilteredAssociations(associationName);
                 resolveEntitlementsIfNeeded((ContainerDelta<ShadowAssociationType>) associationAPrioriDelta, filteredAssociations);
 
-                LOGGER.trace("Collecting association inbound mapping for {} with:\n"
+                LOGGER.trace("Collecting association inbound mapping for {}. Relevant values are:\n"
                         + "- a priori delta:\n{}\n"
                         + "- association a priori delta:\n{}\n"
                         + "- current state (filtered associations):\n{}", associationName,
@@ -857,7 +857,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
          */
         private void loadRequired() throws SchemaException {
             if (!projectionContext.isFullShadow()) {
-                LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", projectionContext.getOid());      // todo change to trace level eventually
+                // todo change to trace level eventually
+                LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", projectionContext.getOid());
                 doLoad();
                 if (!isBroken() && !projectionContext.isFullShadow()) {
                     if (projectionContext.getResourceShadowDiscriminator().getOrder() > 0) {

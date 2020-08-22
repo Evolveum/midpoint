@@ -85,7 +85,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
 
         recordEvaluationStart();
         try {
-            generateTransformationRequests();
+            transformValues();
         } catch (TunnelException e) {
             unwrapTunnelException(e);
         }
@@ -105,34 +105,34 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
      *
      * 2) All values from selected sets are combined together.
      */
-    private void generateTransformationRequests() {
+    private void transformValues() {
         // The skipEvaluationPlus is evaluated within.
-        generatePlusZeroRequests();
+        transformToPlusAndZeroSets();
 
         // But for minus we can prune this branch even here.
         if (!context.isSkipEvaluationMinus()) {
-            generateMinusRequests();
+            transformToMinusSets();
         }
     }
 
-    private void generatePlusZeroRequests() {
+    private void transformToPlusAndZeroSets() {
         MiscUtil.carthesian(setsOccupiedPlusZero, sets -> {
             if (isAllZeros(sets)) {
-                generateRequests(sets, PlusMinusZero.ZERO);
+                transform(sets, PlusMinusZero.ZERO);
             } else {
                 if (!context.isSkipEvaluationPlus()) {
-                    generateRequests(sets, PlusMinusZero.PLUS);
+                    transform(sets, PlusMinusZero.PLUS);
                 }
             }
         });
     }
 
-    private void generateMinusRequests() {
+    private void transformToMinusSets() {
         MiscUtil.carthesian(setsOccupiedMinusZero, sets -> {
             if (isAllZeros(sets)) {
                 // already done
             } else {
-                generateRequests(sets, PlusMinusZero.MINUS);
+                transform(sets, PlusMinusZero.MINUS);
             }
         });
     }
@@ -141,7 +141,7 @@ class CombinatorialEvaluation<V extends PrismValue, D extends ItemDefinition, E 
         return sets.stream().allMatch(set -> set == null || set == PlusMinusZero.ZERO);
     }
 
-    private void generateRequests(List<PlusMinusZero> sets, PlusMinusZero outputSet) {
+    private void transform(List<PlusMinusZero> sets, PlusMinusZero outputSet) {
         List<Collection<PrismValue>> domains = createDomainsForSets(sets);
         logDomainsForSets(domains, sets, outputSet);
         MiscUtil.carthesian(domains, valuesTuple -> {

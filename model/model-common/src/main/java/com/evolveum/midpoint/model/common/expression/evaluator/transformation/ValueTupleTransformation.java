@@ -160,16 +160,11 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
             ExpressionVariables staticVariables = createStaticVariablesFromSources();
             recordBeforeTransformation();
 
-//            if (isApplicableRegardingPlusMinusSetPresence()) {
+            augmentStaticVariablesWithInputVariables(staticVariables);
+            evaluateConditionAndTransformation(staticVariables);
 
-//                determineInputStateAndOutputSet();
-                augmentStaticVariablesWithInputVariables(staticVariables);
-
-                evaluateConditionAndTransformation(staticVariables);
-
-                recordTransformationResult();
-                outputTriple.addAllToSet(outputSet, transformationResult);
-//            }
+            recordTransformationResult();
+            outputTriple.addAllToSet(outputSet, transformationResult);
 
         } catch (Throwable t) {
             result.recordFatalError(t.getMessage(), t);
@@ -333,7 +328,11 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
     private void computeAndApplyOutputValueMetadata(List<V> output) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         TransformationValueMetadataComputer valueMetadataComputer = context.getValueMetadataComputer();
-        if (valueMetadataComputer != null) {
+        if (valueMetadataComputer == null) {
+            LOGGER.trace("No value metadata computer present, skipping metadata computation.");
+        } else if (outputSet == PlusMinusZero.MINUS) {
+            LOGGER.trace("Transforming for minus set, skipping metadata computation.");
+        } else {
             ValueMetadataType outputValueMetadata = valueMetadataComputer.compute(valuesTuple, result);
             if (outputValueMetadata != null) {
                 ValueMetadata metadata = combinatorialEvaluation.prismContext.getValueMetadataFactory().createEmpty();
@@ -349,8 +348,6 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
                     }
                 }
             }
-        } else {
-            LOGGER.trace("No value metadata computer present, skipping metadata computation.");
         }
     }
 

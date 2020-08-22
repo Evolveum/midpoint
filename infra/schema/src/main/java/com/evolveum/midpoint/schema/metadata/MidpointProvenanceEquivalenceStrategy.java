@@ -74,7 +74,7 @@ public class MidpointProvenanceEquivalenceStrategy implements EquivalenceStrateg
     }
 
     public boolean equals(ProvenanceAcquisitionType acq1, ProvenanceAcquisitionType acq2) {
-        return Objects.equals(acq1.getChannel(), acq2.getChannel()) &&
+        return // Objects.equals(acq1.getChannel(), acq2.getChannel()) &&
                 refsEqual(acq1.getOriginRef(), acq2.getOriginRef()) &&
                 refsEqual(acq1.getResourceRef(), acq2.getResourceRef());
     }

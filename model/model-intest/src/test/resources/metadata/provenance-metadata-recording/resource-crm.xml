@@ -6,18 +6,13 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
-<resource oid="9a34c3b6-aca5-4f9b-aae4-24f3f2d98ce9"
+<resource oid="74a73b98-3372-465b-a247-3d695b794170"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
-          xmlns:mr="http://prism.evolveum.com/xml/ns/public/matching-rule-3"
-          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
-          xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3">
 
-    <name>resource-hr</name>
+    <name>resource-crm</name>
     <connectorRef type="ConnectorType">
         <filter>
             <q:and>
@@ -36,7 +31,7 @@
                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3">
 
         <icfc:configurationProperties>
-            <icfi:instanceId>hr</icfi:instanceId>
+            <icfi:instanceId>crm</icfi:instanceId>
         </icfc:configurationProperties>
 
         <icfc:resultsHandlerConfiguration>
@@ -55,7 +50,7 @@
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <provenance>
-                <originRef oid="f43bd824-e07e-4a41-950e-00de06881555" type="ServiceType"/> <!-- HR employee feed -->
+                <originRef oid="28c230b1-7209-4aa0-a5b9-776b22e14960" type="ServiceType"/> <!-- CRM feed -->
             </provenance>
             <attribute>
                 <ref>icfs:name</ref>

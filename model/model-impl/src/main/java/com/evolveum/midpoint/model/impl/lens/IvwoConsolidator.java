@@ -670,8 +670,12 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
             }
 
             private void logStart() {
-                LOGGER.trace("Starting metadata-based consolidation for situation: {}\nYield presences:\n{}", situation,
-                        DebugUtil.debugDumpLazily(yieldPresences, 1));
+                if (LOGGER.isTraceEnabled()) {
+                    LOGGER.trace("Starting metadata-based consolidation for situation: {}\nYield presences:\n{}", situation,
+                            yieldPresences.stream()
+                                .map(presence -> "  -- Yield presence:\n" + presence.debugDump(2))
+                                .collect(Collectors.joining("\n")));
+                }
             }
 
             private void logEnd() {
@@ -714,7 +718,6 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 @Override
                 public String debugDump(int indent) {
                     StringBuilder sb = new StringBuilder();
-                    DebugUtil.debugDumpWithLabelLn(sb, "Yield", yield.asPrismContainerValue(), indent);
                     DebugUtil.debugDumpWithLabelLn(sb, "Existing", asPrismContainerValues(existing), indent);
                     DebugUtil.debugDumpWithLabelLn(sb, "Plus", asPrismContainerValues(plus), indent);
                     DebugUtil.debugDumpWithLabelLn(sb, "Zero", asPrismContainerValues(zero), indent);
@@ -733,6 +736,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                         // of a yield because we assume that the metadata computer never changes the yield
                         // of the input metadata. (I.e. provenance of the output is equivalent with the provenance
                         // of the inputs. And provenance of all the inputs is equivalent.)
+                        //
+                        // TODO What if the existing metadata are also in the minus set?
+                        //  It is no harm if we ignore this fact but at least we should think about it.
+                        //  See e.g. TestValueMetadata.test320ReinforceGivenNameByManualEntry.
                         if (isPresent(computedMetadata)) {
                             LOGGER.trace("Computed metadata is already present, not adding them:\n{}",
                                     DebugUtil.debugDumpLazily(computedMetadata));
@@ -752,8 +759,10 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 }
 
                 private boolean isPresent(ValueMetadataType toBeAdded) {
+                    // TODO Consider the strategy. REAL_VALUE (instead of NOT_LITERAL) prevents uninteresting changes to be applied.
+                    //  But what about timestamps, channels, actors, etc?
                     return existing.stream()
-                            .anyMatch(e -> e.asPrismContainerValue().equals(toBeAdded.asPrismContainerValue(), EquivalenceStrategy.NOT_LITERAL));
+                            .anyMatch(e -> e.asPrismContainerValue().equals(toBeAdded.asPrismContainerValue(), EquivalenceStrategy.REAL_VALUE));
                 }
 
                 private List<ValueMetadataType> getNonNegativeValues() {

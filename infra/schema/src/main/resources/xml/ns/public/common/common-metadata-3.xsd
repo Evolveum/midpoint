@@ -604,7 +604,7 @@
                 This is a high-level information without excessive details, designed for long-term storage with the data.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:operational>true</a:operational>
+                <a:operational>false</a:operational> <!-- intentionally -->
                 <a:container/>
                 <a:since>4.2</a:since>
             </xsd:appinfo>
@@ -626,7 +626,7 @@
                 Multiple values of acquisition data indicate that data from several sources were combined to create the result.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:operational>true</a:operational>
+                <a:operational>false</a:operational> <!-- intentionally -->
                 <a:container/>
                 <a:since>4.2</a:since>
             </xsd:appinfo>
@@ -638,6 +638,9 @@
                     <xsd:documentation>
                         Timestamp of the event when the data value entered the system for the first time.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational> <!-- intentionally -->
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="channel" type="xsd:string" minOccurs="0">
@@ -651,6 +654,9 @@
                         E.g. the standard midPoint channel namespace is removed (custom channel names still retain the namespace).
                         This is metadata, we do not want to repeat long URIs for every value.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational> <!-- intentionally -->
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -670,6 +676,9 @@
                         For example this is reference to the user that was logged in to user interface when the value was entered,
                         identity of service that authenticated to REST interface when the value was provided and so on.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational>true</a:operational> <!-- intentionally -->
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="originRef" type="c:ObjectReferenceType" minOccurs="0">
@@ -691,7 +700,7 @@
                 See Axiom.
             </xsd:documentation>
             <xsd:appinfo>
-                <a:operational>true</a:operational>
+                <a:operational>false</a:operational> <!-- intentionally -->
                 <a:container/>
                 <a:since>4.2</a:since>
             </xsd:appinfo>

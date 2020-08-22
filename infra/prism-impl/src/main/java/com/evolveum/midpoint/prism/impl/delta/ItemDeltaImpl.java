@@ -1531,7 +1531,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         // Very special case for single-valued items: when adding a value different from the one being there
         // we automatically consider the existing one as deleted
         if (itemOld != null && itemOld.isSingleValueByDefinition() && CollectionUtils.isNotEmpty(valuesToAdd)) {
-            adaptRemainingValuesToDelete(remainingValuesToDelete, valuesToAdd, itemOld);
+            addExistingValueToDeleteSet(remainingValuesToDelete, valuesToAdd, itemOld);
         }
 
         for (V valueToAdd : remainingValuesToAdd) {
@@ -1572,7 +1572,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         return triple;
     }
 
-    private void adaptRemainingValuesToDelete(List<V> remainingValuesToDelete, Collection<V> valuesToAdd, @NotNull Item<V, D> itemOld) {
+    private void addExistingValueToDeleteSet(List<V> remainingValuesToDelete, Collection<V> valuesToAdd, @NotNull Item<V, D> itemOld) {
         if (itemOld.hasNoValues()) {
             return;
         }
