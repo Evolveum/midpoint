@@ -1428,7 +1428,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertNotDead()
                 .assertNoLegacyConsistency()
-                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                //.assertAdministrativeStatus(ActivationStatusType.ENABLED) // MID-6420
                 .attributes()
                 .assertValue(LDAP_ATTRIBUTE_CN, "jackNew2")
                 .end()
@@ -1531,7 +1531,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertNotDead()
                 .assertNoLegacyConsistency()
-                .assertAdministrativeStatus(ActivationStatusType.ENABLED)
+                //.assertAdministrativeStatus(ActivationStatusType.ENABLED)  // MID-6420
                 .attributes()
                 .assertValue(LDAP_ATTRIBUTE_CN, "jackNew2a")
                 .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "jackNew2a")
