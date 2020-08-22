@@ -904,7 +904,7 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
         assertRoleEvaluationCount(2, 0);
 
         assertCounterIncrement(InternalCounters.PROJECTOR_RUN_COUNT, hackify(1));
-        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify2(2*(1 + NUMBER_OF_LEVEL_B_ROLES)));
+        assertCounterIncrement(InternalCounters.ROLE_EVALUATION_COUNT, hackify2(1 + NUMBER_OF_LEVEL_B_ROLES));
         assertCounterIncrement(InternalCounters.PRISM_OBJECT_COMPARE_COUNT, 0);
     }
 
@@ -1152,12 +1152,12 @@ public abstract class AbstractNotoriousTest extends AbstractStoryTest {
 
 
     protected int hackify(int i) {
-        // TODO: projector now runs three times instead of one.
-        return i*3;
+        // TODO: projector now runs two times instead of one.
+        return i*2;
     }
 
     protected int hackify2(int i) {
-        return hackify(i);
+        return i*4;
     }
 
     protected int hackify1(int i) {
