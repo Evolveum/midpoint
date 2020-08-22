@@ -10,6 +10,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.model.common.mapping.MappingTestEvaluator.TEST_DIR;
 
+import static org.testng.AssertJUnit.fail;
+
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -306,7 +308,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      *
      * Delta: delete familyName Sparrow (user)
      *
-     * Expected result: Jack Sparrow (rest, user) in delete set.
+     * Expected result: Jack Sparrow (no metadata) in delete set.
      */
     @Test
     public void testDeleteSparrowUser() throws Exception {
@@ -329,7 +331,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
 
-        assertOrigins(MiscUtil.extractSingleton(outputTriple.getMinusSet()), "user", "rest");
+        assertNoMetadata(MiscUtil.extractSingleton(outputTriple.getMinusSet()));
     }
 
     /**
@@ -358,7 +360,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
 
-        assertOrigins(MiscUtil.extractSingleton(outputTriple.getMinusSet()), "user", "rest");
+        assertNoMetadata(MiscUtil.extractSingleton(outputTriple.getMinusSet()));
     }
 
     /**
@@ -390,7 +392,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         PrismAsserts.assertTripleNoPlus(outputTriple);
         PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
 
-        assertOrigins(MiscUtil.extractSingleton(outputTriple.getMinusSet()), "user", "rest");
+        assertNoMetadata(MiscUtil.extractSingleton(outputTriple.getMinusSet()));
     }
 
     /**
@@ -427,7 +429,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
 
         assertOrigins(MiscUtil.extractSingleton(outputTriple.getPlusSet()), "user", "hr");
-        assertOrigins(MiscUtil.extractSingleton(outputTriple.getMinusSet()), "user", "rest");
+        assertNoMetadata(MiscUtil.extractSingleton(outputTriple.getMinusSet()));
     }
 
     /**
@@ -473,7 +475,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
 
         assertOrigins(MiscUtil.extractSingleton(outputTriple.getPlusSet()), "hr");
-        assertOrigins(MiscUtil.extractSingleton(outputTriple.getMinusSet()), "user", "rest");
+        assertNoMetadata(MiscUtil.extractSingleton(outputTriple.getMinusSet()));
     }
 
     public MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> evaluate(String filename, ObjectDelta<UserType> delta) throws Exception {
@@ -492,6 +494,12 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
 
         // THEN
         return mapping;
+    }
+
+    private void assertNoMetadata(PrismValue value) {
+        if (value.hasValueMetadata()) {
+            fail("Value " + value + " has unexpected metadata:\n" + value.getValueMetadataAsContainer().debugDump());
+        }
     }
 
     private void assertOrigins(PrismValue value, String... origins) {
