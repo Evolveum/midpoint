@@ -82,8 +82,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
  * <p>
  * Design notes:
  * No repo.sql.data.audit.* entities are used (stage/type enums are OK).
- * Conversion between audit-api classes and SQL/JDBC is all here, the class got inflated, but at
- * least the code doesn't suggest it's reused elsewhere. Cleanup is still expected. :-)
  */
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
 
@@ -155,7 +153,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 insertProperties(jdbcSession, recordId, record.getProperties());
                 insertReferences(jdbcSession, recordId, record.getReferences());
                 insertResourceOids(jdbcSession, recordId, record.getResourceOids());
-            } catch (SchemaException | RuntimeException ex) {
+            } catch (RuntimeException ex) {
                 jdbcSession.handleGeneralException(ex, null);
             }
         }
@@ -220,10 +218,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         mAuditDelta.recordId = recordId;
 
         try {
-            if (deltaOperation.getObjectDelta() != null) {
-                ObjectDelta<? extends ObjectType> delta = deltaOperation.getObjectDelta();
-
-                DeltaConversionOptions options = DeltaConversionOptions.createSerializeReferenceNames();
+            ObjectDelta<? extends ObjectType> delta = deltaOperation.getObjectDelta();
+            if (delta != null) {
+                DeltaConversionOptions options =
+                        DeltaConversionOptions.createSerializeReferenceNames();
                 options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
                 String serializedDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
 
@@ -264,20 +262,29 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     }
 
     private void insertChangedItemPaths(
-            JdbcSession jdbcSession, long recordId, Collection<MAuditDelta> deltas)
-            throws SchemaException {
+            JdbcSession jdbcSession, long recordId, Collection<MAuditDelta> deltas) {
         Set<String> changedItemPaths = new HashSet<>();
         for (MAuditDelta delta : deltas) {
-            ObjectDeltaType deltaBean =
-                    prismContext.parserFor(delta.serializedDelta)
-                            .parseRealValue(ObjectDeltaType.class);
-            for (ItemDeltaType itemDelta : deltaBean.getItemDelta()) {
-                ItemPath path = itemDelta.getPath().getItemPath();
-                CanonicalItemPath canonical = prismContext.createCanonicalItemPath(
-                        path, deltaBean.getObjectType());
-                for (int i = 0; i < canonical.size(); i++) {
-                    changedItemPaths.add(canonical.allUpToIncluding(i).asString());
+            try {
+                ObjectDeltaType deltaBean =
+                        prismContext.parserFor(delta.serializedDelta)
+                                .parseRealValue(ObjectDeltaType.class);
+                for (ItemDeltaType itemDelta : deltaBean.getItemDelta()) {
+                    ItemPath path = itemDelta.getPath().getItemPath();
+                    CanonicalItemPath canonical = prismContext.createCanonicalItemPath(
+                            path, deltaBean.getObjectType());
+                    for (int i = 0; i < canonical.size(); i++) {
+                        changedItemPaths.add(canonical.allUpToIncluding(i).asString());
+                    }
                 }
+            } catch (SchemaException | SystemException e) {
+                // TODO MID-6446 - if we want to throw in new tests, but first we need to fix existing ones
+//                if (InternalsConfig.isConsistencyChecks()) {
+//                    throw new SystemException("Problem during audit delta parse", e);
+//                }
+                LOGGER.warn("Serialized audit delta for recordId={} cannot be parsed."
+                        + " No changed items were created. This may cause problem later, but is not"
+                        + " critical for storing the audit record.", recordId, e);
             }
         }
         if (!changedItemPaths.isEmpty()) {
@@ -367,7 +374,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         insertBatch.execute();
     }
 
+    /**
+     * @deprecated use {@link #searchObjects(ObjectQuery, Collection, OperationResult)} instead
+     */
     @Override
+    @Deprecated
     public List<AuditEventRecord> listRecords(
             String query, Map<String, Object> params, OperationResult parentResult) {
         final String operation = "listRecords";
@@ -409,28 +420,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 attemptResult.computeStatus();
                 result.computeStatus();
                 result.cleanupResult();
-            }
-        }
-    }
-
-    @Override
-    public void listRecordsIterative(String query,
-            Map<String, Object> params, AuditResultHandler handler, OperationResult parentResult) {
-        // TODO operation recording ... but beware, this method is called from within listRecords
-        //  (fortunately, currently it is not used from the outside, so it does not matter that it skips recording)
-        final String operation = "listRecordsIterative";
-        int attempt = 1;
-
-        while (true) {
-            OperationResult result = parentResult.createMinorSubresult(OP_LIST_RECORDS_ATTEMPT);
-            try {
-                listRecordsIterativeAttempt(query, params, handler, result);
-                result.recordSuccess();
-                return;
-            } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
-                LOGGER.error("Error while trying to list audit record, {}, attempt: {}", ex.getMessage(), attempt, ex);
-                result.recordFatalError("Error while trying to list audit record " + ex.getMessage() + ", attempt: " + attempt, ex);
             }
         }
     }

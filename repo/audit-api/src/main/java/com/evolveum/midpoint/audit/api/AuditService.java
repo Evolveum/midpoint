@@ -46,8 +46,6 @@ public interface AuditService {
      */
     List<AuditEventRecord> listRecords(String query, Map<String, Object> params, OperationResult result);
 
-    void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler auditResultHandler, OperationResult result);
-
     /**
      * Reindex audit record - <b>currently does nothing</b>.
      * Previously it effectively created missing changed items detail entities,
