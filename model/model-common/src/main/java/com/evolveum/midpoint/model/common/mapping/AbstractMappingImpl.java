@@ -1382,12 +1382,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
     }
 
-    // TEMPORARY
-    List<MetadataMappingType> getMetadataMappings() {
-        return mappingBean instanceof MappingType ?
-                ((MappingType) mappingBean).getMetadataMapping() : null;
-    }
-
+//    // TEMPORARY
+//    List<MetadataMappingType> getMetadataMappings() {
+//        return mappingBean instanceof MappingType ?
+//                ((MappingType) mappingBean).getMetadataMapping() : null;
+//    }
+//
     @NotNull
     public ModelCommonBeans getBeans() {
         return beans;

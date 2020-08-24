@@ -1024,12 +1024,12 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
      * Blaise is imported from HR anew.
      *
      * After:
-     *  - name:       blaise (hr)
-     *  - givenName:  Blaise (hr)
-     *  - familyName: Pascal (hr)
+     *  - name:       blaise (m:hr)
+     *  - givenName:  Blaise (m:hr)
+     *  - familyName: Pascal (m:hr)
      *  - fullName:   Blaise Pascal (m:hr)
-     *  - org:        Department of Hydrostatics (hr)
-     *  - org:        Binomial Club (hr)
+     *  - org:        Department of Hydrostatics (m:hr)
+     *  - org:        Binomial Club (m:hr)
      */
     @Test
     public void test300ImportBlaiseFromHr() throws Exception {
@@ -1058,6 +1058,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .valueMetadataSingle(UserType.F_NAME)
                     .display()
                     .provenance()
+                        .assertMappingSpec(RESOURCE_HR.oid)
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
@@ -1069,6 +1070,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .assertGivenName("Blaise")
                 .valueMetadataSingle(UserType.F_GIVEN_NAME)
                     .provenance()
+                        .assertMappingSpec(RESOURCE_HR.oid)
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
@@ -1080,6 +1082,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .assertFamilyName("Pascal")
                 .valueMetadataSingle(UserType.F_FAMILY_NAME)
                     .provenance()
+                        .assertMappingSpec(RESOURCE_HR.oid)
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
@@ -1103,6 +1106,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .assertOrganizations("Department of Hydrostatics", "Binomial Club")
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Department of Hydrostatics"))
                     .provenance()
+                        .assertMappingSpec(RESOURCE_HR.oid)
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
@@ -1112,6 +1116,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .end()
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
                     .provenance()
+                        .assertMappingSpec(RESOURCE_HR.oid)
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)

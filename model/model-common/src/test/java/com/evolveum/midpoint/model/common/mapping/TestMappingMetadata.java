@@ -17,6 +17,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.jetbrains.annotations.NotNull;
@@ -56,6 +57,11 @@ import javax.xml.datatype.XMLGregorianCalendar;
 public class TestMappingMetadata extends AbstractModelCommonTest {
 
     private static final String MAPPING_SCRIPT_FULLNAME_METADATA_XML = "mapping-script-fullname-metadata.xml";
+    private static final String MAPPING_ASIS_FULLNAME_METADATA_XML = "mapping-asis-fullname-metadata.xml";
+    private static final String MAPPING_PATH_FULLNAME_METADATA_XML = "mapping-path-fullname-metadata.xml";
+    private static final String MAPPING_CONST_FULLNAME_METADATA_XML = "mapping-const-fullname-metadata.xml";
+    private static final String MAPPING_GENERATE_FULLNAME_METADATA_XML = "mapping-generate-fullname-metadata.xml";
+    private static final String MAPPING_VALUE_FULLNAME_METADATA_XML = "mapping-value-fullname-metadata.xml";
     private MappingTestEvaluator evaluator;
 
     private static final TestResource<ObjectTemplateType> TEMPLATE_PROVENANCE = new TestResource<>(TEST_DIR, "template-provenance.xml", "0ca5cef4-6df3-42c3-82b6-daae691e960d");
@@ -84,7 +90,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     @Test
     public void testUserAdd() throws Exception {
         PrismObject<UserType> user = evaluator.getUserOld();
-        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluate(MAPPING_SCRIPT_FULLNAME_METADATA_XML, DeltaFactory.Object.createAddDelta(user));
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluate(MAPPING_SCRIPT_FULLNAME_METADATA_XML, DeltaFactory.Object.createAddDelta(user));
 
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         displayDumpable("output triple", outputTriple);
@@ -478,6 +485,124 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         assertNoMetadata(MiscUtil.extractSingleton(outputTriple.getMinusSet()));
     }
 
+    /**
+     * Now testing asIs evaluator (givenName -> fullName)
+     *
+     * Jack has acquisition origins: user, rest
+     *
+     * Delta: ADD object
+     *
+     * Expected result: user, rest (in plus set)
+     *
+     */
+    @Test
+    public void testAsIsUserAdd() throws Exception {
+        PrismObject<UserType> user = evaluator.getUserOld();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluate(MAPPING_ASIS_FULLNAME_METADATA_XML, DeltaFactory.Object.createAddDelta(user));
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("output triple", outputTriple);
+        PrismAsserts.assertTripleNoZero(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Jack"));
+        PrismAsserts.assertTripleNoMinus(outputTriple);
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getPlusSet()), "user", "rest");
+    }
+
+    /**
+     * Now testing path evaluator ($user/givenName -> fullName)
+     *
+     * Jack has acquisition origins: user, rest
+     *
+     * Delta: ADD object
+     *
+     * Expected result: user, rest (in plus set)
+     *
+     */
+    @Test
+    public void testPathUserAdd() throws Exception {
+        PrismObject<UserType> user = evaluator.getUserOld();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluate(MAPPING_PATH_FULLNAME_METADATA_XML, DeltaFactory.Object.createAddDelta(user));
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("output triple", outputTriple);
+        PrismAsserts.assertTripleNoZero(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Jack"));
+        PrismAsserts.assertTripleNoMinus(outputTriple);
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getPlusSet()), "user", "rest");
+    }
+
+    /**
+     * Now testing const evaluator (const:foo -> fullName)
+     *
+     * Delta: ADD object
+     *
+     * Expected result: (no origins but mapping spec) (in zero set)
+     *
+     */
+    @Test
+    public void testConstUserAdd() throws Exception {
+        PrismObject<UserType> user = evaluator.getUserOld();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluate(MAPPING_CONST_FULLNAME_METADATA_XML, DeltaFactory.Object.createAddDelta(user));
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("output triple", outputTriple);
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString(ExpressionTestUtil.CONST_FOO_VALUE));
+        PrismAsserts.assertTripleNoMinus(outputTriple);
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()));
+    }
+
+    /**
+     * Now testing literal (value) evaluator (Jack Sparrow -> fullName)
+     *
+     * Delta: ADD object
+     *
+     * Expected result: (no origins but mapping spec) (in zero set)
+     *
+     */
+    @Test
+    public void testValueUserAdd() throws Exception {
+        PrismObject<UserType> user = evaluator.getUserOld();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluate(MAPPING_VALUE_FULLNAME_METADATA_XML, DeltaFactory.Object.createAddDelta(user));
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("output triple", outputTriple);
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTripleNoMinus(outputTriple);
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()));
+    }
+
+    /**
+     * Now testing generate evaluator (UUID -> fullName)
+     *
+     * Delta: ADD object
+     *
+     * Expected result: (no origins but mapping spec) (in zero set)
+     *
+     */
+    @Test
+    public void testGenerateUserAdd() throws Exception {
+        PrismObject<UserType> user = evaluator.getUserOld();
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluate(MAPPING_GENERATE_FULLNAME_METADATA_XML, DeltaFactory.Object.createAddDelta(user));
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("output triple", outputTriple);
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleNoMinus(outputTriple);
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()));
+    }
+
     public MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> evaluate(String filename, ObjectDelta<UserType> delta) throws Exception {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
                 evaluator.createMapping(filename, getTestNameShort(), "fullName", delta);
@@ -489,8 +614,14 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
 
         ModelExpressionThreadLocalHolder.pushExpressionEnvironment(new ExpressionEnvironment<>(lensContext, null, task, result));
 
-        // WHEN
-        mapping.evaluate(task, result);
+        try {
+
+            // WHEN
+            mapping.evaluate(task, result);
+
+        } finally {
+            ModelExpressionThreadLocalHolder.popExpressionEnvironment();
+        }
 
         // THEN
         return mapping;
@@ -507,6 +638,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         assertThat(metadataContainer.size()).isEqualTo(1);
         ValueMetadataType metadata = (ValueMetadataType) metadataContainer.getValue().asContainerable();
         assertThat(metadata.getProvenance()).isNotNull();
+        assertThat(metadata.getProvenance().getMappingSpec()).as("mapping spec").isNotNull();
+        assertThat(metadata.getProvenance().getMappingSpec().getMappingName()).as("mapping name").isEqualTo("mapping");
         assertThat(metadata.getProvenance().getAcquisition().size()).isEqualTo(origins.length);
         Set<String> realOrigins = metadata.getProvenance().getAcquisition().stream()
                 .map(acq -> acq.getOriginRef().getOid())

@@ -8,25 +8,10 @@
 
 <mapping xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>mapping</name>
-    <source>
-        <path>givenName</path>
-    </source>
-    <source>
-        <path>familyName</path>
-    </source>
     <expression>
-        <script>
-            <code>
-                givenName + ' ' + familyName
-            </code>
-        </script>
+        <value>Jack Sparrow</value>
     </expression>
     <target>
         <path>fullName</path>
     </target>
-    <condition>
-        <script>
-            <code>givenName != null &amp;&amp; familyName != null</code>
-        </script>
-    </condition>
 </mapping>

@@ -74,7 +74,9 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
         String stringValue = generateStringValue(valuePolicy, context, outputPath, result);
         addValueToOutputProperty(output, stringValue);
 
-        return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        applyValueMetadata(outputTriple, context, result);
+        return outputTriple;
     }
 
     @NotNull

@@ -77,11 +77,6 @@
                 <ref>ri:firstname</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <expression>
-                        <script>
-                            <code>input</code>
-                        </script>
-                    </expression>
                     <target>
                         <path>givenName</path>
                     </target>
@@ -91,11 +86,6 @@
                 <ref>ri:lastname</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <expression>
-                        <script>
-                            <code>input</code>
-                        </script>
-                    </expression>
                     <target>
                         <path>familyName</path>
                     </target>
@@ -105,11 +95,6 @@
                 <ref>ri:organization</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <expression>
-                        <script>
-                            <code>input</code>
-                        </script>
-                    </expression>
                     <target>
                         <path>organization</path>
                     </target>
