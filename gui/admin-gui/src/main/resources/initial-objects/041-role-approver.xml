@@ -124,5 +124,4 @@
         <item>riskLevel</item>
         <item>serviceType</item>
     </authorization>
-    <subtype>system</subtype>
 </role>

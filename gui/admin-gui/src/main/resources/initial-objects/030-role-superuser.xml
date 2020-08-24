@@ -16,5 +16,4 @@
     <authorization>
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
     </authorization>
-    <subtype>system</subtype>
 </role>
