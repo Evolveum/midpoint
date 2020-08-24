@@ -6,17 +6,11 @@
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
-import static java.util.Arrays.asList;
-
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanelNew;
 
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -38,7 +32,6 @@ import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -48,15 +41,11 @@ import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Created by honchar.
@@ -79,14 +68,12 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
     protected void onInitialize() {
         super.onInitialize();
 
-        //TODO seriously???
-        getPageBase().getSessionStorage().setUserHistoryAuditLog(new AuditLogStorage());
+        getPageBase().getSessionStorage().setObjectHistoryAuditLog(new AuditLogStorage());
 
         initLayout();
     }
 
     private void initLayout() {
-        AuditSearchDto auditSearchDto = createAuditSearchDto(getObjectWrapper().getObject().asObjectable());
         AuditLogViewerPanelNew panel = new AuditLogViewerPanelNew(ID_MAIN_PANEL) {
             private static final long serialVersionUID = 1L;
 
@@ -163,36 +150,6 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                 return getPageBase().getSessionStorage().getObjectHistoryAuditLog(getObjectWrapper().getTypeName());
             }
 
-//            @Override
-//            protected AuditLogStorage getAuditLogStorage(){
-//                return getPageBase().getSessionStorage().getUserHistoryAuditLog();
-//            }
-//
-//            @Override
-//            protected void updateAuditSearchStorage(AuditSearchDto searchDto) {
-//                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(searchDto);
-//                getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(0);
-//
-//
-//            }
-//
-//            @Override
-//            protected void resetAuditSearchStorage() {
-//                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(createAuditSearchDto(getObjectWrapper().getObject().asObjectable()));
-//
-//            }
-//
-//            @Override
-//            protected void updateCurrentPage(long current) {
-//                getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(current);
-//
-//            }
-//
-//            @Override
-//            protected long getCurrentPage() {
-//                return getPageBase().getSessionStorage().getUserHistoryAuditLog().getPageNumber();
-//            }
-
             @Override
             protected boolean isObjectHistoryPanel() {
                 return true;
@@ -201,14 +158,6 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
         };
         panel.setOutputMarkupId(true);
         add(panel);
-    }
-
-    private AuditSearchDto createAuditSearchDto(F focus) {
-        AuditSearchDto searchDto = new AuditSearchDto();
-        ObjectReferenceType ort = ObjectTypeUtil.createObjectRef(focus, getPrismContext());
-        searchDto.setTargetNames(asList(ort));
-        searchDto.setEventStage(AuditEventStageType.EXECUTION);
-        return searchDto;
     }
 
     protected abstract void currentStateButtonClicked(AjaxRequestTarget target, PrismObject<F> object, String date);
