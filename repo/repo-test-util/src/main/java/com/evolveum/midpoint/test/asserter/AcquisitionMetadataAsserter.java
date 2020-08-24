@@ -50,4 +50,9 @@ public class AcquisitionMetadataAsserter<RA extends AbstractAsserter> extends Pr
         assertTimestampBetween(ProvenanceAcquisitionType.F_TIMESTAMP, startTs, endTs);
         return this;
     }
+
+    public AcquisitionMetadataAsserter<RA> assertTimestampBefore(XMLGregorianCalendar timestamp) {
+        assertTimestampBetween(ProvenanceAcquisitionType.F_TIMESTAMP, null, timestamp);
+        return this;
+    }
 }

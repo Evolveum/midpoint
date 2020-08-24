@@ -9,19 +9,8 @@ package com.evolveum.midpoint.model.intest;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
-import com.evolveum.midpoint.test.DummyTestResource;
+import java.util.Objects;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
@@ -29,14 +18,21 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Tests the value metadata handling.
@@ -675,7 +671,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                             .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end()
@@ -687,7 +683,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -709,7 +705,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                             .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                         .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
                             .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
@@ -775,7 +771,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                             .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end()
@@ -787,7 +783,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -796,7 +792,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -811,12 +807,12 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                             .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
                                 .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -884,7 +880,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                             .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end()
@@ -896,7 +892,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -911,7 +907,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -921,7 +917,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_HR_FEED.ref())
                                 .assertChannel(null)
-                                .assertTimestampBetween(null, before);
+                                .assertTimestampBefore(before);
         // @formatter:on
     }
 
@@ -993,7 +989,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -1008,7 +1004,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                             .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
                                 .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
@@ -1190,7 +1186,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.ref())
                             .assertResourceRef(RESOURCE_HR.oid)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end()
@@ -1201,7 +1197,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.ref())
                             .assertResourceRef(RESOURCE_HR.oid)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end()
@@ -1214,7 +1210,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_HR_FEED.ref())
                                 .assertResourceRef(RESOURCE_HR.oid)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -1238,7 +1234,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
@@ -1255,7 +1251,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end()
@@ -1264,7 +1260,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end();
@@ -1332,7 +1328,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.ref())
                             .assertResourceRef(RESOURCE_HR.oid)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end()
@@ -1344,7 +1340,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_HR_FEED.ref())
                                 .assertResourceRef(RESOURCE_HR.oid)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -1368,7 +1364,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_HR_FEED.ref())
                                 .assertResourceRef(RESOURCE_HR.oid)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -1378,7 +1374,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
                                 .assertActorRef(USER_ADMINISTRATOR_OID)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -1392,7 +1388,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
@@ -1408,7 +1404,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end()
@@ -1417,7 +1413,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end();
@@ -1470,7 +1466,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertResourceRef(RESOURCE_HR.oid)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -1492,7 +1488,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_HR_FEED.ref())
                                 .assertResourceRef(RESOURCE_HR.oid)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -1502,7 +1498,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
                                 .assertActorRef(USER_JIM.oid)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -1524,7 +1520,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_HR_FEED.ref())
                                 .assertResourceRef(RESOURCE_HR.oid)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -1534,7 +1530,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
                                 .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
                                 .assertActorRef(USER_ADMINISTRATOR_OID)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -1555,7 +1551,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .assertAcquisitions(3)
                         .singleAcquisition(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                         .singleAcquisition(ORIGIN_CRM_FEED.oid)
                             .assertResourceRef(RESOURCE_CRM.oid)
@@ -1576,7 +1572,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_HR_FEED.oid)
                                 .assertResourceRef(RESOURCE_HR.oid)
-                                .assertTimestampBetween(null, before)
+                                .assertTimestampBefore(before)
                             .end()
                         .end()
                     .end()
@@ -1595,7 +1591,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_HR_FEED.oid)
                             .assertResourceRef(RESOURCE_HR.oid)
-                            .assertTimestampBetween(null, before)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end()
@@ -1609,6 +1605,183 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .end()
                 .end();
 
+    }
+
+    /**
+     * Deleting Blaise from Gases (in CRM).
+     *
+     * Before:
+     *  - name:       blaise (hr, crm)
+     *  - givenName:  Blaise (hr, admin/jim, crm)
+     *  - familyName: Pascal (hr, admin, crm)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm)
+     *  - org:        Department of Hydrostatics (hr, crm)
+     *  - org:        Binomial Club (hr)
+     *  - org:        Gases (crm)
+     *
+     * Delta: org should lose Gases value.
+     *
+     * After:
+     *  - name:       blaise (hr, crm)
+     *  - givenName:  Blaise (hr, admin/jim, crm)
+     *  - familyName: Pascal (hr, admin, crm)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm)
+     *  - org:        Department of Hydrostatics (hr, crm)
+     *  - org:        Binomial Club (hr)
+     */
+    @Test
+    public void test340DeleteBlaiseFromGases() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        DummyAccount crmAccount = Objects.requireNonNull(
+                RESOURCE_CRM.controller.getDummyResource().getAccountByUsername(USER_BLAISE_NAME));
+        crmAccount.removeAttributeValue(ATTR_ORGANIZATION, "Gases");
+
+        when();
+        XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
+        rerunTask(TASK_CRM_IMPORT.oid, result);
+
+        then();
+        assertUserAfterByUsername(USER_BLAISE_NAME)
+                .displayXml()
+                .assertName("blaise")
+                .valueMetadata(UserType.F_NAME)
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_CRM_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_CRM.oid)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .assertGivenName("Blaise")
+                .valueMetadata(UserType.F_GIVEN_NAME)
+                    .assertSize(3)
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_HR_FEED.ref())
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertActorRef(USER_JIM.oid)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_CRM_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_CRM.oid)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .assertFamilyName("Pascal")
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertSize(3)
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_HR_FEED.ref())
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertActorRef(USER_ADMINISTRATOR_OID)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_CRM_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_CRM.oid)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .assertFullName("Blaise Pascal")
+                .valueMetadataSingle(UserType.F_FULL_NAME)
+                    .provenance()
+                        .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                        .assertAcquisitions(3)
+                        .singleAcquisition(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBefore(before)
+                        .end()
+                        .singleAcquisition(ORIGIN_CRM_FEED.oid)
+                            .assertResourceRef(RESOURCE_CRM.oid)
+                            .assertTimestampBefore(before)
+                        .end()
+                        .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            // not sure about actor (administrator vs. jim) nor timestamp
+                        .end()
+                    .end()
+                .end()
+
+                .assertOrganizations("Department of Hydrostatics", "Binomial Club")
+                .valueMetadata(UserType.F_ORGANIZATION, ValueSelector.origEquals("Department of Hydrostatics"))
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_HR_FEED.oid)
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                    .valueForOrigin(ORIGIN_CRM_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_CRM_FEED.oid)
+                                .assertResourceRef(RESOURCE_CRM.oid)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBefore(before)
+                        .end()
+                    .end()
+                .end();
     }
 
     @Test

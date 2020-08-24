@@ -97,6 +97,9 @@
                     <strength>strong</strength>
                     <target>
                         <path>organization</path>
+                        <set>
+                            <predefined>ownProvenance</predefined>
+                        </set>
                     </target>
                 </inbound>
             </attribute>

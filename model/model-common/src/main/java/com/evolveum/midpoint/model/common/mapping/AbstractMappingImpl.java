@@ -22,6 +22,8 @@ import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
 
+import com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.Mapping;
@@ -790,14 +792,16 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (originalTargetValues == null) {
             throw new IllegalStateException("Couldn't check range for mapping in " + contextDescription + ", as original target values are not known.");
         }
+
         ValueSetDefinitionType rangeSetDefBean = target.getSet();
-        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(rangeSetDefBean, getOutputDefinition(), expressionProfile, name, "range",
+        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(rangeSetDefBean, getOutputDefinition(), expressionProfile, name,
+                mappingSpecification, "range",
                 "range of " + name + " in " + getMappingContextDescription(), task, result);
         rangeSetDef.init(beans.expressionFactory);
         rangeSetDef.setAdditionalVariables(variables);
         for (V originalValue : originalTargetValues) {
             if (rangeSetDef.contains(originalValue)) {
-                addToMinusIfNecessary(originalValue);
+                addToMinusIfNecessary(originalValue, rangeSetDef);
             }
         }
     }
@@ -853,7 +857,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     @SuppressWarnings("unchecked")
-    private void addToMinusIfNecessary(V originalValue) {
+    private void addToMinusIfNecessary(V originalValue, ValueSetDefinition<V, D> rangeSetDef) {
         if (outputTriple != null && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
             return;
         }
@@ -861,8 +865,16 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (outputTriple == null) {
             outputTriple = beans.prismContext.deltaFactory().createPrismValueDeltaSetTriple();
         }
-        LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
-        outputTriple.addToMinusSet((V) originalValue.clone());
+
+        V valueToDelete = (V) originalValue.clone();
+        if (rangeSetDef.isYieldSpecific()) {
+            LOGGER.trace("A yield of original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
+            valueToDelete.<ValueMetadataType>getValueMetadataAsContainer()
+                    .removeIf(md -> !ProvenanceMetadataUtil.hasMappingSpec(md.asContainerable(), mappingSpecification));
+        } else {
+            LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
+        }
+        outputTriple.addToMinusSet(valueToDelete);
     }
 
     public boolean isConditionSatisfied() {

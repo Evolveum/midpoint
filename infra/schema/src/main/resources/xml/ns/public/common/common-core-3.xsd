@@ -10171,6 +10171,20 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="ownProvenance">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Values of own provenance (i.e. provided by the current mapping) will be
+                        part of the set. Limited to target set definition for mappings.
+                        Provenance metadata processing must be enabled for this to work.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OWN_PROVENANCE"/>
+                        <a:experimental>true</a:experimental>
+                        <a:since>4.2</a:since>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 

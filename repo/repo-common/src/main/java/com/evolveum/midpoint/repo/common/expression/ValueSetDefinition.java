@@ -6,51 +6,48 @@
  */
 package com.evolveum.midpoint.repo.common.expression;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.util.ProvenanceMetadataUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang3.Validate;
 
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.TunnelException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionPredefinedType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueSetDefinitionType;
+import com.evolveum.midpoint.util.exception.*;
 
 /**
  * @author semancik
  */
 public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition> {
 
-    private final ValueSetDefinitionType setDefinitionType;
+    private final ValueSetDefinitionType setDefinitionBean;
     private final D itemDefinition;
     private final ExpressionProfile expressionProfile;
+    private final String additionalVariableName;
+    private final MappingSpecificationType mappingSpecification;
     private final String localContextDescription;
     private final String shortDesc;
     private final Task task;
     private final OperationResult result;
     private ValueSetDefinitionPredefinedType predefinedRange;
-    private final String additionalVariableName;
     private ExpressionVariables additionalVariables;
     private Expression<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> condition;
 
-    public ValueSetDefinition(ValueSetDefinitionType setDefinitionType, D itemDefinition, ExpressionProfile expressionProfile, String additionalVariableName,
+    public ValueSetDefinition(ValueSetDefinitionType setDefinitionBean, D itemDefinition, ExpressionProfile expressionProfile, String additionalVariableName,
+            MappingSpecificationType mappingSpecification,
             String localContextDescription, String shortDesc, Task task, OperationResult result) {
         super();
-        this.setDefinitionType = setDefinitionType;
+        this.setDefinitionBean = setDefinitionBean;
         Validate.notNull(itemDefinition, "No item definition for value set in %s", shortDesc);
         this.itemDefinition = itemDefinition;
         this.expressionProfile = expressionProfile;
         this.additionalVariableName = additionalVariableName;
+        this.mappingSpecification = mappingSpecification;
         this.localContextDescription = localContextDescription;
         this.shortDesc = shortDesc;
         this.task = task;
@@ -58,8 +55,8 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
     }
 
     public void init(ExpressionFactory expressionFactory) throws SchemaException, ObjectNotFoundException, SecurityViolationException {
-        predefinedRange = setDefinitionType.getPredefined();
-        ExpressionType conditionType = setDefinitionType.getCondition();
+        predefinedRange = setDefinitionBean.getPredefined();
+        ExpressionType conditionType = setDefinitionBean.getCondition();
         if (conditionType != null) {
             condition = ExpressionUtil.createCondition(conditionType, expressionProfile, expressionFactory, shortDesc, task, result);
         }
@@ -76,12 +73,21 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
                     return false;
                 case ALL:
                     return true;
+                case OWN_PROVENANCE:
+                    return isOfOwnProvenance(pval);
                 default:
                     throw new IllegalStateException("Unknown pre value: "+ predefinedRange);
             }
         } else {
             return evalCondition(pval);
         }
+    }
+
+    private boolean isOfOwnProvenance(IV pval) {
+        if (mappingSpecification == null) {
+            throw new UnsupportedOperationException("Mapping-related provenance can be checked only on mapping targets. In: " + shortDesc);
+        }
+        return ProvenanceMetadataUtil.valueHasMappingSpec(pval, mappingSpecification);
     }
 
     /**
@@ -131,4 +137,14 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
         }
     }
 
+    /**
+     * Whether we deal with whole values (false) or only with specific yields (true).
+     *
+     * Current implementation is approximate: The only situation when dealing with the yields is when
+     * "ownProvenance" predefined set is used.
+     */
+    @Experimental
+    public boolean isYieldSpecific() {
+        return predefinedRange == ValueSetDefinitionPredefinedType.OWN_PROVENANCE;
+    }
 }
