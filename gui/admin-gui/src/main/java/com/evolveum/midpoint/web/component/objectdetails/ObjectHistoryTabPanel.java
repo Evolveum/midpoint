@@ -8,10 +8,18 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import static java.util.Arrays.asList;
 
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanelNew;
+
+import com.evolveum.midpoint.web.session.PageStorage;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -47,6 +55,8 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Created by honchar.
@@ -131,6 +141,21 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                 columns.add(column);
 
                 return columns;
+            }
+
+            protected ObjectQuery addFilterToContentQuery(ObjectQuery query, PageStorage pageStorage){
+                ObjectFilter historyTabFilter = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class)
+                        .item(AuditEventRecordType.F_TARGET_REF)
+                        .ref(getObjectWrapper().getOid())
+                        .and()
+                        .item(AuditEventRecordType.F_EVENT_STAGE)
+                        .eq(AuditEventStageType.EXECUTION)
+                        .buildFilter();
+                if (query == null) {
+                    query = getPageBase().getPrismContext().queryFor(AuditEventRecordType.class).build();
+                }
+                query.addFilter(historyTabFilter);
+                return query;
             }
 
             @Override
