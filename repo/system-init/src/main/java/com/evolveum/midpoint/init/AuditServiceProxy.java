@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.audit.spi.AuditServiceRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -212,15 +211,6 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
             }
         }
         return result;
-    }
-
-    @Override
-    public void listRecordsIterative(String query, Map<String, Object> params, AuditResultHandler handler, OperationResult result) {
-        for (AuditService service : services) {
-            if (service.supportsRetrieval()) {
-                service.listRecordsIterative(query, params, handler, result);
-            }
-        }
     }
 
     @Override

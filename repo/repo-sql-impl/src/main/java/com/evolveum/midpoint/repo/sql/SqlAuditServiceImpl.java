@@ -413,28 +413,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         }
     }
 
-    @Override
-    public void listRecordsIterative(String query,
-            Map<String, Object> params, AuditResultHandler handler, OperationResult parentResult) {
-        // TODO operation recording ... but beware, this method is called from within listRecords
-        //  (fortunately, currently it is not used from the outside, so it does not matter that it skips recording)
-        final String operation = "listRecordsIterative";
-        int attempt = 1;
-
-        while (true) {
-            OperationResult result = parentResult.createMinorSubresult(OP_LIST_RECORDS_ATTEMPT);
-            try {
-                listRecordsIterativeAttempt(query, params, handler, result);
-                result.recordSuccess();
-                return;
-            } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
-                LOGGER.error("Error while trying to list audit record, {}, attempt: {}", ex.getMessage(), attempt, ex);
-                result.recordFatalError("Error while trying to list audit record " + ex.getMessage() + ", attempt: " + attempt, ex);
-            }
-        }
-    }
-
     private void listRecordsIterativeAttempt(String query,
             Map<String, Object> params, AuditResultHandler handler, OperationResult result) {
 

@@ -20,7 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -173,13 +172,6 @@ public class LoggerAuditServiceImpl implements AuditService {
     @SuppressWarnings("unused")
     private void fakeMethod() {
         LoggingConfigurationManager.dummy();
-    }
-
-    @Override
-    public void listRecordsIterative(String query, Map<String, Object> params,
-            AuditResultHandler auditResultHandler, OperationResult result) {
-        throw new UnsupportedOperationException("Object retrieval not supported");
-
     }
 
     @Override

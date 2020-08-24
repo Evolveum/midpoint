@@ -536,12 +536,6 @@ public class DummyAuditService implements AuditService, DebugDumpable {
     }
 
     @Override
-    public void listRecordsIterative(String query, Map<String, Object> params,
-            AuditResultHandler auditResultHandler, OperationResult result) {
-        // not needed in dummy
-    }
-
-    @Override
     public void reindexEntry(AuditEventRecord record) {
         // not needed in dummy
     }
