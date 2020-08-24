@@ -10,6 +10,9 @@ import static java.util.Arrays.asList;
 
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanelNew;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -37,7 +40,6 @@ import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.data.MultiButtonPanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.form.Form;
-import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.web.page.admin.users.PageXmlDataReview;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
@@ -75,28 +77,28 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
 
     private void initLayout() {
         AuditSearchDto auditSearchDto = createAuditSearchDto(getObjectWrapper().getObject().asObjectable());
-        AuditLogViewerPanel panel = new AuditLogViewerPanel(ID_MAIN_PANEL, Model.of(auditSearchDto), true) {
+        AuditLogViewerPanelNew panel = new AuditLogViewerPanelNew(ID_MAIN_PANEL) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn<AuditEventRecordType, String>> initColumns() {
-                List<IColumn<AuditEventRecordType, String>> columns = super.initColumns();
+            protected List<IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>> createColumns() {
+                List<IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>> columns = super.createColumns();
 
-                IColumn<AuditEventRecordType, String> column
-                        = new AbstractColumn<AuditEventRecordType, String>(new Model<>()) {
+                IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String> column
+                        = new AbstractColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>(new Model<>()) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<AuditEventRecordType>> cellItem, String componentId,
-                                             IModel<AuditEventRecordType> rowModel) {
+                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AuditEventRecordType>>> cellItem, String componentId,
+                                             IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
 
-                        cellItem.add(new MultiButtonPanel<AuditEventRecordType>(componentId, rowModel, 2) {
+                        cellItem.add(new MultiButtonPanel<PrismContainerValueWrapper<AuditEventRecordType>>(componentId, rowModel, 2) {
 
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected Component createButton(int index, String componentId, IModel<AuditEventRecordType> model) {
+                            protected Component createButton(int index, String componentId, IModel<PrismContainerValueWrapper<AuditEventRecordType>> model) {
                                 AjaxIconButton btn = null;
                                 switch (index) {
                                     case 0:
@@ -105,8 +107,8 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                                                 new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.INFO),
                                                 target ->
                                                         currentStateButtonClicked(target, getReconstructedObject(getObjectWrapper().getOid(),
-                                                                model.getObject().getEventIdentifier(), getObjectWrapper().getCompileTimeClass()),
-                                                                WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
+                                                                unwrapModel(model).getEventIdentifier(), getObjectWrapper().getCompileTimeClass()),
+                                                                WebComponentUtil.getLocalizedDate(unwrapModel(model).getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
                                         break;
                                     case 1:
                                         btn = buildDefaultButton(componentId, new Model<>(GuiStyleConstants.CLASS_FILE_TEXT),
@@ -114,9 +116,9 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
                                                 new Model<>("btn btn-sm " + DoubleButtonColumn.ButtonColorClass.SUCCESS),
                                                 target ->
                                                         viewObjectXmlButtonClicked(getObjectWrapper().getOid(),
-                                                                model.getObject().getEventIdentifier(),
+                                                                unwrapModel(model).getEventIdentifier(),
                                                                 getObjectWrapper().getCompileTimeClass(),
-                                                                WebComponentUtil.getLocalizedDate(model.getObject().getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
+                                                                WebComponentUtil.getLocalizedDate(unwrapModel(model).getTimestamp(), DateLabelComponent.SHORT_NOTIME_STYLE)));
                                         break;
                                 }
 
@@ -132,33 +134,43 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
             }
 
             @Override
-            protected AuditLogStorage getAuditLogStorage(){
-                return getPageBase().getSessionStorage().getUserHistoryAuditLog();
+            protected AuditLogStorage getAuditLogViewerStorage(){
+                return getPageBase().getSessionStorage().getObjectHistoryAuditLog(getObjectWrapper().getTypeName());
             }
 
+//            @Override
+//            protected AuditLogStorage getAuditLogStorage(){
+//                return getPageBase().getSessionStorage().getUserHistoryAuditLog();
+//            }
+//
+//            @Override
+//            protected void updateAuditSearchStorage(AuditSearchDto searchDto) {
+//                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(searchDto);
+//                getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(0);
+//
+//
+//            }
+//
+//            @Override
+//            protected void resetAuditSearchStorage() {
+//                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(createAuditSearchDto(getObjectWrapper().getObject().asObjectable()));
+//
+//            }
+//
+//            @Override
+//            protected void updateCurrentPage(long current) {
+//                getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(current);
+//
+//            }
+//
+//            @Override
+//            protected long getCurrentPage() {
+//                return getPageBase().getSessionStorage().getUserHistoryAuditLog().getPageNumber();
+//            }
+
             @Override
-            protected void updateAuditSearchStorage(AuditSearchDto searchDto) {
-                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(searchDto);
-                getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(0);
-
-
-            }
-
-            @Override
-            protected void resetAuditSearchStorage() {
-                getPageBase().getSessionStorage().getUserHistoryAuditLog().setSearchDto(createAuditSearchDto(getObjectWrapper().getObject().asObjectable()));
-
-            }
-
-            @Override
-            protected void updateCurrentPage(long current) {
-                getPageBase().getSessionStorage().getUserHistoryAuditLog().setPageNumber(current);
-
-            }
-
-            @Override
-            protected long getCurrentPage() {
-                return getPageBase().getSessionStorage().getUserHistoryAuditLog().getPageNumber();
+            protected boolean isObjectHistoryPanel() {
+                return true;
             }
 
         };

@@ -18,6 +18,8 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author lazyman
  */
@@ -30,6 +32,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_ROLE_CATALOG = "roleCatalog";
     public static final String KEY_AUDIT_LOG = "auditLog";
     public static final String KEY_USER_HISTORY_AUDIT_LOG = "userHistoryAuditLog";
+    public static final String KEY_OBJECT_HISTORY_AUDIT_LOG = "objectHistoryAuditLog";
     public static final String KEY_RESOURCE_ACCOUNT_CONTENT = "resourceAccountContent";
     public static final String KEY_RESOURCE_ENTITLEMENT_CONTENT = "resourceEntitlementContent";
     public static final String KEY_RESOURCE_GENERIC_CONTENT = "resourceGenericContent";
@@ -122,11 +125,11 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (AuditLogStorage)pageStorageMap.get(KEY_AUDIT_LOG);
     }
 
-    public AuditLogStorage getUserHistoryAuditLog() {
-        if (pageStorageMap.get(KEY_USER_HISTORY_AUDIT_LOG) == null) {
-            pageStorageMap.put(KEY_USER_HISTORY_AUDIT_LOG, new AuditLogStorage());
+    public AuditLogStorage getObjectHistoryAuditLog(QName objectType) {
+        if (pageStorageMap.get(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG) == null) {
+            pageStorageMap.put(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG, new AuditLogStorage());
         }
-        return (AuditLogStorage)pageStorageMap.get(KEY_USER_HISTORY_AUDIT_LOG);
+        return (AuditLogStorage)pageStorageMap.get(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG);
     }
 
     public void setUserHistoryAuditLog(AuditLogStorage storage) {
