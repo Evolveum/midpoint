@@ -20,6 +20,11 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.querydsl.core.types.Path;
+import com.querydsl.core.types.Predicate;
+import com.querydsl.core.types.dsl.ComparablePath;
+import com.querydsl.sql.PrimaryKey;
+import com.querydsl.sql.SQLQuery;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.jetbrains.annotations.NotNull;
@@ -49,6 +54,9 @@ import com.evolveum.midpoint.repo.sql.data.common.container.RAssignment;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.REmbeddedReference;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
+import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.testing.TestQueryListener;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
@@ -307,5 +315,38 @@ public class BaseSQLRepoTest extends AbstractSpringTest
 
     public void displayValue(String title, Object value) {
         PrismTestUtil.display(title, value);
+    }
+
+    protected <S, Q extends FlexibleRelationalPathBase<R>, R> List<R> select(
+            QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+            Q alias = mapping.defaultAlias();
+            SQLQuery<R> query = jdbcSession.query()
+                    .select(alias)
+                    .from(alias)
+                    .where(conditions);
+            PrimaryKey<R> primaryKey = alias.getPrimaryKey();
+            if (primaryKey != null) {
+                for (Path<?> pkColumn : primaryKey.getLocalColumns()) {
+                    if (pkColumn instanceof ComparablePath) {
+                        query.orderBy(((ComparablePath<?>) pkColumn).asc());
+                    }
+                }
+            }
+
+            return query.fetch();
+        }
+    }
+
+    protected <S, Q extends FlexibleRelationalPathBase<R>, R> long count(
+            QueryModelMapping<S, Q, R> mapping, Predicate... conditions) {
+        try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+            Q alias = mapping.defaultAlias();
+            return jdbcSession.query()
+                    .select(alias)
+                    .from(alias)
+                    .where(conditions)
+                    .fetchCount();
+        }
     }
 }
