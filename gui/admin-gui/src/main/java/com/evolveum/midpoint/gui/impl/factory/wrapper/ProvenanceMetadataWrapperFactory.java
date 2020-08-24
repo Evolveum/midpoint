@@ -23,7 +23,7 @@ public class ProvenanceMetadataWrapperFactory extends MetadataWrapperFactoryImpl
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
-        return QNameUtil.match(def.getTypeName(), new QName(ProvenanceMetadataType.COMPLEX_TYPE.getNamespaceURI(), "ProvenanceMetadata")); //TODO temporary hack
+        return QNameUtil.match(def.getTypeName(), ProvenanceMetadataType.COMPLEX_TYPE);
     }
 
     @Override

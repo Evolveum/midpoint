@@ -6,9 +6,17 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.evolveum.midpoint.gui.impl.prism.panel.component.ContainersPopupDto;
+import com.evolveum.midpoint.prism.*;
+
+import com.evolveum.midpoint.util.QNameUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -30,9 +38,6 @@ import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -119,7 +124,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
             }
         };
         buttonContainer.add(showMetadataButton);
-        showMetadataButton.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getValueMetadata() != null && CollectionUtils.isNotEmpty(getModelObject().getValueMetadata().getItems())));
+        showMetadataButton.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getValueMetadata() != null && CollectionUtils.isNotEmpty(getModelObject().getValueMetadata().getValues())));
 
         addToHeader(buttonContainer);
         return buttonContainer;
@@ -181,8 +186,8 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     protected void createMetadataPanel(Form form) {
         createMetadataNavigationPanel(form);
 
-        MetadataContainerValuePanel<Containerable, PrismContainerValueWrapper<Containerable>> valueMetadataPanel =
-                new MetadataContainerValuePanel<>(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
+        MetadataContainerPanel<Containerable> valueMetadataPanel =
+                new MetadataContainerPanel<>(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
                     new ItemPanelSettingsBuilder()
                         .editabilityHandler(wrapper -> true)
                         .headerVisibility(false)
@@ -195,12 +200,12 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     private void createMetadataNavigationPanel(Form form) {
-        ListView<ItemPath> metadataList = new ListView<ItemPath>(ID_METADATA_LIST, createMetadataListModel()) {
+        ListView<ContainersPopupDto> metadataList = new ListView<ContainersPopupDto>(ID_METADATA_LIST, createMetadataListModel()) {
 
             @Override
-            protected void populateItem(ListItem<ItemPath> listItem) {
+            protected void populateItem(ListItem<ContainersPopupDto> listItem) {
                 AjaxButton showMetadataDetails  = new AjaxButton(ID_METADATA_QNAME,
-                        createStringResource(listItem.getModelObject().equivalent(ItemPath.EMPTY_PATH) ? "valueMetadata" : listItem.getModelObject().lastName().getLocalPart())) {
+                        createStringResource(listItem.getModelObject().getDisplayName())) {
                     @Override
                     public void onClick(AjaxRequestTarget ajaxRequestTarget) {
                         setContainersToShow(listItem.getModelObject(), ajaxRequestTarget);
@@ -226,14 +231,15 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         return getModelObject().isShowMetadata();
     }
 
-    private IModel<?> createButtonClassModel(ListItem<ItemPath> itemPath) {
+    private IModel<?> createButtonClassModel(ListItem<ContainersPopupDto> itemPath) {
 
         return new ReadOnlyModel<>(() -> {
 
-            String primaryButton = getPrimaryButton(getValueMetadata().getContainers(), itemPath.getModelObject());
-            if (primaryButton == null) {
-                primaryButton = getPrimaryButton(getValueMetadata().getNonContainers(), itemPath.getModelObject());
-            }
+            String primaryButton = null;
+//            String primaryButton = getPrimaryButton(getValueMetadata().getContainers(), itemPath.getModelObject());
+//            if (primaryButton == null) {
+//                primaryButton = getPrimaryButton(getValueMetadata().getNonContainers(), itemPath.getModelObject());
+//            }
 
             return primaryButton == null ? "label label-default" : primaryButton;
         });
@@ -252,43 +258,75 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
         return null;
     }
 
-    private void setContainersToShow(ItemPath itemPath, AjaxRequestTarget ajaxRequestTarget) {
-        getValueMetadata().getNonContainers().forEach(iw -> {
-            if (ItemPath.EMPTY_PATH.equivalent(itemPath)) {
-                iw.setShowMetadataDetails(true);
-            } else {
-                iw.setShowMetadataDetails(false);
+    private void setContainersToShow(ContainersPopupDto containersToShow, AjaxRequestTarget ajaxRequestTarget) {
+        if (QNameUtil.match(containersToShow.getDef().getTypeName(), getValueMetadata().getTypeName())) {
+            getValueMetadata().setShowMetadataDetails(true);
+        } else {
+            getValueMetadata().setShowMetadataDetails(false);
+        }
+
+        for (PrismContainerValueWrapper<Containerable> values : getValueMetadata().getValues()) {
+            for (PrismContainerWrapper<Containerable> container : values.getContainers()) {
+                if (QNameUtil.match(container.getTypeName(), containersToShow.getDef().getTypeName())) {
+                    container.setShowMetadataDetails(true);
+                } else {
+                    container.setShowMetadataDetails(false);
+                }
             }
-        });
-        getValueMetadata().getContainers().forEach(cw -> {
-            if (cw.getPath().equivalent(itemPath)) {
-                cw.setShowMetadataDetails(true);
-            } else {
-                cw.setShowMetadataDetails(false);
-            }
-        });
+        }
+//        for (PrismContainerValueWrapper vw : getValueMetadata().getValues()) {
+//            vw.setShowMetadata();
+//        }
+        getValueMetadata().setShowMetadataDetails(true);
+//        getValueMetadata().getNonContainers().forEach(iw -> {
+//            if (ItemPath.EMPTY_PATH.equivalent(itemPath)) {
+//                iw.setShowMetadataDetails(true);
+//            } else {
+//                iw.setShowMetadataDetails(false);
+//            }
+//        });
+//        getValueMetadata().getContainers().forEach(cw -> {
+//            if (cw.getPath().equivalent(itemPath)) {
+//                cw.setShowMetadataDetails(true);
+//            } else {
+//                cw.setShowMetadataDetails(false);
+//            }
+//        });
 
         ajaxRequestTarget.add(PrismValuePanel.this);
 
     }
 
-    private ReadOnlyModel<List<ItemPath>> createMetadataListModel() {
-        return new ReadOnlyModel<List<ItemPath>>(() -> {
+    private ReadOnlyModel<List<ContainersPopupDto>> createMetadataListModel() {
+        return new ReadOnlyModel<List<ContainersPopupDto>>(() -> {
             ValueMetadataWrapperImpl metadataWrapper = getValueMetadata();
-            if (metadataWrapper == null) {
-                return Collections.EMPTY_LIST;
-            }
-            List<ItemPath> metadataQNames = new ArrayList<>();
-            for (ItemWrapper iw : metadataWrapper.getContainers()) {
-                if (!iw.isEmpty()) {
-                   metadataQNames.add(iw.getPath());
-                }
-            }
-            if (CollectionUtils.isNotEmpty(metadataWrapper.getNonContainers())) {
-                metadataQNames.add(ItemPath.EMPTY_PATH);
+
+            List<PrismContainerDefinition<Containerable>> childContainers;
+            try {
+                childContainers = metadataWrapper.getChildContainers();
+            } catch (SchemaException e) {
+                LOGGER.error("Cannot get child containers: {}", e.getMessage(), e);
+                childContainers = Collections.EMPTY_LIST;
             }
 
-            return metadataQNames;
+            List<ContainersPopupDto> containers = childContainers.stream().map(c -> new ContainersPopupDto(false, c)).collect(Collectors.toList());
+            containers.add(new ContainersPopupDto(false, getValueMetadata()));
+
+            return containers;
+//            if (metadataWrapper == null) {
+//                return Collections.EMPTY_LIST;
+//            }
+//            List<ItemPath> metadataQNames = new ArrayList<>();
+//            for (ItemWrapper iw : metadataWrapper.getContainers()) {
+//                if (!iw.isEmpty()) {
+//                   metadataQNames.add(iw.getPath());
+//                }
+//            }
+//            if (CollectionUtils.isNotEmpty(metadataWrapper.getNonContainers())) {
+//                metadataQNames.add(ItemPath.EMPTY_PATH);
+//            }
+//
+//            return metadataQNames;
         });
     }
 
