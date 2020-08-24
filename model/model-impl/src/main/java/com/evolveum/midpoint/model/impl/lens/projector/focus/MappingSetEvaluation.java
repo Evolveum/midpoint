@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.PathKeyedMap;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataComputer;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.Holder;
@@ -226,6 +227,9 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
         Class<F> focusClass = context.getFocusContext().getObjectTypeClass();
         ItemDefinition<?> itemDefinition = getObjectDefinition(focusClass).findItemDefinition(path);
 
+        ConsolidationValueMetadataComputer valueMetadataComputer = LensMetadataUtil.createValueMetadataConsolidationComputer(
+                path, context, beans, env, result);
+
         // TODO not much sure about the parameters
         //noinspection unchecked
         try (IvwoConsolidator consolidator = new IvwoConsolidatorBuilder()
@@ -234,7 +238,7 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
                     .itemDefinition(itemDefinition)
                     .aprioriItemDelta(getAprioriItemDelta(focusOdo.getObjectDelta(), path))
                     .itemDeltaExists(context.itemDeltaExists(path)) // TODO optimize
-                    .itemContainer(focusOdo.getNewObject())
+                    .itemContainer(focusOdo.getNewObject()) // covers existingItem
                     .valueMatcher(null)
                     .comparator(null)
                     .addUnchangedValues(false) // todo
@@ -243,12 +247,10 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
                     .isExclusiveStrong(false)
                     .contextDescription(" updating chained source (" + path + ") in " + contextDesc)
                     .strengthSelector(StrengthSelector.ALL)
-                    .valueMetadataComputer(null) // todo
+                    .valueMetadataComputer(valueMetadataComputer)
                     .result(result)
                     .prismContext(beans.prismContext)
                     .build()) {
-
-            // TODO where is existing item?!
 
             ItemDelta itemDelta = consolidator.consolidateTriples();
             itemDelta.simplify();

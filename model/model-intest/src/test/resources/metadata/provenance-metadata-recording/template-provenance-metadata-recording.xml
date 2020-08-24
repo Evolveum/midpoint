@@ -34,6 +34,22 @@
         </condition>
     </mapping>
 
+    <!-- We want to maintain a list of aliases. A person's full name should be part of it.
+         There can be other aliases defined typically by user himself. -->
+    <mapping>
+        <name>fullName to alias</name>
+        <strength>strong</strength>
+        <source>
+            <path>fullName</path>
+        </source>
+        <target>
+            <path>extension/alias</path>
+            <set>
+                <predefined>ownProvenance</predefined>
+            </set>
+        </target>
+    </mapping>
+
     <mapping>
         <strength>strong</strength>
         <expression>

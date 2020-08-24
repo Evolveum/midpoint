@@ -134,6 +134,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     private static final TestResource<UserType> USER_CHUCK = new TestResource<>(TEST_DIR, "user-chuck.xml", "3eb9ca6b-49b8-4602-943a-992d8eb9adad");
     private static final String USER_BLAISE_NAME = "blaise";
 
+    private static final ItemPath PATH_ALIAS = ItemPath.create(UserType.F_EXTENSION, new ItemName("alias")); // TODO namespace
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -827,6 +829,83 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     /**
+     * Adding alias of Leonhard Euler manually by self-service app.
+     *
+     * Before:
+     *  - alias = Leonhard Euler (m:admin+self)
+     *
+     * Delta:
+     *  - add Leonhard Euler (self)
+     *
+     * After:
+     *  - alias = Leonhard Euler (m:admin+self, self)
+     */
+    @Test
+    public void test225ReinforceAliasBySelf() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        XMLGregorianCalendar before = XmlTypeConverter.createXMLGregorianCalendar();
+        Thread.sleep(10);
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
+
+        // @formatter:off
+        PrismPropertyValue<PolyString> leonhardEuler = prismContext.itemFactory().createPropertyValue();
+        leonhardEuler.setValue(PolyString.fromOrig("Leonhard Euler"));
+        leonhardEuler.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginProvenance()
+                            .beginAcquisition()
+                                .originRef(ORIGIN_SELF_SERVICE_APP.ref())
+                                .channel(SchemaConstants.CHANNEL_REST_LOCAL)
+                                .timestamp(now)
+                            .<ProvenanceMetadataType>end()
+                        .<ValueMetadataType>end());
+        // @formatter:on
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(PATH_ALIAS).add(leonhardEuler)
+                .asObjectDelta(USER_LEONHARD.oid);
+
+        when();
+        executeChanges(delta, null, task, result);
+
+        then();
+        // @formatter:off
+        assertUserAfter(USER_LEONHARD.oid)
+                .displayXml()
+                .valueMetadata(PATH_ALIAS)
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                            .assertAcquisitions(3)
+                            .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertTimestampBefore(before)
+                            .end()
+                            .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
+                                .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
+                                .assertTimestampBefore(before)
+                            .end()
+                            .singleAcquisition(ORIGIN_HR_FEED.oid)
+                                .assertOriginRef(ORIGIN_HR_FEED.ref())
+                                .assertChannel(null)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                    .value(pcv -> pcv.asContainerable().getProvenance().getMappingSpec() == null)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
+                                .assertTimestampBetween(now, now);
+        // @formatter:on
+    }
+
+    /**
      * Delete family name REST/self yield. Full name provenance should be updated accordingly.
      *
      * Before:
@@ -936,6 +1015,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
      *  - Leo (self)
      *  - Euler (admin)
      *  - Leo Euler (m:admin+self)
+     *
+     *  and the alias of Leonhard Euler will be there with the origin = self
      */
     @Test
     public void test240ChangeGivenName() throws Exception {
@@ -1012,7 +1093,35 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBetween(now, now)
                             .end()
                         .end()
-                    .end();
+                    .end()
+                .end()
+
+                .valueMetadataSingle(PATH_ALIAS, ValueSelector.origEquals("Leonhard Euler"))
+                    .provenance()
+                        .assertNoMappingSpec()
+                        .singleAcquisition()
+                            .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
+                            .assertTimestampBefore(before)
+                        .end()
+                    .end()
+                .end()
+                .valueMetadataSingle(PATH_ALIAS, ValueSelector.origEquals("Leo Euler"))
+                    .provenance()
+                        .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                        .assertAcquisitions(2)
+                            .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertTimestampBefore(before)
+                            .end()
+                            .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
+                                .assertOriginRef(ORIGIN_SELF_SERVICE_APP.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
+                                .assertTimestampBetween(now, now)
+                            .end()
+                        .end()
+                    .end()
+                .end();
         // @formatter:on
     }
 
@@ -1770,6 +1879,66 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertResourceRef(RESOURCE_CRM.oid)
                                 .assertTimestampBefore(before)
                             .end()
+                        .end()
+                    .end()
+                .end()
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBefore(before)
+                        .end()
+                    .end()
+                .end();
+    }
+
+    /**
+     * Before:
+     *  - name:       blaise (hr, crm)
+     *  - givenName:  Blaise (hr, admin/jim, crm)
+     *  - familyName: Pascal (hr, admin, crm)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm)
+     *  - org:        Department of Hydrostatics (hr, crm)
+     *  - org:        Binomial Club (hr)
+     *  - org:        Gases (crm)
+     *
+     * Delta: org should lose Department of Hydrostatics value (via HR).
+     *
+     * After:
+     *  - name:       blaise (hr, crm)
+     *  - givenName:  Blaise (hr, admin/jim, crm)
+     *  - familyName: Pascal (hr, admin, crm)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm)
+     *  - org:        Department of Hydrostatics (crm) <---- We should keep the CRM yield of this value.
+     *  - org:        Binomial Club (hr)
+     */
+    @Test
+    public void test350DeleteBlaiseFromHydrostatics() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        DummyAccount hrAccount = Objects.requireNonNull(
+                RESOURCE_HR.controller.getDummyResource().getAccountByUsername(USER_BLAISE_NAME));
+        hrAccount.removeAttributeValue(ATTR_ORGANIZATION, "Department of Hydrostatics");
+
+        when();
+        XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
+        rerunTask(TASK_HR_IMPORT.oid, result);
+
+        then();
+        assertUserAfterByUsername(USER_BLAISE_NAME)
+                .displayXml()
+
+                // skip all those lengthy asserts
+                .assertOrganizations("Department of Hydrostatics", "Binomial Club")
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Department of Hydrostatics"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_CRM_FEED.oid)
+                            .assertResourceRef(RESOURCE_CRM.oid)
+                            .assertTimestampBefore(before)
                         .end()
                     .end()
                 .end()
