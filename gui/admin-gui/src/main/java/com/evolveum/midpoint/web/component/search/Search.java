@@ -69,9 +69,10 @@ public class Search implements Serializable, DebugDumpable {
     private ItemPath defaultSearchItemPath;
 
     public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions) {
-
+        this(type, allDefinitions, null);
     }
-    public Search(Class<? extends Containerable> type, ItemPath defaultSearchItemPath, List<SearchItemDefinition> allDefinitions) {
+
+    public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions, ItemPath defaultSearchItemPath) {
         this(type, allDefinitions, defaultSearchItemPath, false, null);
     }
 

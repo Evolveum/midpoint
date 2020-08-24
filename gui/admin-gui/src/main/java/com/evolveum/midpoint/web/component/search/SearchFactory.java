@@ -182,7 +182,7 @@ public class SearchFactory {
         PrismContainerDefinition<C> containerDef = modelServiceLocator.getPrismContext().getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
         List<SearchItemDefinition> availableDefs = getAvailableDefinitions(containerDef, true);
 
-        Search search = new Search(type, defaultSearchItem, availableDefs);
+        Search search = new Search(type, availableDefs, defaultSearchItem);
         return search;
     }
 
