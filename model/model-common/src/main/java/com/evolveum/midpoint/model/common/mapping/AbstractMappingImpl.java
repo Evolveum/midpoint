@@ -704,7 +704,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 } else {
                     outputTriple = null;
                 }
-                checkRange(result); // we check the range even for not-applicable mappings (MID-5953)
+                checkExistingTargetValues(result); // we check the range even for not-applicable mappings (MID-5953)
                 transitionState(MappingEvaluationState.EVALUATED);
 
                 if (isConditionSatisfied()) {
@@ -767,7 +767,25 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         outputTriple.clearMinusSet();
     }
 
-    private void checkRange(OperationResult result)
+    /**
+     * Checks existing values. There are more reasons to do this:
+     * <ol>
+     *   <li>Range checking. We want to delete values that are in the range of this mapping but were not produced by it.</li>
+     *   <li>Provenance handling.</li>
+     * </ol>
+     *
+     * <p/>
+     * The provenance handling is a bit more complex. It has three parts:
+     * <ol>
+     *    <li>For all negative values, we have to restrict deletion to our yield (only). This functionality can
+     *        be provided by us or by the consolidator. Let us do it ourselves.</li>
+     *    <li>For all non-negative values, We have to delete our own yield, except for cases where the metadata for
+     *        the yield remained the same. This is to avoid accumulation of obsolete yields (although the
+     *        consolidation could presumably treat this somehow). See {@link #deleteOwnYieldFromNonNegativeValues()} method.</li>
+     *    <li>If the range is specified as "matchingProvenance", we remove our yield from all existing values.</li>
+     * </ol>
+     */
+    private void checkExistingTargetValues(OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         VariableBindingDefinitionType target = mappingBean.getTarget();
         if (target == null) {
@@ -775,7 +793,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
 
         if (valueMetadataComputer != null && valueMetadataComputer.supportsProvenance()) {
-            removePreviouslyComputedValues();
+            restrictNegativeValuesToOwnYield();
+            // Must come after the above method because this method creates some values in minus set.
+            // We don't want these newly-added minus values to be processed by the above method.
+            deleteOwnYieldFromNonNegativeValues();
         }
 
         if (target.getSet() == null) {
@@ -809,11 +830,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     /**
      * Special treatment of values present in both original item and zero/plus sets: values that were previously computed by this
      * mapping (and are computed also now) are removed.
-     *
-     * In the future this will be more configurable e.g. to be able to extend this behavior to all values produced by this
-     * mapping (i.e. not only those present in plus/zero sets).
      */
-    private void removePreviouslyComputedValues() throws SchemaException {
+    private void deleteOwnYieldFromNonNegativeValues() throws SchemaException {
         if (outputTriple == null || originalTargetValues == null) {
             return;
         }
@@ -856,6 +874,70 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
     }
 
+    /**
+     * For negative (minus) values we want to delete our yield only.
+     */
+    private void restrictNegativeValuesToOwnYield() throws SchemaException {
+        if (outputTriple == null || originalTargetValues == null) {
+            LOGGER.trace("restrictNegativeValuesToOwnYield: No output triple or no original target values, exiting.");
+            return;
+        }
+
+        List<V> negativeValuesToKill = new ArrayList<>();
+
+        for (V negativeValue : outputTriple.getMinusSet()) {
+            LOGGER.trace("restrictNegativeValuesToOwnYield processing negative value of {}", negativeValue);
+            if (negativeValue != null) {
+                assert !negativeValue.hasValueMetadata();
+                List<V> matchingOriginalValues = originalTargetValues.stream()
+                        .filter(originalValue -> negativeValue.equals(originalValue, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS))
+                        .collect(Collectors.toList());
+
+                if (matchingOriginalValues.isEmpty()) {
+                    // Huh? There's no original value corresponding to the one being deleted.
+                    // We should maybe skip this negative value. But let's keep this dirty work to the consolidator instead.
+                    LOGGER.trace("No original value corresponding to value in minus set. "
+                            + "Keeping for consolidator to resolve. Value in minus set: {}", negativeValue);
+                } else {
+                    // We collect matching metadata from all equivalent existing values.
+                    List<PrismContainerValue<ValueMetadataType>> matchingMetadataValues = new ArrayList<>();
+                    boolean nakedValuePresent = false;
+                    for (V matchingOriginalValue : matchingOriginalValues) {
+                        List<PrismContainerValue<ValueMetadataType>> metadataValues =
+                                matchingOriginalValue.<ValueMetadataType>getValueMetadataAsContainer().getValues();
+                        if (metadataValues.isEmpty()) {
+                            nakedValuePresent = true;
+                        }
+                        metadataValues.stream()
+                                .filter(md -> hasMappingSpec(md.asContainerable(), mappingSpecification))
+                                .forEach(matchingMetadataValues::add);
+                    }
+
+                    if (nakedValuePresent) {
+                        // No metadata found. This is a kind of transitional state, because if we work with metadata,
+                        // each value should have some metadata. But OK, let us simply remove this value altogether.
+                        LOGGER.trace("No metadata found for existing value(s), which is strange. "
+                                + "Let us simply remove this value altogether.");
+                    } else {
+                        // Let us remove only own metadata.
+                        if (matchingMetadataValues.isEmpty()) {
+                            LOGGER.trace("Matching metadata not found for existing value(s). Preventing removal of this negative value.");
+                            negativeValuesToKill.add(negativeValue);
+                        } else {
+                            LOGGER.trace("Restricting negative value to the following metadata values:\n{}",
+                                    DebugUtil.debugDumpLazily(matchingMetadataValues, 1));
+                            negativeValue.<ValueMetadataType>getValueMetadataAsContainer().addAll(CloneUtil.cloneCollectionMembers(matchingMetadataValues));
+                        }
+                    }
+                }
+            }
+        }
+
+        for (V negativeValueToKill : negativeValuesToKill) {
+            outputTriple.getMinusSet().removeIf(value -> value == negativeValueToKill); // using == on purpose
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private void addToMinusIfNecessary(V originalValue, ValueSetDefinition<V, D> rangeSetDef) {
         if (outputTriple != null && (outputTriple.presentInPlusSet(originalValue) || outputTriple.presentInZeroSet(originalValue))) {
@@ -871,6 +953,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             LOGGER.trace("A yield of original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
             valueToDelete.<ValueMetadataType>getValueMetadataAsContainer()
                     .removeIf(md -> !ProvenanceMetadataUtil.hasMappingSpec(md.asContainerable(), mappingSpecification));
+            // TODO we could check if the minus set already contains the value we are going to remove
         } else {
             LOGGER.trace("Original value is in the mapping range (while not in mapping result), adding it to minus set: {}", originalValue);
         }

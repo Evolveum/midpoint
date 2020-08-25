@@ -73,8 +73,8 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
                     return false;
                 case ALL:
                     return true;
-                case OWN_PROVENANCE:
-                    return isOfOwnProvenance(pval);
+                case MATCHING_PROVENANCE:
+                    return isOfMatchingProvenance(pval);
                 default:
                     throw new IllegalStateException("Unknown pre value: "+ predefinedRange);
             }
@@ -83,7 +83,7 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
         }
     }
 
-    private boolean isOfOwnProvenance(IV pval) {
+    private boolean isOfMatchingProvenance(IV pval) {
         if (mappingSpecification == null) {
             throw new UnsupportedOperationException("Mapping-related provenance can be checked only on mapping targets. In: " + shortDesc);
         }
@@ -141,10 +141,10 @@ public class ValueSetDefinition<IV extends PrismValue, D extends ItemDefinition>
      * Whether we deal with whole values (false) or only with specific yields (true).
      *
      * Current implementation is approximate: The only situation when dealing with the yields is when
-     * "ownProvenance" predefined set is used.
+     * "matchingProvenance" predefined set is used.
      */
     @Experimental
     public boolean isYieldSpecific() {
-        return predefinedRange == ValueSetDefinitionPredefinedType.OWN_PROVENANCE;
+        return predefinedRange == ValueSetDefinitionPredefinedType.MATCHING_PROVENANCE;
     }
 }

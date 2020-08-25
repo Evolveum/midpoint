@@ -98,7 +98,7 @@
                     <target>
                         <path>organization</path>
                         <set>
-                            <predefined>ownProvenance</predefined>
+                            <predefined>matchingProvenance</predefined>
                         </set>
                     </target>
                 </inbound>

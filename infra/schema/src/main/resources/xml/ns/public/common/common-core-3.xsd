@@ -10171,15 +10171,15 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
-            <xsd:enumeration value="ownProvenance">
+            <xsd:enumeration value="matchingProvenance">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Values of own provenance (i.e. provided by the current mapping) will be
+                        Values of matching provenance (i.e. provided by the current mapping) will be
                         part of the set. Limited to target set definition for mappings.
                         Provenance metadata processing must be enabled for this to work.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="OWN_PROVENANCE"/>
+                        <jaxb:typesafeEnumMember name="MATCHING_PROVENANCE"/>
                         <a:experimental>true</a:experimental>
                         <a:since>4.2</a:since>
                     </xsd:appinfo>

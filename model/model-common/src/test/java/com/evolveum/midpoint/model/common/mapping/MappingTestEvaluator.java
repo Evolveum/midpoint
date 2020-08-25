@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
@@ -134,6 +135,18 @@ public class MappingTestEvaluator {
             String filename, String testName, String defaultTargetPropertyName, ObjectDelta<UserType> userDelta)
             throws SchemaException, IOException, EncryptionException {
         return this.<T>createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta).build();
+    }
+
+    public <T> MappingImpl<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMapping(
+            String filename, String testName, String defaultTargetPropertyName, ObjectDelta<UserType> userDelta,
+            Consumer<MappingBuilder> mappingBuilderCustomizer)
+            throws SchemaException, IOException, EncryptionException {
+        MappingBuilder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> mappingBuilder =
+                this.<T>createMappingBuilder(filename, testName, null, toPath(defaultTargetPropertyName), userDelta);
+        if (mappingBuilderCustomizer != null) {
+            mappingBuilderCustomizer.accept(mappingBuilder);
+        }
+        return mappingBuilder.build();
     }
 
     public <T> MappingBuilder<PrismPropertyValue<T>, PrismPropertyDefinition<T>> createMappingBuilder(

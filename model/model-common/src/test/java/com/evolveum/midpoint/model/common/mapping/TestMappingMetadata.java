@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.model.common.mapping;
 
+import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import static com.evolveum.midpoint.model.common.mapping.MappingTestEvaluator.TEST_DIR;
@@ -14,6 +16,7 @@ import static org.testng.AssertJUnit.fail;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -58,6 +61,8 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
 
     private static final String MAPPING_SCRIPT_FULLNAME_METADATA_XML = "mapping-script-fullname-metadata.xml";
     private static final String MAPPING_ASIS_FULLNAME_METADATA_XML = "mapping-asis-fullname-metadata.xml";
+    private static final String MAPPING_ASIS_FULLNAME_METADATA_RANGE_XML = "mapping-asis-fullname-metadata-range.xml";
+    private static final String MAPPING_ASIS_FULLNAME_METADATA_RANGE_ALL_XML = "mapping-asis-fullname-metadata-range-all.xml";
     private static final String MAPPING_PATH_FULLNAME_METADATA_XML = "mapping-path-fullname-metadata.xml";
     private static final String MAPPING_CONST_FULLNAME_METADATA_XML = "mapping-const-fullname-metadata.xml";
     private static final String MAPPING_GENERATE_FULLNAME_METADATA_XML = "mapping-generate-fullname-metadata.xml";
@@ -133,7 +138,10 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      *
      * Delta: add familyName Sparrow ("hr").
      *
-     * Expected result: user, rest, hr (in zero set, because no real value is being added).
+     * Expected result:
+     *  - zero: user, rest, hr (because no real value is being added).
+     *
+     * See also the following test for deleting existing metadata.
      */
     @Test
     public void testAddSparrowHr() throws Exception {
@@ -162,15 +170,54 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     /**
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
+     * target (Jack Sparrow) has origins: user, rest (in the form of m:user+rest).
      *
      *    (see user-jack-metadata.xml)
      *
-     * Delta: add familyName Sparrow ("user").
+     * Delta: add familyName Sparrow ("hr").
+     *
+     * Expected result:
+     * - zero: user, rest, hr (because no real value is being added)
+     * - minus: user, rest (because mapping recognizes its own previous output, even without range setting)
+     */
+    @Test
+    public void testAddSparrowHrWithExisting() throws Exception {
+        PrismPropertyValue<PolyString> sparrowHr =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Sparrow"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowHr.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .beginAcquisition()
+                        .originRef("hr", ServiceType.COMPLEX_TYPE);
+
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_FAMILY_NAME).add(sparrowHr)
+                .asObjectDelta(null);
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluate(MAPPING_SCRIPT_FULLNAME_METADATA_XML, delta,
+                existingValuesCustomizer(createJackSparrowOriginal()));
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("triple", outputTriple);
+        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()), "user", "rest", "hr");
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getMinusSet()), "user", "rest");
+    }
+
+    /**
+     * Jack has acquisition origins: user, rest
+     * Sparrow has acquisition origins: user
+     *
+     *    (see user-jack-metadata.xml)
+     *
+     * Delta: add familyName Sparrow ("user") - phantom add
      *
      * Expected result: user, rest (in zero set, because no real value is being added).
      */
     @Test
-    public void testAddSparrowUser() throws Exception {
+    public void testAddSparrowUserPhantom() throws Exception {
         PrismPropertyValue<PolyString> sparrowUserWithOriginRef =
                 evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Sparrow"));
         //noinspection unchecked
@@ -183,6 +230,43 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
                 .item(UserType.F_FAMILY_NAME).add(sparrowUserWithOriginRef)
                 .asObjectDelta(null);
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluate(MAPPING_SCRIPT_FULLNAME_METADATA_XML, delta);
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("triple", outputTriple);
+        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleNoMinus(outputTriple);
+
+        PrismPropertyValue<PolyString> jackSparrow = MiscUtil.extractSingleton(outputTriple.getZeroSet());
+        assertOrigins(jackSparrow, "user", "rest");
+    }
+
+    /**
+     * Jack has acquisition origins: user, rest
+     * Sparrow has acquisition origins: user
+     * target (Jack Sparrow) has origins: user, rest (in the form of m:user+rest).
+     *
+     *    (see user-jack-metadata.xml)
+     *
+     * Delta: add familyName Sparrow ("user") - phantom add
+     *
+     * Expected result: user, rest (in zero set, because no real value is being added).
+     */
+    @Test
+    public void testAddSparrowUserPhantomWithExisting() throws Exception {
+        PrismPropertyValue<PolyString> sparrowUserWithOriginRef =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Sparrow"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowUserWithOriginRef.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .beginAcquisition()
+                        .originRef("user", ServiceType.COMPLEX_TYPE);
+
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_FAMILY_NAME).add(sparrowUserWithOriginRef)
+                .asObjectDelta(null);
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluate(MAPPING_SCRIPT_FULLNAME_METADATA_XML, delta,
+                existingValuesCustomizer(createJackSparrowOriginal()));
 
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
         displayDumpable("triple", outputTriple);
@@ -242,6 +326,53 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     /**
      * Jack has acquisition origins: user, rest
      * Sparrow has acquisition origins: user
+     * target (Jack Sparrow) has origins: user, rest (in the form of m:user+rest).
+     *
+     *    (see user-jack-metadata.xml)
+     *
+     * Delta: add givenName Jack (rest+timestamp).
+     *
+     * Expected result: user, rest+timestamp (in zero set, because no real value is being added).
+     */
+    @Test
+    public void testAddJackRestWithTimestampWithExisting() throws Exception {
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
+
+        PrismPropertyValue<PolyString> jackRestWithTs =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Jack"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) jackRestWithTs.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .beginAcquisition()
+                        .originRef("rest", ServiceType.COMPLEX_TYPE)
+                        .timestamp(now);
+
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).add(jackRestWithTs)
+                .asObjectDelta(null);
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluate(MAPPING_SCRIPT_FULLNAME_METADATA_XML, delta,
+                existingValuesCustomizer(createJackSparrowOriginal()));
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("triple", outputTriple);
+        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleNoMinus(outputTriple);
+
+        PrismPropertyValue<PolyString> jackSparrow = MiscUtil.extractSingleton(outputTriple.getZeroSet());
+        assertOrigins(jackSparrow, "user", "rest");
+
+        List<ProvenanceAcquisitionType> acquisitions = ((ValueMetadataType) jackSparrow.getValueMetadata().getValue().asContainerable()).getProvenance().getAcquisition();
+        XMLGregorianCalendar timestamp = acquisitions.stream().filter(acq -> acq.getOriginRef().getOid().equals("rest"))
+                .findAny()
+                .orElseThrow(() -> new AssertionError("no origin rest value"))
+                .getTimestamp();
+        assertThat(timestamp).isEqualTo(now);
+    }
+
+    /**
+     * Jack has acquisition origins: user, rest
+     * Sparrow has acquisition origins: user
      *
      *    (see user-jack-metadata.xml)
      *
@@ -271,6 +402,45 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         PrismAsserts.assertTripleNoMinus(outputTriple);
 
         assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()), "user", "hr");
+    }
+
+    /**
+     * Jack has acquisition origins: user, rest
+     * Sparrow has acquisition origins: user
+     * target (Jack Sparrow) has origins: user, rest (in the form of m:user+rest).
+     *
+     *    (see user-jack-metadata.xml)
+     *
+     * Delta: replace giveName Jack ("hr")
+     *
+     * Expected result:
+     *  - zero: hr, user
+     *  - minus: user, rest
+     */
+    @Test
+    public void testReplaceJackHrWithExisting() throws Exception {
+        PrismPropertyValue<PolyString> jackHr =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Jack"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) jackHr.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .beginAcquisition()
+                        .originRef("hr", ServiceType.COMPLEX_TYPE);
+
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).replace(jackHr)
+                .asObjectDelta(null);
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluate(MAPPING_SCRIPT_FULLNAME_METADATA_XML, delta,
+                existingValuesCustomizer(createJackSparrowOriginal()));
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("triple", outputTriple);
+        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()), "user", "hr");
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getMinusSet()), "user", "rest");
     }
 
     /**
@@ -316,6 +486,7 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
      * Delta: delete familyName Sparrow (user)
      *
      * Expected result: Jack Sparrow (no metadata) in delete set.
+     * We do not know the metadata because we do not have the original target value.
      */
     @Test
     public void testDeleteSparrowUser() throws Exception {
@@ -339,6 +510,76 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
 
         assertNoMetadata(MiscUtil.extractSingleton(outputTriple.getMinusSet()));
+    }
+
+    /**
+     * Jack has acquisition origins: user, rest
+     * Sparrow has acquisition origins: user
+     * target (Jack Sparrow) has origins: user, rest (in the form of m:user+rest).
+     *
+     *    (see user-jack-metadata.xml)
+     *
+     * Delta: delete familyName Sparrow (user)
+     *
+     * Expected result: Jack Sparrow (user, rest) in delete set.
+     */
+    @Test
+    public void testDeleteSparrowUserWithExisting() throws Exception {
+        PrismPropertyValue<PolyString> sparrowUser =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Sparrow"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowUser.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .beginAcquisition()
+                        .originRef("user", ServiceType.COMPLEX_TYPE);
+
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_FAMILY_NAME).delete(sparrowUser)
+                .asObjectDelta(null);
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluate(MAPPING_SCRIPT_FULLNAME_METADATA_XML, delta,
+                existingValuesCustomizer(createJackSparrowOriginal()));
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("triple", outputTriple);
+        PrismAsserts.assertTripleNoZero(outputTriple);
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getMinusSet()), "user", "rest");
+    }
+
+    /**
+     * Jack has acquisition origins: user, rest
+     * Sparrow has acquisition origins: user
+     *
+     *    (see user-jack-metadata.xml)
+     *
+     * Delta: delete familyName Sparrow (custom) -- phantom delete
+     *
+     * Expected result: Jack Sparrow (user, rest) in zero set.
+     */
+    @Test
+    public void testDeleteSparrowCustomPhantom() throws Exception {
+        PrismPropertyValue<PolyString> sparrowUser =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Sparrow"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) sparrowUser.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .beginAcquisition()
+                        .originRef("custom", ServiceType.COMPLEX_TYPE);
+
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_FAMILY_NAME).delete(sparrowUser)
+                .asObjectDelta(null);
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluate(MAPPING_SCRIPT_FULLNAME_METADATA_XML, delta);
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("triple", outputTriple);
+        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleNoMinus(outputTriple);
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()), "user", "rest");
     }
 
     /**
@@ -511,6 +752,160 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
     }
 
     /**
+     * Jack has acquisition origins: user, rest
+     *
+     *    (see user-jack-metadata.xml)
+     *
+     * Delta: replace givenName Jackie (user)
+     *
+     * Expected result:
+     *  - Jackie (user) in plus set
+     *  - Jack (no MD) in minus set
+     */
+    @Test
+    public void testAsIsDeleteSparrowUser() throws Exception {
+        PrismPropertyValue<PolyString> jackieUser =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Jackie"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieUser.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .beginAcquisition()
+                        .originRef("user", ServiceType.COMPLEX_TYPE);
+
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).replace(jackieUser)
+                .asObjectDelta(null);
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluate(MAPPING_ASIS_FULLNAME_METADATA_XML, delta);
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("triple", outputTriple);
+        PrismAsserts.assertTripleNoZero(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Jackie"));
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack"));
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getPlusSet()), "user");
+        assertNoMetadata(MiscUtil.extractSingleton(outputTriple.getMinusSet()));
+    }
+
+    /**
+     * Jack has acquisition origins: user, rest
+     *
+     *    (see user-jack-metadata.xml)
+     *
+     * Delta: replace givenName Jackie (user)
+     * Existing: Jack Sparrow (m:hr, user)
+     *
+     * Expected result:
+     *  - Jackie (user) in plus set
+     *  - Jack (no MD) in minus set
+     *  - Jack Sparrow (m:hr) in minus set (because of range)
+     */
+    @Test
+    public void testAsIsDeleteSparrowUserWithRangeAll() throws Exception {
+
+        PrismPropertyValue<PolyString> jackieUser =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Jackie"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieUser.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .beginAcquisition()
+                        .originRef("user", ServiceType.COMPLEX_TYPE);
+
+        PrismPropertyValue<PolyString> jackSparrowHr =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(PrismTestUtil.createPolyString("Jack Sparrow"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) jackSparrowHr.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .mappingSpec(createMappingSpec())
+                    .beginAcquisition()
+                        .originRef("hr", ServiceType.COMPLEX_TYPE)
+                    .<ProvenanceMetadataType>end()
+                    .beginAcquisition()
+                        .originRef("user", ServiceType.COMPLEX_TYPE)
+                    .end();
+
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).replace(jackieUser)
+                .asObjectDelta(null);
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluate(MAPPING_ASIS_FULLNAME_METADATA_RANGE_ALL_XML, delta,
+                        existingValuesCustomizer(jackSparrowHr));
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("triple", outputTriple);
+        PrismAsserts.assertTripleNoZero(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Jackie"));
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack"), PrismTestUtil.createPolyString("Jack Sparrow"));
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getPlusSet()), "user");
+        //noinspection ConstantConditions
+        assertNoMetadata(outputTriple.getMinusSet().stream().filter(v -> v.getRealValue().getOrig().equals("Jack")).findAny().orElse(null));
+        //noinspection ConstantConditions
+        assertOrigins(outputTriple.getMinusSet().stream().filter(v -> v.getRealValue().getOrig().equals("Jack Sparrow")).findAny().orElse(null), "hr", "user");
+    }
+
+    private MappingSpecificationType createMappingSpec() {
+        return new MappingSpecificationType(getPrismContext())
+                .mappingName("mapping");
+    }
+
+    /**
+     * Jack has acquisition origins: user, rest
+     *
+     *    (see user-jack-metadata.xml)
+     *
+     * Delta: replace givenName Jackie (user)
+     * Existing: Jack Sparrow (m:hr, user)
+     *
+     * Expected result:
+     *  - Jackie (user) in plus set
+     *  - Jack (no MD) in minus set
+     *  - Jack Sparrow (m:hr) in minus set (because of range)
+     */
+    @Test
+    public void testAsIsDeleteSparrowUserWithRange() throws Exception {
+        PrismPropertyValue<PolyString> jackieUser =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(new PolyString("Jackie"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) jackieUser.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .beginAcquisition()
+                        .originRef("user", ServiceType.COMPLEX_TYPE);
+
+        PrismPropertyValue<PolyString> jackSparrowHr =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(PrismTestUtil.createPolyString("Jack Sparrow"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) jackSparrowHr.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .mappingSpec(createMappingSpec())
+                    .beginAcquisition()
+                        .originRef("hr", ServiceType.COMPLEX_TYPE)
+                    .<ProvenanceMetadataType>end()
+                    .beginAcquisition()
+                        .originRef("user", ServiceType.COMPLEX_TYPE)
+                    .end();
+
+        ObjectDelta<UserType> delta = evaluator.getPrismContext().deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).replace(jackieUser)
+                .asObjectDelta(null);
+        MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
+                evaluate(MAPPING_ASIS_FULLNAME_METADATA_RANGE_XML, delta,
+                        existingValuesCustomizer(jackSparrowHr));
+
+        PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("triple", outputTriple);
+        PrismAsserts.assertTripleNoZero(outputTriple);
+        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Jackie"));
+        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack"), PrismTestUtil.createPolyString("Jack Sparrow"));
+
+        assertOrigins(MiscUtil.extractSingleton(outputTriple.getPlusSet()), "user");
+        //noinspection ConstantConditions
+        assertNoMetadata(outputTriple.getMinusSet().stream().filter(v -> v.getRealValue().getOrig().equals("Jack")).findAny().orElse(null));
+        //noinspection ConstantConditions
+        assertOrigins(outputTriple.getMinusSet().stream().filter(v -> v.getRealValue().getOrig().equals("Jack Sparrow")).findAny().orElse(null), "hr", "user");
+    }
+
+    /**
      * Now testing path evaluator ($user/givenName -> fullName)
      *
      * Jack has acquisition origins: user, rest
@@ -603,9 +998,17 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         assertOrigins(MiscUtil.extractSingleton(outputTriple.getZeroSet()));
     }
 
-    public MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> evaluate(String filename, ObjectDelta<UserType> delta) throws Exception {
+    public MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> evaluate(String filename,
+            ObjectDelta<UserType> delta) throws Exception {
+        return evaluate(filename, delta, null);
+    }
+
+    public MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> evaluate(String filename,
+            ObjectDelta<UserType> delta, Consumer<MappingBuilder> mappingBuilderCustomizer) throws Exception {
+
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping =
-                evaluator.createMapping(filename, getTestNameShort(), "fullName", delta);
+                evaluator.createMapping(filename, getTestNameShort(), "fullName", delta,
+                        addMappingSpec(mappingBuilderCustomizer));
 
         Task task = createTask();
         OperationResult result = createOperationResult();
@@ -627,6 +1030,15 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
         return mapping;
     }
 
+    private Consumer<MappingBuilder> addMappingSpec(Consumer<MappingBuilder> customizer) {
+        return mappingBuilder -> {
+            mappingBuilder.mappingSpecification(createMappingSpec());
+            if (customizer != null) {
+                customizer.accept(mappingBuilder);
+            }
+        };
+    }
+
     private void assertNoMetadata(PrismValue value) {
         if (value.hasValueMetadata()) {
             fail("Value " + value + " has unexpected metadata:\n" + value.getValueMetadataAsContainer().debugDump());
@@ -645,6 +1057,40 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
                 .map(acq -> acq.getOriginRef().getOid())
                 .collect(Collectors.toSet());
         assertThat(realOrigins).as("real origins").containsExactlyInAnyOrder(origins);
+    }
+
+        @NotNull
+    private PrismPropertyValue<PolyString> createJackSparrowOriginal() {
+        PrismPropertyValue<PolyString> jackSparrowOriginal =
+                evaluator.getPrismContext().itemFactory().createPropertyValue(PrismTestUtil.createPolyString("Jack Sparrow"));
+        //noinspection unchecked
+        ((PrismContainer<ValueMetadataType>) (PrismContainer) jackSparrowOriginal.getValueMetadata()).createNewValue().asContainerable()
+                .beginProvenance()
+                    .mappingSpec(createMappingSpec())
+                    .beginAcquisition()
+                        .originRef("user", ServiceType.COMPLEX_TYPE)
+                    .<ProvenanceMetadataType>end()
+                    .beginAcquisition()
+                        .originRef("rest", ServiceType.COMPLEX_TYPE)
+                    .end();
+        return jackSparrowOriginal;
+    }
+
+    private Consumer<MappingBuilder> existingValuesCustomizer(PolyString... values) {
+        return mappingBuilder -> {
+            //noinspection unchecked
+            mappingBuilder.originalTargetValues(
+                    Arrays.stream(values)
+                            .map(value -> evaluator.getPrismContext().itemFactory().createPropertyValue(value))
+                            .collect(Collectors.toList()));
+        };
+    }
+
+    private Consumer<MappingBuilder> existingValuesCustomizer(PrismValue... values) {
+        return mappingBuilder -> {
+            //noinspection unchecked
+            mappingBuilder.originalTargetValues(Arrays.asList(values));
+        };
     }
 
     private ModelContext<UserType> createFakeLensContext() {

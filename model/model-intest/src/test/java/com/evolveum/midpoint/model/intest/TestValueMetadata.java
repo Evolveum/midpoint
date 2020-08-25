@@ -1007,16 +1007,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
      *  - Leonhard (admin)
      *  - Euler (admin)
      *  - Leonhard Euler (m:admin, hr)
+     *  - alias: Leonhard Euler (m:admin+hr, self) TODO
      *
      * Delta:
      *  - replace givenName: Leo (self)
      *
      * After:
-     *  - Leo (self)
-     *  - Euler (admin)
-     *  - Leo Euler (m:admin+self)
-     *
-     *  and the alias of Leonhard Euler will be there with the origin = self
+     *  - givenName: Leo (self)
+     *  - familyName: Euler (admin)
+     *  - fullName: Leo Euler (m:admin+self)
+     *  - alias:
+     *     - Leo Euler (m:admin+self)
+     *     - Leonhard Euler (self)
      */
     @Test
     public void test240ChangeGivenName() throws Exception {
@@ -1119,6 +1121,120 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
                                 .assertTimestampBetween(now, now)
                             .end()
+                        .end()
+                    .end()
+                .end();
+        // @formatter:on
+    }
+
+    /**
+     * Replace givenName provenance
+     *
+     * Before:
+     *  - givenName: Leo (self)
+     *  - familyName: Euler (admin)
+     *  - fullName: Leo Euler (m:admin+self)
+     *  - alias:
+     *     - Leo Euler (m:admin+self)
+     *     - Leonhard Euler (self)
+     *
+     * Delta:
+     *  - replace givenName: Leo (admin)
+     *
+     * After:
+     *  - givenName: Leo (admin)
+     *  - familyName: Euler (admin)
+     *  - fullName: Leo Euler (m:admin)
+     *  - alias:
+     *     - Leo Euler (m:admin)
+     *     - Leonhard Euler (self)
+     */
+    @Test
+    public void test250ReplaceGivenNameProvenance() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        XMLGregorianCalendar before = XmlTypeConverter.createXMLGregorianCalendar();
+        Thread.sleep(10);
+        XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
+
+        // @formatter:off
+        PrismPropertyValue<PolyString> leoAdmin = prismContext.itemFactory().createPropertyValue();
+        leoAdmin.setValue(PolyString.fromOrig("Leo"));
+        leoAdmin.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginProvenance()
+                            .beginAcquisition()
+                                .originRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .timestamp(now)
+                            .<ProvenanceMetadataType>end()
+                        .<ValueMetadataType>end());
+        // @formatter:on
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_GIVEN_NAME).replace(leoAdmin)
+                .asObjectDelta(USER_LEONHARD.oid);
+
+        when();
+
+        executeChanges(delta, null, task, result);
+
+        then();
+        // @formatter:off
+        assertUserAfter(USER_LEONHARD.oid)
+                .displayXml()
+                .valueMetadataSingle(UserType.F_GIVEN_NAME)
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertTimestamp(now)
+                        .end()
+                    .end()
+                .end()
+
+                .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertSize(1)
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .valueMetadata(UserType.F_FULL_NAME)
+                    .assertSize(1)
+                    .singleValue()
+                        .provenance()
+                            .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                            .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
+                                .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .end()
+                        .end()
+                    .end()
+                .end()
+
+                .valueMetadataSingle(PATH_ALIAS, ValueSelector.origEquals("Leonhard Euler"))
+                    .provenance()
+                        .assertNoMappingSpec()
+                        .singleAcquisition()
+                            .assertChannel(SchemaConstants.CHANNEL_REST_LOCAL)
+                            .assertTimestampBefore(before)
+                        .end()
+                    .end()
+                .end()
+                .valueMetadataSingle(PATH_ALIAS, ValueSelector.origEquals("Leo Euler"))
+                    .provenance()
+                        .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
+                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
                         .end()
                     .end()
                 .end();

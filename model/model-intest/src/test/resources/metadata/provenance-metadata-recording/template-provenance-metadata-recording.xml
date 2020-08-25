@@ -45,7 +45,7 @@
         <target>
             <path>extension/alias</path>
             <set>
-                <predefined>ownProvenance</predefined>
+                <predefined>matchingProvenance</predefined>
             </set>
         </target>
     </mapping>

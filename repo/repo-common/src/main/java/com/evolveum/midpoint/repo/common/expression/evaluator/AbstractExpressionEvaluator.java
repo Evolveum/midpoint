@@ -159,6 +159,12 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
         }
     }
 
+    /**
+     * Applies value metadata to the triple to-be-outputted.
+     *
+     * To be used for simple mappings that basically copy data from given source (input IDI or some other data source)
+     * to the output.
+     */
     public void applyValueMetadata(PrismValueDeltaSetTriple<V> triple, ExpressionEvaluationContext context,
             OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
@@ -168,6 +174,12 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
             }
             for (V value : triple.getZeroSet()) {
                 applyValueMetadata(value, context, result);
+            }
+            for (V value : triple.getMinusSet()) {
+                // For values in minus set we must delete any existing metadata. The reason is that a mapping
+                // computes own metadata for its outputs - so metadata from the input values in minus set are no longer
+                // relevant on the output.
+                value.getValueMetadata().clear();
             }
         }
     }
