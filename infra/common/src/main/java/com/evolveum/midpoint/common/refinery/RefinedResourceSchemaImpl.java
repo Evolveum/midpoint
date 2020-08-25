@@ -319,7 +319,9 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
             }
             RefinedResourceSchema refinedSchema = parse(resource, prismContext);
             resource.setUserData(USER_DATA_KEY_REFINED_SCHEMA, refinedSchema);
-            refinedSchema.freeze();
+            if (refinedSchema != null) {
+                refinedSchema.freeze();
+            }
             return refinedSchema;
         }
     }
