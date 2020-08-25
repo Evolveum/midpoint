@@ -509,6 +509,7 @@ public class ResourceManager {
                 throw new IllegalStateException("Unexpected exception: " + e.getMessage(), e);      // fixme temporary solution
             }
         }
+        newResourceDefinition.freeze();
         resource.setDefinition(newResourceDefinition);
     }
 

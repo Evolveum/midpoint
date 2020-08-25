@@ -86,6 +86,7 @@ import static java.util.Collections.emptySet;
 public class LensUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(LensUtil.class);
+    private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
     public static <F extends ObjectType> ResourceType getResourceReadOnly(LensContext<F> context,
                                                                   String resourceOid, ProvisioningService provisioningService, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -1191,5 +1192,13 @@ public class LensUtil {
             throw new UnsupportedOperationException("The 'tolerant=false' setting on template items is no longer supported."
                     + " Please use mapping range instead. In '" + itemPath + "' consolidation in " + contextDescription);
         }
+    }
+
+    @NotNull
+    public static PrismPropertyDefinition<Boolean> createConditionDefinition(PrismContext prismContext) {
+        MutablePrismPropertyDefinition<Boolean> booleanDefinition = prismContext.definitionFactory()
+                .createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN);
+        booleanDefinition.freeze();
+        return booleanDefinition;
     }
 }

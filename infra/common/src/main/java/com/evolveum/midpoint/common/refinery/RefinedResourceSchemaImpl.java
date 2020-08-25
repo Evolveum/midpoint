@@ -319,16 +319,13 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
             }
             RefinedResourceSchema refinedSchema = parse(resource, prismContext);
             resource.setUserData(USER_DATA_KEY_REFINED_SCHEMA, refinedSchema);
+            refinedSchema.freeze();
             return refinedSchema;
         }
     }
 
     public static LayerRefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource, LayerType layer, PrismContext prismContext) throws SchemaException {
-        RefinedResourceSchema refinedSchema = getRefinedSchema(resource, prismContext);
-        if (refinedSchema == null) {
-            return null;
-        }
-        return refinedSchema.forLayer(layer);
+        return getRefinedSchema(resource, prismContext).forLayer(layer);
     }
 
     public static boolean hasRefinedSchema(ResourceType resourceType) {

@@ -577,6 +577,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         MutablePrismPropertyDefinition<Boolean> shadowExistenceTargetDef = prismContext.definitionFactory().createPropertyDefinition(SHADOW_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN);
         shadowExistenceTargetDef.setMinOccurs(1);
         shadowExistenceTargetDef.setMaxOccurs(1);
+        shadowExistenceTargetDef.freeze();
         params.setTargetItemDefinition(shadowExistenceTargetDef);
         mappingEvaluator.evaluateMappingSetProjection(params, task, result);
 

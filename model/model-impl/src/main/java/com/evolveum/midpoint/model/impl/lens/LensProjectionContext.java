@@ -416,6 +416,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (shadowDefinition == null) {
             try {
                 shadowDefinition = ShadowUtil.applyObjectClass(super.getObjectDefinition(), getCompositeObjectClassDefinition());
+                shadowDefinition.freeze();
             } catch (SchemaException e) {
                 // This should not happen
                 throw new SystemException(e.getMessage(), e);
@@ -639,6 +640,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
                 return null;
             }
             structuralObjectClassDefinition = refinedSchema.getRefinedDefinition(getResourceShadowDiscriminator().getKind(), getResourceShadowDiscriminator().getIntent());
+            if (structuralObjectClassDefinition != null) {
+                structuralObjectClassDefinition.freeze();
+            }
         }
         return structuralObjectClassDefinition;
     }
@@ -675,6 +679,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             if (structuralObjectClassDefinition != null) {
                 compositeObjectClassDefinition = new CompositeRefinedObjectClassDefinitionImpl(
                         structuralObjectClassDefinition, getAuxiliaryObjectClassDefinitions());
+                compositeObjectClassDefinition.freeze();
             }
         }
         return compositeObjectClassDefinition;
