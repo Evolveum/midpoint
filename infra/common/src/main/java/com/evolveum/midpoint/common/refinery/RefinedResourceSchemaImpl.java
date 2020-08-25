@@ -327,7 +327,12 @@ public final class RefinedResourceSchemaImpl implements RefinedResourceSchema {
     }
 
     public static LayerRefinedResourceSchema getRefinedSchema(PrismObject<ResourceType> resource, LayerType layer, PrismContext prismContext) throws SchemaException {
-        return getRefinedSchema(resource, prismContext).forLayer(layer);
+        RefinedResourceSchema refinedSchema = getRefinedSchema(resource, prismContext);
+        if (refinedSchema != null) {
+            return refinedSchema.forLayer(layer);
+        } else {
+            return null;
+        }
     }
 
     public static boolean hasRefinedSchema(ResourceType resourceType) {
