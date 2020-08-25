@@ -24,6 +24,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.sql.*;
 import com.evolveum.midpoint.repo.sql.pure.querydsl.MidpointOracleTemplates;
+import com.evolveum.midpoint.repo.sql.pure.querydsl.MidpointSQLServerTemplates;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.support.InstantType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -299,7 +300,7 @@ public class BaseHelper {
                 break;
             case SQLSERVER:
                 querydslConfiguration =
-                        new Configuration(SQLServer2012Templates.DEFAULT);
+                        new Configuration(MidpointSQLServerTemplates.DEFAULT);
                 break;
             case ORACLE:
                 querydslConfiguration =

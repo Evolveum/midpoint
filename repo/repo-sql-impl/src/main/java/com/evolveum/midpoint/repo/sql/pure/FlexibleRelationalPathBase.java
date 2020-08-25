@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql.pure;
 
+import java.sql.Types;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -33,6 +34,9 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
  * <li>Extend from this class instead of {@code RelationalPathBase}.</li>
  * <li>Extract constants for all column metadata from {@code addMetadata()} method.
  * Remove index information from them (column order, nothing to do with DB indexes).</li>
+ * <li>Use {@link Types#VARCHAR} for text columns, never {@link Types#NVARCHAR},
+ * the proper DB type will be used as needed (e.g. NVARCHAR for SQL Server).
+ * {@link Types#NVARCHAR} is not supported in PG driver at all and would cause problems.</li>
  * <li>Rename the column name to conform with SQL Server (if still relevant), because it is
  * case-sensitive even about column names if *_CS_* collation is used!</li>
  * <li>Rewrite path fields so they use {@code create*} methods from this super-class.</li>
