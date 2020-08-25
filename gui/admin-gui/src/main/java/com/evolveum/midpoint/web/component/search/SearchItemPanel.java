@@ -11,6 +11,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -155,6 +156,11 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
                             return StringUtils.isNotBlank(id) ? choices.getObject().get(Integer.parseInt(id)) : null;
                         }
                     }, true);
+                    break;
+                case DATE:
+                    searchItemField = new DateIntervalSearchPanel(ID_SEARCH_ITEM_FIELD,
+                            new PropertyModel(getModel(), "fromDateModel"),
+                            new PropertyModel(getModel(), "toDateModel"));
                     break;
                 case TEXT:
                     PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition(), getPageBase());

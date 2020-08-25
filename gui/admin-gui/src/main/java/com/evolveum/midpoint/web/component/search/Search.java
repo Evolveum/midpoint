@@ -8,10 +8,16 @@
 package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -37,6 +43,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
+
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -160,7 +169,26 @@ public class Search implements Serializable, DebugDumpable {
             return null;
         }
 
-        PropertySearchItem item = new PropertySearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues());
+        PropertySearchItem item;
+        if (DOMUtil.XSD_DATETIME.equals(def.getTypeName())) {
+            Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
+            XMLGregorianCalendar todayStartTimestamp = XmlTypeConverter.createXMLGregorianCalendar(todayDate);
+            item = new DateSearchItem(this, itemToRemove.getPath(), def,
+                    new IModel<XMLGregorianCalendar>() {
+                        @Override
+                        public XMLGregorianCalendar getObject() {
+                            return todayStartTimestamp;
+                        }
+                    },
+                    new IModel<XMLGregorianCalendar>() {
+                        @Override
+                        public XMLGregorianCalendar getObject() {
+                            return null;
+                        }
+                    });
+        } else {
+            item = new PropertySearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues());
+        }
         if (def instanceof PrismReferenceDefinition) {
             ObjectReferenceType ref = new ObjectReferenceType();
             List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());
