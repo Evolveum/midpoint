@@ -10,8 +10,7 @@ import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY
 import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY_JDBC_URL;
 
 import java.io.IOException;
-import java.sql.Connection;
-import java.sql.Types;
+import java.sql.*;
 import java.util.List;
 import javax.sql.DataSource;
 
