@@ -43,7 +43,7 @@ public class ExpressionFactory implements Cacheable {
 
     private Map<QName,ExpressionEvaluatorFactory> evaluatorFactoriesMap = new HashMap<>();
     private ExpressionEvaluatorFactory defaultEvaluatorFactory;
-    @NotNull private Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<>();
+    @NotNull private final Map<ExpressionIdentifier, Expression<?,?>> cache = new HashMap<>();
     final private PrismContext prismContext;
     private ObjectResolver objectResolver;                    // using setter to allow Spring to handle circular references
     final private SecurityContextManager securityContextManager;
@@ -83,7 +83,7 @@ public class ExpressionFactory implements Cacheable {
         cacheRegistry.unregisterCacheableService(this);
     }
 
-    public <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,
+    public synchronized <V extends PrismValue,D extends ItemDefinition> Expression<V,D> makeExpression(ExpressionType expressionType,
             D outputDefinition, ExpressionProfile expressionProfile, String shortDesc, Task task, OperationResult result)
                     throws SchemaException, ObjectNotFoundException, SecurityViolationException {
         ExpressionIdentifier eid = new ExpressionIdentifier(expressionType, outputDefinition);
@@ -194,16 +194,16 @@ public class ExpressionFactory implements Cacheable {
     }
 
     @Override
-    public void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
+    public synchronized void invalidate(Class<?> type, String oid, CacheInvalidationContext context) {
         if (type == null || type.isAssignableFrom(FunctionLibraryType.class)) {
             // Currently we don't attempt to select entries to be cleared based on function library OID
-            cache = new HashMap<>();
+            cache.clear();
         }
     }
 
     @NotNull
     @Override
-    public Collection<SingleCacheStateInformationType> getStateInformation() {
+    public synchronized Collection<SingleCacheStateInformationType> getStateInformation() {
         return Collections.singleton(
                 new SingleCacheStateInformationType(prismContext)
                         .name(ExpressionFactory.class.getName())
