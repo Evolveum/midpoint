@@ -276,4 +276,11 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
             }
         }
     }
+
+    /**
+     * Returns wrapped query if usage of Querydsl API is more convenient.
+     */
+    public SQLQuery<?> sqlQuery() {
+        return sqlQuery;
+    }
 }

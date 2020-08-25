@@ -4,21 +4,17 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
-import java.util.List;
+import static org.assertj.core.api.Assertions.assertThat;
 
-import org.hibernate.Session;
-import org.hibernate.query.Query;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.QAuditEventRecordMapping;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -27,10 +23,6 @@ import com.evolveum.midpoint.task.api.test.NullTaskImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
-/**
- * @author lazyman
- * @author mederly
- */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
@@ -42,13 +34,13 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
 
     @Test
     public void testAuditCleanup() throws Exception {
-        //GIVEN
+        given();
         if (DO_CREATE) {
             prepareAuditEventRecords();
         }
 
         if (DO_CLEANUP) {
-            //WHEN
+            when();
             CleanupPolicyType policy = new CleanupPolicyType().maxRecords(1);
 
             OperationResult result = new OperationResult("Cleanup audit");
@@ -58,19 +50,9 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
             System.out.println("Cleanup done in " + cleanupDuration + " ms (" + cleanupDuration / (RECORDS - 1) + " ms per record)");
             result.recomputeStatus();
 
-            //THEN
-            assertAuditEventRecord(result);
-        }
-    }
-
-    private void assertAuditEventRecord(OperationResult result) {
-        AssertJUnit.assertTrue(result.isSuccess());
-        try (Session session = getFactory().openSession()) {
-            session.beginTransaction();
-            Query query = session.createQuery("from " + RAuditEventRecord.class.getSimpleName());
-            List<RAuditEventRecord> records = query.list();
-            AssertJUnit.assertEquals(1, records.size());
-            session.getTransaction().commit();
+            then();
+            assertThat(result.isSuccess()).isTrue();
+            assertThat(count(QAuditEventRecordMapping.INSTANCE)).isEqualTo(1);
         }
     }
 
@@ -89,13 +71,8 @@ public class AuditCleanupPerformanceTest extends BaseSQLRepoTest {
                 System.out.println(i + " records created in " + duration + " ms (" + duration / i + " ms per record)");
             }
         }
-        try (Session session = getFactory().openSession()) {
-            session.beginTransaction();
-            Query query = session.createQuery("select count(*) from " + RAuditEventRecord.class.getSimpleName());
-            Long count = (Long) query.uniqueResult();
-            AssertJUnit.assertEquals(RECORDS, (long) count);
-            session.getTransaction().commit();
-        }
+
+        assertThat(count(QAuditEventRecordMapping.INSTANCE)).isEqualTo(RECORDS);
     }
 
     private ObjectDeltaOperation<UserType> createObjectDeltaOperation(int i) throws Exception {
