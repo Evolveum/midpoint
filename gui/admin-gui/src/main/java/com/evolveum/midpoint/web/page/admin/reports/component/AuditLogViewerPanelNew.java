@@ -15,16 +15,12 @@ import java.util.Date;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.web.component.search.PropertySearchItem;
+import com.evolveum.midpoint.web.component.search.DateSearchItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
-
-import com.evolveum.midpoint.web.session.SessionStorage;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
@@ -54,8 +50,6 @@ import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
-
-import org.apache.wicket.util.string.StringValue;
 
 /**
  * Created by honchar
@@ -105,16 +99,17 @@ public class AuditLogViewerPanelNew extends BasePanel {
 
             @Override
             protected Search createSearch() {
-                return SearchFactory.createContainerSearch(getType(), AuditEventRecordType.F_TIMESTAMP, getPageBase());
+                AuditLogStorage storage = (AuditLogStorage) getPageStorage(getStorageKey());
+                Search search = SearchFactory.createContainerSearch(getType(), AuditEventRecordType.F_TIMESTAMP, getPageBase());
+                DateSearchItem timestampItem = (DateSearchItem) search.findPropertySearchItem(AuditEventRecordType.F_TIMESTAMP);
+                timestampItem.setFromDate(storage.getFromDate());
+                timestampItem.setToDate(storage.getToDate());
+                return search;
             }
 
             @Override
             protected PageStorage getPageStorage(String storageKey){
-                if (getAuditLogViewerStorage() == null){
-                    return super.getPageStorage(storageKey);
-                } else {
-                    return getAuditLogViewerStorage();
-                }
+                return getAuditLogViewerStorage();
             }
         };
         auditLogViewerTable.setOutputMarkupId(true);
@@ -313,7 +308,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
     }
 
     protected AuditLogStorage getAuditLogViewerStorage(){
-        return null;
+        return getPageBase().getSessionStorage().getAuditLog();
     }
 
 }

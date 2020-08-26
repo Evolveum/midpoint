@@ -17,7 +17,7 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
@@ -30,6 +30,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -43,9 +44,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchBoxModeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -173,19 +171,7 @@ public class Search implements Serializable, DebugDumpable {
         if (DOMUtil.XSD_DATETIME.equals(def.getTypeName())) {
             Date todayDate = Date.from(LocalDate.now().atStartOfDay(ZoneId.systemDefault()).toInstant());
             XMLGregorianCalendar todayStartTimestamp = XmlTypeConverter.createXMLGregorianCalendar(todayDate);
-            item = new DateSearchItem(this, itemToRemove.getPath(), def,
-                    new IModel<XMLGregorianCalendar>() {
-                        @Override
-                        public XMLGregorianCalendar getObject() {
-                            return todayStartTimestamp;
-                        }
-                    },
-                    new IModel<XMLGregorianCalendar>() {
-                        @Override
-                        public XMLGregorianCalendar getObject() {
-                            return null;
-                        }
-                    });
+            item = new DateSearchItem(this, itemToRemove.getPath(), def);
         } else {
             item = new PropertySearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues());
         }
@@ -259,7 +245,7 @@ public class Search implements Serializable, DebugDumpable {
                 }
         }
 
-       for (FilterSearchItem item : getFilterItems()) {
+        for (FilterSearchItem item : getFilterItems()) {
            if (item.isApplyFilter()) {
                SearchFilterType filter = item.getPredefinedFilter().getFilter();
                try {
@@ -285,7 +271,7 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     private ObjectFilter createFilterForSearchItem(PropertySearchItem item, PrismContext ctx) {
-        if (item.getValue() == null || item.getValue().getValue() == null) {
+        if (!(item instanceof DateSearchItem) && (item.getValue() == null || item.getValue().getValue() == null)) {
             return null;
         }
 
@@ -352,6 +338,28 @@ public class Search implements Serializable, DebugDumpable {
             String text = (String) searchValue.getValue();
             return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).contains(text).matchingCaseIgnore().buildFilter();
+        } else if (DOMUtil.XSD_DATETIME.equals(propDef.getTypeName())) {
+            if (((DateSearchItem) item).getFromDate() != null && ((DateSearchItem) item).getToDate() != null) {
+                return ctx.queryFor(ObjectType.class)
+                        .item(path, propDef)
+                        .gt(((DateSearchItem) item).getFromDate())
+                        .and()
+                        .item(path, propDef)
+                        .lt(((DateSearchItem) item).getToDate())
+                        .buildFilter();
+            } else if (((DateSearchItem) item).getFromDate() != null) {
+                return ctx.queryFor(ObjectType.class)
+                        .item(path, propDef)
+                        .gt(((DateSearchItem) item).getFromDate())
+                        .buildFilter();
+            } else if (((DateSearchItem) item).getToDate() != null) {
+                return ctx.queryFor(ObjectType.class)
+                        .item(path, propDef)
+                        .lt(((DateSearchItem) item).getToDate())
+                        .buildFilter();
+            } else {
+                return null;
+            }
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(propDef.getTypeName())) {
             //we're looking for string value, therefore substring filter should be used
             String text = (String) searchValue.getValue();
@@ -467,6 +475,18 @@ public class Search implements Serializable, DebugDumpable {
 
     public void setCanConfigure(boolean canConfigure) {
         this.canConfigure = canConfigure;
+    }
+
+    public SearchItem findPropertySearchItem(ItemPath path){
+        if (path == null){
+            return null;
+        }
+        for (PropertySearchItem searchItem : getPropertyItems()){
+            if (path.equivalent(searchItem.getPath())){
+                return searchItem;
+            }
+        }
+        return null;
     }
 
     private String createErrorMessage(Exception ex) {

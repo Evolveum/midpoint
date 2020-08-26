@@ -159,8 +159,8 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
                     break;
                 case DATE:
                     searchItemField = new DateIntervalSearchPanel(ID_SEARCH_ITEM_FIELD,
-                            new PropertyModel(getModel(), "fromDateModel"),
-                            new PropertyModel(getModel(), "toDateModel"));
+                            new PropertyModel(getModel(), "fromDate"),
+                            new PropertyModel(getModel(), "toDate"));
                     break;
                 case TEXT:
                     PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(item.getDefinition(), getPageBase());

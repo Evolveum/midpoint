@@ -10,6 +10,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
@@ -52,6 +53,7 @@ public class DateIntervalSearchPanel extends BasePanel {
 
         TextPanel<String> dateTextField = new TextPanel<String>(ID_DATE_TEXT_FIELD, this::getDateTextValue);
         dateTextField.setOutputMarkupId(true);
+        dateTextField.add(AttributeAppender.append("title", this::getDateTextValue));
         dateTextField.setEnabled(false);
         add(dateTextField);
 

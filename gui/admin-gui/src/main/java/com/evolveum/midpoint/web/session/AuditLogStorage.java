@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditSearchDto;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 /**
  * Created by honchar.
@@ -21,15 +22,19 @@ public class AuditLogStorage implements PageStorage {
     private long pageNumber = 0;
     private ObjectPaging auditLogPaging;
 
+    private Search search;
+    private XMLGregorianCalendar fromDate;
+    private XMLGregorianCalendar toDate;
+
     public AuditLogStorage() {
     }
 
     public Search getSearch() {
-        return null;
+        return search;
     }
 
     public void setSearch(Search search) {
-
+        this.search = search;
     }
 
     public AuditSearchDto getSearchDto() {
@@ -49,6 +54,22 @@ public class AuditLogStorage implements PageStorage {
 
     public void setPageNumber(long pageNumber) {
         this.pageNumber = pageNumber;
+    }
+
+    public XMLGregorianCalendar getFromDate() {
+        return fromDate;
+    }
+
+    public void setFromDate(XMLGregorianCalendar fromDate) {
+        this.fromDate = fromDate;
+    }
+
+    public XMLGregorianCalendar getToDate() {
+        return toDate;
+    }
+
+    public void setToDate(XMLGregorianCalendar toDate) {
+        this.toDate = toDate;
     }
 
     @Override
