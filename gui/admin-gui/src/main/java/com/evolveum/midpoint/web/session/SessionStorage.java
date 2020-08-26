@@ -132,11 +132,11 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (AuditLogStorage)pageStorageMap.get(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG);
     }
 
-    public void setObjectHistoryAuditLog(AuditLogStorage storage) {
-        if (pageStorageMap.containsKey(KEY_OBJECT_HISTORY_AUDIT_LOG)) {
-            pageStorageMap.remove(KEY_OBJECT_HISTORY_AUDIT_LOG);
+    public void setObjectHistoryAuditLog(QName objectType, AuditLogStorage storage) {
+        if (pageStorageMap.containsKey(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG)) {
+            pageStorageMap.remove(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG);
         }
-        pageStorageMap.put(KEY_OBJECT_HISTORY_AUDIT_LOG, storage);
+        pageStorageMap.put(objectType.getLocalPart() + "." + KEY_OBJECT_HISTORY_AUDIT_LOG, storage);
     }
 
 

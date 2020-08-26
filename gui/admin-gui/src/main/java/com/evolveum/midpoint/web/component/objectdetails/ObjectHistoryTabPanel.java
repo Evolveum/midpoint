@@ -68,7 +68,7 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
     protected void onInitialize() {
         super.onInitialize();
 
-        getPageBase().getSessionStorage().setObjectHistoryAuditLog(new AuditLogStorage());
+        getPageBase().getSessionStorage().setObjectHistoryAuditLog(getObjectWrapper().getTypeName(), new AuditLogStorage());
 
         initLayout();
     }
