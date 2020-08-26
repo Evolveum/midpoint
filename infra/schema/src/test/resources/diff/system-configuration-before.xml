@@ -280,7 +280,6 @@
             </objectCollectionView>
             <objectCollectionView id="78">
                 <identifier>recon-tasks-view</identifier>
-                <refreshInterval>30</refreshInterval>
                 <type>TaskType</type>
                 <collection>
                     <collectionRef oid="00000000-0000-0000-0000-000000000501" relation="org:default" type="c:ArchetypeType">
