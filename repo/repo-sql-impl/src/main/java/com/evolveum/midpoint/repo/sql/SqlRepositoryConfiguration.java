@@ -298,8 +298,6 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_TRANSACTION_ISOLATION = "transactionIsolation";
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE = "lockForUpdateViaHibernate";
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_SQL = "lockForUpdateViaSql";
-    @Deprecated
-    public static final String PROPERTY_USE_READ_ONLY_TRANSACTIONS = "useReadOnlyTransactions";
     public static final String PROPERTY_READ_ONLY_TRANSACTIONS_STATEMENT = "readOnlyTransactionsStatement";
     public static final String PROPERTY_PERFORMANCE_STATISTICS_FILE = "performanceStatisticsFile";
     public static final String PROPERTY_PERFORMANCE_STATISTICS_LEVEL = "performanceStatisticsLevel";
