@@ -79,6 +79,8 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_STYLE_END_USER = "icon-style-end-user";
     public static final String CLASS_ICON_STYLE_MANAGER = "icon-style-manager";
     public static final String CLASS_ICON_STYLE_WARNING = "icon-style-warning";
+
+    public static final String CLASS_ICON_STYLE_MAINTENANCE = "icon-style-maintenance";
     public static final String CLASS_ICON_STYLE_UP = "icon-style-up";
     public static final String CLASS_ICON_STYLE_DOWN = "icon-style-down";
     public static final String CLASS_ICON_STYLE_BROKEN = "icon-style-broken";
@@ -117,6 +119,7 @@ public class GuiStyleConstants {
     public static final String CLASS_ICON_ACTIVATION_INACTIVE = "fa fa-times";
     public static final String CLASS_ICON_RESOURCE_BROKEN = "fa fa-exclamation";
     public static final String CLASS_ICON_RESOURCE_UNKNOWN = "fa fa-question";
+    public static final String CLASS_ICON_RESOURCE_MAINTENANCE = "fa fa-snowflake-o";
     public static final String CLASS_ICON_ASSIGNMENTS = "fa fa-bank";
     public static final String CLASS_SHADOW_ICON_REQUEST = "fa fa-pencil-square-o";
     public static final String CLASS_ICON_TACHOMETER = "fa fa-tachometer";

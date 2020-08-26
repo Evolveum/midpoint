@@ -2078,6 +2078,15 @@ public final class WebComponentUtil {
 
     public static String createResourceIcon(PrismObject<ResourceType> object) {
         OperationalStateType operationalState = object.asObjectable().getOperationalState();
+        AdministrativeOperationalStateType administrativeOperationalState = object.asObjectable().getAdministrativeOperationalState();
+
+        if (administrativeOperationalState != null) {
+            AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
+            if (administrativeAvailabilityStatus == AdministrativeAvailabilityStatusType.MAINTENANCE) {
+                return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " "
+                        + GuiStyleConstants.CLASS_ICON_STYLE_MAINTENANCE;
+            }
+        }
         if (operationalState != null) {
             AvailabilityStatusType lastAvailabilityStatus = operationalState.getLastAvailabilityStatus();
             if (lastAvailabilityStatus == AvailabilityStatusType.UP) {

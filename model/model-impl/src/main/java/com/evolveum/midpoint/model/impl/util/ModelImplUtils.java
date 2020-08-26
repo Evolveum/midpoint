@@ -61,6 +61,7 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.MaintenanceException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -786,7 +787,14 @@ public class ModelImplUtils {
             return CriticalityType.FATAL; // not reached
         } else {
             ErrorSelectorType errorSelector = ResourceTypeUtil.getConnectorErrorCriticality(resourceType);
-            if (e instanceof CommunicationException) {
+            if (e instanceof MaintenanceException) {
+                // The resource was put to maintenance mode administratively. Do not log the error.
+                if (result != null) {
+                    result.recordSuccess();
+                }
+                return CriticalityType.IGNORE;
+            }
+            else if (e instanceof CommunicationException) {
                 // Network problem. Just continue evaluation. The error is recorded in the result.
                 // The consistency mechanism has (most likely) already done the best.
                 // We cannot do any better.
