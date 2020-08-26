@@ -79,20 +79,18 @@
                     <script>
                         <relativityMode>absolute</relativityMode>
                         <code>
-                            if (loa == null || loa.isEmpty()) {
-                                rv = null
-                            } else if (loa.contains(null)) {
-                                rv = null
-                            } else if (loa.contains(1)) {
-                                rv = 1
-                            } else if (loa.contains(2)) {
-                                rv = 2
-                            } else if (loa.contains(3)) {
-                                rv = 3
-                            } else {
-                                throw new IllegalArgumentException('Unsupported LoA value(s): ' + loa)
-                            }
-                            log.info("### loa = $loa -> $rv")
+                            log.info('metadata computation input:\n{}', metadataComputationInput?.debugDump(1))
+
+                            // LoA for the transformation output is computed as the lowest one of LoA values for individual inputs.
+                            // LoA of each input value is computed as the highest one of LoA values of its yields (or 0 if no LoA is known).
+                            // If there is no input value, it is ignored during this computation.
+
+                            rv = metadataComputationInput.inputDataValues.collect {
+                                it.prismValue != null ?
+                                        (it.metadataValues.max() ?: 0)
+                                        : null
+                            }.min()
+                            log.info("### resulting loa = $rv")
                             rv
                         </code>
                     </script>
@@ -107,19 +105,8 @@
                     <script>
                         <relativityMode>absolute</relativityMode>
                         <code>
-                            if (loa == null || loa.isEmpty()) {
-                                rv = null
-                            } else if (loa.contains(3)) {
-                                rv = 3
-                            } else if (loa.contains(2)) {
-                                rv = 2
-                            } else if (loa.contains(1)) {
-                                rv = 1
-                            } else if (loa.contains(null)) {
-                                rv = null
-                            } else  {
-                                throw new IllegalArgumentException('Unsupported LoA value(s): ' + loa)
-                            }
+                            // LoA is computed as the highest one of LoA values for individual yields.
+                            rv = loa.collect { it ?: 0 }.max()
                             log.info("### loa = $loa -> $rv")
                             rv
                         </code>

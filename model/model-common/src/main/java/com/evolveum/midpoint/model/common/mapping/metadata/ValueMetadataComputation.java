@@ -144,6 +144,7 @@ abstract public class ValueMetadataComputation {
         MetadataMappingBuilder<?, ?> builder = beans.metadataMappingEvaluator.mappingFactory
                 .createMappingBuilder(mappingBean, env.contextDescription);
         createSources(builder, mappingBean);
+        createCustomMappingVariables(builder, mappingBean);
         builder.targetContext(metadataDefinition)
                 .now(env.now)
                 .conditionMaskOld(false); // We are not interested in old values (deltas are irrelevant in metadata mappings).
@@ -166,6 +167,9 @@ abstract public class ValueMetadataComputation {
         }
     }
 
+    void createCustomMappingVariables(MetadataMappingBuilder<?,?> builder, MetadataMappingType mappingBean) {
+    }
+
     @NotNull
     private MutableItemDefinition getAdaptedSourceDefinition(ItemPath sourcePath) {
         ItemDefinition sourceDefinition =
@@ -179,11 +183,11 @@ abstract public class ValueMetadataComputation {
 
     abstract Collection<?> getSourceValues(ItemPath sourcePath);
 
-    private QName getSourceName(VariableBindingDefinitionType sourceDef, ItemPath sourcePath) {
+    QName getSourceName(VariableBindingDefinitionType sourceDef, ItemPath sourcePath) {
         return sourceDef.getName() != null ? sourceDef.getName() : ItemPath.toName(sourcePath.last());
     }
 
-    private ItemPath getSourcePath(VariableBindingDefinitionType sourceDef) {
+    ItemPath getSourcePath(VariableBindingDefinitionType sourceDef) {
         return Objects.requireNonNull(sourceDef.getPath(), () -> "No source path in " + env.contextDescription)
                 .getItemPath();
     }

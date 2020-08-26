@@ -12,6 +12,8 @@ import java.io.File;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.util.exception.SchemaException;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -1255,12 +1257,14 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
      * Blaise is imported from HR anew.
      *
      * After:
-     *  - name:       blaise (m:hr)
-     *  - givenName:  Blaise (m:hr)
-     *  - familyName: Pascal (m:hr)
-     *  - fullName:   Blaise Pascal (m:hr)
-     *  - org:        Department of Hydrostatics (m:hr)
-     *  - org:        Binomial Club (m:hr)
+     *  - name:       blaise (m:hr/2)
+     *  - givenName:  Blaise (m:hr/2)
+     *  - familyName: Pascal (m:hr/2)
+     *  - fullName:   Blaise Pascal (m:hr/2)
+     *  - org:        Department of Hydrostatics (m:hr/2)
+     *  - org:        Binomial Club (m:hr/2)
+     *
+     * Note: /2 means LoA of 2.
      */
     @Test
     public void test300ImportBlaiseFromHr() throws Exception {
@@ -1296,6 +1300,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertGivenName("Blaise")
@@ -1308,6 +1313,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertFamilyName("Pascal")
@@ -1320,6 +1326,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertFullName("Blaise Pascal")
@@ -1332,6 +1339,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertOrganizations("Department of Hydrostatics", "Binomial Club")
@@ -1344,6 +1352,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
                     .provenance()
@@ -1354,28 +1363,29 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(start, end)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end();
     }
 
     /**
      * Before:
-     *  - name:       blaise (hr)
-     *  - givenName:  Blaise (hr)
-     *  - familyName: Pascal (hr)
-     *  - fullName:   Blaise Pascal (m:hr)
-     *  - org:        Department of Hydrostatics (hr)
-     *  - org:        Binomial Club (hr)
+     *  - name:       blaise (m:hr/2)
+     *  - givenName:  Blaise (m:hr/2)
+     *  - familyName: Pascal (m:hr/2)
+     *  - fullName:   Blaise Pascal (m:hr/2)
+     *  - org:        Department of Hydrostatics (m:hr/2)
+     *  - org:        Binomial Club (m:hr/2)
      *
      * Delta:
-     *  - add familyName: Pascal (admin)
+     *  - add familyName: Pascal (admin/5)
      *
      * After:
-     *  - name:       blaise (hr)
-     *  - givenName:  Blaise (hr)
-     *  - familyName: Pascal (hr, admin)
-     *  - fullName:   Blaise Pascal (m:hr+admin)
-     *  - org:        Department of Hydrostatics (hr)
-     *  - org:        Binomial Club (hr)
+     *  - name:       blaise (hr/2)
+     *  - givenName:  Blaise (hr/2)
+     *  - familyName: Pascal (hr/2, admin/5)
+     *  - fullName:   Blaise Pascal (m:hr+admin/2)
+     *  - org:        Department of Hydrostatics (hr/2)
+     *  - org:        Binomial Club (hr/2)
      */
     @Test
     public void test310ReinforceFamilyNameByManualEntry() throws Exception {
@@ -1401,6 +1411,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
+        setLoA(pascal, 5);
         // @formatter:on
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
@@ -1424,6 +1435,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertGivenName("Blaise")
@@ -1435,6 +1447,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertFamilyName("Pascal")
@@ -1448,6 +1461,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
@@ -1458,6 +1472,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBetween(now, now)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 5)
                     .end()
                 .end()
 
@@ -1478,6 +1493,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(now, now)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2) // because givenName has LoA of 2
                 .end()
 
                 .assertOrganizations("Department of Hydrostatics", "Binomial Club")
@@ -1489,6 +1505,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
                     .provenance()
@@ -1498,28 +1515,29 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end();
     }
 
     /**
      * Before:
-     *  - name:       blaise (hr)
-     *  - givenName:  Blaise (hr)
-     *  - familyName: Pascal (hr, admin)
-     *  - fullName:   Blaise Pascal (m:hr+admin)
-     *  - org:        Department of Hydrostatics (hr)
-     *  - org:        Binomial Club (hr)
+     *  - name:       blaise (m:hr/2)
+     *  - givenName:  Blaise (m:hr/2)
+     *  - familyName: Pascal (m:hr/2, admin/5)
+     *  - fullName:   Blaise Pascal (m:hr+admin/2)
+     *  - org:        Department of Hydrostatics (m:hr/2)
+     *  - org:        Binomial Club (m:hr/2)
      *
      * Delta:
-     *  - add givenName: Blaise (admin/jim)
+     *  - add givenName: Blaise (admin/jim:4)
      *
      * After:
-     *  - name:       blaise (hr)
-     *  - givenName:  Blaise (hr, admin/jim)
-     *  - familyName: Pascal (hr, admin)
-     *  - fullName:   Blaise Pascal (m:hr+admin) [not sure about actor/timestamp]
-     *  - org:        Department of Hydrostatics (hr)
-     *  - org:        Binomial Club (hr)
+     *  - name:       blaise (m:hr/2)
+     *  - givenName:  Blaise (m:hr/2, admin/jim/4)
+     *  - familyName: Pascal (m:hr/2, admin/5)
+     *  - fullName:   Blaise Pascal (m:hr+admin/4) [not sure about actor/timestamp]
+     *  - org:        Department of Hydrostatics (m:hr/2)
+     *  - org:        Binomial Club (m:hr/2)
      */
     @Test
     public void test320ReinforceGivenNameByManualEntry() throws Exception {
@@ -1545,6 +1563,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
+        setLoA(blaise, 4);
         // @formatter:on
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
@@ -1566,6 +1585,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
 
                 .assertGivenName("Blaise")
@@ -1578,6 +1598,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
@@ -1588,6 +1609,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBetween(now, now)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 4)
                     .end()
                 .end()
 
@@ -1602,6 +1624,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
@@ -1612,6 +1635,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 5)
                     .end()
                 .end()
 
@@ -1631,6 +1655,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             // not sure about actor (administrator vs. jim) nor timestamp
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 4) // Blaise: 4, Pascal: 5
                 .end()
 
                 .assertOrganizations("Department of Hydrostatics", "Binomial Club")
@@ -1642,6 +1667,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
                     .provenance()
@@ -1651,28 +1677,29 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end();
     }
 
     /**
      * Now importing Blaise from CRM. Values are not conflicting. One organization is added.
      *
-     * Before:
-     *  - name:       blaise (hr)
-     *  - givenName:  Blaise (hr, admin/jim)
-     *  - familyName: Pascal (hr, admin)
-     *  - fullName:   Blaise Pascal (m:hr+admin)
-     *  - org:        Department of Hydrostatics (hr)
-     *  - org:        Binomial Club (hr)
+     * After:
+     *  - name:       blaise (m:hr/2)
+     *  - givenName:  Blaise (m:hr/2, admin/jim/4)
+     *  - familyName: Pascal (m:hr/2, admin/5)
+     *  - fullName:   Blaise Pascal (m:hr+admin/4)
+     *  - org:        Department of Hydrostatics (m:hr/2)
+     *  - org:        Binomial Club (m:hr/2)
      *
      * After:
-     *  - name:       blaise (hr, crm)
-     *  - givenName:  Blaise (hr, admin/jim, crm)
-     *  - familyName: Pascal (hr, admin, crm)
-     *  - fullName:   Blaise Pascal (m:hr+admin+crm)
-     *  - org:        Department of Hydrostatics (hr, crm)
-     *  - org:        Binomial Club (hr)
-     *  - org:        Gases (crm)
+     *  - name:       blaise (m:hr/2, m:crm/3)
+     *  - givenName:  Blaise (m:hr/2, admin/jim/4, m:crm/3)
+     *  - familyName: Pascal (m:hr/2, admin/5, m:crm/3)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm/4)
+     *  - org:        Department of Hydrostatics (m:hr/2, m:crm/3)
+     *  - org:        Binomial Club (m:hr/2)
+     *  - org:        Gases (m:crm/3)
      */
     @Test
     public void test330ImportBlaiseFromCrm() throws Exception {
@@ -1705,6 +1732,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_CRM_FEED.oid)
                         .provenance()
@@ -1713,6 +1741,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBetween(before, after)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                     .end()
                 .end()
 
@@ -1727,6 +1756,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
@@ -1737,6 +1767,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 4)
                     .end()
                     .valueForOrigin(ORIGIN_CRM_FEED.oid)
                         .provenance()
@@ -1745,6 +1776,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBetween(before, after)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                     .end()
                 .end()
 
@@ -1759,6 +1791,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
                         .provenance()
@@ -1769,6 +1802,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 5)
                     .end()
                     .valueForOrigin(ORIGIN_CRM_FEED.oid)
                         .provenance()
@@ -1777,6 +1811,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBetween(before, after)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                     .end()
                 .end()
 
@@ -1798,6 +1833,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             // not sure about actor (administrator vs. jim) nor timestamp
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 4)
                 .end()
 
                 .assertOrganizations("Department of Hydrostatics", "Binomial Club", "Gases")
@@ -1811,6 +1847,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                     .end()
                     .valueForOrigin(ORIGIN_CRM_FEED.oid)
                         .provenance()
@@ -1820,6 +1857,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                                 .assertTimestampBetween(before, after)
                             .end()
                         .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                     .end()
                 .end()
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
@@ -1830,6 +1868,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 2)
                 .end()
                 .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Gases"))
                     .provenance()
@@ -2102,4 +2141,10 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     //endregion
+
+    private void setLoA(PrismValue value, int loa) throws SchemaException {
+        PrismContainer<Containerable> valueMetadata = value.getValueMetadataAsContainer();
+        assertThat(valueMetadata.size()).isEqualTo(1);
+        valueMetadata.getValue().findOrCreateProperty(LOA_PATH).setRealValue(loa);
+    }
 }
