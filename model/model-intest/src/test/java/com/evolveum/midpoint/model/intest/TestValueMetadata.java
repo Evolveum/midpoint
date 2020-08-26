@@ -46,6 +46,15 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
     public static final File TEST_DIR = new File("src/test/resources/metadata");
 
+    //region Constants for level of assurance recording scenario
+    private static final File LEVEL_OF_ASSURANCE_DIR = new File(TEST_DIR, "level-of-assurance");
+
+    private static final TestResource<UserType> USER_BOB = new TestResource<>(LEVEL_OF_ASSURANCE_DIR, "user-bob.xml", "cab2344d-06c0-4881-98ee-7075bf5d1309");
+    private static final TestResource<UserType> USER_CHUCK = new TestResource<>(LEVEL_OF_ASSURANCE_DIR, "user-chuck.xml", "3eb9ca6b-49b8-4602-943a-992d8eb9adad");
+
+    private static final TestResource<ObjectTemplateType> TEMPLATE_LOA_USER = new TestResource<>(LEVEL_OF_ASSURANCE_DIR, "template-loa-user.xml", "b1005d3d-6ef4-4347-b235-313666824ed8");
+    //endregion
+
     //region Constants for sensitivity propagation scenario
     private static final File SENSITIVITY_PROPAGATION_DIR = new File(TEST_DIR, "sensitivity-propagation");
 
@@ -98,6 +107,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     private static final String ATTR_FIRSTNAME = "firstname";
     private static final String ATTR_LASTNAME = "lastname";
     private static final String ATTR_ORGANIZATION = "organization";
+    private static final String ATTR_LOA = "loa";
+
     private static final DummyTestResource RESOURCE_HR = new DummyTestResource(
             PROVENANCE_METADATA_RECORDING_DIR, "resource-hr.xml", "9a34c3b6-aca5-4f9b-aae4-24f3f2d98ce9", "hr", controller -> {
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
@@ -115,6 +126,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 ATTR_LASTNAME, String.class, false, false);
         controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
                 ATTR_ORGANIZATION, String.class, false, true);
+        controller.addAttrDef(controller.getDummyResource().getAccountObjectClass(),
+                ATTR_LOA, Integer.class, false, false);
     });
 
     private static final TestResource<UserType> USER_LEONHARD = new TestResource<>(
@@ -128,10 +141,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     private static final ItemPath SENSITIVITY_PATH = ItemPath.create(ObjectType.F_EXTENSION, SENSITIVITY_NAME);
 
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
-    private static final TestResource<ObjectTemplateType> TEMPLATE_REGULAR_USER = new TestResource<>(TEST_DIR, "template-regular-user.xml", "b1005d3d-6ef4-4347-b235-313666824ed8");
     private static final TestResource<UserType> USER_ALICE = new TestResource<>(TEST_DIR, "user-alice.xml", "9fc389be-5b47-4e9d-90b5-33fffd87b3ca");
-    private static final TestResource<UserType> USER_BOB = new TestResource<>(TEST_DIR, "user-bob.xml", "cab2344d-06c0-4881-98ee-7075bf5d1309");
-    private static final TestResource<UserType> USER_CHUCK = new TestResource<>(TEST_DIR, "user-chuck.xml", "3eb9ca6b-49b8-4602-943a-992d8eb9adad");
     private static final String USER_BLAISE_NAME = "blaise";
 
     private static final ItemPath PATH_ALIAS = ItemPath.create(UserType.F_EXTENSION, new ItemName("alias")); // TODO namespace
@@ -165,7 +175,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
         addObject(USER_LEONHARD, initTask, initResult);
 
-        addObject(TEMPLATE_REGULAR_USER, initTask, initResult);
+        addObject(TEMPLATE_LOA_USER, initTask, initResult);
         addObject(USER_ALICE, initTask, initResult);
 
         setGlobalTracingOverride(createModelLoggingTracingProfile());
@@ -291,20 +301,20 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .valueMetadata(UserType.F_GIVEN_NAME)
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "low")
+                        .assertPropertyValuesEqual(LOA_PATH, 1)
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FAMILY_NAME)
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                         .end()
                     .end()
                 .assertFullName("Bob Green")
                 .valueMetadata(UserType.F_FULL_NAME)
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "low");
+                        .assertPropertyValuesEqual(LOA_PATH, 1);
     }
 
     /**
@@ -319,7 +329,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
         PrismPropertyValue<PolyString> bob = prismContext.itemFactory().createPropertyValue();
         bob.setValue(PolyString.fromOrig("Bob"));
-        bob.getValueMetadata().createNewValue().findOrCreateProperty(LOA_PATH).setRealValue("normal");
+        bob.getValueMetadata().createNewValue().findOrCreateProperty(LOA_PATH).setRealValue(2);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).replace(bob)
@@ -335,20 +345,20 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .valueMetadata(UserType.F_GIVEN_NAME)
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "normal")
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FAMILY_NAME)
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                         .end()
                     .end()
                 .assertFullName("Bob Green")
                 .valueMetadata(UserType.F_FULL_NAME)
                     .singleValue()
                         .display()
-                        .assertPropertyValuesEqual(LOA_PATH, "normal");
+                        .assertPropertyValuesEqual(LOA_PATH, 2);
     }
 
     /**
@@ -366,7 +376,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
         PrismPropertyValue<PolyString> robert = prismContext.itemFactory().createPropertyValue();
         robert.setValue(PolyString.fromOrig("Robert"));
-        robert.getValueMetadata().createNewValue().findOrCreateProperty(LOA_PATH).setRealValue("high");
+        robert.getValueMetadata().createNewValue().findOrCreateProperty(LOA_PATH).setRealValue(3);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
                 .item(UserType.F_GIVEN_NAME).add(robert)
@@ -380,18 +390,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .displayXml()
                 .valueMetadata(UserType.F_GIVEN_NAME)
                     .singleValue()
-                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FAMILY_NAME)
                     .singleValue()
-                        .assertPropertyValuesEqual(LOA_PATH, "high")
+                        .assertPropertyValuesEqual(LOA_PATH, 3)
                         .end()
                     .end()
                 .assertFullName("Robert Green")
                 .valueMetadata(UserType.F_FULL_NAME)
                     .singleValue()
-                        .assertPropertyValuesEqual(LOA_PATH, "high");
+                        .assertPropertyValuesEqual(LOA_PATH, 3);
     }
 
     /**
@@ -418,7 +428,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .assertFullName("Chuck White")
                 .valueMetadata(UserType.F_FULL_NAME)
                     .singleValue()
-                        .assertPropertyValuesEqual(LOA_PATH, "low")
+                        .assertPropertyValuesEqual(LOA_PATH, 1)
                         .end();
     }
     //endregion
@@ -1675,6 +1685,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         crmAccount.addAttributeValue(ATTR_LASTNAME, "Pascal");
         crmAccount.addAttributeValue(ATTR_ORGANIZATION, "Department of Hydrostatics");
         crmAccount.addAttributeValue(ATTR_ORGANIZATION, "Gases");
+        crmAccount.addAttributeValue(ATTR_LOA, 3);
 
         when();
         XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
@@ -1828,8 +1839,8 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(before, after)
                         .end()
                     .end()
+                    .assertPropertyValuesEqual(LOA_PATH, 3)
                 .end();
-
     }
 
     /**

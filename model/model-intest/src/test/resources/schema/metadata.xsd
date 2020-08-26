@@ -46,42 +46,12 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="loa" type="tns:LevelOfAssuranceType" minOccurs="0"/>
+            <xsd:element name="loa" type="xsd:int" minOccurs="0"/>
             <xsd:element name="sensitivity" type="tns:SensitivityType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="LevelOfAssuranceType">
-        <xsd:annotation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="low">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="LOW"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="normal">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="NORMAL"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="high">
-                <xsd:annotation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="HIGH"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-    <xsd:element name="loa" type="tns:LevelOfAssuranceType" />
+    <xsd:element name="loa" type="xsd:int" />
 
     <xsd:simpleType name="SensitivityType">
         <xsd:annotation>

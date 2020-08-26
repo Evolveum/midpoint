@@ -398,7 +398,6 @@ public class ExpressionUtil {
         if (relativePath.isEmpty()) {
             return (ID) root;
         }
-        ItemDefinition result = null;
         if (root instanceof PrismObjectDefinition<?>) {
             return ((PrismObjectDefinition<?>) root).findItemDefinition(relativePath);
         } else if (root instanceof PrismContainerDefinition<?>) {

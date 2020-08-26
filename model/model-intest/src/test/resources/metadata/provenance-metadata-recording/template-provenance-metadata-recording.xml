@@ -67,5 +67,65 @@
                 <processing>full</processing>
             </limitations>
         </item>
+
+        <item>
+            <ref>extension/loa</ref>
+            <mapping>
+                <scope>transformation</scope>
+                <source>
+                    <path>extension/loa</path>
+                </source>
+                <expression>
+                    <script>
+                        <relativityMode>absolute</relativityMode>
+                        <code>
+                            if (loa == null || loa.isEmpty()) {
+                                rv = null
+                            } else if (loa.contains(null)) {
+                                rv = null
+                            } else if (loa.contains(1)) {
+                                rv = 1
+                            } else if (loa.contains(2)) {
+                                rv = 2
+                            } else if (loa.contains(3)) {
+                                rv = 3
+                            } else {
+                                throw new IllegalArgumentException('Unsupported LoA value(s): ' + loa)
+                            }
+                            log.info("### loa = $loa -> $rv")
+                            rv
+                        </code>
+                    </script>
+                </expression>
+            </mapping>
+            <mapping>
+                <scope>consolidation</scope>
+                <source>
+                    <path>extension/loa</path>
+                </source>
+                <expression>
+                    <script>
+                        <relativityMode>absolute</relativityMode>
+                        <code>
+                            if (loa == null || loa.isEmpty()) {
+                                rv = null
+                            } else if (loa.contains(3)) {
+                                rv = 3
+                            } else if (loa.contains(2)) {
+                                rv = 2
+                            } else if (loa.contains(1)) {
+                                rv = 1
+                            } else if (loa.contains(null)) {
+                                rv = null
+                            } else  {
+                                throw new IllegalArgumentException('Unsupported LoA value(s): ' + loa)
+                            }
+                            log.info("### loa = $loa -> $rv")
+                            rv
+                        </code>
+                    </script>
+                </expression>
+            </mapping>
+        </item>
     </meta>
 </objectTemplate>

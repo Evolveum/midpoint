@@ -8926,10 +8926,13 @@
         <xsd:annotation>
             <xsd:documentation>
                 Specifies data provenance properties for a particular data feed (source), such as resource.
+                TODO actually it's more powerful as it allows to specify other metadata items as well;
+                consider renaming
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
                 <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -8944,10 +8947,35 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <!-- Expression that dynamically determines the origin may be here later.
-                 Or maybe we can use expression in the originRef instead. -->
-            <!-- Provenance metadata mappings/transformations might be here, maybe?
-                 E.g. we may be able to determine provenance timestamp from some kind of resoruce data/metadata? -->
+            <xsd:element name="acquisitionItemPopulator" type="c:PopulateItemType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Custom population of acquisition items.
+                        Path in the populator is rooted at provenance/acquisition container in the metadata.
+                        (In the future the path will be allowed to be empty i.e. the populator can provide a value for the whole acquisition.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- Or maybe we can use expression in the originRef instead? -->
+            <xsd:element name="metadataItemPopulator" type="c:PopulateItemType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Custom population of metadata items.
+                        Path in the populator is rooted at metadata container value.
+                        (In the future the path will be allowed to be empty i.e. the populator can provide a value for the whole metadata.)
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="useBuiltinPopulators" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Should we use built-in populators for originRef, resourceRef, actorRef, and timestamp?
+                        true = always, false = never, null = only if populator returns no value
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <!-- A flag that determines that we want to provide different values for different attributes (to speed up processing)?
+                 Currently we use the same metadata for all values in given resource object. -->
         </xsd:sequence>
     </xsd:complexType>
 
