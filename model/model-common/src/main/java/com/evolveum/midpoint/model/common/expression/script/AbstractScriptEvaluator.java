@@ -32,6 +32,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptVariableEvaluationTraceType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueVariableModeType;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
@@ -110,7 +113,16 @@ public abstract class AbstractScriptEvaluator implements ScriptEvaluator {
                     continue;
                 }
                 String variableName = variableEntry.getKey();
-                TypedValue variableTypedValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName, context.getObjectResolver(), context.getContextDescription(), context.getExpressionType().getObjectVariableMode(), prismContext, context.getTask(), context.getResult());
+                ValueVariableModeType valueVariableMode = ObjectUtils.defaultIfNull(
+                        context.getExpressionType().getValueVariableMode(), ValueVariableModeType.REAL_VALUE);
+
+                //noinspection unchecked
+                TypedValue variableTypedValue = ExpressionUtil.convertVariableValue(variableEntry.getValue(), variableName,
+                        context.getObjectResolver(), context.getContextDescription(),
+                        context.getExpressionType().getObjectVariableMode(),
+                        valueVariableMode,
+                        prismContext, context.getTask(), context.getResult());
+
                 scriptVariableMap.put(variableName, variableTypedValue.getValue());
                 if (context.getTrace() != null && !variables.isAlias(variableName)) {
                     ScriptVariableEvaluationTraceType variableTrace = new ScriptVariableEvaluationTraceType(prismContext);

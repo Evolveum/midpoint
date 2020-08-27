@@ -20,6 +20,7 @@ import java.util.*;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
@@ -35,6 +36,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -42,6 +44,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DateUtils;
+import org.jetbrains.annotations.NotNull;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
@@ -64,6 +67,7 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 import static java.util.Collections.emptyList;
+import static java.util.Collections.emptySet;
 
 /**
  * Library of standard midPoint functions. These functions are made available to all
@@ -581,6 +585,21 @@ public class BasicExpressionFunctions {
 
     public Collection<String> getAttributeStringValues(ShadowType shadow, javax.xml.namespace.QName attributeQname) {
         return ShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
+    }
+
+    @NotNull
+    public Collection<?> getMetadataExtensionValues(PrismValue value, String itemLocalPart) {
+        checkColon(itemLocalPart);
+        if (value == null) {
+            return emptySet();
+        } else {
+            ItemPath itemPath = ItemPath.create(ValueMetadataType.F_EXTENSION, itemLocalPart);
+            return value.getValueMetadataAsContainer().valuesStream()
+                    .map(md -> md.findItem(itemPath))
+                    .filter(Objects::nonNull)
+                    .flatMap(item -> item.getRealValues().stream())
+                    .collect(Collectors.toList());
+        }
     }
 
     public void setExtensionRealValues(PrismContainerValue<?> containerValue, Map<String, Object> map) throws SchemaException {

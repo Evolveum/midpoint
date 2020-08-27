@@ -147,6 +147,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     private static final String USER_BLAISE_NAME = "blaise";
 
     private static final ItemPath PATH_ALIAS = ItemPath.create(UserType.F_EXTENSION, new ItemName("alias")); // TODO namespace
+    private static final ItemPath PATH_ASSURED_ORGANIZATION = ItemPath.create(UserType.F_EXTENSION, new ItemName("assuredOrganization")); // TODO namespace
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -2072,12 +2073,12 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
      * Delta: org should lose Department of Hydrostatics value (via HR).
      *
      * After:
-     *  - name:       blaise (hr, crm)
-     *  - givenName:  Blaise (hr, admin/jim, crm)
-     *  - familyName: Pascal (hr, admin, crm)
-     *  - fullName:   Blaise Pascal (m:hr+admin+crm)
-     *  - org:        Department of Hydrostatics (crm) <---- We should keep the CRM yield of this value.
-     *  - org:        Binomial Club (hr)
+     *  - name:       blaise (hr/2, crm/3)
+     *  - givenName:  Blaise (hr/2, admin/jim/4, crm/3)
+     *  - familyName: Pascal (hr/2, admin/5, crm/3)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm/4)
+     *  - org:        Department of Hydrostatics (crm/3) <---- We should keep the CRM yield of this value.
+     *  - org:        Binomial Club (hr/2)
      */
     @Test
     public void test350DeleteBlaiseFromHydrostatics() throws Exception {
@@ -2116,7 +2117,102 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                     .end()
-                .end();
+                .end()
+
+                .assertValues(PATH_ASSURED_ORGANIZATION, poly("Department of Hydrostatics"));
+    }
+
+    /**
+     * Before:
+     *  - name:       blaise (hr/2, crm/3)
+     *  - givenName:  Blaise (hr/2, admin/jim/4, crm/3)
+     *  - familyName: Pascal (hr/2, admin/5, crm/3)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm/4)
+     *  - org:        Department of Hydrostatics (crm/3) <---- We should keep the CRM yield of this value.
+     *  - org:        Binomial Club (hr/2)
+     *  - assuredOrg: Department of Hydrostatics
+     *
+     * Delta: admin enters its own value for Binomial Club with loa of 5
+     *
+     * After:
+     *  - name:       blaise (hr/2, crm/3)
+     *  - givenName:  Blaise (hr/2, admin/jim/4, crm/3)
+     *  - familyName: Pascal (hr/2, admin/5, crm/3)
+     *  - fullName:   Blaise Pascal (m:hr+admin+crm/4)
+     *  - org:        Department of Hydrostatics (crm/3) <---- We should keep the CRM yield of this value.
+     *  - org:        Binomial Club (hr/2)
+     *  - assuredOrg: Department of Hydrostatics
+     *  - assuredOrg: Binomial Club
+     */
+    @Test
+    public void test360ReinforceBinomialClub() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> blaise = findUserByUsername(USER_BLAISE_NAME);
+
+        XMLGregorianCalendar before = clock.currentTimeXMLGregorianCalendar();
+        Thread.sleep(10);
+        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+
+        PrismPropertyValue<PolyString> binomialClubAdmin = prismContext.itemFactory().createPropertyValue();
+        binomialClubAdmin.setValue(PolyString.fromOrig("Binomial Club"));
+        binomialClubAdmin.setValueMetadata(
+                new ValueMetadataType(prismContext)
+                        .beginProvenance()
+                            .beginAcquisition()
+                                .originRef(ORIGIN_ADMIN_ENTRY.ref())
+                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .timestamp(now)
+                            .<ProvenanceMetadataType>end()
+                        .<ValueMetadataType>end());
+        setLoA(binomialClubAdmin, 5);
+
+        ObjectDelta<UserType> delta = deltaFor(UserType.class)
+                .item(UserType.F_ORGANIZATION).add(binomialClubAdmin)
+                .asObjectDelta(blaise.getOid());
+
+        when();
+        executeChanges(delta, null, task, result);
+
+        then();
+        assertUserAfterByUsername(USER_BLAISE_NAME)
+                .displayXml()
+
+                // skip all those lengthy asserts
+                .assertOrganizations("Department of Hydrostatics", "Binomial Club")
+                .valueMetadataSingle(UserType.F_ORGANIZATION, ValueSelector.origEquals("Department of Hydrostatics"))
+                    .provenance()
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_CRM_FEED.oid)
+                            .assertResourceRef(RESOURCE_CRM.oid)
+                            .assertTimestampBefore(before)
+                        .end()
+                    .end()
+                .end()
+                .valueMetadata(UserType.F_ORGANIZATION, ValueSelector.origEquals("Binomial Club"))
+                    .assertSize(2)
+                    .valueForOrigin(ORIGIN_HR_FEED.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertResourceRef(RESOURCE_HR.oid)
+                                .assertTimestampBefore(before)
+                            .end()
+                        .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 2)
+                    .end()
+                    .valueForOrigin(ORIGIN_ADMIN_ENTRY.oid)
+                        .provenance()
+                            .singleAcquisition()
+                                .assertTimestamp(now)
+                            .end()
+                        .end()
+                        .assertPropertyValuesEqual(LOA_PATH, 5)
+                    .end()
+                .end()
+
+                .assertValues(PATH_ASSURED_ORGANIZATION, poly("Department of Hydrostatics"), poly("Binomial Club"));
     }
 
     @Test
@@ -2147,4 +2243,12 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         assertThat(valueMetadata.size()).isEqualTo(1);
         valueMetadata.getValue().findOrCreateProperty(LOA_PATH).setRealValue(loa);
     }
+
+    private PolyString poly(String orig) {
+        PolyString polyString = PolyString.fromOrig(orig);
+        polyString.recompute(prismContext.getDefaultPolyStringNormalizer());
+        return polyString;
+    }
+
+
 }

@@ -10874,6 +10874,17 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="valueVariableMode" type="tns:ValueVariableModeType" minOccurs="0" default="realValue">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Type of variables that appear in the script.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:experimental/>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -10969,7 +10980,7 @@
             <xsd:enumeration value="prismReference">
                 <xsd:annotation>
                     <xsd:documentation>
-                        The varialble will be presented as a Prism reference value (PrismReferenceValue).
+                        The variable will be presented as a Prism reference value (PrismReferenceValue).
                         The reference value will contain all the information from the original reference
                         or object (OID, type, name). If the object is available or if it could be resolved
                         then the object itself will be also present in the reference value (in "object" property).
@@ -10982,6 +10993,46 @@
             </xsd:enumeration>
             <!-- TODO: "prismObject" that will present the variables as PrismObject<O> -->
             <!-- TODO: maybe "reference" that will present the variables as ObjectReferenceType -->
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="ValueVariableModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type of variables that appear in the script.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+                <a:since>4.2</a:since>
+                <a:experimental/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="realValue">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The variables will be presented as real values, e.g. String, XMLGregorianCalendar, UserType,
+                        AssignmentType, etc.
+
+                        This is how it was done in midPoint from its beginnings. However, for simple types (like String)
+                        the metadata are lost when the real value is presented.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="REAL_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="prismValue">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The variables will be presented as prism values, e.g. PrismPropertyValue&lt;String&gt;,
+                        so the metadata can be accessed by the script. This is an experimental feature.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PRISM_VALUE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
 
