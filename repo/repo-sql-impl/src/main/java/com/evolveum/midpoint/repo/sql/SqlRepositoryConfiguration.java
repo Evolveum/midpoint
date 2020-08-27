@@ -689,7 +689,7 @@ public class SqlRepositoryConfiguration {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = false;
-            defaultReadOnlyTransactionStatement = "SET TRANSACTION READ ONLY";
+            defaultReadOnlyTransactionStatement = "START TRANSACTION READ ONLY";
         } else if (isUsingSQLServer()) {
             defaultTransactionIsolation = TransactionIsolation.SNAPSHOT;
             defaultLockForUpdateViaHibernate = false;
