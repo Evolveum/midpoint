@@ -666,7 +666,9 @@ public class SqlRepositoryConfiguration {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = true;
-            // don't use SET TRANSACTION, because for MariaDB it sets READ ONLY for the session
+            // SET TRANSACTION READ ONLY should work too, but we had obscure problem when first
+            // read-only transaction read JDBC metadata, the following RW transaction was still RO.
+            // Mysterious problem: https://stackoverflow.com/a/63580806/658826
             defaultReadOnlyTransactionStatement = "START TRANSACTION READ ONLY";
         } else if (isUsingOracle()) {
             /*
