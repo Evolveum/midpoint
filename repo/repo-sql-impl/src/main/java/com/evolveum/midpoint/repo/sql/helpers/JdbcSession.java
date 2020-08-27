@@ -18,6 +18,7 @@ import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQuery;
+import com.querydsl.sql.dml.SQLDeleteClause;
 import com.querydsl.sql.dml.SQLInsertClause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -103,7 +104,7 @@ public class JdbcSession implements AutoCloseable {
         return startTransaction(true);
     }
 
-    public JdbcSession startTransaction(boolean readonly) {
+    private JdbcSession startTransaction(boolean readonly) {
         LOGGER.debug("Starting {}transaction", readonly ? "readonly " : "");
 
         try {
@@ -113,10 +114,10 @@ public class JdbcSession implements AutoCloseable {
         }
 
         rollbackForReadOnly = false;
-        // Configuration check really means: "Does it support read-only transactions?"
         if (readonly) {
-            if (repoConfiguration.isUseReadOnlyTransactions()) {
-                executeStatement("SET TRANSACTION READ ONLY");
+            // If null, DB does not support read-only transactions.
+            if (repoConfiguration.getReadOnlyTransactionStatement() != null) {
+                executeStatement(repoConfiguration.getReadOnlyTransactionStatement());
             } else {
                 rollbackForReadOnly = true;
             }
@@ -218,6 +219,10 @@ public class JdbcSession implements AutoCloseable {
      */
     public SQLInsertClause insert(RelationalPath<?> entity) {
         return new SQLInsertClause(connection, querydslConfiguration, entity);
+    }
+
+    public SQLDeleteClause delete(RelationalPath<?> entity) {
+        return new SQLDeleteClause(connection, querydslConfiguration, entity);
     }
 
     public String getNativeTypeName(int typeCode) {

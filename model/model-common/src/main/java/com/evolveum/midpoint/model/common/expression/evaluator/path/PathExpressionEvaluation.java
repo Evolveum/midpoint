@@ -13,10 +13,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.DefinitionResolver;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.evaluator.ExpressionEvaluatorUtil;
 import com.evolveum.midpoint.schema.expression.TypedValue;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.*;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -44,15 +43,16 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition> {
         this.context = context;
     }
 
-    PrismValueDeltaSetTriple<V> evaluate() throws ExpressionEvaluationException, SchemaException {
-        pathToResolve = evaluator.path;
+    PrismValueDeltaSetTriple<V> evaluate(OperationResult result) throws ExpressionEvaluationException, SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+        pathToResolve = evaluator.getPath();
         resolutionContext = determineInitialResolveContext();
         if (resolutionContext == null) {
             return null;
         }
 
         stepAlongResolvePath();
-        return prepareOutputTriple();
+        return prepareOutputTriple(result);
     }
 
     private ResolutionContext determineInitialResolveContext() throws ExpressionEvaluationException {
@@ -75,7 +75,7 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition> {
         String variableName = ItemPath.toVariableName(pathToResolve.first()).getLocalPart();
         pathToResolve = pathToResolve.rest();
 
-        TypedValue variableValueAndDefinition = ExpressionEvaluatorUtil.findInSourcesAndVariables(context, variableName);
+        TypedValue variableValueAndDefinition = evaluator.findInSourcesAndVariables(context, variableName);
         if (variableValueAndDefinition == null) {
             throw new ExpressionEvaluationException("No variable with name "+variableName+" in "+ context.getContextDescription());
         }
@@ -93,14 +93,12 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition> {
     }
 
     @Nullable
-    private PrismValueDeltaSetTriple<V> prepareOutputTriple() throws SchemaException {
-        PrismValueDeltaSetTriple<V> outputTriple = resolutionContext.createOutputTriple(evaluator.prismContext);
-        if (outputTriple == null) {
-            return null;
-        } else {
-            return ExpressionEvaluatorUtil.toOutputTriple(outputTriple, evaluator.outputDefinition,
-                    context.getAdditionalConvertor(), null, evaluator.protector, evaluator.prismContext);
-        }
+    private PrismValueDeltaSetTriple<V> prepareOutputTriple(OperationResult result) throws SchemaException,
+            ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException,
+            ExpressionEvaluationException {
+        PrismValueDeltaSetTriple<V> outputTriple = resolutionContext.createOutputTriple(evaluator.getPrismContext());
+        evaluator.applyValueMetadata(outputTriple, context, result);
+        return evaluator.finishOutputTriple(outputTriple, context.getAdditionalConvertor(), null);
     }
 
     private void stepAlongResolvePath() throws SchemaException, ExpressionEvaluationException {
@@ -113,7 +111,7 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition> {
                         // Those may not have a definition. In that case just assume strings.
                         // In fact, this is a HACK. All such schemas should have a definition.
                         // Otherwise there may be problems with parameter types for caching compiles scripts and so on.
-                        return evaluator.prismContext.definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
+                        return evaluator.getPrismContext().definitionFactory().createPropertyDefinition(path.firstName(), PrimitiveType.STRING.getQname());
                     } else {
                         return null;
                     }
@@ -128,13 +126,13 @@ class PathExpressionEvaluation<V extends PrismValue, D extends ItemDefinition> {
                 }
 
                 if (resolutionContext == null) {
-                    throw new ExpressionEvaluationException("Cannot find item using path "+evaluator.path+" in "+
+                    throw new ExpressionEvaluationException("Cannot find item using path "+evaluator.getPath()+" in "+
                             context.getContextDescription());
                 }
 
             } else if (resolutionContext.isStructuredProperty()) {
                 resolutionContext = resolutionContext.resolveStructuredProperty(pathToResolve,
-                        (PrismPropertyDefinition) evaluator.outputDefinition, evaluator.prismContext);
+                        (PrismPropertyDefinition) evaluator.getOutputDefinition(), evaluator.getPrismContext());
                 pathToResolve = ItemPath.EMPTY_PATH;
 
             } else if (resolutionContext.isNull()) {

@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.ValueSelector;
 import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
 import com.evolveum.midpoint.util.annotation.Experimental;
@@ -39,5 +40,10 @@ public class ProvenanceMetadataUtil {
 
     public static ValueSelector<PrismContainerValue<ValueMetadataType>> originSelector(String oid) {
         return pcv -> hasOrigin(pcv.asContainerable(), oid);
+    }
+
+    public static boolean valueHasMappingSpec(PrismValue value, MappingSpecificationType mappingSpecification) {
+        return value.<ValueMetadataType>getValueMetadataAsContainer().valuesStream()
+                .anyMatch(md -> hasMappingSpec(md.asContainerable(), mappingSpecification));
     }
 }

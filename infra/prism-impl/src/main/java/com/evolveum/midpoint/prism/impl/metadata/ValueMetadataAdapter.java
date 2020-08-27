@@ -682,12 +682,6 @@ public class ValueMetadataAdapter implements ValueMetadata {
     }
 
     @Override
-    public void filterValues(
-            Function<PrismContainerValue<Containerable>, Boolean> function) {
-        delegate.filterValues(function);
-    }
-
-    @Override
     public void applyDefinition(
             PrismContainerDefinition<Containerable> definition, boolean force) throws SchemaException {
         delegate.applyDefinition(definition, force);

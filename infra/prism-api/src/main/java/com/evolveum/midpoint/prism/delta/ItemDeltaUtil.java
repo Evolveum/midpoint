@@ -33,13 +33,13 @@ public class ItemDeltaUtil {
             ItemDelta<IV, ID> delta, PrismContext prismContext) throws SchemaException {
         if (item == null && delta == null) {
             return null;
-        }
-        if (delta == null) {
+        } else if (delta == null) {
             PrismValueDeltaSetTriple<IV> triple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
             triple.addAllToZeroSet(PrismValueCollectionsUtil.cloneCollection(item.getValues()));
             return triple;
+        } else {
+            return delta.toDeltaSetTriple(item);
         }
-        return delta.toDeltaSetTriple(item);
     }
 
     // TODO move to Item

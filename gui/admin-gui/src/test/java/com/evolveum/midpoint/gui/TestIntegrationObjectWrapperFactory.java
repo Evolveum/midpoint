@@ -427,7 +427,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         ModelServiceLocator modelServiceLocator = getServiceLocator(task);
         PrismObjectWrapperFactory<ShadowType> factory = modelServiceLocator.findObjectWrapperFactory(shadow.getDefinition());
-        assertTrue("Wrong object facotry found, expexted shadow factory but got " + factory.getClass().getSimpleName(), factory instanceof ShadowWrapperFactoryImpl);
+        assertTrue("Wrong object factory found, expected shadow factory but got " + factory.getClass().getSimpleName(), factory instanceof ShadowWrapperFactoryImpl);
         WrapperContext context = new WrapperContext(task, result);
 
         PrismObjectWrapper<ShadowType> objectWrapper = factory.createObjectWrapper(shadow, ItemStatus.NOT_CHANGED, context);
@@ -681,7 +681,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismContainerValueWrapper<OrgType> mainContainerValueWrapper = objectWrapper.getValue();
         PrismContainerWrapper<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainer(extensionPath(PIRACY_TRANSFORM));
         List<PrismContainerValueWrapper<Containerable>> transformValueWrappers = transformContainerWrapper.getValues();
-        assertEquals("Unexpecter number of transform value wrappers", 3, transformValueWrappers.size());
+        assertEquals("Unexpected number of transform value wrappers", 3, transformValueWrappers.size());
 
         PrismContainerValueWrapper<Containerable> valueWrapperA = findTransformValueWrapper(transformValueWrappers, "A");
         assertNotNull("No A value wrapper", valueWrapperA);
@@ -722,7 +722,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismContainerValueWrapper<OrgType> mainContainerValueWrapper = objectWrapper.getValue();
         PrismContainerWrapper<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainer(extensionPath(PIRACY_TRANSFORM));
         List<PrismContainerValueWrapper<Containerable>> transformValueWrappers = transformContainerWrapper.getValues();
-        assertEquals("Unexpecter number of transform value wrappers", 3, transformValueWrappers.size());
+        assertEquals("Unexpected number of transform value wrappers", 3, transformValueWrappers.size());
 
         ModelServiceLocator modelServiceLocator = getServiceLocator(task);
         WrapperContext context = new WrapperContext(task, task.getResult());
@@ -745,11 +745,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         displayDumpable("Delta", objectDelta);
         ItemPath transformPath = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_TRANSFORM);
         PrismAsserts.assertModifications(objectDelta, 1);
-        ContainerDelta<Containerable> transfromDelta = (ContainerDelta) objectDelta.getModifications().iterator().next();
-        assertTrue("Wrong container delta path. Expected " + transformPath + " but was " + transfromDelta.getPath(), transfromDelta.getPath().equivalent(transformPath));
-        PrismAsserts.assertNoDelete(transfromDelta);
-        PrismAsserts.assertNoReplace(transfromDelta);
-        Collection<PrismContainerValue<Containerable>> valuesToAdd = transfromDelta.getValuesToAdd();
+        ContainerDelta<Containerable> transformDelta = (ContainerDelta) objectDelta.getModifications().iterator().next();
+        assertTrue("Wrong container delta path. Expected " + transformPath + " but was " + transformDelta.getPath(), transformDelta.getPath().equivalent(transformPath));
+        PrismAsserts.assertNoDelete(transformDelta);
+        PrismAsserts.assertNoReplace(transformDelta);
+        Collection<PrismContainerValue<Containerable>> valuesToAdd = transformDelta.getValuesToAdd();
         assertEquals("Wrong number of values to add", 1, valuesToAdd.size());
         PrismContainerValue<Containerable> containerValueToAdd = valuesToAdd.iterator().next();
         assertEquals("Unexpected number of items in value to add", 2, containerValueToAdd.size());
@@ -799,8 +799,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         Collection<PrismContainerValue<ExtensionType>> valuesToAdd = containerDelta.getValuesToAdd();
         assertEquals("Unexpected values to add in extension delta", 1, valuesToAdd.size());
         PrismContainerValue<ExtensionType> extension = valuesToAdd.iterator().next();
-        PrismProperty piracytransform = extension.findProperty(PIRACY_TRANSFORM_DESCRIPTION);
-        assertEquals("Unexpected value in piracy transform attribute", "Whatever", piracytransform.getRealValue());
+        PrismProperty piracyTransform = extension.findProperty(PIRACY_TRANSFORM_DESCRIPTION);
+        assertEquals("Unexpected value in piracy transform attribute", "Whatever", piracyTransform.getRealValue());
 
         OperationResult result = task.getResult();
         executeChanges(objectDelta, null, task, result);
@@ -975,9 +975,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean) fullNameWrapper.canAdd());
         assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean) fullNameWrapper.canModify());
 
-        // not created because of unsufficient authZ
+        // not created because of insufficient authZ
         PrismPropertyWrapper additionalNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_ADDITIONAL_NAME);
-        assertNull("Unexpeced aditional name wrraper", additionalNameWrapper);
+        assertNull("Unexpected additional name wrapper", additionalNameWrapper);
 //        assertEquals("Wrong additionalName readOnly", Boolean.FALSE, (Boolean)additionalNameWrapper.isReadOnly());
 //        assertEquals("Wrong additionalName visible", Boolean.FALSE, (Boolean)additionalNameWrapper.isVisible(mainContainerValueWrapper, null));
 //        assertEquals("Wrong additionalName definition.canRead", Boolean.FALSE, (Boolean)additionalNameWrapper.canRead());

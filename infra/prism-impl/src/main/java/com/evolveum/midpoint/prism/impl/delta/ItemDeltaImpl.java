@@ -16,10 +16,12 @@ import static com.evolveum.midpoint.prism.path.ItemPath.checkNoSpecialSymbols;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1468,6 +1470,13 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         filterValuesSet(this.valuesToReplace, function);
     }
 
+    public void filterYields(BiFunction<V, PrismContainerValue, Boolean> function) {
+        checkMutable();
+        filterYieldsSet(this.valuesToAdd, function);
+        //filterYieldsSet(this.valuesToDelete, function); // TODO what to do with this?
+        filterYieldsSet(this.valuesToReplace, function);
+    }
+
     private void filterValuesSet(Collection<V> set, Function<V, Boolean> function) {
         if (set == null) {
             return;
@@ -1477,6 +1486,30 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
             Boolean keep = function.apply(iterator.next());
             if (keep == null || !keep) {
                 iterator.remove();
+            }
+        }
+    }
+
+    // TODO deduplicate with the same in Item
+    private void filterYieldsSet(Collection<V> set, BiFunction<V, PrismContainerValue, Boolean> function) {
+        if (set == null) {
+            return;
+        }
+        Iterator<V> iterator = set.iterator();
+        while (iterator.hasNext()) {
+            V value = iterator.next();
+            PrismContainer<Containerable> valueMetadata = value.getValueMetadataAsContainer();
+            if (valueMetadata.hasNoValues()) {
+                Boolean keep = function.apply(value, null);
+                if (BooleanUtils.isNotTrue(keep)) {
+                    iterator.remove();
+                }
+            } else {
+                valueMetadata.getValues().removeIf(
+                        md -> BooleanUtils.isNotTrue(function.apply(value, md)));
+                if (valueMetadata.getValues().isEmpty()) {
+                    iterator.remove();
+                }
             }
         }
     }
@@ -1524,8 +1557,8 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
     private PrismValueDeltaSetTriple<V> toDeltaSetTripleForAddDelete(Item<V, D> itemOld) throws SchemaException {
         PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTripleImpl<>();
 
-        List<V> remainingValuesToAdd = new ArrayList<>(emptyIfNull(valuesToAdd));
-        List<V> remainingValuesToDelete = new ArrayList<>(emptyIfNull(valuesToDelete));
+        List<V> remainingValuesToAdd = squash(valuesToAdd);
+        List<V> remainingValuesToDelete = squashDelete(valuesToDelete);
         List<V> remainingOldValues = new ArrayList<>(itemOld != null ? itemOld.getValues() : emptyList());
 
         // Very special case for single-valued items: when adding a value different from the one being there
@@ -1552,7 +1585,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
             V oldValue = getAndRemove(remainingOldValues, inOld);
             if (oldValue != null) {
                 // Deleting the value or some metadata only
-                V oldValueReduced = cloneOldWithMergedMetadata(oldValue, valueToDelete);
+                V oldValueReduced = cloneOldWithReducedMetadata(oldValue, valueToDelete);
                 if (oldValueReduced != null) {
                     triple.getZeroSet().add(oldValueReduced);
                 } else {
@@ -1572,7 +1605,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         return triple;
     }
 
-    private void addExistingValueToDeleteSet(List<V> remainingValuesToDelete, Collection<V> valuesToAdd, @NotNull Item<V, D> itemOld) {
+    private void addExistingValueToDeleteSet(List<V> remainingValuesToDelete, Collection<V> valuesToAdd, @NotNull Item<V, D> itemOld) throws SchemaException {
         if (itemOld.hasNoValues()) {
             return;
         }
@@ -1585,8 +1618,8 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         }
         for (V valueToAdd : valuesToAdd) {
             if (valueToAdd != null && !valueToAdd.equals(existingValue, REAL_VALUE_CONSIDER_DIFFERENT_IDS) &&
-                    !ItemCollectionsUtil.contains(remainingValuesToDelete, existingValue, REAL_VALUE_CONSIDER_DIFFERENT_IDS)) {
-                remainingValuesToDelete.add(CloneUtil.clone(existingValue));
+                    !ItemCollectionsUtil.contains(remainingValuesToDelete, existingValue, NOT_LITERAL)) {
+                squashIntoDeleteList(remainingValuesToDelete, existingValue);
             }
         }
     }
@@ -1606,7 +1639,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         return result;
     }
 
-    private V cloneOldWithMergedMetadata(@NotNull V oldValue, @NotNull V valueToDelete) {
+    private V cloneOldWithReducedMetadata(@NotNull V oldValue, @NotNull V valueToDelete) {
         boolean deleteAllExistingMetadata = valueToDelete.getValueMetadata().hasNoValues();
         if (deleteAllExistingMetadata) {
             return null;
@@ -1627,10 +1660,10 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         }
     }
 
-    private PrismValueDeltaSetTriple<V> toDeltaSetTripleForReplace(Item<V, D> itemOld) {
+    private PrismValueDeltaSetTriple<V> toDeltaSetTripleForReplace(Item<V, D> itemOld) throws SchemaException {
         PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTripleImpl<>();
 
-        List<V> remainingValuesToReplace = new ArrayList<>(emptyIfNull(valuesToReplace));
+        List<V> remainingValuesToReplace = squash(valuesToReplace);
         List<V> remainingOldValues = new ArrayList<>(itemOld != null ? itemOld.getValues() : emptyList());
 
         for (V valueToReplace : remainingValuesToReplace) {
@@ -1648,6 +1681,54 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         }
 
         return triple;
+    }
+
+    /**
+     * Squashes values to be added into a list such that all equivalent values will be collapsed into one,
+     * with their metadata merged. Assuming that the number of values is not too large because of O(n^2) complexity.
+     *
+     * Deals with values to be added, i.e. does not treat no-metadata or no-content values specially.
+     */
+    private List<V> squash(Collection<V> values) throws SchemaException {
+        List<V> squashed = new ArrayList<>();
+        for (V value : emptyIfNull(values)) {
+            int existing = findIndex(squashed, value, REAL_VALUE_CONSIDER_DIFFERENT_IDS, false, false);
+            if (existing < 0) {
+                squashed.add(value);
+            } else {
+                squashed.get(existing).getValueMetadataAsContainer()
+                        .addAll(CloneUtil.cloneCollectionMembers(
+                                value.getValueMetadataAsContainer().getValues()));
+            }
+        }
+        return squashed;
+    }
+
+    private List<V> squashDelete(Collection<V> valuesToDelete) throws SchemaException {
+        List<V> squashed = new ArrayList<>();
+        for (V value : emptyIfNull(valuesToDelete)) {
+            squashIntoDeleteList(squashed, value);
+        }
+        return squashed;
+    }
+
+    private void squashIntoDeleteList(List<V> squashedValuesToDelete, V valueToDelete) throws SchemaException {
+        int existing = findIndex(squashedValuesToDelete, valueToDelete, REAL_VALUE_CONSIDER_DIFFERENT_IDS, true, true);
+        if (existing < 0) {
+            //noinspection unchecked
+            squashedValuesToDelete.add((V) valueToDelete.clone());
+        } else {
+            V squashedValueToDelete = squashedValuesToDelete.get(existing);
+            if (!squashedValueToDelete.hasValueMetadata()) {
+                // nothing more to remove
+            } else if (!valueToDelete.hasValueMetadata()) {
+                // removing everything
+                squashedValueToDelete.getValueMetadata().clear();
+            } else {
+                squashedValueToDelete.getValueMetadataAsContainer()
+                        .addAll(CloneUtil.cloneCollectionMembers(valueToDelete.getValueMetadataAsContainer().getValues()));
+            }
+        }
     }
 
     public void assertDefinitions(String sourceDescription) throws SchemaException {

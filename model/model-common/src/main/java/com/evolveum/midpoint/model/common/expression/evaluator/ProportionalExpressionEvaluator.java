@@ -9,11 +9,11 @@ package com.evolveum.midpoint.model.common.expression.evaluator;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.ItemDeltaUtil;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
+import com.evolveum.midpoint.repo.common.expression.evaluator.AbstractExpressionEvaluator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -27,23 +27,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProportionalStyleTyp
  * @author skublik
  */
 public class ProportionalExpressionEvaluator<V extends PrismValue, D extends ItemDefinition>
-        implements ExpressionEvaluator<V> {
+        extends AbstractExpressionEvaluator<V, D, ProportionalExpressionEvaluatorType> {
 
-    private final ProportionalExpressionEvaluatorType proportionalEvaluatorType;
-    private final D outputDefinition;
-    private final PrismContext prismContext;
-
-    ProportionalExpressionEvaluator(ProportionalExpressionEvaluatorType proportionalEvaluatorType, D outputDefinition, PrismContext prismContext) {
-        this.proportionalEvaluatorType = proportionalEvaluatorType;
-        this.outputDefinition = outputDefinition;
-        this.prismContext = prismContext;
+    ProportionalExpressionEvaluator(QName elementName, ProportionalExpressionEvaluatorType proportionalEvaluatorBean,
+            D outputDefinition, Protector protector, PrismContext prismContext) {
+        super(elementName, proportionalEvaluatorBean, outputDefinition, protector, prismContext);
     }
 
     @Override
     public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
-        ProportionalStyleType style = proportionalEvaluatorType.getStyle();
+        ProportionalStyleType style = expressionEvaluatorBean.getStyle();
 
         IntegerStatType integerStatType = context.getVariables().getValue(ExpressionConstants.VAR_INPUT, IntegerStatType.class);
         if(integerStatType == null) {
@@ -111,11 +106,6 @@ public class ProportionalExpressionEvaluator<V extends PrismValue, D extends Ite
 
     @Override
     public String shortDebugDump() {
-        return "const:"+proportionalEvaluatorType.getStyle();
-    }
-
-    @Override
-    public QName getElementName() {
-        return SchemaConstantsGenerated.C_PROPORTIONAL;
+        return "const:"+expressionEvaluatorBean.getStyle();
     }
 }

@@ -14,6 +14,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -245,6 +246,23 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         Item extensionItem = getObject().findExtensionItem(localName);
         assertNotNull("No extension item " + localName, extensionItem);
         assertTrue("Real value " + realValue + " not in " + extensionItem, extensionItem.getRealValues().contains(realValue));
+        return this;
+    }
+
+    // TODO move/copy? to PCV asserter
+    public PrismObjectAsserter<O,RA> assertValues(ItemPath path, Object... expectedRealValues) {
+        Item extensionItem = getObject().findItem(path);
+        if (expectedRealValues.length == 0) {
+            if (extensionItem != null && !extensionItem.isEmpty()) {
+                fail("Extension item exists when not expected: " + extensionItem);
+            }
+        } else {
+            assertNotNull("No item " + path, extensionItem);
+            Collection actualRealValues = extensionItem.getRealValues();
+            //noinspection unchecked
+            assertThat(actualRealValues).as("actual real values for item " + path)
+                    .containsExactlyInAnyOrder(expectedRealValues);
+        }
         return this;
     }
 

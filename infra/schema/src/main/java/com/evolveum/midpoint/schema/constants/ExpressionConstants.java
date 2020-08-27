@@ -161,4 +161,8 @@ public class ExpressionConstants {
     public static final String VAR_OBJECT_DELTA = "objectDelta";
 
     public static final String VAR_RESOURCE_OBJECT_DELTA = "resourceObjectDelta";
+
+    // For metadata computation
+    public static final String VAR_METADATA_COMPUTATION_INPUT = "metadataComputationInput";
+    public static final String VAR_METADATA = "metadata";
 }

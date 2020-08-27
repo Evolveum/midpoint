@@ -222,6 +222,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="storageMetadata" type="tns:StorageMetadataType" />
 
     <xsd:complexType name="ProcessMetadataType">
         <xsd:annotation>
@@ -436,6 +437,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="processMetadata" type="tns:ProcessMetadataType" />
 
     <xsd:complexType name="ProvisioningMetadataType">
         <xsd:annotation>
@@ -474,6 +476,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="provisioningMetadata" type="tns:ProvisioningMetadataType" />
 
     <xsd:complexType name="TransformationMetadataType">
         <xsd:annotation>
@@ -502,6 +505,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="transformationMetadata" type="tns:TransformationMetadataType" />
 
     <xsd:complexType name="ValueSourceType">
         <xsd:annotation>
@@ -552,6 +556,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="valueSource" type="tns:ValueSourceType" />
 
     <xsd:complexType name="ValueTransformerType">
         <xsd:annotation>
@@ -595,6 +600,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="valueTransformer" type="tns:ValueTransformerType" />
 
     <xsd:complexType name="ProvenanceMetadataType">
         <xsd:annotation>
@@ -616,6 +622,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="provenanceMetadata" type="tns:ProvenanceMetadataType" />
 
     <xsd:complexType name="ProvenanceAcquisitionType">
         <xsd:annotation>
@@ -693,6 +700,7 @@
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="provenanceAcquisition" type="tns:ProvenanceAcquisitionType" />
 
     <xsd:complexType name="MappingSpecificationType">
         <xsd:annotation>
@@ -712,6 +720,7 @@
             <xsd:element name="mappingName" type="xsd:string" minOccurs="1" maxOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType" />
 
     <xsd:complexType name="MetadataHandlingType">
         <xsd:annotation>

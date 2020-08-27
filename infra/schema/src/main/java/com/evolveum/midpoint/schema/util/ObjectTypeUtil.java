@@ -56,8 +56,8 @@ public class ObjectTypeUtil {
     /**
      * Never returns null. Returns empty collection instead.
      */
-    public static <T> Collection<T> getExtensionPropertyValuesNotNull(ObjectType objectType, QName propertyQname) {
-        Collection<T> values = getExtensionPropertyValues(objectType, propertyQname);
+    public static <T> Collection<T> getExtensionPropertyValuesNotNull(Containerable containerable, QName propertyQname) {
+        Collection<T> values = getExtensionPropertyValues(containerable, propertyQname);
         if (values == null) {
             return new ArrayList<>(0);
         } else {
@@ -65,9 +65,10 @@ public class ObjectTypeUtil {
         }
     }
 
-    public static <T> Collection<T> getExtensionPropertyValues(ObjectType objectType, QName propertyQname) {
-        PrismObject<? extends ObjectType> object = objectType.asPrismObject();
-        PrismContainer<Containerable> extensionContainer = object.findContainer(ObjectType.F_EXTENSION);
+    public static <T> Collection<T> getExtensionPropertyValues(Containerable containerable, QName propertyQname) {
+        PrismContainerValue pcv = containerable.asPrismContainerValue();
+        //noinspection unchecked
+        PrismContainer<Containerable> extensionContainer = pcv.findContainer(ObjectType.F_EXTENSION);
         if (extensionContainer == null) {
             return null;
         }
@@ -194,11 +195,7 @@ public class ObjectTypeUtil {
 
     public static String getShortTypeName(Class<? extends ObjectType> type) {
         ObjectTypes objectTypeType = ObjectTypes.getObjectType(type);
-        if (objectTypeType != null) {
-            return objectTypeType.getElementName().getLocalPart();
-        } else {
-            return type.getSimpleName();
-        }
+        return objectTypeType.getElementName().getLocalPart();
     }
 
     @NotNull

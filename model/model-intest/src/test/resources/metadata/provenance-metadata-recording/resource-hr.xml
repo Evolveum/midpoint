@@ -56,6 +56,14 @@
             <objectClass>ri:AccountObjectClass</objectClass>
             <provenance>
                 <originRef oid="f43bd824-e07e-4a41-950e-00de06881555" type="ServiceType"/> <!-- HR employee feed -->
+                <metadataItemPopulator>
+                    <expression>
+                        <value>2</value>
+                    </expression>
+                    <target>
+                        <path>extension/loa</path>
+                    </target>
+                </metadataItemPopulator>
             </provenance>
             <attribute>
                 <ref>icfs:name</ref>
@@ -82,11 +90,6 @@
                 <ref>ri:firstname</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <expression>
-                        <script>
-                            <code>input</code>
-                        </script>
-                    </expression>
                     <target>
                         <path>givenName</path>
                     </target>
@@ -96,11 +99,6 @@
                 <ref>ri:lastname</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <expression>
-                        <script>
-                            <code>input</code>
-                        </script>
-                    </expression>
                     <target>
                         <path>familyName</path>
                     </target>
@@ -110,13 +108,11 @@
                 <ref>ri:organization</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <expression>
-                        <script>
-                            <code>input</code>
-                        </script>
-                    </expression>
                     <target>
                         <path>organization</path>
+                        <set>
+                            <predefined>matchingProvenance</predefined>
+                        </set>
                     </target>
                 </inbound>
             </attribute>

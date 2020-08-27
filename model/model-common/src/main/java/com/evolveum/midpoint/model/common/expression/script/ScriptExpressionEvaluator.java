@@ -32,6 +32,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionEval
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ScriptExpressionReturnTypeType;
 
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Executes specified script written e.g. in Groovy, JavaScript, Python, etc. Velocity template language is supported as well.
@@ -60,22 +61,29 @@ public class ScriptExpressionEvaluator<V extends PrismValue,D extends ItemDefini
     protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
             ExpressionEvaluationContext eCtx, String contextDescription, Task task, OperationResult result)
                     throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ScriptExpressionReturnTypeType returnType = expressionEvaluatorBean.getReturnType();
-        if (returnType == null && isRelative()) {
-            returnType = ScriptExpressionReturnTypeType.SCALAR;
-        }
         scriptExpression.setAdditionalConvertor(eCtx.getAdditionalConvertor());
         ScriptExpressionEvaluationContext sCtx = new ScriptExpressionEvaluationContext();
         sCtx.setVariables(variables);
-        sCtx.setSuggestedReturnType(returnType);
+        sCtx.setSuggestedReturnType(getReturnType());
         sCtx.setEvaluateNew(useNew);
         sCtx.setContextDescription(contextDescription);
         sCtx.setAdditionalConvertor(eCtx.getAdditionalConvertor());
         sCtx.setTask(task);
         sCtx.setResult(result);
 
-        //noinspection unchecked
-        return (List<V>) scriptExpression.evaluate(sCtx);
+        return scriptExpression.evaluate(sCtx);
+    }
+
+    @Nullable
+    private ScriptExpressionReturnTypeType getReturnType() {
+        ScriptExpressionReturnTypeType explicitReturnType = expressionEvaluatorBean.getReturnType();
+        if (explicitReturnType != null) {
+            return explicitReturnType;
+        } else if (isRelative()) {
+            return ScriptExpressionReturnTypeType.SCALAR;
+        } else {
+            return null;
+        }
     }
 
     @Override

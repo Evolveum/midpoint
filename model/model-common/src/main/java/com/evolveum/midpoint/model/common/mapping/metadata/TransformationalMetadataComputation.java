@@ -14,18 +14,21 @@ import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetada
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingSpecificationType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.VariableBindingDefinitionType;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
+import javax.xml.namespace.QName;
+import java.util.*;
 
 /**
  *
@@ -35,9 +38,7 @@ public class TransformationalMetadataComputation extends ValueMetadataComputatio
     private static final Trace LOGGER = TraceManager.getTrace(TransformationalMetadataComputation.class);
 
     /**
-     * Input for the computation. Currently a simple list of values,
-     * - either different in case of expression evaluation (note: they can belong to the same or different items)
-     * - or the same in case of value consolidation.
+     * Input for the computation. Currently a simple list of source values.
      */
     @NotNull private final List<PrismValue> inputValues;
 
@@ -88,5 +89,39 @@ public class TransformationalMetadataComputation extends ValueMetadataComputatio
 
     public List<PrismValue> getInputValues() {
         return Collections.unmodifiableList(inputValues);
+    }
+
+    @Override
+    void createCustomMappingVariables(MetadataMappingBuilder<?, ?> builder, MetadataMappingType metadataMappingBean) {
+        super.createCustomMappingVariables(builder, metadataMappingBean);
+        builder.addVariableDefinition(ExpressionConstants.VAR_METADATA_COMPUTATION_INPUT,
+                createMetadataComputationInput(builder, metadataMappingBean),
+                MetadataComputationInput.class);
+    }
+
+    // Temporary implementation
+    private MetadataComputationInput createMetadataComputationInput(MetadataMappingBuilder<?, ?> builder,
+            MetadataMappingType metadataMappingBean) {
+        MetadataComputationInput metadataComputationInput = new MetadataComputationInput();
+        for (PrismValue inputDataValue : inputValues) {
+            Map<String, Collection<?>> metadataSourceMap = new HashMap<>();
+            if (inputDataValue != null) {
+                for (VariableBindingDefinitionType sourceDef : metadataMappingBean.getSource()) {
+                    ItemPath metadataSourcePath = getSourcePath(sourceDef);
+                    QName metadataSourceName = getSourceName(sourceDef, metadataSourcePath);
+                    List<PrismValue> metadataSourceValues = new ArrayList<>();
+                    for (PrismContainerValue<Containerable> metadataValue : inputDataValue.getValueMetadata().getValues()) {
+                        Item<PrismValue, ItemDefinition> sourceItem = metadataValue.findItem(metadataSourcePath);
+                        if (sourceItem != null) {
+                            //noinspection unchecked
+                            metadataSourceValues.addAll(sourceItem.clone().getRealValues());
+                        }
+                    }
+                    metadataSourceMap.put(metadataSourceName.getLocalPart(), metadataSourceValues);
+                }
+                metadataComputationInput.add(inputDataValue, metadataSourceMap);
+            }
+        }
+        return metadataComputationInput;
     }
 }

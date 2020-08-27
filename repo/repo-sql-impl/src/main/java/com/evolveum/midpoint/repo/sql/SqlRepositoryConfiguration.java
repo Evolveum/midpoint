@@ -298,7 +298,7 @@ public class SqlRepositoryConfiguration {
     public static final String PROPERTY_TRANSACTION_ISOLATION = "transactionIsolation";
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE = "lockForUpdateViaHibernate";
     public static final String PROPERTY_LOCK_FOR_UPDATE_VIA_SQL = "lockForUpdateViaSql";
-    public static final String PROPERTY_USE_READ_ONLY_TRANSACTIONS = "useReadOnlyTransactions";
+    public static final String PROPERTY_READ_ONLY_TRANSACTIONS_STATEMENT = "readOnlyTransactionsStatement";
     public static final String PROPERTY_PERFORMANCE_STATISTICS_FILE = "performanceStatisticsFile";
     public static final String PROPERTY_PERFORMANCE_STATISTICS_LEVEL = "performanceStatisticsLevel";
 
@@ -363,7 +363,7 @@ public class SqlRepositoryConfiguration {
     private final String jdbcUsername;
     private final String jdbcPassword;
     private final String hibernateDialect;
-    private String hibernateHbm2ddl;                            // not final only because of testing
+    private String hibernateHbm2ddl; // not final only because of testing
     private final String dataSource;
     private final int minPoolSize;
     private final int maxPoolSize;
@@ -375,12 +375,12 @@ public class SqlRepositoryConfiguration {
     private TransactionIsolation defaultTransactionIsolation;
     private boolean defaultLockForUpdateViaHibernate;
     private boolean defaultLockForUpdateViaSql;
-    private boolean defaultUseReadOnlyTransactions;
+    private String defaultReadOnlyTransactionStatement;
 
     private final TransactionIsolation transactionIsolation;
     private final boolean lockForUpdateViaHibernate;
     private final boolean lockForUpdateViaSql;
-    private final boolean useReadOnlyTransactions;
+    private final String readOnlyTransactionStatement;
 
     private final String performanceStatisticsFile;
     private final int performanceStatisticsLevel;
@@ -390,7 +390,7 @@ public class SqlRepositoryConfiguration {
     private final int maxObjectsForImplicitFetchAllIterationMethod;
 
     private final boolean iterativeSearchByPaging;
-    private int iterativeSearchByPagingBatchSize;               // not final only because of testing
+    private int iterativeSearchByPagingBatchSize; // not final only because of testing
 
     private final boolean ignoreOrgClosure;
     private final OrgClosureManager.StartupAction orgClosureStartupAction;
@@ -407,7 +407,7 @@ public class SqlRepositoryConfiguration {
     @NotNull private final IncompatibleSchemaAction incompatibleSchemaAction;
     private final String schemaVersionIfMissing;
     private final String schemaVersionOverride;
-    private final String schemaVariant;           // e.g. "utf8mb4" for MySQL/MariaDB
+    private final String schemaVariant; // e.g. "utf8mb4" for MySQL/MariaDB
 
     private boolean enableNoFetchExtensionValuesInsertion;
     private boolean enableNoFetchExtensionValuesDeletion;
@@ -428,7 +428,6 @@ public class SqlRepositoryConfiguration {
         dataSource = MiscUtil.nullIfEmpty(configuration.getString(PROPERTY_DATASOURCE));
 
         // guessing the database + setting related basic properties
-
         Database configuredDatabase = Database.findDatabase(configuration.getString(PROPERTY_DATABASE));
         String configuredDriverClassName = configuration.getString(PROPERTY_DRIVER_CLASS_NAME);
         String configuredHibernateDialect = configuration.getString(PROPERTY_HIBERNATE_DIALECT);
@@ -439,12 +438,12 @@ public class SqlRepositoryConfiguration {
         } else {
             Database guessedDatabase = null;
             if (configuredDriverClassName != null) {
-                guessedDatabase = Database
-                        .findByDriverClassName(configuredDriverClassName);     // may be still null for unknown drivers
+                // may be still null for unknown drivers
+                guessedDatabase = Database.findByDriverClassName(configuredDriverClassName);
             }
             if (guessedDatabase == null && configuredHibernateDialect != null) {
-                guessedDatabase = Database
-                        .findByHibernateDialect(configuredHibernateDialect);   // may be still null for unknown dialects
+                // may be still null for unknown dialects
+                guessedDatabase = Database.findByHibernateDialect(configuredHibernateDialect);
             }
             if (guessedDatabase == null && Boolean.TRUE.equals(configuredEmbedded)) {
                 guessedDatabase = H2;
@@ -461,10 +460,10 @@ public class SqlRepositoryConfiguration {
         embedded = defaultIfNull(configuredEmbedded, getDefaultEmbedded(dataSource, database));
 
         // other properties
-
         asServer = configuration.getBoolean(PROPERTY_AS_SERVER, embedded);
         String baseDirOption = configuration.getString(PROPERTY_BASE_DIR);
-        baseDir = baseDirOption != null ? baseDirOption : getDerivedBaseDir();      // there's logging there so we call it only if necessary
+        // there's logging there so we call it only if necessary
+        baseDir = baseDirOption != null ? baseDirOption : getDerivedBaseDir();
         fileName = configuration.getString(PROPERTY_FILE_NAME, DEFAULT_FILE_NAME);
 
         hibernateHbm2ddl = configuration.getString(PROPERTY_HIBERNATE_HBM2DDL, getDefaultHibernateHbm2ddl(database));
@@ -502,12 +501,16 @@ public class SqlRepositoryConfiguration {
                 configuration.getString(PROPERTY_TRANSACTION_ISOLATION, defaultTransactionIsolation.value()));
         applyTransactionIsolation();
 
-        lockForUpdateViaHibernate = configuration.getBoolean(PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE, defaultLockForUpdateViaHibernate);
-        lockForUpdateViaSql = configuration.getBoolean(PROPERTY_LOCK_FOR_UPDATE_VIA_SQL, defaultLockForUpdateViaSql);
-        useReadOnlyTransactions = configuration.getBoolean(PROPERTY_USE_READ_ONLY_TRANSACTIONS, defaultUseReadOnlyTransactions);
+        lockForUpdateViaHibernate = configuration.getBoolean(
+                PROPERTY_LOCK_FOR_UPDATE_VIA_HIBERNATE, defaultLockForUpdateViaHibernate);
+        lockForUpdateViaSql = configuration.getBoolean(
+                PROPERTY_LOCK_FOR_UPDATE_VIA_SQL, defaultLockForUpdateViaSql);
+        readOnlyTransactionStatement = configuration.getString(
+                PROPERTY_READ_ONLY_TRANSACTIONS_STATEMENT, defaultReadOnlyTransactionStatement);
 
         performanceStatisticsFile = configuration.getString(PROPERTY_PERFORMANCE_STATISTICS_FILE);
-        performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL, SqlPerformanceMonitorImpl.LEVEL_LOCAL_STATISTICS);
+        performanceStatisticsLevel = configuration.getInt(PROPERTY_PERFORMANCE_STATISTICS_LEVEL,
+                SqlPerformanceMonitorImpl.LEVEL_LOCAL_STATISTICS);
 
         computeDefaultIterativeSearchParameters();
         iterativeSearchByPaging = configuration.getBoolean(PROPERTY_ITERATIVE_SEARCH_BY_PAGING, defaultIterativeSearchByPaging);
@@ -569,7 +572,7 @@ public class SqlRepositoryConfiguration {
                 + ";DB_CLOSE_ON_EXIT=FALSE"    // Disable database closing on exit. By default, a database is closed when the last connection is closed.
                 + ";LOCK_MODE=1"               // Both read locks and write locks are kept until the transaction commits.
                 + ";LOCK_TIMEOUT=100"          // This is experimental setting - let's resolve locking conflicts by midPoint itself
-                + ";MAX_LENGTH_INPLACE_LOB=10240"; // We want to store blob datas i.e. full xml object right in table (it's often only a few kb)
+                + ";MAX_LENGTH_INPLACE_LOB=10240"; // We want to store blob data i.e. full xml object right in table (it's often only a few kb)
     }
 
     private String getDerivedBaseDir() {
@@ -624,7 +627,7 @@ public class SqlRepositoryConfiguration {
             if (database != null) {
                 return database.getDefaultDriverClassName();
             }
-            return null;                // driver is not needed here
+            return null; // driver is not needed here
         } else if (database != null) {
             return database.getDefaultDriverClassName();
         } else {
@@ -658,12 +661,15 @@ public class SqlRepositoryConfiguration {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = true;
-            defaultUseReadOnlyTransactions = false;        // h2 does not support "SET TRANSACTION READ ONLY" command
+            defaultReadOnlyTransactionStatement = null; // h2 does not support read only transactions
         } else if (isUsingMySqlCompatible()) {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = true;
-            defaultUseReadOnlyTransactions = true;
+            // SET TRANSACTION READ ONLY should work too, but we had obscure problem when first
+            // read-only transaction read JDBC metadata, the following RW transaction was still RO.
+            // Mysterious problem: https://stackoverflow.com/a/63580806/658826
+            defaultReadOnlyTransactionStatement = "START TRANSACTION READ ONLY";
         } else if (isUsingOracle()) {
             /*
              * Isolation of SERIALIZABLE causes false ORA-8177 (serialization) exceptions even for single-thread scenarios
@@ -678,28 +684,28 @@ public class SqlRepositoryConfiguration {
             defaultTransactionIsolation = TransactionIsolation.READ_COMMITTED;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = true;
-            defaultUseReadOnlyTransactions = true;
+            defaultReadOnlyTransactionStatement = "SET TRANSACTION READ ONLY";
         } else if (isUsingPostgreSQL()) {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = false;
-            defaultUseReadOnlyTransactions = true;
+            defaultReadOnlyTransactionStatement = "START TRANSACTION READ ONLY";
         } else if (isUsingSQLServer()) {
             defaultTransactionIsolation = TransactionIsolation.SNAPSHOT;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = false;
-            defaultUseReadOnlyTransactions = false;
+            defaultReadOnlyTransactionStatement = null;
         } else {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = false;
-            defaultUseReadOnlyTransactions = true;
+            defaultReadOnlyTransactionStatement = "SET TRANSACTION READ ONLY";
             //noinspection ConstantConditions
             LOGGER.warn("Fine-tuned concurrency parameters defaults for hibernate dialect " + hibernateDialect
                     + " not found; using the following defaults: transactionIsolation = " + defaultTransactionIsolation
                     + ", lockForUpdateViaHibernate = " + defaultLockForUpdateViaHibernate
                     + ", lockForUpdateViaSql = " + defaultLockForUpdateViaSql
-                    + ", useReadOnlyTransactions = " + defaultUseReadOnlyTransactions
+                    + ", readOnlyTransactionStatement = " + defaultReadOnlyTransactionStatement
                     + ". Please override them if necessary.");
         }
     }
@@ -856,7 +862,7 @@ public class SqlRepositoryConfiguration {
 
     private void applyTransactionIsolation() {
         // ugly hack, but I know of no way to work around
-//        MidPointConnectionCustomizer.setTransactionIsolation(transactionIsolation);
+        // MidPointConnectionCustomizer.setTransactionIsolation(transactionIsolation);
     }
 
     public boolean isLockForUpdateViaHibernate() {
@@ -867,8 +873,8 @@ public class SqlRepositoryConfiguration {
         return lockForUpdateViaSql;
     }
 
-    public boolean isUseReadOnlyTransactions() {
-        return useReadOnlyTransactions;
+    public String getReadOnlyTransactionStatement() {
+        return readOnlyTransactionStatement;
     }
 
     public String getPerformanceStatisticsFile() {
@@ -959,16 +965,6 @@ public class SqlRepositoryConfiguration {
 
     public boolean isUsingMySqlCompatible() {
         return isUsing(MYSQL) || isUsing(MARIADB);
-    }
-
-    @SuppressWarnings("unused")
-    public boolean isUsingMySql() {
-        return isUsing(MYSQL);
-    }
-
-    @SuppressWarnings("unused")
-    public boolean isUsingMariaDB() {
-        return isUsing(MARIADB);
     }
 
     public boolean isUsingPostgreSQL() {

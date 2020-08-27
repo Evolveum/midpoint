@@ -10,6 +10,7 @@ package com.evolveum.midpoint.provisioning.impl.errorhandling;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -120,7 +121,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
         OperationResult result = parentResult.createSubresult(OP_DISCOVERY);
         try {
 
-            ObjectQuery query = createQueryBySecondaryIdentifier(newShadow.asObjectable());
+            ObjectQuery query = createQueryBySecondaryIdentifier(newShadow.asObjectable(), prismContext);
 
             final List<PrismObject<ShadowType>> conflictingRepoShadows = findConflictingShadowsInRepo(query, task, result);
             PrismObject<ShadowType> oldShadow = shadowManager.eliminateDeadShadows(conflictingRepoShadows, result);
@@ -176,7 +177,7 @@ public class ObjectAlreadyExistHandler extends HardErrorHandler {
     }
 
 
-    private ObjectQuery createQueryBySecondaryIdentifier(ShadowType shadow) {
+    protected static ObjectQuery createQueryBySecondaryIdentifier(ShadowType shadow, PrismContext prismContext) {
         // TODO ensure that the identifiers are normalized here
         // Note that if the query is to be used against the repository, we should not provide matching rules here. See MID-5547.
         Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);

@@ -50,7 +50,30 @@
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <provenance>
-                <originRef oid="28c230b1-7209-4aa0-a5b9-776b22e14960" type="ServiceType"/> <!-- CRM feed -->
+                <!-- Let's try dynamic mechanism for originRef -->
+                <acquisitionItemPopulator>
+                    <expression>
+                        <value oid="28c230b1-7209-4aa0-a5b9-776b22e14960" type="ServiceType" /> <!-- CRM feed -->
+                    </expression>
+                    <target>
+                        <path>originRef</path>
+                    </target>
+                </acquisitionItemPopulator>
+                <metadataItemPopulator>
+                    <expression>
+                        <script>
+                            <code>
+                                DEFAULT_LOA = 1
+
+                                loa = basic.getAttributeValue(projection, 'loa')
+                                loa != null ? loa : DEFAULT_LOA
+                            </code>
+                        </script>
+                    </expression>
+                    <target>
+                        <path>extension/loa</path>
+                    </target>
+                </metadataItemPopulator>
             </provenance>
             <attribute>
                 <ref>icfs:name</ref>
@@ -77,11 +100,6 @@
                 <ref>ri:firstname</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <expression>
-                        <script>
-                            <code>input</code>
-                        </script>
-                    </expression>
                     <target>
                         <path>givenName</path>
                     </target>
@@ -91,11 +109,6 @@
                 <ref>ri:lastname</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <expression>
-                        <script>
-                            <code>input</code>
-                        </script>
-                    </expression>
                     <target>
                         <path>familyName</path>
                     </target>
@@ -105,13 +118,11 @@
                 <ref>ri:organization</ref>
                 <inbound>
                     <strength>strong</strength>
-                    <expression>
-                        <script>
-                            <code>input</code>
-                        </script>
-                    </expression>
                     <target>
                         <path>organization</path>
+                        <set>
+                            <predefined>matchingProvenance</predefined>
+                        </set>
                     </target>
                 </inbound>
             </attribute>

@@ -11,6 +11,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.DefinitionResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -33,7 +34,7 @@ class ValueResolutionContext extends ResolutionContext {
     <V extends PrismValue> PrismValueDeltaSetTriple<V> createOutputTriple(PrismContext prismContext) {
         PrismValueDeltaSetTriple<V> outputTriple = prismContext.deltaFactory().createPrismValueDeltaSetTriple();
         //noinspection unchecked
-        outputTriple.addToZeroSet((V) value);
+        outputTriple.addToZeroSet((V) CloneUtil.clone(value));
         return outputTriple;
     }
 

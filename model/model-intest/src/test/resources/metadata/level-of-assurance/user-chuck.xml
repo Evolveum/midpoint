@@ -8,22 +8,22 @@
 <user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
       xmlns:sm="http://midpoint.evolveum.com/xml/ns/samples/metadata"
-      oid="cab2344d-06c0-4881-98ee-7075bf5d1309">
-    <name>bob</name>
-    <subtype>regular</subtype>
+      oid="3eb9ca6b-49b8-4602-943a-992d8eb9adad">
+    <name>chuck</name>
+    <subtype>loa</subtype>
     <givenName>
-        <_value>Bob</_value>
+        <_value>Chuck</_value>
         <_metadata>
             <c:extension>
-                <sm:loa>low</sm:loa>
+                <sm:loa>1</sm:loa>
             </c:extension>
         </_metadata>
     </givenName>
     <familyName>
-        <_value>Green</_value>
+        <_value>White</_value>
         <_metadata>
             <c:extension>
-                <sm:loa>high</sm:loa>
+                <sm:loa>3</sm:loa>
             </c:extension>
         </_metadata>
     </familyName>
