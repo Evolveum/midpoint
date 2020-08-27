@@ -1404,7 +1404,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return;
         }
         OperationResultType fetchResult = shadowType.getFetchResult();
-        if (fetchResult != null
+        AdministrativeAvailabilityStatusType resourceAdministrativeAvailabilityStatus = ResourceTypeUtil.getAdministrativeAvailabilityStatus(resource);
+
+        if (AdministrativeAvailabilityStatusType.MAINTENANCE == resourceAdministrativeAvailabilityStatus) {
+            setFullShadow(false); // resource is in the maintenance, shadow is from repo, result is success
+        } else if (fetchResult != null
                 && (fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR
                     || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)) {  // todo what about other kinds of status? [e.g. in-progress]
                setFullShadow(false);
