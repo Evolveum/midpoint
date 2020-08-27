@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -299,6 +300,8 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
     boolean contains(ItemDelta<V, D> other, EquivalenceStrategy strategy);
 
     void filterValues(Function<V, Boolean> function);
+
+    void filterYields(BiFunction<V, PrismContainerValue, Boolean> function);
 
     ItemDelta<V,D> clone();
 

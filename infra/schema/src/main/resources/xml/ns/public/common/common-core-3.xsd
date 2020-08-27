@@ -10212,6 +10212,21 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="yieldCondition" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <p>
+                          Expression that is evaluated to check whether specific value yield belongs to the set.
+                          If the condition returns true then the value yield belongs to the set. Otherwise
+                          it does not. VERY EXPERIMENTAL.
+                        </p>
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.0</a:since>
+                        <a:experimental/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <!-- TODO: other set definition types:
                        * reference to lookup table
                        * reference to schema enumeration -->

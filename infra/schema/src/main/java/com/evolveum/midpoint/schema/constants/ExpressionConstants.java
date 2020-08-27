@@ -164,4 +164,5 @@ public class ExpressionConstants {
 
     // For metadata computation
     public static final String VAR_METADATA_COMPUTATION_INPUT = "metadataComputationInput";
+    public static final String VAR_METADATA = "metadata";
 }

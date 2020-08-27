@@ -9,6 +9,7 @@ package com.evolveum.midpoint.prism;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -18,6 +19,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -566,6 +568,26 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
             Boolean keep = function.apply(iterator.next());
             if (keep == null || !keep) {
                 iterator.remove();
+            }
+        }
+    }
+
+    default void filterYields(BiFunction<V, PrismContainerValue, Boolean> function) {
+        Iterator<V> iterator = getValues().iterator();
+        while (iterator.hasNext()) {
+            V value = iterator.next();
+            PrismContainer<Containerable> valueMetadata = value.getValueMetadataAsContainer();
+            if (valueMetadata.hasNoValues()) {
+                Boolean keep = function.apply(value, null);
+                if (BooleanUtils.isNotTrue(keep)) {
+                    iterator.remove();
+                }
+            } else {
+                valueMetadata.getValues().removeIf(
+                        md -> BooleanUtils.isNotTrue(function.apply(value, md)));
+                if (valueMetadata.getValues().isEmpty()) {
+                    iterator.remove();
+                }
             }
         }
     }

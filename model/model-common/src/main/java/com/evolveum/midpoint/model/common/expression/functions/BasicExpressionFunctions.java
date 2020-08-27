@@ -441,28 +441,27 @@ public class BasicExpressionFunctions {
         return prismContext;
     }
 
-    public <T> Collection<T> getExtensionPropertyValues(ObjectType object, String namespace, String localPart) {
+    public <T> Collection<T> getExtensionPropertyValues(Containerable containerable, String namespace, String localPart) {
         checkColon(localPart);
-        return getExtensionPropertyValues(object, new javax.xml.namespace.QName(namespace, localPart));
+        return getExtensionPropertyValues(containerable, new javax.xml.namespace.QName(namespace, localPart));
     }
 
-    public <T> Collection<T> getExtensionPropertyValues(ObjectType object, groovy.xml.QName propertyQname) {
+    public <T> Collection<T> getExtensionPropertyValues(Containerable object, groovy.xml.QName propertyQname) {
         return getExtensionPropertyValues(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
     }
 
-    public <T> Collection<T> getExtensionPropertyValues(ObjectType object, javax.xml.namespace.QName propertyQname) {
+    public <T> Collection<T> getExtensionPropertyValues(Containerable object, javax.xml.namespace.QName propertyQname) {
         return ObjectTypeUtil.getExtensionPropertyValuesNotNull(object, propertyQname);
     }
 
-
-    public <T> T getExtensionPropertyValue(ObjectType object, String localPart) throws SchemaException {
+    public <T> T getExtensionPropertyValue(Containerable containerable, String localPart) throws SchemaException {
         checkColon(localPart);
-        return getExtensionPropertyValue(object, new javax.xml.namespace.QName(null, localPart));
+        return getExtensionPropertyValue(containerable, new javax.xml.namespace.QName(null, localPart));
     }
 
-    public <T> T getExtensionPropertyValue(ObjectType object, String namespace, String localPart) throws SchemaException {
+    public <T> T getExtensionPropertyValue(Containerable containerable, String namespace, String localPart) throws SchemaException {
         checkColon(localPart);
-        return getExtensionPropertyValue(object, new javax.xml.namespace.QName(namespace, localPart));
+        return getExtensionPropertyValue(containerable, new javax.xml.namespace.QName(namespace, localPart));
     }
 
     public Referencable getExtensionReferenceValue(ObjectType object, String namespace, String localPart) throws SchemaException {
@@ -476,15 +475,15 @@ public class BasicExpressionFunctions {
         }
     }
 
-    public <T> T getExtensionPropertyValue(ObjectType object, groovy.xml.QName propertyQname) throws SchemaException {
-        return getExtensionPropertyValue(object, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
+    public <T> T getExtensionPropertyValue(Containerable containerable, groovy.xml.QName propertyQname) throws SchemaException {
+        return getExtensionPropertyValue(containerable, propertyQname.getNamespaceURI(), propertyQname.getLocalPart());
     }
 
-    public <T> T getExtensionPropertyValue(ObjectType object, javax.xml.namespace.QName propertyQname) throws SchemaException {
-        if (object == null) {
+    public <T> T getExtensionPropertyValue(Containerable containerable, javax.xml.namespace.QName propertyQname) throws SchemaException {
+        if (containerable == null) {
             return null;
         }
-        Collection<T> values = ObjectTypeUtil.getExtensionPropertyValues(object, propertyQname);
+        Collection<T> values = ObjectTypeUtil.getExtensionPropertyValues(containerable, propertyQname);
         return toSingle(values, "a multi-valued extension property " + propertyQname);
     }
 

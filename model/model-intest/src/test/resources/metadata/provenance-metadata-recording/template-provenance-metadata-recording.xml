@@ -55,17 +55,16 @@
         <strength>strong</strength>
         <source>
             <path>organization</path>
+            <set>
+                <yieldCondition>
+                    <script>
+                        <code>
+                            basic.getExtensionPropertyValue(metadata, 'loa') &gt;= 3
+                        </code>
+                    </script>
+                </yieldCondition>
+            </set>
         </source>
-        <expression>
-            <script>
-                <valueVariableMode>prismValue</valueVariableMode>
-                <code>
-                    loa = basic.getMetadataExtensionValues(organization, 'loa').max()
-                    log.info("loa for $organization is $loa")
-                    loa &gt;= 3 ? organization : null
-                </code>
-            </script>
-        </expression>
         <target>
             <path>extension/assuredOrganization</path>
             <set>

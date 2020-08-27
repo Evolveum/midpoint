@@ -243,6 +243,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      */
     @NotNull private final MappingSpecificationType mappingSpecification;
 
+    /**
+     * Definition of ValueMetadataType.
+     */
+    @NotNull final PrismContainerDefinition<ValueMetadataType> valueMetadataDefinition;
     //endregion
 
     /**
@@ -368,6 +372,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         now = builder.getNow();
         sources.addAll(builder.getAdditionalSources());
         parser = new MappingParser<>(this);
+        valueMetadataDefinition = beans.prismContext.getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(ValueMetadataType.class);
     }
 
     private MappingSpecificationType createDefaultSpecification() {
@@ -423,6 +429,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             this.conditionOutputTriple = prototype.conditionOutputTriple.clone();
         }
         this.parser = prototype.parser;
+        this.valueMetadataDefinition = prototype.valueMetadataDefinition;
     }
 
     public ObjectResolver getObjectResolver() {
@@ -815,8 +822,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
 
         ValueSetDefinitionType rangeSetDefBean = target.getSet();
-        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(rangeSetDefBean, getOutputDefinition(), expressionProfile, name,
-                mappingSpecification, "range",
+        ValueSetDefinition<V, D> rangeSetDef = new ValueSetDefinition<>(rangeSetDefBean, getOutputDefinition(), valueMetadataDefinition,
+                expressionProfile, name, mappingSpecification, "range",
                 "range of " + name + " in " + getMappingContextDescription(), task, result);
         rangeSetDef.init(beans.expressionFactory);
         rangeSetDef.setAdditionalVariables(variables);

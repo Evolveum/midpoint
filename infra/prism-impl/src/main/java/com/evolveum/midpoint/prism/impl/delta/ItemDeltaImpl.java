@@ -16,10 +16,12 @@ import static com.evolveum.midpoint.prism.path.ItemPath.checkNoSpecialSymbols;
 import static com.evolveum.midpoint.util.MiscUtil.emptyIfNull;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -1468,6 +1470,13 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         filterValuesSet(this.valuesToReplace, function);
     }
 
+    public void filterYields(BiFunction<V, PrismContainerValue, Boolean> function) {
+        checkMutable();
+        filterYieldsSet(this.valuesToAdd, function);
+        //filterYieldsSet(this.valuesToDelete, function); // TODO what to do with this?
+        filterYieldsSet(this.valuesToReplace, function);
+    }
+
     private void filterValuesSet(Collection<V> set, Function<V, Boolean> function) {
         if (set == null) {
             return;
@@ -1477,6 +1486,30 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
             Boolean keep = function.apply(iterator.next());
             if (keep == null || !keep) {
                 iterator.remove();
+            }
+        }
+    }
+
+    // TODO deduplicate with the same in Item
+    private void filterYieldsSet(Collection<V> set, BiFunction<V, PrismContainerValue, Boolean> function) {
+        if (set == null) {
+            return;
+        }
+        Iterator<V> iterator = set.iterator();
+        while (iterator.hasNext()) {
+            V value = iterator.next();
+            PrismContainer<Containerable> valueMetadata = value.getValueMetadataAsContainer();
+            if (valueMetadata.hasNoValues()) {
+                Boolean keep = function.apply(value, null);
+                if (BooleanUtils.isNotTrue(keep)) {
+                    iterator.remove();
+                }
+            } else {
+                valueMetadata.getValues().removeIf(
+                        md -> BooleanUtils.isNotTrue(function.apply(value, md)));
+                if (valueMetadata.getValues().isEmpty()) {
+                    iterator.remove();
+                }
             }
         }
     }
