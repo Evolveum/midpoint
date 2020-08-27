@@ -22,11 +22,13 @@ public class MetadataContainerPanel<C extends Containerable> extends PrismContai
 
     private static final long serialVersionUID = 1L;
 
+    private static final String ID_HEADER = "header";
     private static final String ID_VALUE = "value";
 
     public MetadataContainerPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
+
 
     @Override
     protected boolean getHeaderVisibility() {

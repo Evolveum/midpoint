@@ -15,6 +15,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
@@ -610,11 +611,25 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
         }
 
         List<PrismContainerDefinition<Containerable>> childContainers = new ArrayList<>();
-        PrismContainerValueWrapper<Containerable> containerValue = containerValues.iterator().next();
-        for (PrismContainerDefinition<Containerable> containerDef : containerValue.getContainers()) {
-            //do not allow to add already existing singel value container
-            childContainers.add(containerDef);
+        for (PrismContainerValueWrapper<Containerable> metadataValue : getValues()) {
+            for (PrismContainerWrapper<Containerable> child : metadataValue.getContainers()) {
+                if (child.isEmpty()) {
+                    continue;
+                }
+                if (!containainChild(childContainers, child)) {
+                    childContainers.add(child);
+                }
+            }
         }
+//        PrismContainerValueWrapper<Containerable> containerValue = containerValues.iterator().next();
+//        for (PrismContainerDefinition<Containerable> containerDef : containerValue.getContainers()) {
+//            //do not allow to add already existing singel value container
+//            childContainers.add(containerDef);
+//        }
         return childContainers;
+    }
+
+    private boolean containainChild(List<PrismContainerDefinition<Containerable>> containers, PrismContainerWrapper<Containerable> child) {
+        return containers.stream().anyMatch(ch -> QNameUtil.match(ch.getTypeName(), child.getTypeName()));
     }
 }

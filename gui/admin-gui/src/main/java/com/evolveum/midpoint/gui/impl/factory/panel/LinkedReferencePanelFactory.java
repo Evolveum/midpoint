@@ -19,6 +19,7 @@ import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -49,7 +50,7 @@ public class LinkedReferencePanelFactory implements GuiComponentFactory<PrismRef
         boolean match = QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, wrapper.getTypeName()) &&
                 QNameUtil.match(CaseType.F_PARENT_REF, wrapper.getPath().asSingleName());
 
-        //TODO match methos must not change the state of the wrapper
+        //TODO match method must not change the state of the wrapper
         if (match){
             try {
                 PrismReferenceValueWrapperImpl valueWrapper = (PrismReferenceValueWrapperImpl)
@@ -66,6 +67,7 @@ public class LinkedReferencePanelFactory implements GuiComponentFactory<PrismRef
     public org.apache.wicket.Component createPanel(PrismReferencePanelContext<ObjectReferenceType> panelCtx) {
         LinkedReferencePanel panel = new LinkedReferencePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
         panel.setOutputMarkupId(true);
+        panel.add(AttributeAppender.append("style", "padding-top:5px")); //ugly hack to be aligned with prism-property-label
         return panel;
     }
 

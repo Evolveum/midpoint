@@ -6,10 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.ProvenanceMetadataPanel;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
@@ -32,7 +34,13 @@ public class ProvenanceMetadataWrapperFactory extends MetadataWrapperFactoryImpl
     }
 
     @Override
-    public void registerWrapperPanel(PrismContainerWrapper<ProvenanceMetadataType> wrapper) {
-        getRegistry().registerWrapperPanel(wrapper.getTypeName(), ProvenanceMetadataPanel.class);
+    protected boolean shouldCreateEmptyValue(PrismContainer<ProvenanceMetadataType> item, WrapperContext context) {
+        return true;
     }
+
+    //
+//    @Override
+//    public void registerWrapperPanel(PrismContainerWrapper<ProvenanceMetadataType> wrapper) {
+//        getRegistry().registerWrapperPanel(wrapper.getTypeName(), ProvenanceMetadataPanel.class);
+//    }
 }

@@ -8,6 +8,15 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.PrismReferenceWrapperFactory;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ValueMetadata;
+import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
+import com.evolveum.midpoint.web.model.PrismReferenceWrapperModel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -25,27 +34,30 @@ import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
 
-public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetadataType> {
+import java.awt.*;
+
+public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataType> {
 
     private static final String ID_YIELD_CONTAINER = "yieldContainer";
     private static final String ID_YIELD_HEADER = "yieldHeader";
     private static final String ID_YIELD = "yield";
+    private static final String ID_PROVENANCE = "provenance";
     private static final String ID_ACQUISITION_HEADER = "acquisitionHeader";
     private static final String ID_ACQUISITIONS = "acquisitions";
     private static final String ID_ACQUISITION = "acquisition";
     private static final String ID_SHOW_MORE = "showMore";
     private static final String ID_DEFAULT_PANEL = "defaultPanel";
     private static final String ID_PROVENANCE_DISPLAY = "provenanceDisplayName";
+    private static final String ID_MAPPING_SPEC = "mappingSpec";
+    private static final String ID_MAPPING_REF = "mappingRef";
 
     /**
      * @param id
      * @param model
      * @param settings
      */
-    public ProvenanceMetadataPanel(String id, IModel<PrismContainerWrapper<ProvenanceMetadataType>> model, ItemPanelSettings settings) {
+    public ProvenanceMetadataPanel(String id, IModel<PrismContainerWrapper<ValueMetadataType>> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
 
@@ -55,13 +67,13 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetad
     }
 
     @Override
-    protected Component createValuePanel(ListItem<PrismContainerValueWrapper<ProvenanceMetadataType>> item) {
+    protected Component createValuesPanel() {
         WebMarkupContainer container = new WebMarkupContainer(ID_YIELD_CONTAINER);
         container.setOutputMarkupId(true);
         container.setOutputMarkupPlaceholderTag(true);
-        item.add(container);
+        add(container);
 
-        DisplayNamePanel displayNamePanel = new DisplayNamePanel(ID_PROVENANCE_DISPLAY, new ItemRealValueModel(item.getModel())) {
+        DisplayNamePanel displayNamePanel = new DisplayNamePanel(ID_PROVENANCE_DISPLAY, new ItemRealValueModel(new PropertyModel<>(getModel(), "values.0"))) {
 
             @Override
             protected String createImageModel() {
@@ -70,64 +82,123 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetad
 
             @Override
             protected IModel<String> createHeaderModel() {
-                return createStringResource("ValueMetadataType.provenance");
+                return getHeaderModel();
             }
 
             @Override
             protected IModel<String> getDescriptionLabelModel() {
-                return createStringResource("ProvenanceMetadataType.displayType");
+                return getDescriptionLabel();
             }
         };
         container.add(displayNamePanel);
 
-//        PrismContainerWrapperModel yieldModel = PrismContainerWrapperModel.fromContainerValueWrapper(model, ProvenanceMetadataType.F_YIELD);
-//        ListView<PrismContainerValueWrapper<ProvenanceMetadataType>> yield =
-//                new ListView<PrismContainerValueWrapper<ProvenanceMetadataType>>(ID_YIELD, new PropertyModel<>(item.getModel(), "values")) {
-
-//            @Override
-//            protected void populateItem(ListItem<PrismContainerValueWrapper<ProvenanceMetadataType>> listItem) {
-                WebMarkupContainer panel = createAcquisitionPanel(PrismContainerWrapperModel.fromContainerValueWrapper(item.getModel(), ProvenanceMetadataType.F_ACQUISITION));
-                container.add(panel);
-
-                ToggleIconButton<Void> showMore = new ToggleIconButton<Void>(ID_SHOW_MORE,
-                        GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
+        ListView<PrismContainerValueWrapper<ValueMetadataType>> yield =
+                new ListView<PrismContainerValueWrapper<ValueMetadataType>>(ID_YIELD, new PropertyModel<>(getModel(), "values")) {
 
                     @Override
-                    public boolean isOn() {
-                        return item.getModelObject().isShowEmpty();
-                    }
+                    protected void populateItem(ListItem<PrismContainerValueWrapper<ValueMetadataType>> valueMetadataListItem) {
 
-                    @Override
-                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        PrismContainerValueWrapper<ProvenanceMetadataType> modelObject = item.getModelObject();
-                        modelObject.setShowEmpty(!modelObject.isShowEmpty());
-                        ajaxRequestTarget.add(ProvenanceMetadataPanel.this);
+                        IModel<PrismContainerWrapper<ProvenanceMetadataType>> provenanceWrapperModel = PrismContainerWrapperModel.fromContainerValueWrapper(valueMetadataListItem.getModel(), ValueMetadataType.F_PROVENANCE);
+                        ListView<PrismContainerValueWrapper<ProvenanceMetadataType>> provenanceValues = new ListView<PrismContainerValueWrapper<ProvenanceMetadataType>>(ID_PROVENANCE, new PropertyModel<>(provenanceWrapperModel, "values")) {
+                            @Override
+                            protected void populateItem(ListItem<PrismContainerValueWrapper<ProvenanceMetadataType>> provenanceListItem) {
+                                WebMarkupContainer panel = createAcquisitionPanel(PrismContainerWrapperModel.fromContainerValueWrapper(provenanceListItem.getModel(), ProvenanceMetadataType.F_ACQUISITION));
+                                provenanceListItem.add(panel);
+//                                WebMarkupContainer mappingPanel = createMappingSpecPanel(PrismContainerWrapperModel.fromContainerValueWrapper(provenanceListItem.getModel(), ProvenanceMetadataType.F_MAPPING_SPEC));
+//                                provenanceListItem.add(mappingPanel);
+
+                                ToggleIconButton<Void> showMore = new ToggleIconButton<Void>(ID_SHOW_MORE,
+                                        GuiStyleConstants.CLASS_ICON_EXPAND_CONTAINER, GuiStyleConstants.CLASS_ICON_COLLAPSE_CONTAINER) {
+
+                                    @Override
+                                    public boolean isOn() {
+                                        return provenanceListItem.getModelObject().isShowEmpty();
+                                    }
+
+                                    @Override
+                                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+                                        PrismContainerValueWrapper<ProvenanceMetadataType> modelObject = provenanceListItem.getModelObject();
+                                        modelObject.setShowEmpty(!modelObject.isShowEmpty());
+                                        ajaxRequestTarget.add(ProvenanceMetadataPanel.this);
+                                    }
+                                };
+
+                                showMore.setEnabled(true);
+                                showMore.setOutputMarkupId(true);
+                                showMore.setOutputMarkupPlaceholderTag(true);
+                                provenanceListItem.add(showMore);
+
+                                Label label = new Label(ID_YIELD_HEADER, createStringResource("ProvenanceYieldType.displayType"));
+                                provenanceListItem.add(label);
+                                label.add(new VisibleBehaviour(() -> provenanceListItem.getModelObject().isShowEmpty()));
+
+                                ItemPanelSettings settings = getSettings().copy();
+                                settings.setVisibilityHandler(w -> ItemVisibility.AUTO);
+                                Component defaultPanel = new MetadataContainerPanel<>(ID_DEFAULT_PANEL, createDetailsModel(valueMetadataListItem.getModel()), settings);
+                                defaultPanel.setOutputMarkupPlaceholderTag(true);
+                                defaultPanel.setOutputMarkupId(true);
+                                defaultPanel.add(new VisibleBehaviour(() -> provenanceListItem.getModelObject().isShowEmpty()));
+                                provenanceListItem.add(defaultPanel);
+                            }
+
+                        };
+                        valueMetadataListItem.add(provenanceValues);
                     }
                 };
 
-                showMore.setEnabled(true);
-                showMore.setOutputMarkupId(true);
-                showMore.setOutputMarkupPlaceholderTag(true);
-        container.add(showMore);
-
-                Label label = new Label(ID_YIELD_HEADER, createStringResource("ProvenanceYieldType.displayType"));
-        container.add(label);
-                label.add(new VisibleBehaviour(() -> item.getModelObject().isShowEmpty()));
-
-                ItemPanelSettings settings = getSettings().copy();
-                settings.setVisibilityHandler(w -> ItemVisibility.AUTO);
-                Component defaultPanel = new MetadataContainerValuePanel<>(ID_DEFAULT_PANEL, item.getModel(), settings);
-                defaultPanel.setOutputMarkupPlaceholderTag(true);
-                defaultPanel.setOutputMarkupId(true);
-                defaultPanel.add(new VisibleBehaviour(() -> item.getModelObject().isShowEmpty()));
-        container.add(defaultPanel);
-//            }
-//        };
-
-//        yield.setOutputMarkupId(true);
-//        container.add(yield);
+        container.add(yield);
 
         return container;
+    }
+
+    private IModel<PrismContainerWrapper<Containerable>> createDetailsModel(IModel<PrismContainerValueWrapper<ValueMetadataType>> valueMetadataModel) {
+        return new ReadOnlyModel<>( () -> {
+
+            PrismContainerValueWrapper<ValueMetadataType> valueMetadataModelObject = valueMetadataModel.getObject();
+            for (PrismContainerWrapper<Containerable> container : valueMetadataModelObject.getContainers()) {
+                if (container.isShowMetadataDetails()) {
+                    return container;
+                }
+            }
+
+            return null;
+        });
+    }
+
+    private IModel<String> getHeaderModel() {
+        return new ReadOnlyModel<>(() -> {
+
+            if (getModelObject() == null) {
+                return "Metadata";
+            }
+
+            for (PrismContainerValueWrapper<ValueMetadataType> values : getModelObject().getValues()) {
+                for (PrismContainerWrapper<Containerable> child : values.getContainers()) {
+                    if (child.isShowMetadataDetails()) {
+                        return child.getDisplayName();
+                    }
+                }
+            }
+            return "Metadata";
+        });
+    }
+
+    private IModel<String> getDescriptionLabel() {
+        return new ReadOnlyModel<>(() -> {
+
+            if (getModelObject() == null) {
+                return "Details";
+            }
+
+            for (PrismContainerValueWrapper<ValueMetadataType> values : getModelObject().getValues()) {
+                for (PrismContainerWrapper<Containerable> child : values.getContainers()) {
+                    if (child.isShowMetadataDetails()) {
+                        return child.getTypeName().getLocalPart() + "." + "details";
+                    }
+                }
+            }
+            return "Details";
+        });
     }
 
     private WebMarkupContainer createAcquisitionPanel(IModel<PrismContainerWrapper<ProvenanceAcquisitionType>> listPropertyModel) {
@@ -146,5 +217,20 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ProvenanceMetad
         container.add(acquisition);
         return container;
 
+    }
+
+    private WebMarkupContainer createMappingSpecPanel(IModel<PrismContainerWrapper<MappingSpecificationType>> mappingModel) {
+        WebMarkupContainer container = new WebMarkupContainer(ID_MAPPING_SPEC);
+
+        LinkedReferencePanel mappingRef = new LinkedReferencePanel(ID_MAPPING_REF, createMappingSpecModel(mappingModel));
+        container.add(mappingRef);
+        container.add(new VisibleBehaviour(() -> !mappingModel.getObject().isEmpty()));
+        return container;
+
+    }
+
+    private IModel<ObjectReferenceType> createMappingSpecModel(IModel<PrismContainerWrapper<MappingSpecificationType>> mappingModel) {
+        PrismReferenceWrapperModel refModel = PrismReferenceWrapperModel.fromContainerWrapper(mappingModel, MappingSpecificationType.F_DEFINITION_OBJECT_REF);
+        return new ItemRealValueModel<>(new PropertyModel<>(refModel, "value"));
     }
 }

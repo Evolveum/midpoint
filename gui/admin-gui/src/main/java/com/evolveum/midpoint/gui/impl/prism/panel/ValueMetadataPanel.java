@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
+
+import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -52,7 +58,16 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
             return false;
         }
 
-        return parent.isMultiValue();
+        PrismContainerValueWrapper<?> parentContainerValue = parent.getParent();
+        if (parentContainerValue == null) {
+            return false;
+        }
+
+        if (parentContainerValue.getDefinition() == null) {
+            return false;
+        }
+
+        return !QNameUtil.match(parentContainerValue.getDefinition().getTypeName(), ValueMetadataType.COMPLEX_TYPE);
     }
 
     @Override
