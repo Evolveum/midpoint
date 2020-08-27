@@ -190,6 +190,17 @@ public class ShadowCache {
             throw e;
         }
 
+        if (ProvisioningUtil.resourceIsInMaintenance(resource)) {
+            try {
+                MaintenanceException ex = new MaintenanceException("Resource " + resource + " is in the maintenance");
+                PrismObject<ShadowType> handledShadow = handleGetError(ctx, repositoryShadow, rootOptions, ex, task, parentResult);
+                validateShadow(handledShadow, true);
+                return handledShadow;
+            } catch (GenericFrameworkException | ObjectAlreadyExistsException | PolicyViolationException e) {
+                throw new SystemException(e.getMessage(), e);
+            }
+        }
+
         if (shouldRefreshOnRead(resource, rootOptions)) {
             LOGGER.trace("Refreshing {} before reading", repositoryShadow);
             ProvisioningOperationOptions refreshOpts = toProvisioningOperationOptions(rootOptions);
@@ -548,6 +559,9 @@ public class ShadowCache {
             LOGGER.trace("ADD {}: resource operation, execution starting", shadowToAdd);
 
             try {
+                if (ProvisioningUtil.resourceIsInMaintenance(ctx.getResource())) {
+                    throw new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance"); // this tells mp to create pending delta
+                }
 
                 // RESOURCE OPERATION: add
                 AsynchronousOperationReturnValue<PrismObject<ShadowType>> asyncReturnValue =
@@ -606,6 +620,12 @@ public class ShadowCache {
                     finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, e, failedOperationResult, task, parentResult);
                 }
 
+            } catch (MaintenanceException e) {
+                finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, e, parentResult.getLastSubresult(), task, parentResult);
+                if (opState.getRepoShadow() != null) {
+                    setParentOperationStatus(parentResult, opState, finalOperationStatus);
+                    return opState.getRepoShadow().getOid();
+                }
             } catch (Exception e) {
                 finalOperationStatus = handleAddError(ctx, shadowToAdd, options, opState, e, parentResult.getLastSubresult(), task, parentResult);
             }
@@ -988,7 +1008,9 @@ public class ShadowCache {
                 ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
 
                 try {
-
+                    if (ProvisioningUtil.resourceIsInMaintenance(ctx.getResource())) {
+                        throw new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance");
+                    }
 
                     if (!shouldExecuteModify(refreshShadowOperation)) {
                         ProvisioningUtil.postponeModify(ctx, repoShadow, modifications, opState, refreshShadowOperation.getRefreshResult(), parentResult);
@@ -1242,6 +1264,9 @@ public class ShadowCache {
                 LOGGER.trace("DELETE {}: resource deletion, execution starting", repoShadow);
 
                 try {
+                    if (ProvisioningUtil.resourceIsInMaintenance(ctx.getResource())) {
+                        throw new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance");
+                    }
 
                     AsynchronousOperationResult asyncReturnValue = resourceObjectConverter
                             .deleteResourceObject(ctx, repoShadow, scripts, connOptions, parentResult);

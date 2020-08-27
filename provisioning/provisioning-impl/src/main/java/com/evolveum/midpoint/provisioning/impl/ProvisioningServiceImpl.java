@@ -214,7 +214,13 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
                         }
                         exceptionRecorded = true;
                         throw e;
-                    } catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
+                    } catch (MaintenanceException e) {
+                        LOGGER.trace(e.getMessage(), e);
+                        result.cleanupResult(e);
+                        exceptionRecorded = true;
+                        throw e;
+                    }
+                    catch (CommunicationException | SchemaException | ConfigurationException | SecurityViolationException | RuntimeException | Error e) {
                         ProvisioningUtil
                                 .recordFatalError(LOGGER, result, "Error getting object OID=" + oid + ": " + e.getMessage(), e);
                         exceptionRecorded = true;
