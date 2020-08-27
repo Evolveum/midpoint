@@ -1187,8 +1187,16 @@ public class ShadowManager {
                 Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         ResourceType resource = ctx.getResource();
         ResourceConsistencyType consistencyType = resource.getConsistency();
-        if (consistencyType == null) {
+
+        boolean isInMaintenance = ProvisioningUtil.resourceIsInMaintenance(ctx.getResource());
+
+        Boolean avoidDuplicateOperations;
+        if (isInMaintenance) {
+            avoidDuplicateOperations = Boolean.TRUE; // in resource maintenance, always check for duplicates:
+        } else if (consistencyType == null) {
             return null;
+        } else {
+            avoidDuplicateOperations = consistencyType.isAvoidDuplicateOperations();
         }
 
         OptimisticLockingRunner<ShadowType,PendingOperationType> runner = new OptimisticLockingRunner.Builder<ShadowType,PendingOperationType>()
@@ -1203,7 +1211,6 @@ public class ShadowManager {
 
             return runner.run(
                     (object) -> {
-                        Boolean avoidDuplicateOperations = consistencyType.isAvoidDuplicateOperations();
                         if (BooleanUtils.isTrue(avoidDuplicateOperations)) {
                             PendingOperationType existingPendingOperation = findExistingPendingOperation(object, proposedDelta, true);
                             if (existingPendingOperation != null) {

@@ -6393,6 +6393,7 @@
         <xsd:complexContent>
             <xsd:extension base="c:AssignmentHolderType">
                 <xsd:sequence>
+                    <xsd:element name="administrativeOperationalState" type="tns:AdministrativeOperationalStateType" minOccurs="0"/>
                     <xsd:element name="operationalState" type="tns:OperationalStateType" minOccurs="0"/>
                     <xsd:element name="operationalStateHistory" type="tns:OperationalStateType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
@@ -6505,6 +6506,28 @@
     </xsd:complexType>
     <xsd:element name="resource" type="tns:ResourceType" substitutionGroup="c:object"/>
 
+    <xsd:complexType name="AdministrativeOperationalStateType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Structure containing metadata about administrative operational state of the resource.
+                Administrative operational state is set manually by midPoint users (e.g. administrator).
+                This is in contrast with OperationalStateType setting, which is set automatically by the midPoint.
+                It signalizes whether resource is up and OPERATIONAL to receive provisioning requests or is down in MAINTENANCE and midPoint should not contact it during the provisioning.
+                This setting is useful when resource is e.g. undergoing planned maintenance to save computing time and error messages.
+
+                EXPERIMENTAL FEATURE! Contributed by the community.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="administrativeAvailabilityStatus" type="tns:AdministrativeAvailabilityStatusType" minOccurs="0"/>
+        </xsd:sequence>
+        <xsd:attribute name="id" type="xsd:long"/>
+    </xsd:complexType>
+
     <xsd:complexType name="OperationalStateType">
         <xsd:annotation>
             <xsd:documentation>
@@ -6551,6 +6574,33 @@
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long"/>
     </xsd:complexType>
+
+    <xsd:simpleType name="AdministrativeAvailabilityStatusType">
+        <xsd:annotation>
+            <xsd:documentation>
+                The enum describes the administrative availability of the resource, if it is operational or undergoing maintenance.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="maintenance">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MAINTENANCE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="operational">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="OPERATIONAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
 
     <xsd:simpleType name="AvailabilityStatusType">
         <xsd:annotation>
