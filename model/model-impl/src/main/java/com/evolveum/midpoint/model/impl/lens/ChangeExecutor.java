@@ -396,7 +396,7 @@ public class ChangeExecutor {
                 restartRequested = true;
                 completed = false;
                 LOGGER.debug("ObjectAlreadyExistsException for projection {}, requesting projector restart", projCtx.toHumanReadableString());
-                projCtx.setFresh(false); // todo
+                projCtx.rot(); // todo
                 projCtx.setSecondaryDelta(null); // todo
                 projCtx.setObjectNew(null); // todo
             } finally {

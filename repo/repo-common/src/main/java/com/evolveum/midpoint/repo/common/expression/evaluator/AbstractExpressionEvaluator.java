@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.repo.common.expression.ExpressionEvaluator;
@@ -20,6 +21,11 @@ import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.expression.TypedValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.*;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ServiceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -156,6 +162,24 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
             return context.getVariables().get(variableName);
         } else {
             return null;
+        }
+    }
+
+    /**
+     * Adds Internal origin for given prismValue. Assumes that value has no metadata.
+     * (Currently does not fill-in actorRef nor channel.)
+     */
+    public void addInternalOrigin(PrismValue value, ExpressionEvaluationContext context) throws SchemaException {
+        if (value != null && !value.hasValueMetadata() && context.getValueMetadataComputer() != null) {
+            ValueMetadataType metadata = new ValueMetadataType(prismContext)
+                    .beginProvenance()
+                        .beginAcquisition()
+                            .originRef(SystemObjectsType.ORIGIN_INTERNAL.value(), ServiceType.COMPLEX_TYPE)
+                            .timestamp(XmlTypeConverter.createXMLGregorianCalendar())
+                        .<ProvenanceMetadataType>end()
+                    .end();
+            //noinspection unchecked
+            value.getValueMetadataAsContainer().add(metadata.asPrismContainerValue());
         }
     }
 

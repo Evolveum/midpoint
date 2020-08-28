@@ -69,7 +69,7 @@ public class ExtensionAsserter<O extends ObjectType, OA extends PrismObjectAsser
     }
 
     @Override
-    public <T> ExtensionAsserter<O,OA,RA> assertNoItem(QName itemName) {
+    public <T> ExtensionAsserter<O,OA,RA> assertNoItem(ItemPath itemName) {
         super.assertNoItem(itemName);
         return this;
     }

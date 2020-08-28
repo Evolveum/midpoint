@@ -492,11 +492,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         LOGGER.debug("Rotting context because of {}", reason);
         setFresh(false);
         if (focusContext != null) {
-            focusContext.setFresh(false);
+            focusContext.rot();
         }
         for (LensProjectionContext projectionContext : projectionContexts) {
-            projectionContext.setFresh(false);
-            projectionContext.setFullShadow(false);
+            projectionContext.rot();
         }
     }
 
@@ -521,13 +520,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
                 ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
                 if (isShadowDeltaSignificant(execDelta)) {
                     LOGGER.debug("Context rot: projection {} rotten because of executable delta {}", projectionContext, execDelta);
-                    projectionContext.setFresh(false);
-                    projectionContext.setFullShadow(false);
+                    projectionContext.rot();
                     rotHolder.setValue(true);
                     // Propagate to higher-order projections
                     for (LensProjectionContext relCtx : LensUtil.findRelatedContexts(this, projectionContext)) {
-                        relCtx.setFresh(false);
-                        relCtx.setFullShadow(false);
+                        relCtx.rot();
                     }
                 } else {
                     LOGGER.trace("Context rot: projection {} NOT rotten because no delta", projectionContext);
@@ -548,8 +545,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         }
     }
 
-    private void rotFocusContextIfNeeded(Holder<Boolean> rotHolder)
-            throws SchemaException {
+    private void rotFocusContextIfNeeded(Holder<Boolean> rotHolder) {
         if (focusContext != null) {
             ObjectDelta<F> execDelta = focusContext.getCurrentDelta(); // TODO!!!
             if (!ObjectDelta.isEmpty(execDelta)) {
@@ -558,7 +554,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             }
             if (rotHolder.getValue()) {
                 // It is OK to refresh focus all the time there was any change. This is cheap.
-                focusContext.setFresh(false);
+                focusContext.rot();
                 // This would be nice but break some tests ... TODO check it
 //                focusContext.setObjectCurrent(null);
 //                focusContext.setObjectNew(null);

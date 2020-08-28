@@ -229,6 +229,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     private transient String humanReadableString;
 
+    /**
+     * Cached value metadata to be used for resource object values processed by inbound mappings.
+     */
+    private transient ValueMetadataType cachedValueMetadata;
+
     LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
         super(ShadowType.class, lensContext);
         this.resourceShadowDiscriminator = resourceAccountType;
@@ -1518,5 +1523,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    @Override
+    public void rot() {
+        super.rot();
+        setFullShadow(false);
+        cachedValueMetadata = null;
+    }
+
+    public ValueMetadataType getCachedValueMetadata() {
+        return cachedValueMetadata;
+    }
+
+    public void setCachedValueMetadata(ValueMetadataType cachedValueMetadata) {
+        this.cachedValueMetadata = cachedValueMetadata;
     }
 }
