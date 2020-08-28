@@ -6,9 +6,11 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 /**
  * @author katka
@@ -27,5 +29,9 @@ public class PrismPropertyPanelContext<T> extends ItemPanelContext<T, PrismPrope
 
     public boolean hasValueEnumerationRef() {
         return unwrapWrapperModel().getValueEnumerationRef() != null;
+    }
+
+    public IModel<String> getRealValueStringModel() {
+        return new ReadOnlyModel<>(() -> getValueWrapperModel().getObject().toShortString());
     }
 }
