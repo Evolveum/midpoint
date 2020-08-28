@@ -51,10 +51,14 @@ public class ConstExpressionEvaluator<V extends PrismValue, D extends ItemDefini
         //noinspection unchecked
         Item<V, D> output = outputDefinition.instantiate();
 
-        Object value = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
+        Object realValue = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
 
         if (output instanceof PrismProperty) {
-            ((PrismProperty<Object>) output).addRealValue(value);
+            if (realValue != null) {
+                PrismPropertyValue<Object> prismValue = prismContext.itemFactory().createPropertyValue(realValue);
+                addInternalOrigin(prismValue, context);
+                ((PrismProperty<Object>) output).add(prismValue);
+            }
         } else {
             throw new UnsupportedOperationException(
                     "Can only provide values of property, not " + output.getClass());

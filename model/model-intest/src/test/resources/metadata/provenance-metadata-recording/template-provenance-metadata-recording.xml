@@ -86,6 +86,7 @@
         <ignoreMetadataProcessing>extension/loa</ignoreMetadataProcessing>
     </mapping>
 
+    <!-- to test metadata exclusion -->
     <mapping>
         <strength>strong</strength>
         <expression>
@@ -93,6 +94,19 @@
         </expression>
         <target>
             <path>costCenter</path>
+        </target>
+    </mapping>
+
+    <!-- to test origin for generated values -->
+    <mapping>
+        <strength>weak</strength>
+        <expression>
+            <generate>
+                <mode>uuid</mode>
+            </generate>
+        </expression>
+        <target>
+            <path>title</path>
         </target>
     </mapping>
 

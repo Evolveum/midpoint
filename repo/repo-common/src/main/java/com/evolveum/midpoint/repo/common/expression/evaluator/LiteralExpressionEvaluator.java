@@ -47,6 +47,10 @@ public class LiteralExpressionEvaluator<V extends PrismValue,D extends ItemDefin
 
         Item<V,D> output = StaticExpressionUtil.parseValueElements(expressionEvaluatorBean, outputDefinition, context.getContextDescription());
 
+        for (V value : output.getValues()) {
+            addInternalOrigin(value, context);
+        }
+
         PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
         applyValueMetadata(outputTriple, context, result);
         return outputTriple;

@@ -1374,10 +1374,15 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
 
                 .assertLocality("Bratislava")
                 .valueMetadataSingle(UserType.F_LOCALITY)
+                    .assertInternalOrigin()
                     .provenance()
                         .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
                     .end()
                     .assertNoItem(LOA_PATH) // LoA handling is turned off for "locality" mapping
+                .end()
+
+                .valueMetadataSingle(UserType.F_TITLE)
+                    .assertInternalOrigin() // generated
                 .end()
 
                 .valueMetadataSingle(UserType.F_ASSIGNMENT) // there should be only a single assignment
