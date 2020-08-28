@@ -13,6 +13,8 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -397,5 +399,22 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     @Override
     protected PrismContainerValue<C> createNewEmptyValue(ModelServiceLocator locator) {
         return createValue();
+    }
+
+    @Override
+    public PrismContainerWrapper<Containerable> getSelectedChild() {
+        List<PrismContainerValueWrapper<C>> values = getValues();
+        if (CollectionUtils.isEmpty(values)) {
+            return null;
+        }
+
+        for (PrismContainerValueWrapper<C> metadataValue : values) {
+            PrismContainerWrapper<Containerable> selected = metadataValue.getSelectedChild();
+            if (selected != null) {
+                return selected;
+            }
+        }
+
+        return null;
     }
 }

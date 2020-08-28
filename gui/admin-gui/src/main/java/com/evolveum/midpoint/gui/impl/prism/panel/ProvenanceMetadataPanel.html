@@ -9,7 +9,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 
-        <div class="panel panel-default">
+        <div class="panel panel-default metadata">
             <div class="panel-body"> <!-- wicket:id="values">-->
                 <div wicket:id="yieldContainer">
                     <div wicket:id="provenanceDisplayName"></div>
@@ -32,8 +32,8 @@
                                     <button wicket:id="showMore" wicket:message="title:PrismObjectPanel.expandCollapseContainer"
                                             class="btn btn-box-tool expand-collapse-button" trigger="hover"><i class="fa fa-caret-down"></i></button>
                                 </div>
-                                <h6 style="padding-left:50px" wicket:id="yieldHeader"></h6>
-                                <div class="panel-body" style="width:100%" wicket:id="defaultPanel"/>
+                                <h6 style="padding-left:30px" wicket:id="yieldHeader"></h6>
+                                <div wicket:id="defaultPanel"/>
                             </div>
                         </div>
 
