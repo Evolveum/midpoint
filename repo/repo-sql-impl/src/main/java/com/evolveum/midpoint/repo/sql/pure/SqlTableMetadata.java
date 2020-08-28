@@ -22,27 +22,6 @@ public class SqlTableMetadata {
      */
     private final Map<String, ColumnMetadata> columnMap = new LinkedHashMap<>();
 
-    /* MID-6318 remove soon, left only for tests, this is slower (on Oracle especially) and causes problems on MariaDb (or reveals some, still not sure)
-    public static SqlTableMetadata create(Connection conn, String tableName) {
-        try {
-            SqlTableMetadata tableMetadata = new SqlTableMetadata();
-            DatabaseMetaData metaData = conn.getMetaData();
-            ResultSet rs = metaData.getColumns(null, null, null, null);
-            while (rs.next()) {
-                // constants from metaData.getColumns Javadoc
-                if (tableName.equalsIgnoreCase(rs.getString("TABLE_NAME"))) {
-                    tableMetadata.add(ColumnMetadata.named(rs.getString("COLUMN_NAME"))
-                            .ofType(rs.getInt("DATA_TYPE"))
-                            .withSize(rs.getInt("COLUMN_SIZE")));
-                }
-            }
-            return tableMetadata;
-        } catch (SQLException e) {
-            throw new SystemException("Failed to obtain metadata for table " + tableName, e);
-        }
-    }
-*/
-
     /**
      * Creates metadata for a table.
      * Implementation detail: It is possible to use {@link Connection#getMetaData()} but this

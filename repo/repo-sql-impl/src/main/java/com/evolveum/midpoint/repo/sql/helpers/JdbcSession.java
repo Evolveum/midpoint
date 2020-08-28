@@ -79,7 +79,7 @@ public class JdbcSession implements AutoCloseable {
      * Starts transaction and returns {@code this}.
      */
     public JdbcSession startTransaction() {
-        return startTransaction(false, repoConfiguration.getReadOnlyTransactionStatement());
+        return startTransaction(false);
     }
 
     /**
@@ -94,17 +94,17 @@ public class JdbcSession implements AutoCloseable {
             throw new SystemException(
                     "Couldn't change transaction isolation level for JDBC session", e);
         }
-        return startTransaction(false, null);
+        return startTransaction(false);
     }
 
     /**
      * Starts read-only transaction and returns {@code this}.
      */
     public JdbcSession startReadOnlyTransaction() {
-        return startTransaction(true, repoConfiguration.getReadOnlyTransactionStatement());
+        return startTransaction(true);
     }
 
-    private JdbcSession startTransaction(boolean readonly, String readOnlyTrnStatement) {
+    private JdbcSession startTransaction(boolean readonly) {
         LOGGER.debug("Starting {}transaction", readonly ? "readonly " : "");
 
         try {
@@ -114,10 +114,10 @@ public class JdbcSession implements AutoCloseable {
         }
 
         rollbackForReadOnly = false;
-        // Configuration check really means: "Does it support read-only transactions?"
         if (readonly) {
-            if (readOnlyTrnStatement != null) {
-                executeStatement(readOnlyTrnStatement);
+            // If null, DB does not support read-only transactions.
+            if (repoConfiguration.getReadOnlyTransactionStatement() != null) {
+                executeStatement(repoConfiguration.getReadOnlyTransactionStatement());
             } else {
                 rollbackForReadOnly = true;
             }

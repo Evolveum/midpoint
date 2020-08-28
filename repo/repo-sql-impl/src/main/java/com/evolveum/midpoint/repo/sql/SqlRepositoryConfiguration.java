@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -666,7 +665,9 @@ public class SqlRepositoryConfiguration {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = true;
-            // don't use SET TRANSACTION, because for MariaDB it sets READ ONLY for the session
+            // SET TRANSACTION READ ONLY should work too, but we had obscure problem when first
+            // read-only transaction read JDBC metadata, the following RW transaction was still RO.
+            // Mysterious problem: https://stackoverflow.com/a/63580806/658826
             defaultReadOnlyTransactionStatement = "START TRANSACTION READ ONLY";
         } else if (isUsingOracle()) {
             /*
@@ -687,7 +688,7 @@ public class SqlRepositoryConfiguration {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = false;
-            defaultReadOnlyTransactionStatement = "SET TRANSACTION READ ONLY";
+            defaultReadOnlyTransactionStatement = "START TRANSACTION READ ONLY";
         } else if (isUsingSQLServer()) {
             defaultTransactionIsolation = TransactionIsolation.SNAPSHOT;
             defaultLockForUpdateViaHibernate = false;
@@ -721,8 +722,8 @@ public class SqlRepositoryConfiguration {
     public void validate() throws RepositoryServiceFactoryException {
         if (dataSource == null) {
             notEmpty(jdbcUrl, "JDBC Url is empty or not defined.");
-            notEmpty(jdbcUsername, "JDBC user name is empty or not defined.");
-            notNull(jdbcPassword, "JDBC password is not defined.");
+            // We don't check username and password, they can be null (MID-5342)
+            // In case of configuration mismatch we let the JDBC driver to fail.
             notEmpty(driverClassName, "Driver class name is empty or not defined.");
         }
 
@@ -748,13 +749,6 @@ public class SqlRepositoryConfiguration {
 
         if (minPoolSize > maxPoolSize) {
             throw new RepositoryServiceFactoryException("Max. pool size must be greater than min. pool size.");
-        }
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private void notNull(String value, String message) throws RepositoryServiceFactoryException {
-        if (value == null) {
-            throw new RepositoryServiceFactoryException(message);
         }
     }
 

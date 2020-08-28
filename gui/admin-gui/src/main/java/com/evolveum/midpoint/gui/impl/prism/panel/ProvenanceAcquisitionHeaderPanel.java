@@ -45,24 +45,9 @@ public class ProvenanceAcquisitionHeaderPanel extends BasePanel<ProvenanceAcquis
         add(resource);
         resource.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getResourceRef() != null && getModelObject().getResourceRef().getOid() != null));
 
-        Label origin = new Label(ID_ORIGIN, new ReadOnlyModel<>(() -> {
-
-            ProvenanceAcquisitionType acquisitionType = getModelObject();
-            if (acquisitionType == null) {
-                return null;
-            }
-
-            ObjectReferenceType ref = acquisitionType.getOriginRef();
-            if (ref == null) {
-                return null;
-            }
-
-            return WebComponentUtil.getDisplayNameOrName(ref, getPageBase(), "load resource ref");
-        }));
+        LinkedReferencePanel<ObjectReferenceType> origin = new LinkedReferencePanel<>(ID_ORIGIN, new PropertyModel<>(getModel(), "originRef"));
         add(origin);
         origin.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getOriginRef() != null && getModelObject().getOriginRef().getOid() != null));
-
-
 
         ReadOnlyModel<Channel> channelModel = new ReadOnlyModel<>(() -> Channel.findChannel(getModelObject().getChannel()));
         WebMarkupContainer channelIcon = new WebMarkupContainer(ID_CHANNEL_ICON);
