@@ -6,6 +6,10 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.util.QNameUtil;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -37,13 +41,19 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
         Label labelComponent = new Label(ID_LABEL, headerLabelModel);
         labelComponent.setOutputMarkupId(true);
         labelComponent.setOutputMarkupPlaceholderTag(true);
-        labelComponent.add(new VisibleBehaviour(this::hasMultivalueParent));
+        labelComponent.add(new VisibleBehaviour(this::notEmptyAndNotDirectChildOfValueMetadataType));
         header.add(labelComponent);
     }
 
-    private boolean hasMultivalueParent() {
+    private boolean notEmptyAndNotDirectChildOfValueMetadataType() {
         CVW modelObject = getModelObject();
+
         if (modelObject == null) {
+            return false;
+        }
+
+        // TODO probably this doesn't need to be here if the wrapper factory generates wrappers correctly..
+        if (modelObject.getOldValue() == null || modelObject.getOldValue().isEmpty()) {
             return false;
         }
 
@@ -52,7 +62,16 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
             return false;
         }
 
-        return parent.isMultiValue();
+        PrismContainerValueWrapper<?> parentContainerValue = parent.getParent();
+        if (parentContainerValue == null) {
+            return false;
+        }
+
+        if (parentContainerValue.getDefinition() == null) {
+            return false;
+        }
+
+        return !QNameUtil.match(parentContainerValue.getDefinition().getTypeName(), ValueMetadataType.COMPLEX_TYPE);
     }
 
     @Override

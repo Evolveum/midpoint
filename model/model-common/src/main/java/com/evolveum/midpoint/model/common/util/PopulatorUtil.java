@@ -111,6 +111,7 @@ public class PopulatorUtil {
         localContext.setSkipEvaluationMinus(true);
         localContext.setSkipEvaluationPlus(false);
         localContext.setVariableProducer(context.getVariableProducer());
+        localContext.setLocalContextDescription(context.getLocalContextDescription());
 
         PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(localContext, result);
         LOGGER.trace("output triple:\n{}", DebugUtil.debugDumpLazily(outputTriple, 1));

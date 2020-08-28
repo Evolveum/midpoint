@@ -1365,6 +1365,37 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .end()
                     .end()
                     .assertPropertyValuesEqual(LOA_PATH, 2)
+                .end()
+
+                .assertCostCenter("CC000")
+                .valueMetadata(UserType.F_COST_CENTER)
+                    .assertSize(0) // there should be none, because the processing of MD for costCenter is disabled
+                .end()
+
+                .assertLocality("Bratislava")
+                .valueMetadataSingle(UserType.F_LOCALITY)
+                    .assertInternalOrigin()
+                    .provenance()
+                        .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
+                    .end()
+                    .assertNoItem(LOA_PATH) // LoA handling is turned off for "locality" mapping
+                .end()
+
+                .valueMetadataSingle(UserType.F_TITLE)
+                    .assertInternalOrigin() // generated
+                .end()
+
+                .valueMetadataSingle(UserType.F_ASSIGNMENT) // there should be only a single assignment
+                    .display()
+                    .provenance()
+                        .assertMappingSpec(RESOURCE_HR.oid)
+                        .singleAcquisition()
+                            .assertOriginRef(ORIGIN_HR_FEED.oid)
+                            .assertResourceRef(RESOURCE_HR.oid)
+                            .assertTimestampBetween(start, end)
+                        .end()
+                    .end()
+                    .assertNoItem(LOA_PATH) // LoA handling is turned off for assignments
                 .end();
     }
 

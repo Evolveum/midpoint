@@ -109,6 +109,11 @@ public class ProjectionValueMetadataCreator {
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
+
+        if (projectionCtx.getCachedValueMetadata() != null) {
+            return projectionCtx.getCachedValueMetadata().clone();
+        }
+
         String resourceOid = projectionCtx.getResourceOid();
         if (resourceOid == null) {
             LOGGER.trace("No resource OID for {}, not creating value metadata for {} in {}", projectionCtx, desc, env.contextDescription);
@@ -127,6 +132,7 @@ public class ProjectionValueMetadataCreator {
         ValueMetadataType valueMetadataBean = populateValueMetadata(provenanceFeed, projectionCtx, env, result);
         applyBuiltinPopulators(valueMetadataBean, provenanceFeed, resourceOid);
 
+        projectionCtx.setCachedValueMetadata(valueMetadataBean.clone());
         return valueMetadataBean;
     }
 
@@ -195,8 +201,11 @@ public class ProjectionValueMetadataCreator {
         variables.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projection, projectionCtx.getObjectDefinition());
         // TODO other variables
 
-        ExpressionEvaluationContext context = new ExpressionEvaluationContext(emptySet(), variables, env.contextDescription, env.task);
+        String localContextDescription = "metadata creation";
+        String fullContextDescription = localContextDescription + " in " + env.contextDescription;
+        ExpressionEvaluationContext context = new ExpressionEvaluationContext(emptySet(), variables, fullContextDescription, env.task);
         context.setExpressionFactory(expressionFactory);
+        context.setLocalContextDescription(localContextDescription);
 
         if (!provenanceFeed.getAcquisitionItemPopulator().isEmpty()) {
             ProvenanceAcquisitionType acquisition = new ProvenanceAcquisitionType(prismContext);
@@ -204,7 +213,7 @@ public class ProjectionValueMetadataCreator {
                     prismContext.getSchemaRegistry().findContainerDefinitionByCompileTimeClass(ProvenanceAcquisitionType.class);
             for (PopulateItemType acquisitionItemPopulator : provenanceFeed.getAcquisitionItemPopulator()) {
                 ItemDelta<?, ?> acquisitionDelta = PopulatorUtil.evaluatePopulateExpression(acquisitionItemPopulator,
-                        variables, context, acquisitionContainerDef, env.contextDescription, env.task, result);
+                        variables, context, acquisitionContainerDef, fullContextDescription, env.task, result);
                 if (acquisitionDelta != null) {
                     acquisitionDelta.applyTo(acquisition.asPrismContainerValue());
                 }

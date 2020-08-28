@@ -13,6 +13,7 @@ import java.util.Optional;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
 import com.evolveum.midpoint.model.api.ModelService;
@@ -197,19 +198,20 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
 
     protected <VW extends PrismValueWrapper> void setupMetadata(VW valueWrapper, WrapperContext ctx) throws SchemaException {
         PrismValue oldValue = valueWrapper.getNewValue();
-        Optional<ValueMetadata> metadata = oldValue.valueMetadata(); // TODO
-        return;
-        // TODO adapt this code
+        PrismContainer<Containerable> metadataContainer = oldValue.getValueMetadataAsContainer();
+//        Optional<ValueMetadata> metadata = oldValue.valueMetadata(); // TODO
+//        return;
+//        // TODO adapt this code
 //        if (!metadata.isPresent()) {
 //            LOGGER.trace("Skipping creating metadata");
 //            return;
 //        }
 //
 //        ValueMetadata valueMetadata = metadata.get();
-//
-//        ValueMetadataWrapperFactoryImpl valueMetadataWrapperFactory = new ValueMetadataWrapperFactoryImpl(getRegistry());
-//        PrismContainerValueWrapper<Containerable> valueMetadataWrapper = valueMetadataWrapperFactory.createValueWrapper(null, valueMetadata, ValueStatus.NOT_CHANGED, ctx);
-//        valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
+
+        ValueMetadataWrapperFactoryImpl valueMetadataWrapperFactory = new ValueMetadataWrapperFactoryImpl(getRegistry());
+        PrismContainerWrapper<Containerable> valueMetadataWrapper = valueMetadataWrapperFactory.createWrapper(null, metadataContainer, ItemStatus.NOT_CHANGED.NOT_CHANGED, ctx);
+        valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
     }
 
     protected List<PV> getValues(I item) {

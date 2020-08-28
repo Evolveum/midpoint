@@ -12,7 +12,9 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.PropertyModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,7 +37,9 @@ public class LabelPanelFactory<T> implements GuiComponentFactory<PrismPropertyPa
 
     @Override
     public org.apache.wicket.Component createPanel(PrismPropertyPanelContext<T> panelCtx) {
-        return new Label(panelCtx.getComponentId(), panelCtx.getRealValueModel());
+        Label label =  new Label(panelCtx.getComponentId(), panelCtx.getRealValueStringModel());
+        label.add(AttributeAppender.append("style", "padding-top:5px;")); // because prism-property-label has this
+        return label;
     }
 
     @Override

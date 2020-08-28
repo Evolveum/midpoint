@@ -16,6 +16,10 @@ import com.evolveum.midpoint.repo.common.expression.ConsolidationValueMetadataCo
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import org.jetbrains.annotations.NotNull;
 
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingScopeType.CONSOLIDATION;
 
@@ -25,11 +29,14 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappi
 @Experimental
 public class LensMetadataUtil {
 
+    private static final Trace LOGGER = TraceManager.getTrace(LensMetadataUtil.class);
+
     public static ConsolidationValueMetadataComputer createValueMetadataConsolidationComputer(ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
         ValueMetadataProcessingSpec processingSpec = createProcessingSpec(itemPath, lensContext, beans, env, result);
+        LOGGER.trace("Value metadata processing spec:\n{}", processingSpec.debugDumpLazily(1));
         if (processingSpec.isEmpty()) {
             return null;
         } else {
@@ -41,6 +48,7 @@ public class LensMetadataUtil {
         }
     }
 
+    @NotNull
     private static ValueMetadataProcessingSpec createProcessingSpec(ItemPath itemPath, LensContext<?> lensContext, ModelBeans beans,
             MappingEvaluationEnvironment env, OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,

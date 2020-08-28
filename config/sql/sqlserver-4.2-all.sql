@@ -989,6 +989,8 @@ CREATE INDEX iServiceNameOrig
   ON m_service (name_orig);
 CREATE INDEX iServiceNameNorm
   ON m_service (name_norm);
+ALTER TABLE m_service
+  ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
 CREATE INDEX iSystemConfigurationNameOrig
   ON m_system_configuration (name_orig);
 ALTER TABLE m_system_configuration

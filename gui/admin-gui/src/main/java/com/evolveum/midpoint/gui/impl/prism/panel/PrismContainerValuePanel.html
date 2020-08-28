@@ -26,11 +26,14 @@
         </div>
         <div class="row">
             <div class="col-xs-10">
-                <ul class="nav metadata-nav">
-                    <li wicket:id="metadataList">
-                        <a class="label label-default" wicket:id="metadataQName"/>
-                    </li>
-                </ul>
+                <div wicket:id="metadataNav">
+                    <ul class="nav metadata-nav">
+                        <li wicket:id="metadataList">
+                            <a class="label label-default" wicket:id="metadataQName"/>
+                        </li>
+                    </ul>
+                </div>
+                <div wicket:id="provenanceMetadata"></div>
                 <div wicket:id="metadata"></div>
             </div>
         </div>

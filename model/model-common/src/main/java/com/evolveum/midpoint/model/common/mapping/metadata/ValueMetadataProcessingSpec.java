@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.common.mapping.metadata;
 
 import java.util.*;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -19,12 +20,15 @@ import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -36,12 +40,13 @@ import org.jetbrains.annotations.NotNull;
  * Information present here is derived from e.g. object templates and metadata mappings attached to data mappings.
  * It is already processed regarding applicability of metadata processing to individual data items.
  */
-public class ValueMetadataProcessingSpec implements ShortDumpable {
+public class ValueMetadataProcessingSpec implements ShortDumpable, DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(ValueMetadataProcessingSpec.class);
 
     @NotNull private final Collection<MetadataMappingType> mappings = new ArrayList<>();
     @NotNull private final Collection<MetadataItemDefinitionType> itemDefinitions = new ArrayList<>();
+    @NotNull private final Collection<ItemPath> metadataPathsToIgnore = new ArrayList<>();
 
     /**
      * This processing spec will contain mappings targeted at this scope.
@@ -110,30 +115,26 @@ public class ValueMetadataProcessingSpec implements ShortDumpable {
 
     private void addFromObjectTemplate(ObjectTemplateType template, ItemPath dataPath) {
         try {
-            if (isHandlingApplicable(dataPath, template.getMeta())) {
-                addMappings(template.getMeta().getMapping());
-                for (MetadataItemDefinitionType item : template.getMeta().getItem()) {
-                    itemDefinitions.add(item);
-                    for (MetadataMappingType itemMapping : item.getMapping()) {
-                        if (hasCompatibleScope(itemMapping)) {
-                            mappings.add(provideDefaultTarget(itemMapping, item));
-                        }
-                    }
-                }
+            if (isHandlingApplicable(template.getMeta(), dataPath)) {
+                addMetadataMappings(template.getMeta().getMapping());
+                addMetadataItems(template.getMeta().getItem(), dataPath);
             }
         } catch (SchemaException e) {
             throw new TunnelException(e);
         }
     }
 
-    private boolean isHandlingApplicable(ItemPath dataPath, MetadataHandlingType handling) throws SchemaException {
-        if (handling == null) {
-            return false;
-        } else if (handling.getApplicability() == null) {
+    private boolean isHandlingApplicable(MetadataHandlingType handling, ItemPath dataPath) throws SchemaException {
+        return handling != null && doesApplicabilityMatch(handling.getApplicability(), dataPath);
+    }
+
+    private boolean doesApplicabilityMatch(MetadataProcessingApplicabilitySpecificationType applicability, ItemPath dataPath)
+            throws SchemaException {
+        if (applicability == null) {
             return true;
         } else {
-            List<ItemPath> includes = getPathsFromSpecs(handling.getApplicability().getInclude());
-            List<ItemPath> excludes = getPathsFromSpecs(handling.getApplicability().getExclude());
+            List<ItemPath> includes = getPathsFromSpecs(applicability.getInclude());
+            List<ItemPath> excludes = getPathsFromSpecs(applicability.getExclude());
             while (!dataPath.isEmpty()) {
                 boolean yes = ItemPathCollectionsUtil.containsEquivalent(includes, dataPath);
                 boolean no = ItemPathCollectionsUtil.containsEquivalent(excludes, dataPath);
@@ -163,14 +164,28 @@ public class ValueMetadataProcessingSpec implements ShortDumpable {
         return paths;
     }
 
+    private void addMetadataItems(List<MetadataItemDefinitionType> items, ItemPath dataPath) throws SchemaException {
+        for (MetadataItemDefinitionType item : items) {
+            if (isMetadataItemDefinitionApplicable(item, dataPath)) {
+                itemDefinitions.add(item);
+                for (MetadataMappingType itemMapping : item.getMapping()) {
+                    if (isMetadataMappingApplicable(itemMapping)) {
+                        mappings.add(provideDefaultTarget(itemMapping, item));
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean isMetadataItemDefinitionApplicable(MetadataItemDefinitionType item, ItemPath dataPath) throws SchemaException {
+        return !isMetadataItemIgnored(item.getRef()) && doesApplicabilityMatch(item.getApplicability(), dataPath);
+    }
+
     private MetadataMappingType provideDefaultTarget(MetadataMappingType itemMapping, MetadataItemDefinitionType item) {
         if (itemMapping.getTarget() != null && itemMapping.getTarget().getPath() != null) {
             return itemMapping;
         } else {
-            if (item.getRef() == null) {
-                // todo better error handling
-                throw new IllegalArgumentException("No `ref` value in item definition");
-            }
+            checkRefNotNull(item);
             MetadataMappingType clone = itemMapping.clone();
             if (clone.getTarget() == null) {
                 clone.beginTarget().path(item.getRef());
@@ -181,9 +196,16 @@ public class ValueMetadataProcessingSpec implements ShortDumpable {
         }
     }
 
-    public void addMappings(List<MetadataMappingType> mappingsToAdd) {
+    private void checkRefNotNull(MetadataItemDefinitionType item) {
+        if (item.getRef() == null) {
+            // todo better error handling
+            throw new IllegalArgumentException("No `ref` value in item definition");
+        }
+    }
+
+    public void addMetadataMappings(List<MetadataMappingType> mappingsToAdd) {
         for (MetadataMappingType mapping : mappingsToAdd) {
-            if (hasCompatibleScope(mapping)) {
+            if (isMetadataMappingApplicable(mapping)) {
                 mappings.add(mapping);
             }
         }
@@ -192,10 +214,6 @@ public class ValueMetadataProcessingSpec implements ShortDumpable {
     public @NotNull Collection<MetadataMappingType> getMappings() {
         return Collections.unmodifiableCollection(mappings);
     }
-
-//    public @NotNull Collection<MetadataItemDefinitionType> getItemDefinitions() {
-//        return Collections.unmodifiableCollection(itemDefinitions);
-//    }
 
     private void computeItemProcessingMapIfNeeded() throws SchemaException {
         if (itemProcessingMap == null) {
@@ -251,12 +269,19 @@ public class ValueMetadataProcessingSpec implements ShortDumpable {
         return getProcessing(itemPath) == ItemProcessingType.FULL;
     }
 
+    // For item-contained mappings the target exclusion can be checked twice
+    private boolean isMetadataMappingApplicable(MetadataMappingType mapping) {
+        return hasCompatibleScope(mapping) &&
+                (mapping.getTarget() == null || mapping.getTarget().getPath() == null
+                    || isMetadataItemIgnored(mapping.getTarget().getPath()));
+    }
+
     private boolean hasCompatibleScope(MetadataMappingType metadataMapping) {
         MetadataMappingScopeType mappingScope = metadataMapping.getScope();
         return mappingScope == null || mappingScope == scope;
     }
 
-    public MetadataMappingScopeType getScope() {
+    public @NotNull MetadataMappingScopeType getScope() {
         return scope;
     }
 
@@ -269,6 +294,40 @@ public class ValueMetadataProcessingSpec implements ShortDumpable {
                     .map(ItemRefinedDefinitionType::getRef)
                     .map(String::valueOf)
                     .collect(Collectors.joining(", ")));
+        }
+    }
+
+    @Override
+    public String debugDump(int indent) {
+        StringBuilder sb = new StringBuilder();
+
+        DebugUtil.debugDumpWithLabelLn(sb, "Mappings defined",
+                mappings.stream()
+                        .map(this::getTargetPath)
+                        .collect(Collectors.toList()), indent);
+        DebugUtil.debugDumpWithLabelLn(sb, "Items defined",
+                itemDefinitions.stream()
+                        .map(ItemRefinedDefinitionType::getRef)
+                        .collect(Collectors.toList()), indent);
+        DebugUtil.debugDumpWithLabel(sb, "Paths that were ignored",
+                metadataPathsToIgnore, indent);
+        return sb.toString();
+    }
+
+    private ItemPathType getTargetPath(MetadataMappingType mapping) {
+        return mapping != null && mapping.getTarget() != null ? mapping.getTarget().getPath() : null;
+    }
+
+    public void addPathsToIgnore(@NotNull List<ItemPathType> pathsToIgnore) {
+        pathsToIgnore.forEach(path -> this.metadataPathsToIgnore.add(path.getItemPath()));
+    }
+
+    private boolean isMetadataItemIgnored(ItemPathType pathBean) {
+        if (metadataPathsToIgnore.isEmpty()) {
+            return false;
+        } else {
+            ItemPath path = Objects.requireNonNull(pathBean, "'ref' is null").getItemPath();
+            return ItemPathCollectionsUtil.containsSubpathOrEquivalent(metadataPathsToIgnore, path);
         }
     }
 }
