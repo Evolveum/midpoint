@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.assertj.core.api.Assertions;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -22,7 +23,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -30,7 +31,9 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
@@ -48,7 +51,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
     private static final String ORG_OID = "00000000-8888-6666-0000-100000000001";
 
     @Test
-    public void addWithOverwrite() throws Exception {
+    public void test050AddWithOverwrite() throws Exception {
         List<PrismObject<?>> objects = prismContext.parserFor(new File(ORG_STRUCT_OBJECTS)).parseObjects();
 
         OperationResult opResult = new OperationResult("Import file");
@@ -85,7 +88,7 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
     private PrismObject getCarla(OperationResult opResult) throws Exception {
         final String CARLA_NAME = "carla";
-        PrismObjectDefinition userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+        prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
         ObjectQuery query = prismContext.queryFor(UserType.class)
                 .item(UserType.F_NAME).eq(CARLA_NAME)
                 .build();
@@ -113,8 +116,8 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         String version = repositoryService.getVersion(OrgType.class, ORG_OID, result);
         AssertJUnit.assertEquals("0", version);
 
-        PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class);
-        Collection deltas = new ArrayList();
+        PrismObjectDefinition<OrgType> def = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(OrgType.class);
+        Collection<PropertyDelta<String>> deltas = new ArrayList<>();
         deltas.add(prismContext.deltaFactory().property().createAddDelta(def, OrgType.F_ORG_TYPE, "asdf"));
         repositoryService.modifyObject(OrgType.class, ORG_OID, deltas, result);
 
@@ -126,11 +129,10 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void addWithOverwriteResource() throws Exception {
-        // GIVEN
-
+    public void test100AddWithOverwriteResource() throws Exception {
+        given();
         SchemaRegistry reg = prismContext.getSchemaRegistry();
-        PrismPropertyDefinition def = reg.findPropertyDefinitionByElementName(CapabilitiesType.F_NATIVE);
+        reg.findPropertyDefinitionByElementName(CapabilitiesType.F_NATIVE);
 
         PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_OPENDJ_FILE);
         OperationResult opResult = new OperationResult("Import resource");
@@ -151,10 +153,10 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
         resource.asObjectable().setSchema(null);
         resource.asObjectable().setCapabilities(null);
 
-        // WHEN
+        when();
         repositoryService.addObject(resource, RepoAddOptions.createOverwrite(), opResult);
 
-        // THEN
+        then();
         opResult.computeStatus();
         AssertJUnit.assertTrue(opResult.isSuccess());
 
@@ -164,5 +166,22 @@ public class AddOverwriteTest extends BaseSQLRepoTest {
 
         assertNull("schema not gone", resourceAfterOverwrite.asObjectable().getSchema());
         assertNull("capabilities not gone", resourceAfterOverwrite.asObjectable().getCapabilities());
+    }
+
+    @Test
+    public void test200ServiceNameMustBeUnique() throws SchemaException, ObjectAlreadyExistsException {
+        given("There is one service with specific name in the repository");
+        repositoryService.addObject(
+                new ServiceType(prismContext).name("test-service").asPrismObject(),
+                null,
+                new OperationResult("Import object"));
+
+        then("We can't add another service with the same name into the repository");
+        Assertions.assertThatThrownBy(() ->
+                repositoryService.addObject(
+                        new ServiceType(prismContext).name("test-service").asPrismObject(),
+                        null,
+                        new OperationResult("Reimport object with the same name")))
+                .isInstanceOf(ObjectAlreadyExistsException.class);
     }
 }
