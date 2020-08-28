@@ -2858,6 +2858,47 @@ public final class WebComponentUtil {
         return CollectionUtils.isNotEmpty(ocd.getAssociationDefinitions());
     }
 
+    public static void toggleResourceMaintenance (@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase) {
+        AdministrativeAvailabilityStatusType resourceAdministrativeAvailabilityStatus = ResourceTypeUtil.getAdministrativeAvailabilityStatus(resource.asObjectable());
+        AdministrativeAvailabilityStatusType finalStatus = AdministrativeAvailabilityStatusType.MAINTENANCE; // default new value for existing null
+
+        if (resourceAdministrativeAvailabilityStatus != null) {
+            switch (resourceAdministrativeAvailabilityStatus) {
+                case MAINTENANCE:
+                    finalStatus = AdministrativeAvailabilityStatusType.OPERATIONAL;
+                    break;
+                case OPERATIONAL:
+                    finalStatus = AdministrativeAvailabilityStatusType.MAINTENANCE;
+                    break;
+            }
+        }
+
+        switchResourceMaintenance (resource, operation, target, pageBase, finalStatus);
+    }
+
+    public static void switchResourceMaintenance (@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase, AdministrativeAvailabilityStatusType mode) {
+        Task task = pageBase.createSimpleTask(operation);
+        OperationResult parentResult = new OperationResult(operation);
+
+        try {
+            ObjectDelta<ResourceType> objectDelta = pageBase.getPrismContext().deltaFactory().object()
+                    .createModificationReplaceProperty(ResourceType.class, resource.getOid(), ItemPath.create(ResourceType.F_ADMINISTRATIVE_OPERATIONAL_STATE,
+                            new QName("administrativeAvailabilityStatus")), mode);
+
+            pageBase.getModelService().executeChanges(MiscUtil.createCollection(objectDelta), null, task, parentResult);
+
+            } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
+                | ExpressionEvaluationException | CommunicationException | ConfigurationException
+                | PolicyViolationException | SecurityViolationException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Error changing resource administrative operational state", e);
+            parentResult.recordFatalError(pageBase.createStringResource("pageResource.setMaintenance.failed").getString(), e);
+        }
+
+        parentResult.computeStatus();
+        pageBase.showResult(parentResult, "pageResource.setMaintenance.failed");
+        target.add(pageBase.getFeedbackPanel());
+    }
+
     public static void refreshResourceSchema(@NotNull PrismObject<ResourceType> resource, String operation, AjaxRequestTarget target, PageBase pageBase){
         Task task = pageBase.createSimpleTask(operation);
         OperationResult parentResult = new OperationResult(operation);

@@ -22,7 +22,7 @@ import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
@@ -51,9 +51,6 @@ import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ExceptionUtil;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -1481,7 +1478,8 @@ public class ContextLoader implements ProjectorProcessor {
                 // TODO: use setLoadedObject() instead?
                 projCtx.setObjectCurrent(objectCurrent);
                 projCtx.determineFullShadowFlag(objectCurrent);
-                if (ShadowUtil.isExists(objectCurrent.asObjectable())) {
+                AdministrativeAvailabilityStatusType resourceAdministrativeAvailabilityStatus = ResourceTypeUtil.getAdministrativeAvailabilityStatus(projCtx.getResource());
+                if (ShadowUtil.isExists(objectCurrent.asObjectable()) || AdministrativeAvailabilityStatusType.MAINTENANCE == resourceAdministrativeAvailabilityStatus) {
                     result.addReturn(DEFAULT, "found");
                 } else {
                     LOGGER.debug("Load of full resource object {} ended with non-existent shadow (options={})", projCtx,

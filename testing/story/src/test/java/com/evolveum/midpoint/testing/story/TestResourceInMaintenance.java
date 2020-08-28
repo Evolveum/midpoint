@@ -11,16 +11,11 @@
 
 package com.evolveum.midpoint.testing.story;
 
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.test.asserter.ShadowAsserter;
-
-import com.evolveum.midpoint.util.exception.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -32,12 +27,16 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.asserter.ShadowAsserter;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.ClassPathUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 @ContextConfiguration(locations = { "classpath:ctx-story-test-main.xml" })
@@ -61,6 +60,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
     private static final QName CSV_ATTRIBUTE_DESC = new QName(MidPointConstants.NS_RI, "description");
     private static final QName CSV_ATTRIBUTE_FULLNAME = new QName(MidPointConstants.NS_RI, "fullname");
+    private static final QName CSV_ATTRIBUTE_USERNAME = new QName(MidPointConstants.NS_RI, "username");
 
     private static final String NS_RESOURCE_CSV = "http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/bundle/com.evolveum.polygon.connector-csv/com.evolveum.polygon.connector.csv.CsvConnector";
 
@@ -115,6 +115,9 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         importObjectFromFile(SHADOW_FILE);
         importObjectFromFile(USER1_FILE);
         importObjectFromFile(USER2_FILE);
+
+        // Turn maintenance mode ON:
+        switchResourceMaintenance(AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
     }
 
     @Test
@@ -126,17 +129,20 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         result.computeStatus();
         display(result);
 
-        //TestUtil.assertPartialError(result);
-        //assertEquals("Expected handled error but got: " + result.getStatus(), OperationResultStatus.HANDLED_ERROR, result.getStatus());
-        //TestUtil.assertMessageContains(result.getMessage(), "maintenance");
         TestUtil.assertSuccess(result);
 
-        PrismObject<ShadowType> shadow = getShadowRepo(SHADOW_OID);
-        assertNoPendingOperation(shadow); // no change was requested = no pending operation is saved
+        // no change was requested = no pending operation is saved:
+        assertRepoShadow(SHADOW_OID)
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIntent("default")
+                .assertIsExists()
+                .assertResource(RESOURCE_OID)
+                .pendingOperations()
+                .assertNone();
     }
 
     @Test
-    public void test020ModifyAccount() throws Exception {
+    public void test020UpdateAccount() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -147,8 +153,34 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         TestUtil.assertInProgress("resource in the maintenance pending delta", result);
 
-        PrismObject<ShadowType> shadow = getShadowRepo(SHADOW_OID);
-        assertSinglePendingOperation(shadow, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+        assertRepoShadow(SHADOW_OID)
+                .display(getTestNameShort() + " Shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIsExists()
+                .assertNotDead()
+                .pendingOperations()
+                    .modifyOperation()
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                    .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                    .assertAttemptNumber(1)
+                    .delta()
+                    .display()
+                    .assertModify()
+                    .end()
+                .end();
+
+        //not lets add second update delta:
+        OperationResult result2 = createOperationResult();
+        modifyUserReplace(USER1_OID, UserType.F_DESCRIPTION, task, result2, "jedi knight");
+
+        result2.computeStatus();
+        display(result2);
+
+        TestUtil.assertInProgress("resource in the maintenance pending delta", result2);
+
+        PrismObject<ShadowType> shadowAfter = getShadowModel(SHADOW_OID);
+        //check that two pending update deltas are in progress:
+        assertTwoPendingOperations(shadowAfter, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
     }
 
     @Test
@@ -170,7 +202,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .end()
                 .assertResource(RESOURCE_OID);
 
-        // Apply pending delta:
+        // Apply pending deltas:
         modelService.recompute(UserType.class, USER1_OID, executeOptions().reconcile(), task, result);
         result.computeStatus();
 
@@ -183,11 +215,11 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .assertIntent("default")
                 .attributes()
                 .assertHasPrimaryIdentifier()
-                .assertValue(CSV_ATTRIBUTE_DESC, "jedi")
+                .assertValue(CSV_ATTRIBUTE_DESC, "jedi knight")
                 .end()
                 .assertResource(RESOURCE_OID);
 
-        assertSinglePendingOperation(shadowAfter, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+        assertTwoPendingOperations(shadowAfter, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
     }
 
     @Test
@@ -207,8 +239,26 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         String newShadowOid = getLinkRefOid(USER2_OID, RESOURCE_OID);
         assertNotNull(newShadowOid);
-        PrismObject<ShadowType> shadow = getShadowRepo(newShadowOid);
-        assertSinglePendingOperation(shadow, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+
+        assertRepoShadow(newShadowOid)
+                .display(getTestNameShort() + " Shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIsNotExists()
+                .assertNotDead()
+                .assertNoLegacyConsistency()
+                .attributes()
+                .assertAttributes(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
+                .end()
+                .pendingOperations()
+                    .singleOperation()
+                    .display()
+                    .assertType(PendingOperationTypeType.RETRY)
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                    .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                    .assertAttemptNumber(1)
+                    .delta()
+                    .display()
+                .assertAdd();
 
         // lets try recompute just for fun, mp should do nothing and report success:
         OperationResult result2 = createOperationResult();
@@ -216,12 +266,75 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         result2.computeStatus();
 
         TestUtil.assertSuccess(result2);
-        //TestUtil.assertInProgress("resource in the maintenance pending delta", result);
-        assertSinglePendingOperation(shadow, PendingOperationExecutionStatusType.EXECUTING, OperationResultStatusType.IN_PROGRESS);
+        TestUtil.assertInProgress("resource in the maintenance pending delta", result);
+
+        // double check that nothing changed in the shadow after recompute:
+        assertRepoShadow(newShadowOid)
+                .display(getTestNameShort() + " Shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIsNotExists()
+                .assertNotDead()
+                .pendingOperations()
+                .singleOperation()
+                .display()
+                .assertType(PendingOperationTypeType.RETRY)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                .assertAttemptNumber(1)
+                .delta()
+                .display()
+                .assertAdd();
     }
 
     @Test
-    public void test050ApplyPendingCreate() throws Exception {
+    public void test050UpdateAfterCreate() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // modify pending-created account
+        modifyUserReplace(USER2_OID, UserType.F_FULL_NAME, task, result, new PolyString("Artoo-Deetoo"));
+
+        result.computeStatus();
+        display(result);
+        TestUtil.assertInProgress("resource in the maintenance pending delta", result);
+
+        // lets try recompute just for fun, mp should do nothing and report success:
+        OperationResult result2 = createOperationResult();
+        modelService.recompute(UserType.class, USER2_OID, executeOptions().reconcile(), task, result2);
+        result2.computeStatus();
+
+        String checkShadow = getLinkRefOid(USER2_OID, RESOURCE_OID);
+        assertNotNull(checkShadow);
+
+        assertRepoShadow(checkShadow)
+                .display(getTestNameShort() + " Shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIsNotExists()
+                .assertNotDead()
+                .pendingOperations()
+                .addOperation()
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                    .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                    .assertAttemptNumber(1)
+                    .delta()
+                    .display()
+                    .assertAdd()
+                    .end()
+                .end()
+                .modifyOperation()
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                    .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                    .assertAttemptNumber(1)
+                    .delta()
+                    .display()
+                    .assertModify()
+                    .end()
+                .end();
+
+    }
+
+    @Test
+    public void test060ApplyPendingCreate() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -235,7 +348,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .assertIsNotExists()
                 .end();
 
-        // Apply pending delta:
+        // Apply pending deltas (create + update):
         modelService.recompute(UserType.class, USER2_OID, executeOptions().reconcile(), task, result);
         result.computeStatus();
 
@@ -246,17 +359,19 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         ShadowAsserter.forShadow(shadowCreated)
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertIntent("default")
+                .assertIsExists()
+                .assertNotDead().assertKind(ShadowKindType.ACCOUNT)
                 .attributes()
                 .assertHasPrimaryIdentifier()
-                .assertValue(CSV_ATTRIBUTE_FULLNAME, "R2-D2")
+                .assertValue(CSV_ATTRIBUTE_FULLNAME, "Artoo-Deetoo")
                 .end()
                 .assertResource(RESOURCE_OID);
 
-        assertSinglePendingOperation(shadowCreated, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
+        assertTwoPendingOperations(shadowCreated, PendingOperationExecutionStatusType.COMPLETED, OperationResultStatusType.SUCCESS);
     }
 
     @Test
-    public void test060DeleteAccount() throws Exception {
+    public void test070DeleteAccount() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -272,20 +387,48 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         TestUtil.assertInProgress("resource in the maintenance pending delta", result);
 
-        PrismObject<ShadowType> shadow = getShadowRepo(shadowOid);
-        PendingOperationType deleteOp = findPendingOperation(shadow, PendingOperationExecutionStatusType.EXECUTING);
-        assertNotNull(deleteOp);
+        assertModelShadowNoFetch(shadowOid)
+                .display("Shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertNotDead()
+                .assertNoLegacyConsistency()
+                .attributes()
+                .assertHasPrimaryIdentifier()
+                .end()
+                .pendingOperations()
+                    .assertOperations(3) // 1x create + 1x update + 1x delete
+                    .deleteOperation()
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                        .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                        .assertAttemptNumber(1)
+                        .delta()
+                        .display()
+                        .assertDelete()
+                    .end()
+                .end();
 
         // lets try recompute just for fun, mp should do nothing and report success:
         OperationResult result2 = createOperationResult();
         modelService.recompute(UserType.class, USER2_OID, executeOptions().reconcile(), task, result2);
         result2.computeStatus();
 
+        assertModelShadowNoFetch(shadowOid)
+                .display("Shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertNotDead()
+                .assertNoLegacyConsistency()
+                .attributes()
+                .assertHasPrimaryIdentifier()
+                .end()
+                .pendingOperations()
+                .assertOperations(3)
+                .end();
+
         TestUtil.assertSuccess(result2);
     }
 
     @Test
-    public void test070ApplyPendingDelete() throws Exception {
+    public void test080ApplyPendingDelete() throws Exception {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
@@ -312,8 +455,21 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                 .assertDead()
                 .end();
 
-        PendingOperationType deleteOp = findPendingOperation(shadow, PendingOperationExecutionStatusType.COMPLETED);
-        assertNotNull(deleteOp);
+        assertModelShadowNoFetch(shadowOid)
+                .display("Shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIsNotExists()
+                .pendingOperations()
+                .assertOperations(3)
+                    .deleteOperation()
+                        .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                        .assertResultStatus(OperationResultStatusType.SUCCESS)
+                        .assertAttemptNumber(2) // attempt increases after successful provisioning
+                        .delta()
+                        .display()
+                        .assertDelete()
+                    .end()
+                .end();
     }
 
     private void switchResourceMaintenance (AdministrativeAvailabilityStatusType mode, Task task, OperationResult result) throws Exception {
@@ -323,5 +479,18 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
         provisioningService.applyDefinition(objectDelta, task, result);
         provisioningService.modifyObject(ResourceType.class, objectDelta.getOid(), objectDelta.getModifications(), null, null, task, result);
+    }
+
+    private void assertTwoPendingOperations (PrismObject<ShadowType> shadow,
+            PendingOperationExecutionStatusType expectedExecutionStatus, OperationResultStatusType expectedResultStatus) {
+
+        assertPendingOperationDeltas(shadow, 2);
+
+        assertPendingOperation(shadow, shadow.asObjectable().getPendingOperation().get(0),
+                null, null, expectedExecutionStatus, expectedResultStatus, null, null);
+
+        assertPendingOperation(shadow, shadow.asObjectable().getPendingOperation().get(1),
+                null, null, expectedExecutionStatus, expectedResultStatus, null, null);
+
     }
 }
