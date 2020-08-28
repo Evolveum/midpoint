@@ -81,6 +81,19 @@
         <target>
             <path>locality</path>
         </target>
+        <!-- So we skip computation of LoA for this mapping. Other mappings that (hypothetically)
+             provide values for locality have LoA processing enabled. -->
+        <ignoreMetadataProcessing>extension/loa</ignoreMetadataProcessing>
+    </mapping>
+
+    <mapping>
+        <strength>strong</strength>
+        <expression>
+            <value>CC000</value>
+        </expression>
+        <target>
+            <path>costCenter</path>
+        </target>
     </mapping>
 
     <meta>
@@ -136,12 +149,19 @@
                     </script>
                 </expression>
             </mapping>
+            <applicability>
+                <exclude>
+                    <!-- All assignments will have LoA processing disabled. -->
+                    <path>assignment</path>
+                </exclude>
+            </applicability>
         </item>
 
         <applicability>
-            <!-- currently we cannot turn off applicability of a single metadata item, so we have to do so for all metadata -->
             <exclude>
-                <path>assignment</path>
+                <!-- Cost center will have no metadata processing.
+                     This is just to test the exclusion feature at the level of metadata handling -->
+                <path>costCenter</path>
             </exclude>
         </applicability>
     </meta>

@@ -40,7 +40,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
         ValueMetadataProcessingSpec processingSpec = createProcessingSpec(result);
-        LOGGER.trace("Value metadata processing spec: {}", processingSpec.shortDumpLazily());
+        LOGGER.trace("Value metadata processing spec:\n{}", processingSpec.debugDumpLazily(1));
         if (processingSpec.isEmpty()) {
             return null;
         } else {
@@ -68,14 +68,16 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
         }
     }
 
+    @NotNull
     private ValueMetadataProcessingSpec createProcessingSpec(OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
         ValueMetadataProcessingSpec processingSpec = ValueMetadataProcessingSpec.forScope(TRANSFORMATION);
+        processingSpec.addPathsToIgnore(mappingBean.getIgnoreMetadataProcessing());
         // TODO What about persona mappings? outbound mappings? We should not use object template for that.
         processingSpec.populateFromCurrentFocusTemplate(parser.getOutputPath(), beans.objectResolver,
                 getMappingContextDescription(), task, result);
-        processingSpec.addMappings(mappingBean.getMetadataMapping());
+        processingSpec.addMetadataMappings(mappingBean.getMetadataMapping());
         return processingSpec;
     }
 

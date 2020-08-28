@@ -46,7 +46,7 @@ public class ValueMetadataValueAsserter<RA extends AbstractAsserter> extends Pri
     }
 
     @Override
-    public <T> ValueMetadataValueAsserter<RA> assertNoItem(QName itemName) {
+    public <T> ValueMetadataValueAsserter<RA> assertNoItem(ItemPath itemName) {
         return (ValueMetadataValueAsserter<RA>) super.assertNoItem(itemName);
     }
 
