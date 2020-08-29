@@ -13,6 +13,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -130,7 +132,12 @@ public class AbstractRoleAssignmentPanel extends AssignmentPanel {
                 || assignmentWrapper.getRealValue().getTargetRef().getRelation() == null){
             return "";
         }
-        return assignmentWrapper.getRealValue().getTargetRef().getRelation().getLocalPart();
+
+        QName relation = assignmentWrapper.getRealValue().getTargetRef().getRelation();
+        String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(relation);
+        return StringUtils.isNotEmpty(relationDisplayName) ?
+                getPageBase().createStringResource(relationDisplayName).getString() :
+                getPageBase().createStringResource(relation.getLocalPart()).getString();
     }
 
 

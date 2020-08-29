@@ -100,6 +100,9 @@ public class ModifyTest extends BaseSQLRepoTest {
     private static final QName QNAME_WEAPON = new QName("http://example.com/p", "weapon");
     private static final QName QNAME_FUNERAL_DATE = new QName("http://example.com/p", "funeralDate");
 
+    private static final File SYSTEM_CONFIGURATION_BEFORE_FILE = new File(TEST_DIR, "system-configuration-before.xml");
+    private static final File SYSTEM_CONFIGURATION_AFTER_FILE = new File(TEST_DIR, "system-configuration-after.xml");
+
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
@@ -1530,5 +1533,45 @@ public class ModifyTest extends BaseSQLRepoTest {
         System.out.println("Values: " + values);
         assertEquals("Wrong # of extension values found", expected, values.size());
         close(session);
+    }
+
+    /**
+     * MID-6063
+     */
+    @Test
+    public void test510ModifySystemConfiguration() throws Exception {
+        final String TEST_NAME = "test510ModifySystemConfiguration";
+        TestUtil.displayTestTitle(TEST_NAME);
+
+        // GIVEN
+        OperationResult result = new OperationResult(TEST_NAME);
+
+        PrismObject<SystemConfigurationType> before = prismContext.parseObject(SYSTEM_CONFIGURATION_BEFORE_FILE);
+        repositoryService.addObject(before, null, result);
+
+        PrismObject<SystemConfigurationType> after = prismContext.parseObject(SYSTEM_CONFIGURATION_AFTER_FILE);
+        ObjectDelta<SystemConfigurationType> delta = before.diff(after, EquivalenceStrategy.LITERAL);
+
+        String oid = before.getOid();
+
+        // WHEN
+        repositoryService.modifyObject(SystemConfigurationType.class, oid, delta.getModifications(), result);
+
+        // THEN
+        PrismObject<SystemConfigurationType> read = repositoryService.getObject(SystemConfigurationType.class, oid, null, result);
+
+        normalize(after);
+        normalize(read);
+        PrismAsserts.assertEquals("System configuration was stored incorrectly", after, read);
+    }
+
+    private void normalize(PrismObject<?> object) {
+        object.setVersion(null);
+        //noinspection unchecked
+        object.accept(value -> {
+            if (value instanceof PrismContainerValue) {
+                ((PrismContainerValue<?>) value).setId(null);
+            }
+        });
     }
 }

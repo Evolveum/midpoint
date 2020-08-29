@@ -112,7 +112,7 @@ public class LinkedReferencePanel<O extends ObjectType> extends BasePanel<Object
         ObjectType referencedObject= referencedObjectModel.getObject();
         ObjectReferenceType referencedObjectRef = null;
         if (referencedObject != null) {
-            referencedObjectRef = WebComponentUtil.createObjectRef(referencedObject.getOid(), referencedObject.getName().getOrig(), WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
+            referencedObjectRef = WebComponentUtil.createObjectRef(referencedObject.getOid(), referencedObject.getName() != null ? referencedObject.getName().getOrig() : null, WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
             PrismReferenceValue referenceValue = getPageBase().getPrismContext().itemFactory().createReferenceValue(referencedObject.getOid(),
                     WebComponentUtil.classToQName(getPageBase().getPrismContext(), referencedObject.getClass()));
             referenceValue.setObject(referencedObject.asPrismObject());
@@ -120,6 +120,9 @@ public class LinkedReferencePanel<O extends ObjectType> extends BasePanel<Object
         }
         String nameLinkTextVal = (referencedObject instanceof UserType)?WebComponentUtil.getDisplayNameAndName(referencedObjectRef):
                 WebComponentUtil.getDisplayNameOrName(referencedObjectRef);
+        if (StringUtils.isEmpty(nameLinkTextVal) && referencedObjectRef!= null && StringUtils.isNotEmpty(referencedObjectRef.getOid())) {
+            nameLinkTextVal = referencedObjectRef.getOid();
+        }
 
         Label nameLinkText = new Label(ID_NAME_TEXT, Model.of(nameLinkTextVal));
         nameLinkText.setOutputMarkupId(true);

@@ -78,48 +78,12 @@ public abstract class AutoCompleteTextPanel<T> extends AbstractAutoCompletePanel
 
             @Override
             public <C> IConverter<C> getConverter(Class<C> type) {
-                return new IConverter<C>() {
+                IConverter<C> originConverter = super.getConverter(type);
+                if (lookupTable == null) {
+                    return originConverter;
+                }
 
-                    private static final long serialVersionUID = 1L;
-
-                    @Override
-                    public C convertToObject(String value, Locale arg1) throws ConversionException {
-                        if (lookupTable == null) {
-                            return (C) value;
-                        }
-
-                        for (LookupTableRowType row : lookupTable.getRow()) {
-                            if (value.equals(WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null))) {
-                                return (C) row.getKey();
-                            }
-                        }
-
-                        boolean differentValue = true;
-                        if (getBaseFormComponent() != null && getBaseFormComponent().getModelObject() != null
-                                && getBaseFormComponent().getModelObject().equals(value)) {
-                            differentValue = false;
-                        }
-
-                        if (differentValue && strict) {
-                            throw new ConversionException("Cannot convert " + value);
-                        }
-
-                        return (C) value;
-
-                    }
-
-                    @Override
-                    public String convertToString(C key, Locale arg1) {
-                        if (lookupTable != null) {
-                            for (LookupTableRowType row : lookupTable.getRow()) {
-                                if (key.equals(row.getKey())) {
-                                    return (String) WebComponentUtil.getLocalizedOrOriginPolyStringValue(row.getLabel() != null ? row.getLabel().toPolyString() : null);
-                                }
-                            }
-                        }
-                        return (String) key;
-                    }
-                };
+                return new LookupTableConverter<>(originConverter, lookupTable, getBaseFormComponent(), strict);
             }
         };
 
