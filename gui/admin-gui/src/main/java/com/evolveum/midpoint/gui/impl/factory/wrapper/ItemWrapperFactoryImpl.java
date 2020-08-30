@@ -21,6 +21,8 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.task.api.TaskManager;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -38,9 +40,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
@@ -199,6 +198,24 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
     protected <VW extends PrismValueWrapper> void setupMetadata(VW valueWrapper, WrapperContext ctx) throws SchemaException {
         PrismValue oldValue = valueWrapper.getNewValue();
         PrismContainer<Containerable> metadataContainer = oldValue.getValueMetadataAsContainer();
+
+        if (canContainLegacyMetadata(oldValue)) {
+            PrismContainer<MetadataType> oldMetadata = ((PrismContainerValue) oldValue).findContainer(ObjectType.F_METADATA);
+            if (oldMetadata != null && oldMetadata.getValue() != null) {
+//                Collection<PrismContainerValue<Containerable>> metadataValues = metadataContainer.getValues();
+//                if (CollectionUtils.isNotEmpty(metadataValues)) {
+//                    for (PrismContainerValue<Containerable> metadataValue : metadataValues) {
+//                        transformStorageMetadata(metadataValue, oldMetadata);
+//                    }
+//                }
+
+                PrismContainerValue<Containerable> newMetadataValue = metadataContainer.createNewValue();
+                transformStorageMetadata(newMetadataValue, oldMetadata);
+                transformProcessMetadata(newMetadataValue, oldMetadata);
+            }
+
+        }
+
 //        Optional<ValueMetadata> metadata = oldValue.valueMetadata(); // TODO
 //        return;
 //        // TODO adapt this code
@@ -212,6 +229,70 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
         ValueMetadataWrapperFactoryImpl valueMetadataWrapperFactory = new ValueMetadataWrapperFactoryImpl(getRegistry());
         PrismContainerWrapper<Containerable> valueMetadataWrapper = valueMetadataWrapperFactory.createWrapper(null, metadataContainer, ItemStatus.NOT_CHANGED.NOT_CHANGED, ctx);
         valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
+    }
+
+    private <T, PV extends PrismValue> boolean canContainLegacyMetadata(PV value) {
+        if (value instanceof PrismObjectValue) {
+            return true;
+        }
+
+        if (!(value instanceof PrismContainerValue)) {
+            return false;
+        }
+
+        PrismContainerDefinition containerDef = ((PrismContainerValue) value).getDefinition();
+        if (containerDef == null || containerDef.isRuntimeSchema()) {
+            return false;
+        }
+
+        T realValue = value.getRealValue();
+        if (realValue == null) {
+            return false;
+        }
+
+        if (PasswordType.class.isAssignableFrom(realValue.getClass())) {
+            return true;
+        }
+
+        if (AssignmentType.class.isAssignableFrom(realValue.getClass())) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private void transformStorageMetadata(PrismContainerValue<Containerable> metadataValue, PrismContainer<MetadataType> oldMetadata) throws SchemaException {
+        PrismContainer<StorageMetadataType> storagetMetadata = metadataValue.findOrCreateContainer(ValueMetadataType.F_STORAGE);
+
+        MetadataType oldMetadataType = oldMetadata.getRealValue();
+        StorageMetadataType storageMetadataType = new StorageMetadataType(prismContext);
+        storageMetadataType.setCreateChannel(oldMetadataType.getCreateChannel());
+        storageMetadataType.setCreateTaskRef(oldMetadataType.getCreateTaskRef());
+        storageMetadataType.setCreateTimestamp(oldMetadataType.getCreateTimestamp());
+        storageMetadataType.setCreatorRef(oldMetadataType.getCreatorRef());
+        storageMetadataType.setModifierRef(oldMetadataType.getModifierRef());
+        storageMetadataType.setModifyChannel(oldMetadataType.getModifyChannel());
+        storageMetadataType.setModifyTaskRef(oldMetadataType.getModifyTaskRef());
+        storageMetadataType.setModifyTimestamp(oldMetadataType.getModifyTimestamp());
+
+        storagetMetadata.setRealValue(storageMetadataType);
+
+    }
+
+    private void transformProcessMetadata(PrismContainerValue<Containerable> metadataValue, PrismContainer<MetadataType> oldContainer) throws SchemaException {
+        PrismContainer<ProcessMetadataType> processMetadata = metadataValue.findOrCreateContainer(ValueMetadataType.F_PROCESS);
+
+        MetadataType oldMetadata = oldContainer.getRealValue();
+        ProcessMetadataType processMetadataType = new ProcessMetadataType(prismContext);
+        processMetadataType.setCertificationFinishedTimestamp(oldMetadata.getCertificationFinishedTimestamp());
+        processMetadataType.setCertificationOutcome(oldMetadata.getCertificationOutcome());
+        processMetadataType.setCreateApprovalTimestamp(oldMetadata.getCreateApprovalTimestamp());
+        processMetadataType.setModifyApprovalTimestamp(oldMetadata.getModifyApprovalTimestamp());
+        processMetadataType.setRequestorComment(oldMetadata.getRequestorComment());
+        processMetadataType.setRequestorRef(oldMetadata.getRequestorRef());
+        processMetadataType.setRequestTimestamp(oldMetadata.getRequestTimestamp());
+
+        processMetadata.setRealValue(processMetadataType);
     }
 
     protected List<PV> getValues(I item) {

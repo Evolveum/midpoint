@@ -859,11 +859,11 @@ body .treeview-menu > li > span:hover {
 
         .prism-container {
           padding-left: 40px;
-          border-top: 0px solid @table-divider-color;
+          border-top: none;
         }
         .prism-container.multivalue-container {
           padding-left: 40px;
-          border-top: 0px solid @table-divider-color;
+          border-top: none;
         }
 
       }
@@ -874,22 +874,30 @@ body .treeview-menu > li > span:hover {
 
         .prism-container.multivalue-container {
           padding-left: 40px;
-          border-top: 0px solid @table-divider-color;
+          border-top: none;
 
           .container-wrapper {
             padding-left: 40px;
-            border-top: 0px solid @table-divider-color;
+            border-top: none;
           }
         }
 
         .container-wrapper {
           padding-left: 40px;
-          border-top: 0px solid @table-divider-color;
+          border-top: none;
 
           .container-wrapper {
             padding-left: 0px;
-            border-top: 0px solid @table-divider-color;
+            border-top: none;
           }
+        }
+      }
+    }
+
+    .metadata {
+      .prism-properties {
+        .prism-container {
+          border-top: none;
         }
       }
     }
@@ -1668,42 +1676,43 @@ display: inline-block;
 }
 
 .metadata {
-    .panel-default {
-        border-color: #ffffff;
-    }
 
-    .panel {
-        margin-bottom: 0px;
-        box-shadow: none;
-    }
+  .panel-default {
+      border-color: #ffffff;
+  }
 
-    .panel-body {
-        padding: 5px;
-    }
+  .panel {
+      margin-bottom: 0px;
+      box-shadow: none;
+  }
 
-    .info-box {
-        min-height: 50px;
-    }
+  .panel-body {
+      padding: 5px;
+  }
 
-    .info-box-icon {
-        height: 50px;
-        line-height: normal;
-    }
+  .info-box {
+      min-height: 50px;
+  }
 
-    .info-box-icon-ethereal-image {
-        font-size: 46px;
-    }
+  .info-box-icon {
+      height: 50px;
+      line-height: normal;
+  }
+
+  .info-box-icon-ethereal-image {
+      font-size: 46px;
+  }
 }
 
 .metadata-nav > li > a {
-    border-radius: 10px;
-    padding: 5px 10px;
-    float: left;
+  border-radius: 10px;
+  padding: 5px 10px;
+  float: left;
 }
 
 .metadata-nav > li > a::before {
-    font-family: "FontAwesome";
-    content: "\f02b";
+  font-family: "FontAwesome";
+  content: "\f02b";
 }
 
 .acquisition {
