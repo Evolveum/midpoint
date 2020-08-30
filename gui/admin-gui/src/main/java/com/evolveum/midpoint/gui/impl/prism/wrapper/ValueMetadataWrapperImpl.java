@@ -22,6 +22,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserInterfaceElementVisibilityType;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -435,6 +437,11 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
     }
 
     @Override
+    public PrismContainerWrapper<Containerable> getSelectedChild() {
+        return metadataValueWrapper.getSelectedChild();
+    }
+
+    @Override
     public ItemPath getPath() {
         return metadataValueWrapper.getPath();
     }
@@ -604,14 +611,14 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
         metadataValueWrapper.accept(visitor);
     }
 
-    public <T extends Containerable> List<PrismContainerDefinition<Containerable>> getChildContainers() throws SchemaException {
-        List<PrismContainerValueWrapper<Containerable>> containerValues = getValues();
-        if (CollectionUtils.isEmpty(containerValues)) {
+    public List<PrismContainerDefinition<Containerable>> getChildContainers() throws SchemaException {
+        List<PrismContainerValueWrapper<Containerable>> metadataValues = getValues();
+        if (CollectionUtils.isEmpty(metadataValues)) {
             return Collections.EMPTY_LIST;
         }
 
         List<PrismContainerDefinition<Containerable>> childContainers = new ArrayList<>();
-        for (PrismContainerValueWrapper<Containerable> metadataValue : getValues()) {
+        for (PrismContainerValueWrapper<Containerable> metadataValue : metadataValues) {
             for (PrismContainerWrapper<Containerable> child : metadataValue.getContainers()) {
                 if (child.isEmpty()) {
                     continue;
@@ -621,13 +628,10 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
                 }
             }
         }
-//        PrismContainerValueWrapper<Containerable> containerValue = containerValues.iterator().next();
-//        for (PrismContainerDefinition<Containerable> containerDef : containerValue.getContainers()) {
-//            //do not allow to add already existing singel value container
-//            childContainers.add(containerDef);
-//        }
         return childContainers;
     }
+
+
 
     private boolean containainChild(List<PrismContainerDefinition<Containerable>> containers, PrismContainerWrapper<Containerable> child) {
         return containers.stream().anyMatch(ch -> QNameUtil.match(ch.getTypeName(), child.getTypeName()));

@@ -31,6 +31,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainerItemSpecificationType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
+import org.apache.commons.collections4.CollectionUtils;
+
 /**
  * @author katka
  */
@@ -496,5 +498,16 @@ public class PrismContainerValueWrapperImpl<C extends Containerable>
 
     public PrismContainerDefinition<C> getDefinition() {
         return getNewValue().getDefinition();
+    }
+
+    @Override
+    public PrismContainerWrapper<Containerable> getSelectedChild() {
+        for (PrismContainerWrapper<Containerable> child : getContainers()) {
+            if (child.isShowMetadataDetails()) {
+                return child;
+            }
+        }
+
+        return null;
     }
 }

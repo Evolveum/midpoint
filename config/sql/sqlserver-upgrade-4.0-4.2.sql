@@ -77,4 +77,8 @@ GO
 
 ALTER TABLE m_focus ADD passwordCreateTimestamp DATETIME2;
 ALTER TABLE m_focus ADD passwordModifyTimestamp DATETIME2;
+
+-- MID-6037
+ALTER TABLE m_service ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
+
 GO

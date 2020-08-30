@@ -45,4 +45,7 @@ ALTER TABLE m_case RENAME COLUMN targetRef_type TO targetRef_targetType;
 ALTER TABLE m_focus ADD COLUMN passwordCreateTimestamp TIMESTAMP;
 ALTER TABLE m_focus ADD COLUMN passwordModifyTimestamp TIMESTAMP;
 
+-- MID-6037
+ALTER TABLE m_service ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
+
 COMMIT;

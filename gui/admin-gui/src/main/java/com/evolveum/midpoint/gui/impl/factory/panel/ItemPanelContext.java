@@ -35,7 +35,8 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
     private Component parentComponent;
 
     private IModel<IW> itemWrapper;
-    private ItemRealValueModel<T> realValueModel;
+    private IModel<? extends PrismValueWrapper<T>> valueWrapperModel;
+//    private ItemRealValueModel<T> realValueModel;
 
     private Form<?> form;
     private AjaxEventBehavior ajaxEventBehavior;
@@ -84,13 +85,17 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
     }
 
     public ItemRealValueModel<T> getRealValueModel() {
-        return realValueModel;
+        return new ItemRealValueModel<>(valueWrapperModel);
     }
 
     public <VW extends PrismValueWrapper<T>> void setRealValueModel(IModel<VW> valueWrapper) {
-        this.realValueModel = new ItemRealValueModel<>(valueWrapper);
+        valueWrapperModel = valueWrapper;
+//        this.realValueModel = ;
     }
 
+    IModel<? extends PrismValueWrapper<T>> getValueWrapperModel() {
+        return valueWrapperModel;
+    }
 
     public void setComponentId(String componentId) {
         this.componentId = componentId;
