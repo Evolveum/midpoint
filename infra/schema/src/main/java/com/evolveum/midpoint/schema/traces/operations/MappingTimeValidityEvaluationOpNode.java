@@ -17,9 +17,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 /**
  *
  */
-public class MappingEvaluationOpNode extends AbstractMappingEvaluationOpNode {
+public class MappingTimeValidityEvaluationOpNode extends AbstractMappingEvaluationOpNode {
 
-    public MappingEvaluationOpNode(PrismContext prismContext,
+    public MappingTimeValidityEvaluationOpNode(PrismContext prismContext,
             OperationResultType result,
             OpResultInfo info, OpNode parent,
             TraceInfo traceInfo) {
@@ -29,8 +29,7 @@ public class MappingEvaluationOpNode extends AbstractMappingEvaluationOpNode {
     public String getMappingInfo() {
         MappingEvaluationTraceType trace = getTrace(MappingEvaluationTraceType.class);
         if (trace != null) {
-            String outputs = getOutputsAsString();
-            return getMappingNameOrSignature() + " ⇒ " + (!outputs.isEmpty() ? outputs : "no outputs");
+            return getMappingNameOrSignature() + " ⇒ " + getTimeValidityInfo();
         } else {
             return context;
         }

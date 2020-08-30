@@ -126,6 +126,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         resourceDummyPrecreate = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_PRECREATE.file, RESOURCE_DUMMY_PRECREATE.oid, initTask, initResult);
         resourceDummyPrecreateType = resourceDummyPrecreate.asObjectable();
         dummyResourceCtlPrecreate.setResource(resourceDummyPrecreate);
+//
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     @Test

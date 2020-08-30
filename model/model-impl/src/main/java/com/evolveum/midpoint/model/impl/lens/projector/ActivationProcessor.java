@@ -299,7 +299,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = projCtx.getResourceObjectTypeDefinitionType();
         if (resourceObjectTypeDefinition == null) {
-            LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account " + projCtxDesc);
+            LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account {}", projCtxDesc);
             return;
         }
         ResourceActivationDefinitionType activationDefinition = resourceObjectTypeDefinition.getActivation();
