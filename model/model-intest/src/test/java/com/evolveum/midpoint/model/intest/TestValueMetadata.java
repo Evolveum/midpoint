@@ -205,6 +205,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         when();
         ValueMetadata metadata = nameValue.getValueMetadata();
         assertThat(metadata.isEmpty()).isTrue();
+        assertThat(metadata.getDefinition()).isNotNull();
 
         XMLGregorianCalendar now = XmlTypeConverter.createXMLGregorianCalendar();
 
@@ -215,6 +216,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         then();
         @NotNull ValueMetadata metadataAfter = nameValue.getValueMetadata();
         assertThat(metadataAfter.isEmpty()).isFalse();
+        assertThat(metadataAfter.getDefinition()).isNotNull();
 
         ValueMetadataType realMetadataValueAfter = (ValueMetadataType) metadataAfter.getRealValue();
         assertThat(realMetadataValueAfter.getProvisioning().getLastProvisioningTimestamp()).isEqualTo(now);
@@ -229,6 +231,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         then();
         assertUserAfter(USER_ALICE.oid)
                 .valueMetadata(ItemPath.EMPTY_PATH)
+                    .assertHasDefinition()
                     .singleValue()
                         .containerSingle(ValueMetadataType.F_PROCESS)
                             .assertItems(ProcessMetadataType.F_REQUEST_TIMESTAMP)
@@ -236,6 +239,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .end()
                     .end()
                 .valueMetadata(UserType.F_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .containerSingle(ValueMetadataType.F_TRANSFORMATION)
                             .container(TransformationMetadataType.F_SOURCE)
@@ -248,36 +252,43 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .end()
                     .end()
                 .valueMetadata(UserType.F_GIVEN_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FULL_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .end()
                     .end()
                 .valueMetadata(UserType.F_ORGANIZATIONAL_UNIT, ppv -> "Development".equals(PolyString.getOrig((PolyString) ppv.getRealValue())))
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .end()
                     .end()
                 .valueMetadata(ItemPath.create(UserType.F_ASSIGNMENT, 111L))
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .end()
                     .end()
                 .valueMetadata(ItemPath.create(UserType.F_ASSIGNMENT, 111L, AssignmentType.F_SUBTYPE), ppv -> "manual".equals(ppv.getRealValue()))
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .end()
                     .end()
                 .valueMetadata(ItemPath.create(UserType.F_ASSIGNMENT, 111L, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS))
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .end()
@@ -302,12 +313,14 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .display()
                 .displayXml()
                 .valueMetadata(UserType.F_GIVEN_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .assertPropertyValuesEqual(LOA_PATH, 1)
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .assertPropertyValuesEqual(LOA_PATH, 3)
@@ -315,6 +328,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .end()
                 .assertFullName("Bob Green")
                 .valueMetadata(UserType.F_FULL_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .assertPropertyValuesEqual(LOA_PATH, 1);
@@ -346,12 +360,14 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .display()
                 .displayXml()
                 .valueMetadata(UserType.F_GIVEN_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .assertPropertyValuesEqual(LOA_PATH, 2)
                         .end()
                     .end()
                 .valueMetadata(UserType.F_FAMILY_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .assertPropertyValuesEqual(LOA_PATH, 3)
@@ -359,6 +375,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .end()
                 .assertFullName("Bob Green")
                 .valueMetadata(UserType.F_FULL_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .display()
                         .assertPropertyValuesEqual(LOA_PATH, 2);
