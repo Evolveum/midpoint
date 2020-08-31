@@ -13,6 +13,7 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.impl.prism.panel.DefaultContainerablePanel;
 import com.evolveum.midpoint.prism.Containerable;
 
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -37,6 +38,14 @@ public class DefaultContainerablePanelFactory<C extends Containerable> implement
     public org.apache.wicket.Component createPanel(PrismContainerPanelContext<C> panelCtx) {
         return new DefaultContainerablePanel<>(panelCtx.getComponentId(), panelCtx.getValueWrapper(), panelCtx.getSettings());
     }
+
+//    @Override
+//    public void configure(PrismContainerPanelContext<C> panelCtx, org.apache.wicket.Component component) {
+//        if (!(component instanceof DefaultContainerablePanel)) {
+//            return;
+//        }
+//        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(component));
+//    }
 
     @Override
     public Integer getOrder() {

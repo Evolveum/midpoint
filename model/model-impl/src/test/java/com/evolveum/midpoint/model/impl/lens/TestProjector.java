@@ -827,7 +827,7 @@ public class TestProjector extends AbstractLensTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType> context = createUserLensContext();
-        context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
+        context.setChannel(SchemaConstants.CHANNEL_IMPORT);
         fillContextWithEmptyAddUserDelta(context);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
@@ -882,7 +882,7 @@ public class TestProjector extends AbstractLensTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         LensContext<UserType> context = createUserLensContext();
-        context.setChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
+        context.setChannel(SchemaConstants.CHANNEL_IMPORT);
         fillContextWithEmptyAddUserDelta(context);
         fillContextWithAccountFromFile(context, ACCOUNT_HERMAN_DUMMY_FILE, task, result);
         makeImportSyncDelta(context.getProjectionContexts().iterator().next());
@@ -1001,7 +1001,7 @@ public class TestProjector extends AbstractLensTest {
         dummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME, "Phatt Island");
 
         LensContext<UserType> context = createUserLensContext();
-        context.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
+        context.setChannel(SchemaConstants.CHANNEL_RECON);
         fillContextWithUser(context, USER_GUYBRUSH_OID, result);
         context.setDoReconciliationForAllProjections(true);
 

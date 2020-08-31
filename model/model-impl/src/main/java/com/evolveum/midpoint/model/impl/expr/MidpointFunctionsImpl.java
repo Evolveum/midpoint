@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.model.impl.expr;
 
 import static java.util.Collections.*;
-import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD;
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
@@ -1460,13 +1459,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
             if (securityPolicy.getRegistration() != null && securityPolicy.getRegistration().getSelfRegistration() != null
                     && securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName() != null) {
                 String resetPasswordSequenceName = securityPolicy.getRegistration().getSelfRegistration().getAdditionalAuthenticationName();
-                String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
+                String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
                 if (prefix != null) {
                     return createTokenConfirmationLink(prefix, userType);
                 }
             }
         }
-        return createTokenConfirmationLink(SchemaConstants.REGISTRATION_CONFIRAMTION_PREFIX, userType);
+        return createTokenConfirmationLink(SchemaConstants.REGISTRATION_CONFIRMATION_PREFIX, userType);
     }
 
     @Override
@@ -1476,7 +1475,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
                 && securityPolicy.getAuthentication().getSequence() != null && !securityPolicy.getAuthentication().getSequence().isEmpty()) {
             if (securityPolicy.getCredentialsReset() != null && securityPolicy.getCredentialsReset().getAuthenticationSequenceName() != null) {
                 String resetPasswordSequenceName = securityPolicy.getCredentialsReset().getAuthenticationSequenceName();
-                String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
+                String prefix = createPrefixLinkByAuthSequence(SchemaConstants.CHANNEL_RESET_PASSWORD_URI, resetPasswordSequenceName, securityPolicy.getAuthentication().getSequence());
                 if (prefix != null) {
                     return createTokenConfirmationLink(prefix, userType);
                 }

@@ -1106,7 +1106,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         login(USER_BARBOSSA_USERNAME);
 
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_SELF_SERVICE_URI);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID,
@@ -1134,7 +1134,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         login(USER_BARBOSSA_USERNAME);
 
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_SELF_SERVICE_URI);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_BARBOSSA_OID,

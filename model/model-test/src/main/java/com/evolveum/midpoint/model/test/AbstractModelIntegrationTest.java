@@ -152,7 +152,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected static final ItemPath ACTIVATION_VALID_TO_PATH = SchemaConstants.PATH_ACTIVATION_VALID_TO;
     protected static final ItemPath PASSWORD_VALUE_PATH = SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 
-    private static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_GUI_USER_URI;
+    private static final String DEFAULT_CHANNEL = SchemaConstants.CHANNEL_USER_URI;
 
     protected static final String LOG_PREFIX_FAIL = "SSSSS=X ";
     protected static final String LOG_PREFIX_ATTEMPT = "SSSSS=> ";
@@ -6406,7 +6406,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     private Task createAllowDenyTask(String opname) {
         Task task = createTask("createAllowDenyTask." + opname);
         task.setOwner(getSecurityContextPrincipalFocus());
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         return task;
     }
 
@@ -6457,7 +6457,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         MidPointPrincipal origPrincipal = getSecurityContextPrincipal();
         login(USER_ADMINISTRATOR_USERNAME);
         task.setOwner(getSecurityContextPrincipalFocus());
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         try {
             attempt.run(task, result);
         } catch (Throwable e) {

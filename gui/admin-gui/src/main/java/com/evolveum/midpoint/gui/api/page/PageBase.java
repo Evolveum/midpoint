@@ -749,7 +749,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         TaskManager manager = getTaskManager();
         Task task = manager.createTaskInstance(operation);
 
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
 
         return task;
     }

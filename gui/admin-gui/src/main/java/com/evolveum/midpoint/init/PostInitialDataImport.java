@@ -58,7 +58,7 @@ public class PostInitialDataImport extends DataImport {
 
         OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
         Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
+        task.setChannel(SchemaConstants.CHANNEL_INIT_URI);
 
         File[] files = getPostInitialImportObjects();
         LOGGER.debug("Files to be imported: {}.", Arrays.toString(files));

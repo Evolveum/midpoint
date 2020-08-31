@@ -425,7 +425,7 @@ public class PageForgotPassword extends PageRegistrationBase {
             @Override
             public OperationResult run() {
                 Task task = createAnonymousTask("generateUserNonce");
-                task.setChannel(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
+                task.setChannel(SchemaConstants.CHANNEL_RESET_PASSWORD_URI);
                 task.setOwner(user.asPrismObject());
                 OperationResult result = new OperationResult("generateUserNonce");
                 ProtectedStringType nonceCredentials = new ProtectedStringType();

@@ -27,7 +27,10 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ChannelUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.security.api.MidPointPrincipal;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 
@@ -58,6 +61,7 @@ public class ProjectionValueMetadataCreator {
 
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
+    @Autowired private SecurityContextManager securityContextManager;
 
     <V extends PrismValue, D extends ItemDefinition>
     void setValueMetadata(@NotNull Item<V, D> resourceObjectItem, @NotNull LensProjectionContext projectionCtx,
@@ -130,14 +134,15 @@ public class ProjectionValueMetadataCreator {
         }
 
         ValueMetadataType valueMetadataBean = populateValueMetadata(provenanceFeed, projectionCtx, env, result);
-        applyBuiltinPopulators(valueMetadataBean, provenanceFeed, resourceOid);
+        applyBuiltinPopulators(valueMetadataBean, provenanceFeed, resourceOid, projectionCtx);
 
         projectionCtx.setCachedValueMetadata(valueMetadataBean.clone());
         return valueMetadataBean;
     }
 
-    private void applyBuiltinPopulators(ValueMetadataType valueMetadataBean, ProvenanceFeedDefinitionType provenanceFeed, String resourceOid)
-            throws SchemaException {
+    private void applyBuiltinPopulators(ValueMetadataType valueMetadataBean, ProvenanceFeedDefinitionType provenanceFeed,
+            String resourceOid, LensProjectionContext projectionCtx)
+            throws SchemaException, SecurityViolationException {
         Boolean useBuiltinPopulators = provenanceFeed != null ? provenanceFeed.isUseBuiltinPopulators() : null;
         if (!BooleanUtils.isFalse(useBuiltinPopulators)) {
             boolean useAlways = BooleanUtils.isTrue(useBuiltinPopulators);
@@ -162,11 +167,31 @@ public class ProjectionValueMetadataCreator {
             addBuiltinAcquisitionValue(acquisition, useAlways,
                     ProvenanceAcquisitionType.F_ORIGIN_REF,
                     () -> provenanceFeed != null ? CloneUtil.clone(provenanceFeed.getOriginRef()) : null);
+            addBuiltinAcquisitionValue(acquisition, useAlways,
+                    ProvenanceAcquisitionType.F_ACTOR_REF,
+                    this::getActorRef);
+            addBuiltinAcquisitionValue(acquisition, useAlways,
+                    ProvenanceAcquisitionType.F_CHANNEL,
+                    () -> getChannel(projectionCtx));
         }
     }
 
+    private String getChannel(LensProjectionContext projectionCtx) {
+        return ChannelUtil.deflate(projectionCtx.getLensContext().getChannel());
+    }
+
+    private ObjectReferenceType getActorRef() throws SecurityViolationException {
+        MidPointPrincipal principal = securityContextManager.getPrincipal();
+        return principal != null ? principal.toObjectReference() : null;
+    }
+
+    @FunctionalInterface
+    private interface ValueSupplier {
+        Object get() throws SecurityViolationException;
+    }
+
     private void addBuiltinAcquisitionValue(ProvenanceAcquisitionType acquisition, boolean useAlways, ItemName itemName,
-            Supplier<?> valueSupplier) throws SchemaException {
+            ValueSupplier valueSupplier) throws SchemaException, SecurityViolationException {
         if (useAlways || !hasAcquisitionValue(acquisition, itemName)) {
             setAcquisitionValue(acquisition, itemName, valueSupplier);
         }
@@ -177,8 +202,8 @@ public class ProjectionValueMetadataCreator {
         return item != null && !item.isEmpty();
     }
 
-    private void setAcquisitionValue(ProvenanceAcquisitionType acquisition, ItemName itemName, Supplier<?> valueSupplier)
-            throws SchemaException {
+    private void setAcquisitionValue(ProvenanceAcquisitionType acquisition, ItemName itemName, ValueSupplier valueSupplier)
+            throws SchemaException, SecurityViolationException {
         Object realValue = valueSupplier.get();
         ItemDelta<?, ?> delta = prismContext.deltaFor(ProvenanceAcquisitionType.class)
                 .item(itemName).replace(realValue)

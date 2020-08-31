@@ -8064,7 +8064,7 @@
                      2. in XML but not in the index tables
                      3. in index tables but not in XML
 
-                     I think it's preferrable to specify exact storage method separately from the fact that given
+                     I think it's preferable to specify exact storage method separately from the fact that given
                      item should or should not be stored persistently.
                     -->
                 </xsd:annotation>

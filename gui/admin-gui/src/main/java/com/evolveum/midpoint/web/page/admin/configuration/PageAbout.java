@@ -509,7 +509,7 @@ public class PageAbout extends PageAdminConfiguration {
                 task.setOwner(user.getFocus().asPrismObject());
             }
             authorize(AuthorizationConstants.AUTZ_ALL_URL, null, null, null, null, null, result);
-            task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+            task.setChannel(SchemaConstants.CHANNEL_USER_URI);
             task.setHandlerUri(ModelPublicConstants.REINDEX_TASK_HANDLER_URI);
             task.setName("Reindex repository objects");
             taskManager.switchToBackground(task, result);

@@ -55,7 +55,7 @@ public class SecurityQuestionProvider extends AbstractCredentialProvider<Securit
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
-        ConnectionEnvironment connEnv = createEnviroment(channel);
+        ConnectionEnvironment connEnv = createEnvironment(channel);
 
         try {
             Authentication token;
