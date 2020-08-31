@@ -9,9 +9,9 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.ValueMetadata;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -19,6 +19,8 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import javax.xml.namespace.QName;
 
@@ -57,9 +59,9 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
                     break;
                 }
                 if (parent.isSingleValue()) {
-                    delta.addValueToReplace(getNewValue().clone());
+                    delta.addValueToReplace(getNewValueWithMetadataApplied());
                 } else {
-                    delta.addValueToAdd(getNewValue().clone());
+                    delta.addValueToAdd(getNewValueWithMetadataApplied());
                 }
                 break;
             case NOT_CHANGED:
@@ -72,13 +74,13 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
                     if (newValue.isEmpty())  {
                         delta.addValueToDelete(oldValue.clone());
                     } else {
-                        delta.addValueToReplace(newValue.clone());
+                        delta.addValueToReplace(getNewValueWithMetadataApplied());
                     }
                     break;
                 }
 
                 if (!newValue.isEmpty()) {
-                    delta.addValueToAdd(newValue.clone());
+                    delta.addValueToAdd(getNewValueWithMetadataApplied());
                 }
                 if (!oldValue.isEmpty()) {
                     delta.addValueToDelete(oldValue.clone());
@@ -121,6 +123,18 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
 //            newValue.setValueMetadata(valueMetadata.getOldValue() != null ? valueMetadata.getOldValue().clone() : null);
         }
         return (V) newValue;
+    }
+
+    private <V extends PrismValue> V getNewValueWithMetadataApplied() throws SchemaException {
+        PrismContainerValue<ValueMetadataType> newYieldValue = WebPrismUtil.getNewYieldValue();
+
+        MidPointApplication app = MidPointApplication.get();
+        ValueMetadata newValueMetadata = app.getPrismContext().getValueMetadataFactory().createEmpty();
+        newValueMetadata.addMetadataValue(newYieldValue);
+
+        newValue.setValueMetadata(newValueMetadata.clone());
+
+        return (V) newValue.clone();
     }
 
     @Override
