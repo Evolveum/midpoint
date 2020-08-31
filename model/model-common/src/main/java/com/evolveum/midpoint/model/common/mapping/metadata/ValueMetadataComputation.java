@@ -52,7 +52,7 @@ abstract public class ValueMetadataComputation {
     /**
      * Metadata processing specification: how should we compute the resulting metadata?
      */
-    @NotNull private final ValueMetadataProcessingSpec processingSpec;
+    @NotNull private final ItemValueMetadataProcessingSpec processingSpec;
 
     /**
      * Mapping specification - present only for transformational situations.
@@ -72,19 +72,19 @@ abstract public class ValueMetadataComputation {
     /**
      * Necessary beans.
      */
-    @NotNull final ModelCommonBeans beans;
+    @NotNull private final ModelCommonBeans beans;
 
     /**
      * Definition of ValueMetadataType container.
      */
-    @NotNull final PrismContainerDefinition<ValueMetadataType> metadataDefinition;
+    @NotNull private final PrismContainerDefinition<ValueMetadataType> metadataDefinition;
 
     /**
      * Result of the computation: the metadata.
      */
     @NotNull private final PrismContainerValue<ValueMetadataType> outputMetadata;
 
-    ValueMetadataComputation(@NotNull ValueMetadataProcessingSpec processingSpec,
+    ValueMetadataComputation(@NotNull ItemValueMetadataProcessingSpec processingSpec,
             @Nullable MappingSpecificationType mappingSpecification,
             @NotNull ModelCommonBeans beans, MappingEvaluationEnvironment env) {
         this.processingSpec = processingSpec;
