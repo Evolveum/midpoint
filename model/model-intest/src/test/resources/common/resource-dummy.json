@@ -105,7 +105,7 @@
             } ]
           },
           "inbound" : [ {
-            "channel" : [ "http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import" ],
+            "channel" : [ "http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import" ],
             "expression" : {
               "allowEmptyValues" : false,
               "script" : [ {

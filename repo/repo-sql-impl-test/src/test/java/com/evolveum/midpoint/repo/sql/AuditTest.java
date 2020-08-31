@@ -104,7 +104,7 @@ public class AuditTest extends BaseSQLRepoTest {
     @Test
     public void test200AuditDelta() {
         AuditEventRecord record = new AuditEventRecord();
-        record.setChannel("http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import");
+        record.setChannel("http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import");
         record.setEventIdentifier("1511974895961-0-1");
         record.setEventStage(AuditEventStage.EXECUTION);
         record.setEventType(AuditEventType.ADD_OBJECT);

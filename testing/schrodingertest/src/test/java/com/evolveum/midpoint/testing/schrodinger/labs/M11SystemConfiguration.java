@@ -116,7 +116,7 @@ public class M11SystemConfiguration extends AbstractLabTest {
                 + "    - Target: Internal Employee (role) [default]\n"
                 + "\n"
                 + "Requester: midPoint Administrator (administrator)\n"
-                + "Channel: http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync\n"
+                + "Channel: http://midpoint.evolveum.com/xml/ns/public/common/channels-3#liveSync\n"
                 + "\n";
 
         Assertions.assertThat(notification).startsWith(startOfNotification);
