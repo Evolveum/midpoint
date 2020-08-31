@@ -31,10 +31,10 @@
         <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                     oid="00000000-0000-0000-0000-000000000002"
                     type="c:UserType"/>
-        <createChannel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</createChannel>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import</createChannel>
         <modifyTimestamp>2013-05-29T13:14:25.854+02:00</modifyTimestamp>
         <modifierRef oid="00000000-0000-0000-0000-000000000002"/>
-        <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</modifyChannel>
+        <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import</modifyChannel>
     </metadata>
     <extension>
         <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>

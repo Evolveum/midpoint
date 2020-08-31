@@ -212,7 +212,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                 + "    - Value: (protected string)\n"
                 + " - Administrative status: ENABLED\n"
                 + "\n"
-                + "Channel: http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user", addMessage.getBody());
+                + "Channel: http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user", addMessage.getBody());
 
         assertSteadyResources();
     }

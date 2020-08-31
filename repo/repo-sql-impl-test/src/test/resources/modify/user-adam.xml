@@ -16,7 +16,7 @@
             <requestorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
             <createTimestamp>2020-07-09T23:32:12.708+02:00</createTimestamp>
             <creatorRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType"/>
-            <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+            <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
         </metadata>
         <construction>
             <resourceRef oid="10000000-0000-0000-0000-000000000004" relation="org:default" type="c:ResourceType"/>

@@ -134,7 +134,7 @@
                     </source>
                 </outbound>
                 <inbound>
-                    <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+                    <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import</channel>
                     <expression>
                         <allowEmptyValues>false</allowEmptyValues>
                         <script>

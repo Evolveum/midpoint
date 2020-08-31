@@ -31,7 +31,7 @@
     <metadata>
         <createTimestamp>2015-12-04T00:37:08.885+01:00</createTimestamp>
         <creatorRef oid="00000000-0000-0000-0000-000000000002" type="c:UserType"><!-- administrator --></creatorRef>
-        <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
     </metadata>
     <definitionRef oid="068e0a87-b456-47c7-811a-5fd9b6f78099"
                    type="c:AccessCertificationDefinitionType"><!-- All user assignments --></definitionRef>

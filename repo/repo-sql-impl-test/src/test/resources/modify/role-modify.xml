@@ -19,10 +19,10 @@
         <creatorRef xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                     oid="00000000-0000-0000-0000-000000000002"
                     type="c:UserType"/>
-        <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</createChannel>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</createChannel>
         <modifyTimestamp>2013-06-17T09:26:03.034+02:00</modifyTimestamp>
         <modifierRef oid="00000000-0000-0000-0000-000000000002"/>
-        <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</modifyChannel>
+        <modifyChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</modifyChannel>
     </metadata>
     <authorization id="1">
         <action>http://midpoint.evolveum.com/xml/ns/public/security/authorization-3#all</action>
