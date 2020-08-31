@@ -24,14 +24,14 @@ import com.evolveum.midpoint.web.component.AjaxButton;
  * @author katka
  *
  */
-public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHeaderPanel<PrismContainerValue<C>, PrismContainer<C>, PrismContainerDefinition<C>, PrismContainerWrapper<C>> {
+public class PrismContainerHeaderPanel<C extends Containerable, PCW extends PrismContainerWrapper<C>> extends ItemHeaderPanel<PrismContainerValue<C>, PrismContainer<C>, PrismContainerDefinition<C>, PCW> {
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_EXPAND_COLLAPSE_BUTTON = "expandCollapseButton";
 
 
-    public PrismContainerHeaderPanel(String id, IModel<PrismContainerWrapper<C>> model) {
+    public PrismContainerHeaderPanel(String id, IModel<PCW> model) {
         super(id, model);
     }
 
@@ -83,7 +83,7 @@ public class PrismContainerHeaderPanel<C extends Containerable> extends ItemHead
     }
 
     @Override
-    protected PrismContainerValue<C> createNewValue(PrismContainerWrapper<C> parent) {
+    protected PrismContainerValue<C> createNewValue(PCW parent) {
         return parent.getItem().createNewValue();
     }
 

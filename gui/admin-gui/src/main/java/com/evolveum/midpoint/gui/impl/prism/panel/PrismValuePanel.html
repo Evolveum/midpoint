@@ -24,19 +24,13 @@
                 </span>
             </div>
         </div>
-        <div class="row">
-            <div class="col-xs-10 metadata-block">
-                <div wicket:id="metadataNav">
-                    <ul class="nav metadata-nav">
-                        <li wicket:id="metadataList">
-                            <a class="metadata-tab" wicket:id="metadataQName"/>
-                        </li>
-                    </ul>
+        <wicket:enclosure child="metadata">
+            <div class="row">
+                <div class="col-xs-10 metadata-block">
+                    <div wicket:id="metadata"/>
                 </div>
-                <div wicket:id="provenanceMetadata"></div>
-                <div wicket:id="metadata"></div>
             </div>
-        </div>
+        </wicket:enclosure>
 
 
     </form>

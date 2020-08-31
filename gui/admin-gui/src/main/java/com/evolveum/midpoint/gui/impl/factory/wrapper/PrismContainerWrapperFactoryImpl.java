@@ -101,7 +101,11 @@ public class PrismContainerWrapperFactoryImpl<C extends Containerable> extends I
 
     protected ItemWrapper<?, ?> createChildWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper, WrapperContext context) throws SchemaException {
         ItemWrapperFactory<?, ?, ?> factory = getChildWrapperFactory(def, containerValueWrapper.getNewValue());
-        return factory.createWrapper(containerValueWrapper, def, context);
+        ItemWrapper<?, ?> child = factory.createWrapper(containerValueWrapper, def, context);
+        if (context.isMetadata() && ItemStatus.ADDED == child.getStatus()) {
+            return null;
+        }
+        return child;
     }
 
     private ItemWrapperFactory<?,?,?> getChildWrapperFactory(ItemDefinition def, PrismContainerValue<?> parentValue) throws SchemaException {

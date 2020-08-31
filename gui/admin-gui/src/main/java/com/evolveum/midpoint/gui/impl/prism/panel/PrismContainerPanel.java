@@ -22,13 +22,13 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author katka
  *
  */
-public class PrismContainerPanel<C extends Containerable> extends ItemPanel<PrismContainerValueWrapper<C>, PrismContainerWrapper<C>>{
+public class PrismContainerPanel<C extends Containerable, PCW extends PrismContainerWrapper<C>> extends ItemPanel<PrismContainerValueWrapper<C>, PCW>{
 
     private static final long serialVersionUID = 1L;
 
     private static final String ID_HEADER = "header";
 
-    public PrismContainerPanel(String id, IModel<PrismContainerWrapper<C>> model, ItemPanelSettings settings) {
+    public PrismContainerPanel(String id, IModel<PCW> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
 
@@ -49,7 +49,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
     @Override
     protected Component createHeaderPanel() {
-        return new PrismContainerHeaderPanel<C>(ID_HEADER, getModel()) {
+        return new PrismContainerHeaderPanel<C, PCW>(ID_HEADER, getModel()) {
             @Override
             protected void onExpandClick(AjaxRequestTarget target) {
                 PrismContainerWrapper<C> wrapper = PrismContainerPanel.this.getModelObject();
@@ -88,7 +88,7 @@ public class PrismContainerPanel<C extends Containerable> extends ItemPanel<Pris
 
     @SuppressWarnings("unchecked")
     @Override
-    protected <PV extends PrismValue> PV createNewValue(PrismContainerWrapper<C> itemWrapper) {
+    protected <PV extends PrismValue> PV createNewValue(PCW itemWrapper) {
         return (PV) itemWrapper.getItem().createNewValue();
     }
 }

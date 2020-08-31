@@ -9,6 +9,15 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
+
+import com.evolveum.midpoint.util.logging.Trace;
+
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -33,8 +42,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitio
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
-public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataType> {
+public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataType, ValueMetadataWrapperImpl> {
 
+    private static final transient Trace LOGGER = TraceManager.getTrace(ProvenanceMetadataPanel.class);
     private static final String ID_YIELD_CONTAINER = "yieldContainer";
     private static final String ID_YIELD_HEADER = "yieldHeader";
     private static final String ID_YIELD = "yield";
@@ -47,7 +57,7 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
     private static final String ID_PROVENANCE_DISPLAY = "provenanceDisplayName";
 
 
-    public ProvenanceMetadataPanel(String id, IModel<PrismContainerWrapper<ValueMetadataType>> model, ItemPanelSettings settings) {
+    public ProvenanceMetadataPanel(String id, IModel<ValueMetadataWrapperImpl> model, ItemPanelSettings settings) {
         super(id, model, settings);
     }
 
@@ -171,7 +181,11 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
                 return "";
             }
 
-            return getString(details.getTypeName().getLocalPart() + "." + "displayType");
+            if (hasMoreThenOneItem(details)) {
+                return getString(details.getTypeName().getLocalPart() + "." + "description");
+            }
+
+            return getString(details.getTypeName().getLocalPart() + "." + "description.single");
         });
     }
 
@@ -191,9 +205,33 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
             PrismContainerWrapper<Containerable> child = getModelObject().getSelectedChild();
             //TODO only for provenance?
             if (!child.isRuntimeSchema()) {
-                return getString(child.getTypeName().getLocalPart() + "." + "description");
+                return getString(child.getTypeName().getLocalPart() + "." + "displayType");
             }
             return "";
+    }
+
+    private boolean hasMoreThenOneItem(PrismContainerWrapper<Containerable> child) {
+        if (!child.isSingleValue()) {
+            return true;
+        }
+
+        PrismContainerValueWrapper<Containerable> childValue;
+        try {
+            childValue = child.getValue();
+        } catch (SchemaException e) {
+            LOGGER.warn("Cannot get child value, returning default label.");
+            return true;
+        }
+
+        if (childValue.getItems().size() == 1) {
+            ItemWrapper childChild = childValue.getItems().get(0);
+            if (!(childChild instanceof PrismContainerWrapper)) {
+                return false;
+            }
+        }
+
+        return childValue.getItems().size() > 1;
+
     }
 
     private WebMarkupContainer createAcquisitionPanel(IModel<PrismContainerWrapper<ProvenanceAcquisitionType>> listPropertyModel) {

@@ -66,11 +66,9 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private static final String ID_INPUT = "input";
     private static final String ID_SHOW_METADATA = "showMetadata";
-    private static final String ID_PROVENANCE_METADATA = "provenanceMetadata";
+
     private static final String ID_METADATA = "metadata";
-    private static final String ID_METADATA_NAVIGATION = "metadataNav";
-    private static final String ID_METADATA_LIST = "metadataList";
-    private static final String ID_METADATA_QNAME = "metadataQName";
+
 
     private ItemPanelSettings settings;
 
@@ -186,168 +184,172 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     protected void createMetadataPanel(Form form) {
-        createMetadataNavigationPanel(form);
-
-        ProvenanceMetadataPanel provenanceMetadataPanel =
-                new ProvenanceMetadataPanel(ID_PROVENANCE_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
-                    new ItemPanelSettingsBuilder()
-                        .editabilityHandler(wrapper -> true)
-                        .headerVisibility(false)
-                        .visibilityHandler(w -> w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN)
-                        .build());
-        provenanceMetadataPanel.add(new VisibleBehaviour(this::shouldShowProvenanceMetadataDetails));
-        provenanceMetadataPanel.setOutputMarkupId(true);
-        provenanceMetadataPanel.setOutputMarkupPlaceholderTag(true);
-        form.add(provenanceMetadataPanel);
-
-        MetadataContainerPanel valueMetadataPanel =
-                new MetadataContainerPanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
-                        new ItemPanelSettingsBuilder()
-                                .editabilityHandler(wrapper -> true)
-                                .headerVisibility(false)
-                                .visibilityHandler(w -> w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN)
-                                .build());
-        valueMetadataPanel.add(new VisibleBehaviour(this::shouldShowMetadataDetails));
-        valueMetadataPanel.setOutputMarkupId(true);
-        valueMetadataPanel.setOutputMarkupPlaceholderTag(true);
-        form.add(valueMetadataPanel);
+        PrismValueMetadataPanel metadataPanel = new PrismValueMetadataPanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"));
+        metadataPanel.add(new VisibleBehaviour(() -> getModelObject().isShowMetadata()));
+        metadataPanel.setOutputMarkupId(true);
+        form.add(metadataPanel);
+//        createMetadataNavigationPanel(form);
+//
+//        ProvenanceMetadataPanel provenanceMetadataPanel =
+//                new ProvenanceMetadataPanel(ID_PROVENANCE_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
+//                    new ItemPanelSettingsBuilder()
+//                        .editabilityHandler(wrapper -> true)
+//                        .headerVisibility(false)
+//                        .visibilityHandler(w -> w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN)
+//                        .build());
+//        provenanceMetadataPanel.add(new VisibleBehaviour(this::shouldShowProvenanceMetadataDetails));
+//        provenanceMetadataPanel.setOutputMarkupId(true);
+//        provenanceMetadataPanel.setOutputMarkupPlaceholderTag(true);
+//        form.add(provenanceMetadataPanel);
+//
+//        MetadataContainerPanel valueMetadataPanel =
+//                new MetadataContainerPanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"),
+//                        new ItemPanelSettingsBuilder()
+//                                .editabilityHandler(wrapper -> true)
+//                                .headerVisibility(false)
+//                                .visibilityHandler(w -> w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN)
+//                                .build());
+//        valueMetadataPanel.add(new VisibleBehaviour(this::shouldShowMetadataDetails));
+//        valueMetadataPanel.setOutputMarkupId(true);
+//        valueMetadataPanel.setOutputMarkupPlaceholderTag(true);
+//        form.add(valueMetadataPanel);
     }
 
-    private void createMetadataNavigationPanel(Form form) {
-        WebMarkupContainer metadataNavigation = new WebMarkupContainer(ID_METADATA_NAVIGATION);
-        form.add(metadataNavigation);
-        metadataNavigation.setOutputMarkupId(true);
-
-        ListView<ContainersPopupDto> metadataList = new ListView<ContainersPopupDto>(ID_METADATA_LIST, createMetadataListModel()) {
-
-            @Override
-            protected void populateItem(ListItem<ContainersPopupDto> listItem) {
-                AjaxButton showMetadataDetails  = new AjaxButton(ID_METADATA_QNAME,
-                        createStringResource(listItem.getModelObject().getItemName())) {
-                    @Override
-                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
-                        ContainersPopupDto ccontainerToShow = listItem.getModelObject();
-                        ccontainerToShow.setSelected(true);
-                        setContainersToShow(ccontainerToShow, ajaxRequestTarget);
-                    }
-                };
-                showMetadataDetails.add(AttributeAppender.replace("class", createButtonClassModel(listItem)));
-                showMetadataDetails.setOutputMarkupId(true);
-                showMetadataDetails.setOutputMarkupPlaceholderTag(true);
-                listItem.setOutputMarkupId(true);
-                listItem.add(showMetadataDetails);
-            }
-        };
-        metadataNavigation.add(metadataList);
-        metadataList.setOutputMarkupId(true);
-        metadataList.setOutputMarkupPlaceholderTag(true);
-        metadataList.add(new VisibleBehaviour(this::shouldShowMetadata));
-    }
-
-    private boolean shouldShowMetadata() {
-        if (getValueMetadata() == null) {
-            return false;
-        }
-        return getModelObject().isShowMetadata();
-    }
-
-    private boolean shouldShowMetadataDetails() {
-        return shouldShowMetadata() && isAnyMetadataSelected() && !containsProvenanceMetadata();
-    }
-
-    private boolean shouldShowProvenanceMetadataDetails() {
-        return shouldShowMetadata() && isAnyMetadataSelected() && containsProvenanceMetadata();
-    }
-
-    private boolean isAnyMetadataSelected() {
-        for (PrismContainerValueWrapper<Containerable> value : getValueMetadata().getValues()) {
-            for (PrismContainerWrapper<Containerable> metadataContainer : value.getContainers()) {
-                if (metadataContainer.isShowMetadataDetails()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    private boolean containsProvenanceMetadata() {
-        //TODO fix findContainer in prismContainerWrppaer when no value id specified
-        for (PrismContainerValueWrapper<Containerable> value : getValueMetadata().getValues()) {
-            PrismContainerWrapper<ProvenanceMetadataType> provenanceWrapper = null;
-            try {
-                provenanceWrapper = value.findContainer(ValueMetadataType.F_PROVENANCE);
-            } catch (SchemaException e) {
-                LoggingUtils.logUnexpectedException(LOGGER, "Cannot find provenance metadata wrapper", e);
-            }
-            if (provenanceWrapper != null && !provenanceWrapper.getValues().isEmpty()) {
-                return true;
-            }
-        }
-
-        return false;
-
-    }
-
-    private IModel<?> createButtonClassModel(ListItem<ContainersPopupDto> selectedContainer) {
-
-        return new ReadOnlyModel<>(() -> {
-
-            String primaryButton = getPrimaryButton(getValueMetadata(), selectedContainer.getModelObject());
-
-            return primaryButton == null ? "metadata-tab" : primaryButton;
-        });
-    }
-
-    private String getPrimaryButton(PrismContainerWrapper<Containerable> valueMetadata, ContainersPopupDto containersPopupDto) {
-        for (PrismContainerValueWrapper<Containerable> value : valueMetadata.getValues()) {
-            for (PrismContainerWrapper<Containerable> container : value.getContainers()) {
-                if (!QNameUtil.match(containersPopupDto.getTypeName(), container.getTypeName())) {
-                    continue;
-                }
-
-                if (container.isShowMetadataDetails()) {
-                    return "metadata-tab metadata-tab-active";
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private void setContainersToShow(ContainersPopupDto containersToShow, AjaxRequestTarget ajaxRequestTarget) {
-        for (PrismContainerValueWrapper<Containerable> values : getValueMetadata().getValues()) {
-            for (PrismContainerWrapper<Containerable> container : values.getContainers()) {
-                if (QNameUtil.match(container.getTypeName(), containersToShow.getDef().getTypeName())) {
-                    container.setShowMetadataDetails(true);
-                } else {
-                    container.setShowMetadataDetails(false);
-                }
-            }
-        }
-
-        ajaxRequestTarget.add(get(createComponentPath(ID_VALUE_FORM, ID_METADATA_NAVIGATION)));
-        ajaxRequestTarget.add(get(createComponentPath(ID_VALUE_FORM, ID_METADATA)));
-        ajaxRequestTarget.add(get(createComponentPath(ID_VALUE_FORM, ID_PROVENANCE_METADATA)));
-
-    }
-
-    private ReadOnlyModel<List<ContainersPopupDto>> createMetadataListModel() {
-        return new ReadOnlyModel<List<ContainersPopupDto>>(() -> {
-            ValueMetadataWrapperImpl metadataWrapper = getValueMetadata();
-
-            List<PrismContainerDefinition<Containerable>> childContainers;
-            try {
-                childContainers = metadataWrapper.getChildContainers();
-            } catch (SchemaException e) {
-                LOGGER.error("Cannot get child containers: {}", e.getMessage(), e);
-                childContainers = Collections.EMPTY_LIST;
-            }
-
-            List<ContainersPopupDto> containers = childContainers.stream().map(c -> new ContainersPopupDto(false, c)).collect(Collectors.toList());
-
-            return containers;
-        });
-    }
+//    private void createMetadataNavigationPanel(Form form) {
+//        WebMarkupContainer metadataNavigation = new WebMarkupContainer(ID_METADATA_NAVIGATION);
+//        form.add(metadataNavigation);
+//        metadataNavigation.setOutputMarkupId(true);
+//
+//        ListView<ContainersPopupDto> metadataList = new ListView<ContainersPopupDto>(ID_METADATA_LIST, createMetadataListModel()) {
+//
+//            @Override
+//            protected void populateItem(ListItem<ContainersPopupDto> listItem) {
+//                AjaxButton showMetadataDetails  = new AjaxButton(ID_METADATA_QNAME,
+//                        createStringResource(listItem.getModelObject().getItemName())) {
+//                    @Override
+//                    public void onClick(AjaxRequestTarget ajaxRequestTarget) {
+//                        ContainersPopupDto ccontainerToShow = listItem.getModelObject();
+//                        ccontainerToShow.setSelected(true);
+//                        setContainersToShow(ccontainerToShow, ajaxRequestTarget);
+//                    }
+//                };
+//                showMetadataDetails.add(AttributeAppender.replace("class", createButtonClassModel(listItem)));
+//                showMetadataDetails.setOutputMarkupId(true);
+//                showMetadataDetails.setOutputMarkupPlaceholderTag(true);
+//                listItem.setOutputMarkupId(true);
+//                listItem.add(showMetadataDetails);
+//            }
+//        };
+//        metadataNavigation.add(metadataList);
+//        metadataList.setOutputMarkupId(true);
+//        metadataList.setOutputMarkupPlaceholderTag(true);
+//        metadataList.add(new VisibleBehaviour(this::shouldShowMetadata));
+//    }
+//
+//    private boolean shouldShowMetadata() {
+//        if (getValueMetadata() == null) {
+//            return false;
+//        }
+//        return getModelObject().isShowMetadata();
+//    }
+//
+//    private boolean shouldShowMetadataDetails() {
+//        return shouldShowMetadata() && isAnyMetadataSelected() && !containsProvenanceMetadata();
+//    }
+//
+//    private boolean shouldShowProvenanceMetadataDetails() {
+//        return shouldShowMetadata() && isAnyMetadataSelected() && containsProvenanceMetadata();
+//    }
+//
+//    private boolean isAnyMetadataSelected() {
+//        for (PrismContainerValueWrapper<Containerable> value : getValueMetadata().getValues()) {
+//            for (PrismContainerWrapper<Containerable> metadataContainer : value.getContainers()) {
+//                if (metadataContainer.isShowMetadataDetails()) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
+//
+//    private boolean containsProvenanceMetadata() {
+//        //TODO fix findContainer in prismContainerWrppaer when no value id specified
+//        for (PrismContainerValueWrapper<Containerable> value : getValueMetadata().getValues()) {
+//            PrismContainerWrapper<ProvenanceMetadataType> provenanceWrapper = null;
+//            try {
+//                provenanceWrapper = value.findContainer(ValueMetadataType.F_PROVENANCE);
+//            } catch (SchemaException e) {
+//                LoggingUtils.logUnexpectedException(LOGGER, "Cannot find provenance metadata wrapper", e);
+//            }
+//            if (provenanceWrapper != null && !provenanceWrapper.getValues().isEmpty()) {
+//                return true;
+//            }
+//        }
+//
+//        return false;
+//
+//    }
+//
+//    private IModel<?> createButtonClassModel(ListItem<ContainersPopupDto> selectedContainer) {
+//
+//        return new ReadOnlyModel<>(() -> {
+//
+//            String primaryButton = getPrimaryButton(getValueMetadata(), selectedContainer.getModelObject());
+//
+//            return primaryButton == null ? "metadata-tab" : primaryButton;
+//        });
+//    }
+//
+//    private String getPrimaryButton(PrismContainerWrapper<Containerable> valueMetadata, ContainersPopupDto containersPopupDto) {
+//        for (PrismContainerValueWrapper<Containerable> value : valueMetadata.getValues()) {
+//            for (PrismContainerWrapper<Containerable> container : value.getContainers()) {
+//                if (!QNameUtil.match(containersPopupDto.getTypeName(), container.getTypeName())) {
+//                    continue;
+//                }
+//
+//                if (container.isShowMetadataDetails()) {
+//                    return "metadata-tab metadata-tab-active";
+//                }
+//            }
+//        }
+//
+//        return null;
+//    }
+//
+//    private void setContainersToShow(ContainersPopupDto containersToShow, AjaxRequestTarget ajaxRequestTarget) {
+//        for (PrismContainerValueWrapper<Containerable> values : getValueMetadata().getValues()) {
+//            for (PrismContainerWrapper<Containerable> container : values.getContainers()) {
+//                if (QNameUtil.match(container.getTypeName(), containersToShow.getDef().getTypeName())) {
+//                    container.setShowMetadataDetails(true);
+//                } else {
+//                    container.setShowMetadataDetails(false);
+//                }
+//            }
+//        }
+//
+//        ajaxRequestTarget.add(get(createComponentPath(ID_VALUE_FORM, ID_METADATA_NAVIGATION)));
+//        ajaxRequestTarget.add(get(createComponentPath(ID_VALUE_FORM, ID_METADATA)));
+//        ajaxRequestTarget.add(get(createComponentPath(ID_VALUE_FORM, ID_PROVENANCE_METADATA)));
+//
+//    }
+//
+//    private ReadOnlyModel<List<ContainersPopupDto>> createMetadataListModel() {
+//        return new ReadOnlyModel<List<ContainersPopupDto>>(() -> {
+//            ValueMetadataWrapperImpl metadataWrapper = getValueMetadata();
+//
+//            List<PrismContainerDefinition<Containerable>> childContainers;
+//            try {
+//                childContainers = metadataWrapper.getChildContainers();
+//            } catch (SchemaException e) {
+//                LOGGER.error("Cannot get child containers: {}", e.getMessage(), e);
+//                childContainers = Collections.EMPTY_LIST;
+//            }
+//
+//            List<ContainersPopupDto> containers = childContainers.stream().map(c -> new ContainersPopupDto(false, c)).collect(Collectors.toList());
+//
+//            return containers;
+//        });
+//    }
 
     private AjaxEventBehavior createEventBehavior() {
         return new AjaxFormComponentUpdatingBehavior("change") {

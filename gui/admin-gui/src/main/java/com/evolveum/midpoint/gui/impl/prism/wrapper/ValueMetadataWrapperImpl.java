@@ -35,11 +35,11 @@ import javax.xml.namespace.QName;
 import java.util.*;
 import java.util.function.Consumer;
 
-public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Containerable> {
+public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMetadataType> {
 
-    private PrismContainerWrapper<Containerable> metadataValueWrapper;
+    private PrismContainerWrapper<ValueMetadataType> metadataValueWrapper;
 
-    public ValueMetadataWrapperImpl(PrismContainerWrapper<Containerable> metadataValueWrapper) {
+    public ValueMetadataWrapperImpl(PrismContainerWrapper<ValueMetadataType> metadataValueWrapper) {
         this.metadataValueWrapper = metadataValueWrapper;
     }
 
@@ -143,7 +143,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
     }
 
     @Override
-    public Class<Containerable> getCompileTimeClass() {
+    public Class<ValueMetadataType> getCompileTimeClass() {
         return metadataValueWrapper.getCompileTimeClass();
     }
 
@@ -274,13 +274,13 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
 
     @NotNull
     @Override
-    public PrismContainer<Containerable> instantiate() throws SchemaException {
+    public PrismContainer<ValueMetadataType> instantiate() throws SchemaException {
         return metadataValueWrapper.instantiate();
     }
 
     @NotNull
     @Override
-    public PrismContainer<Containerable> instantiate(QName name) throws SchemaException {
+    public PrismContainer<ValueMetadataType> instantiate(QName name) throws SchemaException {
         return metadataValueWrapper.instantiate(name);
     }
 
@@ -300,22 +300,22 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
     }
 
     @Override
-    public ContainerDelta<Containerable> createEmptyDelta(ItemPath path) {
+    public ContainerDelta<ValueMetadataType> createEmptyDelta(ItemPath path) {
         return metadataValueWrapper.createEmptyDelta(path);
     }
 
     @Override
-    public @NotNull PrismContainerDefinition<Containerable> clone() {
+    public @NotNull PrismContainerDefinition<ValueMetadataType> clone() {
         return metadataValueWrapper.clone();
     }
 
     @Override
-    public ItemDefinition<PrismContainer<Containerable>> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
+    public ItemDefinition<PrismContainer<ValueMetadataType>> deepClone(boolean ultraDeep, Consumer<ItemDefinition> postCloneAction) {
         return metadataValueWrapper.deepClone(ultraDeep, postCloneAction);
     }
 
     @Override
-    public ItemDefinition<PrismContainer<Containerable>> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
+    public ItemDefinition<PrismContainer<ValueMetadataType>> deepClone(Map<QName, ComplexTypeDefinition> ctdMap, Map<QName, ComplexTypeDefinition> onThisPath, Consumer<ItemDefinition> postCloneAction) {
         return metadataValueWrapper.deepClone(ctdMap, onThisPath, postCloneAction);
     }
 
@@ -330,7 +330,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
     }
 
     @Override
-    public boolean canBeDefinitionOf(PrismContainer<Containerable> item) {
+    public boolean canBeDefinitionOf(PrismContainer<ValueMetadataType> item) {
         return metadataValueWrapper.canBeDefinitionOf(item);
     }
 
@@ -340,7 +340,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
     }
 
     @Override
-    public PrismContainerDefinition<Containerable> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
+    public PrismContainerDefinition<ValueMetadataType> cloneWithReplacedDefinition(QName itemName, ItemDefinition newDefinition) {
         return metadataValueWrapper.cloneWithReplacedDefinition(itemName, newDefinition);
     }
 
@@ -350,7 +350,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
     }
 
     @Override
-    public PrismContainerValue<Containerable> createValue() {
+    public PrismContainerValue<ValueMetadataType> createValue() {
         return metadataValueWrapper.createValue();
     }
 
@@ -365,12 +365,12 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
     }
 
     @Override
-    public MutablePrismContainerDefinition<Containerable> toMutable() {
+    public MutablePrismContainerDefinition<ValueMetadataType> toMutable() {
         return metadataValueWrapper.toMutable();
     }
 
     @Override
-    public Class<Containerable> getTypeClass() {
+    public Class<ValueMetadataType> getTypeClass() {
         return metadataValueWrapper.getTypeClass();
     }
 
@@ -390,7 +390,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
     }
 
     @Override
-    public void remove(PrismContainerValueWrapper<Containerable> valueWrapper, ModelServiceLocator locator) throws SchemaException {
+    public void remove(PrismContainerValueWrapper<ValueMetadataType> valueWrapper, ModelServiceLocator locator) throws SchemaException {
         throw new UnsupportedOperationException("Remove value not supported");
     }
 
@@ -465,12 +465,12 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
     }
 
     @Override
-    public List<PrismContainerValueWrapper<Containerable>> getValues() {
+    public List<PrismContainerValueWrapper<ValueMetadataType>> getValues() {
         return metadataValueWrapper.getValues();
     }
 
     @Override
-    public PrismContainerValueWrapper<Containerable> getValue() throws SchemaException {
+    public PrismContainerValueWrapper<ValueMetadataType> getValue() throws SchemaException {
         return metadataValueWrapper.getValue();
     }
 
@@ -485,7 +485,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
     }
 
     @Override
-    public PrismContainer<Containerable> getItem() {
+    public PrismContainer<ValueMetadataType> getItem() {
         return metadataValueWrapper.getItem();
     }
 
@@ -615,13 +615,13 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<Container
     }
 
     public List<PrismContainerDefinition<Containerable>> getChildContainers() throws SchemaException {
-        List<PrismContainerValueWrapper<Containerable>> metadataValues = getValues();
+        List<PrismContainerValueWrapper<ValueMetadataType>> metadataValues = getValues();
         if (CollectionUtils.isEmpty(metadataValues)) {
             return Collections.EMPTY_LIST;
         }
 
         List<PrismContainerDefinition<Containerable>> childContainers = new ArrayList<>();
-        for (PrismContainerValueWrapper<Containerable> metadataValue : metadataValues) {
+        for (PrismContainerValueWrapper<ValueMetadataType> metadataValue : metadataValues) {
             for (PrismContainerWrapper<Containerable> child : metadataValue.getContainers()) {
                 if (child.isEmpty()) {
                     continue;

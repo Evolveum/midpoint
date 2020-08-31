@@ -15,11 +15,12 @@ import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import java.util.Collections;
 import java.util.List;
 
-public class ValueMetadataWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<Containerable> {
+public class ValueMetadataWrapperFactoryImpl extends PrismContainerWrapperFactoryImpl<ValueMetadataType> {
 
     private GuiComponentRegistry registry;
 
@@ -27,28 +28,28 @@ public class ValueMetadataWrapperFactoryImpl extends PrismContainerWrapperFactor
         this.registry = registry;
     }
 
-    public PrismContainerWrapper<Containerable> createWrapper(PrismContainerValueWrapper<?> parent, Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
+    public PrismContainerWrapper<ValueMetadataType> createWrapper(PrismContainerValueWrapper<?> parent, Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
         WrapperContext ctx = context.clone();
         ctx.setMetadata(true);
         return super.createWrapper(parent, childItem, status, ctx);
     }
 
     @Override
-    public PrismContainerValueWrapper<Containerable> createValueWrapper(PrismContainerWrapper<Containerable> parent, PrismContainerValue<Containerable> value, ValueStatus status, WrapperContext context) throws SchemaException {
+    public PrismContainerValueWrapper<ValueMetadataType> createValueWrapper(PrismContainerWrapper<ValueMetadataType> parent, PrismContainerValue<ValueMetadataType> value, ValueStatus status, WrapperContext context) throws SchemaException {
         WrapperContext ctx = context.clone();
         ctx.setMetadata(true);
         ctx.setCreateOperational(true);
-        PrismContainerValueWrapper<Containerable> v = super.createValueWrapper(parent, value, status, ctx);
+        PrismContainerValueWrapper<ValueMetadataType> v = super.createValueWrapper(parent, value, status, ctx);
         return v;
     }
 
     @Override
-    protected boolean shouldBeExpanded(PrismContainerWrapper<Containerable> parent, PrismContainerValue<Containerable> value, WrapperContext context) {
+    protected boolean shouldBeExpanded(PrismContainerWrapper<ValueMetadataType> parent, PrismContainerValue<ValueMetadataType> value, WrapperContext context) {
         return true;
     }
 
     @Override
-    protected boolean shouldCreateEmptyValue(PrismContainer<Containerable> item, WrapperContext context) {
+    protected boolean shouldCreateEmptyValue(PrismContainer<ValueMetadataType> item, WrapperContext context) {
         return false;
     }
 
@@ -65,14 +66,4 @@ public class ValueMetadataWrapperFactoryImpl extends PrismContainerWrapperFactor
         return registry;
     }
 
-    @Override
-    protected ItemWrapper<?, ?> createChildWrapper(ItemDefinition<?> def, PrismContainerValueWrapper<?> containerValueWrapper, WrapperContext context) throws SchemaException {
-        ItemWrapper<?, ?> child = super.createChildWrapper(def, containerValueWrapper, context);
-        //TODO ugly hack. find out something smarter
-        if (ItemStatus.ADDED == child.getStatus()) {
-            return null;
-        }
-
-        return child;
-    }
 }
