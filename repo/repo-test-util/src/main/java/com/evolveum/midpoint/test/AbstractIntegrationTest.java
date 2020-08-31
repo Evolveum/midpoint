@@ -213,7 +213,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
         PrismTestUtil.setPrismContext(prismContext);
         Task initTask = createPlainTask("INIT");
-        initTask.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
+        initTask.setChannel(SchemaConstants.CHANNEL_INIT_URI);
         OperationResult result = initTask.getResult();
 
         InternalMonitor.reset();

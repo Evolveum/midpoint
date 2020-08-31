@@ -6,39 +6,15 @@
  */
 package com.evolveum.midpoint.web.security.channel;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.security.api.MidPointPrincipal;
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.page.login.PageRegistrationConfirmation;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections4.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.security.authentication.AuthenticationServiceException;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author skublik
@@ -62,7 +38,7 @@ public class SelfRegistrationAuthenticationChannel extends AuthenticationChannel
     }
 
     public String getChannelId() {
-        return SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI;
+        return SchemaConstants.CHANNEL_SELF_REGISTRATION_URI;
     }
 
     public String getPathAfterSuccessfulAuthentication() {
@@ -109,7 +85,7 @@ public class SelfRegistrationAuthenticationChannel extends AuthenticationChannel
 //        TaskManager manager = taskManager;
 //        Task task = manager.createTaskInstance(OPERATION_LOAD_USER);
 //
-//        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+//        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
 //        try {
 //            return securityContextManager.runPrivilegedChecked(() -> {
 //                return modelService

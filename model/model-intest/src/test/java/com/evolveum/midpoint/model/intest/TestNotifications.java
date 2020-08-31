@@ -125,7 +125,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     public void test100ModifyUserAddAccount() throws Exception {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + ".test100ModifyUserAddAccount");
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 

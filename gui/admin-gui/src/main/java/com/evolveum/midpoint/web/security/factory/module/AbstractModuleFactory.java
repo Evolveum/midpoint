@@ -66,7 +66,7 @@ public abstract class AbstractModuleFactory {
         if (authenticationChannel == null) {
             return;
         }
-        if (SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI.equals(authenticationChannel.getChannelId())) {
+        if (SchemaConstants.CHANNEL_SELF_REGISTRATION_URI.equals(authenticationChannel.getChannelId())) {
             throw new IllegalArgumentException("Unsupported factory " + this.getClass().getSimpleName()
                     + " for channel " + authenticationChannel.getChannelId());
         }

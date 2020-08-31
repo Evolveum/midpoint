@@ -1809,7 +1809,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         Task task = getTestTask();
         OperationResult result = getTestOperationResult();
         // This simulates IMPORT to trigger the channel-limited mapping
-        task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_IMPORT));
+        task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_IMPORT));
 
         PrismObject<UserType> user = PrismTestUtil.parseObject(USER_LARGO_FILE);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();

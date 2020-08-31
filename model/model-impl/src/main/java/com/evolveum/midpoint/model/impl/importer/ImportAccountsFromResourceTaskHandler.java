@@ -196,7 +196,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 
         SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, objectClass, "import",
                 coordinatorTask, changeNotificationDispatcher, partition, taskManager);
-        handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_IMPORT);
+        handler.setSourceChannel(SchemaConstants.CHANNEL_IMPORT);
         handler.setForceAdd(true);
         handler.setStopOnError(false);
         handler.setContextDesc("from "+resource);

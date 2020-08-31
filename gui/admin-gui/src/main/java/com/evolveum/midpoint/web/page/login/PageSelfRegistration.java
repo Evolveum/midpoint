@@ -29,7 +29,6 @@ import org.apache.wicket.util.string.StringValue;
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -379,7 +378,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
             runAsChecked(() -> {
                 ObjectDelta<UserType> userDelta;
                 Task task = createSimpleTask(OPERATION_SAVE_USER);
-                task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+                task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
                 try {
                     userDelta = prepareUserDelta(task, result);
                     userDelta.setPrismContext(getPrismContext());

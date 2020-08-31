@@ -187,7 +187,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         opResult.addContext("resourceOid", resourceOid);
 
         if (localCoordinatorTask.getChannel() == null) {
-            localCoordinatorTask.setChannel(SchemaConstants.CHANGE_CHANNEL_RECON_URI);
+            localCoordinatorTask.setChannel(SchemaConstants.CHANNEL_RECON_URI);
         }
 
         if (resourceOid == null) {
@@ -501,7 +501,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         // result in the following iterative search
         SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource.asObjectable(),
                 objectclassDef, "reconciliation", localCoordinatorTask, changeNotificationDispatcher, partitionDefinition, taskManager);
-        handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
+        handler.setSourceChannel(SchemaConstants.CHANNEL_RECON);
         handler.setStopOnError(false);
         handler.setEnableSynchronizationStatistics(true);
         handler.setEnableActionsExecutedStatistics(true);
@@ -712,7 +712,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         try {
             provisioningService.applyDefinition(shadow, task, result);
             ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
-            change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON));
+            change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON));
             change.setResource(resource);
             ObjectDelta<ShadowType> shadowDelta = shadow.getPrismContext().deltaFactory().object()
                     .createDeleteDelta(ShadowType.class, shadow.getOid());

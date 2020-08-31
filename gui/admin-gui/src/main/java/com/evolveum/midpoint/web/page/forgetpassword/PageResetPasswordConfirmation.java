@@ -160,7 +160,7 @@ private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfir
     }
 
     private UsernamePasswordAuthenticationToken authenticateUser(String username, String nonce, OperationResult result) {
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
         try {
             return getAuthenticationEvaluator().authenticate(connEnv, new NonceAuthenticationContext(username, UserType.class,
                     nonce, getResetPasswordPolicy().getNoncePolicy()));

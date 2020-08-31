@@ -84,10 +84,12 @@ public class MidpointSamlAuthenticationResponseFilter extends SamlAuthentication
 //            logger.debug("Delegating to authentication failure handler " + failureHandler);
 //        }
 
-        String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
+        String channel;
         Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
         if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel() != null) {
             channel = ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel().getChannelId();
+        } else {
+            channel = SchemaConstants.CHANNEL_USER_URI;
         }
 
         auditProvider.auditLoginFailure("unknown user", null, ConnectionEnvironment.create(channel), "SAML authentication module: " + failed.getMessage());

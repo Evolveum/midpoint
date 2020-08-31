@@ -9,6 +9,8 @@ package com.evolveum.midpoint.security.api;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.Validate;
@@ -235,13 +237,11 @@ public class MidPointPrincipal implements UserDetails,  DebugDumpable, ShortDump
     }
 
     public ObjectReferenceType toObjectReference() {
-        if (focus.getOid() == null) {
+        if (focus.getOid() != null) {
+            return ObjectTypeUtil.createObjectRef(focus, SchemaConstants.ORG_DEFAULT);
+        } else {
             return null;
         }
-        ObjectReferenceType rv = new ObjectReferenceType();
-        rv.setType(UserType.COMPLEX_TYPE);
-        rv.setOid(focus.getOid());
-        return rv;
     }
 
     @Override

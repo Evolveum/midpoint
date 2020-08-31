@@ -58,7 +58,7 @@ public class AuditedAccessDeniedHandler extends MidpointAccessDeniedHandler {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser(authentication);
         PrismObject<? extends FocusType> user = principal != null ? principal.getFocus().asPrismObject() : null;
 
-        String channel = SchemaConstants.CHANNEL_GUI_USER_URI;
+        String channel = SchemaConstants.CHANNEL_USER_URI;
         if (authentication instanceof MidpointAuthentication
                 && ((MidpointAuthentication) authentication).getAuthenticationChannel() != null) {
             channel = ((MidpointAuthentication) authentication).getAuthenticationChannel().getChannelId();

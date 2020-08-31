@@ -129,7 +129,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
 
     @Override
     protected String getDefaultChannel() {
-        return SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI;
+        return SchemaConstants.CHANNEL_RECOMPUTE_URI;
     }
 
     @Override

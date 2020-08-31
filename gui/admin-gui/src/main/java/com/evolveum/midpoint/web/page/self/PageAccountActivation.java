@@ -252,7 +252,7 @@ public class PageAccountActivation extends PageBase {
         PasswordTextField passwordPanel = (PasswordTextField) form.get(createComponentPath(ID_PASSWORD));
         String value = passwordPanel.getModelObject();
 
-        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+        ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_USER_URI);
         UsernamePasswordAuthenticationToken token;
         try {
             token = authenticationEvaluator.authenticate(connEnv, new PasswordAuthenticationContext(userModel.getObject().getName().getOrig(), value,

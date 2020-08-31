@@ -106,7 +106,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
         ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
         ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(bandersonShadow);
         change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
-        change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+        change.setChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
 
@@ -142,7 +142,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
         ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
         ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(lewisShadow);
         change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
-        change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+        change.setChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
 
@@ -181,7 +181,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
         ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
         ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(alumniShadow);
         change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
-        change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+        change.setChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
 
@@ -217,7 +217,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
         ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
         ObjectDelta<ShadowType> addDelta = DeltaFactory.Object.createAddDelta(staffShadow);
         change.setObjectDelta(DeltaConvertor.toObjectDeltaType(addDelta));
-        change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+        change.setChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
 
@@ -252,7 +252,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> bandersonShadow = prismContext.parseObject(SHADOW_BANDERSON_WITH_GROUPS_FILE);
         ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
         change.setCurrentShadow(bandersonShadow.asObjectable());
-        change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+        change.setChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
 
@@ -297,7 +297,7 @@ public class TestNotifyChange extends AbstractInitializedModelIntegrationTest {
         ResourceObjectShadowChangeDescriptionType change = new ResourceObjectShadowChangeDescriptionType();
         change.setObjectDelta(DeltaConvertor.toObjectDeltaType(delta));
         change.setOldShadowOid(lewisShadowOid);
-        change.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+        change.setChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
 
         // WHEN
 
