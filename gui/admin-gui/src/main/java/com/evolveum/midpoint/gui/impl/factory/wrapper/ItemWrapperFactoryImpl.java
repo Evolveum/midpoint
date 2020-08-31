@@ -120,6 +120,9 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
     }
 
     private boolean skipCreateWrapper(ItemDefinition<?> def, ItemStatus status, WrapperContext context, boolean isEmptyValue) {
+        if (def == null) {
+            return true;
+        }
         if (QNameUtil.match(FocusType.F_LINK_REF, def.getItemName()) || QNameUtil.match(FocusType.F_PERSONA_REF, def.getItemName())) {
             LOGGER.trace("Skip creating wrapper for {}, it is not supported", def);
             return true;
@@ -177,7 +180,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
             if (shouldCreateEmptyValue(item, context)) {
                 PV prismValue = createNewValue(item);
                 VW valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
-//                setupMetadata(valueWrapper, context);
+                setupMetadata(itemWrapper, valueWrapper, context);
                 pvWrappers.add(valueWrapper);
             }
             return pvWrappers;
@@ -186,7 +189,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
         for (PV pcv : values) {
             if(canCreateValueWrapper(pcv)){
                 VW valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
-                setupMetadata(valueWrapper, context);
+                setupMetadata(itemWrapper, valueWrapper, context);
                 pvWrappers.add(valueWrapper);
             }
         }
@@ -195,39 +198,24 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
 
     }
 
-    protected <VW extends PrismValueWrapper> void setupMetadata(VW valueWrapper, WrapperContext ctx) throws SchemaException {
+    protected <VW extends PrismValueWrapper> void setupMetadata(IW itemWrapper, VW valueWrapper, WrapperContext ctx) throws SchemaException {
+        if (itemWrapper.isMetadata()) {
+            return;
+        }
         PrismValue oldValue = valueWrapper.getNewValue();
         PrismContainer<Containerable> metadataContainer = oldValue.getValueMetadataAsContainer();
 
         if (canContainLegacyMetadata(oldValue)) {
             PrismContainer<MetadataType> oldMetadata = ((PrismContainerValue) oldValue).findContainer(ObjectType.F_METADATA);
             if (oldMetadata != null && oldMetadata.getValue() != null) {
-//                Collection<PrismContainerValue<Containerable>> metadataValues = metadataContainer.getValues();
-//                if (CollectionUtils.isNotEmpty(metadataValues)) {
-//                    for (PrismContainerValue<Containerable> metadataValue : metadataValues) {
-//                        transformStorageMetadata(metadataValue, oldMetadata);
-//                    }
-//                }
-
                 PrismContainerValue<Containerable> newMetadataValue = metadataContainer.createNewValue();
                 transformStorageMetadata(newMetadataValue, oldMetadata);
                 transformProcessMetadata(newMetadataValue, oldMetadata);
             }
-
         }
 
-//        Optional<ValueMetadata> metadata = oldValue.valueMetadata(); // TODO
-//        return;
-//        // TODO adapt this code
-//        if (!metadata.isPresent()) {
-//            LOGGER.trace("Skipping creating metadata");
-//            return;
-//        }
-//
-//        ValueMetadata valueMetadata = metadata.get();
-
         ValueMetadataWrapperFactoryImpl valueMetadataWrapperFactory = new ValueMetadataWrapperFactoryImpl(getRegistry());
-        PrismContainerWrapper<Containerable> valueMetadataWrapper = valueMetadataWrapperFactory.createWrapper(null, metadataContainer, ItemStatus.NOT_CHANGED.NOT_CHANGED, ctx);
+        PrismContainerWrapper<Containerable> valueMetadataWrapper = valueMetadataWrapperFactory.createWrapper(null, metadataContainer, ItemStatus.NOT_CHANGED, ctx);
         valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
     }
 

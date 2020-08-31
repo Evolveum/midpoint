@@ -10,6 +10,7 @@ import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.Channel;
+import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
@@ -27,6 +28,7 @@ public class ProvenanceAcquisitionHeaderPanel extends BasePanel<ProvenanceAcquis
 
     private static final String ID_RESOURCE = "resource";
     private static final String ID_ORIGIN = "origin";
+    private static final String ID_SOURCE = "source";
     private static final String ID_CHANNEL = "channel";
     private static final String ID_CHANNEL_ICON = "channelIcon";
 
@@ -41,13 +43,26 @@ public class ProvenanceAcquisitionHeaderPanel extends BasePanel<ProvenanceAcquis
     }
 
     private void initLayout() {
-        LinkedReferencePanel<ObjectReferenceType> resource = new LinkedReferencePanel<>(ID_RESOURCE, new PropertyModel<>(getModel(), "resourceRef"));
-        add(resource);
-        resource.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getResourceRef() != null && getModelObject().getResourceRef().getOid() != null));
+        LinkedReferencePanel<ObjectReferenceType> source = new LinkedReferencePanel<>(ID_SOURCE, new ReadOnlyModel<>(() -> {
+            ProvenanceAcquisitionType acquisitionType = getModelObject();
+            if (acquisitionType == null) {
+                return null;
+            }
 
-        LinkedReferencePanel<ObjectReferenceType> origin = new LinkedReferencePanel<>(ID_ORIGIN, new PropertyModel<>(getModel(), "originRef"));
-        add(origin);
-        origin.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getOriginRef() != null && getModelObject().getOriginRef().getOid() != null));
+            ObjectReferenceType ref = acquisitionType.getResourceRef();
+            if (ref != null && ref.getOid() != null) {
+                return ref;
+            }
+
+            ObjectReferenceType originRef = acquisitionType.getOriginRef();
+            if (originRef != null && originRef.getOid() != null) {
+                return originRef;
+            }
+
+            return null;
+        }));
+        add(source);
+        source.add(new VisibleBehaviour(() -> isNotEmpty(getModelObject().getResourceRef()) || isNotEmpty(getModelObject().getOriginRef())));
 
         ReadOnlyModel<Channel> channelModel = new ReadOnlyModel<>(() -> Channel.findChannel(getModelObject().getChannel()));
         WebMarkupContainer channelIcon = new WebMarkupContainer(ID_CHANNEL_ICON);
@@ -59,5 +74,9 @@ public class ProvenanceAcquisitionHeaderPanel extends BasePanel<ProvenanceAcquis
                 && (getModelObject().getOriginRef() == null || getModelObject().getOriginRef().getOid() == null)
                 && (getModelObject().getResourceRef() == null || getModelObject().getResourceRef().getOid() == null)));
 
+    }
+
+    private boolean isNotEmpty(Referencable ref) {
+        return ref != null && ref.getOid() != null;
     }
 }
