@@ -8,7 +8,7 @@
 package com.evolveum.midpoint.model.common.mapping;
 
 import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetadataComputation;
-import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataProcessingSpec;
+import com.evolveum.midpoint.model.common.mapping.metadata.ItemValueMetadataProcessingSpec;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.repo.common.expression.TransformationValueMetadataComputer;
@@ -39,7 +39,7 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
     protected TransformationValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        ValueMetadataProcessingSpec processingSpec = createProcessingSpec(result);
+        ItemValueMetadataProcessingSpec processingSpec = createProcessingSpec(result);
         LOGGER.trace("Value metadata processing spec:\n{}", processingSpec.debugDumpLazily(1));
         if (processingSpec.isEmpty()) {
             return null;
@@ -69,10 +69,10 @@ public class MappingImpl<V extends PrismValue, D extends ItemDefinition> extends
     }
 
     @NotNull
-    private ValueMetadataProcessingSpec createProcessingSpec(OperationResult result) throws CommunicationException,
+    private ItemValueMetadataProcessingSpec createProcessingSpec(OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException {
-        ValueMetadataProcessingSpec processingSpec = ValueMetadataProcessingSpec.forScope(TRANSFORMATION);
+        ItemValueMetadataProcessingSpec processingSpec = ItemValueMetadataProcessingSpec.forScope(TRANSFORMATION);
         processingSpec.addPathsToIgnore(mappingBean.getIgnoreMetadataProcessing());
         // TODO What about persona mappings? outbound mappings? We should not use object template for that.
         processingSpec.populateFromCurrentFocusTemplate(parser.getOutputPath(), beans.objectResolver,

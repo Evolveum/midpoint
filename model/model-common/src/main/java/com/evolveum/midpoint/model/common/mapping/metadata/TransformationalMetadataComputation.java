@@ -44,7 +44,7 @@ public class TransformationalMetadataComputation extends ValueMetadataComputatio
 
     private TransformationalMetadataComputation(
             @NotNull List<PrismValue> inputValues,
-            @NotNull ValueMetadataProcessingSpec processingSpec,
+            @NotNull ItemValueMetadataProcessingSpec processingSpec,
             @Nullable MappingSpecificationType mappingSpecification,
             @NotNull ModelCommonBeans beans,
             MappingEvaluationEnvironment env) {
@@ -62,7 +62,7 @@ public class TransformationalMetadataComputation extends ValueMetadataComputatio
         mapping.applyForTransformation(this);
     }
 
-    public static TransformationalMetadataComputation forMapping(List<PrismValue> inputValues, ValueMetadataProcessingSpec processingSpec,
+    public static TransformationalMetadataComputation forMapping(List<PrismValue> inputValues, ItemValueMetadataProcessingSpec processingSpec,
             MappingImpl<?, ?> mapping) {
         MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
                 "metadata evaluation in " + mapping.getMappingContextDescription(),

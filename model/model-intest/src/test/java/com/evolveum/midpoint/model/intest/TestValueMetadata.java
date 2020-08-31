@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
@@ -2265,7 +2266,30 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test950DeleteBlaiseAndReconcile() throws Exception {
+    public void test370ProvenanceSupport() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> blaise = findUserByUsername(USER_BLAISE_NAME);
+
+        when();
+        MetadataItemProcessingSpec provenanceSupportSpec = modelInteractionService.getMetadataItemProcessingSpec(
+                ValueMetadataType.F_PROVENANCE, blaise, task, result);
+
+        then();
+        displayDumpable("provenance support spec", provenanceSupportSpec);
+
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_GIVEN_NAME)).as("giveName provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_FULL_NAME)).as("fullName provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)))
+                .as("activation/administrativeStatus provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_ASSIGNMENT)).as("assignment provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_COST_CENTER)).as("costCenter provenance support").isFalse();
+    }
+
+    @Test
+    public void test390DeleteBlaiseAndReconcile() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();
