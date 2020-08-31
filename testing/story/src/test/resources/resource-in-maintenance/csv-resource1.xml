@@ -3,7 +3,7 @@
     <name>CSV1</name>
 
     <administrativeOperationalState>
-        <administrativeAvailabilityStatus>maintenance</administrativeAvailabilityStatus>
+        <administrativeAvailabilityStatus>operational</administrativeAvailabilityStatus>
     </administrativeOperationalState>
 
     <connectorRef type="ConnectorType">

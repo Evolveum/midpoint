@@ -39,15 +39,16 @@ public class ResourceSummaryPanel extends ObjectSummaryPanel<ResourceType> {
 
             @Override
             protected void initialize(ResourceType object) {
-                if (availability== null) {
-                    setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_UNKNOWN);
-                    setLabel(getString("ResourceSummaryPanel.UNKNOWN"));
+                if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailability) {
+                    setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_MAINTENANCE);
+                    setLabel(ResourceSummaryPanel.this.getString(administrativeAvailability));
                     return;
                 }
 
-                if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailability) {
-                    setLabel(ResourceSummaryPanel.this.getString(administrativeAvailability));
-                    setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_MAINTENANCE);
+                if (availability == null) {
+                    setIconCssClass(GuiStyleConstants.CLASS_ICON_RESOURCE_UNKNOWN);
+                    setLabel(getString("ResourceSummaryPanel.UNKNOWN"));
+                    return;
                 } else {
                     setLabel(ResourceSummaryPanel.this.getString(availability));
                     switch (availability) {
