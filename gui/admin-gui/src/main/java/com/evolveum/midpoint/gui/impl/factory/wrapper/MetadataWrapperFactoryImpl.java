@@ -63,5 +63,5 @@ public class MetadataWrapperFactoryImpl<C extends Containerable> extends PrismCo
         PrismContainerWrapper<C> wrapper = super.createWrapper(parent, def, ctx);
         return wrapper;
     }
-    
+
 }

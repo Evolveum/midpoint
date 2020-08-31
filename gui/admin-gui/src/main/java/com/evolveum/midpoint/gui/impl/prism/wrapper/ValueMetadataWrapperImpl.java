@@ -560,6 +560,16 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
+    public boolean isProcessProvenanceMetadata() {
+        return false;
+    }
+
+    @Override
+    public void setProcessProvenanceMetadata(boolean processProvenanceMetadata) {
+
+    }
+
+    @Override
     public String debugDump(int indent) {
         return metadataValueWrapper.debugDump(indent);
     }
