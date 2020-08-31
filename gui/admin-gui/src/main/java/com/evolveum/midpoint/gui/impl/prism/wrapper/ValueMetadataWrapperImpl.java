@@ -649,4 +649,12 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     private boolean containainChild(List<PrismContainerDefinition<Containerable>> containers, PrismContainerWrapper<Containerable> child) {
         return containers.stream().anyMatch(ch -> QNameUtil.match(ch.getTypeName(), child.getTypeName()));
     }
+
+    public void unselect() {
+        for (PrismContainerValueWrapper<ValueMetadataType> value : getValues()) {
+            for (PrismContainerWrapper<Containerable> container : value.getContainers()) {
+                container.setShowMetadataDetails(false);
+            }
+        }
+    }
 }
