@@ -77,6 +77,7 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
     private static final String OPERATION_TEST_RESOURCE = DOT_CLASS + "testResource";
     private static final String OPERATION_DELETE_RESOURCES = DOT_CLASS + "deleteResources";
     private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
+    private static final String OPERATION_SET_MAINTENANCE = DOT_CLASS + "setMaintenance";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
@@ -271,6 +272,31 @@ public class PageResources extends PageAdminObjectList<ResourceType> {
                     public void onClick(AjaxRequestTarget target) {
                         SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
                         deleteResourceSyncTokenPerformed(target, rowDto.getValue());
+                    }
+
+                };
+            }
+
+            @Override
+            public boolean isHeaderMenuItem(){
+                return false;
+            }
+
+        });
+
+        menuItems.add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.toggleMaintenance")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public InlineMenuItemAction initAction() {
+                return new ColumnMenuAction<SelectableBeanImpl<ResourceType>>() {
+                    private static final long serialVersionUID = 1L;
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        SelectableBeanImpl<ResourceType> rowDto = getRowModel().getObject();
+                        WebComponentUtil.toggleResourceMaintenance(rowDto.getValue().asPrismContainer(), OPERATION_SET_MAINTENANCE, target, PageResources.this);
+                        target.add(getResourceTable());
                     }
 
                 };
