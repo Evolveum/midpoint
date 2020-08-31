@@ -63,7 +63,7 @@ public class TraceUtil {
             if (emptyEmbeddedValue) {
                 // very strange case - let's simply skip it; there's nothing to store to AnyValueType here
             } else {
-                if (prismValue.hasRealClass()) {
+                if (prismValue.hasRealClass() && !prismValue.hasValueMetadata()) {
                     setAnyValueReal(prismValue.getRealValue(), anyValue, prismContext);
                 } else {
                     setAnyValueDynamic(prismValue, anyValue, prismContext);

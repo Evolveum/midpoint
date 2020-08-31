@@ -6,14 +6,19 @@
  */
 package com.evolveum.midpoint.repo.sql.helpers;
 
+import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database.ORACLE;
+
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 import java.util.Objects;
 
+import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.Configuration;
 import com.querydsl.sql.RelationalPath;
 import com.querydsl.sql.SQLQuery;
+import com.querydsl.sql.dml.SQLDeleteClause;
 import com.querydsl.sql.dml.SQLInsertClause;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -58,14 +63,13 @@ public class JdbcSession implements AutoCloseable {
         this.querydslConfiguration = querydslConfiguration;
 
         try {
-            connection.setAutoCommit(false);
             // Connection has its transaction isolation set by Hikari, except for obscure ones.
             if (repoConfiguration.getTransactionIsolation() == TransactionIsolation.SNAPSHOT) {
                 LOGGER.trace("Setting transaction isolation level SNAPSHOT.");
                 // bit rough from a constructor, but it's safe, connection field is already set
                 executeStatement("SET TRANSACTION ISOLATION LEVEL SNAPSHOT");
             }
-        } catch (SQLException | SystemException e) {
+        } catch (SystemException e) {
             // even for SystemException we want to rewrap it to add this message
             throw new SystemException("SQL connection setup problem for JDBC session", e);
         }
@@ -79,20 +83,41 @@ public class JdbcSession implements AutoCloseable {
     }
 
     /**
+     * Starts transaction with different transaction isolation level.
+     * This level will NOT be reverted to previous level after the end of transaction.
+     * It is advisable to use this only for short-lived JDBC sessions with special requirements.
+     */
+    public JdbcSession startTransaction(int transactionLevel) {
+        try {
+            connection.setTransactionIsolation(transactionLevel);
+        } catch (SQLException e) {
+            throw new SystemException(
+                    "Couldn't change transaction isolation level for JDBC session", e);
+        }
+        return startTransaction(false);
+    }
+
+    /**
      * Starts read-only transaction and returns {@code this}.
      */
     public JdbcSession startReadOnlyTransaction() {
         return startTransaction(true);
     }
 
-    public JdbcSession startTransaction(boolean readonly) {
+    private JdbcSession startTransaction(boolean readonly) {
         LOGGER.debug("Starting {}transaction", readonly ? "readonly " : "");
 
+        try {
+            connection.setAutoCommit(false);
+        } catch (SQLException e) {
+            throw new SystemException("SQL connection setup problem for JDBC session", e);
+        }
+
         rollbackForReadOnly = false;
-        // Configuration check really means: "Does it support read-only transactions?"
         if (readonly) {
-            if (repoConfiguration.isUseReadOnlyTransactions()) {
-                executeStatement("SET TRANSACTION READ ONLY");
+            // If null, DB does not support read-only transactions.
+            if (repoConfiguration.getReadOnlyTransactionStatement() != null) {
+                executeStatement(repoConfiguration.getReadOnlyTransactionStatement());
             } else {
                 rollbackForReadOnly = true;
             }
@@ -149,6 +174,38 @@ public class JdbcSession implements AutoCloseable {
     }
 
     /**
+     * Alters table adding another column - intended for custom/extension columns.
+     */
+    public void addColumn(String tableName, ColumnMetadata column) {
+        LOGGER.info("Altering table {}, adding column {}.", tableName, column.getName());
+        StringBuilder type = new StringBuilder(getNativeTypeName(column.getJdbcType()));
+        if (column.hasSize()) {
+            type.append('(').append(column.getSize());
+            if (databaseType() == ORACLE && isVarcharType(column.getJdbcType())) {
+                // this properly sizes the varchar for Unicode
+                type.append(" CHAR");
+            }
+            if (column.hasDigits()) {
+                type.append(',').append(column.getDigits());
+            }
+            type.append(')');
+        }
+        if (!column.isNullable()) {
+            type.append(" NOT NULL");
+        }
+        // we don't expect defaults and other features now, can be extended later
+
+        executeStatement("ALTER TABLE " + tableName + " ADD " + column.getName() + " " + type);
+    }
+
+    private boolean isVarcharType(int jdbcType) {
+        return jdbcType == Types.VARCHAR
+                || jdbcType == Types.NVARCHAR
+                || jdbcType == Types.LONGVARCHAR
+                || jdbcType == Types.LONGNVARCHAR;
+    }
+
+    /**
      * Creates Querydsl query based on current Querydsl configuration and session's connection.
      */
     public SQLQuery<?> query() {
@@ -162,6 +219,10 @@ public class JdbcSession implements AutoCloseable {
      */
     public SQLInsertClause insert(RelationalPath<?> entity) {
         return new SQLInsertClause(connection, querydslConfiguration, entity);
+    }
+
+    public SQLDeleteClause delete(RelationalPath<?> entity) {
+        return new SQLDeleteClause(connection, querydslConfiguration, entity);
     }
 
     public String getNativeTypeName(int typeCode) {

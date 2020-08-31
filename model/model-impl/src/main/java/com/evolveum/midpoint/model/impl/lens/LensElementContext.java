@@ -576,6 +576,10 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         this.isFresh = isFresh;
     }
 
+    public void rot() {
+        setFresh(false);
+    }
+
     @NotNull
     public Collection<EvaluatedPolicyRuleImpl> getPolicyRules() {
         return policyRules;
@@ -951,13 +955,5 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
             primaryDelta.normalize();
             primaryDelta.freeze();
         }
-    }
-
-    int getProjectionWave() {
-        return getLensContext().getProjectionWave();
-    }
-
-    int getExecutionWave() {
-        return getLensContext().getExecutionWave();
     }
 }

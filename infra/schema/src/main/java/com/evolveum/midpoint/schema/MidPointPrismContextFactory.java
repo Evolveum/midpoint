@@ -17,6 +17,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 
+import com.evolveum.midpoint.schema.metadata.MidpointProvenanceEquivalenceStrategy;
 import com.evolveum.midpoint.schema.metadata.MidpointValueMetadataFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
@@ -69,6 +70,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         }
         context.setParsingMigrator(new MidpointParsingMigrator());
         context.setValueMetadataFactory(new MidpointValueMetadataFactory(context));
+        context.setProvenanceEquivalenceStrategy(MidpointProvenanceEquivalenceStrategy.INSTANCE);
         return context;
     }
 

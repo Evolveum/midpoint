@@ -11,6 +11,7 @@ import java.util.Collection;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.crypto.Protector;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProportionalExpressi
 public class ProportionalExpressionEvaluatorFactory extends AbstractAutowiredExpressionEvaluatorFactory {
 
     @Autowired private PrismContext prismContext;
+    @Autowired private Protector protector;
 
     @Override
     public QName getElementName() {
@@ -49,6 +51,6 @@ public class ProportionalExpressionEvaluatorFactory extends AbstractAutowiredExp
 
         ProportionalExpressionEvaluatorType evaluatorBean = getSingleEvaluatorBeanRequired(evaluatorElements,
                 ProportionalExpressionEvaluatorType.class, contextDescription);
-        return new ProportionalExpressionEvaluator<>(evaluatorBean, outputDefinition, prismContext);
+        return new ProportionalExpressionEvaluator<>(getElementName(), evaluatorBean, outputDefinition, protector, prismContext);
     }
 }

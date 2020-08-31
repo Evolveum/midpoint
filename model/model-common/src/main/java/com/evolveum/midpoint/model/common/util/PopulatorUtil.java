@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.evolveum.midpoint.util.DebugUtil;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -50,14 +50,12 @@ public class PopulatorUtil {
 
     private static final Trace LOGGER = TraceManager.getTrace(PopulatorUtil.class);
 
-    private @Autowired ExpressionFactory expressionFactory;
-
     public static <V extends PrismValue, D extends ItemDefinition, C extends Containerable>
         List<ItemDelta<V,D>> computePopulateItemDeltas(PopulateType fromPopulate, PrismContainerDefinition<C> targetContainerDefinition, ExpressionVariables variables,
                 ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result)
                 throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
-        if (!(targetContainerDefinition instanceof PrismContainerDefinition)) {
+        if (targetContainerDefinition == null) {
             return null;
         }
 
@@ -66,7 +64,7 @@ public class PopulatorUtil {
         for (PopulateItemType populateItem: fromPopulate.getPopulateItem()) {
 
             ItemDelta<V,D> itemDelta = evaluatePopulateExpression(populateItem, variables, params,
-                    targetContainerDefinition, contextDescription, false, task, result);
+                    targetContainerDefinition, contextDescription, task, result);
             if (itemDelta != null) {
                 deltas.add(itemDelta);
             }
@@ -76,9 +74,9 @@ public class PopulatorUtil {
         return deltas;
     }
 
-    private static <IV extends PrismValue, ID extends ItemDefinition, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
+    public static <IV extends PrismValue, ID extends ItemDefinition, C extends Containerable> ItemDelta<IV,ID> evaluatePopulateExpression(PopulateItemType populateItem,
             ExpressionVariables variables, ExpressionEvaluationContext context, PrismContainerDefinition<C> targetContainerDefinition,
-            String contextDescription, boolean evaluateMinus, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         ExpressionType expressionType = populateItem.getExpression();
         if (expressionType == null) {
             LOGGER.warn("No expression in populateObject in assignment expression in {}, "
@@ -113,11 +111,11 @@ public class PopulatorUtil {
         localContext.setSkipEvaluationMinus(true);
         localContext.setSkipEvaluationPlus(false);
         localContext.setVariableProducer(context.getVariableProducer());
+        localContext.setLocalContextDescription(context.getLocalContextDescription());
 
         PrismValueDeltaSetTriple<IV> outputTriple = expression.evaluate(localContext, result);
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("output triple:\n{}", outputTriple==null?null:outputTriple.debugDump(1));
-        }
+        LOGGER.trace("output triple:\n{}", DebugUtil.debugDumpLazily(outputTriple, 1));
+
         if (outputTriple == null) {
             return null;
         }
@@ -128,15 +126,13 @@ public class PopulatorUtil {
             targetPath = targetPath.rest();
         }
 
+        //noinspection unchecked
         ItemDelta<IV,ID> itemDelta = propOutputDefinition.createEmptyDelta(targetPath);
         itemDelta.addValuesToAdd(PrismValueCollectionsUtil.cloneCollection(pvalues));
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Item delta:\n{}", itemDelta.debugDump(1));
-        }
+        LOGGER.trace("Item delta:\n{}", itemDelta.debugDumpLazily(1));
 
         return itemDelta;
     }
-
 
 }

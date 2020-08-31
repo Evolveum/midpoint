@@ -3361,7 +3361,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         login(USER_JACK_USERNAME);
 
         Task task = createTask(getSecurityContextPrincipal());
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         OperationResult result = task.getResult();
 
         // WHEN
@@ -3425,7 +3425,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         login(USER_JACK_USERNAME);
 
         Task task = createTask(getSecurityContextPrincipal());
-        task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_SELF_SERVICE_URI);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_JACK_OID,
@@ -3494,7 +3494,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         login(USER_ADMINISTRATOR_USERNAME);
 
         Task task = createTask(getSecurityContextPrincipal());
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         OperationResult result = task.getResult();
 
         ObjectDelta<UserType> objectDelta = createOldNewPasswordDelta(USER_JACK_OID,
@@ -3610,7 +3610,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         if (!clearPasswordAvailable && getPasswordStorageType() == CredentialsStorageTypeType.HASHING) {
             return;
         }
-        assertShadowPasswordMetadata(shadow, passwordCreated, startCal, endCal, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
+        assertShadowPasswordMetadata(shadow, passwordCreated, startCal, endCal, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_USER_URI);
     }
 
     // 9XX tests: Password minimal age, no password, etc.
@@ -4454,7 +4454,7 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertNotNull("No credentials/password/metadata", metadata);
         assertNotNull("No credentials/password/metadata/createTimestamp", metadata.getCreateTimestamp());
         assertNotNull("No credentials/password/metadata/creatorRef", metadata.getCreatorRef());
-        assertEquals("Wrong createChannel", SchemaConstants.CHANNEL_GUI_USER_URI, metadata.getCreateChannel());
+        assertEquals("Wrong createChannel", SchemaConstants.CHANNEL_USER_URI, metadata.getCreateChannel());
     }
 
     private void assertPasswordModifyMetadata(PrismObject<UserType> user) {
@@ -4466,6 +4466,6 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertNotNull("No credentials/password/metadata", metadata);
         assertNotNull("No credentials/password/metadata/modifyTimestamp", metadata.getModifyTimestamp());
         assertNotNull("No credentials/password/metadata/modifierRef", metadata.getModifierRef());
-        assertEquals("Wrong modifyChannel", SchemaConstants.CHANNEL_GUI_USER_URI, metadata.getModifyChannel());
+        assertEquals("Wrong modifyChannel", SchemaConstants.CHANNEL_USER_URI, metadata.getModifyChannel());
     }
 }

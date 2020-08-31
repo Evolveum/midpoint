@@ -563,7 +563,7 @@ public final class WebComponentUtil {
 //        IMPORT(SchemaConstants.CHANNEL_OBJECT_IMPORT_URI),
 //        REST(SchemaConstants.CHANNEL_REST_URI),
 //        INIT(SchemaConstants.CHANNEL_GUI_INIT_URI),
-//        USER(SchemaConstants.CHANNEL_GUI_USER_URI),
+//        USER(SchemaConstants.CHANNEL_USER_URI),
 //        SELF_REGISTRATION(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI),
 //        RESET_PASSWORD(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
 //
@@ -1342,7 +1342,7 @@ public final class WebComponentUtil {
                             continue;
                         }
                         String sourcePath = source.getPath().toString();
-                        sourceDescription +=sourcePath;
+                        sourceDescription += sourcePath;
                         if (iterator.hasNext()) {
                             sourceDescription += ",";
                         }
@@ -1358,6 +1358,10 @@ public final class WebComponentUtil {
                 }
                 displayName = sourceDescription + " - " + targetDescription;
             }
+        } else if (prismContainerValue.canRepresent(ProvenanceAcquisitionType.class)) {
+            ProvenanceAcquisitionType acquisition = (ProvenanceAcquisitionType) prismContainerValue.asContainerable();
+            displayName = "ProvenanceAcquisitionType.details";
+
         } else {
 
             Class<C> cvalClass = prismContainerValue.getCompileTimeClass();
@@ -1372,6 +1376,23 @@ public final class WebComponentUtil {
         String escaped = org.apache.commons.lang.StringEscapeUtils.escapeHtml(displayName);
         return escaped;
     }
+
+    private static String getAcquisitionDescription(ProvenanceAcquisitionType acquisitionType) {
+        if (acquisitionType == null) {
+            return null;
+        }
+
+        if (acquisitionType.getResourceRef() != null && acquisitionType.getResourceRef().getOid() != null) {
+            return getDisplayName(acquisitionType.getResourceRef());
+        }
+
+        if (acquisitionType.getOriginRef() != null && acquisitionType.getOriginRef().getOid() != null) {
+            return getName(acquisitionType.getOriginRef());
+        }
+
+        return Channel.findChannel(acquisitionType.getChannel()).getResourceKey(); //TODO NPE
+    }
+
 
     public static QName normalizeRelation(QName relation) {
         return getRelationRegistry().normalizeRelation(relation);
@@ -2057,6 +2078,15 @@ public final class WebComponentUtil {
 
     public static String createResourceIcon(PrismObject<ResourceType> object) {
         OperationalStateType operationalState = object.asObjectable().getOperationalState();
+        AdministrativeOperationalStateType administrativeOperationalState = object.asObjectable().getAdministrativeOperationalState();
+
+        if (administrativeOperationalState != null) {
+            AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
+            if (administrativeAvailabilityStatus == AdministrativeAvailabilityStatusType.MAINTENANCE) {
+                return GuiStyleConstants.CLASS_OBJECT_RESOURCE_ICON + " "
+                        + GuiStyleConstants.CLASS_ICON_STYLE_MAINTENANCE;
+            }
+        }
         if (operationalState != null) {
             AvailabilityStatusType lastAvailabilityStatus = operationalState.getLastAvailabilityStatus();
             if (lastAvailabilityStatus == AvailabilityStatusType.UP) {

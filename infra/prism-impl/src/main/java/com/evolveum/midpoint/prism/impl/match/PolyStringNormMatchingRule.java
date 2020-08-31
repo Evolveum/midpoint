@@ -22,25 +22,16 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
  */
 public class PolyStringNormMatchingRule implements MatchingRule<PolyString> {
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.prism.match.MatchingRule#getName()
-     */
     @Override
     public QName getName() {
         return PrismConstants.POLY_STRING_NORM_MATCHING_RULE_NAME;
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.prism.match.MatchingRule#isSupported(java.lang.Class, javax.xml.namespace.QName)
-     */
     @Override
     public boolean supports(QName xsdType) {
         return (PolyStringType.COMPLEX_TYPE.equals(xsdType));
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.prism.match.MatchingRule#match(java.lang.Object, java.lang.Object)
-     */
     @Override
     public boolean match(PolyString a, PolyString b) {
         if (a == null && b == null) {
@@ -52,9 +43,6 @@ public class PolyStringNormMatchingRule implements MatchingRule<PolyString> {
         return MiscUtil.equals(a.getNorm(), b.getNorm());
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.prism.match.MatchingRule#normalize(java.lang.Object)
-     */
     @Override
     public PolyString normalize(PolyString original) {
         return original;
@@ -69,4 +57,8 @@ public class PolyStringNormMatchingRule implements MatchingRule<PolyString> {
         return Pattern.matches(regex, a.getNorm());
     }
 
+    @Override
+    public String toString() {
+        return "PolyStringNormMatchingRule{}";
+    }
 }

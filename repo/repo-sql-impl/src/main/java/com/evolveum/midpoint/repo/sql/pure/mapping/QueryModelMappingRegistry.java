@@ -13,6 +13,8 @@ import javax.xml.namespace.QName;
 
 import com.querydsl.core.types.EntityPath;
 
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
+
 /**
  * Holds {@link QueryModelMapping} instances obtainable by various key (e.g. schema type Q-name).
  * The registry is oblivious to the actual configuration that is in {@link QueryModelMappingConfig}.
@@ -83,7 +85,7 @@ public class QueryModelMappingRegistry {
         return this;
     }
 
-    public <S, Q extends EntityPath<R>, R>
+    public <S, Q extends FlexibleRelationalPathBase<R>, R>
     QueryModelMapping<S, Q, R> getBySchemaType(Class<S> schemaType) {
         //noinspection unchecked
         return (QueryModelMapping<S, Q, R>) Objects.requireNonNull(
@@ -91,7 +93,7 @@ public class QueryModelMappingRegistry {
                 () -> "Missing mapping for schema type " + schemaType);
     }
 
-    public <S, Q extends EntityPath<R>, R>
+    public <S, Q extends FlexibleRelationalPathBase<R>, R>
     QueryModelMapping<S, Q, R> getByQueryType(Class<Q> queryType) {
         //noinspection unchecked
         return (QueryModelMapping<S, Q, R>) Objects.requireNonNull(

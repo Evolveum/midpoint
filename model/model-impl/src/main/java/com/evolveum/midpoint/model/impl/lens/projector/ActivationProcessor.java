@@ -6,26 +6,40 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Objects;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
+import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.*;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorMethod;
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.Source;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.model.api.context.SynchronizationIntent;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.Source;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -34,13 +48,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -48,20 +56,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCa
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationLockoutStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationValidityCapabilityType;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 
 /**
  * The processor that takes care of user activation mapping to an account (outbound direction).
@@ -305,7 +299,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         ResourceObjectTypeDefinitionType resourceObjectTypeDefinition = projCtx.getResourceObjectTypeDefinitionType();
         if (resourceObjectTypeDefinition == null) {
-            LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account " + projCtxDesc);
+            LOGGER.trace("No refined object definition, therefore also no activation outbound definition, skipping activation processing for account {}", projCtxDesc);
             return;
         }
         ResourceActivationDefinitionType activationDefinition = resourceObjectTypeDefinition.getActivation();
@@ -818,15 +812,21 @@ public class ActivationProcessor implements ProjectorProcessor {
         definition.setMinOccurs(1);
         definition.setMaxOccurs(1);
         PrismProperty<Boolean> property = definition.instantiate();
-        property.add(prismContext.itemFactory().createPropertyValue(current));
+        if (current != null) {
+            property.add(prismContext.itemFactory().createPropertyValue(current));
+        }
 
-        if (current == old) {
+        if (Objects.equals(current, old)) {
             return new ItemDeltaItem<>(property);
         } else {
             PrismProperty<Boolean> propertyOld = property.clone();
             propertyOld.setRealValue(old);
             PropertyDelta<Boolean> delta = propertyOld.createDelta();
-            delta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(current));
+            if (current != null) {
+                delta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(current));
+            } else {
+                delta.setValuesToReplace();
+            }
             return new ItemDeltaItem<>(propertyOld, delta, property, definition);
         }
     }
@@ -861,16 +861,23 @@ public class ActivationProcessor implements ProjectorProcessor {
         existsDef.setMaxOccurs(1);
         PrismProperty<Boolean> existsProp = existsDef.instantiate();
 
-        existsProp.add(prismContext.itemFactory().createPropertyValue(existsNew));
+        if (existsNew != null) {
+            existsProp.add(prismContext.itemFactory().createPropertyValue(existsNew));
+        }
 
-        if (existsOld == existsNew) {
+        if (Objects.equals(existsOld, existsNew)) {
             return new ItemDeltaItem<>(existsProp);
         } else {
             PrismProperty<Boolean> existsPropOld = existsProp.clone();
             existsPropOld.setRealValue(existsOld);
             PropertyDelta<Boolean> existsDelta = existsPropOld.createDelta();
-            //noinspection unchecked
-            existsDelta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(existsNew));
+            if (existsNew != null) {
+                //noinspection unchecked
+                existsDelta.setValuesToReplace(prismContext.itemFactory().createPropertyValue(existsNew));
+            } else {
+                //noinspection unchecked
+                existsDelta.setValuesToReplace();
+            }
             return new ItemDeltaItem<>(existsPropOld, existsDelta, existsProp, existsDef);
         }
     }

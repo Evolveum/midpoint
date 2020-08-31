@@ -452,7 +452,7 @@ public class ProgressPanel extends BasePanel {
                 optionsContainer.setRealValue(options.toModelExecutionOptionsType());
                 task.setExtensionContainer(optionsContainer);
             }
-            task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+            task.setChannel(SchemaConstants.CHANNEL_USER_URI);
             task.setHandlerUri(ModelPublicConstants.EXECUTE_DELTAS_TASK_HANDLER_URI);
             task.setName("Execute changes");
             task.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);

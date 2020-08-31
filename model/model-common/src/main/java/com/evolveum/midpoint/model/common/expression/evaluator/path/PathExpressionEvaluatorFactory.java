@@ -66,6 +66,6 @@ public class PathExpressionEvaluatorFactory extends AbstractObjectResolvableExpr
         ItemPathType path = Objects.requireNonNull(
                 getSingleEvaluatorBean(evaluatorElements, ItemPathType.class, contextDescription),
                 () -> "missing path specification in " + contextDescription);
-        return new PathExpressionEvaluator<>(ELEMENT_NAME, path.getItemPath(), outputDefinition, protector, prismContext);
+        return new PathExpressionEvaluator<>(ELEMENT_NAME, path, outputDefinition, protector, prismContext);
     }
 }

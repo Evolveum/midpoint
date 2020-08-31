@@ -40,4 +40,12 @@ ALTER TABLE m_case CHANGE parentRef_type parentRef_targetType INTEGER;
 ALTER TABLE m_case CHANGE requestorRef_type requestorRef_targetType INTEGER;
 ALTER TABLE m_case CHANGE targetRef_type targetRef_targetType INTEGER;
 
+-- 2020-08-19 10:55
+
+ALTER TABLE m_focus ADD COLUMN passwordCreateTimestamp DATETIME(6);
+ALTER TABLE m_focus ADD COLUMN passwordModifyTimestamp DATETIME(6);
+
+-- MID-6037
+ALTER TABLE m_service ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
+
 COMMIT;

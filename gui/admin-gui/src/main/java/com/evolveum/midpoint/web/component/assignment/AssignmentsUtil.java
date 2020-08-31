@@ -349,7 +349,7 @@ public class AssignmentsUtil {
         }
 
         ObjectReferenceType targetRefObj = assignmentType.getTargetRef();
-        if (targetRefObj != null && !SchemaConstants.ORG_DEFAULT.equals(targetRefObj.getRelation())) {
+        if (targetRefObj != null) {
             sb.append(pageBase.createStringResource("AbstractRoleAssignmentPanel.relationLabel").getString());
             sb.append(": ");
             String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(targetRefObj.getRelation());

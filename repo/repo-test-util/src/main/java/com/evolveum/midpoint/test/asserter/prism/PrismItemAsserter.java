@@ -7,7 +7,9 @@
 package com.evolveum.midpoint.test.asserter.prism;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.asserter.AbstractAsserter;
+import com.evolveum.midpoint.util.DebugUtil;
 
 import static org.testng.AssertJUnit.*;
 
@@ -57,10 +59,19 @@ public abstract class PrismItemAsserter<I extends Item, RA> extends AbstractAsse
         return this;
     }
 
+    public PrismItemAsserter<I,RA> assertHasDefinition() {
+        assertNotNull("Expected definition but none is present "+desc(), item.getDefinition());
+        return this;
+    }
+
     // TODO
 
     protected String desc() {
         return getDetails();
     }
 
+    public PrismItemAsserter<I, RA> display() {
+        IntegrationTestTools.display(desc(), DebugUtil.debugDump(item));
+        return this;
+    }
 }

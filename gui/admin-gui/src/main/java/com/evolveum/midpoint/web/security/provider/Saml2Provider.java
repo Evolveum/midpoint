@@ -61,7 +61,7 @@ public class Saml2Provider extends MidPointAbstractAuthenticationProvider {
     @Override
     protected Authentication internalAuthentication(Authentication authentication, List requireAssignment,
             AuthenticationChannel channel, Class focusType) throws AuthenticationException {
-        ConnectionEnvironment connEnv = createEnviroment(channel);
+        ConnectionEnvironment connEnv = createEnvironment(channel);
 
         try {
             Authentication token;

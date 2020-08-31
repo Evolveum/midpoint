@@ -12,10 +12,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
@@ -28,6 +25,12 @@ public class ValueMetadataWrapperFactoryImpl extends PrismContainerWrapperFactor
 
     ValueMetadataWrapperFactoryImpl(GuiComponentRegistry registry) {
         this.registry = registry;
+    }
+
+    public PrismContainerWrapper<Containerable> createWrapper(PrismContainerValueWrapper<?> parent, Item childItem, ItemStatus status, WrapperContext context) throws SchemaException {
+        WrapperContext ctx = context.clone();
+        ctx.setMetadata(true);
+        return super.createWrapper(parent, childItem, status, ctx);
     }
 
     @Override
@@ -49,13 +52,13 @@ public class ValueMetadataWrapperFactoryImpl extends PrismContainerWrapperFactor
         return false;
     }
 
-    @Override
-    protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<Containerable> parent, PrismContainerValue<Containerable> value) {
-        if (value == null || value.getComplexTypeDefinition() == null) {
-            return Collections.emptyList();
-        }
-        return value.getComplexTypeDefinition().getDefinitions();
-    }
+//    @Override
+//    protected List<? extends ItemDefinition> getItemDefinitions(PrismContainerWrapper<Containerable> parent, PrismContainerValue<Containerable> value) {
+//        if (value == null || value.getComplexTypeDefinition() == null) {
+//            return Collections.emptyList();
+//        }
+//        return value.getComplexTypeDefinition().getDefinitions();
+//    }
 
     @Override
     public GuiComponentRegistry getRegistry() {

@@ -126,6 +126,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         resourceDummyPrecreate = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_PRECREATE.file, RESOURCE_DUMMY_PRECREATE.oid, initTask, initResult);
         resourceDummyPrecreateType = resourceDummyPrecreate.asObjectable();
         dummyResourceCtlPrecreate.setResource(resourceDummyPrecreate);
+//
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     @Test
@@ -618,8 +620,10 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Re-enabling the user should enable the account as well. Even if the user is already enabled.
+     *
+     * TODO Sure? Enabling already enabled user is a phantom change. As such, it is now filtered out.
      */
-    @Test
+    @Test(enabled = false) // MID-6420
     public void test114ModifyUserJackEnable() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -654,7 +658,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     /**
      * Re-enabling the user should enable the account as well. Even if the user is already enabled.
      */
-    @Test
+    @Test(enabled = false) // MID-6420, see above
     public void test115ModifyUserJackAdministrativeStatusNull() throws Exception {
         // GIVEN
         Task task = getTestTask();

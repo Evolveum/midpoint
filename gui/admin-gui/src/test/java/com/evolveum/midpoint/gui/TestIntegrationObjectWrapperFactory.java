@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2019 Evolveum and contributors
+ * Copyright (C) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,9 +14,6 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.*;
-
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -25,13 +22,15 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
-import com.evolveum.midpoint.gui.api.prism.*;
-import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.impl.factory.wrapper.ShadowWrapperFactoryImpl;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
+import com.evolveum.midpoint.gui.impl.factory.wrapper.ShadowWrapperFactoryImpl;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ShadowAssociationWrapperImpl;
 import com.evolveum.midpoint.gui.test.TestMidPointSpringApplication;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -428,7 +427,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
         ModelServiceLocator modelServiceLocator = getServiceLocator(task);
         PrismObjectWrapperFactory<ShadowType> factory = modelServiceLocator.findObjectWrapperFactory(shadow.getDefinition());
-        assertTrue("Wrong object facotry found, expexted shadow factory but got " + factory.getClass().getSimpleName(), factory instanceof ShadowWrapperFactoryImpl);
+        assertTrue("Wrong object factory found, expected shadow factory but got " + factory.getClass().getSimpleName(), factory instanceof ShadowWrapperFactoryImpl);
         WrapperContext context = new WrapperContext(task, result);
 
         PrismObjectWrapper<ShadowType> objectWrapper = factory.createObjectWrapper(shadow, ItemStatus.NOT_CHANGED, context);
@@ -682,7 +681,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismContainerValueWrapper<OrgType> mainContainerValueWrapper = objectWrapper.getValue();
         PrismContainerWrapper<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainer(extensionPath(PIRACY_TRANSFORM));
         List<PrismContainerValueWrapper<Containerable>> transformValueWrappers = transformContainerWrapper.getValues();
-        assertEquals("Unexpecter number of transform value wrappers", 3, transformValueWrappers.size());
+        assertEquals("Unexpected number of transform value wrappers", 3, transformValueWrappers.size());
 
         PrismContainerValueWrapper<Containerable> valueWrapperA = findTransformValueWrapper(transformValueWrappers, "A");
         assertNotNull("No A value wrapper", valueWrapperA);
@@ -723,7 +722,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         PrismContainerValueWrapper<OrgType> mainContainerValueWrapper = objectWrapper.getValue();
         PrismContainerWrapper<Containerable> transformContainerWrapper = mainContainerValueWrapper.findContainer(extensionPath(PIRACY_TRANSFORM));
         List<PrismContainerValueWrapper<Containerable>> transformValueWrappers = transformContainerWrapper.getValues();
-        assertEquals("Unexpecter number of transform value wrappers", 3, transformValueWrappers.size());
+        assertEquals("Unexpected number of transform value wrappers", 3, transformValueWrappers.size());
 
         ModelServiceLocator modelServiceLocator = getServiceLocator(task);
         WrapperContext context = new WrapperContext(task, task.getResult());
@@ -746,11 +745,11 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         displayDumpable("Delta", objectDelta);
         ItemPath transformPath = ItemPath.create(ObjectType.F_EXTENSION, PIRACY_TRANSFORM);
         PrismAsserts.assertModifications(objectDelta, 1);
-        ContainerDelta<Containerable> transfromDelta = (ContainerDelta) objectDelta.getModifications().iterator().next();
-        assertTrue("Wrong container delta path. Expected " + transformPath + " but was " + transfromDelta.getPath(), transfromDelta.getPath().equivalent(transformPath));
-        PrismAsserts.assertNoDelete(transfromDelta);
-        PrismAsserts.assertNoReplace(transfromDelta);
-        Collection<PrismContainerValue<Containerable>> valuesToAdd = transfromDelta.getValuesToAdd();
+        ContainerDelta<Containerable> transformDelta = (ContainerDelta) objectDelta.getModifications().iterator().next();
+        assertTrue("Wrong container delta path. Expected " + transformPath + " but was " + transformDelta.getPath(), transformDelta.getPath().equivalent(transformPath));
+        PrismAsserts.assertNoDelete(transformDelta);
+        PrismAsserts.assertNoReplace(transformDelta);
+        Collection<PrismContainerValue<Containerable>> valuesToAdd = transformDelta.getValuesToAdd();
         assertEquals("Wrong number of values to add", 1, valuesToAdd.size());
         PrismContainerValue<Containerable> containerValueToAdd = valuesToAdd.iterator().next();
         assertEquals("Unexpected number of items in value to add", 2, containerValueToAdd.size());
@@ -800,8 +799,8 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         Collection<PrismContainerValue<ExtensionType>> valuesToAdd = containerDelta.getValuesToAdd();
         assertEquals("Unexpected values to add in extension delta", 1, valuesToAdd.size());
         PrismContainerValue<ExtensionType> extension = valuesToAdd.iterator().next();
-        PrismProperty piracytransform = extension.findProperty(PIRACY_TRANSFORM_DESCRIPTION);
-        assertEquals("Unexpected value in piracy transform attribute", "Whatever", piracytransform.getRealValue());
+        PrismProperty piracyTransform = extension.findProperty(PIRACY_TRANSFORM_DESCRIPTION);
+        assertEquals("Unexpected value in piracy transform attribute", "Whatever", piracyTransform.getRealValue());
 
         OperationResult result = task.getResult();
         executeChanges(objectDelta, null, task, result);
@@ -976,9 +975,9 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
         assertEquals("Wrong fullName definition.canAdd", Boolean.FALSE, (Boolean) fullNameWrapper.canAdd());
         assertEquals("Wrong fullName definition.canModify", Boolean.TRUE, (Boolean) fullNameWrapper.canModify());
 
-        // not created because of unsufficient authZ
+        // not created because of insufficient authZ
         PrismPropertyWrapper additionalNameWrapper = mainContainerValueWrapper.findProperty(UserType.F_ADDITIONAL_NAME);
-        assertNull("Unexpeced aditional name wrraper", additionalNameWrapper);
+        assertNull("Unexpected additional name wrapper", additionalNameWrapper);
 //        assertEquals("Wrong additionalName readOnly", Boolean.FALSE, (Boolean)additionalNameWrapper.isReadOnly());
 //        assertEquals("Wrong additionalName visible", Boolean.FALSE, (Boolean)additionalNameWrapper.isVisible(mainContainerValueWrapper, null));
 //        assertEquals("Wrong additionalName definition.canRead", Boolean.FALSE, (Boolean)additionalNameWrapper.canRead());
@@ -1007,7 +1006,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
     }
 
     private <F extends FocusType> void assertItemWrapperProcessing(PrismContainerValueWrapper<F> containerWrapper,
-                                                                   ItemPath propName, ItemProcessing expectedProcessing) throws SchemaException {
+            ItemPath propName, ItemProcessing expectedProcessing) throws SchemaException {
         ItemWrapper itemWrapper = containerWrapper.findItem(propName, ItemWrapper.class);
         if (expectedProcessing == ItemProcessing.IGNORE) {
             assertNull("Unexpected ignored item wrapper for " + propName, itemWrapper);

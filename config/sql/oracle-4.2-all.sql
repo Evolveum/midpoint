@@ -576,6 +576,8 @@ CREATE TABLE m_focus (
   preferredLanguage       VARCHAR2(255 CHAR),
   telephoneNumber         VARCHAR2(255 CHAR),
   timezone                VARCHAR2(255 CHAR),
+  passwordCreateTimestamp TIMESTAMP,
+  passwordModifyTimestamp TIMESTAMP,
   oid                     VARCHAR2(36 CHAR)          NOT NULL,
   PRIMARY KEY (oid)
 ) INITRANS 30;
@@ -989,6 +991,8 @@ CREATE INDEX iServiceNameOrig
   ON m_service (name_orig) INITRANS 30;
 CREATE INDEX iServiceNameNorm
   ON m_service (name_norm) INITRANS 30;
+ALTER TABLE m_service
+  ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
 CREATE INDEX iSystemConfigurationNameOrig
   ON m_system_configuration (name_orig) INITRANS 30;
 ALTER TABLE m_system_configuration

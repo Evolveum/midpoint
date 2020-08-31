@@ -304,7 +304,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 }
 
                 PrismProperty currentAttribute = getCurrentAttribute(attributeName);
-                LOGGER.trace("Collecting attribute inbound mapping for {} from:\n"
+                LOGGER.trace("Collecting attribute inbound mapping for {}. Relevant values are:\n"
                         + "- a priori delta:\n{}\n"
                         + "- a priori attribute delta:\n{}\n"
                         + "- current attribute:\n{}", attributeName,
@@ -411,7 +411,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                 PrismContainer<ShadowAssociationType> filteredAssociations = getFilteredAssociations(associationName);
                 resolveEntitlementsIfNeeded((ContainerDelta<ShadowAssociationType>) associationAPrioriDelta, filteredAssociations);
 
-                LOGGER.trace("Collecting association inbound mapping for {} with:\n"
+                LOGGER.trace("Collecting association inbound mapping for {}. Relevant values are:\n"
                         + "- a priori delta:\n{}\n"
                         + "- association a priori delta:\n{}\n"
                         + "- current state (filtered associations):\n{}", associationName,
@@ -586,7 +586,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
 
             LOGGER.trace("Collecting {} inbounds for special property {}", inboundMappingBeans.size(), sourcePath);
 
-            PrismObject<F> focus = getCurrentFocus();
+            PrismObject<F> focus = getCurrentFocus(); // TODO check if we should really use current object here
             if (focus == null) {
                 LOGGER.trace("No current/new focus, skipping.");
                 return;
@@ -755,15 +755,14 @@ class InboundMappingsEvaluation<F extends FocusType> {
             PrismObject<ShadowType> shadowNew = projectionContext.getObjectNew();
             PrismObjectDefinition<ShadowType> shadowNewDef = getShadowDefinition(shadowNew);
 
-            PrismObject<F> focus = getCurrentFocus();
+            PrismObject<F> focus = getCurrentFocus(); // TODO check if we should really use current object here
             PrismObjectDefinition<F> focusDef = getFocusDefinition(focus);
 
-            // TODO apply metadata on if enabled
             if (currentProjectionItem != null) {
-                beans.projectionValueMetadataCreator.setValueMetadata(currentProjectionItem, projectionContext);
+                beans.projectionValueMetadataCreator.setValueMetadata(currentProjectionItem, projectionContext, env, result);
             }
             if (itemAPrioriDelta != null) {
-                beans.projectionValueMetadataCreator.setValueMetadata(itemAPrioriDelta, projectionContext);
+                beans.projectionValueMetadataCreator.setValueMetadata(itemAPrioriDelta, projectionContext, env, result);
             }
 
             Source<V,D> defaultSource = new Source<>(currentProjectionItem, itemAPrioriDelta, null, ExpressionConstants.VAR_INPUT_QNAME, itemDefinition);
@@ -857,7 +856,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
          */
         private void loadRequired() throws SchemaException {
             if (!projectionContext.isFullShadow()) {
-                LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", projectionContext.getOid());      // todo change to trace level eventually
+                // todo change to trace level eventually
+                LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", projectionContext.getOid());
                 doLoad();
                 if (!isBroken() && !projectionContext.isFullShadow()) {
                     if (projectionContext.getResourceShadowDiscriminator().getOrder() > 0) {
@@ -996,8 +996,8 @@ class InboundMappingsEvaluation<F extends FocusType> {
     private void consolidateTriples() throws CommunicationException, ObjectNotFoundException, ConfigurationException,
             SchemaException, SecurityViolationException, ExpressionEvaluationException {
 
-        PrismObject<F> focus = getCurrentFocus();
-        PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focus);
+        PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
+        PrismObjectDefinition<F> focusDefinition = getFocusDefinition(focusNew);
         LensFocusContext<F> focusContext = context.getFocusContextRequired();
         ObjectDelta<F> focusAPrioriDelta = focusContext.getCurrentDelta();
 
@@ -1008,7 +1008,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         .skipNormalMappingAPrioriDeltaCheck(true);
 
         DeltaSetTripleMapConsolidation<F> consolidation = new DeltaSetTripleMapConsolidation<>(
-                outputTripleMap, focus, focusAPrioriDelta, context::itemDeltaExists,
+                outputTripleMap, focusNew, focusAPrioriDelta, context::itemDeltaExists,
                 true, customizer, focusDefinition,
                 env, beans, context, result);
         consolidation.computeItemDeltas();
@@ -1043,6 +1043,10 @@ class InboundMappingsEvaluation<F extends FocusType> {
     //endregion
 
     //region Miscellaneous
+
+    // TODO Check relevance of this method. Should we really use current object?
+    //  Fortunately, for inbounds processing it seems that current is usually the same as new,
+    //  because there are no secondary deltas yet. But are we sure?
     private PrismObject<F> getCurrentFocus() {
         if (context.getFocusContext().getObjectCurrent() != null) {
             return context.getFocusContext().getObjectCurrent();

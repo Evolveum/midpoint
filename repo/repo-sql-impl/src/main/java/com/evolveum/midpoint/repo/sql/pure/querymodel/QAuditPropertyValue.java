@@ -16,6 +16,7 @@ import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditPropertyValue;
 
@@ -36,7 +37,8 @@ public class QAuditPropertyValue extends FlexibleRelationalPathBase<MAuditProper
     public static final ColumnMetadata NAME =
             ColumnMetadata.named("name").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata VALUE =
-            ColumnMetadata.named("value").ofType(Types.VARCHAR).withSize(1024);
+            ColumnMetadata.named("value").ofType(Types.VARCHAR)
+                    .withSize(AuditService.MAX_PROPERTY_SIZE);
 
     public final NumberPath<Long> id = createLong("id", ID);
     public final NumberPath<Long> recordId = createLong("recordId", RECORD_ID);

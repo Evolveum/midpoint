@@ -7,17 +7,15 @@
 
 package com.evolveum.midpoint.repo.common.expression;
 
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.ValueMetadata;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.annotation.Experimental;
-
-import com.evolveum.midpoint.util.exception.*;
+import java.util.List;
 
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
-import java.util.function.Supplier;
+import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 /**
  * Computes value metadata during expression evaluation or during consolidation.
@@ -27,25 +25,12 @@ import java.util.function.Supplier;
  * to input items in absolute evaluation mode, nor metadata present in other input variables, etc.)
  */
 @Experimental
-public interface ValueMetadataComputer {
+public interface TransformationValueMetadataComputer {
 
-    ValueMetadata compute(@NotNull List<PrismValue> inputValues, @NotNull OperationResult result)
+    ValueMetadataType compute(@NotNull List<PrismValue> inputValues, @NotNull OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException;
 
-    static ValueMetadataComputer named(Supplier<String> nameSupplier, ValueMetadataComputer computer) {
-        return new ValueMetadataComputer() {
-            @Override
-            public ValueMetadata compute(@NotNull List<PrismValue> inputValues, @NotNull OperationResult result)
-                    throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
-                    ConfigurationException, ExpressionEvaluationException {
-                return computer.compute(inputValues, result);
-            }
+    boolean supportsProvenance() throws SchemaException;
 
-            @Override
-            public String toString() {
-                return nameSupplier.get();
-            }
-        };
-    }
 }

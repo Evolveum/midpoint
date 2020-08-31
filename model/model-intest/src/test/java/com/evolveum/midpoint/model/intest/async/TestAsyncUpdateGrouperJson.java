@@ -70,7 +70,7 @@ public class TestAsyncUpdateGrouperJson extends AbstractInitializedModelIntegrat
         resourceGrouper = importAndGetObjectFromFile(ResourceType.class, RESOURCE_GROUPER_FILE, RESOURCE_GROUPER_OID,
                 initTask, initResult);
 
-        //setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
+        setGlobalTracingOverride(createModelAndProvisioningLoggingTracingProfile());
     }
 
     @Test

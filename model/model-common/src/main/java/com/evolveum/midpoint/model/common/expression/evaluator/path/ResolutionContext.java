@@ -24,7 +24,8 @@ abstract class ResolutionContext {
     /**
      * Converts resolution context into output triple (if there's nothing more to resolve).
      */
-    abstract <V extends PrismValue> PrismValueDeltaSetTriple<V> createOutputTriple(PrismContext prismContext);
+    abstract <V extends PrismValue> PrismValueDeltaSetTriple<V> createOutputTriple(PrismContext prismContext)
+            throws SchemaException;
 
     /**
      * Is the context of container type i.e. can we step into it?

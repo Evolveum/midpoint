@@ -308,6 +308,11 @@ public class QNameUtil {
         return !isUnqualified(name);
     }
 
+    public static boolean isUnqualified(String uri) {
+        // The '/' checking is maybe not quite precise.
+        return uri.indexOf('#') < 0 && uri.indexOf('/') < 0;
+    }
+
     public static boolean isTolerateUndeclaredPrefixes() {
         return tolerateUndeclaredPrefixes;
     }

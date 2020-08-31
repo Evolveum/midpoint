@@ -8,9 +8,14 @@ package com.evolveum.midpoint.model.impl.lens.projector.mappings;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -177,10 +182,7 @@ public class MappingEvaluator {
         for (MappingType mappingBean : mappingBeans) {
 
             MappingBuilder<V, D> mappingBuilder = mappingFactory.createMappingBuilder(mappingBean, mappingDesc);
-            String mappingName = null;
-            if (mappingBean.getName() != null) {
-                mappingName = mappingBean.getName();
-            }
+            String mappingName = mappingBean.getName();
 
             if (!mappingBuilder.isApplicableToChannel(params.getContext().getChannel())) {
                 LOGGER.trace("Mapping {} not applicable to channel, skipping {}", mappingName, params.getContext().getChannel());
@@ -623,6 +625,11 @@ public class MappingEvaluator {
         TypedValue<PrismObject<T>> defaultTargetContext = new TypedValue<>(targetContext);
         Collection<V> targetValues = ExpressionUtil.computeTargetValues(mappingBean.getTarget(), defaultTargetContext, variables, mappingFactory.getObjectResolver(), contextDesc, prismContext, task, result);
 
+        MappingSpecificationType specification = new MappingSpecificationType(prismContext)
+                .mappingName(mappingBean.getName())
+                .definitionObjectRef(ObjectTypeUtil.createObjectRef(originObject, prismContext))
+                .assignmentId(createAssignmentId(assignmentPathVariables));
+
         MappingBuilder<V, D> mappingBuilder = mappingFactory.<V, D>createMappingBuilder(mappingBean, contextDesc)
                 .sourceContext(focusOdo)
                 .defaultSource(defaultSource)
@@ -636,6 +643,7 @@ public class MappingEvaluator {
                 .valuePolicySupplier(valuePolicySupplier)
                 .rootNode(focusOdo)
                 .mappingPreExpression(request.getMappingPreExpression()) // Used to populate autoassign assignments
+                .mappingSpecification(specification)
                 .now(now);
 
         MappingImpl<V, D> mapping = mappingBuilder.build();
@@ -654,5 +662,17 @@ public class MappingEvaluator {
         }
 
         return mapping;
+    }
+
+    private String createAssignmentId(AssignmentPathVariables assignmentPathVariables) {
+        if (assignmentPathVariables == null || assignmentPathVariables.getAssignmentPath() == null) {
+            return null;
+        } else {
+            // TODO what about newly-created assignments? They have no ID yet.
+            return assignmentPathVariables.getAssignmentPath().getSegments().stream()
+                    .map(AssignmentPathSegmentImpl::getAssignmentId)
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(":"));
+        }
     }
 }

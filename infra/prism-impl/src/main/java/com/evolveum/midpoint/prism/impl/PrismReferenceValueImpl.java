@@ -495,21 +495,6 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         return QNameUtil.match(thisTargetType, otherTargetType);
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) return true;
-        if (!super.equals(obj)) return false;
-        if (getClass() != obj.getClass()) return false;
-        PrismReferenceValue other = (PrismReferenceValue) obj;
-        return equals(other, getEqualsHashCodeStrategy());
-    }
-
-    // Just to make checkstyle happy
-    @Override
-    public int hashCode() {
-        return super.hashCode();
-    }
-
     // TODO take strategy into account
     @Override
     public int hashCode(@NotNull ParameterizedEquivalenceStrategy strategy) {
@@ -578,9 +563,10 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
                     throw new SystemException("Couldn't create jaxb object instance of '" + clazz + "': " + e.getMessage(),
                             e);
                 }
+                referencable.setupReferenceValue(this);
+                return referencable;
             }
-            referencable.setupReferenceValue(this);
-            return referencable;
+
         }
 
         // A hack, just to avoid crashes. TODO think about this!

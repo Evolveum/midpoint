@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.util.MiscUtil;
 
 import java.util.Collection;
@@ -15,6 +16,7 @@ import java.util.Collection;
  *
  */
 public class ItemCollectionsUtil {
+
     public static boolean compareCollectionRealValues(Collection<? extends PrismProperty> col1, Collection<? extends PrismProperty> col2) {
         return MiscUtil.unorderedCollectionEquals(col1, col2,
                 (p1, p2) -> {
@@ -25,5 +27,14 @@ public class ItemCollectionsUtil {
                     Collection p2RealVals = p2.getRealValues();
                     return MiscUtil.unorderedCollectionEquals(p1RealVals, p2RealVals);
                 });
+    }
+
+    public static boolean contains(Collection<? extends PrismValue> values, PrismValue valueToMatch, EquivalenceStrategy strategy) {
+        for (PrismValue value : values) {
+            if (valueToMatch.equals(value, strategy)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

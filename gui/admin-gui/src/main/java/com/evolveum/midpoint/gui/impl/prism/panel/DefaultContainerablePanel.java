@@ -99,8 +99,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
 
             @Override
             public boolean isVisible() {
-                return nonContainerWrappers.getObject() != null && !nonContainerWrappers.getObject().isEmpty()
-                        && getModelObject().isExpanded();// && !model.getObject().isShowEmpty();
+                return isShowMoreButtonVisible(nonContainerWrappers);
             }
         });
         propertiesLabel.add(labelShowEmpty);
@@ -197,6 +196,11 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         } catch (SchemaException e1) {
             throw new SystemException("Cannot instantiate " + itemWrapper.getTypeName());
         }
+    }
+
+    protected boolean isShowMoreButtonVisible(IModel<List<ItemWrapper<?, ?>>> nonContainerWrappers) {
+        return nonContainerWrappers.getObject() != null && !nonContainerWrappers.getObject().isEmpty()
+                && getModelObject().isExpanded();
     }
 
     private void populateContainer(ListItem<PrismContainerWrapper<?>> container) {

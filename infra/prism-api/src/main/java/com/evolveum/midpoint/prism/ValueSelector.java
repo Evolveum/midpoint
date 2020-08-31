@@ -9,6 +9,10 @@ package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.path.ItemName;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -32,5 +36,13 @@ public interface ValueSelector<V extends PrismValue> extends Predicate<V> {
             Object itemValue = item != null ? item.getRealValue() : null;
             return Objects.equals(itemValue, expectedValue);
         };
+    }
+
+    static <T> ValueSelector<PrismPropertyValue<T>> valueEquals(@NotNull T expectedValue) {
+        return ppv -> ppv != null && expectedValue.equals(ppv.getRealValue());
+    }
+
+    static <T> ValueSelector<PrismPropertyValue<T>> origEquals(@NotNull T expectedValue) {
+        return ppv -> ppv != null && expectedValue.equals(PolyString.getOrig((PolyString) ppv.getRealValue()));
     }
 }

@@ -586,6 +586,24 @@ public class ProvisioningUtil {
         return Boolean.TRUE.equals(readCapabilityType.isCachingOnly());
     }
 
+    public static boolean resourceIsInMaintenance(ResourceType resource) {
+        if (resource == null)
+            return false;
+
+        AdministrativeOperationalStateType administrativeOperationalState = resource.getAdministrativeOperationalState();
+        if (administrativeOperationalState == null)
+            return false;
+
+        AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
+        if (administrativeAvailabilityStatus == null)
+            return false;
+
+        if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailabilityStatus)
+            return true;
+
+        return false;
+    }
+
     public static Duration getGracePeriod(ProvisioningContext ctx) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Duration gracePeriod = null;
         ResourceConsistencyType consistency = ctx.getResource().getConsistency();
@@ -706,7 +724,7 @@ public class ProvisioningUtil {
         failureDesc.setObjectDelta(delta);
         failureDesc.setResource(resource.asPrismObject());
         failureDesc.setResult(parentResult);
-        failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+        failureDesc.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
 
         return failureDesc;
     }

@@ -160,6 +160,8 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     public String extractString() {
         if (xnode instanceof PrimitiveXNode) {
             return ((PrimitiveXNode<?>) xnode).getStringValue();
+        } else if (parsed != null) {
+            return String.valueOf((Object) parsed.getRealValue());
         } else {
             return toString();
         }
@@ -168,6 +170,8 @@ public class RawType implements Serializable, Cloneable, Equals, Revivable, Shor
     public String extractString(String defaultValue) {
         if (xnode instanceof PrimitiveXNode) {
             return ((PrimitiveXNode<?>) xnode).getStringValue();
+        } else if (parsed != null) {
+            return String.valueOf((Object) parsed.getRealValue());
         } else {
             return defaultValue;
         }

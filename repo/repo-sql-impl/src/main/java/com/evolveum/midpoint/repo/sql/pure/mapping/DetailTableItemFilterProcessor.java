@@ -8,13 +8,13 @@ package com.evolveum.midpoint.repo.sql.pure.mapping;
 
 import java.util.function.BiFunction;
 
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.Predicate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.repo.sql.pure.FilterProcessor;
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.pure.SqlPathContext;
 import com.evolveum.midpoint.repo.sql.pure.SqlQueryContext;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
@@ -24,7 +24,8 @@ import com.evolveum.midpoint.repo.sql.query.QueryException;
  * Mapper using this processor defines how to get to the actual column on the detail table
  * and also takes the actual {@link ItemSqlMapper} producing the right type of {@link ItemFilterProcessor}.
  */
-public class DetailTableItemFilterProcessor<Q extends EntityPath<?>, DQ extends EntityPath<DR>, DR>
+public class DetailTableItemFilterProcessor
+        <Q extends FlexibleRelationalPathBase<?>, DQ extends FlexibleRelationalPathBase<DR>, DR>
         extends ItemFilterProcessor<PropertyValueFilter<String>> {
 
     private final Class<DQ> detailQueryType;
@@ -57,7 +58,8 @@ public class DetailTableItemFilterProcessor<Q extends EntityPath<?>, DQ extends 
      * @param nestedItemMapper {@link ItemSqlMapper} for the column on the detail table
      * that actually represents the target of the whole composition of mappers for the item path
      */
-    public static <Q extends EntityPath<?>, DQ extends EntityPath<DR>, DR> ItemSqlMapper mapper(
+    public static <Q extends FlexibleRelationalPathBase<?>, DQ extends FlexibleRelationalPathBase<DR>, DR>
+    ItemSqlMapper mapper(
             @NotNull Class<DQ> detailQueryType,
             @NotNull BiFunction<Q, DQ, Predicate> joinOnPredicate,
             @NotNull ItemSqlMapper nestedItemMapper) {

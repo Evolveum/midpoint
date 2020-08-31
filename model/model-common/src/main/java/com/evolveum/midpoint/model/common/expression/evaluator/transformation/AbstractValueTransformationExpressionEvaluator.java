@@ -54,6 +54,8 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractValueTransformationExpressionEvaluator.class);
 
+    private static final String OP_EVALUATE = AbstractValueTransformationExpressionEvaluator.class.getName() + ".evaluate";
+
     protected final SecurityContextManager securityContextManager;
     protected final LocalizationService localizationService;
 
@@ -65,36 +67,50 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
     }
 
     @Override
-    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult result) throws SchemaException,
+    public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context, OperationResult parentResult) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-        checkEvaluatorProfile(context);
+        OperationResult result = parentResult.subresult(OP_EVALUATE)
+                .setMinor()
+                .addContext("context", context.getContextDescription())
+                .build();
+        // trace is provided by the evaluators
 
-        PrismValueDeltaSetTriple<V> outputTriple;
+        try {
+            checkEvaluatorProfile(context);
 
-        String contextDescription = context.getContextDescription();
-        TransformExpressionRelativityModeType relativityMode = defaultIfNull(expressionEvaluatorBean.getRelativityMode(), RELATIVE);
-        switch (relativityMode) {
-            case ABSOLUTE:
-                outputTriple = new SingleShotEvaluation<>(context, result, this).evaluate();
-                LOGGER.trace("Evaluated absolute expression {}, output triple:\n{}",
-                        contextDescription, debugDumpLazily(outputTriple, 1));
-                break;
-            case RELATIVE:
-                if (context.getSources().isEmpty()) {
-                    // Special case. No sources, so there will be no input variables and no combinations. Everything goes to zero set.
+            PrismValueDeltaSetTriple<V> outputTriple;
+
+            String contextDescription = context.getContextDescription();
+            TransformExpressionRelativityModeType relativityMode = defaultIfNull(expressionEvaluatorBean.getRelativityMode(), RELATIVE);
+            switch (relativityMode) {
+                case ABSOLUTE:
                     outputTriple = new SingleShotEvaluation<>(context, result, this).evaluate();
-                    LOGGER.trace("Evaluated relative sourceless expression {}, output triple:\n{}",
+                    LOGGER.trace("Evaluated absolute expression {}, output triple:\n{}",
                             contextDescription, debugDumpLazily(outputTriple, 1));
-                } else {
-                    outputTriple = new CombinatorialEvaluation<>(context, result, this).evaluate();
-                    LOGGER.trace("Evaluated relative expression {}, output triple:\n{}",
-                            contextDescription, debugDumpLazily(outputTriple, 1));
-                }
-                break;
-            default:
-                throw new AssertionError(relativityMode);
+                    break;
+                case RELATIVE:
+                    if (context.getSources().isEmpty()) {
+                        // Special case. No sources, so there will be no input variables and no combinations. Everything goes to zero set.
+                        outputTriple = new SingleShotEvaluation<>(context, result, this).evaluate();
+                        LOGGER.trace("Evaluated relative sourceless expression {}, output triple:\n{}",
+                                contextDescription, debugDumpLazily(outputTriple, 1));
+                    } else {
+                        outputTriple = new CombinatorialEvaluation<>(context, result, this).evaluate();
+                        LOGGER.trace("Evaluated relative expression {}, output triple:\n{}",
+                                contextDescription, debugDumpLazily(outputTriple, 1));
+                    }
+                    break;
+                default:
+                    throw new AssertionError(relativityMode);
+            }
+            return outputTriple;
+
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
-        return outputTriple;
     }
 
     protected boolean isIncludeNullInputs() {

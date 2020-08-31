@@ -7,14 +7,17 @@
 
 package com.evolveum.midpoint.test;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
  * Representation of any prism object in tests.
@@ -50,5 +53,9 @@ public class TestResource<T extends ObjectType> {
 
     public ObjectReferenceType ref() {
         return ObjectTypeUtil.createObjectRef(object, SchemaConstants.ORG_DEFAULT);
+    }
+
+    public void read(PrismContext prismContext) throws SchemaException, IOException {
+        object = prismContext.parserFor(file).parse();
     }
 }

@@ -42,15 +42,17 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
     @NotNull private final TargetEvaluation.TargetActivation targetActivation;
     private final OperationResult result;
     private final AssignmentType inducement;
+    private final boolean archetypeHierarchy;
 
     TargetInducementEvaluation(AssignmentPathSegmentImpl segment,
             @NotNull ConditionState targetOverallConditionState, @NotNull TargetEvaluation.TargetActivation targetActivation,
-            EvaluationContext<AH> ctx, OperationResult result, AssignmentType inducement) {
+            EvaluationContext<AH> ctx, OperationResult result, AssignmentType inducement, boolean archetypeHierarchy) {
         super(segment, ctx);
         this.targetOverallConditionState = targetOverallConditionState;
         this.targetActivation = targetActivation;
         this.result = result;
         this.inducement = inducement;
+        this.archetypeHierarchy = archetypeHierarchy;
     }
 
     void evaluate() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -86,6 +88,7 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .sourceDescription(nextSourceDescription)
                 .assignment(inducement)
                 .isAssignment(false)
+                .isHierarchy(archetypeHierarchy)
                 .relationRegistry(ctx.ae.relationRegistry)
                 .prismContext(ctx.ae.prismContext)
                 .varThisObject(orderOneObject)

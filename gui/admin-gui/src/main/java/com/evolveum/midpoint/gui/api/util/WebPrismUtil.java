@@ -9,10 +9,21 @@ package com.evolveum.midpoint.gui.api.util;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
+import com.evolveum.midpoint.gui.impl.Channel;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,6 +39,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author katka
@@ -156,5 +171,103 @@ public class WebPrismUtil {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot get object reference value, {}", e, e.getMessage());
             return null;
         }
+    }
+
+    public static <C extends Containerable> void cleanupEmptyContainers(PrismContainer<C> container) {
+        List<PrismContainerValue<C>> values = container.getValues();
+        Iterator<PrismContainerValue<C>> valueIterator = values.iterator();
+        while (valueIterator.hasNext()) {
+            PrismContainerValue<C> value = valueIterator.next();
+
+            PrismContainerValue<C> valueAfter = cleanupEmptyContainerValue(value);
+            if (valueAfter == null || valueAfter.isIdOnly() || valueAfter.isEmpty()) {
+                valueIterator.remove();
+            }
+        }
+    }
+
+    public static <C extends Containerable> PrismContainerValue<C> cleanupEmptyContainerValue(PrismContainerValue<C> value) {
+        Collection<Item<?, ?>> items = value.getItems();
+
+        if (items != null) {
+            Iterator<Item<?, ?>> iterator = items.iterator();
+            while (iterator.hasNext()) {
+                Item<?, ?> item = iterator.next();
+
+                cleanupEmptyValues(item);
+                if (item.isEmpty()) {
+                    iterator.remove();
+                }
+            }
+        }
+
+        if (value.getItems() == null || value.getItems().isEmpty()) {
+            return null;
+        }
+
+        return value;
+    }
+
+
+    private static <T> void cleanupEmptyValues(Item item) {
+        if (item instanceof PrismContainer) {
+            cleanupEmptyContainers((PrismContainer) item);
+        }
+
+        if (item instanceof PrismProperty) {
+            PrismProperty<T> property = (PrismProperty) item;
+            List<PrismPropertyValue<T>> pVals = property.getValues();
+            if (pVals == null || pVals.isEmpty()) {
+                return;
+            }
+
+            Iterator<PrismPropertyValue<T>> iterator = pVals.iterator();
+            while (iterator.hasNext()) {
+                PrismPropertyValue<T> pVal = iterator.next();
+                if (pVal == null || pVal.isEmpty() || pVal.getRealValue() == null) {
+                    iterator.remove();
+                }
+            }
+        }
+
+        if (item instanceof PrismReference) {
+            PrismReference ref = (PrismReference) item;
+            List<PrismReferenceValue> values = ref.getValues();
+            if (values == null || values.isEmpty()) {
+                return;
+            }
+
+            Iterator<PrismReferenceValue> iterator = values.iterator();
+            while (iterator.hasNext()) {
+                PrismReferenceValue rVal = iterator.next();
+                if (rVal == null || rVal.isEmpty()) {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
+    //TODO find better place
+    public static PrismContainerValue<ValueMetadataType> getNewYieldValue() throws SchemaException {
+        MidPointApplication app = MidPointApplication.get();
+        ProvenanceMetadataType provenanceMetadataType = new ProvenanceMetadataType(app.getPrismContext()).acquisition(WebPrismUtil.createAcquition());
+        ValueMetadataType valueMetadataType = new ValueMetadataType(app.getPrismContext()).provenance(provenanceMetadataType);
+        return valueMetadataType.asPrismContainerValue();
+
+    }
+
+    public static ProvenanceAcquisitionType createAcquition() {
+        MidPointApplication app = MidPointApplication.get();
+        ProvenanceAcquisitionType acquisitionType = new ProvenanceAcquisitionType(app.getPrismContext());
+        GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
+        if (principal != null) {
+            FocusType focus = principal.getFocus();
+            if (focus != null) {
+                acquisitionType.setActorRef(ObjectTypeUtil.createObjectRef(focus, app.getPrismContext()));
+            }
+        }
+        acquisitionType.setChannel(Channel.USER.getChannel());
+        acquisitionType.setTimestamp(app.getClock().currentTimeXMLGregorianCalendar());
+        return acquisitionType;
     }
 }

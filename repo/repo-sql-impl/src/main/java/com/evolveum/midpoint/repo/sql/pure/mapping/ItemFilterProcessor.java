@@ -90,12 +90,15 @@ public abstract class ItemFilterProcessor<O extends ObjectFilter>
                 return ExpressionUtils.predicate(Ops.IN, path,
                         ConstantImpl.create(values.allValues()));
             } else {
-                throw new QueryException("Null value for other than EQUAL filter: " + filter);
+                throw new QueryException("Multi-value for other than EQUAL filter: " + filter);
             }
         }
 
-        Predicate predicate = ExpressionUtils.predicate(operator, path,
-                ConstantImpl.create(values.singleValue()));
+        return singleValuePredicate(path, operator, values.singleValue());
+    }
+
+    protected Predicate singleValuePredicate(Path<?> path, Ops operator, Object value) {
+        Predicate predicate = ExpressionUtils.predicate(operator, path, ConstantImpl.create(value));
         return context.isNotFilterUsed()
                 ? ExpressionUtils.and(predicate, ExpressionUtils.predicate(Ops.IS_NOT_NULL, path))
                 : predicate;

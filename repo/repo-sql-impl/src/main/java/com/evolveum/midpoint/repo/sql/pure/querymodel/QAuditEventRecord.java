@@ -18,6 +18,7 @@ import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.ForeignKey;
 import com.querydsl.sql.PrimaryKey;
 
+import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
@@ -55,7 +56,8 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
     public static final ColumnMetadata INITIATOR_TYPE =
             ColumnMetadata.named("initiatorType").ofType(Types.INTEGER).withSize(10);
     public static final ColumnMetadata MESSAGE =
-            ColumnMetadata.named("message").ofType(Types.VARCHAR).withSize(1024);
+            ColumnMetadata.named("message").ofType(Types.VARCHAR)
+                    .withSize(AuditService.MAX_MESSAGE_SIZE);
     public static final ColumnMetadata NODE_IDENTIFIER =
             ColumnMetadata.named("nodeIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata OUTCOME =
@@ -74,14 +76,14 @@ public class QAuditEventRecord extends FlexibleRelationalPathBase<MAuditEventRec
             ColumnMetadata.named("targetName").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TARGET_OID =
             ColumnMetadata.named("targetOid").ofType(Types.VARCHAR).withSize(36);
+    public static final ColumnMetadata TARGET_TYPE =
+            ColumnMetadata.named("targetType").ofType(Types.INTEGER).withSize(10);
     public static final ColumnMetadata TARGET_OWNER_NAME =
             ColumnMetadata.named("targetOwnerName").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TARGET_OWNER_OID =
             ColumnMetadata.named("targetOwnerOid").ofType(Types.VARCHAR).withSize(36);
     public static final ColumnMetadata TARGET_OWNER_TYPE =
             ColumnMetadata.named("targetOwnerType").ofType(Types.INTEGER).withSize(10);
-    public static final ColumnMetadata TARGET_TYPE =
-            ColumnMetadata.named("targetType").ofType(Types.INTEGER).withSize(10);
     public static final ColumnMetadata TASK_IDENTIFIER =
             ColumnMetadata.named("taskIdentifier").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata TASK_OID =

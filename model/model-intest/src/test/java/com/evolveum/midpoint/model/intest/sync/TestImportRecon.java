@@ -400,7 +400,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
                 .end()
                 .assertProgress(7);
 
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 6);
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 5);
 
         List<PrismObject<UserType>> usersAfter = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", usersAfter);

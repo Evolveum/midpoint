@@ -10,7 +10,10 @@ import java.sql.SQLException;
 import javax.sql.DataSource;
 
 import com.google.common.base.Strings;
-import com.querydsl.sql.*;
+import com.querydsl.sql.Configuration;
+import com.querydsl.sql.H2Templates;
+import com.querydsl.sql.MySQLTemplates;
+import com.querydsl.sql.PostgreSQLTemplates;
 import org.hibernate.FlushMode;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -20,6 +23,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.repo.sql.*;
+import com.evolveum.midpoint.repo.sql.pure.querydsl.MidpointOracleTemplates;
+import com.evolveum.midpoint.repo.sql.pure.querydsl.MidpointSQLServerTemplates;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.support.InstantType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -92,14 +97,14 @@ public class BaseHelper {
     }
 
     public Session beginReadOnlyTransaction() {
-        return beginTransaction(getConfiguration().isUseReadOnlyTransactions());
+        return beginTransaction(getConfiguration().getReadOnlyTransactionStatement());
     }
 
     public Session beginTransaction() {
-        return beginTransaction(false);
+        return beginTransaction(null);
     }
 
-    public Session beginTransaction(boolean readOnly) {
+    public Session beginTransaction(String startTransactionStatement) {
         Session session = getSessionFactory().openSession();
         session.beginTransaction();
 
@@ -108,13 +113,13 @@ public class BaseHelper {
             session.doWork(connection -> RUtil.executeStatement(connection, "SET TRANSACTION ISOLATION LEVEL SNAPSHOT"));
         }
 
-        if (readOnly) {
+        if (startTransactionStatement != null) {
             // we don't want to flush changes during readonly transactions (they should never occur,
             // but if they occur transaction commit would still fail)
             session.setHibernateFlushMode(FlushMode.MANUAL);
 
             LOGGER.trace("Marking transaction as read only.");
-            session.doWork(connection -> RUtil.executeStatement(connection, "SET TRANSACTION READ ONLY"));
+            session.doWork(connection -> RUtil.executeStatement(connection, startTransactionStatement));
         }
         return session;
     }
@@ -295,11 +300,11 @@ public class BaseHelper {
                 break;
             case SQLSERVER:
                 querydslConfiguration =
-                        new Configuration(SQLServer2012Templates.DEFAULT);
+                        new Configuration(MidpointSQLServerTemplates.DEFAULT);
                 break;
             case ORACLE:
                 querydslConfiguration =
-                        new Configuration(OracleTemplates.DEFAULT);
+                        new Configuration(MidpointOracleTemplates.DEFAULT);
                 break;
             default:
                 throw new SystemException(

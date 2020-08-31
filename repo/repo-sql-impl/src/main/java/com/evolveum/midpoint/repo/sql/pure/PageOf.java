@@ -79,6 +79,10 @@ public class PageOf<T> implements Iterable<T> {
         return Collections.unmodifiableList(content);
     }
 
+    public T get(int index) {
+        return content.get(index);
+    }
+
     public int pageNumber() {
         return pageNumber;
     }

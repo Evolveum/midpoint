@@ -10,15 +10,18 @@ import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY
 import static com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.PROPERTY_JDBC_URL;
 
 import java.io.IOException;
+import java.sql.*;
 import java.util.List;
 import javax.sql.DataSource;
 
 import com.google.common.base.Strings;
+import com.querydsl.sql.ColumnMetadata;
 import org.apache.commons.configuration2.BaseHierarchicalConfiguration;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.hibernate.SessionFactory;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate5.LocalSessionFactoryBean;
 
@@ -28,6 +31,9 @@ import com.evolveum.midpoint.audit.api.AuditServiceFactoryException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.helpers.BaseHelper;
+import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
+import com.evolveum.midpoint.repo.sql.pure.SqlTableMetadata;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditEventRecord;
 import com.evolveum.midpoint.repo.sql.util.EntityStateInterceptor;
 import com.evolveum.midpoint.repo.sql.util.MidPointImplicitNamingStrategy;
 import com.evolveum.midpoint.repo.sql.util.MidPointPhysicalNamingStrategy;
@@ -55,25 +61,51 @@ public class SqlAuditServiceFactory implements AuditServiceFactory {
     private SqlAuditServiceImpl auditService;
 
     @Override
-    public synchronized void init(Configuration configuration) throws AuditServiceFactoryException {
+    public synchronized void init(@NotNull Configuration configuration) throws AuditServiceFactoryException {
         LOGGER.info("Initializing Sql audit service factory.");
         try {
             BaseHelper baseHelper = configureBaseHelper(configuration);
 
             auditService = new SqlAuditServiceImpl(baseHelper, prismContext);
-            List<HierarchicalConfiguration<ImmutableNode>> subConfigColumns =
-                    ((BaseHierarchicalConfiguration) configuration).configurationsAt(CONF_AUDIT_SERVICE_COLUMNS);
-            for (Configuration subConfigColumn : subConfigColumns) {
-                String columnName = getStringFromConfig(
-                        subConfigColumn, CONF_AUDIT_SERVICE_COLUMN_NAME);
-                String eventRecordPropertyName = getStringFromConfig(
-                        subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
-                auditService.getCustomColumns().put(eventRecordPropertyName, columnName);
-            }
+            initCustomColumns(configuration, baseHelper);
         } catch (RepositoryServiceFactoryException ex) {
             throw new AuditServiceFactoryException(ex.getMessage(), ex);
         }
         LOGGER.info("SQL audit service factory initialization complete.");
+    }
+
+    private void initCustomColumns(
+            @NotNull Configuration configuration, @NotNull BaseHelper baseHelper) {
+        List<HierarchicalConfiguration<ImmutableNode>> subConfigColumns =
+                ((BaseHierarchicalConfiguration) configuration)
+                        .configurationsAt(CONF_AUDIT_SERVICE_COLUMNS);
+
+        boolean createMissing = baseHelper.getConfiguration().isCreateMissingCustomColumns();
+        SqlTableMetadata tableMetadata = null;
+        if (createMissing) {
+            try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startReadOnlyTransaction()) {
+                tableMetadata = SqlTableMetadata.create(
+                        jdbcSession.connection(), QAuditEventRecord.TABLE_NAME);
+            }
+        }
+
+        for (Configuration subConfigColumn : subConfigColumns) {
+            String columnName = getStringFromConfig(
+                    subConfigColumn, CONF_AUDIT_SERVICE_COLUMN_NAME);
+            String eventRecordPropertyName = getStringFromConfig(
+                    subConfigColumn, CONF_AUDIT_SERVICE_EVENT_RECORD_PROPERTY_NAME);
+            // No type definition for now, it's all String or String implicit conversion.
+
+            auditService.addCustomColumn(eventRecordPropertyName, columnName);
+            if (tableMetadata != null && tableMetadata.get(columnName) == null) {
+                // Fails on SQL Server with snapshot transaction, so different isolation is used.
+                try (JdbcSession jdbcSession = baseHelper.newJdbcSession()
+                        .startTransaction(Connection.TRANSACTION_READ_COMMITTED)) {
+                    jdbcSession.addColumn(QAuditEventRecord.TABLE_NAME,
+                            ColumnMetadata.named(columnName).ofType(Types.VARCHAR).withSize(255));
+                }
+            }
+        }
     }
 
     private BaseHelper configureBaseHelper(Configuration configuration)

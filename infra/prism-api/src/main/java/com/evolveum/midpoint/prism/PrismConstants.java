@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.util.annotation.Experimental;
 
 import static javax.xml.XMLConstants.W3C_XML_SCHEMA_NS_URI;
 
@@ -38,6 +39,7 @@ public class PrismConstants {
     public static final String PREFIX_NS_TYPES = "t";
     public static final String NS_QUERY = NS_PREFIX + "query-3";
     public static final String PREFIX_NS_QUERY = "q";
+    private static final String NS_METADATA = NS_PREFIX + "metadata-3";
 
     public static final String NS_MATCHING_RULE = NS_PREFIX + "matching-rule-3";
 
@@ -144,4 +146,11 @@ public class PrismConstants {
     public static final String REFERENCE_TYPE_NAME = "ObjectReferenceType";
 
     public static final String EXPRESSION_LOCAL_PART = "expression";
+
+    /**
+     * This is just an internal name for value metadata container.
+     * It is _NOT_ used for serialization purposes.
+     */
+    @Experimental
+    public static final QName VALUE_METADATA_CONTAINER_NAME = new QName(NS_METADATA, "valueMetadata");
 }

@@ -149,7 +149,7 @@ public class ObjectNotFoundHandler extends HardErrorHandler {
 
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setResource(ctx.getResource().asPrismObject());
-        change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_DISCOVERY));
+        change.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_DISCOVERY));
         change.setObjectDelta(repositoryShadow.createDeleteDelta());
         change.setOldShadow(repositoryShadow);
         // Current shadow is a tombstone. This means that the object was deleted. But we need current shadow here.

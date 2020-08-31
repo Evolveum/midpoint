@@ -444,7 +444,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                         return false;
                     }
 
-                    if (context.getChannel() != null && SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))) {
+                    if (context.getChannel() != null && SchemaConstants.CHANNEL_DISCOVERY.equals(QNameUtil.uriToQName(context.getChannel()))) {
                         LOGGER.trace(
                                 "Processing of shadow identified by {} will be skipped because of limitation for discovery channel.", context.getChannel());    // TODO is this message OK? [med]
                         processOnlyExistingProjContexts = true;

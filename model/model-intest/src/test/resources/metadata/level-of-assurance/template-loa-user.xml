@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2017 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectTemplate oid="b1005d3d-6ef4-4347-b235-313666824ed8"
+                xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'>
+    <name>Template for LoA users</name>
+
+    <mapping>
+        <strength>strong</strength>
+        <source>
+            <path>givenName</path>
+        </source>
+        <source>
+            <path>familyName</path>
+        </source>
+        <expression>
+            <script>
+                <code>
+                    givenName + ' ' + familyName
+                </code>
+             </script>
+        </expression>
+        <target>
+            <path>fullName</path>
+        </target>
+    </mapping>
+
+    <meta>
+        <item>
+            <ref>extension/loa</ref>
+            <mapping>
+                <scope>transformation</scope>
+                <source>
+                    <path>extension/loa</path>
+                </source>
+                <expression>
+                    <script>
+                        <relativityMode>absolute</relativityMode>
+                        <code>
+                            if (loa == null || loa.isEmpty()) {
+                                rv = null
+                            } else if (loa.contains(null)) {
+                                rv = null
+                            } else if (loa.contains(1)) {
+                                rv = 1
+                            } else if (loa.contains(2)) {
+                                rv = 2
+                            } else if (loa.contains(3)) {
+                                rv = 3
+                            } else {
+                                throw new IllegalArgumentException('Unsupported LoA value(s): ' + loa)
+                            }
+                            log.info("### loa = $loa -> $rv")
+                            rv
+                        </code>
+                    </script>
+                </expression>
+            </mapping>
+            <mapping>
+                <scope>consolidation</scope>
+                <source>
+                    <path>extension/loa</path>
+                </source>
+                <expression>
+                    <script>
+                        <relativityMode>absolute</relativityMode>
+                        <code>
+                            if (loa == null || loa.isEmpty()) {
+                                rv = null
+                            } else if (loa.contains(3)) {
+                                rv = 3
+                            } else if (loa.contains(2)) {
+                                rv = 2
+                            } else if (loa.contains(1)) {
+                                rv = 1
+                            } else if (loa.contains(null)) {
+                                rv = null
+                            } else  {
+                                throw new IllegalArgumentException('Unsupported LoA value(s): ' + loa)
+                            }
+                            log.info("### loa = $loa -> $rv")
+                            rv
+                        </code>
+                    </script>
+                </expression>
+            </mapping>
+        </item>
+    </meta>
+</objectTemplate>

@@ -11,10 +11,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
-import com.evolveum.midpoint.repo.sql.data.common.Metadata;
-import com.evolveum.midpoint.repo.sql.data.common.OperationResult;
-import com.evolveum.midpoint.repo.sql.data.common.RFocusPhoto;
-import com.evolveum.midpoint.repo.sql.data.common.RObjectReference;
+import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.container.*;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.*;
@@ -60,6 +57,7 @@ public class PrismEntityMapper {
         MAPPERS.put(new Key(MetadataType.class, Metadata.class), new MetadataMapper());
 
         MAPPERS.put(new Key(byte[].class, RFocusPhoto.class), new RFocusPhotoMapper());
+        MAPPERS.put(new Key(MetadataType.class, RFocus.class), new PasswordMetadataMapper());
     }
 
     @Autowired private RepositoryService repositoryService;

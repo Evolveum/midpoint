@@ -689,7 +689,7 @@ public class WebModelServiceUtils {
 
         task.setOwner(owner);
         if (channel == null) {
-            task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+            task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         } else {
             task.setChannel(channel);
         }

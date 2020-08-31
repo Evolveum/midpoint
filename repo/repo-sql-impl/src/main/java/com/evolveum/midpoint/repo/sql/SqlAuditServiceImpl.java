@@ -15,13 +15,13 @@ import java.sql.*;
 import java.time.Instant;
 import java.util.Date;
 import java.util.*;
-import java.util.Objects;
 import java.util.Map.Entry;
 import java.util.function.BiFunction;
 import javax.xml.datatype.Duration;
 
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.SQLQuery;
+import com.querydsl.sql.dml.DefaultMapper;
 import com.querydsl.sql.dml.SQLInsertClause;
 import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -31,11 +31,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditReferenceValue;
 import com.evolveum.midpoint.audit.api.AuditResultHandler;
 import com.evolveum.midpoint.audit.api.AuditService;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.SerializationOptions;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.CanonicalItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -43,10 +39,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration.Database;
-import com.evolveum.midpoint.repo.sql.data.BatchSqlQuery;
-import com.evolveum.midpoint.repo.sql.data.InsertQueryBuilder;
 import com.evolveum.midpoint.repo.sql.data.SelectQueryBuilder;
-import com.evolveum.midpoint.repo.sql.data.SingleSqlQuery;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventStage;
 import com.evolveum.midpoint.repo.sql.data.audit.RAuditEventType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RChangeType;
@@ -57,10 +50,10 @@ import com.evolveum.midpoint.repo.sql.helpers.JdbcSession;
 import com.evolveum.midpoint.repo.sql.perf.SqlPerformanceMonitorImpl;
 import com.evolveum.midpoint.repo.sql.pure.SqlQueryExecutor;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.*;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.AuditEventRecordSqlTransformer;
-import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.QAuditEventRecordMapping;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditDelta;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditEventRecord;
+import com.evolveum.midpoint.repo.sql.pure.querymodel.mapping.*;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
@@ -69,23 +62,26 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationAuditType;
+import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectType;
 
 /**
  * Audit service using SQL DB as a store, also allows for searching (see {@link #supportsRetrieval}.
  * This is NOT a managed bean, it is completely created by {@link SqlAuditServiceFactory} and any
  * of the dependencies must be dependencies of that factory to assure proper initialization.
  * <p>
- * TODO MID-6318 WIP notes:
+ * Design notes:
  * No repo.sql.data.audit.* entities are used (stage/type enums are OK).
- * Conversion between audit-api classes and SQL/JDBC is all here, the class got inflated, but at
- * least the code doesn't suggest it's reused elsewhere. Cleanup is still expected. :-)
  */
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
 
@@ -106,9 +102,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private final PrismContext prismContext;
 
     private final SqlQueryExecutor sqlQueryExecutor;
-
-    // maps from property names to column names
-    private final Map<String, String> customColumns = new HashMap<>();
 
     private volatile SystemConfigurationAuditType auditConfiguration;
 
@@ -151,331 +144,241 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     private void auditAttempt(AuditEventRecord record) {
         try (JdbcSession jdbcSession = baseHelper.newJdbcSession().startTransaction()) {
             try {
-                // TODO use new version with Querydsl insert
-//                long id = insertAuditEventRecord(jdbcSession, record);
+                long recordId = insertAuditEventRecord(jdbcSession, record);
 
-                Connection connection = jdbcSession.connection();
-                SingleSqlQuery query = createAuditInsertStatement(record);
-                String[] keyColumn = { QAuditEventRecord.ID.getName() };
-                PreparedStatement smtp = query.createPreparedStatement(connection, keyColumn);
-                Long id = null;
-                try {
-                    smtp.executeUpdate();
-                    ResultSet resultSet = smtp.getGeneratedKeys();
+                Collection<MAuditDelta> deltas =
+                        insertAuditDeltas(jdbcSession, recordId, record.getDeltas());
+                insertChangedItemPaths(jdbcSession, recordId, deltas);
 
-                    if (resultSet.next()) {
-                        id = resultSet.getLong(1);
-
-                    }
-                } finally {
-                    smtp.close();
-                }
-                if (id == null) {
-                    throw new IllegalArgumentException("Returned id of new record is null");
-                }
-
-                Database database = sqlConfiguration().getDatabaseType();
-                BatchSqlQuery deltaBatchQuery = new BatchSqlQuery(database);
-                BatchSqlQuery itemBatchQuery = new BatchSqlQuery(database);
-
-                for (ObjectDeltaOperation<?> delta : record.getDeltas()) {
-                    if (delta == null) {
-                        continue;
-                    }
-
-                    ObjectDelta<?> objectDelta = delta.getObjectDelta();
-                    for (ItemDelta<?, ?> itemDelta : objectDelta.getModifications()) {
-                        ItemPath path = itemDelta.getPath();
-                        CanonicalItemPath canonical = prismContext.createCanonicalItemPath(
-                                path, objectDelta.getObjectTypeClass());
-                        for (int i = 0; i < canonical.size(); i++) {
-
-                            SingleSqlQuery itemQuery = createAuditItemInsertStatement(
-                                    id, canonical.allUpToIncluding(i).asString());
-                            itemBatchQuery.addQueryForBatch(itemQuery);
-                        }
-                    }
-
-                    SingleSqlQuery deltaQuery;
-                    try {
-                        deltaQuery = createAuditDeltaInsertStatement(
-                                id, delta, prismContext, auditConfiguration);
-                        deltaBatchQuery.addQueryForBatch(deltaQuery);
-                    } catch (DtoTranslationException e) {
-                        jdbcSession.handleGeneralCheckedException(e, null);
-                        // always throws exception, does not continue
-                    }
-                }
-                if (!deltaBatchQuery.isEmpty()) {
-                    deltaBatchQuery.execute(connection);
-                }
-                if (!itemBatchQuery.isEmpty()) {
-                    itemBatchQuery.execute(connection);
-                }
-
-                BatchSqlQuery propertyBatchQuery = new BatchSqlQuery(database);
-                for (Entry<String, Set<String>> propertyEntry : record.getProperties().entrySet()) {
-                    for (String propertyValue : propertyEntry.getValue()) {
-                        SingleSqlQuery propertyQuery = createAuditPropertyInsertStatement(
-                                id, propertyEntry.getKey(),
-                                RUtil.trimString(propertyValue, AuditService.MAX_PROPERTY_SIZE));
-                        propertyBatchQuery.addQueryForBatch(propertyQuery);
-                    }
-                }
-                if (!propertyBatchQuery.isEmpty()) {
-                    propertyBatchQuery.execute(connection);
-                }
-
-                BatchSqlQuery referenceBatchQuery = new BatchSqlQuery(database);
-                for (Entry<String, Set<AuditReferenceValue>> referenceEntry : record.getReferences().entrySet()) {
-                    for (AuditReferenceValue referenceValue : referenceEntry.getValue()) {
-                        SingleSqlQuery referenceQuery = createAuditRefValueInsertStatement(
-                                id, referenceEntry.getKey(), referenceValue);
-                        referenceBatchQuery.addQueryForBatch(referenceQuery);
-                    }
-                }
-                if (!referenceBatchQuery.isEmpty()) {
-                    referenceBatchQuery.execute(connection);
-                }
-
-                BatchSqlQuery resourceOidBatchQuery = new BatchSqlQuery(database);
-                for (String resourceOid : record.getResourceOids()) {
-                    SingleSqlQuery resourceOidQuery = createAuditResourceInsertStatement(id, resourceOid);
-                    resourceOidBatchQuery.addQueryForBatch(resourceOidQuery);
-                }
-                if (!resourceOidBatchQuery.isEmpty()) {
-                    resourceOidBatchQuery.execute(connection);
-                }
-            } catch (RuntimeException | SQLException | DtoTranslationException ex) {
+                insertProperties(jdbcSession, recordId, record.getProperties());
+                insertReferences(jdbcSession, recordId, record.getReferences());
+                insertResourceOids(jdbcSession, recordId, record.getResourceOids());
+            } catch (RuntimeException ex) {
                 jdbcSession.handleGeneralException(ex, null);
             }
         }
     }
 
-    private SingleSqlQuery createAuditDeltaInsertStatement(Long recordId,
-            ObjectDeltaOperation<?> operation, PrismContext prismContext,
-            SystemConfigurationAuditType auditConfiguration) throws DtoTranslationException {
-
-        InsertQueryBuilder queryBuilder = new InsertQueryBuilder(QAuditDelta.TABLE_NAME);
-        queryBuilder.addParameter(QAuditDelta.RECORD_ID, recordId, true);
-        byte[] deltaData = null;
-        byte[] fullResultData = null;
-        try {
-            if (operation.getObjectDelta() != null) {
-                ObjectDelta<? extends com.evolveum.prism.xml.ns._public.types_3.ObjectType> delta = operation.getObjectDelta();
-
-                DeltaConversionOptions options = DeltaConversionOptions.createSerializeReferenceNames();
-                options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
-                String xmlDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
-                deltaData = RUtil.getBytesFromSerializedForm(xmlDelta, true);
-                queryBuilder.addParameter(QAuditDelta.DELTA, deltaData);
-                queryBuilder.addParameter(QAuditDelta.DELTA_OID, delta.getOid());
-                queryBuilder.addParameter(QAuditDelta.DELTA_TYPE, RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
-            } else {
-                queryBuilder.addNullParameter(QAuditDelta.DELTA);
-                queryBuilder.addNullParameter(QAuditDelta.DELTA_OID);
-                queryBuilder.addNullParameter(QAuditDelta.DELTA_TYPE);
-            }
-
-            if (operation.getExecutionResult() != null) {
-                OperationResultType jaxb = operation.getExecutionResult().createOperationResultType();
-                if (jaxb == null) {
-                    queryBuilder.addNullParameter(QAuditDelta.STATUS);
-                    queryBuilder.addNullParameter(QAuditDelta.FULL_RESULT);
-                } else {
-                    queryBuilder.addParameter(QAuditDelta.STATUS,
-                            RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
-                    try {
-                        String full = prismContext.xmlSerializer()
-                                .options(SerializationOptions.createEscapeInvalidCharacters())
-                                .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
-                        fullResultData = RUtil.getBytesFromSerializedForm(full, true);
-                        queryBuilder.addParameter(QAuditDelta.FULL_RESULT, fullResultData);
-                    } catch (Exception ex) {
-                        throw new DtoTranslationException(ex.getMessage(), ex);
-                    }
-                }
-            } else {
-                queryBuilder.addNullParameter(QAuditDelta.STATUS);
-                queryBuilder.addNullParameter(QAuditDelta.FULL_RESULT);
-            }
-            if (operation.getObjectName() != null) {
-                queryBuilder.addParameter(QAuditDelta.OBJECT_NAME_ORIG,
-                        operation.getObjectName().getOrig());
-                queryBuilder.addParameter(QAuditDelta.OBJECT_NAME_NORM,
-                        operation.getObjectName().getNorm());
-            } else {
-                queryBuilder.addNullParameter(QAuditDelta.OBJECT_NAME_ORIG);
-                queryBuilder.addNullParameter(QAuditDelta.OBJECT_NAME_NORM);
-            }
-            queryBuilder.addParameter(QAuditDelta.RESOURCE_OID, operation.getResourceOid());
-            if (operation.getResourceName() != null) {
-                queryBuilder.addParameter(QAuditDelta.RESOURCE_NAME_ORIG,
-                        operation.getResourceName().getOrig());
-                queryBuilder.addParameter(QAuditDelta.RESOURCE_NAME_NORM,
-                        operation.getResourceName().getNorm());
-            } else {
-                queryBuilder.addNullParameter(QAuditDelta.RESOURCE_NAME_ORIG);
-                queryBuilder.addNullParameter(QAuditDelta.RESOURCE_NAME_NORM);
-            }
-            queryBuilder.addParameter(QAuditDelta.CHECKSUM,
-                    RUtil.computeChecksum(deltaData, fullResultData), true);
-        } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
-        }
-
-        return queryBuilder.build();
-    }
-
-    public static SingleSqlQuery createAuditPropertyInsertStatement(Long recordId, String name, String value) {
-        InsertQueryBuilder queryBuilder = new InsertQueryBuilder(QAuditPropertyValue.TABLE_NAME);
-        queryBuilder.addParameter(QAuditPropertyValue.RECORD_ID, recordId);
-        queryBuilder.addParameter(QAuditPropertyValue.NAME, name);
-        queryBuilder.addParameter(QAuditPropertyValue.VALUE, value);
-        return queryBuilder.build();
-    }
-
-    public static SingleSqlQuery createAuditRefValueInsertStatement(Long recordId, String name, AuditReferenceValue value) {
-        InsertQueryBuilder queryBuilder = new InsertQueryBuilder(QAuditRefValue.TABLE_NAME);
-        queryBuilder.addParameter(QAuditRefValue.RECORD_ID, recordId);
-        queryBuilder.addParameter(QAuditRefValue.NAME, name);
-        if (value != null) {
-            queryBuilder.addParameter(QAuditRefValue.OID, value.getOid());
-            queryBuilder.addParameter(QAuditRefValue.TYPE, RUtil.qnameToString(value.getType()));
-            if (value.getTargetName() != null) {
-                queryBuilder.addParameter(QAuditRefValue.TARGET_NAME_ORIG, value.getTargetName().getOrig());
-                queryBuilder.addParameter(QAuditRefValue.TARGET_NAME_NORM, value.getTargetName().getNorm());
-            } else {
-                queryBuilder.addNullParameter(QAuditRefValue.TARGET_NAME_ORIG);
-                queryBuilder.addNullParameter(QAuditRefValue.TARGET_NAME_NORM);
-            }
-        } else {
-            queryBuilder.addNullParameter(QAuditRefValue.OID);
-            queryBuilder.addNullParameter(QAuditRefValue.TYPE);
-            queryBuilder.addNullParameter(QAuditRefValue.TARGET_NAME_ORIG);
-            queryBuilder.addNullParameter(QAuditRefValue.TARGET_NAME_NORM);
-        }
-        return queryBuilder.build();
-    }
-
-    public static SingleSqlQuery createAuditResourceInsertStatement(Long recordId, String resourceOid) {
-        InsertQueryBuilder queryBuilder = new InsertQueryBuilder(QAuditResource.TABLE_NAME);
-        queryBuilder.addParameter(QAuditResource.RECORD_ID, recordId, true);
-        queryBuilder.addParameter(QAuditResource.RESOURCE_OID, resourceOid, true);
-        return queryBuilder.build();
-    }
-
+    /**
+     * Inserts audit event record aggregate root without any subentities.
+     *
+     * @return ID of created audit event record
+     */
     private Long insertAuditEventRecord(
             JdbcSession jdbcSession, AuditEventRecord record) {
-        AuditEventRecordSqlTransformer transformer =
-                new AuditEventRecordSqlTransformer(prismContext);
-        QAuditEventRecord aer = QAuditEventRecordMapping.INSTANCE.defaultAlias();
-        SQLInsertClause insert = jdbcSession.insert(aer)
-                .populate(transformer.from(record));
+        QAuditEventRecordMapping aerMapping = QAuditEventRecordMapping.INSTANCE;
+        QAuditEventRecord aer = aerMapping.defaultAlias();
+        MAuditEventRecord aerBean = aerMapping
+                .createTransformer(prismContext, baseHelper.querydslConfiguration())
+                .from(record);
+        SQLInsertClause insert = jdbcSession.insert(aer).populate(aerBean);
 
-        if (!customColumns.isEmpty()) {
-            // TODO add custom columns
+        Map<String, ColumnMetadata> customColumns = aerMapping.getExtensionColumns();
+        for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
+            String propertyName = property.getKey();
+            if (!customColumns.containsKey(propertyName)) {
+                throw new IllegalArgumentException("Audit event record table doesn't"
+                        + " contains column for property " + propertyName);
+            }
+            // Like insert.set, but that one is too parameter-type-safe for our generic usage here.
+            insert.columns(aer.getPath(propertyName)).values(property.getValue());
         }
 
         return insert.executeWithKey(aer.id);
     }
 
-    @Deprecated // TODO remove after treating custom columns above
-    private SingleSqlQuery createAuditInsertStatement(
-            AuditEventRecord record)
-            throws DtoTranslationException {
-        Objects.requireNonNull(record, "Audit event record must not be null.");
-        InsertQueryBuilder insertBuilder = new InsertQueryBuilder(QAuditEventRecord.TABLE_NAME);
-        if (record.getRepoId() != null) {
-            insertBuilder.addParameter(ID, record.getRepoId());
+    private Collection<MAuditDelta> insertAuditDeltas(
+            JdbcSession jdbcSession, long recordId, Collection<ObjectDeltaOperation<?>> deltas) {
+        // we want to keep only unique deltas, checksum is also part of PK
+        Map<String, MAuditDelta> deltasByChecksum = new HashMap<>();
+        for (ObjectDeltaOperation<?> deltaOperation : deltas) {
+            if (deltaOperation == null) {
+                continue;
+            }
+
+            MAuditDelta mAuditDelta = convertDelta(deltaOperation, recordId);
+            deltasByChecksum.put(mAuditDelta.checksum, mAuditDelta);
         }
-        insertBuilder.addParameter(CHANNEL, record.getChannel());
-        insertBuilder.addParameter(TIMESTAMP, new Timestamp(record.getTimestamp()));
-        insertBuilder.addParameter(EVENT_STAGE, RAuditEventStage.from(record.getEventStage()));
-        insertBuilder.addParameter(EVENT_TYPE, RAuditEventType.from(record.getEventType()));
-        insertBuilder.addParameter(SESSION_IDENTIFIER, record.getSessionIdentifier());
-        insertBuilder.addParameter(EVENT_IDENTIFIER, record.getEventIdentifier());
-        insertBuilder.addParameter(HOST_IDENTIFIER, record.getHostIdentifier());
-        insertBuilder.addParameter(REMOTE_HOST_ADDRESS, record.getRemoteHostAddress());
-        insertBuilder.addParameter(NODE_IDENTIFIER, record.getNodeIdentifier());
-        insertBuilder.addParameter(PARAMETER, record.getParameter());
-        insertBuilder.addParameter(MESSAGE,
-                RUtil.trimString(record.getMessage(), AuditService.MAX_MESSAGE_SIZE));
-        insertBuilder.addParameter(OUTCOME, RUtil.getRepoEnumValue(
-                record.getOutcome() != null ? record.getOutcome().createStatusType() : null,
-                ROperationResultStatus.class));
-        insertBuilder.addParameter(REQUEST_IDENTIFIER, record.getRequestIdentifier());
-        insertBuilder.addParameter(TASK_IDENTIFIER, record.getTaskIdentifier());
-        insertBuilder.addParameter(TASK_OID, record.getTaskOid());
-        insertBuilder.addParameter(RESULT, record.getResult());
+
+        if (!deltasByChecksum.isEmpty()) {
+            SQLInsertClause insertBatch = jdbcSession.insert(
+                    QAuditDeltaMapping.INSTANCE.defaultAlias());
+            for (MAuditDelta value : deltasByChecksum.values()) {
+                // NULLs are important to keep the value count consistent during the batch
+                insertBatch.populate(value, DefaultMapper.WITH_NULL_BINDINGS).addBatch();
+            }
+            insertBatch.setBatchToBulk(true);
+            insertBatch.execute();
+        }
+        return deltasByChecksum.values();
+    }
+
+    private MAuditDelta convertDelta(ObjectDeltaOperation<?> deltaOperation, long recordId) {
+        MAuditDelta mAuditDelta = new MAuditDelta();
+        mAuditDelta.recordId = recordId;
 
         try {
-            if (record.getTargetRef() != null) {
-                PrismReferenceValue target = record.getTargetRef();
-                insertBuilder.addParameter(TARGET_NAME, getOrigName(target));
-                insertBuilder.addParameter(TARGET_OID, target.getOid());
-                insertBuilder.addParameter(TARGET_TYPE,
-                        ClassMapper.getHQLTypeForQName(target.getTargetType()));
-            }
-            if (record.getTargetOwner() != null) {
-                PrismObject<? extends FocusType> targetOwner = record.getTargetOwner();
-                insertBuilder.addParameter(TARGET_OWNER_NAME, getOrigName(targetOwner));
-                insertBuilder.addParameter(TARGET_OWNER_OID, targetOwner.getOid());
-                insertBuilder.addParameter(TARGET_OWNER_TYPE,
-                        ClassMapper.getHQLTypeForClass(targetOwner.getCompileTimeClass()));
-            }
-            if (record.getInitiator() != null) {
-                PrismObject<? extends ObjectType> initiator = record.getInitiator();
-                insertBuilder.addParameter(INITIATOR_NAME, getOrigName(initiator));
-                insertBuilder.addParameter(INITIATOR_OID, initiator.getOid());
-                insertBuilder.addParameter(INITIATOR_TYPE,
-                        ClassMapper.getHQLTypeForClass(initiator.asObjectable().getClass()));
-            }
-            if (record.getAttorney() != null) {
-                PrismObject<? extends FocusType> attorney = record.getAttorney();
-                insertBuilder.addParameter(ATTORNEY_NAME, getOrigName(attorney));
-                insertBuilder.addParameter(ATTORNEY_OID, attorney.getOid());
+            ObjectDelta<? extends ObjectType> delta = deltaOperation.getObjectDelta();
+            if (delta != null) {
+                DeltaConversionOptions options =
+                        DeltaConversionOptions.createSerializeReferenceNames();
+                options.setEscapeInvalidCharacters(isEscapingInvalidCharacters(auditConfiguration));
+                String serializedDelta = DeltaConvertor.toObjectDeltaTypeXml(delta, options);
+
+                // serializedDelta is transient, needed for changed items later
+                mAuditDelta.serializedDelta = serializedDelta;
+                mAuditDelta.delta = RUtil.getBytesFromSerializedForm(serializedDelta, true);
+                mAuditDelta.deltaOid = delta.getOid();
+                mAuditDelta.deltaType = MiscUtil.enumOrdinal(
+                        RUtil.getRepoEnumValue(delta.getChangeType(), RChangeType.class));
             }
 
-            if (!customColumns.isEmpty()) {
-                for (Entry<String, String> property : record.getCustomColumnProperty().entrySet()) {
-                    if (!customColumns.containsKey(property.getKey())) {
-                        throw new IllegalArgumentException("Audit event record table doesn't"
-                                + " contains column for property " + property.getKey());
-                    }
-                    insertBuilder.addParameter(
-                            customColumns.get(property.getKey()), property.getValue());
+            OperationResult executionResult = deltaOperation.getExecutionResult();
+            if (executionResult != null) {
+                OperationResultType jaxb = executionResult.createOperationResultType();
+                if (jaxb != null) {
+                    mAuditDelta.status = MiscUtil.enumOrdinal(
+                            RUtil.getRepoEnumValue(jaxb.getStatus(), ROperationResultStatus.class));
+                    String full = prismContext.xmlSerializer()
+                            .options(SerializationOptions.createEscapeInvalidCharacters())
+                            .serializeRealValue(jaxb, SchemaConstantsGenerated.C_OPERATION_RESULT);
+                    mAuditDelta.fullResult = RUtil.getBytesFromSerializedForm(full, true);
                 }
             }
-
+            mAuditDelta.resourceOid = deltaOperation.getResourceOid();
+            if (deltaOperation.getObjectName() != null) {
+                mAuditDelta.objectNameOrig = deltaOperation.getObjectName().getOrig();
+                mAuditDelta.objectNameNorm = deltaOperation.getObjectName().getNorm();
+            }
+            if (deltaOperation.getResourceName() != null) {
+                mAuditDelta.resourceNameOrig = deltaOperation.getResourceName().getOrig();
+                mAuditDelta.resourceNameNorm = deltaOperation.getResourceName().getNorm();
+            }
+            mAuditDelta.checksum = RUtil.computeChecksum(mAuditDelta.delta, mAuditDelta.fullResult);
         } catch (Exception ex) {
-            throw new DtoTranslationException(ex.getMessage(), ex);
+            throw new SystemException("Problem during audit delta conversion", ex);
+        }
+        return mAuditDelta;
+    }
+
+    private void insertChangedItemPaths(
+            JdbcSession jdbcSession, long recordId, Collection<MAuditDelta> deltas) {
+        Set<String> changedItemPaths = new HashSet<>();
+        for (MAuditDelta delta : deltas) {
+            try {
+                ObjectDeltaType deltaBean =
+                        prismContext.parserFor(delta.serializedDelta)
+                                .parseRealValue(ObjectDeltaType.class);
+                for (ItemDeltaType itemDelta : deltaBean.getItemDelta()) {
+                    ItemPath path = itemDelta.getPath().getItemPath();
+                    CanonicalItemPath canonical = prismContext.createCanonicalItemPath(
+                            path, deltaBean.getObjectType());
+                    for (int i = 0; i < canonical.size(); i++) {
+                        changedItemPaths.add(canonical.allUpToIncluding(i).asString());
+                    }
+                }
+            } catch (SchemaException | SystemException e) {
+                // TODO MID-6446 - if we want to throw in new tests, but first we need to fix existing ones
+//                if (InternalsConfig.isConsistencyChecks()) {
+//                    throw new SystemException("Problem during audit delta parse", e);
+//                }
+                LOGGER.warn("Serialized audit delta for recordId={} cannot be parsed."
+                        + " No changed items were created. This may cause problem later, but is not"
+                        + " critical for storing the audit record.", recordId, e);
+            }
+        }
+        if (!changedItemPaths.isEmpty()) {
+            QAuditItem qAuditItem = QAuditItemMapping.INSTANCE.defaultAlias();
+            SQLInsertClause insertBatch = jdbcSession.insert(qAuditItem);
+            for (String changedItemPath : changedItemPaths) {
+                insertBatch.set(qAuditItem.recordId, recordId)
+                        .set(qAuditItem.changedItemPath, changedItemPath)
+                        .addBatch();
+            }
+            insertBatch.setBatchToBulk(true);
+            insertBatch.execute();
+        }
+    }
+
+    private void insertProperties(
+            JdbcSession jdbcSession, long recordId, Map<String, Set<String>> properties) {
+        if (properties.isEmpty()) {
+            return;
         }
 
-        return insertBuilder.build();
-    }
-
-    private String getOrigName(PrismObject<?> object) {
-        PolyString name = object.getPropertyRealValue(ObjectType.F_NAME, PolyString.class);
-        return name != null ? name.getOrig() : null;
-    }
-
-    private String getOrigName(PrismReferenceValue refval) {
-        if (refval.getObject() != null) {
-            return getOrigName(refval.getObject());
+        QAuditPropertyValue qAuditPropertyValue = QAuditPropertyValueMapping.INSTANCE.defaultAlias();
+        SQLInsertClause insertBatch = jdbcSession.insert(qAuditPropertyValue);
+        for (String propertyName : properties.keySet()) {
+            for (String propertyValue : properties.get(propertyName)) {
+                // id will be generated, but we're not interested in those here
+                insertBatch.set(qAuditPropertyValue.recordId, recordId)
+                        .set(qAuditPropertyValue.name, propertyName)
+                        .set(qAuditPropertyValue.value, propertyValue)
+                        .addBatch();
+            }
         }
-        PolyString name = refval.getTargetName();
-        return name != null ? name.getOrig() : null;
+        if (insertBatch.getBatchCount() == 0) {
+            return; // strange, no values anywhere?
+        }
+
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
     }
 
-    private SingleSqlQuery createAuditItemInsertStatement(Long recordId, String itemPath) {
-        InsertQueryBuilder queryBuilder = new InsertQueryBuilder(QAuditItem.TABLE_NAME);
-        queryBuilder.addParameter(QAuditItem.CHANGED_ITEM_PATH, itemPath, true);
-        queryBuilder.addParameter(QAuditItem.RECORD_ID, recordId, true);
-        return queryBuilder.build();
+    private void insertReferences(JdbcSession jdbcSession,
+            long recordId, Map<String, Set<AuditReferenceValue>> references) {
+        if (references.isEmpty()) {
+            return;
+        }
+
+        QAuditRefValue qAuditRefValue = QAuditRefValueMapping.INSTANCE.defaultAlias();
+        SQLInsertClause insertBatch = jdbcSession.insert(qAuditRefValue);
+        for (String refName : references.keySet()) {
+            for (AuditReferenceValue refValue : references.get(refName)) {
+                // id will be generated, but we're not interested in those here
+                PolyString targetName = refValue.getTargetName();
+                insertBatch.set(qAuditRefValue.recordId, recordId)
+                        .set(qAuditRefValue.name, refName)
+                        .set(qAuditRefValue.oid, refValue.getOid())
+                        .set(qAuditRefValue.type, RUtil.qnameToString(refValue.getType()))
+                        .set(qAuditRefValue.targetNameOrig,
+                                targetName != null ? targetName.getOrig() : null)
+                        .set(qAuditRefValue.targetNameNorm,
+                                targetName != null ? targetName.getNorm() : null)
+                        .addBatch();
+            }
+        }
+        if (insertBatch.getBatchCount() == 0) {
+            return; // strange, no values anywhere?
+        }
+
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
     }
 
+    private void insertResourceOids(
+            JdbcSession jdbcSession, long recordId, Set<String> resourceOids) {
+        if (resourceOids.isEmpty()) {
+            return;
+        }
+
+        QAuditResource qAuditResource = QAuditResourceMapping.INSTANCE.defaultAlias();
+        SQLInsertClause insertBatch = jdbcSession.insert(qAuditResource);
+        for (String resourceOid : resourceOids) {
+            insertBatch.set(qAuditResource.recordId, recordId)
+                    .set(qAuditResource.resourceOid, resourceOid)
+                    .addBatch();
+        }
+
+        insertBatch.setBatchToBulk(true);
+        insertBatch.execute();
+    }
+
+    /**
+     * @deprecated use {@link #searchObjects(ObjectQuery, Collection, OperationResult)} instead
+     */
     @Override
+    @Deprecated
     public List<AuditEventRecord> listRecords(
             String query, Map<String, Object> params, OperationResult parentResult) {
         final String operation = "listRecords";
@@ -517,28 +420,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                 attemptResult.computeStatus();
                 result.computeStatus();
                 result.cleanupResult();
-            }
-        }
-    }
-
-    @Override
-    public void listRecordsIterative(String query,
-            Map<String, Object> params, AuditResultHandler handler, OperationResult parentResult) {
-        // TODO operation recording ... but beware, this method is called from within listRecords
-        //  (fortunately, currently it is not used from the outside, so it does not matter that it skips recording)
-        final String operation = "listRecordsIterative";
-        int attempt = 1;
-
-        while (true) {
-            OperationResult result = parentResult.createMinorSubresult(OP_LIST_RECORDS_ATTEMPT);
-            try {
-                listRecordsIterativeAttempt(query, params, handler, result);
-                result.recordSuccess();
-                return;
-            } catch (RuntimeException ex) {
-                attempt = baseHelper.logOperationAttempt(null, operation, attempt, ex, null);
-                LOGGER.error("Error while trying to list audit record, {}, attempt: {}", ex.getMessage(), attempt, ex);
-                result.recordFatalError("Error while trying to list audit record " + ex.getMessage() + ", attempt: " + attempt, ex);
             }
         }
     }
@@ -599,10 +480,11 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             ResultSet resultList, JdbcSession jdbcSession, OperationResult result)
             throws SQLException {
         AuditEventRecord audit = createAuditEventRecord(resultList);
-        if (!customColumns.isEmpty()) {
-            for (Entry<String, String> property : customColumns.entrySet()) {
-                audit.getCustomColumnProperty().put(property.getKey(), resultList.getString(property.getValue()));
-            }
+        final Map<String, ColumnMetadata> customColumns =
+                QAuditEventRecordMapping.INSTANCE.getExtensionColumns();
+        for (Entry<String, ColumnMetadata> entry : customColumns.entrySet()) {
+            audit.getCustomColumnProperty().put(entry.getKey(),
+                    resultList.getString(entry.getValue().getName()));
         }
 
         //query for deltas
@@ -1200,10 +1082,6 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         return true;
     }
 
-    public Map<String, String> getCustomColumns() {
-        return customColumns;
-    }
-
     @Override
     public void applyAuditConfiguration(SystemConfigurationAuditType configuration) {
         this.auditConfiguration = CloneUtil.clone(configuration);
@@ -1232,9 +1110,37 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
         // TODO MID-6319 do something with the OperationResult... skipped for now
         try {
-            return sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
+            SearchResultList<AuditEventRecordType> result =
+                    sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
+            addContainerDefinition(AuditEventRecordType.class, result);
+            return result;
         } catch (QueryException e) {
             throw new SystemException(e);
         }
+    }
+
+    /**
+     * This enriches collection of returned values with parent container so that
+     * {@link PrismContainer#getDefinition()} is not null.
+     * It is a bit questionable whether this is a responsibility of the repository-level service.
+     * Even without this the values should have {@link PrismContainer#getComplexTypeDefinition()}
+     * if properly created with {@link PrismContext} as constructor parameter.
+     */
+    @SuppressWarnings("SameParameterValue")
+    private <C extends Containerable> void addContainerDefinition(
+            Class<C> containerableType, List<C> containerableValues) throws SchemaException {
+        PrismContainerDefinition<C> containerDefinition = prismContext.getSchemaRegistry()
+                .findContainerDefinitionByCompileTimeClass(containerableType);
+        PrismContainer<C> container = containerDefinition.instantiate();
+        for (C containerValue : containerableValues) {
+            //noinspection unchecked
+            container.add(containerValue.asPrismContainerValue());
+        }
+    }
+
+    public void addCustomColumn(String propertyName, String columnName) {
+        ColumnMetadata columnMetadata =
+                ColumnMetadata.named(columnName).ofType(Types.NVARCHAR).withSize(255);
+        QAuditEventRecordMapping.INSTANCE.addExtensionColumn(propertyName, columnMetadata);
     }
 }

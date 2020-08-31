@@ -9,10 +9,10 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <form wicket:id="valueForm">
-        <div class="row">
+        <div>
             <div class="col-xs-10" wicket:id="valueContainer">
                 <div wicket:id="input"/>
-                <div class="row" style="margin-left: 15px;">
+                <div>
                     <span wicket:id="feedback" class="text-danger"/>
                 </div>
             </div>
@@ -20,17 +20,20 @@
             <div class="col-xs-2" wicket:id="header">
                 <span class="btn-group">
                     <a class="btn btn-box-tool" wicket:id="removeButton" wicket:message="title:PageBase.button.delete"><i class="fa fa-minus-circle"/></a>
-                    <a class="btn btn-box-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.delete"><i class="fa fa fa-asterisk"/></a>
+                    <a class="btn btn-box-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.metadata"><i class="fa fa-tag"/></a>
                 </span>
             </div>
         </div>
         <div class="row">
             <div class="col-xs-10">
-                <ul class="nav metadata-nav">
-                    <li wicket:id="metadataList">
-                        <a class="label label-default" wicket:id="metadataQName"/>
-                    </li>
-                </ul>
+                <div wicket:id="metadataNav">
+                    <ul class="nav metadata-nav">
+                        <li wicket:id="metadataList">
+                            <a class="label label-default" wicket:id="metadataQName"/>
+                        </li>
+                    </ul>
+                </div>
+                <div wicket:id="provenanceMetadata"></div>
                 <div wicket:id="metadata"></div>
             </div>
         </div>

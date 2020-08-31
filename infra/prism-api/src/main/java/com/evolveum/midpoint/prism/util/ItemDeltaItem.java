@@ -337,7 +337,7 @@ public class ItemDeltaItem<V extends PrismValue,D extends ItemDefinition> implem
         return subIdi;
     }
 
-    public PrismValueDeltaSetTriple<V> toDeltaSetTriple(PrismContext prismContext) {
+    public PrismValueDeltaSetTriple<V> toDeltaSetTriple(PrismContext prismContext) throws SchemaException {
         return ItemDeltaUtil.toDeltaSetTriple(itemOld, delta, prismContext);
     }
 

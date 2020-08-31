@@ -122,8 +122,9 @@ abstract class ExtensionUpdate<E, ET> extends BaseUpdate {
         for (PrismEntityPair<RAnyValue<?>> item : newValues) {
             RAnyValue<?> rValue = item.getRepository();
             boolean exists;
-            if (Boolean.TRUE.equals(RepoModifyOptions.getUseNoFetchExtensionValuesInsertion(ctx.options))) {
-                exists = false;     // skipping the check
+            // TODO temporary measure: when dealing with value metadata we never skip existence check, see MID-6450
+            if (!item.getPrism().hasValueMetadata() && Boolean.TRUE.equals(RepoModifyOptions.getUseNoFetchExtensionValuesInsertion(ctx.options))) {
+                exists = false; // skipping the check
                 ctx.attemptContext.noFetchExtensionValueInsertionAttempted = true; // to know that CVE can be caused because of this
             } else {
                 Serializable id = rValue.createId();

@@ -10,6 +10,8 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author katka
  *
@@ -31,7 +33,15 @@ public class ContainersPopupDto implements Serializable {
             return def.getDisplayName();
         }
 
+        return getItemName();
+    }
+
+    public String getItemName() {
         return def.getItemName().getLocalPart();
+    }
+
+    public QName getTypeName() {
+        return def.getTypeName();
     }
 
     public PrismContainerDefinition<?> getDef() {

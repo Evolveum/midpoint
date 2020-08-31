@@ -124,7 +124,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
         return moduleAuthentication;
     }
 
-    protected ConnectionEnvironment createEnviroment(AuthenticationChannel channel) {
+    protected ConnectionEnvironment createEnvironment(AuthenticationChannel channel) {
         if (channel != null) {
             ConnectionEnvironment connEnv = ConnectionEnvironment.create(channel.getChannelId());
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -133,7 +133,7 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
             }
             return connEnv;
         } else {
-            return ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_USER_URI);
+            return ConnectionEnvironment.create(SchemaConstants.CHANNEL_USER_URI);
         }
     }
 

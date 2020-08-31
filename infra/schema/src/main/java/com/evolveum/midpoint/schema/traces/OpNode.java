@@ -9,8 +9,13 @@ package com.evolveum.midpoint.schema.traces;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -20,19 +25,16 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
-import org.apache.commons.lang3.tuple.ImmutablePair;
-import org.apache.commons.lang3.tuple.Pair;
-import org.jetbrains.annotations.NotNull;
-
 @Experimental
 public class OpNode {
 
     private final PrismContext prismContext;
-    private final OperationResultType result;
+    protected final OperationResultType result;
     private final List<OpNode> children = new ArrayList<>();
     private final OpNode parent;
     private final OpResultInfo info;
     private final TraceInfo traceInfo;
+    private OpNodePresentation presentation;
 
     private TraceVisualizationInstructionsType visualizationInstructions;
     private TraceVisualizationInstructionType visualizationInstruction;
@@ -104,6 +106,24 @@ public class OpNode {
         return sb.toString();
     }
 
+    public String getLabel() {
+        if (presentation != null) {
+            String label = presentation.getLabel();
+            if (label != null) {
+                return label;
+            }
+        }
+        return getOperationNameFormatted();
+    }
+
+    public String getToolTip() {
+        if (presentation != null) {
+            return presentation.getToolTip();
+        } else {
+            return null;
+        }
+    }
+
     public String getOperationNameFormatted() {
         return getType().getFormattedName(this) + (visible ? "" : "!");
     }
@@ -156,17 +176,21 @@ public class OpNode {
         if (trace != null || parent == null) {
             return trace;
         } else {
-            return getTraceUpwards(aClass);
+            return parent.getTraceUpwards(aClass);
         }
     }
 
     public <T> T getTraceDownwards(Class<T> aClass) {
+        return getTraceDownwards(aClass, Integer.MAX_VALUE);
+    }
+
+    public <T> T getTraceDownwards(Class<T> aClass, int maxLevel) {
         T trace = getTrace(aClass);
-        if (trace != null) {
+        if (trace != null || maxLevel == 0) {
             return trace;
         } else {
             for (OpNode child : children) {
-                T inChild = child.getTraceDownwards(aClass);
+                T inChild = child.getTraceDownwards(aClass, maxLevel-1);
                 if (inChild != null) {
                     return inChild;
                 }
@@ -308,6 +332,7 @@ public class OpNode {
         }
         return false;
     }
+
     public String getImportanceSymbol() {
         if (result.getImportance() != null) {
             switch (result.getImportance()) {
@@ -339,7 +364,7 @@ public class OpNode {
         return null;
     }
     public List<ViewedObject> processContext(LensContextType ctx) {
-        List<ViewedObject> rv = new ArrayList<ViewedObject>();
+        List<ViewedObject> rv = new ArrayList<>();
         if (ctx != null && ctx.getFocusContext() != null) {
             LensFocusContextType fctx = ctx.getFocusContext();
             ObjectType objectOld = fctx.getObjectOld();
@@ -544,5 +569,74 @@ public class OpNode {
         // temporary implementation
         OperationKindType kind = getKind();
         return kind == OperationKindType.CLOCKWORK_EXECUTION || kind == OperationKindType.CLOCKWORK_CLICK;
+    }
+
+    public List<OpNode> getVisibleChildren() {
+        List<OpNode> visibleChildren = new ArrayList<>();
+        for (OpNode child : children) {
+            if (child.isVisible()) {
+                visibleChildren.add(child);
+            } else {
+                visibleChildren.addAll(child.getVisibleChildren());
+            }
+        }
+        return visibleChildren;
+    }
+
+    // used from templates
+    public Integer getClickNumber() {
+        if (parent == null) {
+            return null;
+        }
+        int count = 0;
+        for (OpNode child : parent.getChildren()) {
+            if (child.getKind() == OperationKindType.CLOCKWORK_CLICK) {
+                count++;
+            }
+            if (child == this) {
+                return count;
+            }
+        }
+        return null;
+    }
+
+    public int getMappingsCount() {
+        return (int) children.stream()
+                .filter(child -> child.getKind() == OperationKindType.MAPPING_EVALUATION)
+                .count();
+    }
+
+    public Integer getAssignmentEvaluationsCount() {
+        return (int) getChildrenStream(2)
+                .filter(child -> child.getKind() == OperationKindType.ASSIGNMENT_EVALUATION)
+                .count();
+    }
+
+    public Stream<OpNode> getChildrenStream(int levels) {
+        Stream.Builder<OpNode> streamBuilder = Stream.builder();
+        addChildrenToStreamBuilder(streamBuilder, levels);
+        return streamBuilder.build();
+    }
+
+    private void addChildrenToStreamBuilder(Stream.Builder<OpNode> streamBuilder, int levels) {
+        if (levels > 0) {
+            for (OpNode child : children) {
+                streamBuilder.add(child);
+                child.addChildrenToStreamBuilder(streamBuilder, levels-1);
+            }
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "OpNode{" + getOperationNameFormatted() + '}';
+    }
+
+    public OpNodePresentation getPresentation() {
+        return presentation;
+    }
+
+    public void setPresentation(OpNodePresentation presentation) {
+        this.presentation = presentation;
     }
 }

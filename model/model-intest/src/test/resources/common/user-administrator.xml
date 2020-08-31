@@ -10,6 +10,7 @@
     xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
     xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>administrator</name>
+    <indestructible>true</indestructible>
     <fullName>midPoint Administrator</fullName>
     <givenName>midPoint</givenName>
     <familyName>Administrator</familyName>

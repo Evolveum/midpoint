@@ -19,6 +19,7 @@ import com.evolveum.midpoint.util.exception.PolicyViolationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.exception.MaintenanceException;
 
 @Component
 public class ErrorHandlerLocator {
@@ -31,8 +32,12 @@ public class ErrorHandlerLocator {
     @Autowired ConfigurationExceptionHandler configurationExceptionHandler;
     @Autowired SecurityViolationHandler securityViolationHandler;
     @Autowired PolicyViolationHandler policyViolationHandler;
+    @Autowired MaintenanceExceptionHandler maintenanceExceptionHandler;
 
     public ErrorHandler locateErrorHandler(Throwable ex) {
+        if (ex instanceof MaintenanceException) {
+            return maintenanceExceptionHandler;
+        }
         if (ex instanceof CommunicationException){
             return communicationExceptionHandler;
         }

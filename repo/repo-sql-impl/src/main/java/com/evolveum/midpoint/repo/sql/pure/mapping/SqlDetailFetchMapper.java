@@ -17,13 +17,11 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import com.google.common.collect.Lists;
-import com.querydsl.core.types.EntityPath;
 import com.querydsl.core.types.dsl.SimpleExpression;
 import com.querydsl.sql.SQLQuery;
 
+import com.evolveum.midpoint.repo.sql.pure.FlexibleRelationalPathBase;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Mapper/fetcher of many detail records for one master record.
@@ -40,9 +38,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @param <DQ> detail Q-type, this will be the base of the select
  * @param <DR> detail row type (from result)
  */
-public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
-
-    private static final Trace LOGGER = TraceManager.getTrace(SqlDetailFetchMapper.class);
+public class SqlDetailFetchMapper<R, I, DQ extends FlexibleRelationalPathBase<DR>, DR> {
 
     private final Function<R, I> rowToId;
     private final Class<DQ> detailQueryType;
@@ -81,7 +77,8 @@ public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
                 .select(dq)
                 .from(dq)
                 .where(detailFkPath.in(rowById.keySet()));
-        LOGGER.debug("SQL detail query for list: {}", query);
+
+        // SQL logging is on DEBUG level of: com.querydsl.sql
         List<DR> details = query.fetch();
         for (DR detail : details) {
             for (R row : rowById.get(detailToMasterId.apply(detail))) {
@@ -97,7 +94,8 @@ public class SqlDetailFetchMapper<R, I, DQ extends EntityPath<DR>, DR> {
                 .select(dq)
                 .from(dq)
                 .where(detailFkPath.eq(rowToId.apply(masterRow)));
-        LOGGER.debug("SQL detail query for one entity: {}", query);
+
+        // SQL logging is on DEBUG level of: com.querydsl.sql
         List<DR> details = query.fetch();
         for (DR detail : details) {
             masterDetailConsumer.accept(masterRow, detail);

@@ -410,8 +410,11 @@ public class Clockwork {
                 clockworkAuditHelper.audit(context, AuditEventStage.REQUEST, task, result, parentResult); // we need to take the overall ("run" operation result) not the current one
             }
 
-            projectIfNeeded(context, task, result);
+            if (state != ModelState.FINAL) {
+                projectIfNeeded(context, task, result);
+            }
 
+            checkIndestructible(context, task, result);
             if (!context.isRequestAuthorized()) {
                 clockworkAuthorizationHelper.authorizeContextRequest(context, task, result);
             }
@@ -479,10 +482,9 @@ public class Clockwork {
                 processPrimaryToSecondary(context, task, result);
                 break;
             case SECONDARY:
+                processSecondary(context, task, result, parentResult);
                 if (context.getExecutionWave() > context.getMaxWave() + 1) {
                     processSecondaryToFinal(context, task, result);
-                } else {
-                    processSecondary(context, task, result, parentResult);
                 }
                 break;
             case FINAL:
@@ -613,6 +615,30 @@ public class Clockwork {
         result.recordStatus(OperationResultStatus.IN_PROGRESS, "Reconciliation task switched to background");
         return HookOperationMode.BACKGROUND;
     }
+
+
+    /**
+     * Check for indestructibility.
+     * This check just makes sure that we fail fast, before we run full clockwork.
+     */
+    private void checkIndestructible(LensContext<? extends ObjectType> context, Task task, OperationResult result) throws IndestructibilityViolationException {
+        checkIndestructible(context.getFocusContext(), task, result);
+        for (LensProjectionContext projCtx : context.getProjectionContexts()) {
+            checkIndestructible(projCtx, task, result);
+        }
+    }
+
+    private <O extends ObjectType> void checkIndestructible(LensElementContext<O> elementContext, Task task, OperationResult result) throws IndestructibilityViolationException {
+        if (elementContext != null && elementContext.isDelete()) {
+            PrismObject<O> contextObject = elementContext.getObjectAny();
+            if (contextObject != null && Boolean.TRUE.equals(contextObject.asObjectable().isIndestructible())) {
+                IndestructibilityViolationException e = new IndestructibilityViolationException("Attempt to delete indestructible object "+contextObject);
+                ModelImplUtils.recordFatalError(result, e);
+                throw e;
+            }
+        }
+    }
+
 
     private <F extends ObjectType> void processClockworkException(LensContext<F> context, Throwable e, Task task, OperationResult result, OperationResult overallResult)
             throws SchemaException {

@@ -245,7 +245,7 @@ public class SecurityPolicyUtil {
         sequence.name(PASSWORD_RESET_SEQUENCE_NAME);
         AuthenticationSequenceChannelType channel = new AuthenticationSequenceChannelType();
         channel.setDefault(true);
-        channel.channelId(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
+        channel.channelId(SchemaConstants.CHANNEL_RESET_PASSWORD_URI);
         channel.setUrlSuffix("resetPassword");
         sequence.channel(channel);
         AuthenticationSequenceModuleType module = new AuthenticationSequenceModuleType();

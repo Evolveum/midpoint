@@ -7,9 +7,7 @@
 package com.evolveum.midpoint.prism.impl.xnode;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import javax.xml.namespace.QName;
 
@@ -46,7 +44,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
 
     private ValueParser<T> valueParser;
 
-    private MapXNode metadata;
+    @NotNull private List<MapXNode> metadata = new ArrayList<>();
 
     /**
      * If set to true then this primitive value either came from an attribute
@@ -224,6 +222,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     @Override
     public void accept(Visitor<XNode> visitor) {
         visitor.visit(this);
+        MetadataAware.visitMetadata(this, visitor);
     }
 
     @Override
@@ -324,7 +323,7 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
             return false;
         }
 
-        PrimitiveXNodeImpl other = (PrimitiveXNodeImpl) obj;
+        PrimitiveXNodeImpl<?> other = (PrimitiveXNodeImpl<?>) obj;
 
         if (!metadataEquals(this.metadata, other.metadata)) {
             return false;
@@ -397,12 +396,12 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     }
 
     @Override
-    public MapXNode getMetadataNode() {
+    public @NotNull List<MapXNode> getMetadataNodes() {
         return metadata;
     }
 
     @Override
-    public void setMetadataNode(MapXNode metadata) {
-        this.metadata = metadata;
+    public void setMetadataNodes(@NotNull List<MapXNode> metadataNodes) {
+        this.metadata = metadataNodes;
     }
 }

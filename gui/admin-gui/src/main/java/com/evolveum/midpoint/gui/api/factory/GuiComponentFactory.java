@@ -12,6 +12,8 @@ import org.apache.wicket.Component;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
+
 public interface GuiComponentFactory<T extends ItemPanelContext>{
 
     <IW extends ItemWrapper> boolean match(IW wrapper);
@@ -21,6 +23,7 @@ public interface GuiComponentFactory<T extends ItemPanelContext>{
     Integer getOrder();
 
     default void configure(T panelCtx, Component component) {
+        panelCtx.getFeedback().setFilter(new ComponentFeedbackMessageFilter(component));
     }
 
 }

@@ -6,10 +6,8 @@
  */
 package com.evolveum.midpoint.repo.sql.pure.querymodel.mapping;
 
-import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem.*;
+import static com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditItem.TABLE_NAME;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.repo.sql.pure.SqlTransformer;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.QAuditResource;
 import com.evolveum.midpoint.repo.sql.pure.querymodel.beans.MAuditResource;
@@ -26,13 +24,11 @@ public class QAuditResourceMapping
 
     private QAuditResourceMapping() {
         super(TABLE_NAME, DEFAULT_ALIAS_NAME,
-                String.class, QAuditResource.class,
-                RECORD_ID, CHANGED_ITEM_PATH);
+                String.class, QAuditResource.class);
     }
 
     @Override
-    public SqlTransformer<String, MAuditResource> createTransformer(
-            PrismContext prismContext) {
-        throw new UnsupportedOperationException("handled by AuditEventRecordSqlTransformer");
+    protected QAuditResource newAliasInstance(String alias) {
+        return new QAuditResource(alias);
     }
 }

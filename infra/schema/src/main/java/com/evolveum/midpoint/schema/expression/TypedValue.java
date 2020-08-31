@@ -6,9 +6,7 @@
  */
 package com.evolveum.midpoint.schema.expression;
 
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.ShortDumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
@@ -153,7 +151,14 @@ public class TypedValue<T> implements ShortDumpable {
      * Returns new TypedValue that has a new (transformed) value, but has the same definition.
      */
     public TypedValue<T> createTransformed(Object newValue) {
-        return new TypedValue(newValue, definition, typeClass);
+        return new TypedValue<>(newValue, definition, typeClass);
+    }
+
+    /**
+     * Returns the shallow clone of the original object. Value nor definition is copied, NOT cloned.
+     */
+    public TypedValue<T> shallowClone() {
+        return new TypedValue<>(value, definition, typeClass);
     }
 
     @Override
@@ -225,5 +230,12 @@ public class TypedValue<T> implements ShortDumpable {
         }
     }
 
-
+    // TODO - or revive? Or make sure prismContext is set here?
+    public void setPrismContext(PrismContext prismContext) {
+        if (value instanceof PrismValue) {
+            ((PrismValue) value).setPrismContext(prismContext);
+        } else if (value instanceof Item) {
+            ((Item) value).setPrismContext(prismContext);
+        }
+    }
 }

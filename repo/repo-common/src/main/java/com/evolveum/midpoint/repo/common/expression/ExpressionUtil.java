@@ -17,7 +17,6 @@ import groovy.lang.GString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.crypto.Protector;
@@ -186,138 +185,183 @@ public class ExpressionUtil {
     }
 
     // TODO what about collections of values?
-    public static <T> TypedValue<T> convertVariableValue(TypedValue<T> originalTypedValue, String variableName, ObjectResolver objectResolver,
-            String contextDescription, ObjectVariableModeType objectVariableModeType, PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        Object valueToConvert = originalTypedValue.getValue();
-        if (valueToConvert == null) {
+    public static TypedValue<?> convertVariableValue(TypedValue<?> originalTypedValue, String variableName, ObjectResolver objectResolver,
+            String contextDescription, ObjectVariableModeType objectVariableMode, @NotNull ValueVariableModeType valueVariableMode,
+            PrismContext prismContext, Task task, OperationResult result) throws ExpressionSyntaxException,
+            ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
+        if (originalTypedValue.getValue() == null) {
             return originalTypedValue;
         }
-        TypedValue<T> convertedTypeValue = originalTypedValue.createTransformed(valueToConvert);
-        if (valueToConvert instanceof PrismValue) {
-            ((PrismValue) valueToConvert).setPrismContext(prismContext);            // TODO - or revive? Or make sure prismContext is set here?
-        } else if (valueToConvert instanceof Item) {
-            ((Item) valueToConvert).setPrismContext(prismContext);                // TODO - or revive? Or make sure prismContext is set here?
-        }
-        if (valueToConvert instanceof ObjectReferenceType) {
-            ObjectReferenceType reference = ((ObjectReferenceType) valueToConvert).clone();
-            OperationResult subResult = new OperationResult("Resolve reference");
-            try {
-                convertedTypeValue = (TypedValue<T>) resolveReference((TypedValue<ObjectReferenceType>) originalTypedValue, objectResolver, variableName,
-                        contextDescription, task, subResult);
-                valueToConvert = convertedTypeValue.getValue();
-            } catch (SchemaException e) {
-                result.addSubresult(subResult);
-                throw new ExpressionSyntaxException("Schema error during variable " + variableName + " resolution in " + contextDescription + ": " + e.getMessage(), e);
-            } catch (ObjectNotFoundException e) {
-                if (ObjectVariableModeType.OBJECT.equals(objectVariableModeType)) {
-                    result.addSubresult(subResult);
-                    throw e;
-                }
-            } catch (Exception e) {
-                result.addSubresult(subResult);
-                throw e;
-            }
 
-            if (ObjectVariableModeType.PRISM_REFERENCE.equals(objectVariableModeType)) {
-                PrismReferenceValue value = reference.asReferenceValue();
-                if (valueToConvert instanceof PrismObject) {
-                    value.setObject((PrismObject) valueToConvert);
-                }
-                convertedTypeValue = (TypedValue<T>) new TypedValue(value, value.getDefinition());
-                valueToConvert = convertedTypeValue.getValue();
-            }
+        TypedValue<?> convertedTypedValue = originalTypedValue.shallowClone();
+        convertedTypedValue.setPrismContext(prismContext);
 
+        if (convertedTypedValue.getValue() instanceof ObjectReferenceType) {
+            convertedTypedValue = resolveReference(convertedTypedValue,
+                    variableName, objectResolver, contextDescription, objectVariableMode,
+                    task, result);
         }
-        if (valueToConvert instanceof PrismObject<?>) {
-            convertedTypeValue.setValue(((PrismObject<?>) valueToConvert).asObjectable());
-            return convertedTypeValue;
-        }
-        if (valueToConvert instanceof PrismContainerValue<?>) {
-            PrismContainerValue<?> cval = ((PrismContainerValue<?>) valueToConvert);
-            Class<?> containerCompileTimeClass = cval.getCompileTimeClass();
-            if (containerCompileTimeClass == null) {
-                // Dynamic schema. We do not have anything to convert to. Leave it as PrismContainerValue
-                convertedTypeValue.setValue(valueToConvert);
+
+        return convertToRealValueIfRequested(convertedTypedValue, valueVariableMode, prismContext);
+    }
+
+    @NotNull
+    private static TypedValue<?> convertToRealValueIfRequested(TypedValue<?> typedValue,
+            ValueVariableModeType valueVariableMode, PrismContext prismContext) {
+
+        Object value = typedValue.getValue();
+        if (value == null) {
+            return typedValue;
+        } else if (value instanceof PrismValue) {
+            if (valueVariableMode == ValueVariableModeType.REAL_VALUE) {
+                return convertPrismValueToRealValue(typedValue);
             } else {
-                convertedTypeValue.setValue(cval.asContainerable());
+                return typedValue;
             }
-            return convertedTypeValue;
-        }
-        if (valueToConvert instanceof PrismPropertyValue<?>) {
-            convertedTypeValue.setValue(((PrismPropertyValue<?>) valueToConvert).getValue());
-            return convertedTypeValue;
-        }
-        if (valueToConvert instanceof PrismReferenceValue) {
-            if (((PrismReferenceValue) valueToConvert).getDefinition() != null) {
-                convertedTypeValue.setValue(((PrismReferenceValue) valueToConvert).asReferencable());
-                return convertedTypeValue;
+        } else if (value instanceof Item) {
+            if (valueVariableMode == ValueVariableModeType.REAL_VALUE) {
+                return convertItemToRealValues(typedValue, prismContext);
+            } else {
+                // TODO should we attempt to convert Item to a list of PrismValues?
+                return typedValue;
             }
+        } else {
+            return typedValue;
         }
-        if (valueToConvert instanceof PrismProperty<?>) {
-            PrismProperty<?> prop = (PrismProperty<?>) valueToConvert;
+    }
+
+    private static TypedValue<?> convertItemToRealValues(TypedValue<?> typedValue, PrismContext prismContext) {
+        Object value = typedValue.getValue();
+        if (value instanceof PrismObject<?>) {
+            typedValue.setValue(((PrismObject<?>) value).asObjectable());
+            return typedValue;
+        } else if (value instanceof PrismProperty<?>) {
+            PrismProperty<?> prop = (PrismProperty<?>) value;
             PrismPropertyDefinition<?> def = prop.getDefinition();
             if (def != null) {
                 if (def.isSingleValue()) {
-                    return new TypedValue(prop.getRealValue(), def);
+                    return new TypedValue<>(prop.getRealValue(), def);
                 } else {
-                    return new TypedValue(prop.getRealValues(), def);
+                    return new TypedValue<>(prop.getRealValues(), def);
                 }
             } else {
                 // Guess, but we may be wrong
-                def = prismContext.definitionFactory().createPropertyDefinition(prop.getElementName(), PrimitiveType.STRING.getQname());
-                return new TypedValue(prop.getRealValues(), def);
+                PrismPropertyDefinition<?> fakeDef = prismContext.definitionFactory().createPropertyDefinition(
+                        prop.getElementName(), PrimitiveType.STRING.getQname());
+                return new TypedValue<>(prop.getRealValues(), fakeDef);
             }
-        }
-        if (valueToConvert instanceof PrismReference) {
-            PrismReference ref = (PrismReference) valueToConvert;
+        } else if (value instanceof PrismReference) {
+            PrismReference ref = (PrismReference) value;
             PrismReferenceDefinition def = ref.getDefinition();
             if (def != null) {
                 if (def.isSingleValue()) {
-                    return new TypedValue(ref.getRealValue(), def);
+                    return new TypedValue<>(ref.getRealValue(), def);
                 } else {
-                    return new TypedValue(ref.getRealValues(), def);
+                    return new TypedValue<>(ref.getRealValues(), def);
                 }
             } else {
-                def = prismContext.definitionFactory().createReferenceDefinition(ref.getElementName(), ObjectType.COMPLEX_TYPE);
-                return new TypedValue(ref.getRealValues(), def);
+                PrismReferenceDefinition fakeDef = prismContext.definitionFactory().createReferenceDefinition(ref.getElementName(), ObjectType.COMPLEX_TYPE);
+                return new TypedValue<>(ref.getRealValues(), fakeDef);
             }
-        }
-        if (valueToConvert instanceof PrismContainer<?>) {
-            PrismContainer<?> container = (PrismContainer<?>) valueToConvert;
+        } else if (value instanceof PrismContainer<?>) {
+            PrismContainer<?> container = (PrismContainer<?>) value;
             PrismContainerDefinition<?> def = container.getDefinition();
             Class<?> containerCompileTimeClass = container.getCompileTimeClass();
             if (containerCompileTimeClass == null) {
                 // Dynamic schema. We do not have anything to convert to. Leave it as PrismContainer
                 if (def != null) {
-                    return new TypedValue(container, def);
+                    return new TypedValue<>(container, def);
                 } else {
-                    return new TypedValue(container, PrismContainer.class);
+                    return new TypedValue<>(container, PrismContainer.class);
                 }
             } else {
                 if (def != null) {
                     if (def.isSingleValue()) {
-                        return new TypedValue(container.getRealValue(), def);
+                        return new TypedValue<>(container.getRealValue(), def);
                     } else {
-                        return new TypedValue(container.getRealValues(), def);
+                        return new TypedValue<>(container.getRealValues(), def);
 
                     }
                 } else {
-                    PrismContainerValue<?> cval = container.getValue();
-                    if (cval != null) {
-                        Containerable containerable = cval.asContainerable();
-                        if (containerable != null) {
-                            return new TypedValue(container.getRealValues(), containerable.getClass());
-                        }
+                    if (container.size() == 1) {
+                        PrismContainerValue<?> cval = container.getValue();
+                        Containerable containerable = cval.asContainerable(); // will this always work?
+                        return new TypedValue<>(container.getRealValues(), containerable.getClass());
+                    } else {
+                        return new TypedValue<>(container.getRealValues(), Object.class);
                     }
-                    return new TypedValue(container.getRealValues(), Object.class);
                 }
             }
+        } else {
+            // huh?
+            return typedValue;
         }
-
-        return convertedTypeValue;
     }
 
-    static TypedValue<PrismObject<?>> resolveReference(TypedValue<ObjectReferenceType> refAndDef, ObjectResolver objectResolver,
+    private static TypedValue<?> convertPrismValueToRealValue(TypedValue<?> typedValue) {
+        Object value = typedValue.getValue();
+        if (value instanceof PrismContainerValue<?>) {
+            PrismContainerValue<?> cval = ((PrismContainerValue<?>) value);
+            Class<?> containerCompileTimeClass = cval.getCompileTimeClass();
+            if (containerCompileTimeClass == null) {
+                // Dynamic schema. We do not have anything to convert to. Leave it as PrismContainerValue
+                typedValue.setValue(value);
+            } else {
+                typedValue.setValue(cval.asContainerable());
+            }
+        } else if (value instanceof PrismPropertyValue<?>) {
+            typedValue.setValue(((PrismPropertyValue<?>) value).getValue());
+        } else if (value instanceof PrismReferenceValue) {
+            if (((PrismReferenceValue) value).getDefinition() != null) {
+                typedValue.setValue(((PrismReferenceValue) value).asReferencable());
+            }
+        } else {
+            // Should we throw an exception here?
+        }
+        return typedValue;
+    }
+
+    private static TypedValue<?> resolveReference(TypedValue referenceTypedValue, String variableName,
+            ObjectResolver objectResolver, String contextDescription, ObjectVariableModeType objectVariableMode,
+            Task task, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
+        TypedValue<?> resolvedTypedValue;
+        ObjectReferenceType reference = ((ObjectReferenceType) referenceTypedValue.getValue()).clone();
+        OperationResult subResult = new OperationResult("Resolve reference"); // TODO proper op result handling (for tracing)
+        try {
+            resolvedTypedValue = resolveReference(referenceTypedValue, objectResolver, variableName,
+                    contextDescription, task, subResult);
+        } catch (SchemaException e) {
+            result.addSubresult(subResult);
+            throw new ExpressionSyntaxException("Schema error during variable " + variableName + " resolution in " + contextDescription + ": " + e.getMessage(), e);
+        } catch (ObjectNotFoundException e) {
+            if (ObjectVariableModeType.OBJECT.equals(objectVariableMode)) {
+                result.addSubresult(subResult);
+                throw e;
+            } else {
+                resolvedTypedValue = null;
+            }
+        } catch (Exception e) {
+            result.addSubresult(subResult);
+            throw e;
+        }
+
+        if (objectVariableMode == ObjectVariableModeType.PRISM_REFERENCE) {
+            if (resolvedTypedValue != null && resolvedTypedValue.getValue() instanceof PrismObject) {
+                PrismReferenceValue value = reference.asReferenceValue();
+                value.setObject((PrismObject) resolvedTypedValue.getValue());
+                return new TypedValue<>(value, value.getDefinition());
+            } else {
+                return referenceTypedValue;
+            }
+        } else {
+            return resolvedTypedValue;
+        }
+    }
+
+    static TypedValue<PrismObject<?>> resolveReference(TypedValue<?> refAndDef, ObjectResolver objectResolver,
             String varDesc, String contextDescription, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ObjectReferenceType ref = (ObjectReferenceType) refAndDef.getValue();
@@ -398,7 +442,6 @@ public class ExpressionUtil {
         if (relativePath.isEmpty()) {
             return (ID) root;
         }
-        ItemDefinition result = null;
         if (root instanceof PrismObjectDefinition<?>) {
             return ((PrismObjectDefinition<?>) root).findItemDefinition(relativePath);
         } else if (root instanceof PrismContainerDefinition<?>) {

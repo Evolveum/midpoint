@@ -107,8 +107,7 @@ public class TestNotoriousRole extends AbstractNotoriousTest {
 
     @Override
     protected int hackify2(int i) {
-        // TODO: ...but sometimes only twice
-        return i*2;
+        return i*3;
     }
 
     @Override

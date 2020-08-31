@@ -6,6 +6,13 @@
  */
 package com.evolveum.midpoint.web.page.self;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -29,7 +36,9 @@ public class PageSelfCredentials extends PageAbstractSelfCredentials{
     @Override
     protected boolean isCheckOldPassword() {
         return (getModelObject().getPasswordChangeSecurity() == null) || (getModelObject().getPasswordChangeSecurity() != null &&
-                getModelObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD));
+                (getModelObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD)
+                        || (getModelObject().getPasswordChangeSecurity().equals(PasswordChangeSecurityType.OLD_PASSWORD_IF_EXISTS)
+                        && getModelObject().getFocus().findProperty(ItemPath.create(FocusType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)) != null)));
     }
 
     @Override

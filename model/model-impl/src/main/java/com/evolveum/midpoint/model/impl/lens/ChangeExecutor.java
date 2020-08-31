@@ -396,7 +396,7 @@ public class ChangeExecutor {
                 restartRequested = true;
                 completed = false;
                 LOGGER.debug("ObjectAlreadyExistsException for projection {}, requesting projector restart", projCtx.toHumanReadableString());
-                projCtx.setFresh(false); // todo
+                projCtx.rot(); // todo
                 projCtx.setSecondaryDelta(null); // todo
                 projCtx.setObjectNew(null); // todo
             } finally {
@@ -1198,14 +1198,14 @@ public class ChangeExecutor {
 
         if (context != null && context.getChannel() != null) {
 
-            if (context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))) {
+            if (context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON))) {
                 // TODO: this is probably wrong. We should not have special case
                 // for recon channel! This should be handled by the provisioning task
                 // setting the right options there.
                 provisioningOptions.setCompletePostponed(false);
             }
 
-            if (context.getChannel().equals(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI)) {
+            if (context.getChannel().equals(SchemaConstants.CHANNEL_DISCOVERY_URI)) {
                 // We want to avoid endless loops in error handling.
                 provisioningOptions.setDoNotDiscovery(true);
             }
@@ -1225,7 +1225,7 @@ public class ChangeExecutor {
             return false;
         }
 
-        if (!SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI.equals(context.getChannel())) {
+        if (!SchemaConstants.CHANNEL_SELF_SERVICE_URI.equals(context.getChannel())) {
             return false;
         }
 

@@ -7,7 +7,6 @@
 
 package com.evolveum.midpoint.init;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
@@ -50,7 +49,7 @@ public class InitialDataImport extends DataImport{
 
         OperationResult mainResult = new OperationResult(OPERATION_INITIAL_OBJECTS_IMPORT);
         Task task = taskManager.createTaskInstance(OPERATION_INITIAL_OBJECTS_IMPORT);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_INIT_URI);
+        task.setChannel(SchemaConstants.CHANNEL_INIT_URI);
 
         int count = 0;
         int errors = 0;

@@ -13,7 +13,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.common.expression.ExpressionEnvironment;
 import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
@@ -299,7 +298,7 @@ public class SynchronizationContext<F extends FocusType> implements DebugDumpabl
             // resources. We only want to resolve the problem and continue in
             // previous provisioning/synchronization during which this
             // compensation was triggered.
-            if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY.equals(channelQName)
+            if (SchemaConstants.CHANNEL_DISCOVERY.equals(channelQName)
                     && SynchronizationSituationType.DELETED != reaction.getSituation()) {
                 return true;
             }

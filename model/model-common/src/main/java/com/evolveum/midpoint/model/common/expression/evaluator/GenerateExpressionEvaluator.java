@@ -72,9 +72,11 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
         ItemPath outputPath = output.getPath(); // actually, a name only
 
         String stringValue = generateStringValue(valuePolicy, context, outputPath, result);
-        addValueToOutputProperty(output, stringValue);
+        addValueToOutputProperty(output, stringValue, context);
 
-        return ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        PrismValueDeltaSetTriple<V> outputTriple = ItemDeltaUtil.toDeltaSetTriple(output, null, prismContext);
+        applyValueMetadata(outputTriple, context, result);
+        return outputTriple;
     }
 
     @NotNull
@@ -99,12 +101,16 @@ public class GenerateExpressionEvaluator<V extends PrismValue, D extends ItemDef
         }
     }
 
-    private void addValueToOutputProperty(Item<V, D> output, String stringValue)
+    private void addValueToOutputProperty(Item<V, D> output, String stringValue, ExpressionEvaluationContext context)
             throws ExpressionEvaluationException,
             SchemaException {
         if (output instanceof PrismProperty) {
-            Object value = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
-            ((PrismProperty<Object>) output).addRealValue(value);
+            Object realValue = ExpressionUtil.convertToOutputValue(stringValue, outputDefinition, protector);
+            if (realValue != null) {
+                PrismPropertyValue<Object> prismValue = prismContext.itemFactory().createPropertyValue(realValue);
+                addInternalOrigin(prismValue, context);
+                ((PrismProperty<Object>) output).add(prismValue);
+            }
         } else {
             throw new UnsupportedOperationException(
                     "Can only generate values of property, not " + output.getClass());

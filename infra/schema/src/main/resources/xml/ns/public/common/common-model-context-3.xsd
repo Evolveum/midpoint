@@ -1435,6 +1435,18 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="deletedFromRange" type="xsd:anyType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Values that have been deleted because of their presence in the mapping range.
+                                (I.e. not because of the expression evaluation.)
+                                (Currently not filled-in.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="output" type="t:DeltaSetTripleType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:appinfo>
@@ -1449,6 +1461,23 @@
     </xsd:complexType>
     <xsd:element name="mappingEvaluationTrace" type="tns:MappingEvaluationTraceType" />
 
+    <xsd:complexType name="AbstractSourceEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about mapping or expression source during evaluation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.0.1</a:since> <!-- just abstracted from MappingSourceEvaluationTraceType -->
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:QName" minOccurs="0"/>
+            <xsd:element name="itemDeltaItem" type="t:ItemDeltaItemType" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="MappingSourceEvaluationTraceType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1460,12 +1489,38 @@
                 <a:since>4.0.1</a:since>
             </xsd:appinfo>
         </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="name" type="xsd:QName" minOccurs="0"/>
-            <xsd:element name="itemDeltaItem" type="t:ItemDeltaItemType" minOccurs="0"/>
-        </xsd:sequence>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSourceEvaluationTraceType" />
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="mappingSourceEvaluationTrace" type="tns:MappingSourceEvaluationTraceType" />
+
+    <xsd:complexType name="ExpressionSourceEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about mapping source during evaluation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractSourceEvaluationTraceType">
+                <xsd:sequence>
+                    <xsd:element name="deltaSetTriple" type="t:DeltaSetTripleType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Source processed into delta set triple.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="expressionSourceEvaluationTrace" type="tns:ExpressionSourceEvaluationTraceType" />
 
     <xsd:simpleType name="MappingKindType">
         <xsd:annotation>
@@ -1583,6 +1638,104 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+    <xsd:complexType name="ExpressionEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for expression evaluation operation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="expressionEvaluator" type="tns:ExpressionEvaluatorWrapperType" minOccurs="0"/>
+                    <xsd:element name="source" type="tns:ExpressionSourceEvaluationTraceType" minOccurs="0" maxOccurs="unbounded"/>
+                    <!-- variables (in the future) -->
+                    <xsd:element name="skipEvaluationPlus" type="xsd:boolean" minOccurs="0" />
+                    <xsd:element name="skipEvaluationMinus" type="xsd:boolean" minOccurs="0" />
+                    <xsd:element name="contextDescription" type="xsd:string" minOccurs="0" />
+                    <xsd:element name="localContextDescription" type="xsd:string" minOccurs="0" />
+                    <xsd:element name="output" type="t:DeltaSetTripleType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="expressionEvaluationTrace" type="tns:ExpressionEvaluationTraceType" />
+
+    <xsd:complexType name="ExpressionEvaluatorWrapperType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Wrapper for expression evaluator. (Very experimental.) Not a container!
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element ref="tns:expressionEvaluator" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="expressionEvaluatorWrapper" type="tns:ExpressionEvaluatorWrapperType" />
+
+    <xsd:complexType name="ValueTransformationExpressionEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for expression evaluation operation in AbstractValueTransformationExpressionEvaluator.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ExpressionEvaluationTraceType">
+                <xsd:sequence>
+                    <xsd:element name="evaluationMode" type="tns:ValueTransformationEvaluationModeType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="valueTransformationExpressionEvaluationTrace" type="tns:ValueTransformationExpressionEvaluationTraceType" />
+
+    <xsd:simpleType name="ValueTransformationEvaluationModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="singleShot">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Single-shot (absolute) evaluation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="SINGLE_SHOT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="combinatorial">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Combinatorial (relative) evaluation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="COMBINATORIAL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+
     <xsd:complexType name="ValueTransformationTraceType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1668,6 +1821,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="localContextDescription" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Local context of value transformation (free-form).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -1733,6 +1893,33 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="scriptVariableEvaluationTrace" type="tns:ScriptVariableEvaluationTraceType" />
+
+    <xsd:complexType name="ItemConsolidationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for item consolidation.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="itemPath" type="t:ItemPathType" minOccurs="0"/>
+                    <xsd:element name="deltaSetTriple" type="t:DeltaSetTripleType" minOccurs="0" />
+                    <xsd:element name="existingItem" type="t:ItemType" minOccurs="0" />
+                    <xsd:element name="aprioriDelta" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded" />
+                    <xsd:element name="equivalenceClassCount" type="xsd:int" minOccurs="0" />
+                    <xsd:element name="resultingDelta" type="t:ItemDeltaType" minOccurs="0" maxOccurs="unbounded"/>
+                    <!-- We could maybe add the parameters here -->
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="itemConsolidationTrace" type="tns:ItemConsolidationTraceType" />
 
     <xsd:complexType name="AssignmentEvaluationTraceType">
         <xsd:annotation>
@@ -2711,6 +2898,16 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="assignmentEvaluation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of an assignment.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ASSIGNMENT_EVALUATION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="scriptEvaluation">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -2830,6 +3027,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="OTHER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="modelAudit">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Recording audit in model.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="MODEL_AUDIT"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

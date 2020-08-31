@@ -35,13 +35,13 @@ public class QAuditDelta extends FlexibleRelationalPathBase<MAuditDelta> {
     public static final ColumnMetadata CHECKSUM =
             ColumnMetadata.named("checksum").ofType(Types.VARCHAR).withSize(32).notNull();
     public static final ColumnMetadata DELTA =
-            ColumnMetadata.named("delta").ofType(Types.BLOB).withSize(2147483647);
+            ColumnMetadata.named("delta").ofType(Types.BINARY);
     public static final ColumnMetadata DELTA_OID =
             ColumnMetadata.named("deltaOid").ofType(Types.VARCHAR).withSize(36);
     public static final ColumnMetadata DELTA_TYPE =
             ColumnMetadata.named("deltaType").ofType(Types.INTEGER).withSize(10);
     public static final ColumnMetadata FULL_RESULT =
-            ColumnMetadata.named("fullResult").ofType(Types.BLOB).withSize(2147483647);
+            ColumnMetadata.named("fullResult").ofType(Types.BINARY);
     public static final ColumnMetadata OBJECT_NAME_NORM =
             ColumnMetadata.named("objectName_norm").ofType(Types.VARCHAR).withSize(255);
     public static final ColumnMetadata OBJECT_NAME_ORIG =

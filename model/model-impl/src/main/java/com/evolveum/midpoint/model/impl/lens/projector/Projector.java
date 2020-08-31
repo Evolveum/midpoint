@@ -171,7 +171,7 @@ public class Projector {
                         Projector.class, context, activityDescription, now, task, result);
             }
 
-            consolidationProcessor.consolidateFocusPrimaryDelta(context, now, task, result);
+            //consolidationProcessor.consolidateFocusPrimaryDelta(context, now, task, result);
 
             LOGGER.trace("WAVE {} (executionWave={})", context.getProjectionWave(), context.getExecutionWave());
 

@@ -12,6 +12,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultImportanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
 
@@ -92,4 +93,6 @@ public interface OperationResultBuilder {
     OperationResult setImportance(OperationResultImportanceType value);
 
     OperationResultBuilder tracingProfile(CompiledTracingProfile profile);
+
+    OperationResultBuilder operationKind(OperationKindType kind);
 }

@@ -6,14 +6,13 @@
  */
 package com.evolveum.midpoint.test.asserter;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.*;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.ValueSelector;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.test.asserter.prism.PolyStringAsserter;
@@ -115,6 +114,24 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     @Override
     public UserAsserter<RA> assertActiveLifecycleState() {
         super.assertActiveLifecycleState();
+        return this;
+    }
+
+    @Override
+    public UserAsserter<RA> assertIndestructible(Boolean expected) {
+        super.assertIndestructible(expected);
+        return this;
+    }
+
+    @Override
+    public UserAsserter<RA> assertIndestructible() {
+        super.assertIndestructible();
+        return this;
+    }
+
+    @Override
+    public UserAsserter<RA> assertDestructible() {
+        super.assertDestructible();
         return this;
     }
 
@@ -376,10 +393,28 @@ public class UserAsserter<RA> extends FocusAsserter<UserType,RA> {
     }
 
     @Override
-    public ValueMetadataAsserter<? extends UserAsserter<RA>> valueMetadata(
-            ItemPath path) throws SchemaException {
+    public ValueMetadataAsserter<? extends UserAsserter<RA>> valueMetadata(ItemPath path)
+            throws SchemaException {
         //noinspection unchecked
         return (ValueMetadataAsserter<? extends UserAsserter<RA>>) super.valueMetadata(path);
+    }
+
+    @Override
+    public ValueMetadataAsserter<? extends UserAsserter<RA>> valueMetadata(ItemPath path, ValueSelector<?> valueSelector) throws SchemaException {
+        //noinspection unchecked
+        return (ValueMetadataAsserter<? extends UserAsserter<RA>>) super.valueMetadata(path, valueSelector);
+    }
+
+    @Override
+    public ValueMetadataValueAsserter<? extends UserAsserter<RA>> valueMetadataSingle(ItemPath path) throws SchemaException {
+        //noinspection unchecked
+        return (ValueMetadataValueAsserter<? extends UserAsserter<RA>>) super.valueMetadataSingle(path);
+    }
+
+    @Override
+    public ValueMetadataValueAsserter<? extends UserAsserter<RA>> valueMetadataSingle(ItemPath path, ValueSelector<?> valueSelector) throws SchemaException {
+        //noinspection unchecked
+        return (ValueMetadataValueAsserter<? extends UserAsserter<RA>>) super.valueMetadataSingle(path, valueSelector);
     }
 
     @Override

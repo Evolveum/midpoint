@@ -961,6 +961,16 @@ public class DOMUtil {
         return null;
     }
 
+    public static List<Element> getMatchingChildElements(Element element, QName qname) {
+        List<Element> matchingChildren = new ArrayList<>();
+        for (Element subelement: listChildElements(element)) {
+            if (QNameUtil.match(qname, getQName(subelement))) {
+                matchingChildren.add(subelement);
+            }
+        }
+        return matchingChildren;
+    }
+
     public static Element getNamedElement(List<Element> elements, QName qname) {
         for (Element element : elements) {
             if (qname.equals(getQName(element))) {

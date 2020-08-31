@@ -134,7 +134,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
 
     }
 
-    private IModel<String> createHeaderModel() {
+    protected IModel<String> createHeaderModel() {
         // TODO: align with DisplayNameModel
         return new ReadOnlyModel<>(() -> {
             if (getModelObject() == null) {
@@ -173,7 +173,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
 
     }
 
-    private IModel<String> createIdentifierModel() {
+    protected IModel<String> createIdentifierModel() {
         if (getModelObject() == null) {
             return Model.of("");
         }

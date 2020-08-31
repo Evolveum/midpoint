@@ -170,6 +170,8 @@ public class TestMapping extends AbstractMappingTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
 
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TYPE_CARTHESIAN, USER_TEMPLATE_CARTHESIAN_OID, initResult);
+//
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     /**

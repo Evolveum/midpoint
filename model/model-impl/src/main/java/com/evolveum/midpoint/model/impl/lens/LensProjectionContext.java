@@ -229,6 +229,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     private transient String humanReadableString;
 
+    /**
+     * Cached value metadata to be used for resource object values processed by inbound mappings.
+     */
+    private transient ValueMetadataType cachedValueMetadata;
+
     LensProjectionContext(LensContext<? extends ObjectType> lensContext, ResourceShadowDiscriminator resourceAccountType) {
         super(ShadowType.class, lensContext);
         this.resourceShadowDiscriminator = resourceAccountType;
@@ -1404,7 +1409,11 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
             return;
         }
         OperationResultType fetchResult = shadowType.getFetchResult();
-        if (fetchResult != null
+        AdministrativeAvailabilityStatusType resourceAdministrativeAvailabilityStatus = ResourceTypeUtil.getAdministrativeAvailabilityStatus(resource);
+
+        if (AdministrativeAvailabilityStatusType.MAINTENANCE == resourceAdministrativeAvailabilityStatus) {
+            setFullShadow(false); // resource is in the maintenance, shadow is from repo, result is success
+        } else if (fetchResult != null
                 && (fetchResult.getStatus() == OperationResultStatusType.PARTIAL_ERROR
                     || fetchResult.getStatus() == OperationResultStatusType.FATAL_ERROR)) {  // todo what about other kinds of status? [e.g. in-progress]
                setFullShadow(false);
@@ -1514,5 +1523,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    @Override
+    public void rot() {
+        super.rot();
+        setFullShadow(false);
+        cachedValueMetadata = null;
+    }
+
+    public ValueMetadataType getCachedValueMetadata() {
+        return cachedValueMetadata;
+    }
+
+    public void setCachedValueMetadata(ValueMetadataType cachedValueMetadata) {
+        this.cachedValueMetadata = cachedValueMetadata;
     }
 }

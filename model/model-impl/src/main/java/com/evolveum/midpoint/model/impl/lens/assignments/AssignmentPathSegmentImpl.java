@@ -89,6 +89,13 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     private final boolean isAssignment;
 
     /**
+     *  Flag to make a difference between normal assignment/inducement and the one created based on the
+     *  archetype hierarchy. If true, assignment/inducement was created based on the superArchetypeRef
+     *  relation.
+     */
+    private final boolean archetypeHierarchy;
+
+    /**
      * Resolved target object. (Can be null if there's no target or if the target was not resolved yet.)
      */
     final ObjectType target;
@@ -240,6 +247,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
                 builder.isMatchingOrderForTarget : computeMatchingOrder(evaluationOrderForTarget, assignment);
         lastEqualOrderSegmentIndex = builder.lastEqualOrderSegmentIndex;
         varThisObject = builder.varThisObject;
+        archetypeHierarchy = builder.archetypeHierarchy;
     }
 
     private boolean computeMatchingOrder(EvaluationOrder evaluationOrder, AssignmentType assignment) {
@@ -256,6 +264,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         this.assignment = origin.assignment;
         this.relation = origin.relation;
         this.isAssignment = origin.isAssignment;
+        this.archetypeHierarchy = origin.archetypeHierarchy;
         this.target = target;
         this.direct = origin.direct;
         this.pathToSourceActive = origin.pathToSourceActive;
@@ -274,6 +283,10 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
     @Override
     public boolean isAssignment() {
         return isAssignment;
+    }
+
+    public boolean isArchetypeHierarchy() {
+        return archetypeHierarchy;
     }
 
     public ItemDeltaItem<PrismContainerValue<AssignmentType>,PrismContainerDefinition<AssignmentType>> getAssignmentIdi() {
@@ -603,6 +616,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         immutable = true;
     }
 
+    public Long getAssignmentId() {
+        AssignmentType assignment = getAssignmentAny();
+        return assignment != null ? assignment.getId() : null;
+    }
+
     public static final class Builder {
         private RelationRegistry relationRegistry;
         private PrismContext prismContext;
@@ -611,6 +629,7 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
         private ItemDeltaItem<PrismContainerValue<AssignmentType>, PrismContainerDefinition<AssignmentType>> assignmentIdi;
         private boolean evaluateOld;
         private boolean isAssignment;
+        private boolean archetypeHierarchy;
         private ObjectType target;
         private boolean direct;
         private boolean pathToSourceActive;
@@ -670,6 +689,11 @@ public class AssignmentPathSegmentImpl implements AssignmentPathSegment, Freezab
 
         public Builder isAssignment(boolean val) {
             isAssignment = val;
+            return this;
+        }
+
+        public Builder isHierarchy(boolean val) {
+            archetypeHierarchy = val;
             return this;
         }
 

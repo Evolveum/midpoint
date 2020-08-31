@@ -7,20 +7,24 @@
 
 package com.evolveum.midpoint.model.common.mapping.metadata.builtin;
 
-import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
-import com.evolveum.midpoint.model.common.mapping.metadata.ValueMetadataComputation;
-import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataMappingScopeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.StorageMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import javax.xml.datatype.XMLGregorianCalendar;
 
+import org.apache.commons.collections4.ListUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.List;
+import com.evolveum.midpoint.model.common.mapping.metadata.ConsolidationMetadataComputation;
+import com.evolveum.midpoint.model.common.mapping.metadata.TransformationalMetadataComputation;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.StorageMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 /**
  * Mapping that provides storage/createTimestamp.
@@ -35,25 +39,29 @@ public class CreateTimestampBuiltinMapping extends BaseBuiltinMetadataMapping {
     }
 
     @Override
-    public void apply(@NotNull ValueMetadataComputation computation) throws SchemaException {
-
-        XMLGregorianCalendar rv;
-        MappingEvaluationEnvironment env = computation.getEnv();
-        MetadataMappingScopeType scope = computation.getScope();
-        List<PrismValue> input;
-        switch (scope) {
-            case TRANSFORMATION:
-                input = null;
-                rv = env.now;
-                break;
-            case CONSOLIDATION:
-                input = computation.getInputValues();
-                rv = earliestTimestamp(input, CREATE_PATH);
-                break;
-            default:
-                throw new AssertionError(scope);
-        }
-//        System.out.println("Computed creation timestamp for " + scope + " in " + env.contextDescription + " from " + input + ": " + rv);
-        addPropertyRealValue(computation.getOutputMetadata(), rv);
+    public void applyForTransformation(@NotNull TransformationalMetadataComputation computation) throws SchemaException {
+        addPropertyRealValue(computation.getOutputMetadataValue(), computation.getEnv().now);
     }
+
+    @Override
+    public void applyForConsolidation(@NotNull ConsolidationMetadataComputation computation) throws SchemaException {
+        List<ValueMetadataType> allValues = ListUtils.union(computation.getNonNegativeValues(), computation.getExistingValues());
+        XMLGregorianCalendar earliest = earliestTimestamp(allValues, CREATE_PATH);
+        addPropertyRealValue(computation.getOutputMetadataValue(), earliest);
+    }
+
+    private XMLGregorianCalendar earliestTimestamp(List<ValueMetadataType> values, ItemPath path) {
+        Set<XMLGregorianCalendar> realValues = getRealValues(values, path);
+        return MiscUtil.getEarliestTimeIgnoringNull(realValues);
+    }
+
+    private <T> Set<T> getRealValues(List<ValueMetadataType> values, ItemPath path) {
+        //noinspection unchecked
+        return (Set<T>) values.stream()
+                .map(v -> v != null ? v.asPrismContainerValue().findItem(path) : null)
+                .filter(Objects::nonNull)
+                .map(Item::getRealValue)
+                .collect(Collectors.toSet());
+    }
+
 }

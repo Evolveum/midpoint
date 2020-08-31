@@ -550,7 +550,7 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                     OperationResult threadResult = threadTask.getResult();
                     for (int iteration = 0; iteration < ITERATIONS; iteration++) {
                         display("Executing iteration " + iteration + " on user " + index);
-                        ObjectDelta delta = prismContext.deltaFor(UserType.class)
+                        ObjectDelta<? extends ObjectType> delta = prismContext.deltaFor(UserType.class)
                                 .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("User " + index + " iteration " + iteration))
                                 .asObjectDelta(oids.get(index));
                         executeChangesAssertSuccess(delta, null, threadTask, threadResult);
@@ -620,11 +620,11 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
                         AuditEventRecord record = new AuditEventRecord(AuditEventType.MODIFY_OBJECT, AuditEventStage.EXECUTION);
                         record.setEventIdentifier(
                                 iteration + ":" + System.currentTimeMillis() + "-" + (int) (Math.random() * 1_000_000));
-                        ObjectDelta<?> delta = prismContext.deltaFor(UserType.class)
+                        ObjectDelta<? extends ObjectType> delta = prismContext.deltaFor(UserType.class)
                                 .item(UserType.F_FULL_NAME).replace(PolyString.fromOrig("Hi" + iteration))
                                 .item(UserType.F_METADATA, MetadataType.F_MODIFY_TIMESTAMP).replace(XmlTypeConverter.createXMLGregorianCalendar(new Date()))
                                 .asObjectDelta("oid" + index);
-                        record.addDelta(new ObjectDeltaOperation(delta));
+                        record.addDelta(new ObjectDeltaOperation<>(delta));
                         modelAuditService.audit(record, threadTask, threadResult);
                         if (failed.get()) {
                             results.set(index, new IllegalStateException("Some other thread failed"));

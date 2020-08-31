@@ -639,6 +639,9 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
     }
 
+    /**
+     * We are deleting given name Jack from null given name. This is a phantom deletion.
+     */
     @Test
     public void testScriptFullNameDeleteGivenNameFromNull() throws Exception {
         // GIVEN
@@ -653,7 +656,7 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
         MappingImpl<PrismPropertyValue<PolyString>, PrismPropertyDefinition<PolyString>> mapping = evaluator.createMapping(
                 "mapping-script-fullname.xml",
                 shortTestName,
-                "fullName",                    // target
+                "fullName", // target
                 delta, userOld);
 
         OperationResult opResult = createOperationResult();
@@ -663,10 +666,12 @@ public class TestMappingDynamicSimple extends AbstractModelCommonTest {
 
         // THEN
         PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
+        displayDumpable("output triple", outputTriple);
+
         outputTriple.checkConsistence();
-        PrismAsserts.assertTripleNoZero(outputTriple);
-        PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("Sparrow"));
-        PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("Jack Sparrow"));
+        PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("Sparrow"));
+        PrismAsserts.assertTripleNoPlus(outputTriple);
+        PrismAsserts.assertTripleNoMinus(outputTriple);
     }
 
     @Test

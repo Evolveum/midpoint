@@ -6,8 +6,12 @@
  */
 package com.evolveum.midpoint.repo.sql.pure;
 
+import java.sql.Types;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+import com.querydsl.core.types.Path;
 import com.querydsl.core.types.PathMetadata;
 import com.querydsl.core.types.dsl.ArrayPath;
 import com.querydsl.core.types.dsl.DateTimePath;
@@ -15,6 +19,8 @@ import com.querydsl.core.types.dsl.NumberPath;
 import com.querydsl.core.types.dsl.StringPath;
 import com.querydsl.sql.ColumnMetadata;
 import com.querydsl.sql.RelationalPathBase;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMapping;
 import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
@@ -28,6 +34,9 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
  * <li>Extend from this class instead of {@code RelationalPathBase}.</li>
  * <li>Extract constants for all column metadata from {@code addMetadata()} method.
  * Remove index information from them (column order, nothing to do with DB indexes).</li>
+ * <li>Use {@link Types#VARCHAR} for text columns, never {@link Types#NVARCHAR},
+ * the proper DB type will be used as needed (e.g. NVARCHAR for SQL Server).
+ * {@link Types#NVARCHAR} is not supported in PG driver at all and would cause problems.</li>
  * <li>Rename the column name to conform with SQL Server (if still relevant), because it is
  * case-sensitive even about column names if *_CS_* collation is used!</li>
  * <li>Rewrite path fields so they use {@code create*} methods from this super-class.</li>
@@ -52,7 +61,10 @@ import com.evolveum.midpoint.repo.sql.pure.mapping.QueryModelMappingConfig;
 public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T> {
 
     public static final String DEFAULT_SCHEMA_NAME = "PUBLIC";
+
     private static final long serialVersionUID = -3374516272567011096L;
+
+    private final Map<String, Path<?>> propertyNameToPath = new LinkedHashMap<>();
 
     public FlexibleRelationalPathBase(
             Class<? extends T> type, PathMetadata metadata, String schema, String table) {
@@ -86,7 +98,7 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
     /**
      * Creates {@link StringPath} and for a property registers column metadata for it.
      */
-    protected StringPath createString(String property, ColumnMetadata columnMetadata) {
+    public StringPath createString(String property, ColumnMetadata columnMetadata) {
         return addMetadata(createString(property), columnMetadata);
     }
 
@@ -114,5 +126,24 @@ public abstract class FlexibleRelationalPathBase<T> extends RelationalPathBase<T
     protected ArrayPath<byte[], Byte> createBlob(
             String property, ColumnMetadata columnMetadata) {
         return addMetadata(createArray(property, byte[].class), columnMetadata);
+    }
+
+    /**
+     * Works like default {@link RelationalPathBase#addMetadata(Path, ColumnMetadata)}
+     * and on top of it adds the information necessary to use dynamic/extension columns
+     * using methods like {@link #getPath(String)}.
+     */
+    @Override
+    protected <P extends Path<?>> P addMetadata(P path, ColumnMetadata metadata) {
+        propertyNameToPath.put(path.getMetadata().getName(), path);
+        return super.addMetadata(path, metadata);
+    }
+
+    /**
+     * Returns {@link Path} expression by the property name.
+     * This is useful for dynamic/extension columns that are not otherwise directly accessible.
+     */
+    public @Nullable Path<?> getPath(@NotNull String propertyName) {
+        return propertyNameToPath.get(propertyName);
     }
 }

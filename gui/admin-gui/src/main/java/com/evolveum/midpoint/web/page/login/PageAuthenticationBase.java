@@ -138,7 +138,7 @@ public abstract class PageAuthenticationBase extends AbstractPageLogin {
             public SecurityPolicyType run() {
 
                 Task task = createAnonymousTask(OPERATION_GET_SECURITY_POLICY);
-                task.setChannel(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+                task.setChannel(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
                 OperationResult result = new OperationResult(OPERATION_GET_SECURITY_POLICY);
 
                 try {

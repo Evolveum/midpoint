@@ -9,12 +9,17 @@ package com.evolveum.midpoint.prism;
 
 import java.io.Serializable;
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.MiscUtil;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -203,6 +208,10 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     @NotNull
     List<V> getValues();
 
+    default Stream<V> valuesStream() {
+        return getValues().stream();
+    }
+
     /**
      * Returns the number of values for this item.
      */
@@ -273,13 +282,15 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     @NotNull
     Collection<?> getRealValues();
 
-    @Experimental
+    @Experimental // Do NOT use !!!!
     @NotNull
     default Collection<Object> getRealValuesOrRawTypes(PrismContext prismContext) {
         List<Object> rv = new ArrayList<>();
         for (V value : getValues()) {
             if (value != null) {
                 rv.add(value.getRealValueOrRawType(prismContext));
+            } else {
+                rv.add("null"); // fixme
             }
         }
         return rv;
@@ -297,6 +308,11 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
             }
         }
         return getValues().size() <= 1;
+    }
+
+    default boolean isSingleValueByDefinition() {
+        D definition = getDefinition();
+        return definition != null && definition.isSingleValue();
     }
 
     //region Add and remove
@@ -364,6 +380,31 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      * @return true if this item changed as a result of the call (i.e. if at least one value was really removed)
      */
     boolean remove(V value, @NotNull EquivalenceStrategy strategy);
+
+    default void removeIf(Predicate<V> predicate) {
+        List<V> valuesToDelete = getValues().stream().filter(predicate).collect(Collectors.toList());
+        for (V valueToDelete : valuesToDelete) {
+            // We selected values directly from the item. So we can use rather strict equivalence strategy when deleting.
+            remove(valueToDelete, EquivalenceStrategy.NOT_LITERAL);
+        }
+    }
+
+    /**
+     * Adds a value, respecting the metadata. I.e. if equivalent value exists, the metadata are merged.
+     * (Replacing metadata of colliding provenance, adding all the others.)
+     *
+     * If a value is to be added as a whole, it is cloned.
+     */
+    void addRespectingMetadataAndCloning(V value, @NotNull EquivalenceStrategy strategy, EquivalenceStrategy metadataEquivalenceStrategy) throws SchemaException;
+
+    /**
+     * Removes values equivalent to given value from the item; under specified equivalence strategy
+     * OR when values represent the same value via "representsSameValue(.., lax=false)" method.
+     *
+     * Respects metadata, i.e. if value to be removed has metadata specified, this method removes
+     * only particular metadata. Only if this means that all metadata are gone, then the value is deleted.
+     */
+    void removeRespectingMetadata(V value, @NotNull EquivalenceStrategy strategy, EquivalenceStrategy metadataEquivalenceStrategy);
 
     /**
      * Removes all given values from the item. It is basically a shortcut for repeated
@@ -531,6 +572,26 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
         }
     }
 
+    default void filterYields(BiFunction<V, PrismContainerValue, Boolean> function) {
+        Iterator<V> iterator = getValues().iterator();
+        while (iterator.hasNext()) {
+            V value = iterator.next();
+            PrismContainer<Containerable> valueMetadata = value.getValueMetadataAsContainer();
+            if (valueMetadata.hasNoValues()) {
+                Boolean keep = function.apply(value, null);
+                if (BooleanUtils.isNotTrue(keep)) {
+                    iterator.remove();
+                }
+            } else {
+                valueMetadata.getValues().removeIf(
+                        md -> BooleanUtils.isNotTrue(function.apply(value, md)));
+                if (valueMetadata.getValues().isEmpty()) {
+                    iterator.remove();
+                }
+            }
+        }
+    }
+
     void applyDefinition(D definition) throws SchemaException;
 
     void applyDefinition(D definition, boolean force) throws SchemaException;
@@ -622,6 +683,10 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     default boolean hasNoValues() {
         return getValues().isEmpty();
+    }
+
+    default boolean hasAnyValue() {
+        return !getValues().isEmpty();
     }
 
     @SuppressWarnings("unused")

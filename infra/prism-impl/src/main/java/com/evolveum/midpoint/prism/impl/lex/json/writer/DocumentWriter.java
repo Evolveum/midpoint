@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 import javax.xml.namespace.QName;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -169,10 +170,18 @@ class DocumentWriter {
 
     private void writeMetadataIfNeeded(XNodeImpl xnode) throws IOException {
         if (xnode instanceof MetadataAware) {
-            MapXNode metadataNode = ((MetadataAware) xnode).getMetadataNode();
-            if (metadataNode != null) {
+            List<MapXNode> metadataNodes = ((MetadataAware) xnode).getMetadataNodes();
+            if (!metadataNodes.isEmpty()) {
                 generator.writeFieldName(Constants.PROP_METADATA);
-                writeMap((MapXNodeImpl) metadataNode);
+                if (metadataNodes.size() == 1) {
+                    writeMap((MapXNodeImpl) metadataNodes.get(0));
+                } else {
+                    generator.writeStartArray();
+                    for (MapXNode metadataNode : metadataNodes) {
+                        writeMap((MapXNodeImpl) metadataNode);
+                    }
+                    generator.writeEndArray();
+                }
             }
         }
     }

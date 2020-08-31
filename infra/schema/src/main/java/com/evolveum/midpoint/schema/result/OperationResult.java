@@ -112,7 +112,7 @@ public class OperationResult
     private static long tokenCount = 1000000000000000000L;
 
     private final String operation;
-
+    private OperationKindType operationKind;
     private OperationResultStatus status;
 
     // Values of the following maps should NOT be null. But in reality it does happen.
@@ -1617,6 +1617,7 @@ public class OperationResult
                 OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
                 result.getMessageCode(), result.getMessage(), localizableMessage, null,
                 subresults);
+        opResult.operationKind(result.getOperationKind());
         opResult.getQualifiers().addAll(result.getQualifier());
         opResult.setImportance(result.getImportance());
         opResult.setAsynchronousOperationReference(result.getAsynchronousOperationReference());
@@ -1648,6 +1649,7 @@ public class OperationResult
 
     private static OperationResultType createOperationResultType(OperationResult opResult, Function<LocalizableMessage, String> resolveKeys) {
         OperationResultType resultType = new OperationResultType();
+        resultType.setOperationKind(opResult.getOperationKind());
         resultType.setToken(opResult.getToken());
         resultType.setStatus(OperationResultStatus.createStatusType(opResult.getStatus()));
         resultType.setImportance(opResult.getImportance());
@@ -2109,6 +2111,16 @@ public class OperationResult
     }
 
     @Override
+    public OperationResult operationKind(OperationKindType value) {
+        this.operationKind = value;
+        return this;
+    }
+
+    public OperationKindType getOperationKind() {
+        return operationKind;
+    }
+
+    @Override
     public OperationResultBuilder setMinor() {
         return setImportance(MINOR);
     }
@@ -2179,6 +2191,7 @@ public class OperationResult
     public OperationResult clone(Integer maxDepth, boolean full) {
         OperationResult clone = new OperationResult(operation);
 
+        clone.operationKind = operationKind;
         clone.status = status;
         clone.qualifiers.addAll(qualifiers);
         clone.params = cloneParams(params, full);
