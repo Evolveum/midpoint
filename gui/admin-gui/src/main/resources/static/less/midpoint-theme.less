@@ -1668,6 +1668,9 @@ display: inline-block;
 }
 
 .metadata {
+
+    border-radius: 0px;
+
     .panel-default {
         border-color: #ffffff;
     }
@@ -1691,23 +1694,41 @@ display: inline-block;
     }
 
     .info-box-icon-ethereal-image {
-        font-size: 46px;
+        font-size: 40px;
     }
 }
 
+.metadata div.prism-container {
+  // Removing the "top horizontal line" above metadata label and icon.
+  // HACK We should rather re-structure the code and provide custom css class.
+  // But there is not enough time for that now
+  border-top: 0px !important;
+}
+
+.metadata-block {
+    padding-left: 40px;
+}
+
+.metadata-properties {
+  padding-left: 40px;
+}
+
+// metadata "tab"
 .metadata-nav > li > a {
     border-radius: 10px;
     padding: 5px 10px;
     float: left;
 }
 
+// Tag icon in metadata "tab"
 .metadata-nav > li > a::before {
     font-family: "FontAwesome";
-    content: "\f02b";
+    content: "\f02b ";
 }
 
 .acquisition {
-
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .acquisition > li {
@@ -1729,8 +1750,7 @@ display: inline-block;
 }
 
 .yield {
-  margin-bottom: 2px;
-  border-radius: 3px;
+  margin-top: 2px;
 }
 
 .yield-heading {
