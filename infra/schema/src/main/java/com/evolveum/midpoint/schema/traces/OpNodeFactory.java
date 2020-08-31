@@ -27,6 +27,8 @@ public class OpNodeFactory {
                     return new ClockworkClickOpNode(prismContext, result, info, parent, traceInfo);
                 case MAPPING_EVALUATION:
                     return new MappingEvaluationOpNode(prismContext, result, info, parent, traceInfo);
+                case MAPPING_TIME_VALIDITY_EVALUATION:
+                    return new MappingTimeValidityEvaluationOpNode(prismContext, result, info, parent, traceInfo);
                 case FOCUS_CHANGE_EXECUTION:
                     return new FocusChangeExecutionOpNode(prismContext, result, info, parent, traceInfo);
                 case TRANSFORMATION_EXPRESSION_EVALUATION:

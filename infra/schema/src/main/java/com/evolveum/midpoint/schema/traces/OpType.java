@@ -63,6 +63,10 @@ public enum OpType {
             "com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentTripleEvaluator.evaluateAssignment",
             "Assignment evaluation (→ ${c:assignmentTargetName})"),
 
+    PROJECTION_ACTIVATION(OperationKindType.OTHER,"Projection activation",
+            "com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor.projectionActivation",
+            "Activation: ${p:resourceName}"),
+
     PROJECTOR_PROJECTION(OperationKindType.OTHER,"Projector projection",
             "com.evolveum.midpoint.model.impl.lens.projector.Projector.projection"),
 
@@ -75,6 +79,10 @@ public enum OpType {
     MAPPING_EVALUATION(OperationKindType.MAPPING_EVALUATION,"Mapping evaluation",
             "com.evolveum.midpoint.model.common.mapping.MappingImpl.evaluate",
             "Mapping: ${m:getMappingInfo}"),
+
+    MAPPING_TIME_VALIDITY_EVALUATION(OperationKindType.MAPPING_EVALUATION,"Mapping time validity evaluation",
+            "com.evolveum.midpoint.model.common.mapping.MappingImpl.evaluateTimeValidity",
+            "Mapping time validity: ${m:getMappingInfo}"),
 
     MAPPING_PREPARATION(OperationKindType.OTHER,"Mapping preparation",
             "com.evolveum.midpoint.model.common.mapping.MappingImpl.prepare"),

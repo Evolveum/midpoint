@@ -12,6 +12,7 @@ import com.evolveum.midpoint.util.annotation.Experimental;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -28,7 +29,7 @@ import java.util.*;
  * are not modifiable.
  */
 @Experimental
-public class PathKeyedMap<T> implements Map<ItemPath, T> {
+public class PathKeyedMap<T> implements Map<ItemPath, T>, Serializable {
 
     private final Map<ItemPath, T> internalMap = new HashMap<>();
 

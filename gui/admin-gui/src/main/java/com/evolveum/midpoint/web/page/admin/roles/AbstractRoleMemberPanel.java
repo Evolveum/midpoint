@@ -1229,7 +1229,10 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
                 if (!StringUtils.isBlank(relation)) {
                     relation += ",";
                 }
-                relation += assignmentRelation.getLocalPart();
+                String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(assignmentRelation);
+                relation += StringUtils.isNotEmpty(relationDisplayName) ?
+                        getPageBase().createStringResource(relationDisplayName).getString() :
+                        getPageBase().createStringResource(assignmentRelation.getLocalPart()).getString();
             }
         }
         return relation;

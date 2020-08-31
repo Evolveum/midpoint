@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
-
 import com.evolveum.midpoint.util.QNameUtil;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
@@ -43,13 +41,19 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
         Label labelComponent = new Label(ID_LABEL, headerLabelModel);
         labelComponent.setOutputMarkupId(true);
         labelComponent.setOutputMarkupPlaceholderTag(true);
-        labelComponent.add(new VisibleBehaviour(this::hasMultivalueParent));
+        labelComponent.add(new VisibleBehaviour(this::notEmptyAndNotDirectChildOfValueMetadataType));
         header.add(labelComponent);
     }
 
-    private boolean hasMultivalueParent() {
+    private boolean notEmptyAndNotDirectChildOfValueMetadataType() {
         CVW modelObject = getModelObject();
+
         if (modelObject == null) {
+            return false;
+        }
+
+        // TODO probably this doesn't need to be here if the wrapper factory generates wrappers correctly..
+        if (modelObject.getOldValue() == null || modelObject.getOldValue().isEmpty()) {
             return false;
         }
 

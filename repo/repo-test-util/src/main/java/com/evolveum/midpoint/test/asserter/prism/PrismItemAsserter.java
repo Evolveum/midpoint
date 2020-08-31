@@ -59,6 +59,11 @@ public abstract class PrismItemAsserter<I extends Item, RA> extends AbstractAsse
         return this;
     }
 
+    public PrismItemAsserter<I,RA> assertHasDefinition() {
+        assertNotNull("Expected definition but none is present "+desc(), item.getDefinition());
+        return this;
+    }
+
     // TODO
 
     protected String desc() {

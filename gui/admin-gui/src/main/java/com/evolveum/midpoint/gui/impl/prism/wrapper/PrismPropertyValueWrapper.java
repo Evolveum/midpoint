@@ -6,18 +6,20 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.wrapper;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.DateLabelComponent;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * @author katka
@@ -106,14 +108,15 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
         }
 
         QName typeName = getParent().getTypeName();
-        if (typeName == null) {
-            return getRealValue().toString();
-        }
 
         if (QNameUtil.match(DOMUtil.XSD_QNAME, typeName)) {
             return ((QName)getRealValue()).getLocalPart();
         }
-        
+
+        if (QNameUtil.match(DOMUtil.XSD_DATETIME, typeName)) {
+            return WebComponentUtil.getLocalizedDate((XMLGregorianCalendar) getRealValue(), DateLabelComponent.FULL_MEDIUM_STYLE);
+        }
+
         return getRealValue().toString();
     }
 

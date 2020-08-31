@@ -55,8 +55,13 @@ public class ValueMetadataAsserter<RA extends AbstractAsserter> extends PrismCon
     }
 
     @Override
+    public ValueMetadataAsserter<RA> assertHasDefinition() {
+        super.assertHasDefinition();
+        return this;
+    }
+
+    @Override
     public ValueMetadataAsserter<RA> display() {
         return (ValueMetadataAsserter<RA>) super.display();
     }
-
 }

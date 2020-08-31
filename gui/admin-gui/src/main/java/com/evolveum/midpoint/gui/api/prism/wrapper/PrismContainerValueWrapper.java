@@ -79,5 +79,7 @@ public interface PrismContainerValueWrapper<C extends Containerable> extends Pri
 
     @Override
     PrismContainerValue<C> getNewValue();
+
+    PrismContainerWrapper<Containerable> getSelectedChild();
 }
 

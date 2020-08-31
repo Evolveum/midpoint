@@ -578,23 +578,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
         this.task = task;
-        OperationResult result = parentResult.subresult(OP_EVALUATE)
-                .addArbitraryObjectAsContext("mapping", this)
-                .addArbitraryObjectAsContext("context", getContextDescription())
-                .addArbitraryObjectAsContext("task", task)
-                .setMinor()
-                .build();
-        if (result.isTracingNormal(MappingEvaluationTraceType.class)) {
-            trace = new MappingEvaluationTraceType(beans.prismContext)
-                    .mapping(mappingBean.clone())
-                    .mappingKind(mappingKind)
-                    .implicitSourcePath(implicitSourcePath != null ? new ItemPathType(implicitSourcePath) : null)
-                    .implicitTargetPath(implicitTargetPath != null ? new ItemPathType(implicitTargetPath) : null)
-                    .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject, beans.prismContext));
-            result.addTrace(trace);
-        } else {
-            trace = null;
-        }
+        OperationResult result = createOpResultAndRecordStart(OP_EVALUATE, task, parentResult);
         try {
             assertUninitializedOrPrepared();
             prepare(result);
@@ -614,15 +598,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     public void evaluateTimeValidity(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
         this.task = task;
-        OperationResult result = parentResult.subresult(OP_EVALUATE_TIME_VALIDITY)
-                .addArbitraryObjectAsContext("mapping", this)
-                .addArbitraryObjectAsContext("context", getContextDescription())
-                .addArbitraryObjectAsContext("task", task)
-                .setMinor()
-                .build();
+        OperationResult result = createOpResultAndRecordStart(OP_EVALUATE_TIME_VALIDITY, task, parentResult);
         try {
             assertUninitializedOrPrepared();
+
             prepare(result);
+            recordSources();
+
             evaluateTimeConstraint(result);
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -631,6 +613,28 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             result.computeStatusIfUnknown();
             this.task = null;
         }
+    }
+
+    @NotNull
+    private OperationResult createOpResultAndRecordStart(String opName, Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.subresult(opName)
+                .addArbitraryObjectAsContext("mapping", this)
+                .addArbitraryObjectAsContext("context", getContextDescription())
+                .addArbitraryObjectAsContext("task", task)
+                .setMinor()
+                .build();
+        if (result.isTracingNormal(MappingEvaluationTraceType.class)) {
+            trace = new MappingEvaluationTraceType(beans.prismContext)
+                    .mapping(mappingBean.clone())
+                    .mappingKind(mappingKind)
+                    .implicitSourcePath(implicitSourcePath != null ? new ItemPathType(implicitSourcePath) : null)
+                    .implicitTargetPath(implicitTargetPath != null ? new ItemPathType(implicitTargetPath) : null)
+                    .containingObjectRef(ObjectTypeUtil.createObjectRef(originObject, beans.prismContext));
+            result.addTrace(trace);
+        } else {
+            trace = null;
+        }
+        return result;
     }
 
     private void assertUninitializedOrPrepared() {
@@ -686,10 +690,10 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                 .setMinor()
                 .build();
 
-        recordEvaluationStart();
+        noteEvaluationStart();
 
         try {
-            traceSources();
+            recordSources();
 
             // We may need to re-parse the sources here
 
@@ -721,7 +725,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                     result.recordNotApplicableIfUnknown();
                     traceNotApplicable("condition is false");
                 }
-                traceOutput();
+                recordOutput();
             } else {
                 outputTriple = null;
                 result.recordNotApplicableIfUnknown();
@@ -732,18 +736,18 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
             traceFailure(e);
             throw e;
         } finally {
-            recordEvaluationEnd();
+            noteEvaluationEnd();
         }
     }
 
-    private void traceTimeConstraintValidity() {
+    private void recordTimeConstraintValidity() {
         if (trace != null) {
             trace.setNextRecomputeTime(getNextRecomputeTime());
             trace.setTimeConstraintValid(isTimeConstraintValid());
         }
     }
 
-    private void traceSources() throws SchemaException {
+    private void recordSources() throws SchemaException {
         if (trace != null) {
             for (Source<?, ?> source : sources) {
                 trace.beginSource()
@@ -753,7 +757,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
     }
 
-    private void traceOutput() {
+    private void recordOutput() {
         if (trace != null && outputTriple != null) {
             trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, beans.prismContext));
         }
@@ -975,13 +979,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return conditionOutputTriple;
     }
 
-    private void recordEvaluationStart() {
+    private void noteEvaluationStart() {
         if (profiling) {
             evaluationStartTime = System.currentTimeMillis();
         }
     }
 
-    private void recordEvaluationEnd() {
+    private void noteEvaluationEnd() {
         if (profiling) {
             evaluationEndTime = System.currentTimeMillis();
         }
@@ -1140,9 +1144,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         if (timeConstraintsEvaluation == null) {
             timeConstraintsEvaluation = new TimeConstraintsEvaluation(this);
             timeConstraintsEvaluation.evaluate(result);
-            traceTimeConstraintValidity();
         }
         timeConstraintsEvaluation.isTimeConstraintValid();
+        recordTimeConstraintValidity();
     }
 
     private boolean sourcesChanged() {
@@ -1472,13 +1476,13 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return task;
     }
 
-    void traceTimeFrom(XMLGregorianCalendar timeFrom) {
+    void recordTimeFrom(XMLGregorianCalendar timeFrom) {
         if (trace != null) {
             trace.setTimeFrom(timeFrom);
         }
     }
 
-    void traceTimeTo(XMLGregorianCalendar timeTo) {
+    void recordTimeTo(XMLGregorianCalendar timeTo) {
         if (trace != null) {
             trace.setTimeTo(timeTo);
         }
