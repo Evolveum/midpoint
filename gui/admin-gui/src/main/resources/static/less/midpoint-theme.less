@@ -939,17 +939,6 @@ body .treeview-menu > li > span:hover {
 
 }
 
-.metadata-properties {
-  .metadata-property {
-    padding-left: 20px;
-
-    &.stripe {
-      background-color: @table-stripe-bg-color;
-    }
-  }
-
-}
-
 .prism-header {
 	margin-bottom: 15px;
 	display: block;
@@ -1719,19 +1708,53 @@ display: inline-block;
 
 .metadata-properties {
   padding-left: 40px;
-}
 
-// metadata "tab"
-.metadata-nav > li > a {
-  border-radius: 10px;
-  padding: 5px 10px;
-  float: left;
+  .metadata-property {
+    padding-left: 0px;
+
+    &.stripe {
+      background-color: @table-stripe-bg-color;
+    }
+  }
+
+  .label {
+    display: block;
+    color: #000;
+    font-size: 100%;
+    background-color: transparent;
+    margin-top: 12px;
+    margin-top: 8px;
+    padding-left: 0em;
+    text-align: left;
+  }
+
 }
 
 // Tag icon in metadata "tab"
 .metadata-nav > li > a::before {
   font-family: "FontAwesome";
-  content: "\f02b ";
+  padding-right: 0.5em;
+  content: "\f02b";
+}
+
+.metadata-tab {
+  border: 1px solid #dddddd;
+  border-radius: 0px;
+  padding: 3px 10px !important;
+  float: left;
+
+//   position: relative;
+//   display: block;
+  font-size: 75%;
+  font-weight: 700;
+//   line-height: 1;
+  color: #000;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.metadata-tab-active {
+  background-color: #dddddd;
 }
 
 .acquisition {
@@ -1764,5 +1787,14 @@ display: inline-block;
 .yield-heading {
   padding: 5px 5px;
   border-top: 1px solid #dddddd;
+//   font-weight: 700;
+  font-size: 16px;
 }
 
+.yield-description {
+  clear: both; // Fix floats in yield header
+  padding-top: 10px;
+  padding-left: 50px;
+  margin-top: 0px;
+  margin-bottom: -10px;
+}

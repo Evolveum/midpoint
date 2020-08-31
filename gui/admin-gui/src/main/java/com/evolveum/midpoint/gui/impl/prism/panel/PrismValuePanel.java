@@ -294,7 +294,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
             String primaryButton = getPrimaryButton(getValueMetadata(), selectedContainer.getModelObject());
 
-            return primaryButton == null ? "label label-default" : primaryButton;
+            return primaryButton == null ? "metadata-tab" : primaryButton;
         });
     }
 
@@ -306,7 +306,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
                 }
 
                 if (container.isShowMetadataDetails()) {
-                    return "label label-primary";
+                    return "metadata-tab metadata-tab-active";
                 }
             }
         }
