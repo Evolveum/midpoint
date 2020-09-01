@@ -321,6 +321,9 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
 
     @Override
     public void revive(PrismContext prismContext) {
+        if (metadataValueWrapper == null) {
+            return;
+        }
         metadataValueWrapper.revive(prismContext);
     }
 
