@@ -217,7 +217,9 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
 
         ValueMetadataWrapperFactoryImpl valueMetadataWrapperFactory = new ValueMetadataWrapperFactoryImpl(getRegistry());
         PrismContainerWrapper<ValueMetadataType> valueMetadataWrapper = valueMetadataWrapperFactory.createWrapper(null, metadataContainer, ItemStatus.NOT_CHANGED, ctx);
-        valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
+        if (valueMetadataWrapper != null) {
+            valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
+        }
     }
 
     private <T, PV extends PrismValue> boolean canContainLegacyMetadata(PV value) {
