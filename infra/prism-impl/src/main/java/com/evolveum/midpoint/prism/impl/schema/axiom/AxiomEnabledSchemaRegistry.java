@@ -219,11 +219,20 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
     private ComplexTypeDefinition prismifyStructured(AxiomTypeDefinition typeDefinition) {
         QName prismName = qName(typeDefinition.name());
         ComplexTypeDefinition maybe = findComplexTypeDefinitionByType(prismName);
+        final ComplexTypeDefinitionImpl typeDef;
         if(maybe != null) {
-            return maybe;
+            typeDef = (ComplexTypeDefinitionImpl) maybe;
+            if(typeDef.axiomDefinition().isPresent()) {
+                return typeDef;
         }
+<<<<<<< Updated upstream
 
         ComplexTypeDefinitionImpl typeDef = new ComplexTypeDefinitionImpl(prismName, getPrismContext());
+=======
+        } else {
+            typeDef = new ComplexTypeDefinitionImpl(prismName, getPrismContext());
+        }
+>>>>>>> Stashed changes
         typeDef.setAxiomDefinition(typeDefinition);
         reuseXjcClassIfExists(typeDef);
         copyItemDefs(typeDef, typeDefinition);
