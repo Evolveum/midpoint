@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -104,7 +105,7 @@ public interface ModelInteractionService {
     /**
      * <p>
      * Returns a schema that reflects editability of the object in terms of midPoint schema limitations and security. This method
-     * merges together all the applicable limitations that midPoint knows of (schema, security, other constratints). It may be required
+     * merges together all the applicable limitations that midPoint knows of (schema, security, other constraints). It may be required
      * to pre-populate new object before calling this method, e.g. to put the object in a correct org in case that delegated administration
      * is used.
      * </p>
@@ -130,6 +131,16 @@ public interface ModelInteractionService {
     PrismObjectDefinition<ShadowType> getEditShadowDefinition(ResourceShadowDiscriminator discr, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
     RefinedObjectClassDefinition getEditObjectClassDefinition(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, AuthorizationPhaseType phase, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException;
+
+    /**
+     * Returns specification of processing of given metadata item (e.g. provenance).
+     * The caller can use returned object to find out the processing of given metadata item
+     * for various data items (e.g. givenName, familyName, etc).
+     */
+    @Experimental
+    <O extends ObjectType> MetadataItemProcessingSpec getMetadataItemProcessingSpec(ItemPath metadataItemPath, PrismObject<O> object,
+            Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException,
+            ExpressionEvaluationException, CommunicationException, SecurityViolationException;
 
     /**
      * <p>

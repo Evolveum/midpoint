@@ -345,7 +345,7 @@ public class TestRecomputeTask extends AbstractInitializedModelIntegrationTest {
         assertUsers(7);
 
         displayAllNotifications();
-        assertSingleDummyTransportMessageContaining("simpleAccountNotifier-SUCCESS", "Channel: " + SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
+        assertSingleDummyTransportMessageContaining("simpleAccountNotifier-SUCCESS", "Channel: " + SchemaConstants.CHANNEL_RECOMPUTE_URI);
     }
 
     /**

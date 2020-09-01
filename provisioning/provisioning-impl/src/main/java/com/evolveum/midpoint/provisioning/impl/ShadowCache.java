@@ -1843,7 +1843,7 @@ public class ShadowCache {
             change.setOldShadow(repoShadow);
             change.setResource(ctx.getResource().asPrismObject());
             change.setObjectDelta(repoShadow.createDeleteDelta());
-            change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI);
+            change.setSourceChannel(SchemaConstants.CHANNEL_DISCOVERY_URI);
             changeNotificationDispatcher.notifyChange(change, task, parentResult);
             applyDefinition(repoShadow, parentResult);
             ResourceOperationDescription operationDescription = createSuccessOperationDescription(ctx, repoShadow,
@@ -2471,7 +2471,7 @@ public class ShadowCache {
         shadowChangeDescription.setResource(resource);
         shadowChangeDescription.setOldShadow(newShadow ? null : resourceShadow);
         shadowChangeDescription.setCurrentShadow(resourceShadow);
-        shadowChangeDescription.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI);
+        shadowChangeDescription.setSourceChannel(SchemaConstants.CHANNEL_DISCOVERY_URI);
         shadowChangeDescription.setUnrelatedChange(true);
 
         Task task = taskManager.createTaskInstance();

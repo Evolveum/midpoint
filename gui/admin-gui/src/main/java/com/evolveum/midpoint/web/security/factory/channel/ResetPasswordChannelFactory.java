@@ -8,10 +8,9 @@ package com.evolveum.midpoint.web.security.factory.channel;
 
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.web.security.channel.AuthenticationChannelImpl;
 import com.evolveum.midpoint.web.security.channel.ResetPasswordAuthenticationChannel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
-import org.apache.commons.lang3.StringUtils;
+
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,7 +20,7 @@ import org.springframework.stereotype.Component;
 public class ResetPasswordChannelFactory extends AbstractChannelFactory {
     @Override
     public boolean match(String channelId) {
-        return SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI.equals(channelId);
+        return SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(channelId);
     }
 
     @Override

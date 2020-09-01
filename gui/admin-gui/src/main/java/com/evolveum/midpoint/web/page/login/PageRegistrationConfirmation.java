@@ -45,7 +45,7 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 //CONFIRMATION_LINK = "http://localhost:8080/midpoint/confirm/registration/";
-@PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.REGISTRATION_CONFIRAMTION_PREFIX)}, permitAll = true)
+@PageDescriptor(urls = {@Url(mountUrl = SchemaConstants.REGISTRATION_CONFIRMATION_PREFIX)}, permitAll = true)
 public class PageRegistrationConfirmation extends PageRegistrationBase {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRegistrationConfirmation.class);
@@ -122,7 +122,7 @@ public class PageRegistrationConfirmation extends PageRegistrationBase {
     private UserType checkUserCredentials(String username, String nonce, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_CHECK_CREDENTIALS);
         try {
-            ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+            ConnectionEnvironment connEnv = ConnectionEnvironment.create(SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
             return (UserType) getAuthenticationEvaluator().checkCredentials(connEnv, new NonceAuthenticationContext(username, UserType.class,
                     nonce, getSelfRegistrationConfiguration().getNoncePolicy()));
         } catch (AuthenticationException ex) {

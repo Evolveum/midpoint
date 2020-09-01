@@ -579,7 +579,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractEmptyModelIn
     }
 
     protected void assertPasswordMetadata(PrismObject<UserType> user, boolean create, XMLGregorianCalendar start, XMLGregorianCalendar end) {
-        assertPasswordMetadata(user, CredentialsType.F_PASSWORD, create, start, end, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
+        assertPasswordMetadata(user, CredentialsType.F_PASSWORD, create, start, end, USER_ADMINISTRATOR_OID, SchemaConstants.CHANNEL_USER_URI);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })

@@ -12,6 +12,7 @@ import java.io.File;
 import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 import org.jetbrains.annotations.NotNull;
@@ -447,6 +448,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .displayXml()
                 .assertFullName("Chuck White")
                 .valueMetadata(UserType.F_FULL_NAME)
+                    .assertHasDefinition()
                     .singleValue()
                         .assertPropertyValuesEqual(LOA_PATH, 1)
                         .end();
@@ -582,7 +584,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .beginProvenance()
                             .beginAcquisition()
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
@@ -596,7 +598,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .beginProvenance()
                             .beginAcquisition()
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
@@ -619,7 +621,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBetween(now, now)
                         .end()
                     .end()
@@ -629,7 +631,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBetween(now, now)
                         .end()
                     .end()
@@ -640,7 +642,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBetween(now, now)
                         .end()
                     .end()
@@ -702,7 +704,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBefore(before)
                         .end()
                     .end()
@@ -714,7 +716,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -736,7 +738,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .assertAcquisitions(2)
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBefore(before)
                         .end()
                         .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
@@ -802,7 +804,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBefore(before)
                         .end()
                     .end()
@@ -814,7 +816,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -838,7 +840,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertAcquisitions(2)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                             .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
@@ -912,7 +914,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertAcquisitions(3)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                             .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
@@ -988,7 +990,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestampBefore(before)
                         .end()
                     .end()
@@ -1000,7 +1002,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -1015,7 +1017,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertAcquisitions(1)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -1101,7 +1103,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -1116,7 +1118,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertAcquisitions(2)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                             .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
@@ -1143,7 +1145,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .assertAcquisitions(2)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                             .singleAcquisition(ORIGIN_SELF_SERVICE_APP.oid)
@@ -1196,7 +1198,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .beginProvenance()
                             .beginAcquisition()
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
@@ -1218,7 +1220,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                     .provenance()
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertTimestamp(now)
                         .end()
                     .end()
@@ -1230,7 +1232,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertTimestampBefore(before)
                             .end()
                         .end()
@@ -1244,7 +1246,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
                             .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .end()
                         .end()
                     .end()
@@ -1264,7 +1266,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .assertMappingSpec(TEMPLATE_PROVENANCE_METADATA_RECORDING.oid)
                         .singleAcquisition()
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                         .end()
                     .end()
                 .end();
@@ -1455,7 +1457,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .beginProvenance()
                             .beginAcquisition()
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .actorRef(USER_ADMINISTRATOR_OID, UserType.COMPLEX_TYPE)
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
@@ -1516,7 +1518,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_ADMINISTRATOR_OID)
                                 .assertTimestampBetween(now, now)
                             .end()
@@ -1537,7 +1539,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .end()
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             .assertActorRef(USER_ADMINISTRATOR_OID)
                             .assertTimestampBetween(now, now)
                         .end()
@@ -1607,7 +1609,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .beginProvenance()
                             .beginAcquisition()
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .actorRef(USER_JIM.oid, UserType.COMPLEX_TYPE)
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
@@ -1653,7 +1655,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_JIM.oid)
                                 .assertTimestampBetween(now, now)
                             .end()
@@ -1679,7 +1681,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_ADMINISTRATOR_OID)
                                 .assertTimestampBefore(before)
                             .end()
@@ -1700,7 +1702,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .end()
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
                             .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             // not sure about actor (administrator vs. jim) nor timestamp
                         .end()
                     .end()
@@ -1811,7 +1813,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_JIM.oid)
                                 .assertTimestampBefore(before)
                             .end()
@@ -1846,7 +1848,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_ADMINISTRATOR_OID)
                                 .assertTimestampBefore(before)
                             .end()
@@ -1878,7 +1880,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBetween(before, after)
                         .end()
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             // not sure about actor (administrator vs. jim) nor timestamp
                         .end()
                     .end()
@@ -2007,7 +2009,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_JIM.oid)
                                 .assertTimestampBefore(before)
                             .end()
@@ -2039,7 +2041,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .provenance()
                             .singleAcquisition()
                                 .assertOriginRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .assertActorRef(USER_ADMINISTRATOR_OID)
                                 .assertTimestampBefore(before)
                             .end()
@@ -2069,7 +2071,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                             .assertTimestampBefore(before)
                         .end()
                         .singleAcquisition(ORIGIN_ADMIN_ENTRY.oid)
-                            .assertChannel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                            .assertChannel(SchemaConstants.CHANNEL_USER_LOCAL)
                             // not sure about actor (administrator vs. jim) nor timestamp
                         .end()
                     .end()
@@ -2211,7 +2213,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                         .beginProvenance()
                             .beginAcquisition()
                                 .originRef(ORIGIN_ADMIN_ENTRY.ref())
-                                .channel(SchemaConstants.CHANNEL_GUI_USER_LOCAL)
+                                .channel(SchemaConstants.CHANNEL_USER_LOCAL)
                                 .timestamp(now)
                             .<ProvenanceMetadataType>end()
                         .<ValueMetadataType>end());
@@ -2264,7 +2266,30 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
     }
 
     @Test
-    public void test950DeleteBlaiseAndReconcile() throws Exception {
+    public void test370ProvenanceSupport() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        PrismObject<UserType> blaise = findUserByUsername(USER_BLAISE_NAME);
+
+        when();
+        MetadataItemProcessingSpec provenanceSupportSpec = modelInteractionService.getMetadataItemProcessingSpec(
+                ValueMetadataType.F_PROVENANCE, blaise, task, result);
+
+        then();
+        displayDumpable("provenance support spec", provenanceSupportSpec);
+
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_GIVEN_NAME)).as("giveName provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_FULL_NAME)).as("fullName provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(ItemPath.create(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)))
+                .as("activation/administrativeStatus provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_ASSIGNMENT)).as("assignment provenance support").isTrue();
+        assertThat(provenanceSupportSpec.isFullProcessing(UserType.F_COST_CENTER)).as("costCenter provenance support").isFalse();
+    }
+
+    @Test
+    public void test390DeleteBlaiseAndReconcile() throws Exception {
         given();
         Task task = getTestTask();
         OperationResult result = task.getResult();

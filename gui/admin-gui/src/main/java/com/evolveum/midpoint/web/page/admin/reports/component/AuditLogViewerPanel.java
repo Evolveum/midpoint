@@ -512,7 +512,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         if (search.getChannel() != null) {
             Channel channel = search.getChannel();
             if (channel.equals(Channel.IMPORT)) {
-                parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, SchemaConstants.CHANGE_CHANNEL_IMPORT_URI);
+                parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, SchemaConstants.CHANNEL_IMPORT_URI);
             } else {
                 parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, channel.getChannel());
             }
@@ -765,7 +765,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                     if (chan.getChannel().equals(channel)) {
                         channelValue = chan;
                         break;
-                    } else if(SchemaConstants.CHANGE_CHANNEL_IMPORT_URI.equals(channel)) {
+                    } else if (SchemaConstants.CHANNEL_IMPORT_URI.equals(channel)) {
                         channelValue = Channel.IMPORT;
                     }
                 }

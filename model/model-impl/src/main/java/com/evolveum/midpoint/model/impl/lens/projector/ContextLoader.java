@@ -1210,7 +1210,7 @@ public class ContextLoader implements ProjectorProcessor {
                     GetOperationOptions rootOptions = GetOperationOptions.createPointInTimeType(PointInTimeType.FUTURE);
                     if (projContext.isDoReconciliation()) {
                         rootOptions.setForceRefresh(true);
-                        if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
+                        if (SchemaConstants.CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
                             // Avoid discovery loops
                             rootOptions.setDoNotDiscovery(true);
                         }
@@ -1457,7 +1457,7 @@ public class ContextLoader implements ProjectorProcessor {
             if (projCtx.isDoReconciliation()) {
                 getOptions.setForceRefresh(true);
             }
-            if (SchemaConstants.CHANGE_CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
+            if (SchemaConstants.CHANNEL_DISCOVERY_URI.equals(context.getChannel())) {
                 LOGGER.trace("Loading full resource object {} from provisioning - with doNotDiscover to avoid loops; reason: {}",
                         projCtx, reason);
                 // Avoid discovery loops

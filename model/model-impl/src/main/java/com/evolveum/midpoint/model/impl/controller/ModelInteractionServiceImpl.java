@@ -27,12 +27,13 @@ import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.TerminateSessionEvent;
+import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
+import com.evolveum.midpoint.model.common.mapping.metadata.MetadataItemProcessingSpecImpl;
 import com.evolveum.midpoint.model.common.stringpolicy.*;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
-import com.evolveum.midpoint.model.impl.util.ReferenceResolverImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.util.*;
@@ -59,15 +60,6 @@ import com.evolveum.midpoint.common.refinery.LayerRefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.CollectionStats;
-import com.evolveum.midpoint.model.api.AssignmentCandidatesSpecification;
-import com.evolveum.midpoint.model.api.ModelAuthorizationAction;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.api.ProgressListener;
-import com.evolveum.midpoint.model.api.RoleSelectionSpecification;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
 import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
@@ -89,7 +81,6 @@ import com.evolveum.midpoint.model.impl.lens.LensContextPlaceholder;
 import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.OperationalDataManager;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.lens.projector.Projector;
 import com.evolveum.midpoint.model.impl.security.SecurityHelper;
 import com.evolveum.midpoint.model.impl.security.GuiProfileCompiler;
 import com.evolveum.midpoint.model.impl.visualizer.Visualizer;
@@ -267,19 +258,14 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                 .deepClone(true, schemaTransformer::setFullAccessFlags)
                 .toMutable();
         try {
-            PrismObject<O> baseObject;
-            if (object.getOid() != null) {
-                // Re-read the object from the repository to make sure we have all the properties.
-                // the object from method parameters may be already processed by the security code
-                // and properties needed to evaluate authorizations may not be there
-                // MID-3126, see also MID-3435
-                baseObject = cacheRepositoryService.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
-            } else {
-                baseObject = object;
-            }
+            // Re-read the object from the repository to make sure we have all the properties.
+            // the object from method parameters may be already processed by the security code
+            // and properties needed to evaluate authorizations may not be there
+            // MID-3126, see also MID-3435
+            PrismObject<O> fullObject = getFullObject(object, result);
 
             // TODO: maybe we need to expose owner resolver in the interface?
-            ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(baseObject, null, task, result);
+            ObjectSecurityConstraints securityConstraints = securityEnforcer.compileSecurityConstraints(fullObject, null, task, result);
             LOGGER.trace("Security constrains for {}:\n{}", object, DebugUtil.debugDumpLazily(securityConstraints));
             if (securityConstraints == null) {
                 // Nothing allowed => everything denied
@@ -425,6 +411,36 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
         // TODO what about activation and credentials?
 
         return layeredROCD;
+    }
+
+    @Override
+    public <O extends ObjectType> MetadataItemProcessingSpec getMetadataItemProcessingSpec(ItemPath metadataItemPath,
+            PrismObject<O> object, Task task, OperationResult result)
+            throws SchemaException, ConfigurationException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, SecurityViolationException {
+
+        PrismObject<O> fullObject = getFullObject(object, result);
+        ArchetypePolicyType archetypePolicy = archetypeManager.determineArchetypePolicy(fullObject, result);
+        ObjectReferenceType templateRef = archetypePolicy != null ? archetypePolicy.getObjectTemplateRef() : null;
+        MetadataItemProcessingSpecImpl processingSpec = new MetadataItemProcessingSpecImpl(metadataItemPath);
+        processingSpec.populateFromObjectTemplate(templateRef, objectResolver,
+                "getting items with provenance support for " + object, task, result);
+
+        LOGGER.trace("getMetadataSupportSpec for {} in {}:\n"
+                + " - archetypePolicy = {}\n"
+                + " - templateRef = {}\n"
+                + " - processingSpec = \n{}", metadataItemPath, object, archetypePolicy, templateRef,
+                DebugUtil.debugDumpLazily(processingSpec, 1));
+
+        return processingSpec;
+    }
+
+    private @NotNull <O extends ObjectType> PrismObject<O> getFullObject(PrismObject<O> object, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        if (object.getOid() != null) {
+            return cacheRepositoryService.getObject(object.getCompileTimeClass(), object.getOid(), null, result);
+        } else {
+            return object;
+        }
     }
 
     public <O extends ObjectType,R extends AbstractRoleType> ItemSecurityConstraints getAllowedRequestAssignmentItems(PrismObject<O> object, PrismObject<R> target, Task task, OperationResult result) throws SchemaException, SecurityViolationException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException  {

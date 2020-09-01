@@ -29,8 +29,6 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.page.forgetpassword.PageForgotPassword;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.module.authentication.MailNonceModuleAuthentication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
@@ -333,7 +331,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
             @Override
             public OperationResult run() {
                 Task task = createAnonymousTask("generateUserNonce");
-                task.setChannel(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
+                task.setChannel(SchemaConstants.CHANNEL_RESET_PASSWORD_URI);
                 task.setOwner(user.asPrismObject());
                 OperationResult result = new OperationResult("generateUserNonce");
                 ProtectedStringType nonceCredentials = new ProtectedStringType();

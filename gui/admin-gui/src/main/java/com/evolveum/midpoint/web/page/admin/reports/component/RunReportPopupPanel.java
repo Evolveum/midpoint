@@ -472,7 +472,7 @@ public class RunReportPopupPanel extends BasePanel<ReportDto> implements Popupab
         }
 
         task.setOwner(owner);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
 
         return task;
     }

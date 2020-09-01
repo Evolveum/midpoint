@@ -83,7 +83,7 @@ public class NotificationManagerImpl implements NotificationManager {
     }
 
     private SystemConfigurationType getSystemConfiguration(Task task, OperationResult result) {
-        boolean errorIfNotFound = !SchemaConstants.CHANNEL_GUI_INIT_URI.equals(task.getChannel());
+        boolean errorIfNotFound = !SchemaConstants.CHANNEL_INIT_URI.equals(task.getChannel());
         return NotificationFunctionsImpl
                 .getSystemConfiguration(cacheRepositoryService, errorIfNotFound, result);
     }

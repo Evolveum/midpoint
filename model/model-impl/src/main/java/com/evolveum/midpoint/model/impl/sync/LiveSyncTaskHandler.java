@@ -71,7 +71,7 @@ public class LiveSyncTaskHandler implements TaskHandler {
         runResult.setOperationResult(opResult);
 
         if (task.getChannel() == null) {
-            task.setChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
+            task.setChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
         }
 
         final String ctx = "Live Sync";

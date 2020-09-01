@@ -20,7 +20,7 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002" relation="org:default" type="c:UserType">
         <!-- administrator -->
     </ownerRef>
-    <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation</channel>
+    <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#reconciliation</channel>
     <executionStatus>closed</executionStatus>
     <category>Reconciliation</category>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/synchronization/task/delete-not-updated-shadow/handler-3</handlerUri>

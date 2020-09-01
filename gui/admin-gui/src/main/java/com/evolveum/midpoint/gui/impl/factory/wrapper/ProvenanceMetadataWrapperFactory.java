@@ -6,6 +6,12 @@
  */
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
+
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -22,11 +28,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
 
 @Component
-public class ProvenanceMetadataWrapperFactory extends MetadataWrapperFactoryImpl<ProvenanceAcquisitionType> {
+public class ProvenanceMetadataWrapperFactory extends MetadataWrapperFactoryImpl<ProvenanceMetadataType> {
 
     @Override
     public <C extends Containerable> boolean match(ItemDefinition<?> def, PrismContainerValue<C> parent) {
-        return QNameUtil.match(def.getTypeName(), ProvenanceAcquisitionType.COMPLEX_TYPE);
+        return QNameUtil.match(def.getTypeName(), ProvenanceMetadataType.COMPLEX_TYPE);
     }
 
     @Override
@@ -35,11 +41,11 @@ public class ProvenanceMetadataWrapperFactory extends MetadataWrapperFactoryImpl
     }
 
     @Override
-    protected boolean shouldCreateEmptyValue(PrismContainer<ProvenanceAcquisitionType> item, WrapperContext context) {
+    protected boolean shouldCreateEmptyValue(PrismContainer<ProvenanceMetadataType> item, WrapperContext context) {
         return false;
     }
 
-//    @Override
+    //    @Override
 //    protected PrismContainerValue<ProvenanceAcquisitionType> createNewValue(PrismContainer<ProvenanceAcquisitionType> item) {
 //        PrismContainerValue<ProvenanceAcquisitionType> newValue = super.createNewValue(item);
 //        ProvenanceAcquisitionType acquisitionType = newValue.asContainerable();

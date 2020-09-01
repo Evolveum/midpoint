@@ -125,7 +125,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     public void test100ModifyUserAddAccount() throws Exception {
         // GIVEN
         Task task = taskManager.createTaskInstance(TestNotifications.class.getName() + ".test100ModifyUserAddAccount");
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         OperationResult result = task.getResult();
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
@@ -212,7 +212,7 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
                 + "    - Value: (protected string)\n"
                 + " - Administrative status: ENABLED\n"
                 + "\n"
-                + "Channel: http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user", addMessage.getBody());
+                + "Channel: http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user", addMessage.getBody());
 
         assertSteadyResources();
     }

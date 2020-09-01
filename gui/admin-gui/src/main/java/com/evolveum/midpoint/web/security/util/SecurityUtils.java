@@ -97,8 +97,8 @@ public class SecurityUtils {
         map.put("rest", SchemaConstants.CHANNEL_REST_URI);
         map.put("api", SchemaConstants.CHANNEL_REST_URI);
         map.put("actuator", SchemaConstants.CHANNEL_ACTUATOR_URI);
-        map.put("resetPassword", SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
-        map.put("registration", SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI);
+        map.put("resetPassword", SchemaConstants.CHANNEL_RESET_PASSWORD_URI);
+        map.put("registration", SchemaConstants.CHANNEL_SELF_REGISTRATION_URI);
         LOCAL_PATH_AND_CHANNEL = Collections.unmodifiableMap(map);
     }
 
@@ -569,7 +569,7 @@ public class SecurityUtils {
 
     private static Task createAnonymousTask(String operation, TaskManager manager) {
         Task task = manager.createTaskInstance(operation);
-        task.setChannel(SchemaConstants.CHANNEL_GUI_USER_URI);
+        task.setChannel(SchemaConstants.CHANNEL_USER_URI);
         return task;
     }
 

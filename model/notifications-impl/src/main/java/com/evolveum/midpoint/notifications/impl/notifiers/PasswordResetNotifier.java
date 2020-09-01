@@ -52,7 +52,7 @@ public class PasswordResetNotifier extends ConfirmationNotifier<PasswordResetNot
         } else if (event.getFocusDeltas().isEmpty()) {
             LOGGER.trace("No user deltas in event, exiting.");
             return false;
-        } else if (SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI.equals(event.getChannel())) {
+        } else if (SchemaConstants.CHANNEL_RESET_PASSWORD_URI.equals(event.getChannel())) {
             LOGGER.trace("Found change from reset password channel.");
             return true;
         } else {

@@ -78,7 +78,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
         String enteredUsername = (String) authentication.getPrincipal();
         LOGGER.trace("Authenticating username '{}'", enteredUsername);
 
-        ConnectionEnvironment connEnv = createEnviroment(channel);
+        ConnectionEnvironment connEnv = createEnvironment(channel);
         try {
             Authentication token;
             if (authentication instanceof MailNonceAuthenticationToken) {

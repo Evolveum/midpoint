@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.security.factory.channel;
 
 import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.web.security.channel.RestAuthenticationChannel;
 import com.evolveum.midpoint.web.security.channel.SelfRegistrationAuthenticationChannel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import org.springframework.stereotype.Component;
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Component;
 public class SelfRegistrationChannelFactory extends AbstractChannelFactory {
     @Override
     public boolean match(String channelId) {
-        return SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI.equals(channelId);
+        return SchemaConstants.CHANNEL_SELF_REGISTRATION_URI.equals(channelId);
     }
 
     @Override

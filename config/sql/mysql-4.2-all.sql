@@ -53,7 +53,7 @@ CREATE TABLE m_acc_cert_case (
   targetRef_targetType     INTEGER,
   tenantRef_relation       VARCHAR(157),
   tenantRef_targetOid      VARCHAR(36),
-  tenantRef_ttargetType    INTEGER,
+  tenantRef_targetType     INTEGER,
   PRIMARY KEY (owner_oid, id)
 )
   DEFAULT CHARACTER SET utf8

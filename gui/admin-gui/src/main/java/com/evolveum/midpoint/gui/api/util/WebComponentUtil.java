@@ -563,7 +563,7 @@ public final class WebComponentUtil {
 //        IMPORT(SchemaConstants.CHANNEL_OBJECT_IMPORT_URI),
 //        REST(SchemaConstants.CHANNEL_REST_URI),
 //        INIT(SchemaConstants.CHANNEL_GUI_INIT_URI),
-//        USER(SchemaConstants.CHANNEL_GUI_USER_URI),
+//        USER(SchemaConstants.CHANNEL_USER_URI),
 //        SELF_REGISTRATION(SchemaConstants.CHANNEL_GUI_SELF_REGISTRATION_URI),
 //        RESET_PASSWORD(SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI);
 //

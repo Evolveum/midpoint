@@ -354,7 +354,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
                     deltas.add(getPrismContext().deltaFactory().object().createModifyDelta(accDto.getOid(), delta, type
                     ));
             }
-            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_GUI_SELF_SERVICE_URI), result);
+            getModelService().executeChanges(deltas, null, createSimpleTask(OPERATION_SAVE_PASSWORD, SchemaConstants.CHANNEL_SELF_SERVICE_URI), result);
 
             result.computeStatus();
         } catch (Exception ex) {

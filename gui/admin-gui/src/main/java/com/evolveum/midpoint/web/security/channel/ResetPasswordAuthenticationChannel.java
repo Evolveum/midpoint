@@ -6,22 +6,16 @@
  */
 package com.evolveum.midpoint.web.security.channel;
 
-import com.evolveum.midpoint.model.api.authentication.AuthenticationChannel;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.Authorization;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.forgetpassword.PageResetPassword;
-import com.evolveum.midpoint.web.page.forgetpassword.PageShowPassword;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthenticationSequenceChannelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationType;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author skublik
@@ -35,7 +29,7 @@ public class ResetPasswordAuthenticationChannel extends AuthenticationChannelImp
     }
 
     public String getChannelId() {
-        return SchemaConstants.CHANNEL_GUI_RESET_PASSWORD_URI;
+        return SchemaConstants.CHANNEL_RESET_PASSWORD_URI;
     }
 
     public String getPathAfterUnsuccessfulAuthentication() {

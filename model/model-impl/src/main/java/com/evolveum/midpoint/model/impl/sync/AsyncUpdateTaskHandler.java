@@ -62,7 +62,7 @@ public class AsyncUpdateTaskHandler implements TaskHandler {
         runResult.setOperationResult(opResult);
 
         if (task.getChannel() == null) {
-            task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+            task.setChannel(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
         }
 
         final String ctx = "Async Update";

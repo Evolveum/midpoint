@@ -24,19 +24,11 @@
             <button wicket:id="removeButton" wicket:message="title:PrismObjectPanel.deleteContainer" class="btn btn-box-tool" trigger="hover"><i class="fa fa-minus-circle"></i></button>
             <a class="btn btn-box-tool" wicket:id="showMetadata" wicket:message="title:PageBase.button.delete"><i class="fa fa-tag"/></a>
         </div>
-        <div class="row">
-            <div>
-                <div wicket:id="metadataNav">
-                    <ul class="nav metadata-nav">
-                        <li wicket:id="metadataList">
-                            <a class="label label-default" wicket:id="metadataQName"/>
-                        </li>
-                    </ul>
-                </div>
-                <div wicket:id="provenanceMetadata"></div>
-                <div wicket:id="metadata"></div>
+        <wicket:enclosure child="metadata">
+            <div class="row">
+                <div wicket:id="metadata"/>
             </div>
-        </div>
+        </wicket:enclosure>
 
         <div wicket:id="valueContainer">
 

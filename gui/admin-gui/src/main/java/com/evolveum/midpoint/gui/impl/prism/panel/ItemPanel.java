@@ -10,9 +10,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemEditabilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemVisibilityHandler;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismValue;
 
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
@@ -25,7 +24,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumnPanel;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;

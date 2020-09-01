@@ -221,7 +221,7 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
         PasswordType passwordType = assertUserPassword(user, "nbusr123");
         MetadataType metadata = passwordType.getMetadata();
         assertNotNull("No password metadata", metadata);
-        assertMetadata("password metadata", metadata, true, false, startTs, endTs, USER_JACK_OID, SchemaConstants.CHANNEL_GUI_USER_URI);
+        assertMetadata("password metadata", metadata, true, false, startTs, endTs, USER_JACK_OID, SchemaConstants.CHANNEL_USER_URI);
 
         assertGlobalStateUntouched();
     }

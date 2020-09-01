@@ -32,17 +32,19 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
+import static com.evolveum.midpoint.model.common.mapping.metadata.ProcessingUtil.getProcessingOfItem;
+
 /**
- * Specification of value metadata processing: mappings that should be applied
+ * Specification of value metadata processing for a given data item: mappings that should be applied
  * and item definitions driving e.g. storage and applicability of built-in processing of individual
  * metadata items.
  *
  * Information present here is derived from e.g. object templates and metadata mappings attached to data mappings.
  * It is already processed regarding applicability of metadata processing to individual data items.
  */
-public class ValueMetadataProcessingSpec implements ShortDumpable, DebugDumpable {
+public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDumpable {
 
-    private static final Trace LOGGER = TraceManager.getTrace(ValueMetadataProcessingSpec.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ItemValueMetadataProcessingSpec.class);
 
     @NotNull private final Collection<MetadataMappingType> mappings = new ArrayList<>();
     @NotNull private final Collection<MetadataItemDefinitionType> itemDefinitions = new ArrayList<>();
@@ -58,12 +60,12 @@ public class ValueMetadataProcessingSpec implements ShortDumpable, DebugDumpable
      */
     private Map<ItemPath, ItemProcessingType> itemProcessingMap;
 
-    private ValueMetadataProcessingSpec(@NotNull MetadataMappingScopeType scope) {
+    private ItemValueMetadataProcessingSpec(@NotNull MetadataMappingScopeType scope) {
         this.scope = scope;
     }
 
-    public static ValueMetadataProcessingSpec forScope(@NotNull MetadataMappingScopeType scope) {
-        return new ValueMetadataProcessingSpec(scope);
+    public static ItemValueMetadataProcessingSpec forScope(@NotNull MetadataMappingScopeType scope) {
+        return new ItemValueMetadataProcessingSpec(scope);
     }
 
     public void populateFromCurrentFocusTemplate(ItemPath dataPath, ObjectResolver objectResolver, String contextDesc,
@@ -125,43 +127,7 @@ public class ValueMetadataProcessingSpec implements ShortDumpable, DebugDumpable
     }
 
     private boolean isHandlingApplicable(MetadataHandlingType handling, ItemPath dataPath) throws SchemaException {
-        return handling != null && doesApplicabilityMatch(handling.getApplicability(), dataPath);
-    }
-
-    private boolean doesApplicabilityMatch(MetadataProcessingApplicabilitySpecificationType applicability, ItemPath dataPath)
-            throws SchemaException {
-        if (applicability == null) {
-            return true;
-        } else {
-            List<ItemPath> includes = getPathsFromSpecs(applicability.getInclude());
-            List<ItemPath> excludes = getPathsFromSpecs(applicability.getExclude());
-            while (!dataPath.isEmpty()) {
-                boolean yes = ItemPathCollectionsUtil.containsEquivalent(includes, dataPath);
-                boolean no = ItemPathCollectionsUtil.containsEquivalent(excludes, dataPath);
-                if (yes && no) {
-                    throw new SchemaException("Item path " + dataPath + " is both included and excluded from applicability in metadata processing");
-                } else if (yes) {
-                    return true;
-                } else if (no) {
-                    return false;
-                }
-                dataPath = dataPath.allExceptLast();
-            }
-            // Default value is true ... but only if there are no explicit includes.
-            return includes.isEmpty();
-        }
-    }
-
-    private List<ItemPath> getPathsFromSpecs(List<MetadataProcessingItemApplicabilitySpecificationType> specs) throws SchemaException {
-        List<ItemPath> paths = new ArrayList<>();
-        for (MetadataProcessingItemApplicabilitySpecificationType spec : specs) {
-            if (spec.getPath() == null) {
-                throw new SchemaException("No path in applicability specification: " + spec);
-            } else {
-                paths.add(spec.getPath().getItemPath());
-            }
-        }
-        return paths;
+        return handling != null && ProcessingUtil.doesApplicabilityMatch(handling.getApplicability(), dataPath);
     }
 
     private void addMetadataItems(List<MetadataItemDefinitionType> items, ItemPath dataPath) throws SchemaException {
@@ -178,7 +144,7 @@ public class ValueMetadataProcessingSpec implements ShortDumpable, DebugDumpable
     }
 
     private boolean isMetadataItemDefinitionApplicable(MetadataItemDefinitionType item, ItemPath dataPath) throws SchemaException {
-        return !isMetadataItemIgnored(item.getRef()) && doesApplicabilityMatch(item.getApplicability(), dataPath);
+        return !isMetadataItemIgnored(item.getRef()) && ProcessingUtil.doesApplicabilityMatch(item.getApplicability(), dataPath);
     }
 
     private MetadataMappingType provideDefaultTarget(MetadataMappingType itemMapping, MetadataItemDefinitionType item) {
@@ -232,22 +198,6 @@ public class ValueMetadataProcessingSpec implements ShortDumpable, DebugDumpable
                 itemProcessingMap.put(item.getRef().getItemPath(), processing);
             }
         }
-    }
-
-    /**
-     * Extracts processing information from specified item definition.
-     */
-    private ItemProcessingType getProcessingOfItem(MetadataItemDefinitionType item) throws SchemaException {
-        Set<ItemProcessingType> processing = new HashSet<>();
-        for (PropertyLimitationsType limitation : item.getLimitations()) {
-            if (limitation.getLayer().isEmpty() || limitation.getLayer().contains(LayerType.MODEL)) {
-                if (limitation.getProcessing() != null) {
-                    processing.add(limitation.getProcessing());
-                }
-            }
-        }
-        return MiscUtil.extractSingleton(processing,
-                () -> new SchemaException("Contradicting 'processing' values for " + item + ": " + processing));
     }
 
     /**

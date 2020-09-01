@@ -10,7 +10,7 @@
     <metadata>
         <requestTimestamp>2020-02-21T11:36:37.838+01:00</requestTimestamp>
         <createTimestamp>2020-02-21T11:36:37.990+01:00</createTimestamp>
-        <createChannel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</createChannel>
+        <createChannel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init</createChannel>
     </metadata>
     <operationExecution id="164">
         <timestamp>2020-02-21T11:36:38.246+01:00</timestamp>
@@ -28,7 +28,7 @@
             <objectName>SystemConfiguration</objectName>
         </operation>
         <status>success</status>
-        <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init</channel>
+        <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#init</channel>
     </operationExecution>
     <iteration>0</iteration>
     <iterationToken/>

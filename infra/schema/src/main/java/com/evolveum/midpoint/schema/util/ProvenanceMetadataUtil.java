@@ -35,7 +35,7 @@ public class ProvenanceMetadataUtil {
     }
 
     public static boolean hasMappingSpec(ProvenanceMetadataType provenance, MappingSpecificationType mappingSpecification) {
-        return MidpointProvenanceEquivalenceStrategy.INSTANCE.equals(provenance.getMappingSpec(), mappingSpecification);
+        return provenance!= null && MidpointProvenanceEquivalenceStrategy.INSTANCE.equals(provenance.getMappingSpec(), mappingSpecification);
     }
 
     public static ValueSelector<PrismContainerValue<ValueMetadataType>> originSelector(String oid) {

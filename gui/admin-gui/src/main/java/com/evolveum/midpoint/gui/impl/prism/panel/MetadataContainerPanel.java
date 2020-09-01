@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.Containerable;
  * @author katka
  *
  */
-public class MetadataContainerPanel<C extends Containerable> extends PrismContainerPanel<C> {
+public class MetadataContainerPanel<C extends Containerable> extends PrismContainerPanel<C, PrismContainerWrapper<C>> {
 
     private static final long serialVersionUID = 1L;
 

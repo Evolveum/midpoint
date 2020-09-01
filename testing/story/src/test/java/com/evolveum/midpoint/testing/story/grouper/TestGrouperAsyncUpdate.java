@@ -95,7 +95,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test110AddAlumni() throws Exception {
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getTestOperationResult();
 
         // GIVEN
@@ -147,7 +147,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test115AddStaff() throws Exception {
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getTestOperationResult();
 
         // GIVEN
@@ -198,7 +198,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test200AddAlumniForAnderson() throws Exception {
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getTestOperationResult();
 
         // GIVEN
@@ -264,7 +264,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test210AddStaffForAnderson() throws Exception {
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getTestOperationResult();
 
         // GIVEN
@@ -328,7 +328,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test220AddAlumniForLewis() throws Exception {
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getTestOperationResult();
 
         // GIVEN
@@ -359,7 +359,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test221AddStaffForLewis() throws Exception {
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getTestOperationResult();
 
         // GIVEN
@@ -422,7 +422,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test230AddAlumniForNobody() throws Exception {
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getTestOperationResult();
 
         // GIVEN
@@ -449,7 +449,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test250DeleteAlumniForAnderson() throws Exception {
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getTestOperationResult();
 
         // GIVEN
@@ -509,7 +509,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test305RenameStaff() throws Exception {
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getTestOperationResult();
 
         // GIVEN
@@ -567,7 +567,7 @@ public class TestGrouperAsyncUpdate extends AbstractGrouperTest {
     @Test
     public void test310DeleteStaff() throws Exception {
         Task task = getTestTask();
-        task.setChannel(SchemaConstants.CHANGE_CHANNEL_ASYNC_UPDATE_URI);
+        task.setChannel(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI);
         OperationResult result = getTestOperationResult();
 
         // GIVEN

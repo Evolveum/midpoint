@@ -26,7 +26,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -177,7 +176,7 @@ public class ContextFactory {
         LensFocusContext<F> focusContext = syncContext.createFocusContext();
         focusContext.setLoadedObject(focus);
         focusContext.setOid(focus.getOid());
-        syncContext.setChannel(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
+        syncContext.setChannel(SchemaConstants.CHANNEL_RECOMPUTE_URI);
         syncContext.setDoReconciliationForAllProjections(ModelExecuteOptions.isReconcile(options));
         return syncContext;
     }
@@ -191,7 +190,7 @@ public class ContextFactory {
         projectionContext.setLoadedObject(shadow);
         projectionContext.setOid(shadow.getOid());
         projectionContext.setDoReconciliation(ModelExecuteOptions.isReconcile(options));
-        syncContext.setChannel(SchemaConstants.CHANGE_CHANNEL_RECOMPUTE_URI);
+        syncContext.setChannel(SchemaConstants.CHANNEL_RECOMPUTE_URI);
         return syncContext;
     }
 
