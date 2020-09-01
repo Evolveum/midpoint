@@ -1,0 +1,21 @@
+prism:model extension-metadata {
+
+  namespace "http://midpoint.evolveum.com/xml/ns/samples/metadata";
+
+  import "http://midpoint.evolveum.com/xml/ns/public/common/prism" {
+      prefix prism;
+  }
+
+  metadata LoAMetadataExtension {
+    prism:property loa {
+      type Integer;
+    }
+  }
+
+  metadata SensitivityMetadataExtension {
+    prism:property sensitivity {
+      type String; // todo enum
+    }
+  }
+
+}

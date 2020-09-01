@@ -41,7 +41,7 @@
         <sequence>
             <name>admin-gui-default</name>
             <channel>
-                <channelId>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user</channelId>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
                 <default>true</default>
                 <urlSuffix>defaultGui</urlSuffix>
             </channel>
@@ -64,7 +64,7 @@
                 that the SAML authentication is redirecting the browser incorrectly.
             </description>
             <channel>
-                <channelId>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user</channelId>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
                 <default>false</default>
                 <urlSuffix>emergency</urlSuffix>
             </channel>
@@ -83,7 +83,7 @@
                 Just a nonce mail to validate e-mail address.
             </description>
             <channel>
-                <channelId>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#resetPassword</channelId>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#resetPassword</channelId>
                 <urlSuffix>resetPassword</urlSuffix>
             </channel>
             <module>
@@ -98,7 +98,7 @@
                 Just a nonce mail to validate e-mail address.
             </description>
             <channel>
-                <channelId>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#selfRegistration</channelId>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#selfRegistration</channelId>
                 <urlSuffix>selfReg</urlSuffix>
             </channel>
             <module>
@@ -110,7 +110,7 @@
         <sequence>
             <name>admin-gui-default-node</name>
             <channel>
-                <channelId>http://midpoint.evolveum.com/xml/ns/public/model/channels-3#user</channelId>
+                <channelId>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channelId>
                 <default>true</default>
                 <urlSuffix>emergency</urlSuffix>
             </channel>

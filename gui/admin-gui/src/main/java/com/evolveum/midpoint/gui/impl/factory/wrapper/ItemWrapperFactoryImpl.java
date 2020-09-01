@@ -100,6 +100,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
 
         IW itemWrapper = createWrapperInternal(parent, (I) childItem, status, context);
         itemWrapper.setMetadata(context.isMetadata());
+        itemWrapper.setProcessProvenanceMetadata(context.isProcessMetadataFor(itemWrapper.getPath()));
 
         registerWrapperPanel(itemWrapper);
 
@@ -203,20 +204,22 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
             return;
         }
         PrismValue oldValue = valueWrapper.getNewValue();
-        PrismContainer<Containerable> metadataContainer = oldValue.getValueMetadataAsContainer();
+        PrismContainer<ValueMetadataType> metadataContainer = oldValue.getValueMetadataAsContainer();
 
         if (canContainLegacyMetadata(oldValue)) {
             PrismContainer<MetadataType> oldMetadata = ((PrismContainerValue) oldValue).findContainer(ObjectType.F_METADATA);
             if (oldMetadata != null && oldMetadata.getValue() != null) {
-                PrismContainerValue<Containerable> newMetadataValue = metadataContainer.createNewValue();
+                PrismContainerValue<ValueMetadataType> newMetadataValue = metadataContainer.createNewValue();
                 transformStorageMetadata(newMetadataValue, oldMetadata);
                 transformProcessMetadata(newMetadataValue, oldMetadata);
             }
         }
 
         ValueMetadataWrapperFactoryImpl valueMetadataWrapperFactory = new ValueMetadataWrapperFactoryImpl(getRegistry());
-        PrismContainerWrapper<Containerable> valueMetadataWrapper = valueMetadataWrapperFactory.createWrapper(null, metadataContainer, ItemStatus.NOT_CHANGED, ctx);
-        valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
+        PrismContainerWrapper<ValueMetadataType> valueMetadataWrapper = valueMetadataWrapperFactory.createWrapper(null, metadataContainer, ItemStatus.NOT_CHANGED, ctx);
+        if (valueMetadataWrapper != null) {
+            valueWrapper.setValueMetadata(new ValueMetadataWrapperImpl(valueMetadataWrapper));
+        }
     }
 
     private <T, PV extends PrismValue> boolean canContainLegacyMetadata(PV value) {
@@ -249,7 +252,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
         return false;
     }
 
-    private void transformStorageMetadata(PrismContainerValue<Containerable> metadataValue, PrismContainer<MetadataType> oldMetadata) throws SchemaException {
+    private void transformStorageMetadata(PrismContainerValue<ValueMetadataType> metadataValue, PrismContainer<MetadataType> oldMetadata) throws SchemaException {
         PrismContainer<StorageMetadataType> storagetMetadata = metadataValue.findOrCreateContainer(ValueMetadataType.F_STORAGE);
 
         MetadataType oldMetadataType = oldMetadata.getRealValue();
@@ -267,7 +270,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
 
     }
 
-    private void transformProcessMetadata(PrismContainerValue<Containerable> metadataValue, PrismContainer<MetadataType> oldContainer) throws SchemaException {
+    private void transformProcessMetadata(PrismContainerValue<ValueMetadataType> metadataValue, PrismContainer<MetadataType> oldContainer) throws SchemaException {
         PrismContainer<ProcessMetadataType> processMetadata = metadataValue.findOrCreateContainer(ValueMetadataType.F_PROCESS);
 
         MetadataType oldMetadata = oldContainer.getRealValue();

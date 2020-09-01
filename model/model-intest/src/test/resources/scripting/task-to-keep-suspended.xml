@@ -16,7 +16,7 @@
     <ownerRef oid="00000000-0000-0000-0000-000000000002"
               relation="org:default"
               type="c:UserType"><!-- administrator --></ownerRef>
-    <channel>http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user</channel>
+    <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#user</channel>
     <executionStatus>suspended</executionStatus>
     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/task/noop/handler-3</handlerUri>
     <resultStatus>partial_error</resultStatus>

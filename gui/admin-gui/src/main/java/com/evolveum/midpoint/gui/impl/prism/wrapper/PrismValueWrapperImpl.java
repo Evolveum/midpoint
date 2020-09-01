@@ -115,24 +115,19 @@ public abstract class PrismValueWrapperImpl<T> implements PrismValueWrapper<T> {
 
     @Override
     public <V extends PrismValue> V getNewValue() {
-        //FIXME TODO ugly hack, empty valueMetadata are created somewhere.
-        // then the add delta container empty PCV which causes serialization error.
-        // fix this correctly into 4.2
-        if (valueMetadata != null) {
-            // todo adapt
-//            newValue.setValueMetadata(valueMetadata.getOldValue() != null ? valueMetadata.getOldValue().clone() : null);
-        }
         return (V) newValue;
     }
 
     private <V extends PrismValue> V getNewValueWithMetadataApplied() throws SchemaException {
-        PrismContainerValue<ValueMetadataType> newYieldValue = WebPrismUtil.getNewYieldValue();
+        if (getParent() != null && getParent().isProcessProvenanceMetadata()) {
+            PrismContainerValue<ValueMetadataType> newYieldValue = WebPrismUtil.getNewYieldValue();
 
-        MidPointApplication app = MidPointApplication.get();
-        ValueMetadata newValueMetadata = app.getPrismContext().getValueMetadataFactory().createEmpty();
-        newValueMetadata.addMetadataValue(newYieldValue);
+            MidPointApplication app = MidPointApplication.get();
+            ValueMetadata newValueMetadata = app.getPrismContext().getValueMetadataFactory().createEmpty();
+            newValueMetadata.addMetadataValue(newYieldValue);
 
-        newValue.setValueMetadata(newValueMetadata.clone());
+            newValue.setValueMetadata(newValueMetadata.clone());
+        }
 
         return (V) newValue.clone();
     }

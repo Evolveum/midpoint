@@ -259,7 +259,19 @@ public class ResourceDetailsTabPanel extends Panel {
         String icon = "fa fa-question";
 
         OperationalStateType operationalState = resource.getOperationalState();
-        if (operationalState != null) {
+        AdministrativeOperationalStateType administrativeOperationalState = resource.getAdministrativeOperationalState();
+        boolean inMaintenance = false;
+
+        if (administrativeOperationalState != null) {
+            AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
+            if (administrativeAvailabilityStatus == AdministrativeAvailabilityStatusType.MAINTENANCE) {
+                messageKey = "PageResource.resource.maintenance";
+                backgroundColor = "bg-gray";
+                icon = "fa fa-wrench";
+                inMaintenance = true;
+            }
+        }
+        if (operationalState != null && !inMaintenance) {
             AvailabilityStatusType lastAvailabilityStatus = operationalState.getLastAvailabilityStatus();
             if (lastAvailabilityStatus != null) {
                 if (lastAvailabilityStatus == AvailabilityStatusType.UP) {

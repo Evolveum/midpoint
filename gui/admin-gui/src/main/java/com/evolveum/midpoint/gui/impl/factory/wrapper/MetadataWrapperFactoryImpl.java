@@ -7,6 +7,8 @@
 package com.evolveum.midpoint.gui.impl.factory.wrapper;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.impl.prism.panel.MetadataContainerPanel;
@@ -61,4 +63,5 @@ public class MetadataWrapperFactoryImpl<C extends Containerable> extends PrismCo
         PrismContainerWrapper<C> wrapper = super.createWrapper(parent, def, ctx);
         return wrapper;
     }
+
 }

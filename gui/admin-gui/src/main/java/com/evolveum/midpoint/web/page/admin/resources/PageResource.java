@@ -68,6 +68,7 @@ public class PageResource extends PageAdmin {
 
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
     private static final String OPERATION_REFRESH_SCHEMA = DOT_CLASS + "refreshSchema";
+    private static final String OPERATION_SET_MAINTENANCE = DOT_CLASS + "setMaintenance";
 
     private static final String ID_TAB_PANEL = "tabPanel";
 
@@ -75,6 +76,8 @@ public class PageResource extends PageAdmin {
 
     private static final String BUTTON_TEST_CONNECTION_ID = "testConnection";
     private static final String BUTTON_REFRESH_SCHEMA_ID = "refreshSchema";
+    private static final String BUTTON_SET_MAINTENANCE_ID = "setMaintenance";
+
     private static final String BUTTON_EDIT_XML_ID = "editXml";
     private static final String BUTTON_CONFIGURATION_EDIT_ID = "configurationEdit";
     private static final String BUTTON_WIZARD_EDIT_ID = "wizardEdit";
@@ -163,6 +166,27 @@ public class PageResource extends PageAdmin {
             }
         };
         add(test);
+
+        AjaxButton setMaintenance = new AjaxButton(BUTTON_SET_MAINTENANCE_ID,
+                createStringResource("pageResource.button.toggleMaintenance")) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                WebComponentUtil.toggleResourceMaintenance(resourceModel.getObject(), OPERATION_SET_MAINTENANCE, target, PageResource.this);
+                resourceModel.setObject(loadResource()); // get fresh data
+
+                refreshStatus(target);
+            }
+        };
+        setMaintenance.add(new VisibleEnableBehaviour() {
+            private static final long serialVersionUID = 1L;
+            @Override
+            public boolean isVisible() {
+                return canEdit(resourceModel);
+            }
+        });
+        add(setMaintenance);
 
         AjaxButton refreshSchema = new AjaxButton(BUTTON_REFRESH_SCHEMA_ID,
                 createStringResource("pageResource.button.refreshSchema")) {

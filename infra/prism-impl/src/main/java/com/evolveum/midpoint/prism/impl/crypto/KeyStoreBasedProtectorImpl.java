@@ -1,10 +1,28 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.prism.impl.crypto;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.util.*;
+import javax.crypto.*;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.crypto.EncryptionException;
@@ -17,46 +35,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.prism.xml.ns._public.types_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.codec.binary.Base64;
-import org.jetbrains.annotations.NotNull;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.SecretKeyFactory;
-import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.PBEKeySpec;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.Key;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
-import java.security.SecureRandom;
-import java.security.UnrecoverableKeyException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
-import java.util.Set;
 
 /**
  * Class that manages encrypted and hashed values. Java Cryptography Extension is
@@ -68,9 +46,11 @@ import java.util.Set;
  */
 public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStoreBasedProtector {
 
-    private static final String ALGORITHM_PKKDF2_NAME = "PBKDF2WithHmacSHA512";
-    private static final QName ALGORITH_PBKDF2_WITH_HMAC_SHA512_QNAME = new QName(PrismConstants.NS_CRYPTO_ALGORITHM_PBKD, ALGORITHM_PKKDF2_NAME);
-    private static final String ALGORITH_PBKDF2_WITH_HMAC_SHA512_URI = QNameUtil.qNameToUri(ALGORITH_PBKDF2_WITH_HMAC_SHA512_QNAME);
+    private static final String ALGORITHM_PBKDF2_NAME = "PBKDF2WithHmacSHA512";
+    private static final QName ALGORITHM_PBKDF2_WITH_HMAC_SHA512_QNAME =
+            new QName(PrismConstants.NS_CRYPTO_ALGORITHM_PBKD, ALGORITHM_PBKDF2_NAME);
+    private static final String ALGORITHM_PBKDF2_WITH_HMAC_SHA512_URI =
+            QNameUtil.qNameToUri(ALGORITHM_PBKDF2_WITH_HMAC_SHA512_QNAME);
 
     private static final String KEY_DIGEST_TYPE = "SHA1";
 
@@ -78,7 +58,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
     private static final char[] KEY_PASSWORD = "midpoint".toCharArray();
 
-    private static final String DEFAULT_DIGEST_ALGORITHM = ALGORITH_PBKDF2_WITH_HMAC_SHA512_URI;
+    private static final String DEFAULT_DIGEST_ALGORITHM = ALGORITHM_PBKDF2_WITH_HMAC_SHA512_URI;
 //    "http://www.w3.org/2009/xmlenc11#pbkdf2"
 
     private Random randomNumberGenerator;
@@ -99,7 +79,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
     private static final Map<String, SecretKey> ALIAS_TO_SECRET_KEY_HASH_MAP = new HashMap<>();
     private static final Map<String, SecretKey> DIGEST_TO_SECRET_KEY_HASH_MAP = new HashMap<>();
-    private static final Map<String,String> XMLSEC_TO_JCE_ALGORITHM_MAP = new HashMap<>();
+    private static final Map<String, String> XMLSEC_TO_JCE_ALGORITHM_MAP = new HashMap<>();
 
     static {
         try {
@@ -130,7 +110,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     }
 
     /**
-     * @throws SystemException if jceks keystore is not available on {@link KeyStoreBasedProtectorImpl#getKeyStorePath}
+     * @throws SystemException if jceks keystore is not available on
+     * {@link KeyStoreBasedProtectorImpl#getKeyStorePath}
      */
     public void init() {
         validateConfiguration();
@@ -143,7 +124,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
                 if (!f.canRead()) {
                     LOGGER.error("Provided keystore file {} is unreadable.", getKeyStorePath());
                     throw new EncryptionException("Provided keystore file " + getKeyStorePath()
-                        + " is unreadable.");
+                            + " is unreadable.");
                 }
                 stream = new FileInputStream(f);
 
@@ -152,23 +133,23 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
                 LOGGER.warn("Using default keystore from classpath ({}).", getKeyStorePath());
                 // Read from class path
 
-                stream = KeyStoreBasedProtectorImpl.class.getClassLoader().getResourceAsStream(getKeyStorePath());
+                stream = KeyStoreBasedProtectorImpl.class.getClassLoader()
+                        .getResourceAsStream(getKeyStorePath());
                 // ugly dirty hack to have second chance to find keystore on
                 // class path
                 if (stream == null) {
-                    stream = KeyStoreBasedProtectorImpl.class.getClassLoader().getResourceAsStream(
-                        "com/../../" + getKeyStorePath());
+                    stream = KeyStoreBasedProtectorImpl.class.getClassLoader()
+                            .getResourceAsStream("com/../../" + getKeyStorePath());
                 }
             }
             // Test if we have valid stream
             if (stream == null) {
-                throw new EncryptionException("Couldn't load keystore as resource '" + getKeyStorePath()
-                    + "'");
+                throw new EncryptionException(
+                        "Couldn't load keystore as resource '" + getKeyStorePath() + "'");
             }
             // Load keystore
             KEY_STORE.load(stream, getKeyStorePassword().toCharArray());
             Enumeration<String> aliases = KEY_STORE.aliases();
-            Set<String> keyEntryAliasesInKeyStore = new HashSet<>();
 
             MessageDigest sha1;
             try {
@@ -184,7 +165,6 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
                         LOGGER.trace("Alias {} is not a key entry and shall be skipped", alias);
                         continue;
                     }
-                    keyEntryAliasesInKeyStore.add(alias);
                     Key key = KEY_STORE.getKey(alias, KEY_PASSWORD);
                     if (!(key instanceof SecretKey)) {
                         continue;
@@ -198,24 +178,25 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
                     DIGEST_TO_SECRET_KEY_HASH_MAP.put(digest, secretKey);
 
                 } catch (UnrecoverableKeyException ex) {
-                    LOGGER.trace("Couldn't recover key {} from keystore, reason: {}", new Object[]{alias, ex.getMessage()});
+                    LOGGER.trace("Couldn't recover key {} from keystore, reason: {}",
+                            alias, ex.getMessage());
                 }
             }
-            LOGGER.trace("Found {} aliases in keystore identified as secret keys", ALIAS_TO_SECRET_KEY_HASH_MAP.size());
+            LOGGER.trace("Found {} aliases in keystore identified as secret keys",
+                    ALIAS_TO_SECRET_KEY_HASH_MAP.size());
             stream.close();
 
             // Initialize trust manager list
 
-            TrustManagerFactory tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            TrustManagerFactory tmFactory =
+                    TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
             tmFactory.init(KEY_STORE);
             trustManagers = new ArrayList<>();
-            for (TrustManager trustManager : tmFactory.getTrustManagers()) {
-                trustManagers.add(trustManager);
-            }
+            trustManagers.addAll(Arrays.asList(tmFactory.getTrustManagers()));
 
         } catch (Exception ex) {
             LOGGER.error("Unable to work with keystore {}, reason {}.",
-                new Object[]{getKeyStorePath(), ex.getMessage()}, ex);
+                    new Object[] { getKeyStorePath(), ex.getMessage() }, ex);
             throw new SystemException(ex.getMessage(), ex);
         }
 
@@ -278,7 +259,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     }
 
     @Override
-    protected <T> byte[] decryptBytes(ProtectedData<T> protectedData) throws SchemaException, EncryptionException {
+    protected <T> byte[] decryptBytes(ProtectedData<T> protectedData)
+            throws SchemaException, EncryptionException {
         EncryptedDataType encryptedDataType = protectedData.getEncryptedDataType();
 
         EncryptionMethodType encryptionMethodType = encryptedDataType.getEncryptionMethod();
@@ -313,8 +295,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         try {
             decryptedData = decryptBytes(encryptedBytes, algorithmUri, key);
         } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-            | NoSuchProviderException | IllegalBlockSizeException | BadPaddingException
-            | InvalidAlgorithmParameterException e) {
+                | NoSuchProviderException | IllegalBlockSizeException | BadPaddingException
+                | InvalidAlgorithmParameterException e) {
             throw new EncryptionException(e.getMessage(), e);
         }
         return decryptedData;
@@ -323,7 +305,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     @Override
     public <T> void encrypt(ProtectedData<T> protectedData) throws EncryptionException {
         if (protectedData.isEncrypted()) {
-            throw new IllegalArgumentException("Attempt to encrypt protected data that are already encrypted");
+            throw new IllegalArgumentException(
+                    "Attempt to encrypt protected data that are already encrypted");
         }
         SecretKey key = getSecretKeyByAlias(getEncryptionKeyAlias());
         String algorithm = getCipherAlgorithm();
@@ -334,7 +317,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         try {
             encryptedBytes = encryptBytes(clearBytes, algorithm, key);
         } catch (InvalidKeyException | NoSuchAlgorithmException | NoSuchPaddingException
-            | NoSuchProviderException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException e) {
+                | NoSuchProviderException | IllegalBlockSizeException | BadPaddingException e) {
             throw new EncryptionException(e.getMessage(), e);
         }
 
@@ -357,7 +340,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         protectedData.destroyCleartext();
     }
 
-    private byte[] encryptBytes(byte[] clearData, String algorithmUri, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+    private byte[] encryptBytes(byte[] clearData, String algorithmUri, Key key)
+            throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException,
+            InvalidKeyException, IllegalBlockSizeException, BadPaddingException {
         Cipher cipher = getCipher(Cipher.ENCRYPT_MODE, algorithmUri);
         cipher.init(Cipher.ENCRYPT_MODE, key);
 
@@ -372,7 +357,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         return encryptedBytes;
     }
 
-    private byte[] decryptBytes(byte[] encryptedBytes, String algorithmUri, Key key) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
+    private byte[] decryptBytes(byte[] encryptedBytes, String algorithmUri, Key key)
+            throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException,
+            InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException {
         Cipher cipher = getCipher(Cipher.DECRYPT_MODE, algorithmUri);
 
         // Extract IV from the beginning of the encrypted bytes
@@ -388,7 +375,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         return decryptedData;
     }
 
-    private Cipher getCipher(int cipherMode, String algorithmUri) throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException, InvalidKeyException, InvalidAlgorithmParameterException {
+    private Cipher getCipher(int cipherMode, String algorithmUri)
+            throws NoSuchAlgorithmException, NoSuchPaddingException, NoSuchProviderException {
         String jceAlgorithm = XMLSEC_TO_JCE_ALGORITHM_MAP.get(algorithmUri);
         Cipher cipher;
         if (requestedJceProviderName == null) {
@@ -405,7 +393,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             } else {
                 desc = "Ciphering (mode " + cipherMode + ")";
             }
-            LOGGER.trace("{} data by JCE algorithm {} (URI {}), cipher {}, provider {}", desc, jceAlgorithm, algorithmUri, cipher.getAlgorithm(),
+            LOGGER.trace("{} data by JCE algorithm {} (URI {}), cipher {}, provider {}",
+                    desc, jceAlgorithm, algorithmUri, cipher.getAlgorithm(),
                     cipher.getProvider().getName());
         }
         return cipher;
@@ -423,8 +412,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             }
         }
 
-        throw new EncryptionException("Could not find hash for secret key algorithm " + key.getAlgorithm()
-            + ". Hash values for keys must be recomputed during initialization");
+        throw new EncryptionException(
+                "Could not find hash for secret key algorithm " + key.getAlgorithm() + "."
+                        + " Hash values for keys must be recomputed during initialization");
     }
 
     @Override
@@ -439,7 +429,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
 
     /**
      * @param encryptionKeyAlias Alias of the encryption key {@link SecretKey} which is used
-     *                           for encryption
+     * for encryption
      * @throws IllegalArgumentException if encryption key digest is null or empty string
      */
     public void setEncryptionKeyAlias(String encryptionKeyAlias) {
@@ -471,8 +461,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         if (ALIAS_TO_SECRET_KEY_HASH_MAP.containsKey(alias)) {
             return ALIAS_TO_SECRET_KEY_HASH_MAP.get(alias);
         }
-        throw new EncryptionException("No key mapped to alias " + alias
-            + " could be found in the keystore. Keys by aliases must be recomputed during initialization");
+        throw new EncryptionException(
+                "No key mapped to alias " + alias + " could be found in the keystore."
+                        + " Keys by aliases must be recomputed during initialization");
     }
 
     private SecretKey getSecretKeyByDigest(String digest) throws EncryptionException {
@@ -483,8 +474,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         if (DIGEST_TO_SECRET_KEY_HASH_MAP.containsKey(digest)) {
             return DIGEST_TO_SECRET_KEY_HASH_MAP.get(digest);
         }
-        throw new EncryptionException("No key mapped to key digest " + digest
-            + " could be found in the keystore. Keys digests must be recomputed during initialization");
+        throw new EncryptionException(
+                "No key mapped to key digest " + digest + " could be found in the keystore."
+                        + " Keys digests must be recomputed during initialization");
     }
 
     @Override
@@ -500,15 +492,15 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         }
 
         HashedDataType hashedDataType;
-        switch (algorithmNamespace) {
-            case PrismConstants.NS_CRYPTO_ALGORITHM_PBKD:
-                if (!protectedData.canSupportType(String.class)) {
-                    throw new SchemaException("Non-string protected data");
-                }
-                hashedDataType = hashPbkd((ProtectedData<String>) protectedData, algorithmUri, algorithmQName.getLocalPart());
-                break;
-            default:
-                throw new SchemaException("Unknown namespace " + algorithmNamespace);
+        if (PrismConstants.NS_CRYPTO_ALGORITHM_PBKD.equals(algorithmNamespace)) {
+            if (!protectedData.canSupportType(String.class)) {
+                throw new SchemaException("Non-string protected data");
+            }
+            //noinspection unchecked
+            hashedDataType = hashPbkd((ProtectedData<String>) protectedData,
+                    algorithmUri, algorithmQName.getLocalPart());
+        } else {
+            throw new SchemaException("Unknown namespace " + algorithmNamespace);
         }
 
         protectedData.setHashedData(hashedDataType);
@@ -516,7 +508,9 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         protectedData.setEncryptedData(null);
     }
 
-    private HashedDataType hashPbkd(ProtectedData<String> protectedData, String algorithmUri, String algorithmName) throws EncryptionException {
+    private HashedDataType hashPbkd(
+            ProtectedData<String> protectedData, String algorithmUri, String algorithmName)
+            throws EncryptionException {
 
         char[] clearChars = getClearChars(protectedData);
         byte[] salt = generatePbkdSalt();
@@ -565,7 +559,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     }
 
     @Override
-    public boolean compareCleartext(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException {
+    public boolean compareCleartext(ProtectedStringType a, ProtectedStringType b)
+            throws EncryptionException, SchemaException {
         if (a == b) {
             return true;
         }
@@ -596,7 +591,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         }
     }
 
-    private boolean compareEncryptedCleartext(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
+    private boolean compareEncryptedCleartext(ProtectedStringType a, ProtectedStringType b)
+            throws EncryptionException {
         String aClear = decryptString(a);
         String bClear = decryptString(b);
         if (aClear == null && bClear == null) {
@@ -608,7 +604,8 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         return aClear.equals(bClear);
     }
 
-    private boolean compareHashed(ProtectedStringType hashedPs, char[] clearChars) throws SchemaException, EncryptionException {
+    private boolean compareHashed(ProtectedStringType hashedPs, char[] clearChars)
+            throws SchemaException, EncryptionException {
         HashedDataType hashedDataType = hashedPs.getHashedDataType();
         DigestMethodType digestMethodType = hashedDataType.getDigestMethod();
         if (digestMethodType == null) {
@@ -621,15 +618,16 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             throw new SchemaException("No algorithm namespace");
         }
 
-        switch (algorithmNamespace) {
-            case PrismConstants.NS_CRYPTO_ALGORITHM_PBKD:
-                return compareHashedPbkd(hashedDataType, algorithmQName.getLocalPart(), clearChars);
-            default:
-                throw new SchemaException("Unkown namespace " + algorithmNamespace);
+        if (PrismConstants.NS_CRYPTO_ALGORITHM_PBKD.equals(algorithmNamespace)) {
+            return compareHashedPbkd(hashedDataType, algorithmQName.getLocalPart(), clearChars);
+        } else {
+            throw new SchemaException("Unknown namespace " + algorithmNamespace);
         }
     }
 
-    private boolean compareHashedPbkd(HashedDataType hashedDataType, String algorithmName, char[] clearChars) throws EncryptionException {
+    private boolean compareHashedPbkd(
+            HashedDataType hashedDataType, String algorithmName, char[] clearChars)
+            throws EncryptionException {
         DigestMethodType digestMethodType = hashedDataType.getDigestMethod();
         byte[] salt = digestMethodType.getSalt();
         Integer workFactor = digestMethodType.getWorkFactor();
@@ -655,7 +653,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
     }
 
     @Override
-    public boolean areEquivalent(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException {
+    public boolean areEquivalent(ProtectedStringType a, ProtectedStringType b) {
         if (a == b) {
             return true;
         }
@@ -684,7 +682,7 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
         return Objects.equals(a.getHashedDataType(), b.getHashedDataType());
     }
 
-    private boolean areEquivalentEncrypted(ProtectedStringType a, ProtectedStringType b) throws EncryptionException {
+    private boolean areEquivalentEncrypted(ProtectedStringType a, ProtectedStringType b) {
         EncryptedDataType ae = a.getEncryptedDataType();
         EncryptedDataType be = b.getEncryptedDataType();
         if (!Objects.equals(ae.getEncryptionMethod(), be.getEncryptionMethod())) {
@@ -709,14 +707,14 @@ public class KeyStoreBasedProtectorImpl extends BaseProtector implements KeyStor
             // in a low-level prism code, re-throwing this exception may stop all operations that
             // could lead to fixing the error. Therefore just log the error, but otherwise pretend
             // that the values are not equivalent. That is still OK with the interface contract.
-            LOGGER.warn("Cannot decrypt a value for comparison: "+e.getMessage(), e);
+            LOGGER.warn("Cannot decrypt a value for comparison: " + e.getMessage(), e);
             return false;
         }
     }
 
-
     @Override
-    public boolean isEncryptedByCurrentKey(@NotNull EncryptedDataType data) throws EncryptionException {
+    public boolean isEncryptedByCurrentKey(@NotNull EncryptedDataType data)
+            throws EncryptionException {
         String encryptedUsingKeyName = data.getKeyInfo().getKeyName();
         if (encryptedUsingKeyName == null) {
             throw new IllegalStateException("No key name in encrypted data: " + data);

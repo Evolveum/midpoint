@@ -259,7 +259,7 @@
             </reaction>
             <reaction>
                 <situation>unmatched</situation>
-                <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import</channel>
+                <channel>http://midpoint.evolveum.com/xml/ns/public/common/channels-3#import</channel>
                 <action>
                     <handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-3#addFocus</handlerUri>
                 </action>
