@@ -21,9 +21,11 @@ import com.evolveum.axiom.concepts.Lazy;
 import com.evolveum.axiom.lang.antlr.AxiomModelStatementSource;
 import com.evolveum.axiom.lang.impl.ModelReactorContext;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.MutableComplexTypeDefinition;
 import com.evolveum.midpoint.prism.MutableItemDefinition;
 import com.evolveum.midpoint.prism.MutablePrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.TypeDefinition;
 import com.evolveum.midpoint.prism.impl.ComplexTypeDefinitionImpl;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.prism.impl.PrismContainerDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.PrismPropertyDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.PrismReferenceDefinitionImpl;
 import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
@@ -55,9 +58,10 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
 
 
     private static final BiMap<AxiomName, QName> AXIOM_XSD_TYPES = ImmutableBiMap.<AxiomName, QName>builder()
-            .put(AxiomName.builtIn("String"), new QName(XSD,"string"))
-            .put(AxiomName.builtIn("DateTime"), new QName(XSD,"dateTime"))
-            .put(AxiomName.builtIn("Uri"), new QName(XSD,"anyURI"))
+            .put(AxiomName.builtIn("String"), DOMUtil.XSD_STRING)
+            .put(AxiomName.builtIn("DateTime"), DOMUtil.XSD_DATETIME)
+            .put(AxiomName.builtIn("Uri"), DOMUtil.XSD_ANYURI)
+            .put(AxiomName.builtIn("Integer"), DOMUtil.XSD_INT)
             .put(AxiomName.from(PRISM_NAMESPACE, "ItemPath"), new QName(PRISM_TYPES,"ItemPathType"))
             .build();
     private static final AxiomName DISPLAY_NAME = PROPERTY_ITEM.localName("displayName");
@@ -109,12 +113,26 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
         for (Entry<AxiomName, AxiomItemDefinition> entry : source.itemDefinitions().entrySet()) {
             MutableItemDefinition<?> prismified = prismify(entry.getValue());
             QName name = qName(entry.getValue().name());
-            if(target.containsItemDefinition(name)) {
-                target.replaceDefinition(name , prismified);
+            MutableComplexTypeDefinition realTarget = primaryOrExtension(target, entry.getValue());
+            if(realTarget.containsItemDefinition(name)) {
+                realTarget.replaceDefinition(name , prismified);
             } else {
-                target.add(prismified);
+                realTarget.add(prismified);
             }
         }
+    }
+
+    private MutableComplexTypeDefinition primaryOrExtension(MutableComplexTypeDefinition target,
+            AxiomItemDefinition value) {
+        if (value.name().namespace().equals(target.getTypeName().getNamespaceURI())) {
+            return target;
+        }
+        return extensionFor(target, value.name().namespace());
+    }
+
+    private MutableComplexTypeDefinition extensionFor(MutableComplexTypeDefinition target, String namespace) {
+        PrismContainerDefinition<Containerable> extContainer = target.findContainerDefinition(PrismConstants.EXTENSION_LOCAL_NAME);
+        return asMutable(extContainer.getComplexTypeDefinition());
     }
 
     private MutableItemDefinition<?> prismify(AxiomItemDefinition value) {
