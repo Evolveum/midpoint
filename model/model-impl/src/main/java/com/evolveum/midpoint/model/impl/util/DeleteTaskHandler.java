@@ -22,7 +22,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.statistics.StatisticsUtil;
 import com.evolveum.midpoint.task.api.*;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
@@ -40,13 +40,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -205,6 +198,9 @@ public class DeleteTaskHandler implements TaskHandler {
                     try {
                         modelService.executeChanges(MiscSchemaUtil.createCollection(delta), execOptions, task, opResult);
                         task.recordIterativeOperationEnd(objectName, objectDisplayName, objectTypeName, objectOid, objectDeletionStarted, null);
+                    } catch (IndestructibilityViolationException ex) {
+                        skipped++;
+                        continue;
                     } catch (Throwable t) {
                         task.recordIterativeOperationEnd(objectName, objectDisplayName, objectTypeName, objectOid, objectDeletionStarted, t);
                         throw t;        // TODO we don't want to continue processing if an error occurs?
