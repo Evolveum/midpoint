@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigura
  * @author skublik
  *
  */
-public class ProfilingClassLoggerPanel extends PrismContainerPanel<ClassLoggerConfigurationType> {
+public class ProfilingClassLoggerPanel extends PrismContainerPanel<ClassLoggerConfigurationType, PrismContainerWrapper<ClassLoggerConfigurationType>> {
 
     public ProfilingClassLoggerPanel(String id, IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> model, ItemPanelSettings settings) {
         super(id, model, new ItemPanelSettingsBuilder().visibilityHandler(itemWrapper -> checkVisibility(itemWrapper, settings.getVisibilityHandler())).build());

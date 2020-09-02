@@ -1399,6 +1399,13 @@ public class ShadowCache {
             return rso;
         }
 
+        if (ProvisioningUtil.resourceIsInMaintenance(ctx.getResource())) {
+            LOGGER.trace("Skipping refresh of {} pending operations because resource shadow is in the maintenance.", repoShadow);
+            RefreshShadowOperation rso = new RefreshShadowOperation();
+            rso.setRefreshedShadow(repoShadow);
+            return rso;
+        }
+
         LOGGER.trace("Pending operations refresh of {}, dead={}, {} pending operations", repoShadow, isDead, pendingOperations.size());
 
         ctx.assertDefinition();

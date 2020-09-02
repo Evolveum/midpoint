@@ -1,23 +1,20 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.crypto;
 
 import java.security.KeyStore;
 import java.util.List;
-
 import javax.net.ssl.TrustManager;
 
-import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedDataType;
-import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.prism.xml.ns._public.types_3.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
 public interface Protector {
 
@@ -38,26 +35,19 @@ public interface Protector {
     KeyStore getKeyStore();
 
     /**
-     *
-     * @param protectedString
      * @return decrypted String from protectedString object
-     * @throws EncryptionException
-     *             this is thrown probably in case JRE/JDK doesn't have JCE
-     *             installed
-     * @throws IllegalArgumentException
-     *             if protectedString argument is null or EncryptedData in
-     *             protectedString argument is null
+     * @throws EncryptionException this is thrown probably in case JRE/JDK doesn't have JCE
+     * installed
+     * @throws IllegalArgumentException if protectedString argument is null or EncryptedData in
+     * protectedString argument is null
      */
     String decryptString(ProtectedData<String> protectedString) throws EncryptionException;
 
     /**
-     *
-     * @param text
      * @return {@link ProtectedStringType} with encrypted string inside it. If
-     *         input argument is null or empty, method returns null.
-     * @throws EncryptionException
-     *             this is thrown probably in case JRE/JDK doesn't have JCE
-     *             installed
+     * input argument is null or empty, method returns null.
+     * @throws EncryptionException this is thrown probably in case JRE/JDK doesn't have JCE
+     * installed
      */
     ProtectedStringType encryptString(String text) throws EncryptionException;
 
@@ -65,15 +55,15 @@ public interface Protector {
 
     /**
      * Compare cleartext values protected inside the protected strings.
-     *
+     * <p>
      * This method only deals with the equality of the original values (cleartext).
      * If the two protected strings are representation of the same value then true value
      * is returned. In all other cases false value is returned.
-     *
+     * <p>
      * Please note that some cases are not decidable. For example it may not be possible
      * to compare two hashed values, e.g. in case that they are using different salt values.
      * SchemaException is thrown in that case.
-     *
+     * <p>
      * This method does not deal with any details about the protection. It just deals
      * with equality of the values. E.g. if encrypted and hashed version of the same value
      * is compared, this method returns true. This is ideal for use cases such as checking
@@ -88,7 +78,7 @@ public interface Protector {
 
     /**
      * Decides equivalence of two protected data objects (for data management purposes).
-     *
+     * <p>
      * The concept of equivalence is a very tricky one when it comes
      * to protected (encrypted and hashed) data. We want to compare
      * the original values (cleartext) and not the bytes that are
@@ -101,7 +91,7 @@ public interface Protector {
      * different key was used to create them. Otherwise we want
      * be able to change the key, as the value with old key will be
      * considered equivalent and it may never get replaced.
-     *
+     * <p>
      * And all of that is further complicated with hashing.
      * Hash algorithms are often salted, therefore we cannot rely on
      * comparing just the hashes. The situation is a bit easier here
@@ -112,7 +102,7 @@ public interface Protector {
      * change hashed value. If any more intelligent behavior is expected, it
      * has to be implemented in higher layers of the system where we still
      * have at least one unhashed clear value available.
-     *
+     * <p>
      * This method is designed for data management purposes. E.g. it can be used
      * to decide whether to replace certain value in a data store. This method
      * is not suitable for all purposes. E.g. it should NOT be used for password
@@ -123,8 +113,6 @@ public interface Protector {
      * @see #compareCleartext(ProtectedStringType, ProtectedStringType)
      */
     boolean areEquivalent(ProtectedStringType a, ProtectedStringType b) throws EncryptionException, SchemaException;
-
-
 
     boolean isEncryptedByCurrentKey(@NotNull EncryptedDataType data) throws EncryptionException;
 }

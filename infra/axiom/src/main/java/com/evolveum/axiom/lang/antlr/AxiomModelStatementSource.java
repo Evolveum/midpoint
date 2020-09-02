@@ -6,6 +6,7 @@
  */
 package com.evolveum.axiom.lang.antlr;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -115,5 +116,9 @@ public class AxiomModelStatementSource extends AxiomAntlrStatementSource impleme
 
     public static AxiomModelStatementSource fromResource(String resource) throws AxiomSyntaxException, IOException {
         return from(resource, AxiomModelStatementSource.class.getClassLoader().getResourceAsStream(resource));
+    }
+
+    public static AxiomModelStatementSource from(File file) throws AxiomSyntaxException, IOException {
+        return from(file.getName(), CharStreams.fromFileName(file.getAbsolutePath()));
     }
 }

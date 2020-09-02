@@ -223,7 +223,7 @@ body .treeview-menu > li > span:hover {
 }
 
 .icon-style-maintenance {
-	color: #646665;
+	color: #828282;
 }
 
 // Classes that can be added to color icons, info boxes and other widgets for particular object types
@@ -931,17 +931,6 @@ body .treeview-menu > li > span:hover {
 
   .prism-property {
     padding-left: 40px;
-
-    &.stripe {
-      background-color: @table-stripe-bg-color;
-    }
-  }
-
-}
-
-.metadata-properties {
-  .metadata-property {
-    padding-left: 20px;
 
     &.stripe {
       background-color: @table-stripe-bg-color;
@@ -1677,6 +1666,8 @@ display: inline-block;
 
 .metadata {
 
+    border-radius: 0px;
+
   .panel-default {
       border-color: #ffffff;
   }
@@ -1700,23 +1691,72 @@ display: inline-block;
   }
 
   .info-box-icon-ethereal-image {
-      font-size: 46px;
+      font-size: 40px;
   }
 }
 
-.metadata-nav > li > a {
-  border-radius: 10px;
-  padding: 5px 10px;
-  float: left;
+.metadata div.prism-container {
+  // Removing the "top horizontal line" above metadata label and icon.
+  // HACK We should rather re-structure the code and provide custom css class.
+  // But there is not enough time for that now
+  border-top: 0px !important;
 }
 
+.metadata-block {
+//     padding-left: 40px;
+}
+
+.metadata-properties {
+  padding-left: 40px;
+
+  .metadata-property {
+    padding-left: 0px;
+
+    &.stripe {
+      background-color: @table-stripe-bg-color;
+    }
+  }
+
+  .label {
+    display: block;
+    color: #000;
+    font-size: 100%;
+    background-color: transparent;
+    margin-top: 12px;
+    margin-top: 8px;
+    padding-left: 0em;
+    text-align: left;
+  }
+
+}
+
+// Tag icon in metadata "tab"
 .metadata-nav > li > a::before {
   font-family: "FontAwesome";
+  padding-right: 0.5em;
   content: "\f02b";
 }
 
-.acquisition {
+.metadata-tab {
+  border: 1px solid #dddddd;
+  border-radius: 0px;
+  padding: 3px 10px !important;
+  float: left;
 
+  font-size: 75%;
+  font-weight: 700;
+  color: #000;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.metadata-tab-active {
+  background-color: #dddddd;
+}
+
+.acquisition {
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .acquisition > li {
@@ -1738,12 +1778,20 @@ display: inline-block;
 }
 
 .yield {
-  margin-bottom: 2px;
-  border-radius: 3px;
+  margin-top: 2px;
 }
 
 .yield-heading {
   padding: 5px 5px;
   border-top: 1px solid #dddddd;
+//   font-weight: 700;
+  font-size: 16px;
 }
 
+.yield-description {
+  clear: both; // Fix floats in yield header
+  padding-top: 10px;
+  padding-left: 50px;
+  margin-top: 0px;
+  margin-bottom: -10px;
+}

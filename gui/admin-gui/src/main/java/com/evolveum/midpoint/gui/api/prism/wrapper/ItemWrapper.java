@@ -91,4 +91,7 @@ public interface ItemWrapper<I extends Item, VW extends PrismValueWrapper> exten
 
     void setShowMetadataDetails(boolean showMetadataDetails);
     boolean isShowMetadataDetails();
+
+    boolean isProcessProvenanceMetadata();
+    void setProcessProvenanceMetadata(boolean processProvenanceMetadata);
 }

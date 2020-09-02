@@ -69,6 +69,8 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     private boolean isMetadata;
     private boolean showMetadataDetails;
 
+    private boolean processProvenanceMetadata;
+
     //consider
     private boolean readOnly;
     private UserInterfaceElementVisibilityType visibleOverwrite;
@@ -794,5 +796,15 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
     @Override
     public boolean isShowMetadataDetails() {
         return showMetadataDetails;
+    }
+
+    @Override
+    public boolean isProcessProvenanceMetadata() {
+        return processProvenanceMetadata;
+    }
+
+    @Override
+    public void setProcessProvenanceMetadata(boolean processProvenanceMetadata) {
+        this.processProvenanceMetadata = processProvenanceMetadata;
     }
 }

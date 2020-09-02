@@ -39,6 +39,7 @@
     <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-3"
                 schemaLocation="http://prism.evolveum.com/xml/ns/public/types-3"/>
 
+    <!--  
     <xsd:complexType name="ValueMetadataExtensionType">
         <xsd:annotation>
             <xsd:appinfo>
@@ -84,6 +85,7 @@
         </xsd:restriction>
     </xsd:simpleType>
     <xsd:element name="sensitivity" type="tns:SensitivityType" />
+    -->
 
     <xsd:complexType name="UserTypeExtensionType">
         <xsd:annotation>

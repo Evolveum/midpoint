@@ -11,6 +11,9 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,10 +34,6 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuthorizationPhaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.VirtualContainersSpecificationType;
 
 /**
  * @author katka
@@ -60,8 +59,7 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         }
         context.setObject(object);
 
-        Collection<VirtualContainersSpecificationType> virtualContainers = getModelInteractionService().determineVirtualContainers(object, context.getTask(), context.getResult());
-        context.setVirtualContainers(virtualContainers);
+        setupContextWithVirtualContainerAndMetadataProcessing(object, context);
 
         PrismObjectWrapper<O> objectWrapper = createObjectWrapper(object, status);
         if (context.getReadOnly() != null) {
@@ -90,8 +88,8 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
         }
         context.setObject(wrapper.getObject());
 
-        Collection<VirtualContainersSpecificationType> virtualContainers = getModelInteractionService().determineVirtualContainers(wrapper.getObject(), context.getTask(), context.getResult());
-        context.setVirtualContainers(virtualContainers);
+        setupContextWithVirtualContainerAndMetadataProcessing(wrapper.getObject(), context);
+
         context.setShowEmpty(ItemStatus.ADDED == wrapper.getStatus());
         wrapper.setExpanded(true);
 
@@ -178,6 +176,20 @@ public class PrismObjectWrapperFactoryImpl<O extends ObjectType> extends PrismCo
                 | CommunicationException | SecurityViolationException e) {
             LOGGER.error("Exception while applying security constraints: {}", e.getMessage(), e);
             throw e;
+        }
+
+    }
+
+    protected void setupContextWithVirtualContainerAndMetadataProcessing(PrismObject<O> object, WrapperContext context) {
+        Collection<VirtualContainersSpecificationType> virtualContainers = getModelInteractionService().determineVirtualContainers(object, context.getTask(), context.getResult());
+        context.setVirtualContainers(virtualContainers);
+
+         try {
+            MetadataItemProcessingSpec metadataItemProcessingSpec = getModelInteractionService().getMetadataItemProcessingSpec(ValueMetadataType.F_PROVENANCE, object, context.getTask(), context.getResult());
+             context.setMetadataItemProcessingSpec(metadataItemProcessingSpec);
+        } catch (SchemaException | SecurityViolationException | CommunicationException | ExpressionEvaluationException | ObjectNotFoundException | ConfigurationException e) {
+            LOGGER.error("Cannot get metadata processing items, reason: " + e.getMessage(), e);
+            return;
         }
 
     }

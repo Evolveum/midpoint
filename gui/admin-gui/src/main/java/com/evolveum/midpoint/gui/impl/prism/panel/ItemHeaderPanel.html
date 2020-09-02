@@ -9,7 +9,7 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
 <!--    <div class="row">-->
-        <div wicket:id="labelContainer" style="float: left;">
+        <div wicket:id="labelContainer" class="pull-left">
             <span wicket:id="label"/>
 
             <span wicket:id="required" style="color: #f00; font-weight: bold;"
@@ -23,16 +23,26 @@
             <i class="helpTextIcon" wicket:id="deprecated"/>
             <i class="helpTextIcon" wicket:id="experimental"/>
             <wicket:child/>
+
         </div>
 
-        <div class="box-tools">
-            <button wicket:id="add" wicket:message="title:ItemHeaderPanel.addValue" class="btn btn-box-tool" trigger="hover">
-                <i class="fa fa-plus-circle"></i>
-            </button>
-            <button wicket:id="remove" wicket:message="title:ItemHeaderPanel.removeAll" class="btn btn-box-tool" trigger="hover">
-                <i class="fa fa-minus-circle"></i>
-            </button>
-        </div>
+    <div>
+        <button wicket:id="add" wicket:message="title:ItemHeaderPanel.addValue" class="btn btn-box-tool" trigger="hover">
+            <i class="fa fa-plus-circle"></i>
+        </button>
+        <button wicket:id="remove" wicket:message="title:ItemHeaderPanel.removeAll" class="btn btn-box-tool" trigger="hover">
+            <i class="fa fa-minus-circle"></i>
+        </button>
+    </div>
+
+<!--        <div class="box-tools">-->
+<!--    <button wicket:id="add" wicket:message="title:ItemHeaderPanel.addValue" class="btn btn-box-tool" trigger="hover">-->
+<!--        <i class="fa fa-plus-circle"></i>-->
+<!--    </button>-->
+<!--    <button wicket:id="remove" wicket:message="title:ItemHeaderPanel.removeAll" class="btn btn-box-tool" trigger="hover">-->
+<!--        <i class="fa fa-minus-circle"></i>-->
+<!--    </button>-->
+<!--        </div>-->
 <!--    </div>-->
 </wicket:panel>
 </html>
