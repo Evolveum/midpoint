@@ -118,8 +118,8 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
         Component searchItemField = null;
         if (getModelObject() instanceof FilterSearchItem){
             searchItemField = new CheckPanel(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_APPLY_FILTER));
-            searchItemField.add(AttributeModifier.append("class", "col-sm-2"));
-            searchItemField.add(AttributeAppender.append("style", "margin-top: 5px;"));
+            searchItemField.add(AttributeModifier.append("class", "pull-right"));
+            searchItemField.add(AttributeAppender.append("style", "margin-top: 3px;"));
             ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         } else {
             PropertySearchItem<T> item = (PropertySearchItem<T>) getModelObject();
