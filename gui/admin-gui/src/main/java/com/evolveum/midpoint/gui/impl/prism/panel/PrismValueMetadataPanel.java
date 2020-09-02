@@ -10,6 +10,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.prism.ItemDefinition;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -65,7 +68,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         provenanceMetadataPanel.setOutputMarkupId(true);
         add(provenanceMetadataPanel);
 
-        MetadataContainerPanel<Containerable> valueMetadataPanel =
+        MetadataContainerPanel<? extends Containerable> valueMetadataPanel =
                 new MetadataContainerPanel<>(ID_METADATA, createMetadataNoProvenanceModel(),createItemPanelSettings());
         valueMetadataPanel.add(new VisibleBehaviour(this::shouldShowMetadataDetails));
         valueMetadataPanel.setOutputMarkupId(true);
@@ -76,8 +79,15 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         return new ItemPanelSettingsBuilder()
                 .editabilityHandler(wrapper -> true)
                 .headerVisibility(false)
-                .visibilityHandler(w -> w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN)
+                .visibilityHandler(w -> createItemVisibilityBehavior(w))
                 .build();
+    }
+
+    private ItemVisibility createItemVisibilityBehavior(ItemWrapper<?, ?> w) {
+        if (getModelObject().isShowMetadataDetails()) {
+            return w instanceof PrismContainerWrapper ? ItemVisibility.HIDDEN : ItemVisibility.AUTO;
+        }
+        return w.isShowMetadataDetails() ? ItemVisibility.AUTO : ItemVisibility.HIDDEN;
     }
 
     private IModel<PrismContainerWrapper<Containerable>> createMetadataNoProvenanceModel() {
@@ -123,6 +133,9 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
     }
 
     private boolean isAnyMetadataSelected() {
+        if (getModelObject().isShowMetadataDetails()) {
+            return true;
+        }
         for (PrismContainerValueWrapper<ValueMetadataType> value : getValueMetadata().getValues()) {
             for (PrismContainerWrapper<Containerable> metadataContainer : value.getContainers()) {
                 if (metadataContainer.isShowMetadataDetails()) {
@@ -162,6 +175,10 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
     }
 
     private String getPrimaryButton(PrismContainerWrapper<ValueMetadataType> valueMetadata, ContainersPopupDto containersPopupDto) {
+        if (QNameUtil.match(ValueMetadataType.COMPLEX_TYPE, containersPopupDto.getTypeName()) && valueMetadata.isShowMetadataDetails()) {
+            return "metadata-tab metadata-tab-active";
+        }
+
         for (PrismContainerValueWrapper<ValueMetadataType> value : valueMetadata.getValues()) {
             for (PrismContainerWrapper<Containerable> container : value.getContainers()) {
                 if (!QNameUtil.match(containersPopupDto.getTypeName(), container.getTypeName())) {
@@ -178,6 +195,12 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
     }
 
     private void setContainersToShow(ContainersPopupDto containersToShow, AjaxRequestTarget ajaxRequestTarget) {
+        if (QNameUtil.match(ValueMetadataType.COMPLEX_TYPE, containersToShow.getDef().getTypeName())) {
+            getValueMetadata().setShowMetadataDetails(true);
+        } else {
+            getValueMetadata().setShowMetadataDetails(false);
+        }
+
         for (PrismContainerValueWrapper<ValueMetadataType> values : getValueMetadata().getValues()) {
             for (PrismContainerWrapper<Containerable> container : values.getContainers()) {
                 if (QNameUtil.match(container.getTypeName(), containersToShow.getDef().getTypeName())) {
@@ -204,8 +227,14 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
                 childContainers = Collections.EMPTY_LIST;
             }
 
-            return childContainers.stream().map(c -> new ContainersPopupDto(false, c)).collect(Collectors.toList());
+            List<ContainersPopupDto> navigation = childContainers.stream().map(c -> new ContainersPopupDto(false, c)).collect(Collectors.toList());
 
+            List<? extends ItemDefinition> childNonContainers = metadataWrapper.getChildNonContainers();
+            if (!childNonContainers.isEmpty()) {
+                navigation.add(new ContainersPopupDto(false, metadataWrapper));
+            }
+
+            return navigation;
         });
     }
 
