@@ -332,6 +332,9 @@ public class PrismContainerWrapperImpl<C extends Containerable>
 
     @Override
     public PrismContainerWrapper<Containerable> getSelectedChild() {
+        if (isShowMetadataDetails()) {
+            return (PrismContainerWrapper<Containerable>) this;
+        }
         List<PrismContainerValueWrapper<C>> values = getValues();
         if (CollectionUtils.isEmpty(values)) {
             return null;

@@ -64,7 +64,7 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
 
         PrismContainerValueWrapper<?> parentContainerValue = parent.getParent();
         if (parentContainerValue == null) {
-            return false;
+            return true;
         }
 
         if (parentContainerValue.getDefinition() == null) {

@@ -46,7 +46,7 @@ public class MetadataPanelFactory<C extends Containerable> implements GuiCompone
 
     @Override
     public org.apache.wicket.Component createPanel(PrismContainerPanelContext<C> panelCtx) {
-        return new MetadataContainerValuePanel<>(panelCtx.getComponentId(), panelCtx.getValueWrapper(), new ItemPanelSettingsBuilder().build());
+        return new MetadataContainerValuePanel<>(panelCtx.getComponentId(), panelCtx.getValueWrapper(), panelCtx.getSettings());
     }
 
     @Override

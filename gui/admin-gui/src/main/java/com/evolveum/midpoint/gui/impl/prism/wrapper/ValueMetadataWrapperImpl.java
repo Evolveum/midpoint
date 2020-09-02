@@ -647,9 +647,29 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
         return childContainers;
     }
 
+    public List<? extends ItemDefinition> getChildNonContainers() {
+        List<PrismContainerValueWrapper<ValueMetadataType>> metadataValues = getValues();
+        if (CollectionUtils.isEmpty(metadataValues)) {
+            return Collections.EMPTY_LIST;
+        }
+
+        List<ItemDefinition<?>> childItems = new ArrayList<>();
+        for (PrismContainerValueWrapper<ValueMetadataType> metadataValue : metadataValues) {
+            for (ItemWrapper<?, ?> child : metadataValue.getNonContainers()) {
+                if (child.isEmpty()) {
+                    continue;
+                }
+                if (!containainChild(childItems, child)) {
+                    childItems.add(child);
+                }
+            }
+        }
+        return childItems;
+    }
 
 
-    private boolean containainChild(List<PrismContainerDefinition<Containerable>> containers, PrismContainerWrapper<Containerable> child) {
+
+    private boolean containainChild(List<? extends ItemDefinition<?>> containers, ItemWrapper<?, ?> child) {
         return containers.stream().anyMatch(ch -> QNameUtil.match(ch.getTypeName(), child.getTypeName()));
     }
 
