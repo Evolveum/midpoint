@@ -77,6 +77,9 @@
                     <xsd:documentation>
                         Timestamp when the event occurred.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.timestamp</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="eventIdentifier" type="xsd:string" minOccurs="1">
@@ -85,6 +88,9 @@
                         Unique identification of the event.
             Every record should have unique event identifier.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.eventIdentifier</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="sessionIdentifier" type="xsd:string" minOccurs="0">
@@ -92,6 +98,9 @@
                     <xsd:documentation>
                         Identification of (interactive) session in which the event occurred.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.sessionIdentifier</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
         <xsd:element name="requestIdentifier" type="xsd:string" minOccurs="0">
@@ -112,6 +121,9 @@
              operation will have a separate request identifier.
             </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.requestIdentifier</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="taskIdentifier" type="xsd:string" minOccurs="0">
@@ -133,6 +145,9 @@
              operation will have a separate request identifier.
              </p>
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.taskIdentifier</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="taskOID" type="xsd:string" minOccurs="0">
@@ -141,6 +156,9 @@
                         Task OID. This field is used for records that are executed in the context
              of a persistent task.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.taskOID</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="hostIdentifier" type="xsd:string" minOccurs="0">
@@ -149,6 +167,9 @@
                         Identifier of a host that generated the audit record.
                         This is the host name corresponding to a network interface that accepted the HTTP request.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.hostIdentifier</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="nodeIdentifier" type="xsd:string" minOccurs="0">
@@ -156,6 +177,9 @@
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.nodeIdentifier</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="remoteHostAddress" type="xsd:string" minOccurs="0">
@@ -163,6 +187,9 @@
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.remoteHostAddress</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="initiatorRef" type="c:ObjectReferenceType" minOccurs="1">
@@ -177,6 +204,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                        <a:displayName>AuditEventRecordType.initiatorRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -191,6 +219,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                        <a:displayName>AuditEventRecordType.attorneyRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -201,6 +230,9 @@
                         In case that operation targets more than one object, the "primary" or
                         the most important is recorded (e.g. the user object)
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.targetRef</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="targetOwnerRef" type="c:ObjectReferenceType" minOccurs="1">
@@ -212,6 +244,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:objectReferenceTargetType>c:UserType</a:objectReferenceTargetType>
+                        <a:displayName>AuditEventRecordType.targetOwnerRef</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -221,6 +254,9 @@
                         Type of audit event. It describes what kind of operation was executed
                         (adding an object, modification, user login, ...)
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.eventType</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="eventStage" type="tns:AuditEventStageType" minOccurs="1">
@@ -228,14 +264,26 @@
                     <xsd:documentation>
                         Stage of event processing: request or execution.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.eventStage</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="delta" type="c:ObjectDeltaOperationType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="delta" type="c:ObjectDeltaOperationType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.delta</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="channel" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         The channel that was the source of the operation that the record describes
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.channel</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="outcome" type="c:OperationResultStatusType" minOccurs="0">
@@ -243,6 +291,9 @@
                     <xsd:documentation>
                         Operation outcome (success, failure)
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.outcome</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="result" type="xsd:string" minOccurs="0">
@@ -250,6 +301,9 @@
                     <xsd:documentation>
                         result (e.g. number of entries, returned object, business result of workflow task or process instance - approved, rejected)
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.result</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="parameter" type="xsd:string" minOccurs="0">
@@ -257,6 +311,9 @@
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.parameter</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="message" type="xsd:string" minOccurs="0">
@@ -264,6 +321,9 @@
                     <xsd:documentation>
                         TODO
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>AuditEventRecordType.message</a:displayName>
+                    </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="changedItem" type="t:ItemPathType" minOccurs="0" maxOccurs="unbounded">
@@ -277,6 +337,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.2</a:since>
+                        <a:displayName>AuditEventRecordType.changedItem</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -287,6 +348,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
+                        <a:displayName>AuditEventRecordType.property</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -297,6 +359,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>3.6</a:since>
+                        <a:displayName>AuditEventRecordType.reference</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -307,6 +370,7 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
+                        <a:displayName>AuditEventRecordType.resourceOid</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -317,7 +381,8 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <a:since>4.0</a:since>
-            <a:experimental>true</a:experimental>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>AuditEventRecordType.customColumnProperty</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>

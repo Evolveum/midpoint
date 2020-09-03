@@ -23,9 +23,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
@@ -131,8 +133,7 @@ public class CsvController extends FileFormatController {
         CompiledObjectCollectionView compiledCollection = createCompiledView(collectionConfig, collection);
 
         byte[] csvFile;
-        boolean isAuditCollection = collection != null && collection.getAuditSearch() != null;
-        if (!isAuditCollection) {
+        if (!isAuditCollection(collection)) {
             csvFile = createTableBoxForObjectView(collectionRefSpecification, compiledCollection,
                     collectionConfig.getCondition(), task, result);
         } else {
@@ -192,7 +193,7 @@ public class CsvController extends FileFormatController {
     private byte[] createTableForAuditView(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection,
             ExpressionType condition, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        List<AuditEventRecord> auditRecords = getReportService().getDashboardService().searchObjectFromCollection(collectionRef, condition, task, result);
+        List<AuditEventRecordType> auditRecords = getReportService().getDashboardService().searchObjectFromCollection(collectionRef, condition, task, result);
 
         if (compiledCollection.getColumns().isEmpty()) {
             getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultAuditEventsView());
@@ -201,17 +202,11 @@ public class CsvController extends FileFormatController {
         List<List<String>> records = new ArrayList<>();
 
         List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
-
+        PrismContainerDefinition<AuditEventRecordType> def = getReportService().getPrismContext().getSchemaRegistry()
+                .findItemDefinitionByCompileTimeClass(AuditEventRecordType.class, PrismContainerDefinition.class);
         columns.forEach(column -> {
             Validate.notNull(column.getName(), "Name of column is null");
-
-            DisplayType columnDisplay = column.getDisplay();
-            String label;
-            if(columnDisplay != null && columnDisplay.getLabel() != null) {
-                label = getMessage(columnDisplay.getLabel().getOrig());
-            } else {
-                label = column.getName();
-            }
+            String label = getColumnLabel(column, def);
             headers.add(label);
 
         });
@@ -220,12 +215,17 @@ public class CsvController extends FileFormatController {
         task.setExpectedTotal((long) auditRecords.size());
         recordProgress(task, i, result, LOGGER);
 
-        for (AuditEventRecord auditRecord : auditRecords) {
+        for (AuditEventRecordType auditRecord : auditRecords) {
             List<String> items = new ArrayList<>();
             columns.forEach(column -> {
                 ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
                 ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
-                items.add(getStringValueByAuditColumn(auditRecord, path, expression, task, result));
+                try {
+                    items.add(getRealValueAsString(column, getAuditRecordAsContainer(auditRecord), path, expression, task, result)
+                    );
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't create singleValueContainer for audit record " + auditRecord);
+                }
             });
             records.add(items);
             i++;
@@ -326,15 +326,8 @@ public class CsvController extends FileFormatController {
     }
 
     @Override
-    protected String getRealValueAsString(GuiObjectColumnType column, PrismObject<ObjectType> object, ItemPath itemPath, ExpressionType expression, Task task, OperationResult result) {
+    protected String getRealValueAsString(GuiObjectColumnType column, PrismContainer<? extends Containerable> object, ItemPath itemPath, ExpressionType expression, Task task, OperationResult result) {
         String value = super.getRealValueAsString(column, object, itemPath, expression, task, result);
-        value = removeNewLine(value);
-        return value;
-    }
-
-    protected String getStringValueByAuditColumn(AuditEventRecord record, ItemPath path,
-            ExpressionType expression, Task task, OperationResult result) {
-        String value = super.getStringValueByAuditColumn(record, path, expression, task, result);
         value = removeNewLine(value);
         return value;
     }

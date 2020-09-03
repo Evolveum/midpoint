@@ -17549,6 +17549,7 @@
                             <xsd:appinfo>
                                 <a:displayName>ObjectCollectionType.auditSearch</a:displayName>
                                 <a:experimental>true</a:experimental>
+                                <a:deprecated>true</a:deprecated>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -17965,6 +17966,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:deprecated>true</a:deprecated>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
