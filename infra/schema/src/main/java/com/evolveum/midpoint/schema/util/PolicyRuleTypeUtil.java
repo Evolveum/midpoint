@@ -77,6 +77,14 @@ public class PolicyRuleTypeUtil {
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_ALWAYS_TRUE.getLocalPart(), SYMBOL_ALWAYS_TRUE);
     }
 
+    public static String toShortString(PolicyRuleType rule) {
+        if (rule != null) {
+            return toShortString(rule.getPolicyConstraints()) + "→" + toShortString(rule.getPolicyActions());
+        } else {
+            return null;
+        }
+    }
+
     public static String toShortString(PolicyConstraintsType constraints) {
         return toShortString(constraints, JOIN_AND);
     }
