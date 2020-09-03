@@ -192,7 +192,7 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
     public void applyValueMetadata(PrismValueDeltaSetTriple<V> triple, ExpressionEvaluationContext context,
             OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        if (triple != null && context.getValueMetadataComputer() != null) {
+        if (triple != null) {
             for (V value : triple.getPlusSet()) {
                 applyValueMetadata(value, context, result);
             }
@@ -203,7 +203,9 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
                 // For values in minus set we must delete any existing metadata. The reason is that a mapping
                 // computes own metadata for its outputs - so metadata from the input values in minus set are no longer
                 // relevant on the output.
-                value.getValueMetadata().clear();
+                if (value != null) {
+                    value.getValueMetadata().clear();
+                }
             }
         }
     }
@@ -212,9 +214,15 @@ public abstract class AbstractExpressionEvaluator<V extends PrismValue, D extend
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
             ConfigurationException, ExpressionEvaluationException {
         if (value != null) {
-            value.setValueMetadata(
-                    context.getValueMetadataComputer()
-                            .compute(Collections.singletonList(value), result));
+            if (context.getValueMetadataComputer() != null) {
+                value.setValueMetadata(
+                        context.getValueMetadataComputer()
+                                .compute(Collections.singletonList(value), result));
+            } else {
+                // This is to clear pre-existing metadata for asIs mappings that are not configured e.g. for provenance
+                // metadata propagation.
+                value.getValueMetadata().clear();
+            }
         }
     }
 }

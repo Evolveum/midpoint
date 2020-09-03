@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.model.common.mapping.metadata;
 
 import com.evolveum.midpoint.model.common.ModelCommonBeans;
+import com.evolveum.midpoint.model.common.mapping.AbstractMappingImpl;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.metadata.builtin.BuiltinMetadataMapping;
@@ -42,14 +43,20 @@ public class TransformationalMetadataComputation extends ValueMetadataComputatio
      */
     @NotNull private final List<PrismValue> inputValues;
 
+    /**
+     * Mapping in context of which this transformation is being executed.
+     */
+    @NotNull private final AbstractMappingImpl<?, ?, ?> mapping;
+
     private TransformationalMetadataComputation(
             @NotNull List<PrismValue> inputValues,
             @NotNull ItemValueMetadataProcessingSpec processingSpec,
-            @Nullable MappingSpecificationType mappingSpecification,
+            @NotNull AbstractMappingImpl<?, ?, ?> mapping,
             @NotNull ModelCommonBeans beans,
             MappingEvaluationEnvironment env) {
-        super(processingSpec, mappingSpecification, beans, env);
+        super(processingSpec, mapping.getMappingSpecification(), beans, env);
         this.inputValues = inputValues;
+        this.mapping = mapping;
     }
 
     @Override
@@ -67,7 +74,7 @@ public class TransformationalMetadataComputation extends ValueMetadataComputatio
         MappingEvaluationEnvironment env = new MappingEvaluationEnvironment(
                 "metadata evaluation in " + mapping.getMappingContextDescription(),
                 mapping.getNow(), mapping.getTask());
-        return new TransformationalMetadataComputation(inputValues, processingSpec, mapping.getMappingSpecification(), mapping.getBeans(), env);
+        return new TransformationalMetadataComputation(inputValues, processingSpec, mapping, mapping.getBeans(), env);
     }
 
     @Override
@@ -89,6 +96,10 @@ public class TransformationalMetadataComputation extends ValueMetadataComputatio
 
     public List<PrismValue> getInputValues() {
         return Collections.unmodifiableList(inputValues);
+    }
+
+    public List<QName> getSourceNames() {
+        return mapping.getSourceNames();
     }
 
     @Override

@@ -182,7 +182,7 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
         addObject(TEMPLATE_LOA_USER, initTask, initResult);
         addObject(USER_ALICE, initTask, initResult);
 
-        setGlobalTracingOverride(createModelLoggingTracingProfile());
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     @Override
@@ -242,17 +242,18 @@ public class TestValueMetadata extends AbstractEmptyModelIntegrationTest {
                 .valueMetadata(UserType.F_NAME)
                     .assertHasDefinition()
                     .singleValue()
-                        .containerSingle(ValueMetadataType.F_TRANSFORMATION)
-                            .container(TransformationMetadataType.F_SOURCE)
-                                .assertSize(1)
-                                .singleValue()
-                                    .assertPropertyEquals(ValueSourceType.F_KIND, "http://midpoint.evolveum.com/data-provenance/source#resource")
-                                    .end()
-                                .end()
-                            .end()
-                        .assertPropertyValuesEqual(LOA_PATH, 10)
-                        .end()
+//                        .containerSingle(ValueMetadataType.F_TRANSFORMATION)
+//                            .container(TransformationMetadataType.F_SOURCE)
+//                                .assertSize(1)
+//                                .singleValue()
+//                                    .assertPropertyEquals(ValueSourceType.F_KIND, "http://midpoint.evolveum.com/data-provenance/source#resource")
+//                                    .end()
+//                                .end()
+//                            .end()
+//                        .assertPropertyValuesEqual(LOA_PATH, 10)
+//                        .end()
                     .end()
+                .end()
                 .valueMetadata(UserType.F_GIVEN_NAME)
                     .assertHasDefinition()
                     .singleValue()

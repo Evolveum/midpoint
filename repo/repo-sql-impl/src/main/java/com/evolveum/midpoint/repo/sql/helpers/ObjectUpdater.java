@@ -248,15 +248,14 @@ public class ObjectUpdater {
                 .itemsToSkip(itemsToSkip)
                 .options(SerializationOptions
                         .createSerializeReferenceNamesForNullOids()
-                        .skipIndexOnly(true))
+                        .skipIndexOnly(true)
+                        .skipTransient(true))
                 .serialize(savedObject);
         byte[] fullObject = RUtil.getBytesFromSerializedForm(xml, getConfiguration().isUseZip());
 
         object.setFullObject(fullObject);
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Updating full object xml column finished. Xml:\n{}", xml);
-        }
+        LOGGER.trace("Updating full object xml column finished. Xml:\n{}", xml);
     }
 
     protected SqlRepositoryConfiguration getConfiguration() {

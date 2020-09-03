@@ -85,7 +85,7 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             if (modelContext != null) {
                 if (modelContext.getFocusContext() != null) {
                     addIgnoreNull(primaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getPrimaryDelta()));
-                    addIgnoreNull(secondaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getSecondaryDelta()));
+                    addIgnoreNull(secondaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getSecondaryDelta())); // todo adapt this, see MID-6465
                 }
                 for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
                     addIgnoreNull(primaryDeltas, CloneUtil.clone(projCtx.getPrimaryDelta()));

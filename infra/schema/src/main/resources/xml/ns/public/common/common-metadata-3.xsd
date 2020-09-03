@@ -489,17 +489,10 @@
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="source" type="tns:ValueSourceType" minOccurs="0" maxOccurs="unbounded">
+            <xsd:element name="mappingTransformation" type="tns:MappingTransformationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Source(s) of the value.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="transformer" type="tns:ValueTransformerType" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Transformer(s) that acted upon the value.
+                        Mapping transformation that led to the current value.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -507,100 +500,65 @@
     </xsd:complexType>
     <xsd:element name="transformationMetadata" type="tns:TransformationMetadataType" />
 
-    <xsd:complexType name="ValueSourceType">
+    <xsd:complexType name="MappingTransformationType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies a value source.
+                Informs that the value was provided by a mapping (and how exactly).
             </xsd:documentation>
             <xsd:appinfo>
                 <a:operational>true</a:operational>
                 <a:container/>
+                <a:since>4.2</a:since>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="kind" type="xsd:anyURI" minOccurs="0">
+            <xsd:element name="mappingSpecification" type="tns:MappingSpecificationType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of the source (resource, object template, assignment, user action, ...)
+                        Specification of the mapping.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="name" type="xsd:string" minOccurs="0">
+            <xsd:element name="source" type="tns:MappingSourceType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the source (whatever that means).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        A midPoint object representing the source of the value (resource object, object template, assignment holder, user, ...)
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="specificInformation" type="xsd:anyType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Specific information needed to identify the source e.g. within the midPoint object
-                        (mapping name, assignment path, ...).
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="storage" type="t:ItemPathType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Where was the original value stored.
+                        Sources for the mapping.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="valueSource" type="tns:ValueSourceType" />
+    <xsd:element name="mappingTransformation" type="tns:MappingTransformationType" />
 
-    <xsd:complexType name="ValueTransformerType">
+    <xsd:complexType name="MappingSourceType">
         <xsd:annotation>
             <xsd:documentation>
-                Specifies agent that transformed the value.
             </xsd:documentation>
             <xsd:appinfo>
                 <a:operational>true</a:operational>
                 <a:container/>
+                <a:since>4.2</a:since>
+                <a:displayName>Value source</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="kind" type="xsd:anyURI" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Type of the transformer. Currently the only supported one is "mapping".
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
             <xsd:element name="name" type="xsd:string" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the transformer. Currently mapping name.
+                        Name of the mapping source.
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="objectRef" type="c:ObjectReferenceType" minOccurs="0">
+            <xsd:element name="value" type="xsd:anyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
-                        A midPoint object holding the transformer.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="specificInformation" type="xsd:anyType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Specific information needed to identify the transformer e.g. within the midPoint object
-                        (mapping name, assignment path, ...).
+                        Source value itself. (Along with its own metadata.)
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
-    <xsd:element name="valueTransformer" type="tns:ValueTransformerType" />
+    <xsd:element name="mappingSource" type="tns:MappingSourceType" />
 
     <xsd:complexType name="ProvenanceMetadataType">
         <xsd:annotation>
