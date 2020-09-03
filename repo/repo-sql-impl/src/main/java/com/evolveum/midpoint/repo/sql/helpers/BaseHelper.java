@@ -165,16 +165,22 @@ public class BaseHelper {
         }
     }
 
+    public void handleGeneralException(Throwable ex, OperationResult result) {
+        handleGeneralException(ex, null, result);
+    }
+
     public void handleGeneralException(Throwable ex, Session session, OperationResult result) {
         if (ex instanceof RuntimeException) {
             handleGeneralRuntimeException((RuntimeException) ex, session, result);
         } else {
             handleGeneralCheckedException(ex, session, result);
         }
-        throw new IllegalStateException("Shouldn't get here");            // just a marker to be obvious that this method never returns normally
+        // just a marker to be obvious that this method never returns normally
+        throw new IllegalStateException("Shouldn't get here");
     }
 
-    public void handleGeneralRuntimeException(RuntimeException ex, Session session, OperationResult result) {
+    public void handleGeneralRuntimeException(
+            RuntimeException ex, Session session, OperationResult result) {
         LOGGER.debug("General runtime exception occurred.", ex);
 
         if (isExceptionRelatedToSerialization(ex)) {

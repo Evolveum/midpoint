@@ -13,9 +13,12 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
 import com.evolveum.midpoint.task.api.RunningTask;
+
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import j2html.TagCreator;
 import j2html.tags.ContainerTag;
@@ -220,8 +223,7 @@ public class HtmlController extends FileFormatController {
         }
 
         ContainerTag tableBox;
-        boolean isAuditCollection = collection != null && collection.getAuditSearch() != null;
-        if (!isAuditCollection) {
+        if (!isAuditCollection(collection)) {
             tableBox = createTableBoxForObjectView(label, collectionRefSpecification, compiledCollection,
                     collectionConfig.getCondition(), task, result, true);
         } else {
@@ -293,23 +295,20 @@ public class HtmlController extends FileFormatController {
         return table;
     }
 
-    private ContainerTag createTable(CompiledObjectCollectionView compiledCollection, List<AuditEventRecord> records, boolean recordProgress,
+    private ContainerTag createTable(CompiledObjectCollectionView compiledCollection, List<AuditEventRecordType> records, boolean recordProgress,
             Task task, OperationResult result) {
         ContainerTag table = createTable();
         ContainerTag tHead = TagCreator.thead();
         ContainerTag tBody = TagCreator.tbody();
         List<GuiObjectColumnType> columns = MiscSchemaUtil.orderCustomColumns(compiledCollection.getColumns());
         ContainerTag trForHead = TagCreator.tr().withStyle("width: 100%;");
+        PrismContainerDefinition<AuditEventRecordType> def = getReportService().getPrismContext().getSchemaRegistry()
+                .findItemDefinitionByCompileTimeClass(AuditEventRecordType.class, PrismContainerDefinition.class);
         columns.forEach(column -> {
             Validate.notNull(column.getName(), "Name of column is null");
 
             DisplayType columnDisplay = column.getDisplay();
-            String label;
-            if (columnDisplay != null && columnDisplay.getLabel() != null) {
-                label = getMessage(columnDisplay.getLabel().getOrig());
-            } else {
-                label = column.getName();
-            }
+            String label = getColumnLabel(column, def);
             ContainerTag th = TagCreator.th(TagCreator.div(TagCreator.span(label).withClass("sortableLabel")));
             if (columnDisplay != null) {
                 if (StringUtils.isNotBlank(columnDisplay.getCssClass())) {
@@ -329,14 +328,19 @@ public class HtmlController extends FileFormatController {
             task.setExpectedTotal((long) records.size());
             recordProgress(task, i, result, LOGGER);
         }
-        for (AuditEventRecord record : records) {
+        for (AuditEventRecordType record : records) {
             ContainerTag tr = TagCreator.tr();
             columns.forEach(column -> {
                 ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
                 ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
-                tr.with(TagCreator
-                        .th(TagCreator.div(getStringValueByAuditColumn(record, path, expression, task, result))
-                                .withStyle("white-space: pre-wrap")));
+                try {
+                    tr.with(TagCreator
+                            .th(TagCreator.div(getRealValueAsString(column, getAuditRecordAsContainer(record),
+                                    path, expression, task, result))
+                                    .withStyle("white-space: pre-wrap")));
+                } catch (SchemaException e) {
+                    LOGGER.error("Couldn't create singleValueContainer for audit record " + record);
+                }
             });
             tBody.with(tr);
             if (recordProgress) {
@@ -398,7 +402,7 @@ public class HtmlController extends FileFormatController {
             ExpressionType condition, Task task, OperationResult result, boolean recordProgress) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
-        List<AuditEventRecord> records = getReportService().getDashboardService().searchObjectFromCollection(collection, condition, task, result);
+        List<AuditEventRecordType> records = getReportService().getDashboardService().searchObjectFromCollection(collection, condition, task, result);
 
         if (compiledCollection.getColumns().isEmpty()) {
             getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultAuditEventsView());

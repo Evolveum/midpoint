@@ -253,7 +253,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     public int countObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult) {
+            @NotNull OperationResult parentResult) {
         int count = 0;
         for (AuditService service : services) {
             if (service.supportsRetrieval()) {
@@ -269,7 +269,7 @@ public class AuditServiceProxy implements AuditService, AuditServiceRegistry {
     public SearchResultList<AuditEventRecordType> searchObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException {
         // does it even make sense to merge multiple results for audit?
         SearchResultList<AuditEventRecordType> result = new SearchResultList<>();

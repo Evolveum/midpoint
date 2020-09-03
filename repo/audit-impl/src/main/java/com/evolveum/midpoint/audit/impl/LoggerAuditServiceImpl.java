@@ -183,7 +183,7 @@ public class LoggerAuditServiceImpl implements AuditService {
     public int countObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult) {
+            @NotNull OperationResult parentResult) {
         throw new UnsupportedOperationException("countObjects not supported");
     }
 
@@ -192,7 +192,7 @@ public class LoggerAuditServiceImpl implements AuditService {
     public SearchResultList<AuditEventRecordType> searchObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult) {
+            @NotNull OperationResult parentResult) {
         throw new UnsupportedOperationException("searchObjects not supported");
     }
 }

@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -199,12 +200,20 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         try {
             resource = provisioningService.getObject(ResourceType.class, resourceOid, null, localCoordinatorTask, opResult);
 
+            if (ResourceTypeUtil.isInMaintenance(resource.asObjectable()))
+                throw new MaintenanceException("Resource " + resource + " is in the maintenance");
+
             RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
             objectclassDef = ModelImplUtils.determineObjectClass(refinedSchema, localCoordinatorTask);
         } catch (ObjectNotFoundException ex) {
             // This is bad. The resource does not exist. Permanent problem.
             processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex,
                     TaskRunResultStatus.PERMANENT_ERROR, opResult);
+            return runResult;
+        } catch (MaintenanceException ex) {
+            LOGGER.warn("Reconciliation: {}-{}", new Object[]{ex.getMessage(), ex});
+            opResult.recordHandledError(ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR); // Resource is in the maintenance, do not suspend the task
             return runResult;
         } catch (CommunicationException ex) {
             // Error, but not critical. Just try later.

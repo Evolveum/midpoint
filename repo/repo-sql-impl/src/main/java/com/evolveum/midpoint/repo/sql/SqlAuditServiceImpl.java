@@ -87,6 +87,8 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
 
+    private static final String OP_NAME_PREFIX = SqlAuditServiceImpl.class.getSimpleName() + '.';
+
     private static final String OP_CLEANUP_AUDIT_MAX_AGE = "cleanupAuditMaxAge";
     private static final String OP_CLEANUP_AUDIT_MAX_RECORDS = "cleanupAuditMaxRecords";
     private static final String OP_LIST_RECORDS = "listRecords";
@@ -1091,12 +1093,18 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     public int countObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult) {
+            @NotNull OperationResult parentResult) {
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "countObjects")
+                .addParam("query", query)
+                .build();
+
         try {
-            // TODO MID-6319 do something with the OperationResult... skipped for now
             return sqlQueryExecutor.count(AuditEventRecordType.class, query, options);
-        } catch (QueryException e) {
+        } catch (QueryException | RuntimeException e) {
+            baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
+        } finally {
+            operationResult.computeStatusIfUnknown();
         }
     }
 
@@ -1105,17 +1113,24 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
     public SearchResultList<AuditEventRecordType> searchObjects(
             @Nullable ObjectQuery query,
             @Nullable Collection<SelectorOptions<GetOperationOptions>> options,
-            @Nullable OperationResult parentResult)
+            @NotNull OperationResult parentResult)
             throws SchemaException {
+        OperationResult operationResult = parentResult.subresult(OP_NAME_PREFIX + "searchObjects")
+                .addParam("query", query)
+                .build();
 
-        // TODO MID-6319 do something with the OperationResult... skipped for now
         try {
             SearchResultList<AuditEventRecordType> result =
                     sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
             addContainerDefinition(AuditEventRecordType.class, result);
             return result;
-        } catch (QueryException e) {
+        } catch (QueryException | RuntimeException e) {
+            baseHelper.handleGeneralException(e, operationResult);
             throw new SystemException(e);
+        } finally {
+            if (operationResult != null && operationResult.isUnknown()) {
+                operationResult.computeStatus();
+            }
         }
     }
 
@@ -1136,11 +1151,5 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
             //noinspection unchecked
             container.add(containerValue.asPrismContainerValue());
         }
-    }
-
-    public void addCustomColumn(String propertyName, String columnName) {
-        ColumnMetadata columnMetadata =
-                ColumnMetadata.named(columnName).ofType(Types.NVARCHAR).withSize(255);
-        QAuditEventRecordMapping.INSTANCE.addExtensionColumn(propertyName, columnMetadata);
     }
 }

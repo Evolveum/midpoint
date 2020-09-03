@@ -8,12 +8,14 @@ package com.evolveum.midpoint.report.impl.controller.fileformat;
 
 import java.io.IOException;
 import java.util.*;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.DeltaConvertor;
 
 import com.google.common.collect.ImmutableSet;
 import org.jetbrains.annotations.NotNull;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.common.util.DefaultColumnUtils;
 import com.evolveum.midpoint.prism.*;
@@ -24,7 +26,6 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.report.impl.ReportServiceImpl;
 import com.evolveum.midpoint.report.impl.ReportUtils;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.constants.AuditConstants;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.expression.VariablesMap;
@@ -106,7 +107,7 @@ public abstract class FileFormatController {
         return getReportService().getLocalizationService().translate(key, params, Locale.getDefault(), key);
     }
 
-    protected String getRealValueAsString(GuiObjectColumnType column, PrismObject<ObjectType> object, ItemPath itemPath,
+    protected String getRealValueAsString(GuiObjectColumnType column, PrismContainer<? extends Containerable> object, ItemPath itemPath,
             ExpressionType expression, Task task, OperationResult result) {
         Item valueObject = object;
 
@@ -173,22 +174,35 @@ public abstract class FileFormatController {
         return processListOfRealValues(values);
     }
 
-    private String processListOfRealValues(Collection<?> values) {
+    private <O extends Object> String processListOfRealValues(Collection<?> values) {
         StringBuilder sb = new StringBuilder();
         values.forEach(value -> {
             if (!sb.toString().isEmpty()) {
                 appendMultivalueDelimiter(sb);
             }
             if (value instanceof PrismPropertyValue) {
-                Object realObject = ((PrismPropertyValue<?>) value).getRealValue();
+                String stringValue;
+                O realObject = ((PrismPropertyValue<O>) value).getRealValue();
                 if (realObject == null) {
-                    realObject = "";
+                    stringValue = "";
                 } else if (realObject instanceof Collection) {
-                    realObject = processListOfRealValues((Collection) realObject);
+                    stringValue = processListOfRealValues((Collection) realObject);
+                } else if (realObject instanceof Enum){
+                    stringValue = ReportUtils.prettyPrintForReport((Enum) realObject);
+                } else if (realObject instanceof XMLGregorianCalendar) {
+                    stringValue = ReportUtils.prettyPrintForReport((XMLGregorianCalendar) realObject);
+                } else if (realObject instanceof ObjectDeltaOperationType) {
+                    try {
+                        ObjectDeltaOperation convertedDelta = DeltaConvertor.createObjectDeltaOperation((ObjectDeltaOperationType) realObject, getReportService().getPrismContext());
+                        stringValue = ReportUtils.printDelta(convertedDelta);
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't convert delta from ObjectDeltaOperationType to ObjectDeltaOperation " + realObject.toString());
+                        stringValue = "";
+                    }
                 } else {
-                    realObject = ReportUtils.prettyPrintForReport(realObject);
+                    stringValue = ReportUtils.prettyPrintForReport(realObject);
                 }
-                sb.append(realObject);
+                sb.append(stringValue);
             } else if (value instanceof PrismReferenceValue) {
                 sb.append(getObjectNameFromRef(((PrismReferenceValue) value).getRealValue()));
             } else {
@@ -323,98 +337,6 @@ public abstract class FileFormatController {
         return object;
     }
 
-    protected String getStringValueByAuditColumn(AuditEventRecord record, ItemPath path,
-            ExpressionType expression, Task task, OperationResult result) {
-        if (expression == null) {
-            return getStringValueByAuditColumn(record, path);
-        }
-        Object object;
-        if (path == null) {
-            object = record;
-        } else {
-            object = DefaultColumnUtils.getObjectByAuditColumn(record, path);
-        }
-        Object value = evaluateExportExpression(expression, object, task, result);
-        if (value instanceof Collection) {
-            return processListOfRealValues((Collection) value);
-        }
-        return processListOfRealValues(Collections.singletonList(value));
-    }
-
-    private String getStringValueByAuditColumn(AuditEventRecord record, ItemPath path) {
-        switch (path.toString()) {
-            case AuditConstants.TIME_COLUMN:
-                return ReportUtils.prettyPrintForReport(new Date(record.getTimestamp()));
-            case AuditConstants.INITIATOR_COLUMN:
-                return record.getInitiatorRef() == null ? ""
-                        : getObjectNameFromRef(record.getInitiatorRef().getRealValue());
-            case AuditConstants.EVENT_STAGE_COLUMN:
-                return record.getEventStage() == null ? "" : ReportUtils.prettyPrintForReport(record.getEventStage());
-            case AuditConstants.EVENT_TYPE_COLUMN:
-                return record.getEventType() == null ? "" : ReportUtils.prettyPrintForReport(record.getEventType());
-            case AuditConstants.TARGET_COLUMN:
-                return record.getTargetRef() == null ? ""
-                        : getObjectNameFromRef(record.getTargetRef().getRealValue());
-            case AuditConstants.TARGET_OWNER_COLUMN:
-                return record.getTargetOwnerRef() == null ? ""
-                        : getObjectNameFromRef(record.getTargetOwnerRef().getRealValue());
-            case AuditConstants.CHANNEL_COLUMN:
-                return record.getChannel() == null ? "" : ReportUtils.prettyPrintForReport(QNameUtil.uriToQName(record.getChannel()));
-            case AuditConstants.OUTCOME_COLUMN:
-                return record.getOutcome() == null ? "" : ReportUtils.prettyPrintForReport(record.getOutcome());
-            case AuditConstants.MESSAGE_COLUMN:
-                return record.getMessage() == null ? "" : record.getMessage();
-            case AuditConstants.DELTA_COLUMN:
-                if (record.getDeltas().isEmpty()) {
-                    return "";
-                }
-                StringBuilder sbDelta = new StringBuilder();
-                Collection<ObjectDeltaOperation<? extends ObjectType>> deltas = record.getDeltas();
-                Iterator<ObjectDeltaOperation<? extends ObjectType>> iterator = deltas.iterator();
-                int index = 0;
-                while (iterator.hasNext()) {
-                    ObjectDeltaOperation delta = iterator.next();
-                    sbDelta.append(ReportUtils.printDelta(delta));
-                    if ((index + 1) != deltas.size()) {
-                        sbDelta.append("\n");
-                    }
-                    index++;
-                }
-                return sbDelta.toString();
-            case AuditConstants.TASK_OID_COLUMN:
-                return record.getTaskOid() == null ? "" : record.getTaskOid();
-            case AuditConstants.NODE_IDENTIFIER_COLUMN:
-                return record.getNodeIdentifier() == null ? "" : record.getNodeIdentifier();
-            case AuditConstants.ATTORNEY_COLUMN:
-                return record.getAttorneyRef() == null ? ""
-                        : getObjectNameFromRef(record.getAttorneyRef().getRealValue());
-            case AuditConstants.RESULT_COLUMN:
-                return record.getResult() == null ? "" : record.getResult();
-            case AuditConstants.RESOURCE_OID_COLUMN:
-                Set<String> resourceOids = record.getResourceOids();
-                if (resourceOids == null || resourceOids.isEmpty()) {
-                    return "";
-                }
-                StringBuilder sb = new StringBuilder();
-                int i = 1;
-                for (String oid : resourceOids) {
-                    sb.append(oid);
-                    if (i != resourceOids.size()) {
-                        sb.append("\n");
-                    }
-                    i++;
-                }
-                return sb.toString();
-            default:
-                if (record.getCustomColumnProperty().containsKey(path.toString())) {
-                    return record.getCustomColumnProperty().get(path.toString());
-                } else {
-                    LOGGER.error("Unknown name of column for AuditReport " + path);
-                    throw new IllegalArgumentException("Unknown name of column for AuditReport " + path);
-                }
-        }
-    }
-
     protected QName resolveTypeQname(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection) {
         QName type;
         if (collectionRef.getCollectionRef() != null) {
@@ -441,6 +363,17 @@ public abstract class FileFormatController {
         QName type = resolveTypeQname(collectionRef, compiledCollection);
         return (Class<ObjectType>) getReportService().getPrismContext().getSchemaRegistry()
                 .getCompileTimeClassForObjectType(type);
+    }
+
+    protected boolean isAuditCollection(ObjectCollectionType collection) {
+        return collection != null
+                && (collection.getAuditSearch() != null || QNameUtil.match(AuditEventRecordType.COMPLEX_TYPE, collection.getType()));
+    }
+
+    protected PrismContainer<? extends Containerable> getAuditRecordAsContainer(AuditEventRecordType record) throws SchemaException {
+        PrismContainerValue prismValue = record.asPrismContainerValue();
+        prismValue.setPrismContext(getReportService().getPrismContext());
+        return prismValue.asSingleValuedContainer(AuditEventRecordType.COMPLEX_TYPE);
     }
 
     public abstract void importCollectionReport(ReportType report, VariablesMap listOfVariables, RunningTask task, OperationResult result);
