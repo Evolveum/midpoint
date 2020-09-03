@@ -13,7 +13,6 @@ import java.util.Set;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDeltaCollectionsUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -24,6 +23,7 @@ import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -44,7 +44,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.NoneFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ConstraintViolationConfirmer;
 import com.evolveum.midpoint.provisioning.api.ConstraintsCheckingResult;
@@ -70,7 +69,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -341,11 +339,17 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
             ResourceType resourceType = resource.asObjectable();
 
+            if (ResourceTypeUtil.isInMaintenance(resourceType))
+                throw new MaintenanceException("Resource " + resource + " is in the maintenance");
+
             LOGGER.trace("Start synchronization of resource {} ", resourceType);
 
             liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, taskPartition, result);
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
+        } catch (MaintenanceException e) {
+            result.recordHandledError(e.getMessage(), e);
+            throw e;
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
             result.summarize(true);

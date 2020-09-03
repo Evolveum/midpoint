@@ -190,7 +190,7 @@ public class ShadowCache {
             throw e;
         }
 
-        if (ProvisioningUtil.resourceIsInMaintenance(resource)) {
+        if (ResourceTypeUtil.isInMaintenance(resource)) {
             try {
                 MaintenanceException ex = new MaintenanceException("Resource " + resource + " is in the maintenance");
                 PrismObject<ShadowType> handledShadow = handleGetError(ctx, repositoryShadow, rootOptions, ex, task, parentResult);
@@ -559,7 +559,7 @@ public class ShadowCache {
             LOGGER.trace("ADD {}: resource operation, execution starting", shadowToAdd);
 
             try {
-                if (ProvisioningUtil.resourceIsInMaintenance(ctx.getResource())) {
+                if (ResourceTypeUtil.isInMaintenance(ctx.getResource())) {
                     throw new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance"); // this tells mp to create pending delta
                 }
 
@@ -1008,7 +1008,7 @@ public class ShadowCache {
                 ConnectorOperationOptions connOptions = createConnectorOperationOptions(ctx, options, parentResult);
 
                 try {
-                    if (ProvisioningUtil.resourceIsInMaintenance(ctx.getResource())) {
+                    if (ResourceTypeUtil.isInMaintenance(ctx.getResource())) {
                         throw new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance");
                     }
 
@@ -1264,7 +1264,7 @@ public class ShadowCache {
                 LOGGER.trace("DELETE {}: resource deletion, execution starting", repoShadow);
 
                 try {
-                    if (ProvisioningUtil.resourceIsInMaintenance(ctx.getResource())) {
+                    if (ResourceTypeUtil.isInMaintenance(ctx.getResource())) {
                         throw new MaintenanceException("Resource " + ctx.getResource() + " is in the maintenance");
                     }
 
@@ -1399,7 +1399,7 @@ public class ShadowCache {
             return rso;
         }
 
-        if (ProvisioningUtil.resourceIsInMaintenance(ctx.getResource())) {
+        if (ResourceTypeUtil.isInMaintenance(ctx.getResource())) {
             LOGGER.trace("Skipping refresh of {} pending operations because resource shadow is in the maintenance.", repoShadow);
             RefreshShadowOperation rso = new RefreshShadowOperation();
             rso.setRefreshedShadow(repoShadow);

@@ -1188,7 +1188,7 @@ public class ShadowManager {
         ResourceType resource = ctx.getResource();
         ResourceConsistencyType consistencyType = resource.getConsistency();
 
-        boolean isInMaintenance = ProvisioningUtil.resourceIsInMaintenance(ctx.getResource());
+        boolean isInMaintenance = ResourceTypeUtil.isInMaintenance(ctx.getResource());
 
         Boolean avoidDuplicateOperations;
         if (isInMaintenance) {
