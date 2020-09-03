@@ -636,6 +636,14 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                 ObjectListPanel.this.searchPerformed(query, target);
             }
 
+            @Override
+            protected void saveSearch(Search search, AjaxRequestTarget target) {
+                PageStorage storage = getPageStorage(getStorageKey());
+                if (storage != null) {
+                    storage.setSearch(search);
+                }
+            }
+
         };
 
         return searchPanel;
@@ -823,15 +831,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 //        }
 
         provider.setQuery(customQuery);
-        String storageKey = getStorageKey();
-        if (StringUtils.isNotEmpty(storageKey)) {
-            PageStorage storage = getPageStorage(storageKey);
-            if (storage != null) {
-                storage.setSearch(searchModel.getObject());
-                storage.setPaging(null);
-            }
-        }
-
+        saveSearchModel(null);
         Table table = getTable();
         table.setCurrentPage(null);
         target.add((Component) table);
