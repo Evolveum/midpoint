@@ -47,6 +47,7 @@ import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler;
@@ -199,12 +200,20 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         try {
             resource = provisioningService.getObject(ResourceType.class, resourceOid, null, localCoordinatorTask, opResult);
 
+            if (ProvisioningUtil.resourceIsInMaintenance(resource.asObjectable()))
+                throw new MaintenanceException("Resource " + resource + " is in the maintenance");
+
             RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
             objectclassDef = ModelImplUtils.determineObjectClass(refinedSchema, localCoordinatorTask);
         } catch (ObjectNotFoundException ex) {
             // This is bad. The resource does not exist. Permanent problem.
             processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex,
                     TaskRunResultStatus.PERMANENT_ERROR, opResult);
+            return runResult;
+        } catch (MaintenanceException ex) {
+            LOGGER.warn("Reconciliation: {}-{}", new Object[]{ex.getMessage(), ex});
+            opResult.recordHandledError(ex.getMessage(), ex);
+            runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR); // Resource is in the maintenance, do not suspend the task
             return runResult;
         } catch (CommunicationException ex) {
             // Error, but not critical. Just try later.

@@ -24,6 +24,7 @@ import com.evolveum.midpoint.repo.api.SystemConfigurationChangeDispatcher;
 import com.evolveum.midpoint.repo.api.SystemConfigurationChangeListener;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.cache.CacheType;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.apache.commons.lang.Validate;
@@ -341,11 +342,17 @@ public class ProvisioningServiceImpl implements ProvisioningService, SystemConfi
             PrismObject<ResourceType> resource = getObject(ResourceType.class, resourceOid, null, task, result);
             ResourceType resourceType = resource.asObjectable();
 
+            if (ProvisioningUtil.resourceIsInMaintenance(resourceType))
+                throw new MaintenanceException("Resource " + resource + " is in the maintenance");
+
             LOGGER.trace("Start synchronization of resource {} ", resourceType);
 
             liveSyncResult = liveSynchronizer.synchronize(shadowCoordinates, task, taskPartition, result);
             LOGGER.debug("Synchronization of {} done, result: {}", resource, liveSyncResult);
 
+        } catch (MaintenanceException e) {
+            result.recordHandledError(e.getMessage(), e);
+            throw e;
         } catch (ObjectNotFoundException | CommunicationException | SchemaException | SecurityViolationException | ConfigurationException | ExpressionEvaluationException | RuntimeException | Error e) {
             ProvisioningUtil.recordFatalError(LOGGER, result, null, e);
             result.summarize(true);

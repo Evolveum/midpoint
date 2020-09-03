@@ -11,11 +11,14 @@
 
 package com.evolveum.midpoint.testing.story;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -47,16 +50,19 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
 
     private static final File RESOURCE_CSV_FILE = new File(TEST_DIR, "csv-resource1.xml");
     private static final File RESOURCE_CSV_CONTENT_FILE = new File(TEST_DIR, "data-resource1.csv");
+    private static final File ROLE1_FILE = new File(TEST_DIR, "role1.xml");
     private static String sourceFilePath;
 
     private static final File SHADOW_FILE = new File(TEST_DIR, "shadow-user1.xml");
-    private static final File USER1_FILE = new File(TEST_DIR, "user1.xml");
-    private static final File USER2_FILE = new File(TEST_DIR, "user2.xml");
+    private static final File USERS_FILE = new File(TEST_DIR, "users.xml");
 
     private static final String RESOURCE_OID = "25dd0010-5115-4ac0-960f-4889d1b960ff";
     private static final String SHADOW_OID = "c4071f2e-3f8d-4301-9027-c57033c702ff";
     private static final String USER1_OID = "cdc33185-c817-4be7-8158-8f338824cdff";
     private static final String USER2_OID = "cdc33185-c817-4be7-8158-8f3388241234";
+    private static final String USER3_OID = "cdc33185-c817-4be7-8158-8f3388245678";
+    private static final String USER4_OID = "cdc33185-c817-4be7-8158-8f33882456bb";
+    private static final String ROLE1_OID = "6ec32c86-66d4-4101-a25f-931db8d1e999";
 
     private static final QName CSV_ATTRIBUTE_DESC = new QName(MidPointConstants.NS_RI, "description");
     private static final QName CSV_ATTRIBUTE_FULLNAME = new QName(MidPointConstants.NS_RI, "fullname");
@@ -113,8 +119,8 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         display("System config", systemConfiguration);
 
         importObjectFromFile(SHADOW_FILE);
-        importObjectFromFile(USER1_FILE);
-        importObjectFromFile(USER2_FILE);
+        importObjectFromFile(USERS_FILE);
+        importObjectFromFile(ROLE1_FILE);
 
         // Turn maintenance mode ON:
         switchResourceMaintenance(AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
@@ -266,7 +272,9 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         result2.computeStatus();
 
         TestUtil.assertSuccess(result2);
-        TestUtil.assertInProgress("resource in the maintenance pending delta", result);
+
+        int noOfLinks = getUser(USER2_OID).asObjectable().getLinkRef().size();
+        assertEquals(noOfLinks, 1); // check that consequent recompute hasnt created second shadow
 
         // double check that nothing changed in the shadow after recompute:
         assertRepoShadow(newShadowOid)
@@ -439,6 +447,7 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
         String shadowOid = getLinkRefOid(USER2_OID, RESOURCE_OID);
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         ShadowAsserter.forShadow(shadow)
+                .display("Shadow before delete")
                 .assertIsExists()
                 .end();
 
@@ -470,6 +479,159 @@ public class TestResourceInMaintenance extends AbstractStoryTest {
                         .assertDelete()
                     .end()
                 .end();
+    }
+
+    @Test
+    public void test090CreateAndDeleteAccountWithRole() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Turn maintenance mode ON:
+        switchResourceMaintenance(AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
+
+        assignRole(USER3_OID, ROLE1_OID, task, result);
+
+        result.computeStatus();
+        display(result);
+
+        TestUtil.assertInProgress("resource in the maintenance pending delta", result);
+
+        String newShadowOid = getLinkRefOid(USER3_OID, RESOURCE_OID);
+        assertNotNull(newShadowOid);
+
+        assertRepoShadow(newShadowOid)
+                .display(getTestNameShort() + " Shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIsNotExists()
+                .assertNotDead()
+                .assertNoLegacyConsistency()
+                .attributes()
+                .assertAttributes(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
+                .end()
+                .pendingOperations()
+                .singleOperation()
+                .display()
+                .assertType(PendingOperationTypeType.RETRY)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                .assertAttemptNumber(1)
+                .delta()
+                .display()
+                .assertAdd();
+
+        // lets try recompute just for fun, mp should do nothing and report success:
+        OperationResult result2 = createOperationResult();
+        modelService.recompute(UserType.class, USER3_OID, executeOptions().reconcile(), task, result2);
+        result2.computeStatus();
+
+        TestUtil.assertSuccess(result2);
+
+        assertUser(USER3_OID, getTestNameShort()).assertLinks(1); // check that consequent recompute hasnt created second shadow
+
+        // double check that nothing changed in the shadow after recompute:
+        assertRepoShadow(newShadowOid)
+                .display(getTestNameShort() + " Shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIsNotExists()
+                .assertNotDead()
+                .pendingOperations()
+                .singleOperation()
+                .display()
+                .assertType(PendingOperationTypeType.RETRY)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                .assertAttemptNumber(1)
+                .delta()
+                .display()
+                .assertAdd();
+
+        // now delete account:
+        OperationResult result3 = createOperationResult();
+        unassignRole(USER3_OID, ROLE1_OID, task, result3);
+        result3.computeStatus();
+        TestUtil.assertInProgress("resource in the maintenance pending delta", result3);
+
+        assertModelShadowNoFetch(newShadowOid)
+                .display("Shadow after delete")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertNotDead()
+                .assertNoLegacyConsistency()
+                .attributes()
+                .assertHasPrimaryIdentifier()
+                .end()
+                .pendingOperations()
+                .assertOperations(2) // 1x create + 1x delete
+                .deleteOperation()
+                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                .assertAttemptNumber(1)
+                .delta()
+                .display()
+                .assertDelete()
+                .end()
+                .end();
+
+        // Cancel maintenance mode:
+        switchResourceMaintenance(AdministrativeAvailabilityStatusType.OPERATIONAL, task, result);
+
+        // Apply pending create + delete delta:
+        OperationResult result4 = createOperationResult();
+        modelService.recompute(UserType.class, USER2_OID, executeOptions().reconcile(), task, result4);
+        result4.computeStatus();
+        TestUtil.assertSuccess(result4);
+
+        // Check that nothing really happened on the resource:
+        PrismObject<ShadowType> shadowDeleted = getShadowModel(newShadowOid);
+        ShadowAsserter.forShadow(shadowDeleted)
+                .assertIsNotExists()
+                .end();
+    }
+
+    @Test
+    public void test100CreateAndDeleteAccountWithResourceAssignment() throws Exception {
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        // Turn maintenance mode ON:
+        switchResourceMaintenance(AdministrativeAvailabilityStatusType.MAINTENANCE, task, result);
+
+        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER4_OID, RESOURCE_OID, "default", true);
+        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        result.computeStatus();
+
+        TestUtil.assertInProgress("resource in the maintenance pending delta", result);
+
+        String newShadowOid = getLinkRefOid(USER4_OID, RESOURCE_OID);
+        assertNotNull(newShadowOid);
+
+        assertRepoShadow(newShadowOid)
+                .display(getTestNameShort() + " Shadow after")
+                .assertKind(ShadowKindType.ACCOUNT)
+                .assertIsNotExists()
+                .assertNotDead()
+                .assertNoLegacyConsistency()
+                .attributes()
+                .assertAttributes(CSV_ATTRIBUTE_USERNAME) // checks main attributes section, not attributes in the pending delta
+                .end()
+                .pendingOperations()
+                .singleOperation()
+                .display()
+                .assertType(PendingOperationTypeType.RETRY)
+                .assertExecutionStatus(PendingOperationExecutionStatusType.EXECUTING)
+                .assertResultStatus(OperationResultStatusType.IN_PROGRESS)
+                .assertAttemptNumber(1)
+                .delta()
+                .display()
+                .assertAdd();
+
+        // lets try recompute just for fun, mp should do nothing and report success:
+        OperationResult result2 = createOperationResult();
+        modelService.recompute(UserType.class, USER4_OID, executeOptions().reconcile(), task, result2);
+        result2.computeStatus();
+
+        TestUtil.assertSuccess(result2);
+
+        assertUser(USER4_OID, getTestNameShort()).assertLinks(1); // check that consequent recompute hasnt created second shadow
     }
 
     private void switchResourceMaintenance (AdministrativeAvailabilityStatusType mode, Task task, OperationResult result) throws Exception {

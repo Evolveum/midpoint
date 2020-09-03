@@ -159,6 +159,9 @@ public class SyncTaskHelper {
             // This is bad. The resource or task or something like that does not exist. Permanent problem.
             opResult.recordFatalError("A required object does not exist, OID: " + oid, t);
             setRunResultStatus(t, partition, CriticalityType.FATAL, runResult);
+        } else if (t instanceof MaintenanceException) {
+            opResult.recordHandledError("Maintenance exception: "+t.getMessage(), t);
+            runResult.setRunResultStatus(TaskRunResult.TaskRunResultStatus.TEMPORARY_ERROR); // Resource is in the maintenance, do not suspend the task
         } else if (t instanceof CommunicationException) {
             LOGGER.error("{}: Communication error: {}", ctx, t.getMessage(), t);
             // Error, but not critical. Just try later.
