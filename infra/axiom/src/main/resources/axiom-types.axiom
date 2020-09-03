@@ -19,6 +19,7 @@ model axiom-base-types {
     type Integer;
     type Binary;
     type DateTime;
+    type AnyType;
 
     type QName {
         supertype Uri;

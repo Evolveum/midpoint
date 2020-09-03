@@ -59,9 +59,12 @@ public class AxiomEnabledSchemaRegistry extends SchemaRegistryImpl {
 
     private static final BiMap<AxiomName, QName> AXIOM_XSD_TYPES = ImmutableBiMap.<AxiomName, QName>builder()
             .put(AxiomName.builtIn("String"), DOMUtil.XSD_STRING)
+            .put(AxiomName.builtIn("Boolean"), DOMUtil.XSD_BOOLEAN)
             .put(AxiomName.builtIn("DateTime"), DOMUtil.XSD_DATETIME)
             .put(AxiomName.builtIn("Uri"), DOMUtil.XSD_ANYURI)
+            .put(AxiomName.builtIn("Binary"), DOMUtil.XSD_BASE64BINARY)
             .put(AxiomName.builtIn("Integer"), DOMUtil.XSD_INT)
+            .put(AxiomName.builtIn("AnyType"), DOMUtil.XSD_ANYTYPE)
             .put(AxiomName.from(PRISM_NAMESPACE, "ItemPath"), new QName(PRISM_TYPES,"ItemPathType"))
             .build();
     private static final AxiomName DISPLAY_NAME = PROPERTY_ITEM.localName("displayName");
