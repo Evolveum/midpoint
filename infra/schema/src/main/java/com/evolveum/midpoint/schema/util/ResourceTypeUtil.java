@@ -751,4 +751,22 @@ public class ResourceTypeUtil {
         }
         return consistency.getConnectorErrorCriticality();
     }
+
+    public static boolean isInMaintenance(ResourceType resource) {
+        if (resource == null)
+            return false;
+
+        AdministrativeOperationalStateType administrativeOperationalState = resource.getAdministrativeOperationalState();
+        if (administrativeOperationalState == null)
+            return false;
+
+        AdministrativeAvailabilityStatusType administrativeAvailabilityStatus = administrativeOperationalState.getAdministrativeAvailabilityStatus();
+        if (administrativeAvailabilityStatus == null)
+            return false;
+
+        if (AdministrativeAvailabilityStatusType.MAINTENANCE == administrativeAvailabilityStatus)
+            return true;
+
+        return false;
+    }
 }

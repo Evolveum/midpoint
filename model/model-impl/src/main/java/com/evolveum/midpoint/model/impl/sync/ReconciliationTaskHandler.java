@@ -17,6 +17,7 @@ import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -47,7 +48,6 @@ import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
-import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.repo.common.task.AbstractSearchIterativeTaskHandler;
@@ -200,7 +200,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
         try {
             resource = provisioningService.getObject(ResourceType.class, resourceOid, null, localCoordinatorTask, opResult);
 
-            if (ProvisioningUtil.resourceIsInMaintenance(resource.asObjectable()))
+            if (ResourceTypeUtil.isInMaintenance(resource.asObjectable()))
                 throw new MaintenanceException("Resource " + resource + " is in the maintenance");
 
             RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource, LayerType.MODEL, prismContext);
