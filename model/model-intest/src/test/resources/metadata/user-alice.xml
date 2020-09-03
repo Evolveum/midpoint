@@ -10,7 +10,7 @@
       xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-      xmlns:m="http://midpoint.evolveum.com/xml/ns/public/common/extension-metadata-3"
+      xmlns:m="http://midpoint.evolveum.com/xml/ns/samples/metadata"
       oid="9fc389be-5b47-4e9d-90b5-33fffd87b3ca">
     <_metadata>
         <process>
@@ -30,18 +30,14 @@
                 </source>
             </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>10</m:loa>
             </c:extension>
         </_metadata>
     </name>
     <assignment id="111">
         <_metadata>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#none</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>5</m:loa>
             </c:extension>
             <transformation>
                 <source>
@@ -97,9 +93,7 @@
                 </source>
             </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>7</m:loa>
             </c:extension>
         </_metadata>
     </givenName>
@@ -116,9 +110,7 @@
                 </source>
             </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>7</m:loa>
             </c:extension>
         </_metadata>
     </familyName>
@@ -135,9 +127,7 @@
                 </source>
             </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>5</m:loa>
             </c:extension>
         </_metadata>
     </honorificSuffix>
@@ -173,9 +163,7 @@
                 </transformer>
             </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#official</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>5</m:loa>
             </c:extension>
         </_metadata>
     </fullName>
@@ -192,9 +180,7 @@
                 </source>
             </transformation>
             <c:extension>
-                <m:assurance>
-                    <m:levelOfAssurance>http://example.com/identity/loa#absolute</m:levelOfAssurance>
-                </m:assurance>
+                <m:loa>7</m:loa>
             </c:extension>
         </_metadata>
     </organizationalUnit>

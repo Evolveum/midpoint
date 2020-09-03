@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.repo.sql;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.CHANNEL_REST_URI;
 
@@ -32,10 +33,10 @@ import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.test.NullTaskImpl;
-import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -44,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-@UnusedTestElement
+@SuppressWarnings("unchecked")
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class AuditSearchTest extends BaseSQLRepoTest {
@@ -174,12 +175,20 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     @Test
     public void test100SearchAllAuditEvents() throws SchemaException {
         when("searching audit with query without any conditions and paging");
+        OperationResult operationResult = createOperationResult();
         SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
-                .queryFor(AuditEventRecordType.class)
-                .build());
+                        .queryFor(AuditEventRecordType.class)
+                        .build(),
+                operationResult);
 
         then("all audit events are returned");
         assertThat(result).hasSize(3);
+
+        and("operation result is success");
+        OperationResult subresult = operationResult.getLastSubresult();
+        assertThat(subresult).isNotNull();
+        assertThat(subresult.getOperation()).isEqualTo("SqlAuditServiceImpl.searchObjects");
+        assertThat(subresult.getStatus()).isEqualTo(OperationResultStatus.SUCCESS);
     }
 
     @Test
@@ -881,6 +890,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result).hasSize(3);
         result.sort(Comparator.comparing(AuditEventRecordType::getParameter));
 
+        and("record 1 has all the attributes filled");
         AuditEventRecordType record1 = result.get(0);
         assertThat(record1.getProperty()).hasSize(1);
         AuditEventRecordPropertyType prop1 = record1.getProperty().get(0);
@@ -898,10 +908,12 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         // whether it's a responsibility of the repository service.
         assertThat(record1.asPrismContainerValue().getDefinition()).isNotNull();
 
+        and("record 2 has expected delta count");
         AuditEventRecordType record2 = result.get(1);
         // two meaningless deltas collapsed to single no-op delta + there are two normal deltas too
         assertThat(record2.getDelta()).hasSize(3);
 
+        and("record 3 has expected properties");
         AuditEventRecordType record3 = result.get(2);
         assertThat(record3.getProperty()).as("two different property keys").hasSize(2);
         // currently props are sorted by name during transformation to AERType
@@ -912,6 +924,28 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(prop2.getName()).isEqualTo("prop2");
         // feels fishy, but [null] it is, not empty collection; should NOT be inserted anyway
         assertThat(prop2.getValue()).containsExactly((String) null);
+    }
+
+    @Test
+    public void test350SearchWithWrongQuery() {
+        when("searching audit objects using wrong query");
+        OperationResult operationResult = createOperationResult();
+
+        then("operation throws exception");
+        assertThatThrownBy(
+                () -> searchObjects(prismContext
+                                .queryFor(AuditEventRecordType.class)
+                                .asc(AuditEventRecordType.F_CHANGED_ITEM)
+                                .build(),
+                        operationResult))
+                // we don't want to impose what exact type is thrown
+                .isInstanceOf(Exception.class);
+
+        and("operation result is fatal error");
+        OperationResult subresult = operationResult.getLastSubresult();
+        assertThat(subresult).isNotNull();
+        assertThat(subresult.getOperation()).isEqualTo("SqlAuditServiceImpl.searchObjects");
+        assertThat(subresult.getStatus()).isEqualTo(OperationResultStatus.FATAL_ERROR);
     }
 
     // complex filters with AND and/or OR
@@ -1209,13 +1243,21 @@ public class AuditSearchTest extends BaseSQLRepoTest {
     @Test
     public void test900CountWithAllFilter() throws SchemaException {
         when("counting audit objects using ALL filter");
+        OperationResult operationResult = createOperationResult();
         int result = countObjects(prismContext
-                .queryFor(AuditEventRecordType.class)
-                .all()
-                .build());
+                        .queryFor(AuditEventRecordType.class)
+                        .all()
+                        .build(),
+                operationResult);
 
         then("count of all audit records is returned");
         assertThat(result).isEqualTo(3);
+
+        and("operation result is success");
+        OperationResult subresult = operationResult.getLastSubresult();
+        assertThat(subresult).isNotNull();
+        assertThat(subresult.getOperation()).isEqualTo("SqlAuditServiceImpl.countObjects");
+        assertThat(subresult.getStatus()).isEqualTo(OperationResultStatus.SUCCESS);
     }
 
     @Test
@@ -1256,8 +1298,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
     @Test
     public void test930CountWithAllParametersNull() {
-        when("counting audit objects with all parameters null");
-        int result = auditService.countObjects(null, null, null);
+        when("counting audit objects with null query");
+        int result = auditService.countObjects(null, null, createOperationResult());
 
         then("count of all records is returned");
         assertThat(result).isEqualTo(3);
@@ -1277,10 +1319,40 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(result).isEqualTo(3);
     }
 
-    @SafeVarargs
+    @Test
+    public void test960CountWithWrongQuery() {
+        when("counting audit objects using wrong query");
+        OperationResult operationResult = createOperationResult();
+
+        then("operation throws exception");
+        assertThatThrownBy(
+                () -> countObjects(prismContext
+                                .queryFor(AuditEventRecordType.class)
+                                .item(AuditEventRecordType.F_EVENT_STAGE).eq("BAD VALUE")
+                                .build(),
+                        operationResult))
+                // we don't want to impose what exact type is thrown
+                .isInstanceOf(Exception.class);
+
+        and("operation result is fatal error");
+        OperationResult subresult = operationResult.getLastSubresult();
+        assertThat(subresult).isNotNull();
+        assertThat(subresult.getOperation()).isEqualTo("SqlAuditServiceImpl.countObjects");
+        assertThat(subresult.getStatus()).isEqualTo(OperationResultStatus.FATAL_ERROR);
+    }
+
     @NotNull
-    private final SearchResultList<AuditEventRecordType> searchObjects(
+    private SearchResultList<AuditEventRecordType> searchObjects(
             ObjectQuery query,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
+        return searchObjects(query, createOperationResult(), selectorOptions);
+    }
+
+    @NotNull
+    private SearchResultList<AuditEventRecordType> searchObjects(
+            ObjectQuery query,
+            OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
         QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
@@ -1290,12 +1362,19 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         return auditService.searchObjects(
                 query,
                 Arrays.asList(selectorOptions),
-                createOperationResult());
+                operationResult);
     }
 
-    @SafeVarargs
-    private final int countObjects(
+    private int countObjects(
             ObjectQuery query,
+            SelectorOptions<GetOperationOptions>... selectorOptions)
+            throws SchemaException {
+        return countObjects(query, createOperationResult(), selectorOptions);
+    }
+
+    private int countObjects(
+            ObjectQuery query,
+            OperationResult operationResult,
             SelectorOptions<GetOperationOptions>... selectorOptions)
             throws SchemaException {
         QueryType queryType = prismContext.getQueryConverter().createQueryType(query);
@@ -1305,6 +1384,6 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         return auditService.countObjects(
                 query,
                 Arrays.asList(selectorOptions),
-                createOperationResult());
+                operationResult);
     }
 }

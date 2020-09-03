@@ -126,7 +126,7 @@ public class SqlQueryContext<S, Q extends FlexibleRelationalPathBase<R>, R>
     }
 
     /**
-     * This takes care of {@link ObjectPaging}
+     * This takes care of {@link ObjectPaging} which includes ordering.
      */
     public void processObjectPaging(ObjectPaging paging) throws QueryException {
         if (paging == null) {

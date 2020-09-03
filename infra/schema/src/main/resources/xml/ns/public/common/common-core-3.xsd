@@ -15490,22 +15490,22 @@
                     <xsd:documentation>
                         <p>
                             Configures overall assignmentRelation approach for archetyped objects (assignment holders).
-                            This essentially means that is allows or disables the use of "generic" assignments for archetyped objects.
+                            This essentially means that it allows or disables the use of "generic" assignments for archetyped objects.
                             If the generic assignments are allowed (open approach), the archetyped object can be a holder
-                            of any assignment that targets any assignable type with any relation
-                            (Note: this is still subject to authorizations).
-                            Which essentially means that if this property is set to "open" then GUI will show
-                            "assign" button that can be used at add any assignment type.
-                            If this property is set to "closed" then GUI will not render that button. In that case
+                            of any assignment that targets any assignable type with any relation.
+                            (Note: this is still subject to authorizations.)
+                            This essentially means that if this property is set to "open" then the GUI will show
+                            "assign" button that can be used to add any assignment type.
+                            If this property is set to "closed" then the GUI will not render that button. In that case
                             only those assignments that are explicitly allowed by assignmentRelation statements are possible.
                         </p>
                         <p>
                             This setting controls behavior of midPoint user interface.
-                            E.g. setting the approach to "closed" will hide the button that controls generic assignment in user's the "Assignments" tab.
+                            E.g. setting the approach to "closed" will hide the button that controls generic assignment in user's "Assignments" tab.
                             But it will not disable similar button in the "Members" tab of the role.
                             This setting is only about controlling uni-directional behavior of GUI.
                             It does not constraint the entire assignment model.
-                            That will be too complex to implement (at least for now).
+                            That would be too complex to implement (at least for now).
                         </p>
                     </xsd:documentation>
                     <xsd:appinfo>

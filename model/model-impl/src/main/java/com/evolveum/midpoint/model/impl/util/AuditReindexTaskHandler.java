@@ -59,7 +59,7 @@ public class AuditReindexTaskHandler implements TaskHandler {
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
 
-        final long expectedTotal = auditService.countObjects(null, null, null);
+        final long expectedTotal = auditService.countObjects(null, null, opResult);
         AuditResultHandler resultHandler = new AuditResultHandler() {
             private final AtomicInteger processedObjects = new AtomicInteger();
 

@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.api.page;
 
 import java.lang.reflect.Constructor;
@@ -14,14 +13,6 @@ import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
-import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
-
-import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
-import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollections;
-import com.evolveum.midpoint.web.page.admin.certification.*;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -73,20 +64,22 @@ import com.evolveum.midpoint.common.validator.LegacyValidator;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.SubscriptionType;
 import com.evolveum.midpoint.gui.api.component.result.OpResult;
+import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.error.ErrorPanel;
-import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettings;
 import com.evolveum.midpoint.gui.impl.prism.panel.PrismContainerValuePanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.model.api.*;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
@@ -151,12 +144,16 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetype;
 import com.evolveum.midpoint.web.page.admin.archetype.PageArchetypes;
 import com.evolveum.midpoint.web.page.admin.cases.*;
+import com.evolveum.midpoint.web.page.admin.certification.*;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardConfigurable;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboardInfo;
+import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollection;
+import com.evolveum.midpoint.web.page.admin.objectCollection.PageObjectCollections;
 import com.evolveum.midpoint.web.page.admin.reports.*;
 import com.evolveum.midpoint.web.page.admin.resources.*;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
@@ -299,11 +296,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     @SpringBean(name = "resourceValidator")
     private ResourceValidator resourceValidator;
 
-    // @SpringBean(name = "certificationManager")
-    // private CertificationManager certificationManager;
-
     @SpringBean(name = "modelController")
-    private AccessCertificationService certficationService;
+    private AccessCertificationService certificationService;
 
     @SpringBean(name = "accessDecisionManager")
     private SecurityEnforcer securityEnforcer;
@@ -499,7 +493,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return midpointFunctions;
     }
 
-   public CounterManager getCounterManager() {
+    public CounterManager getCounterManager() {
         return counterManager;
     }
 
@@ -569,7 +563,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public AccessCertificationService getCertificationService() {
-        return certficationService;
+        return certificationService;
     }
 
     @Override
@@ -676,7 +670,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public <O extends ObjectType, T extends ObjectType> boolean isAuthorized(String operationUrl, AuthorizationPhaseType phase,
-                                                                             PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+            PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
         Task task = getPageTask();
         AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
                 .oldObject(object)
@@ -691,7 +685,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     public <O extends ObjectType, T extends ObjectType> void authorize(String operationUrl, AuthorizationPhaseType phase,
-                                                                       PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
+            PrismObject<O> object, ObjectDelta<O> delta, PrismObject<T> target, OwnerResolver ownerResolver, OperationResult result)
             throws SecurityViolationException, SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException {
         AuthorizationParameters<O, T> params = new AuthorizationParameters.Builder<O, T>()
                 .oldObject(object)
@@ -1028,7 +1022,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         navigation.setOutputMarkupId(true);
         mainHeader.add(navigation);
 
-
         IModel<IconType> logoModel = new IModel<IconType>() {
 
             private static final long serialVersionUID = 1L;
@@ -1040,7 +1033,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         };
 
-        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC){
+        ExternalImage customLogoImgSrc = new ExternalImage(ID_CUSTOM_LOGO_IMG_SRC) {
 
             @Override
             protected void buildSrcAttribute(ComponentTag tag, IModel<?> srcModel) {
@@ -1205,7 +1198,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         getMainPopup().close(target);
     }
 
-    private VisibleEnableBehaviour getShoppingCartVisibleBehavior(){
+    private VisibleEnableBehaviour getShoppingCartVisibleBehavior() {
         return new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -1229,6 +1222,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     protected boolean isSideMenuVisible(boolean visibleIfLoggedIn) {
+        //noinspection SimplifiableConditionalExpression
         return SecurityUtils.getPrincipalUser() != null ? visibleIfLoggedIn : !visibleIfLoggedIn;
     }
 
@@ -1271,7 +1265,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
             MBeanServer server = servers.get(0);
             ObjectName objectName = ObjectName.getInstance(Wro4jConfig.WRO_MBEAN_NAME + ":type=WroConfiguration");
-            server.invoke(objectName, "reloadCache", new Object[]{}, new String[]{});
+            server.invoke(objectName, "reloadCache", new Object[] {}, new String[] {});
             if (target != null) {
                 target.add(PageBase.this);
             }
@@ -1356,7 +1350,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return null;
     }
 
-
     public void refreshTitle(AjaxRequestTarget target) {
         target.add(getTitleContainer());
 
@@ -1417,7 +1410,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     @NotNull
     public static StringResourceModel createStringResourceStatic(Component component, String resourceKey,
-                                                                 Object... objects) {
+            Object... objects) {
         return new StringResourceModel(resourceKey, component).setModel(new Model<String>())
                 .setDefaultValue(resourceKey).setParameters(objects);
     }
@@ -1603,7 +1596,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     // TODO untangle this brutal code (list vs objectable vs other cases)
     public <T> void parseObject(String lexicalRepresentation, final Holder<T> objectHolder,
-                                String language, boolean validateSchema, boolean skipChecks, Class<T> clazz, OperationResult result) {
+            String language, boolean validateSchema, boolean skipChecks, Class<T> clazz, OperationResult result) {
 
         boolean isListOfObjects = List.class.isAssignableFrom(clazz);
         boolean isObjectable = Objectable.class.isAssignableFrom(clazz);
@@ -1644,17 +1637,17 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
             @Override
             public EventResult preMarshall(Element objectElement, Node postValidationTree,
-                                           OperationResult objectResult) {
+                    OperationResult objectResult) {
                 return EventResult.cont();
             }
 
             @Override
             public <O extends Objectable> EventResult postMarshall(PrismObject<O> object, Element objectElement,
-                                                                   OperationResult objectResult) {
+                    OperationResult objectResult) {
                 if (isListOfObjects) {
                     list.add(object);
                 } else {
-                    @SuppressWarnings({"unchecked", "raw"})
+                    @SuppressWarnings({ "unchecked", "raw" })
                     T value = (T) object.asObjectable();
                     objectHolder.setValue(value);
                 }
@@ -1693,7 +1686,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         menus.add(menu);
         createConfigurationMenu(menu);
 
-
         menu = new SideBarMenuItem(createStringResource("PageAdmin.menu.additional"));
         menus.add(menu);
         createAdditionalMenu(menu);
@@ -1714,7 +1706,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return menus;
     }
 
-
     private void createConfigurationMenu(SideBarMenuItem item) {
         item.getItems().add(createArchetypesItems());
         item.getItems().add(createObjectsCollectionItems());
@@ -1722,7 +1713,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         addMainMenuItem(item, "fa fa-upload", "PageAdmin.menu.top.configuration.importObject", PageImportObject.class);
 
         MainMenuItem debugs = addMainMenuItem(item, "fa fa-file-text", "PageAdmin.menu.top.configuration.repositoryObjects", null,
-                new VisibleEnableBehaviour(){
+                new VisibleEnableBehaviour() {
                     @Override
                     public boolean isVisible() {
                         return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
@@ -1750,7 +1741,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     private void createSystemConfigurationMenu(SideBarMenuItem item) {
         MainMenuItem systemItemNew = addMainMenuItem(item, "fa fa-cog", "PageAdmin.menu.top.configuration.basic", null,
-                new VisibleEnableBehaviour(){
+                new VisibleEnableBehaviour() {
                     @Override
                     public boolean isVisible() {
                         return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
@@ -1805,7 +1796,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 }
 
                 int index = getSelectedTabForConfiguration(page);
-                return tabIndex == index ? true : false;
+                return tabIndex == index;
             }
         };
         mainItem.getItems().add(menu);
@@ -1875,9 +1866,9 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         }
 
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ALL_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
-                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)){
-                addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
-    }
+                AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
+            addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.listAll", GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON, PageCaseWorkItemsAll.class);
+        }
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_MY_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_CASES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL)) {
             addMenuItem(item, "PageAdmin.menu.top.caseWorkItems.list", PageCaseWorkItemsAllocatedToMe.class);
@@ -1922,7 +1913,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
         createFocusPageNewEditMenu(item.getItems(), "PageAdmin.menu.top.serverTasks.new", "PageAdmin.menu.top.serverTasks.edit",
                 PageTask.class, false);
-
 
         return item;
     }
@@ -2083,7 +2073,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             for (RichHyperlinkType link : menuList) {
                 if (link.getTargetUrl() != null && !link.getTargetUrl().trim().equals("")) {
                     AdditionalMenuItem item = new AdditionalMenuItem(link.getIcon() == null ? "" : link.getIcon().getCssClass(),
-                            new Model<String>(link.getLabel()),
+                            new Model<>(link.getLabel()),
                             link.getTargetUrl(), urlClassMap.get(link.getTargetUrl()));
                     menu.getItems().add(item);
                 }
@@ -2113,14 +2103,14 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             Validate.notNull(dashboard, "Dashboard object is null");
 
             StringResourceModel label;
-            if(dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
+            if (dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
                 label = createStringResource(dashboard.getDisplay().getLabel().getOrig());
             } else {
                 label = createStringResource(dashboard.getName());
             }
             PageParameters pageParameters = new PageParameters();
             pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
-            MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null){
+            MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null) {
                 @Override
                 protected boolean isMenuActive() {
                     StringValue dashboardOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
@@ -2129,7 +2119,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
                 @Override
                 public VisibleEnableBehaviour getVisibleEnable() {
-                    return new VisibleEnableBehaviour(){
+                    return new VisibleEnableBehaviour() {
                         @Override
                         public boolean isVisible() {
                             return WebComponentUtil.getElementVisibility(dashboard.getVisibility());
@@ -2171,7 +2161,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     private void createFocusPageNewEditMenu(List<MenuItem> submenu, String newKey, String editKey,
-                                            final Class<? extends PageAdmin> newPageClass, boolean checkAuthorization) {
+            final Class<? extends PageAdmin> newPageClass, boolean checkAuthorization) {
         MenuItem edit = new MenuItem(createStringResource(editKey), newPageClass, null, new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -2198,14 +2188,16 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             }
         });
         submenu.add(edit);
-        MenuItem newMenu = new MenuItem(createStringResource(newKey), GuiStyleConstants.CLASS_PLUS_CIRCLE, newPageClass, null, new VisibleEnableBehaviour() {
-            private static final long serialVersionUID = 1L;
+        MenuItem newMenu = new MenuItem(createStringResource(newKey),
+                GuiStyleConstants.CLASS_PLUS_CIRCLE, newPageClass, null,
+                new VisibleEnableBehaviour() {
+                    private static final long serialVersionUID = 1L;
 
-            @Override
-            public boolean isVisible() {
-                return !checkAuthorization || isMenuItemAuthorized(newPageClass);
-            }
-        }) {
+                    @Override
+                    public boolean isVisible() {
+                        return !checkAuthorization || isMenuItemAuthorized(newPageClass);
+                    }
+                }) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -2215,7 +2207,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 }
 
                 if (PageBase.this.getPage() instanceof PageAdminObjectDetails) {
-                    PageAdminObjectDetails page = (PageAdminObjectDetails) PageBase.this.getPage();
+                    PageAdminObjectDetails<?> page = (PageAdminObjectDetails<?>) PageBase.this.getPage();
                     return !page.isOidParameterExists() && !page.isEditingFocus();
                 } else if (PageBase.this.getPage() instanceof PageResourceWizard) {
                     PageResourceWizard page = (PageResourceWizard) PageBase.this.getPage();
@@ -2252,8 +2244,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return false;
     }
 
-    private void  createFocusPageViewMenu(List<MenuItem> submenu, String viewKey,
-                                         final Class<? extends PageBase> newPageType) {
+    private void createFocusPageViewMenu(
+            List<MenuItem> submenu, String viewKey, final Class<? extends PageBase> newPageType) {
         MenuItem view = new MenuItem(createStringResource(viewKey), newPageType, null, new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -2357,7 +2349,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             @Override
             public boolean isVisible() {
                 return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
-                        AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL,AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
+                        AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_UI_ARCHETYPES_URL,
                         AuthorizationConstants.AUTZ_UI_ARCHETYPES_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL,
                         AuthorizationConstants.AUTZ_UI_ARCHETYPES_VIEW_URL);
             }
@@ -2384,7 +2376,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             @Override
             public boolean isVisible() {
                 return WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
-                        AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL,AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_URL,
+                        AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL, AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_URL,
                         AuthorizationConstants.AUTZ_UI_OBJECT_COLLECTIONS_ALL_URL, AuthorizationConstants.AUTZ_GUI_ALL_URL);
             }
         };
@@ -2400,13 +2392,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return item;
     }
 
-    private void addObjectListPageMenuItem(MainMenuItem item, String key, String iconClass, Class<? extends PageBase> menuItemPage){
-        MenuItem menu = new MenuItem(createStringResource(key),  iconClass, menuItemPage){
+    private void addObjectListPageMenuItem(MainMenuItem item, String key, String iconClass, Class<? extends PageBase> menuItemPage) {
+        MenuItem menu = new MenuItem(createStringResource(key), iconClass, menuItemPage) {
             @Override
             public boolean isMenuActive(WebPage page) {
                 if (!page.getClass().equals(this.getPageClass()) || getPageParameters() != null && getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME) != null
                         && StringUtils.isNotEmpty(getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString())
-                        && !getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString().equals("null")){
+                        && !getPageParameters().get(PARAMETER_OBJECT_COLLECTION_NAME).toString().equals("null")) {
                     return false;
                 } else {
                     return super.isMenuActive(page);
@@ -2454,7 +2446,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
                 @Override
                 public boolean isMenuActive(WebPage page) {
                     PageParameters params = getPageParameters();
-                    if (params != null && params.get(PARAMETER_OBJECT_COLLECTION_NAME) != null){
+                    if (params != null && params.get(PARAMETER_OBJECT_COLLECTION_NAME) != null) {
                         StringValue collectionName = params.get(PARAMETER_OBJECT_COLLECTION_NAME);
                         if (objectView.getViewIdentifier().equals(collectionName.toString())) {
                             return true;
@@ -2510,10 +2502,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     }
 
     /**
-     * checks if it's possible to make backStep steps back
-     *
-     * @param backStep
-     * @return
+     * Checks if it's possible to make backStep steps back.
      */
     public boolean canRedirectBack(int backStep) {
         List<Breadcrumb> breadcrumbs = getBreadcrumbs();
@@ -2536,7 +2525,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
 
     /**
      * @param backStep redirects back to page with backStep step
-     * @return
      */
     public Breadcrumb redirectBack(int backStep) {
         List<Breadcrumb> breadcrumbs = getBreadcrumbs();
@@ -2598,7 +2586,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return breadcrumb.getRestartResponseException();
     }
 
-
     public void redirectBackToBreadcrumb(Breadcrumb breadcrumb) {
         Validate.notNull(breadcrumb, "Breadcrumb must not be null");
 
@@ -2647,7 +2634,8 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return securityContextManager.runAsChecked(producer, user);
     }
 
-    @NotNull public PrismObject<UserType> getAdministratorPrivileged(OperationResult parentResult) throws CommonException {
+    @NotNull
+    public PrismObject<UserType> getAdministratorPrivileged(OperationResult parentResult) throws CommonException {
         OperationResult result = parentResult.createSubresult(OPERATION_LOAD_USER);
         try {
             return securityContextManager.runPrivilegedChecked(() -> {
@@ -2772,6 +2760,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public AsyncWebProcessManager getAsyncWebProcessManager() {
         return MidPointApplication.get().getAsyncWebProcessManager();
     }
+
     @Override
     public Locale getLocale() {
         return getSession().getLocale();
@@ -2804,7 +2793,6 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         ItemWrapperFactory<IW, VW, PV> factory = registry.findWrapperFactory(parentWrapper, parentValue);
 
         return factory.createValueWrapper(parentWrapper, newValue, status, context);
-
     }
 
     public <ID extends ItemDefinition, IW extends ItemWrapper> IW createItemWrapper(ID def, PrismContainerValueWrapper<?> parent, WrapperContext ctx) throws SchemaException {
@@ -2813,22 +2801,19 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         ctx.setShowEmpty(true);
         ctx.setCreateIfEmpty(true);
         return (IW) factory.createWrapper(parent, def, ctx);
-
     }
 
     public <I extends Item, IW extends ItemWrapper> IW createItemWrapper(I item, ItemStatus status, WrapperContext ctx) throws SchemaException {
 
-        ItemWrapperFactory<IW, ?,?> factory = registry.findWrapperFactory(item.getDefinition(), null);
+        ItemWrapperFactory<IW, ?, ?> factory = registry.findWrapperFactory(item.getDefinition(), null);
 
         ctx.setCreateIfEmpty(true);
         return factory.createWrapper(null, item, status, ctx);
-
     }
 
     private Class<?> getWrapperPanel(QName typeName) {
         return registry.getPanelClass(typeName);
     }
-
 
     public <IW extends ItemWrapper> Panel initItemPanel(String panelId, QName typeName, IModel<IW> wrapperModel, ItemPanelSettings itemPanelSettings) throws SchemaException {
         Class<?> panelClass = getWrapperPanel(typeName);
@@ -2863,7 +2848,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         return clock;
     }
 
-    private SideBarMenuPanel getSideBarMenuPanel(){
+    private SideBarMenuPanel getSideBarMenuPanel() {
         return (SideBarMenuPanel) get(ID_SIDEBAR_MENU);
     }
 

@@ -1,8 +1,0 @@
-<user xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3" xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3" xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3" xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3" xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3" oid="cdc33185-c817-4be7-8158-8f3388241234">
-    <name>user2</name>
-    <fullName>R2-D2</fullName>
-    <description>robot</description> 
-    <activation>
-        <effectiveStatus>enabled</effectiveStatus>       
-    </activation>
-</user>
