@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+
 import java.io.Serializable;
 
 /**
@@ -33,7 +35,7 @@ public abstract class SearchItem implements Serializable {
 
     public abstract Type getType();
 
-    protected String getTitle(){
+    protected String getTitle(PageBase pageBase){
         return "";
     }
 
