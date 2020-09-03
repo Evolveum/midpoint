@@ -23,6 +23,11 @@ public class SerializationOptions implements Cloneable {
      */
     private boolean skipIndexOnly;
 
+    /**
+     * Should we skip values marked as transient?
+     */
+    private boolean skipTransient;
+
     private ItemNameQualificationStrategy itemNameQualificationStrategy;
 
     /**
@@ -163,6 +168,23 @@ public class SerializationOptions implements Cloneable {
 
     public boolean isSkipIndexOnly() {
         return skipIndexOnly;
+    }
+
+    public void setSkipTransient(boolean skipTransient) {
+        this.skipTransient = skipTransient;
+    }
+
+    public SerializationOptions skipTransient(boolean value) {
+        setSkipTransient(value);
+        return this;
+    }
+
+    public static SerializationOptions createSkipTransient() {
+        return new SerializationOptions().skipTransient(true);
+    }
+
+    public boolean isSkipTransient() {
+        return skipTransient;
     }
 
     //    public ItemNameQualificationStrategy getItemNameQualificationStrategy() {

@@ -11,18 +11,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
-
-import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.model.api.MetadataItemProcessingSpec;
 import com.evolveum.midpoint.model.common.util.ObjectTemplateIncludeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -92,14 +92,20 @@ public class MetadataItemProcessingSpecImpl implements MetadataItemProcessingSpe
     }
 
     private void addFromObjectTemplate(ObjectTemplateType template) {
+        addMetadataHandling(template.getMeta(), null);
+        template.getItem().forEach(
+                itemDef -> addMetadataHandling(itemDef.getMeta(), itemDef.getRef()));
+    }
+
+    private void addMetadataHandling(MetadataHandlingType metadataHandling, ItemPathType dataItemPathBean) {
         try {
-            MetadataHandlingType metadataHandling = template.getMeta();
             if (metadataHandling != null) {
                 for (MetadataItemDefinitionType metadataItemDef : metadataHandling.getItem()) {
                     if (metadataItemDef.getRef() != null && metadataItemDef.getRef().getItemPath().equivalent(metadataItemPath)) {
                         ItemProcessingType processing = ProcessingUtil.getProcessingOfItem(metadataItemDef);
                         if (processing != null) {
-                            processingSpecs.add(new ProcessingSpec(processing, metadataHandling.getApplicability(), metadataItemDef.getApplicability()));
+                            processingSpecs.add(new ProcessingSpec(processing, dataItemPathBean,
+                                    metadataHandling.getApplicability(), metadataItemDef.getApplicability()));
                         }
                     }
                 }
@@ -119,17 +125,22 @@ public class MetadataItemProcessingSpecImpl implements MetadataItemProcessingSpe
 
     private static class ProcessingSpec implements DebugDumpable {
         private final ItemProcessingType processing;
+        private final ItemPath dataItemPath;
         private final List<MetadataProcessingApplicabilitySpecificationType> applicabilityList;
 
-        private ProcessingSpec(ItemProcessingType processing,
+        private ProcessingSpec(ItemProcessingType processing, ItemPathType dataItemPathBean,
                 MetadataProcessingApplicabilitySpecificationType... applicabilityList) {
             this.processing = processing;
+            this.dataItemPath = dataItemPathBean != null ? dataItemPathBean.getItemPath() : null;
             this.applicabilityList = Arrays.asList(applicabilityList);
         }
 
-        public boolean appliesTo(ItemPath dataItem) throws SchemaException {
+        public boolean appliesTo(ItemPath dataItemPath) throws SchemaException {
+            if (this.dataItemPath != null && !this.dataItemPath.equivalent(dataItemPath)) {
+                return false;
+            }
             for (MetadataProcessingApplicabilitySpecificationType applicability : applicabilityList) {
-                if (!ProcessingUtil.doesApplicabilityMatch(applicability, dataItem)) {
+                if (!ProcessingUtil.doesApplicabilityMatch(applicability, dataItemPath)) {
                     return false;
                 }
             }
@@ -140,6 +151,7 @@ public class MetadataItemProcessingSpecImpl implements MetadataItemProcessingSpe
         public String debugDump(int indent) {
             StringBuilder sb = new StringBuilder();
             DebugUtil.debugDumpWithLabelLn(sb, "processing", String.valueOf(processing), indent);
+            DebugUtil.debugDumpWithLabelLn(sb, "dataItemPath", String.valueOf(dataItemPath), indent);
             DebugUtil.debugDumpWithLabelLn(sb, "applicabilityList", applicabilityList, indent);
             return sb.toString();
         }

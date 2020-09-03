@@ -44,6 +44,8 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
 
     protected transient PrismContext prismContext;
 
+    private boolean isTransient;
+
     PrismValueImpl() {
     }
 
@@ -249,9 +251,10 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
             clone.prismContext = this.prismContext;
         }
         clone.valueMetadata = valueMetadata != null ? valueMetadata.clone() : null;
+        clone.isTransient = isTransient;
     }
 
-    EquivalenceStrategy getEqualsHashCodeStrategy() {
+    private EquivalenceStrategy getEqualsHashCodeStrategy() {
         return defaultIfNull(defaultEquivalenceStrategy, EquivalenceStrategy.NOT_LITERAL);
     }
 
@@ -448,5 +451,15 @@ public abstract class PrismValueImpl extends AbstractFreezable implements PrismV
             valueMetadata.freeze();
         }
         super.performFreeze();
+    }
+
+    @Override
+    public boolean isTransient() {
+        return isTransient;
+    }
+
+    @Override
+    public void setTransient(boolean value) {
+        isTransient = value;
     }
 }

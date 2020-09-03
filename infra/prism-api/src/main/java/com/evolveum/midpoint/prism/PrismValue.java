@@ -228,4 +228,14 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 //            Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral);
 
     Object find(ItemPath path);
+
+    /**
+     * @return True if the value is transient, so it won't be serialized if serialization
+     * of transient value is disabled.
+     */
+    @Experimental
+    boolean isTransient();
+
+    @Experimental
+    void setTransient(boolean value);
 }
