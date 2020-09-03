@@ -164,46 +164,36 @@ prism:model common-metadata {
     container TransformationMetadataType {
       displayName "Transformation Metadata";
       operational true;
+      container mappingTransformation {
+        type MappingTransformationType;
+        documentation "Mapping transformation that led to the current value.";
+        maxOccurs "unbounded";
+      }
+    }
+
+    container MappingTransformationType {
+      documentation "Informs that the value was provided by a mapping (and how exactly).";
+      displayName "Transformation Metadata";
+      operational true;
+      container mappingSpecification {
+        type MappingSpecificationType;
+        documentation "Specification of the mapping.";
+      }
       container source {
-        type ValueSourceType;
-        documentation "Source(s) of the value";
-        maxOccurs "unbounded";
-      }
-      container transformer {
-        type ValueTransformerType;
-        documentation "Transformer(s) that acted upon the value.";
+        type MappingSourceType;
+        documentation "Sources for the mapping.";
         maxOccurs "unbounded";
       }
     }
 
-    container ValueSourceType {
-      property kind {
-        type Uri;
-      }
+    container MappingSourceType {
       property name {
         type String;
+        documentation "Name of the mapping source.";
       }
-      reference objectRef {
-        documentation """
-          A midPoint object representing the source of the value (resource object,
-          object template, assignment holder, user, ...)
-        """;
-      }
-      property storage {
-        type prism:ItemPath;
-        documentation "Where was the original value stored.";
-      }
-    }
-
-    container ValueTransformerType {
-      property kind {
-        type Uri;
-      }
-      property name {
-        type String;
-      }
-      reference objectRef {
-        documentation "A midPoint object holding the transformer";
+      property value {
+        type AnyType;
+        documentation "Source value itself. (Along with its own metadata.)";
       }
     }
 

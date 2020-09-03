@@ -116,6 +116,8 @@ public class BeanMarshaller implements SchemaRegistry.InvalidationListener {
                 xnode.setTypeQName(ObjectUtils.defaultIfNull(prismContext.getDefaultReferenceTypeName(), ObjectReferenceType.COMPLEX_TYPE));
                 xnode.setExplicitTypeDeclaration(true);     // probably not much correct, but...
                 return xnode;
+            } else if (bean instanceof RawType && ((RawType) bean).getXnode() != null) {
+                return (XNodeImpl) ((RawType) bean).getXnode();
             } else {
                 return marshalToPrimitive(bean, ctx);
             }

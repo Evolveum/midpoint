@@ -107,7 +107,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
     }
 
     private void registerAxiomSchemas(SchemaRegistryImpl schemaRegistry) {
-        if(schemaRegistry instanceof AxiomEnabledSchemaRegistry) {
+        if (schemaRegistry instanceof AxiomEnabledSchemaRegistry) {
             AxiomEnabledSchemaRegistry axiomRegistry = (AxiomEnabledSchemaRegistry) schemaRegistry;
             AxiomModelStatementSource commonMetadata;
             try {

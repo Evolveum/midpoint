@@ -1399,7 +1399,7 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
 
     // TODO consider taking equivalence strategy into account
     @Override
-    public int hashCode(ParameterizedEquivalenceStrategy strategy) {
+    public int hashCode(@NotNull ParameterizedEquivalenceStrategy strategy) {
         final int prime = 31;
         int result = super.hashCode(strategy);
         // Do not include id. containers with non-null id and null id may still be considered equivalent
@@ -1420,6 +1420,9 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         sb.append(getId());
         sb.append("):");
         sb.append(getItems());
+        if (isTransient()) {
+            sb.append(", transient");
+        }
         return sb.toString();
     }
 

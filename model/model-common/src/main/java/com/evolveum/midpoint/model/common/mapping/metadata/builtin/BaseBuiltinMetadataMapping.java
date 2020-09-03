@@ -9,6 +9,8 @@ package com.evolveum.midpoint.model.common.mapping.metadata.builtin;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.prism.PrismValue;
+
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -17,6 +19,8 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
+
+import java.util.List;
 
 /**
  * TODO
@@ -48,6 +52,21 @@ abstract class BaseBuiltinMetadataMapping implements BuiltinMetadataMapping {
             PrismProperty property = outputMetadata.findOrCreateProperty(targetPath);
             //noinspection unchecked
             property.addRealValue(value);
+        }
+    }
+
+    String dumpInput(List<PrismValue> inputValues) {
+        if (inputValues.isEmpty()) {
+            return "  (no values)";
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (PrismValue inputValue : inputValues) {
+                if (inputValue != null) {
+                    sb.append("  - ").append(inputValue.toString()).append(" with metadata:\n");
+                    sb.append(inputValue.getValueMetadata().debugDump(2)).append("\n");
+                }
+            }
+            return sb.toString();
         }
     }
 }

@@ -179,21 +179,6 @@ public class ProvenanceBuiltinMapping extends BaseBuiltinMetadataMapping {
         }
     }
 
-    private String dumpInput(List<PrismValue> inputValues) {
-        if (inputValues.isEmpty()) {
-            return "  (no values)";
-        } else {
-            StringBuilder sb = new StringBuilder();
-            for (PrismValue inputValue : inputValues) {
-                if (inputValue != null) {
-                    sb.append("  - ").append(inputValue.toString()).append(" with metadata:\n");
-                    sb.append(inputValue.getValueMetadata().debugDump(2)).append("\n");
-                }
-            }
-            return sb.toString();
-        }
-    }
-
 //    private String dumpInputMetadata(List<ValueMetadataType> values) {
 //        if (values.isEmpty()) {
 //            return "  (no values)";

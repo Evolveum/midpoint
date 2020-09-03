@@ -16,6 +16,7 @@ import com.evolveum.midpoint.model.common.expression.ModelExpressionThreadLocalH
 import com.evolveum.midpoint.model.common.util.ObjectTemplateIncludeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathCollectionsUtil;
+import com.evolveum.midpoint.prism.path.PathSet;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -117,12 +118,22 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
 
     private void addFromObjectTemplate(ObjectTemplateType template, ItemPath dataPath) {
         try {
-            if (isHandlingApplicable(template.getMeta(), dataPath)) {
-                addMetadataMappings(template.getMeta().getMapping());
-                addMetadataItems(template.getMeta().getItem(), dataPath);
+            addHandling(template.getMeta(), dataPath);
+
+            for (ObjectTemplateItemDefinitionType itemDef : template.getItem()) {
+                if (itemDef.getRef() != null && itemDef.getRef().getItemPath().equivalent(dataPath)) {
+                    addHandling(itemDef.getMeta(), dataPath);
+                }
             }
         } catch (SchemaException e) {
             throw new TunnelException(e);
+        }
+    }
+
+    private void addHandling(MetadataHandlingType handling, ItemPath dataPath) throws SchemaException {
+        if (isHandlingApplicable(handling, dataPath)) {
+            addMetadataMappings(handling.getMapping());
+            addMetadataItems(handling.getItem(), dataPath);
         }
     }
 
@@ -217,6 +228,26 @@ public class ItemValueMetadataProcessingSpec implements ShortDumpable, DebugDump
 
     public boolean isFullProcessing(ItemPath itemPath) throws SchemaException {
         return getProcessing(itemPath) == ItemProcessingType.FULL;
+    }
+
+    public Collection<ItemPath> getTransientPaths() {
+        PathSet transientPaths = new PathSet();
+        PathSet persistentPaths = new PathSet();
+        for (MetadataItemDefinitionType item : itemDefinitions) {
+            ItemPersistenceType persistence = item.getPersistence();
+            if (persistence != null) {
+                ItemPath path = item.getRef().getItemPath();
+                if (persistence == ItemPersistenceType.PERSISTENT) {
+                    persistentPaths.add(path);
+                } else {
+                    transientPaths.add(path);
+                }
+            }
+        }
+        for (ItemPath persistentPath : persistentPaths) {
+            transientPaths.remove(persistentPath);
+        }
+        return transientPaths;
     }
 
     // For item-contained mappings the target exclusion can be checked twice

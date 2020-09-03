@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import org.apache.commons.io.FileUtils;
@@ -586,19 +587,34 @@ public class BasicExpressionFunctions {
         return ShadowUtil.getAttributeValues(shadow, attributeQname, String.class);
     }
 
+    /**
+     * Generic method to extract all metadata values pointed-to by given item path (specified as segments).
+     * Note: does not support multivalued containers withing the path (e.g. collecting transformation/source/name,
+     * where transformation/source is a multivalued container).
+     */
+    @Experimental
     @NotNull
-    public Collection<?> getMetadataExtensionValues(PrismValue value, String itemLocalPart) {
-        checkColon(itemLocalPart);
+    public Collection<?> getMetadataValues(PrismValue value, Object... pathSegments) {
         if (value == null) {
             return emptySet();
         } else {
-            ItemPath itemPath = ItemPath.create(ValueMetadataType.F_EXTENSION, itemLocalPart);
+            ItemPath itemPath = ItemPath.create(pathSegments);
             return value.getValueMetadataAsContainer().valuesStream()
                     .map(md -> md.findItem(itemPath))
                     .filter(Objects::nonNull)
                     .flatMap(item -> item.getRealValues().stream())
                     .collect(Collectors.toList());
         }
+    }
+
+    /**
+     * Simplified version of getMetadataValue aimed at fetching single-segment extension paths.
+     */
+    @Experimental
+    @NotNull
+    public Collection<?> getMetadataExtensionValues(PrismValue value, String itemLocalPart) {
+        checkColon(itemLocalPart);
+        return getMetadataValues(value, ValueMetadataType.F_EXTENSION, itemLocalPart);
     }
 
     public void setExtensionRealValues(PrismContainerValue<?> containerValue, Map<String, Object> map) throws SchemaException {

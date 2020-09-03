@@ -543,6 +543,9 @@ public class PrismReferenceValueImpl extends PrismValueImpl implements PrismRefe
         if (referentialIntegrity != null) {
             sb.append(", RI=").append(referentialIntegrity);
         }
+        if (isTransient()) {
+            sb.append(", transient");
+        }
         sb.append(")");
         return sb.toString();
     }
