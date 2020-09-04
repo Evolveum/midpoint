@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -90,10 +90,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         SELECTED, ALL, ALL_DIRECT
     }
 
-    protected enum MemberOperation {
-        ADD, REMOVE, RECOMPUTE
-    }
-
     private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
     private static final String DOT_CLASS = AbstractRoleMemberPanel.class.getName() + ".";
     protected static final String OPERATION_LOAD_MEMBER_RELATIONS = DOT_CLASS + "loadMemberRelationsList";
@@ -116,8 +112,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
 
-    private static Map<QName, Map<String, String>> authorizations = new HashMap<>();
-    private static Map<QName, TableId> tablesId = new HashMap<>();
+    private static final Map<QName, Map<String, String>> authorizations = new HashMap<>();
+    private static final Map<QName, TableId> tablesId = new HashMap<>();
 
     static {
         tablesId.put(RoleType.COMPLEX_TYPE, TableId.ROLE_MEMBER_PANEL);
@@ -241,7 +237,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected IColumn<SelectableBean<ObjectType>, String> createIconColumn() {
-                return (IColumn) ColumnUtils.createIconColumn(pageBase);
+                return ColumnUtils.createIconColumn(pageBase);
             }
 
             @Override
@@ -335,14 +331,15 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
             @Override
             protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
-                List<QName> relations = relation != null && !CollectionUtils.isEmpty(relation.getRelations()) ?
-                        Arrays.asList(relation.getRelations().get(0)) : getSupportedRelations().getAvailableRelationList();
-                AvailableRelationDto avariableRelations = new AvailableRelationDto(relations, getSupportedRelations().getDefaultRelation());
+                List<QName> relations = relation != null && !CollectionUtils.isEmpty(relation.getRelations())
+                        ? Collections.singletonList(relation.getRelations().get(0))
+                        : getSupportedRelations().getAvailableRelationList();
+                AvailableRelationDto availableRelations = new AvailableRelationDto(relations, getSupportedRelations().getDefaultRelation());
                 List<QName> objectTypes = relation != null && !CollectionUtils.isEmpty(relation.getObjectTypes()) ?
                         relation.getObjectTypes() : null;
                 List<ObjectReferenceType> archetypeRefList = relation != null && !CollectionUtils.isEmpty(relation.getArchetypeRefs()) ?
                         relation.getArchetypeRefs() : null;
-                assignMembers(target, avariableRelations, objectTypes, archetypeRefList, relation == null);
+                assignMembers(target, availableRelations, objectTypes, archetypeRefList, relation == null);
             }
 
             @Override
@@ -541,10 +538,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     private List<AssignmentObjectRelation> loadMemberRelationsList() {
-        List<AssignmentObjectRelation> assignmentTargetRelations = new ArrayList<>();
         AssignmentCandidatesSpecification spec = loadCandidateSpecification();
-        assignmentTargetRelations = spec != null ? spec.getAssignmentObjectRelations() : new ArrayList<>();
-        return assignmentTargetRelations;
+        return spec != null ? spec.getAssignmentObjectRelations() : new ArrayList<>();
     }
 
     private AssignmentCandidatesSpecification loadCandidateSpecification() {
@@ -656,7 +651,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
             try {
                 List<ObjectReferenceType> newReferences = new ArrayList<>();
                 if (CollectionUtils.isEmpty(relationSpec.getRelations())) {
-                    relationSpec.setRelations(Arrays.asList(RelationTypes.MEMBER.getRelation()));
+                    relationSpec.setRelations(
+                            Collections.singletonList(RelationTypes.MEMBER.getRelation()));
                 }
                 ObjectReferenceType memberRef = ObjectTypeUtil.createObjectRef(AbstractRoleMemberPanel.this.getModelObject(), relationSpec.getRelations().get(0));
                 newReferences.add(memberRef);
@@ -1008,7 +1004,9 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     protected ObjectQuery createContentQuery() {
         CheckFormGroup isIndirect = getIndirectmembersPanel();
-        List<QName> relations = QNameUtil.match(getSelectedRelation(), PrismConstants.Q_ANY) ? getSupportedRelations().getAvailableRelationList() : Arrays.asList(getSelectedRelation());
+        List<QName> relations = QNameUtil.match(getSelectedRelation(), PrismConstants.Q_ANY)
+                ? getSupportedRelations().getAvailableRelationList()
+                : Collections.singletonList(getSelectedRelation());
         return createMemberQuery(isIndirect != null ? isIndirect.getValue() : false, relations);
 
     }
@@ -1031,8 +1029,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     protected ObjectTypes getSearchType() {
-        DropDownFormGroup<QName> searchByTypeChoice = (DropDownFormGroup<QName>) get(
-                createComponentPath(ID_FORM, ID_OBJECT_TYPE));
+        DropDownFormGroup<QName> searchByTypeChoice =
+                (DropDownFormGroup<QName>) get(createComponentPath(ID_FORM, ID_OBJECT_TYPE));
         QName typeName = searchByTypeChoice.getModelObject();
         return ObjectTypes.getObjectTypeFromTypeQName(typeName);
     }
@@ -1138,10 +1136,6 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
         return false;
     }
 
-    private String getMemberObjectDisplayName(ObjectType object) {
-        return getMemberObjectDisplayName(object, false);
-    }
-
     private String getMemberObjectDisplayName(ObjectType object, boolean translate) {
         if (object == null) {
             return "";
@@ -1241,8 +1235,8 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     protected SearchBoxScopeType getSearchScope() {
-        DropDownFormGroup<SearchBoxScopeType> searchorgScope = (DropDownFormGroup<SearchBoxScopeType>) get(
-                createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
-        return searchorgScope.getModelObject();
+        DropDownFormGroup<SearchBoxScopeType> searchOrgScope =
+                (DropDownFormGroup<SearchBoxScopeType>) get(createComponentPath(ID_FORM, ID_SEARCH_SCOPE));
+        return searchOrgScope.getModelObject();
     }
 }

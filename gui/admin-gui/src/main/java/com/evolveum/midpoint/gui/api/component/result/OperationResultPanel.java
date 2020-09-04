@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.api.component.result;
 
 import java.io.DataOutputStream;
@@ -14,8 +13,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,13 +41,14 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author katkav
  */
-public class OperationResultPanel extends BasePanel<OpResult> implements Popupable{
+public class OperationResultPanel extends BasePanel<OpResult> implements Popupable {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_DETAILS_BOX = "detailsBox";
@@ -67,7 +65,6 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     static final String OPERATION_RESOURCE_KEY_PREFIX = "operation.";
 
     private static final Trace LOGGER = TraceManager.getTrace(OperationResultPanel.class);
-
 
     public OperationResultPanel(String id, IModel<OpResult> model) {
         super(id, model);
@@ -251,7 +248,7 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
             public File getObject() {
                 String home = getPageBase().getMidpointConfiguration().getMidpointHome();
                 File f = new File(home, "result");
-                try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(f))){
+                try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(f))) {
                     dos.writeBytes(OperationResultPanel.this.getModel().getObject().getXml());
                 } catch (IOException e) {
                     LOGGER.error("Could not download result: {}", e.getMessage(), e);
@@ -698,12 +695,12 @@ public class OperationResultPanel extends BasePanel<OpResult> implements Popupab
     }
 
     @Override
-    public String getWidthUnit(){
+    public String getWidthUnit() {
         return "px";
     }
 
     @Override
-    public String getHeightUnit(){
+    public String getHeightUnit() {
         return "px";
     }
 

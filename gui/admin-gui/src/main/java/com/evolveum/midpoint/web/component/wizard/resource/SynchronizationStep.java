@@ -1,11 +1,34 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.wizard.resource;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.markup.repeater.data.DataView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.validation.IValidator;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.NonEmptyLoadableModel;
 import com.evolveum.midpoint.gui.api.model.NonEmptyWrapperModel;
@@ -41,28 +64,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.data.DataView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.validation.IValidator;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
 
 /**
  * @author lazyman
@@ -153,7 +154,7 @@ public class SynchronizationStep extends WizardStep {
 
     private void initLayout() {
         final ListDataProvider<ObjectSynchronizationType> syncProvider = new ListDataProvider<>(this,
-                new PropertyModel<List<ObjectSynchronizationType>>(syncDtoModel, ResourceSynchronizationDto.F_OBJECT_SYNCRONIZATION_LIST));
+                new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_OBJECT_SYNCRONIZATION_LIST));
 
         //first row - object sync list
         WebMarkupContainer tableBody = new WebMarkupContainer(ID_TABLE_ROWS);
@@ -163,10 +164,10 @@ public class SynchronizationStep extends WizardStep {
         //second row - ObjectSynchronizationType editor
         WebMarkupContainer objectSyncEditor = new WebMarkupContainer(ID_OBJECT_SYNC_EDITOR);
         objectSyncEditor.setOutputMarkupId(true);
-        objectSyncEditor.add(new VisibleEnableBehaviour(){
+        objectSyncEditor.add(new VisibleEnableBehaviour() {
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return isAnySelected();
             }
 
@@ -200,8 +201,9 @@ public class SynchronizationStep extends WizardStep {
 
                 AjaxLink<Void> delete = new AjaxLink<Void>(ID_OBJECT_SYNC_DELETE) {
                     private static final long serialVersionUID = 1L;
+
                     @Override
-                    public void onClick(AjaxRequestTarget target){
+                    public void onClick(AjaxRequestTarget target) {
                         deleteSyncObjectPerformed(target, syncObject);
                     }
                 };
@@ -231,6 +233,7 @@ public class SynchronizationStep extends WizardStep {
 
         AjaxLink<Void> add = new AjaxLink<Void>(ID_OBJECT_SYNC_ADD) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 addSyncObjectPerformed(target);
@@ -250,7 +253,7 @@ public class SynchronizationStep extends WizardStep {
         }
     }
 
-    private void initObjectSyncEditor(WebMarkupContainer editor){
+    private void initObjectSyncEditor(WebMarkupContainer editor) {
         Label editorLabel = new Label(ID_EDITOR_LABEL, new IModel<String>() {
             @Override
             public String getObject() {
@@ -276,9 +279,9 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorDescription);
 
         DropDownChoice editorKind = new DropDownChoice<>(ID_EDITOR_KIND,
-            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".kind"),
+                new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".kind"),
                 WebComponentUtil.createReadonlyModelFromEnum(ShadowKindType.class),
-            new EnumChoiceRenderer<>());
+                new EnumChoiceRenderer<>());
         editorKind.setNullValid(true);
         editorKind.add(new UpdateNamesBehaviour());
         parentPage.addEditingEnabledBehavior(editorKind);
@@ -291,7 +294,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorIntent);
 
         MultiValueAutoCompleteTextPanel<QName> editorObjectClass = new MultiValueAutoCompleteTextPanel<QName>(ID_EDITOR_OBJECT_CLASS,
-            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true, parentPage.getReadOnlyModel()) {
+                new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".objectClass"), true, parentPage.getReadOnlyModel()) {
 
             @Override
             protected IModel<String> createTextModel(final IModel<QName> model) {
@@ -319,7 +322,7 @@ public class SynchronizationStep extends WizardStep {
             }
 
             @Override
-            protected IValidator<String> createAutoCompleteValidator(){
+            protected IValidator<String> createAutoCompleteValidator() {
                 return createObjectClassValidator(new IModel<List<QName>>() {
                     @Override
                     public List<QName> getObject() {
@@ -333,25 +336,20 @@ public class SynchronizationStep extends WizardStep {
 
         // TODO: switch to ObjectTypeSelectPanel
         DropDownChoice editorFocus = new DropDownChoice<>(ID_EDITOR_FOCUS, new PropertyModel<>(syncDtoModel,
-            ResourceSynchronizationDto.F_SELECTED + ".focusType"),
-                new IModel<List<QName>>() {
-
-                    @Override
-                    public List<QName> getObject() {
-                        return WebComponentUtil.createFocusTypeList();
-                    }
-                }, new QNameChoiceRenderer());
+                ResourceSynchronizationDto.F_SELECTED + ".focusType"),
+                (IModel<List<QName>>) () ->
+                        WebComponentUtil.createFocusTypeList(), new QNameChoiceRenderer());
         editorFocus.setNullValid(true);
         editorFocus.add(new UpdateNamesBehaviour());
         parentPage.addEditingEnabledBehavior(editorFocus);
         editor.add(editorFocus);
 
         CheckBox editorEnabled = new CheckBox(ID_EDITOR_ENABLED, new PropertyModel<>(syncDtoModel,
-            ResourceSynchronizationDto.F_SELECTED + ".enabled"));
+                ResourceSynchronizationDto.F_SELECTED + ".enabled"));
         parentPage.addEditingEnabledBehavior(editorEnabled);
         editor.add(editorEnabled);
 
-        AjaxSubmitLink editorCondition = new AjaxSubmitLink(ID_EDITOR_BUTTON_CONDITION){
+        AjaxSubmitLink editorCondition = new AjaxSubmitLink(ID_EDITOR_BUTTON_CONDITION) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
@@ -361,7 +359,7 @@ public class SynchronizationStep extends WizardStep {
         addDisableClassModifier(editorCondition);
         editor.add(editorCondition);
 
-        AjaxSubmitLink editorConfirmation = new AjaxSubmitLink(ID_EDITOR_BUTTON_CONFIRMATION){
+        AjaxSubmitLink editorConfirmation = new AjaxSubmitLink(ID_EDITOR_BUTTON_CONFIRMATION) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target) {
@@ -372,7 +370,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorConfirmation);
 
         DropDownChoice editorObjectTemplate = new DropDownChoice<>(ID_EDITOR_OBJECT_TEMPLATE,
-            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".objectTemplateRef"),
+                new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".objectTemplateRef"),
                 new IModel<List<ObjectReferenceType>>() {
 
                     @Override
@@ -385,7 +383,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(editorObjectTemplate);
 
         CheckBox editorReconcile = new CheckBox(ID_EDITOR_RECONCILE, new PropertyModel<>(syncDtoModel,
-            ResourceSynchronizationDto.F_SELECTED + ".reconcile"));
+                ResourceSynchronizationDto.F_SELECTED + ".reconcile"));
         parentPage.addEditingEnabledBehavior(editorReconcile);
         editor.add(editorReconcile);
 
@@ -394,8 +392,8 @@ public class SynchronizationStep extends WizardStep {
         editor.add(opportunistic);
 
         MultiValueTextEditPanel editorCorrelation = new MultiValueTextEditPanel<ConditionalSearchFilterType>(ID_EDITOR_EDITOR_CORRELATION,
-            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"),
-            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_CORRELATION),
+                new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".correlation"),
+                new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_CORRELATION),
                 false, true, parentPage.getReadOnlyModel()) {
 
             @Override
@@ -407,11 +405,11 @@ public class SynchronizationStep extends WizardStep {
                         StringBuilder sb = new StringBuilder();
 
                         ConditionalSearchFilterType searchFilter = model.getObject();
-                        if(searchFilter != null && searchFilter.getDescription() != null){
+                        if (searchFilter != null && searchFilter.getDescription() != null) {
                             sb.append(searchFilter.getDescription());
                         }
 
-                        if(sb.toString().isEmpty()){
+                        if (sb.toString().isEmpty()) {
                             sb.append(getString("SynchronizationStep.label.notSpecified"));
                         }
 
@@ -421,7 +419,7 @@ public class SynchronizationStep extends WizardStep {
             }
 
             @Override
-            protected ConditionalSearchFilterType createNewEmptyItem(){
+            protected ConditionalSearchFilterType createNewEmptyItem() {
                 return new ConditionalSearchFilterType();
             }
 
@@ -441,15 +439,15 @@ public class SynchronizationStep extends WizardStep {
             }
 
             @Override
-            protected boolean buttonsDisabled(){
+            protected boolean buttonsDisabled() {
                 return !isAnySelected();
             }
         };
         editor.add(editorCorrelation);
 
         MultiValueTextEditPanel editorReaction = new MultiValueTextEditPanel<SynchronizationReactionType>(ID_EDITOR_REACTION,
-            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"),
-            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_REACTION),
+                new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".reaction"),
+                new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED_REACTION),
                 false, true, parentPage.getReadOnlyModel()) {
 
             @Override
@@ -491,12 +489,12 @@ public class SynchronizationStep extends WizardStep {
             }
 
             @Override
-            protected SynchronizationReactionType createNewEmptyItem(){
+            protected SynchronizationReactionType createNewEmptyItem() {
                 return new SynchronizationReactionType();
             }
 
             @Override
-            protected void editPerformed(AjaxRequestTarget target, SynchronizationReactionType object){
+            protected void editPerformed(AjaxRequestTarget target, SynchronizationReactionType object) {
                 reactionEditPerformed(target, object);
             }
 
@@ -511,7 +509,7 @@ public class SynchronizationStep extends WizardStep {
             }
 
             @Override
-            protected boolean buttonsDisabled(){
+            protected boolean buttonsDisabled() {
                 return !isAnySelected();
             }
         };
@@ -567,7 +565,7 @@ public class SynchronizationStep extends WizardStep {
         editor.add(reactionTooltip);
     }
 
-    private IModel<String> createObjectSyncTypeDisplayModel(final ObjectSynchronizationType syncObject){
+    private IModel<String> createObjectSyncTypeDisplayModel(final ObjectSynchronizationType syncObject) {
         return new IModel<String>() {
 
             @Override
@@ -591,12 +589,12 @@ public class SynchronizationStep extends WizardStep {
         return StringUtils.removeEnd(name.getLocalPart(), "Type");
     }
 
-    private void addDisableClassModifier(Component component){
+    private void addDisableClassModifier(Component component) {
         component.add(new AttributeAppender("class", new IModel<String>() {
 
             @Override
             public String getObject() {
-                if(!isAnySelected()){
+                if (!isAnySelected()) {
                     return " disabled";
                 }
 
@@ -605,15 +603,15 @@ public class SynchronizationStep extends WizardStep {
         }));
     }
 
-    private Component getSyncObjectTable(){
+    private Component getSyncObjectTable() {
         return get(ID_TABLE_ROWS);
     }
 
-    private Component getNavigator(){
+    private Component getNavigator() {
         return get(ID_PAGING);
     }
 
-    private Component getSyncObjectEditor(){
+    private Component getSyncObjectEditor() {
         return get(ID_OBJECT_SYNC_EDITOR);
     }
 
@@ -625,20 +623,20 @@ public class SynchronizationStep extends WizardStep {
         return get(createComponentPath(ID_OBJECT_SYNC_EDITOR, ID_EDITOR_EDITOR_CORRELATION));
     }
 
-    private Component getThirdRowContainer(){
+    private Component getThirdRowContainer() {
         return get(ID_THIRD_ROW_CONTAINER);
     }
 
-    private void insertEmptyThirdRow(){
+    private void insertEmptyThirdRow() {
         getThirdRowContainer().replaceWith(new WebMarkupContainer(ID_THIRD_ROW_CONTAINER));
     }
 
-    private void conditionEditPerformed(AjaxRequestTarget target){
+    private void conditionEditPerformed(AjaxRequestTarget target) {
         WebMarkupContainer newContainer = new SynchronizationExpressionEditor(ID_THIRD_ROW_CONTAINER,
-            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".condition"), parentPage) {
+                new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".condition"), parentPage) {
 
             @Override
-            public String getLabel(){
+            public String getLabel() {
                 return "SynchronizationExpressionEditor.label.condition";
             }
         };
@@ -647,12 +645,12 @@ public class SynchronizationStep extends WizardStep {
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
-    private void confirmationEditPerformed(AjaxRequestTarget target){
+    private void confirmationEditPerformed(AjaxRequestTarget target) {
         WebMarkupContainer newContainer = new SynchronizationExpressionEditor(ID_THIRD_ROW_CONTAINER,
-            new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".confirmation"), parentPage){
+                new PropertyModel<>(syncDtoModel, ResourceSynchronizationDto.F_SELECTED + ".confirmation"), parentPage) {
 
             @Override
-            public String getLabel(){
+            public String getLabel() {
                 return "SynchronizationExpressionEditor.label.confirmation";
             }
         };
@@ -674,7 +672,7 @@ public class SynchronizationStep extends WizardStep {
         target.add(getThirdRowContainer(), get(ID_OBJECT_SYNC_EDITOR), getPageBase().getFeedbackPanel());
     }
 
-    private void reactionEditPerformed(AjaxRequestTarget target, SynchronizationReactionType reaction){
+    private void reactionEditPerformed(AjaxRequestTarget target, SynchronizationReactionType reaction) {
         WebMarkupContainer newContainer = new SynchronizationReactionEditor(ID_THIRD_ROW_CONTAINER, new Model<>(reaction), this, parentPage);
         getThirdRowContainer().replaceWith(newContainer);
 
@@ -718,7 +716,7 @@ public class SynchronizationStep extends WizardStep {
                     saved = true;
                 }
             }
-        } catch (CommonException|RuntimeException e) {
+        } catch (CommonException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't save resource synchronization.", e);
             result.recordFatalError(getString("SynchronizationStep.message.cantSave", e));
         } finally {
@@ -788,7 +786,7 @@ public class SynchronizationStep extends WizardStep {
         return syncDtoModel.getObject().getSelected() == syncObject;
     }
 
-    private void addSyncObjectPerformed(AjaxRequestTarget target){
+    private void addSyncObjectPerformed(AjaxRequestTarget target) {
         ObjectSynchronizationType syncObject = new ObjectSynchronizationType();
         syncObject.setEnabled(true);
         //syncObject.setName(generateName(getString("SynchronizationStep.label.newObjectType")));
@@ -821,13 +819,4 @@ public class SynchronizationStep extends WizardStep {
             }
         }
     }
-
-    private String generateName(String prefix) {
-        List<String> existing = new ArrayList<>();
-        for (ObjectSynchronizationType sync : syncDtoModel.getObject().getObjectSynchronizationList()) {
-            CollectionUtils.addIgnoreNull(existing, sync.getName());
-        }
-        return SchemaHandlingStep.generateName(existing, prefix);
-    }
-
 }

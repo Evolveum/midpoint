@@ -1,37 +1,33 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
-import com.evolveum.midpoint.gui.api.component.autocomplete.ReferenceConverter;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-
-import org.apache.commons.collections.iterators.ArrayIterator;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.extensions.ajax.markup.html.autocomplete.IAutoCompleteRenderer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.IConverter;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
+import com.evolveum.midpoint.gui.api.component.autocomplete.ReferenceConverter;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * @author honchar
@@ -39,20 +35,19 @@ import java.util.List;
 public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<ObjectReferenceType> {
     private static final long serialVersionUID = 1L;
 
-    private PageBase pageBase;
+    private final PageBase pageBase;
 
     public ReferenceAutocomplete(String id, final IModel<ObjectReferenceType> model, IAutoCompleteRenderer<ObjectReferenceType> renderer, PageBase pageBase) {
         super(id, model, ObjectReferenceType.class, renderer);
         this.pageBase = pageBase;
     }
 
-
     @Override
     public Iterator<ObjectReferenceType> getIterator(String input) {
         FormComponent<ObjectReferenceType> inputField = getBaseFormComponent();
         String realInput = StringUtils.isEmpty(input) ? inputField.getRawInput() : input;
-        if (StringUtils.isEmpty(realInput)){
-            return new ArrayIterator();
+        if (StringUtils.isEmpty(realInput)) {
+            return Collections.emptyIterator();
         }
         ObjectQuery query = pageBase.getPrismContext().queryFor(AbstractRoleType.class)
                 .item(ObjectType.F_NAME)
@@ -66,14 +61,14 @@ public abstract class ReferenceAutocomplete extends AutoCompleteTextPanel<Object
     }
 
     @Override
-    protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter){
+    protected <C> IConverter<C> getAutoCompleteConverter(Class<C> type, IConverter<C> originConverter) {
         IConverter<C> converter = super.getAutoCompleteConverter(type, originConverter);
-        return (IConverter<C>) new ReferenceConverter((IConverter<ObjectReferenceType>)converter, new ArrayList<>(), getBaseFormComponent(), pageBase);
+        return (IConverter<C>) new ReferenceConverter((IConverter<ObjectReferenceType>) converter, new ArrayList<>(), getBaseFormComponent(), pageBase);
     }
 
     protected abstract <O extends ObjectType> Class<O> getReferenceTargetObjectType();
 
-    protected int getMaxRowsCount(){
+    protected int getMaxRowsCount() {
         return 20;
     }
 }

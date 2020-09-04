@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,11 +7,9 @@
 package com.evolveum.midpoint.web.component.assignment;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
-
-import com.evolveum.midpoint.prism.*;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -24,13 +22,14 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismContainerWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.session.ObjectTabStorage;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -67,7 +66,7 @@ public class InducedEntitlementsPanel extends InducementsPanel {
 
     private MidpointFormValidator validator;
 
-    public InducedEntitlementsPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> inducementContainerWrapperModel){
+    public InducedEntitlementsPanel(String id, IModel<PrismContainerWrapper<AssignmentType>> inducementContainerWrapperModel) {
         super(id, inducementContainerWrapperModel);
 
         createValidator();
@@ -76,62 +75,63 @@ public class InducedEntitlementsPanel extends InducementsPanel {
     private void createValidator() {
         validator = new MidpointFormValidatorImpl() {
 
-                private static final long serialVersionUID = 1L;
+            private static final long serialVersionUID = 1L;
 
-                @Override
-                public Collection<SimpleValidationError> validateObject(PrismObject<? extends ObjectType> object, Collection<ObjectDelta<? extends ObjectType>> deltas) {
-                    List<SimpleValidationError> errors = new ArrayList<>();
-                    for (ObjectDelta<?> delta : deltas) {
-                        if (AbstractRoleType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-                            switch (delta.getChangeType()) {
-                                case MODIFY:
-                                    Collection<? extends ItemDelta<?,?>> itemDeltas = delta.getModifications();
-                                    for (ItemDelta<?,?> itemDelta : itemDeltas) {
-                                        if (itemDelta.getPath().equivalent(AbstractRoleType.F_INDUCEMENT) && itemDelta.getValuesToAdd() != null) {
-                                            for (PrismValue value : itemDelta.getValuesToAdd()) {
-                                                errors.addAll(validateInducement(value.getRealValue()));
-                                            }
+            @Override
+            public Collection<SimpleValidationError> validateObject(PrismObject<? extends ObjectType> object, Collection<ObjectDelta<? extends ObjectType>> deltas) {
+                List<SimpleValidationError> errors = new ArrayList<>();
+                for (ObjectDelta<?> delta : deltas) {
+                    if (AbstractRoleType.class.isAssignableFrom(delta.getObjectTypeClass())) {
+                        switch (delta.getChangeType()) {
+                            case MODIFY:
+                                Collection<? extends ItemDelta<?, ?>> itemDeltas = delta.getModifications();
+                                for (ItemDelta<?, ?> itemDelta : itemDeltas) {
+                                    if (itemDelta.getPath().equivalent(AbstractRoleType.F_INDUCEMENT) && itemDelta.getValuesToAdd() != null) {
+                                        for (PrismValue value : itemDelta.getValuesToAdd()) {
+                                            errors.addAll(validateInducement(value.getRealValue()));
                                         }
                                     }
-                                    break;
-                                case ADD:
-                                    if (delta != null && delta.getObjectToAdd().asObjectable() != null) {
-                                        for (AssignmentType assignment : ((AbstractRoleType)object.asObjectable()).getInducement()) {
-                                            errors.addAll(validateInducement(assignment));
-                                        }
+                                }
+                                break;
+                            case ADD:
+                                if (delta != null && delta.getObjectToAdd().asObjectable() != null) {
+                                    for (AssignmentType assignment : ((AbstractRoleType) object.asObjectable()).getInducement()) {
+                                        errors.addAll(validateInducement(assignment));
                                     }
-                                    break;
-                            }
+                                }
+                                break;
                         }
                     }
-                    return errors;
                 }
+                return errors;
+            }
 
-                private Collection<SimpleValidationError> validateInducement(AssignmentType assignment) {
-                    List<SimpleValidationError> errors = new ArrayList<>();
-                    //TODO impelemnt findContainer(ItemPath)
-                    com.evolveum.midpoint.prism.Item<PrismContainerValue<ResourceObjectAssociationType>, PrismContainerDefinition<ResourceObjectAssociationType>> association = assignment.asPrismContainerValue().findItem(ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION));
-                    if (association != null && !association.getValues().isEmpty()) {
-                        for (PrismContainerValue<ResourceObjectAssociationType> associationValue : association.getValues()){
-                            PrismContainer<MappingType> outbound = associationValue.findContainer(ResourceObjectAssociationType.F_OUTBOUND);
-                            if (outbound == null || outbound.getValues().isEmpty()){
-                                SimpleValidationError error = new SimpleValidationError();
-                                error.setMessage(getPageBase().createStringResource("InducedEntitlementsPanel.validator.message").getString());
-                                ItemPathType path = new ItemPathType();
-                                path.setItemPath(ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceObjectAssociationType.F_OUTBOUND));
-                                error.setAttribute(path);
-                                errors.add(error);
-                            }
+            private Collection<SimpleValidationError> validateInducement(AssignmentType assignment) {
+                List<SimpleValidationError> errors = new ArrayList<>();
+                //TODO impelemnt findContainer(ItemPath)
+                com.evolveum.midpoint.prism.Item<PrismContainerValue<ResourceObjectAssociationType>, PrismContainerDefinition<ResourceObjectAssociationType>> association =
+                        assignment.asPrismContainerValue().findItem(ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION));
+                if (association != null && !association.getValues().isEmpty()) {
+                    for (PrismContainerValue<ResourceObjectAssociationType> associationValue : association.getValues()) {
+                        PrismContainer<MappingType> outbound = associationValue.findContainer(ResourceObjectAssociationType.F_OUTBOUND);
+                        if (outbound == null || outbound.getValues().isEmpty()) {
+                            SimpleValidationError error = new SimpleValidationError();
+                            error.setMessage(getPageBase().createStringResource("InducedEntitlementsPanel.validator.message").getString());
+                            ItemPathType path = new ItemPathType();
+                            path.setItemPath(ItemPath.create(AbstractRoleType.F_INDUCEMENT, AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION, ResourceObjectAssociationType.F_OUTBOUND));
+                            error.setAttribute(path);
+                            errors.add(error);
                         }
                     }
-                    return errors;
                 }
+                return errors;
+            }
 
-                @Override
-                public Collection<SimpleValidationError> validateAssignment(AssignmentType assignment) {
-                    return new ArrayList<>();
-                }
-            };
+            @Override
+            public Collection<SimpleValidationError> validateAssignment(AssignmentType assignment) {
+                return new ArrayList<>();
+            }
+        };
     }
 
     @Override
@@ -157,10 +157,9 @@ public class InducedEntitlementsPanel extends InducementsPanel {
         return UserProfileStorage.TableId.INDUCED_ENTITLEMENTS_TAB_TABLE;
     }
 
-    private ObjectTabStorage getInducedEntitlementsTabStorage(){
+    private ObjectTabStorage getInducedEntitlementsTabStorage() {
         return getParentPage().getSessionStorage().getInducedEntitlementsTabStorage();
     }
-
 
     @Override
     protected List<IColumn<PrismContainerValueWrapper<AssignmentType>, String>> initColumns() {
@@ -172,25 +171,25 @@ public class InducedEntitlementsPanel extends InducementsPanel {
 
         columns.add(new PrismContainerWrapperColumn<>(getModel(), ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION), getPageBase()));
 
-        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("InducedEntitlements.value")){
+        columns.add(new AbstractColumn<PrismContainerValueWrapper<AssignmentType>, String>(createStringResource("InducedEntitlements.value")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AssignmentType>>> item, String componentId,
-                                     final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
+                    final IModel<PrismContainerValueWrapper<AssignmentType>> rowModel) {
 
-                    ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
-                    List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
-                            expressionType,
-                            InducedEntitlementsPanel.this.getPageBase().getPrismContext()),
-                            OPERATION_LOAD_SHADOW_OBJECT, InducedEntitlementsPanel.this.getPageBase());
+                ExpressionType expressionType = getExpressionFromRowModel(rowModel, false);
+                List<ShadowType> shadowsList = WebComponentUtil.loadReferencedObjectList(ExpressionUtil.getShadowRefValue(
+                        expressionType,
+                        InducedEntitlementsPanel.this.getPageBase().getPrismContext()),
+                        OPERATION_LOAD_SHADOW_OBJECT, InducedEntitlementsPanel.this.getPageBase());
 
-                    MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<ShadowType>(componentId,
-                        Model.ofList(shadowsList), Arrays.asList(ShadowType.class), false){
+                MultiValueChoosePanel<ShadowType> valuesPanel = new MultiValueChoosePanel<ShadowType>(componentId,
+                        Model.ofList(shadowsList), Collections.singletonList(ShadowType.class), false) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected ObjectFilter getCustomFilter(){
+                    protected ObjectFilter getCustomFilter() {
                         ConstructionType construction = rowModel.getObject().getRealValue().getConstruction();
                         return WebComponentUtil.getShadowTypeFilterForAssociation(construction, OPERATION_LOAD_RESOURCE_OBJECT,
                                 InducedEntitlementsPanel.this.getPageBase());
@@ -198,7 +197,7 @@ public class InducedEntitlementsPanel extends InducementsPanel {
 
                     @Override
                     protected void removePerformedHook(AjaxRequestTarget target, ShadowType shadow) {
-                        if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())){
+                        if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
                             ExpressionType expression = WebComponentUtil.getAssociationExpression(rowModel.getObject(), getPageBase());
                             ExpressionUtil.removeShadowRefEvaluatorValue(expression, shadow.getOid(), getPageBase().getPrismContext());
                         }
@@ -207,7 +206,7 @@ public class InducedEntitlementsPanel extends InducementsPanel {
                     @Override
                     protected void choosePerformedHook(AjaxRequestTarget target, List<ShadowType> selectedList) {
                         ShadowType shadow = selectedList != null && selectedList.size() > 0 ? selectedList.get(0) : null;
-                        if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())){
+                        if (shadow != null && StringUtils.isNotEmpty(shadow.getOid())) {
                             ExpressionType expression = getExpressionFromRowModel(rowModel, true);
                             ExpressionUtil.addShadowRefEvaluatorValue(expression, shadow.getOid(),
                                     InducedEntitlementsPanel.this.getPageBase().getPrismContext());
@@ -222,7 +221,6 @@ public class InducedEntitlementsPanel extends InducementsPanel {
                 };
                 valuesPanel.setOutputMarkupId(true);
                 item.add(valuesPanel);
-
 
             }
         });
@@ -268,37 +266,37 @@ public class InducedEntitlementsPanel extends InducementsPanel {
         return constructionDetailsPanel;
     }
 
-    protected List<ObjectTypes> getObjectTypesList(){
-        return Arrays.asList(ObjectTypes.RESOURCE);
+    protected List<ObjectTypes> getObjectTypesList() {
+        return Collections.singletonList(ObjectTypes.RESOURCE);
     }
 
     @Override
-    protected boolean isEntitlementAssignment(){
+    protected boolean isEntitlementAssignment() {
         return true;
     }
 
     @Override
     protected List<PrismContainerValueWrapper<AssignmentType>> customPostSearch(List<PrismContainerValueWrapper<AssignmentType>> assignments) {
         List<PrismContainerValueWrapper<AssignmentType>> filteredAssignments = new ArrayList<>();
-        if (assignments == null){
+        if (assignments == null) {
             return filteredAssignments;
         }
         assignments.forEach(assignmentWrapper -> {
-                AssignmentType assignment = assignmentWrapper.getRealValue();
-                if (assignment.getConstruction() != null && assignment.getConstruction().getAssociation() != null) {
-                    List<ResourceObjectAssociationType> associations = assignment.getConstruction().getAssociation();
-                    if (associations.size() == 0 && ValueStatus.ADDED.equals(assignmentWrapper.getStatus())){
-                        filteredAssignments.add(assignmentWrapper);
-                        return;
-                    }
-                    associations.forEach(association -> {
-                        if (!filteredAssignments.contains(assignmentWrapper)) {
-                            if (association.getRef() != null && association.getRef().getItemPath() != null &&
-                                    !association.getRef().getItemPath().isEmpty()){
-                                filteredAssignments.add(assignmentWrapper);
-                            }
+            AssignmentType assignment = assignmentWrapper.getRealValue();
+            if (assignment.getConstruction() != null && assignment.getConstruction().getAssociation() != null) {
+                List<ResourceObjectAssociationType> associations = assignment.getConstruction().getAssociation();
+                if (associations.size() == 0 && ValueStatus.ADDED.equals(assignmentWrapper.getStatus())) {
+                    filteredAssignments.add(assignmentWrapper);
+                    return;
+                }
+                associations.forEach(association -> {
+                    if (!filteredAssignments.contains(assignmentWrapper)) {
+                        if (association.getRef() != null && association.getRef().getItemPath() != null &&
+                                !association.getRef().getItemPath().isEmpty()) {
+                            filteredAssignments.add(assignmentWrapper);
                         }
-                    });
+                    }
+                });
             }
         });
         return filteredAssignments;
@@ -309,7 +307,7 @@ public class InducedEntitlementsPanel extends InducementsPanel {
         try {
             PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper = assignment.findContainer(ItemPath.create(AssignmentType.F_CONSTRUCTION, ConstructionType.F_ASSOCIATION));
             List<PrismContainerValue<ResourceObjectAssociationType>> associationValueList = associationWrapper.getItem().getValues();
-            PrismContainerValue<ResourceObjectAssociationType> associationValue = null;
+            PrismContainerValue<ResourceObjectAssociationType> associationValue;
             if (CollectionUtils.isEmpty(associationValueList)) {
                 if (createIfNotExist) {
                     associationValue = associationWrapper.createValue();
@@ -322,15 +320,15 @@ public class InducedEntitlementsPanel extends InducementsPanel {
 
             ResourceObjectAssociationType association = associationValue.getRealValue();
             MappingType outbound = association.getOutbound();
-            if (outbound == null){
-                if (createIfNotExist){
+            if (outbound == null) {
+                if (createIfNotExist) {
                     outbound = association.beginOutbound();
                 } else {
                     return null;
                 }
             }
             ExpressionType expressionType = outbound.getExpression();
-            if (expressionType == null && createIfNotExist){
+            if (expressionType == null && createIfNotExist) {
                 expressionType = outbound.beginExpression();
             }
             return expressionType;

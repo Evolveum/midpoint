@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,13 +9,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.web.page.admin.server.PageTask;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -40,6 +34,7 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -57,7 +52,9 @@ import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class ResourceDetailsTabPanel extends Panel {
 
@@ -76,7 +73,7 @@ public class ResourceDetailsTabPanel extends Panel {
 
     LoadableModel<CapabilitiesDto> capabilitiesModel;
 
-    private PageBase parentPage;
+    private final PageBase parentPage;
 
     public ResourceDetailsTabPanel(String id, final IModel<?> model, PageBase parentPage) {
         super(id, model);
@@ -112,17 +109,17 @@ public class ResourceDetailsTabPanel extends Panel {
         List<ResourceConfigurationDto> resourceConfigList = createResourceConfigList(resource);
 
         ListDataProvider<ResourceConfigurationDto> resourceConfigProvider = new ListDataProvider<>(
-            ResourceDetailsTabPanel.this, new ListModel<>(resourceConfigList));
+                ResourceDetailsTabPanel.this, new ListModel<>(resourceConfigList));
 
         List<ColumnTypeDto<String>> columns = Arrays.asList(
-                new ColumnTypeDto<String>("ShadowType.kind", "objectTypeDefinition.kind",
+                new ColumnTypeDto<>("ShadowType.kind", "objectTypeDefinition.kind",
                         ShadowType.F_KIND.getLocalPart()),
-                new ColumnTypeDto<String>("ShadowType.objectClass",
+                new ColumnTypeDto<>("ShadowType.objectClass",
                         "objectTypeDefinition.objectClass.localPart",
                         ShadowType.F_OBJECT_CLASS.getLocalPart()),
-                new ColumnTypeDto<String>("ShadowType.intent", "objectTypeDefinition.intent",
+                new ColumnTypeDto<>("ShadowType.intent", "objectTypeDefinition.intent",
                         ShadowType.F_INTENT.getLocalPart()),
-                new ColumnTypeDto<String>("ResourceType.isSync", "sync", null));
+                new ColumnTypeDto<>("ResourceType.isSync", "sync", null));
 
         List<IColumn<SelectableBeanImpl<ResourceType>, String>> tableColumns = ColumnUtils.createColumns(columns);
 
@@ -135,7 +132,7 @@ public class ResourceDetailsTabPanel extends Panel {
                 RepeatingView repeater = new RepeatingView(componentId);
                 for (final TaskType task : conf.getDefinedTasks()) {
                     repeater.add(new LinkPanel(repeater.newChildId(),
-                        new Model<>(task.getName().getOrig())) {
+                            new Model<>(task.getName().getOrig())) {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {
@@ -220,7 +217,7 @@ public class ResourceDetailsTabPanel extends Panel {
         String backgroundColor = "bg-aqua";
         SourceTarget sourceTarget = determineIfSourceOrTarget(resource);
 
-        String numberKey = null;
+        String numberKey;
         switch (sourceTarget) {
             case SOURCE:
                 numberKey = "PageResource.resource.source";
@@ -336,11 +333,11 @@ public class ResourceDetailsTabPanel extends Panel {
 
         String backgroundColor = "bg-gray";
         String icon = "fa fa-times";
-        String numberMessage = null;
+        String numberMessage;
         String description = null;
 
         Integer progress = null;
-        RefinedResourceSchema refinedSchema = null;
+        RefinedResourceSchema refinedSchema;
         try {
             refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
             if (refinedSchema != null) {
@@ -387,7 +384,7 @@ public class ResourceDetailsTabPanel extends Panel {
     private ObjectSynchronizationType getSynchronizationFor(
             ResourceObjectTypeDefinitionType obejctTypesDefinition,
             List<ObjectSynchronizationType> synchronizationPolicies, PrismObject<ResourceType> resource)
-                    throws SchemaException {
+            throws SchemaException {
 
         for (ObjectSynchronizationType synchronizationPolicy : synchronizationPolicies) {
             if (SynchronizationUtils.isPolicyApplicable(obejctTypesDefinition.getObjectClass(),
@@ -405,7 +402,7 @@ public class ResourceDetailsTabPanel extends Panel {
 
     private List<TaskType> getTaskFor(List<PrismObject<TaskType>> tasks,
             ObjectSynchronizationType synchronizationPolicy, PrismObject<ResourceType> resource)
-                    throws SchemaException {
+            throws SchemaException {
         List<TaskType> syncTasks = new ArrayList<>();
         for (PrismObject<TaskType> task : tasks) {
             PrismProperty<ShadowKindType> taskKind = task
@@ -474,7 +471,7 @@ public class ResourceDetailsTabPanel extends Panel {
     private boolean isInboundDefined(ResourceAttributeDefinitionType attr) {
         return attr.getInbound() != null && CollectionUtils.isNotEmpty(attr.getInbound())
                 && (attr.getInbound().get(0).getTarget() != null
-                        || attr.getInbound().get(0).getExpression() != null);
+                || attr.getInbound().get(0).getExpression() != null);
     }
 
     private boolean isSynchronizationDefined(ResourceType resource) {
@@ -496,161 +493,9 @@ public class ResourceDetailsTabPanel extends Panel {
             }
 
             return true;
-
         }
 
         return false;
-
-    }
-
-    private SourceTarget determineCredentialsMappings(ResourceType resource) {
-        if (resource.getSchemaHandling() != null
-                && CollectionUtils.isNotEmpty(resource.getSchemaHandling().getObjectType())) {
-
-            boolean hasOutbound = false;
-            boolean hasInbound = false;
-
-            for (ResourceObjectTypeDefinitionType resourceObjectTypeDefinition : resource.getSchemaHandling()
-                    .getObjectType()) {
-
-                if (hasInbound && hasOutbound) {
-                    return SourceTarget.SOURCE_TARGET;
-                }
-
-                if (resourceObjectTypeDefinition.getCredentials() == null) {
-                    continue;
-                }
-
-                if (resourceObjectTypeDefinition.getCredentials().getPassword() == null) {
-                    continue;
-                }
-
-                ResourcePasswordDefinitionType passwordDef = resourceObjectTypeDefinition.getCredentials()
-                        .getPassword();
-                if (!hasOutbound) {
-                    hasOutbound = passwordDef.getOutbound() != null;
-                }
-
-                if (!hasInbound) {
-                    hasInbound = CollectionUtils.isNotEmpty(passwordDef.getInbound());
-                }
-            }
-
-            if (hasInbound) {
-                return SourceTarget.SOURCE;
-            }
-
-            if (hasOutbound) {
-                return SourceTarget.TARGET;
-            }
-
-        }
-
-        return SourceTarget.NOT_DEFINED;
-    }
-
-    private SourceTarget determineActivationMappings(ResourceType resource) {
-        if (resource.getSchemaHandling() != null
-                && CollectionUtils.isNotEmpty(resource.getSchemaHandling().getObjectType())) {
-
-            boolean hasOutbound = false;
-            boolean hasInbound = false;
-
-            for (ResourceObjectTypeDefinitionType resourceObjectTypeDefinition : resource.getSchemaHandling()
-                    .getObjectType()) {
-
-                if (hasInbound && hasOutbound) {
-                    return SourceTarget.SOURCE_TARGET;
-                }
-
-                if (resourceObjectTypeDefinition.getActivation() == null) {
-                    continue;
-                }
-
-                if (!hasOutbound) {
-                    ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
-                            .getActivation();
-                    if (activationDef.getAdministrativeStatus() != null && CollectionUtils
-                            .isNotEmpty(activationDef.getAdministrativeStatus().getOutbound())) {
-                        hasOutbound = true;
-                    }
-                }
-
-                if (!hasOutbound) {
-                    ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
-                            .getActivation();
-                    if (activationDef.getValidFrom() != null
-                            && CollectionUtils.isNotEmpty(activationDef.getValidFrom().getOutbound())) {
-                        hasOutbound = true;
-                    }
-                }
-
-                if (!hasOutbound) {
-                    ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
-                            .getActivation();
-                    if (activationDef.getValidTo() != null
-                            && CollectionUtils.isNotEmpty(activationDef.getValidTo().getOutbound())) {
-                        hasOutbound = true;
-                    }
-                }
-
-                if (!hasOutbound) {
-                    ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
-                            .getActivation();
-                    if (activationDef.getExistence() != null
-                            && CollectionUtils.isNotEmpty(activationDef.getExistence().getOutbound())) {
-                        hasOutbound = true;
-                    }
-                }
-
-                if (!hasInbound) {
-                    ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
-                            .getActivation();
-                    if (activationDef.getAdministrativeStatus() != null && CollectionUtils
-                            .isNotEmpty(activationDef.getAdministrativeStatus().getInbound())) {
-                        hasInbound = true;
-                    }
-                }
-
-                if (!hasInbound) {
-                    ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
-                            .getActivation();
-                    if (activationDef.getValidFrom() != null
-                            && CollectionUtils.isNotEmpty(activationDef.getValidFrom().getInbound())) {
-                        hasInbound = true;
-                    }
-                }
-
-                if (!hasInbound) {
-                    ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
-                            .getActivation();
-                    if (activationDef.getValidTo() != null
-                            && CollectionUtils.isNotEmpty(activationDef.getValidTo().getInbound())) {
-                        hasInbound = true;
-                    }
-                }
-
-                if (!hasInbound) {
-                    ResourceActivationDefinitionType activationDef = resourceObjectTypeDefinition
-                            .getActivation();
-                    if (activationDef.getExistence() != null
-                            && CollectionUtils.isNotEmpty(activationDef.getExistence().getInbound())) {
-                        hasInbound = true;
-                    }
-                }
-            }
-
-            if (hasInbound) {
-                return SourceTarget.SOURCE;
-            }
-
-            if (hasOutbound) {
-                return SourceTarget.TARGET;
-            }
-
-        }
-
-        return SourceTarget.NOT_DEFINED;
     }
 
     private SourceTarget determineIfSourceOrTarget(ResourceType resource) {
@@ -708,7 +553,7 @@ public class ResourceDetailsTabPanel extends Panel {
 
         NOT_DEFINED("fa fa-square-o"), SOURCE("fa fa-sign-in"), TARGET("fa fa-sign-out"), SOURCE_TARGET("fa fa-exchange");
 
-        private String cssClass;
+        private final String cssClass;
 
         SourceTarget(String cssClass) {
             this.cssClass = cssClass;

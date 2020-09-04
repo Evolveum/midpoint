@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,17 +8,8 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-
-import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
@@ -37,17 +28,25 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
 import com.evolveum.midpoint.web.component.search.filter.ValueSearchFilterItem;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
@@ -75,8 +74,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
     @Override
     protected void initConfigurationPanel(WebMarkupContainer configPanel) {
-        provider =
-                new SelectableListDataProvider<SelectableBean<ValueSearchFilterItem>, ValueSearchFilterItem>(getPageBase(), getSearchFilterItemModel());
+        provider = new SelectableListDataProvider<>(getPageBase(), getSearchFilterItemModel());
 
         WebMarkupContainer propertyConfigContainer = new WebMarkupContainer(ID_PROPERTY_CONFIG_CONTAINER);
         propertyConfigContainer.setOutputMarkupId(true);
@@ -194,7 +192,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
         IColumn<SelectableBean<ValueSearchFilterItem>, String> propertyColumn = new PropertyColumn<SelectableBean<ValueSearchFilterItem>, String>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.property"),
-                "value." + ValueSearchFilterItem.F_PROPERTY_NAME){
+                "value." + ValueSearchFilterItem.F_PROPERTY_NAME) {
 
             private static final long serialVersionUID = 1L;
 
@@ -227,7 +225,8 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ValueSearchFilterItem>>> item, String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
-                List<ValueSearchFilterItem.FilterName> availableFilterNames = rowModel.getObject().getValue().getAvailableFilterNameList();
+                List<ValueSearchFilterItem.FilterName> availableFilterNames =
+                        rowModel.getObject().getValue().getAvailableFilterNameList();
                 DropDownChoicePanel<ValueSearchFilterItem.FilterName> filterPanel = WebComponentUtil.createEnumPanel(id,
                         Model.ofList(availableFilterNames),
                         new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_FILTER_TYPE_NAME),
@@ -271,7 +270,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
         CheckBoxColumn<SelectableBean<ValueSearchFilterItem>> negationColumn = new CheckBoxColumn<SelectableBean<ValueSearchFilterItem>>(getPageBase()
                 .createStringResource("SearchPropertiesConfigPanel.table.column.applyNegotiation"),
-                "value." + ValueSearchFilterItem.F_APPLY_NEGATION){
+                "value." + ValueSearchFilterItem.F_APPLY_NEGATION) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -283,7 +282,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         columns.add(negationColumn);
 
         InlineMenuButtonColumn<SelectableBean<ValueSearchFilterItem>> actionsColumn = new InlineMenuButtonColumn<SelectableBean<ValueSearchFilterItem>>
-                (getTableMenuItems(), getPageBase()){
+                (getTableMenuItems(), getPageBase()) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -296,7 +295,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         return columns;
     }
 
-    private List<InlineMenuItem> getTableMenuItems(){
+    private List<InlineMenuItem> getTableMenuItems() {
         InlineMenuItem deleteMenuItem = new ButtonInlineMenuItem(createStringResource("PageBase.button.delete")) {
             private static final long serialVersionUID = 1L;
 
@@ -317,10 +316,10 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_DELETE_MENU_ITEM);
             }
         };
-        return Arrays.asList(deleteMenuItem);
+        return Collections.singletonList(deleteMenuItem);
     }
 
-    private String getColumnStyleClass(){
+    private String getColumnStyleClass() {
         return "mid-width-column";
     }
 
@@ -329,7 +328,8 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
             @Override
             protected List<Property> load() {
                 PrismObjectDefinition objectDef = SearchFactory.findObjectDefinition(getType(), null, getPageBase());
-                List<SearchItemDefinition> availableDefs = SearchFactory.getAvailableDefinitions(objectDef, true);
+                List<SearchItemDefinition> availableDefs =
+                        SearchFactory.getAvailableDefinitions(objectDef, true);
                 List<Property> propertiesList = new ArrayList<>();
                 availableDefs.forEach(searchItemDef -> {
                     if (!isPropertyAlreadyAdded(searchItemDef.getDef())) {
@@ -341,10 +341,10 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         };
     }
 
-    private boolean isPropertyAlreadyAdded(ItemDefinition def){
+    private boolean isPropertyAlreadyAdded(ItemDefinition def) {
         List<SelectableBean<ValueSearchFilterItem>> properties = provider.getAvailableData();
-        for (SelectableBean<ValueSearchFilterItem> prop : properties){
-            if (QNameUtil.match(prop.getValue().getPropertyPath(), def.getItemName())){
+        for (SelectableBean<ValueSearchFilterItem> prop : properties) {
+            if (QNameUtil.match(prop.getValue().getPropertyPath(), def.getItemName())) {
                 return true;
             }
         }
@@ -358,7 +358,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
             @Override
             protected List<ValueSearchFilterItem> load() {
                 BasicSearchFilter basicSearchFilter = getModelObject();
-                if (basicSearchFilter == null){
+                if (basicSearchFilter == null) {
                     return new ArrayList<>();
                 }
                 return basicSearchFilter.getValueSearchFilterItems();
@@ -375,26 +375,26 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     }
 
     private void propertyDeletedPerformed(IModel<SelectableBean<ValueSearchFilterItem>> rowModel, AjaxRequestTarget target) {
-        if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null){
+        if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getValue() == null) {
             return;
         }
         getModelObject().deleteSearchFilterItem(rowModel.getObject().getValue().getPropertyDef());
         target.add(SearchPropertiesConfigPanel.this);
     }
 
-    private DropDownChoicePanel<Property> getPropertyChoicePanel(){
+    private DropDownChoicePanel<Property> getPropertyChoicePanel() {
         return (DropDownChoicePanel<Property>) get(createComponentPath(ID_CONFIGURATION_PANEL, ID_PROPERTY_CONFIG_CONTAINER, ID_PROPERTY_CHOICE));
     }
 
     private ValueSearchFilterItem createDefaultValueFilter(Property property) {
-        if (property == null){
+        if (property == null) {
             return null;
         }
         return new ValueSearchFilterItem(property, false);
     }
 
     @Override
-    protected void okButtonClicked(AjaxRequestTarget target){
+    protected void okButtonClicked(AjaxRequestTarget target) {
         ObjectFilter configuredFilter = getModelObject().buildObjectFilter();
         filterConfiguredPerformed(configuredFilter, target);
     }
@@ -404,7 +404,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         getPageBase().hideMainPopup(target);
     }
 
-    protected void filterConfiguredPerformed(ObjectFilter configuredFilter, AjaxRequestTarget target){
+    protected void filterConfiguredPerformed(ObjectFilter configuredFilter, AjaxRequestTarget target) {
     }
 
     public int getWidth() {
