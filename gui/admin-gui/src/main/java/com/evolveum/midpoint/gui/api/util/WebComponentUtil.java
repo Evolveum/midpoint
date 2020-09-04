@@ -3397,8 +3397,6 @@ public final class WebComponentUtil {
                 WrapperContext context = new WrapperContext(null, null);
                 PrismPropertyValueWrapper<ExpressionType> val = (PrismPropertyValueWrapper<ExpressionType>) pageBase
                         .createValueWrapper(expressionWrapper, exp, ValueStatus.ADDED, context);
-                // ValueWrapperOld<ExpressionType> val = new
-                // ValueWrapperOld<>(expressionWrapper, exp, prismContext);
                 expressionValues.remove(0);
                 expressionValues.add(0, val);
             }

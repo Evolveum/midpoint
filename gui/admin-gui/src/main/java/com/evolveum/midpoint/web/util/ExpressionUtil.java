@@ -11,6 +11,7 @@ import java.util.*;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,6 +35,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
+
+import org.opensaml.xmlsec.signature.P;
 
 public class ExpressionUtil {
 
@@ -323,36 +326,60 @@ public class ExpressionUtil {
     }
 
     public static void removeShadowRefEvaluatorValue(ExpressionType expression, String shadowRefOid, PrismContext prismContext) {
-        if (expression == null) {
+        if (expression == null || StringUtils.isEmpty(shadowRefOid)) {
             return;
         }
-        JAXBElement<RawType> element = findFirstEvaluatorByName(expression, SchemaConstants.C_VALUE);
-        if (element == null) {
-            element = new JAXBElement(SchemaConstants.C_VALUE, RawType.class,
-                    new RawType(prismContext));
+        List<JAXBElement> elementList = findAllEvaluatorsByName(expression, SchemaConstants.C_VALUE);
+        if (CollectionUtils.isEmpty(elementList)) {
+            return;
         }
-        if (element != null && element.getValue() instanceof RawType) {
-            RawType raw = element.getValue();
-            XNode node = raw.getXnode();
-            if (node instanceof MapXNode && ((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
-                XNode shadowRefNodes = ((MapXNode) node).get(SHADOW_REF_KEY);
-                if (shadowRefNodes instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNodes))) {
-                    prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, null);
-                    //todo don't get why while using removeEvaluatorByName no changes are saved
-                    //                   removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
-                } else if (shadowRefNodes instanceof ListXNode) {
-                    Iterator<? extends XNode> it = ((ListXNode) shadowRefNodes).asList().iterator();
-                    while (it.hasNext()) {
-                        XNode shadowRefNode = it.next();
-                        if (shadowRefNode instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNode))) {
-                            it.remove();
-                            break;
+        boolean removePerformed = false;
+        Iterator<JAXBElement> elementIterator = elementList.iterator();
+        while (elementIterator.hasNext()) {
+            JAXBElement element = elementIterator.next();
+            if (element != null && element.getValue() instanceof RawType) {
+                RawType raw = (RawType) element.getValue();
+                if (raw.isParsed()) {
+                    try {
+                        if (raw.getParsedRealValue(ShadowAssociationType.class) != null) {
+                            ShadowAssociationType assoc = raw.getParsedRealValue(ShadowAssociationType.class);
+                            if (assoc.getShadowRef() != null && shadowRefOid.equals(assoc.getShadowRef().getOid())) {
+                                elementIterator.remove();
+                                break;
+                            }
+                        }
+                    } catch (SchemaException e) {
+                        LoggingUtils.logExceptionAsWarning(LOGGER, "Could not remove association value", e, e.getStackTrace());
+                    }
+                } else {
+                    XNode node = raw.getXnode();
+                    if (node instanceof MapXNode && ((MapXNode) node).containsKey(SHADOW_REF_KEY)) {
+                        XNode shadowRefNodes = ((MapXNode) node).get(SHADOW_REF_KEY);
+                        if (shadowRefNodes instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNodes))) {
+                            prismContext.xnodeMutator().putToMapXNode((MapXNode) node, SHADOW_REF_KEY, null);
+                            removePerformed = true;
+                            //todo don't get why while using removeEvaluatorByName no changes are saved
+                            //                   removeEvaluatorByName(expression, SchemaConstantsGenerated.C_VALUE);
+                        } else if (shadowRefNodes instanceof ListXNode) {
+                            Iterator<? extends XNode> it = ((ListXNode) shadowRefNodes).asList().iterator();
+                            while (it.hasNext()) {
+                                XNode shadowRefNode = it.next();
+                                if (shadowRefNode instanceof MapXNode && shadowRefOid.equals(getShadowRefNodeOid((MapXNode) shadowRefNode))) {
+                                    it.remove();
+                                    removePerformed = true;
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
             }
+            if (removePerformed) {
+                break;
+            }
         }
-        expression.getExpressionEvaluator().add(element);
+        expression.getExpressionEvaluator().clear();
+        expression.getExpressionEvaluator().addAll((Collection) elementList);
     }
 
     public static void clearExpressionEvaluator(ExpressionType expression) {
