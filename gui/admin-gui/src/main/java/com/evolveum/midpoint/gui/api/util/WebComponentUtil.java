@@ -3351,10 +3351,6 @@ public final class WebComponentUtil {
         if (association == null || association.getValues() == null || association.getValues().size() == 0) {
             return null;
         }
-        //FIXME HACK not to add empty association value
-        if (ContainerStatus.ADDING.equals(association.getStatus())) {
-            association.getItem().clear();
-        }
         PrismContainerValueWrapper<ResourceObjectAssociationType> associationValueWrapper = association.getValues().get(0);
         PrismPropertyWrapper<ExpressionType> expressionWrapper;
         try {
