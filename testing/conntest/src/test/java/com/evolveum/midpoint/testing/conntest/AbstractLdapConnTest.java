@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -168,7 +168,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         cleanupDelete(toGroupDn(GROUP_UNDEAD_CN));
         cleanupDelete(toGroupDn(GROUP_EVIL_CN));
 
-        if (needsGroupFakeMemeberEntry()) {
+        if (needsGroupFakeMemberEntry()) {
             addLdapGroup(GROUP_UNDEAD_CN, GROUP_UNDEAD_DESCRIPTION, "uid=fake," + getPeopleLdapSuffix());
             addLdapGroup(GROUP_EVIL_CN, GROUP_EVIL_DESCRIPTION, "uid=fake," + getPeopleLdapSuffix());
         } else {
@@ -591,12 +591,9 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         query.setPaging(paging);
 
         final MutableInt count = new MutableInt();
-        ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
-            @Override
-            public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
-                count.increment();
-                return true;
-            }
+        ResultHandler<ShadowType> handler = (object, parentResult) -> {
+            count.increment();
+            return true;
         };
 
         modelService.searchObjectsIterative(ShadowType.class, query, handler, null, task, result);

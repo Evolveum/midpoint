@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -256,9 +256,9 @@ public final class WebComponentUtil {
         storageTableIdMap.put(TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
         storageTableIdMap.put(TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
         storageTableIdMap.put(TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL, SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT);
-        storageTableIdMap.put(TableId.ROLE_MEMEBER_PANEL, SessionStorage.KEY_ROLE_MEMEBER_PANEL);
-        storageTableIdMap.put(TableId.ORG_MEMEBER_PANEL, SessionStorage.KEY_ORG_MEMEBER_PANEL);
-        storageTableIdMap.put(TableId.SERVICE_MEMEBER_PANEL, SessionStorage.KEY_SERVICE_MEMEBER_PANEL);
+        storageTableIdMap.put(TableId.ROLE_MEMBER_PANEL, SessionStorage.KEY_ROLE_MEMBER_PANEL);
+        storageTableIdMap.put(TableId.ORG_MEMBER_PANEL, SessionStorage.KEY_ORG_MEMBER_PANEL);
+        storageTableIdMap.put(TableId.SERVICE_MEMBER_PANEL, SessionStorage.KEY_SERVICE_MEMBER_PANEL);
 
     }
 
