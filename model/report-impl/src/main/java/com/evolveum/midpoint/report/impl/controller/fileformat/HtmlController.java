@@ -223,7 +223,7 @@ public class HtmlController extends FileFormatController {
         }
 
         ContainerTag tableBox;
-        if (!isAuditCollection(collection)) {
+        if (!isAuditCollection(collectionRefSpecification, task, result)) {
             tableBox = createTableBoxForObjectView(label, collectionRefSpecification, compiledCollection,
                     collectionConfig.getCondition(), task, result, true);
         } else {

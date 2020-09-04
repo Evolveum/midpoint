@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Evolveum and contributors
+ * Copyright (C) 2019-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -76,16 +76,14 @@ public class ExpressionPermissionProfile {
 
     private ExpressionPermissionPackageProfileType getPackageProfileByClassName(String className) {
         for (ExpressionPermissionPackageProfileType packageProfile : packageProfiles) {
-            if (isMemeberClass(packageProfile, className)) {
+            if (isMemberClass(packageProfile, className)) {
                 return packageProfile;
             }
         }
         return null;
     }
 
-
-
-    private boolean isMemeberClass(ExpressionPermissionPackageProfileType packageProfile, String className) {
+    private boolean isMemberClass(ExpressionPermissionPackageProfileType packageProfile, String className) {
         // TODO Maybe too simple. But this will do for now.
         return className.startsWith(packageProfile.getName());
     }
@@ -140,7 +138,6 @@ public class ExpressionPermissionProfile {
         }
 
     }
-
 
     /**
      * Used to easily set up access for built-in class access rules (convenience).

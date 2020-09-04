@@ -13,7 +13,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -22,9 +22,8 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
@@ -65,9 +64,6 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordItemType;
-
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author skublik
@@ -97,7 +93,7 @@ public abstract class InfoBoxPanel extends Panel{
 
             {
                 put(ResourceType.COMPLEX_TYPE.getLocalPart(), PageResources.class);
-                put(AuditEventRecordItemType.COMPLEX_TYPE.getLocalPart(), PageAuditLogViewer.class);
+                put(AuditEventRecordType.COMPLEX_TYPE.getLocalPart(), PageAuditLogViewer.class);
                 put(TaskType.COMPLEX_TYPE.getLocalPart(), PageTasks.class);
                 put(UserType.COMPLEX_TYPE.getLocalPart(), PageUsers.class);
                 put(RoleType.COMPLEX_TYPE.getLocalPart(), PageRoles.class);
@@ -286,14 +282,14 @@ public abstract class InfoBoxPanel extends Panel{
             }
             break;
         case AUDIT_SEARCH:
-            collection = getObjectCollectionType();
-            if(collection != null && collection.getAuditSearch() != null && collection.getAuditSearch().getRecordQuery() != null) {
-                Class<? extends WebPage> pageType = getLinksRefCollections().get(AuditEventRecordItemType.COMPLEX_TYPE.getLocalPart());
+            Task task = getPageBase().createSimpleTask("Is audit collection");
+            if(DashboardUtils.isAuditCollection(getObjectCollectionRef(), getPageBase().getModelService(), task, task.getResult())) {
+                Class<? extends WebPage> pageType = getLinksRefCollections().get(AuditEventRecordType.COMPLEX_TYPE.getLocalPart());
                 if(pageType == null) {
                     return null;
                 }
                 AuditSearchDto searchDto = new AuditSearchDto();
-                searchDto.setCollection(collection);
+                searchDto.setCollectionRef(getObjectCollectionRef());
                 getPageBase().getSessionStorage().getAuditLog().setSearchDto(searchDto);
                 return getPageBase().createWebPage(pageType, null);
             }  else {
@@ -403,9 +399,9 @@ public abstract class InfoBoxPanel extends Panel{
                 return false;
             }
         case AUDIT_SEARCH:
-            collection = getObjectCollectionType();
-            if(collection != null && collection.getAuditSearch() != null && collection.getAuditSearch().getRecordQuery() != null) {
-                return getLinksRefCollections().containsKey(AuditEventRecordItemType.COMPLEX_TYPE.getLocalPart());
+            Task task = getPageBase().createSimpleTask("Is audit collection");
+            if(DashboardUtils.isAuditCollection(getObjectCollectionRef(), getPageBase().getModelService(), task, task.getResult())) {
+                return getLinksRefCollections().containsKey(AuditEventRecordType.COMPLEX_TYPE.getLocalPart());
             }  else {
                 return false;
             }
@@ -485,15 +481,24 @@ public abstract class InfoBoxPanel extends Panel{
     }
 
     private ObjectCollectionType getObjectCollectionType() {
-        IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
-        if(isCollectionRefOfCollectionNull(model)) {
+        CollectionRefSpecificationType collectionRef = getObjectCollectionRef();
+        if (collectionRef == null) {
             return null;
         }
-        ObjectReferenceType ref = model.getObject().getData().getCollection().getCollectionRef();
+        ObjectReferenceType ref = collectionRef.getCollectionRef();
         Task task = getPageBase().createSimpleTask("Search collection");
         ObjectCollectionType collection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref,
                 getPageBase(), task, task.getResult()).getRealValue();
         return collection;
+    }
+
+    private CollectionRefSpecificationType getObjectCollectionRef() {
+        IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
+        if(isCollectionRefOfCollectionNull(model)) {
+            return null;
+        }
+        CollectionRefSpecificationType collectionRef = model.getObject().getData().getCollection();
+        return collectionRef;
     }
 
     private ObjectType getObjectFromObjectRef() {
