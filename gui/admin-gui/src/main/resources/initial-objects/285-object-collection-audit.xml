@@ -8,19 +8,14 @@
 
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                  oid="00000000-0000-0000-0001-000000000002">
-    <name>Modification audit records</name>
+                  oid="00000000-0000-0000-0001-000000000285">
+    <name>Audit records</name>
     <type>AuditEventRecordType</type>
     <filter>
         <q:and>
             <q:equal>
                 <q:path>eventStage</q:path>
                 <q:value>execution</q:value>
-            </q:equal>
-            <q:equal>
-                <q:path>eventType</q:path>
-                <q:value>modifyObject</q:value>
             </q:equal>
             <q:greater>
                 <q:path>timestamp</q:path>
@@ -35,11 +30,4 @@
             </q:greater>
         </q:and>
     </filter>
-    <domain>
-        <collectionRef oid="00000000-0000-0000-0001-000000000285" type="c:ObjectCollectionType"/>
-    </domain>
-    <auditSearch>
-        <recordQuery>select * from m_audit_event as aer where aer.eventType=2 and aer.eventStage=1</recordQuery>
-        <interval>P1D</interval>
-    </auditSearch>
 </objectCollection>
