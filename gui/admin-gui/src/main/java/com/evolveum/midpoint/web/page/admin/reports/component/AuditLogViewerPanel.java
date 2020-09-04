@@ -25,6 +25,7 @@ import com.evolveum.midpoint.gui.impl.Channel;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -258,8 +259,20 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         usedQueryContainer.setOutputMarkupId(true);
         parametersPanel.add(usedQueryContainer);
 
-        TextPanel<String> usedQuery = new TextPanel<>(ID_USED_QUERY, new PropertyModel<>(getModel(),
-                AuditSearchDto.F_COLLECTION + ".auditSearch.recordQuery"));
+        IModel<AuditSearchDto> model = getModel();
+        IModel<AuditSearchType> auditSearchModel = Model.of();
+        if(model != null && model.getObject() != null && model.getObject().getCollectionRef() != null) {
+            ObjectReferenceType ref = model.getObject().getCollectionRef().getCollectionRef();
+            Task task = getPageBase().createSimpleTask("Search collection");
+            ObjectCollectionType collection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref,
+                    getPageBase(), task, task.getResult()).getRealValue();
+            if (collection != null && collection.getFilter() == null && collection.getAuditSearch() != null
+                    && collection.getAuditSearch().getRecordQuery() != null){
+                auditSearchModel.setObject(collection.getAuditSearch());
+            }
+        }
+
+        TextPanel<String> usedQuery = new TextPanel<>(ID_USED_QUERY, new PropertyModel<>(auditSearchModel, "recordQuery"));
         usedQuery.setOutputMarkupId(true);
         usedQuery.setEnabled(false);
         usedQueryContainer.add(usedQuery);
@@ -270,8 +283,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         usedIntervalContainer.add(getVisibleBehaviourForUsedQueryComponent());
         parametersPanel.add(usedIntervalContainer);
 
-        TextPanel<String> usedInterval = new TextPanel<>(ID_USED_INTERVAL, new PropertyModel<>(getModel(),
-                AuditSearchDto.F_COLLECTION + ".auditSearch.interval"));
+        TextPanel<String> usedInterval = new TextPanel<>(ID_USED_INTERVAL, new PropertyModel<>(auditSearchModel, "interval"));
         usedInterval.setOutputMarkupId(true);
         usedInterval.setEnabled(false);
         usedIntervalContainer.add(usedInterval);
@@ -466,13 +478,17 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
             @Override
             public boolean isVisible() {
                 IModel<AuditSearchDto> model = getModel();
-                if(model == null || model.getObject() == null
-                        || model.getObject().getCollection() == null
-                        || model.getObject().getCollection().getAuditSearch() == null
-                        || model.getObject().getCollection().getAuditSearch().getRecordQuery() == null) {
-                    return false;
+                if(model != null && model.getObject() != null && model.getObject().getCollectionRef() != null) {
+                    ObjectReferenceType ref = model.getObject().getCollectionRef().getCollectionRef();
+                    Task task = getPageBase().createSimpleTask("Search collection");
+                    ObjectCollectionType collection = (ObjectCollectionType)WebModelServiceUtils.loadObject(ref,
+                            getPageBase(), task, task.getResult()).getRealValue();
+                    if (collection != null && collection.getFilter() == null && collection.getAuditSearch() != null
+                            && collection.getAuditSearch().getRecordQuery() != null){
+                        return true;
+                    }
                 }
-                return true;
+                return false;
             }
         };
     }
@@ -488,15 +504,15 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 o.getName().getOrig();
 
 
-    private IModel<ObjectCollectionType> getCollectionFroAuditEventModel() {
-        return new IModel<ObjectCollectionType>() {
+    private IModel<CollectionRefSpecificationType> getCollectionRefForAuditEventModel() {
+        return new IModel<CollectionRefSpecificationType>() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public ObjectCollectionType getObject() {
+            public CollectionRefSpecificationType getObject() {
                 AuditSearchDto search = AuditLogViewerPanel.this.getModelObject();
-                ObjectCollectionType collection = search.getCollection();
-                return collection;
+                CollectionRefSpecificationType collectionRef = search.getCollectionRef();
+                return collectionRef;
             }
 
         };
@@ -565,7 +581,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     }
 
     private void initAuditLogViewerTable(Form mainForm) {
-        AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this, getCollectionFroAuditEventModel(),
+        AuditEventRecordProvider provider = new AuditEventRecordProvider(AuditLogViewerPanel.this, getCollectionRefForAuditEventModel(),
                 this::getAuditEventProviderParameters) {
             private static final long serialVersionUID = 1L;
 

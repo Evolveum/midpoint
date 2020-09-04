@@ -133,7 +133,7 @@ public class CsvController extends FileFormatController {
         CompiledObjectCollectionView compiledCollection = createCompiledView(collectionConfig, collection);
 
         byte[] csvFile;
-        if (!isAuditCollection(collection)) {
+        if (!isAuditCollection(collectionRefSpecification, task, result)) {
             csvFile = createTableBoxForObjectView(collectionRefSpecification, compiledCollection,
                     collectionConfig.getCondition(), task, result);
         } else {
