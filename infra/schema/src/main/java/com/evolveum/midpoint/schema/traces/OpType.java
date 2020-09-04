@@ -59,9 +59,17 @@ public enum OpType {
             "com.evolveum.midpoint.model.impl.lens.projector.Projector.assignments",
             "Assignments (${m:getAssignmentEvaluationsCount})"),
 
-    ASSIGNMENT_EVALUATION(OperationKindType.ASSIGNMENT_EVALUATION, "Assignment evaluation",
+    ASSIGNMENT_EVALUATION_OUTER(OperationKindType.OTHER, "Assignment evaluation (outer)",
             "com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentTripleEvaluator.evaluateAssignment",
-            "Assignment evaluation (→ ${c:assignmentTargetName})"),
+            "Assignment evaluation: → ${c:assignmentTargetName}"),
+
+    ASSIGNMENT_EVALUATION(OperationKindType.ASSIGNMENT_EVALUATION, "Assignment evaluation",
+            "com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator.evaluate",
+            "Assignment evaluation: ${m:getAssignmentInfo}"),
+
+    ASSIGNMENT_SEGMENT_EVALUATION(OperationKindType.OTHER, "Assignment segment evaluation",
+            "com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator.evaluateFromSegment",
+            "${m:getSegmentLabel}"),
 
     PROJECTION_ACTIVATION(OperationKindType.OTHER,"Projection activation",
             "com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor.projectionActivation",
@@ -192,7 +200,8 @@ public enum OpType {
     public String getFormattedName(OpNode node) {
 
         if (nameTemplate != null) {
-            return expandTemplate(node);
+            return new TemplateExpander()
+                    .expandTemplate(node, nameTemplate);
         }
 
         OperationResultType opResult = node.getResult();
@@ -214,12 +223,6 @@ public enum OpType {
             String srcName = getContext(opResult, "segmentSourceName");
             String tgtName = getContext(opResult, "segmentTargetName");
             return "Segment: " + (srcName != null ? srcName + " " : "") + " → " + (tgtName != null ? " " + tgtName : "");
-        } else if ("com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator.evaluate".equals(operation)) {
-            String tgtName = getContext(opResult, "assignmentTargetName");
-            return "AssignmentEvaluator.evaluate" + (tgtName != null ? " (→ " + tgtName + ")" : "");
-        } else if ("com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentTripleEvaluator.evaluateAssignment".equals(operation)) {
-            String tgtName = getContext(opResult, "assignmentTargetName");
-            return "AssignmentTripleEvaluator.evaluateAssignment" + (tgtName != null ? " (→ " + tgtName + ")" : "");
         } else if ("com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor.evaluateRule".equals(operation)) {
             String triggeredString = getReturn(opResult, "triggered");
             int enabledActions = TraceUtil.getReturnsAsStringList(opResult, "enabledActions").size();
@@ -259,109 +262,6 @@ public enum OpType {
             return getLastTwo(operation) + commaQualifiers;
         }
         return opResult.getOperation() + (qualifiers.isEmpty() ? "" : " (" + qualifiers + ")");
-    }
-
-    private String expandTemplate(OpNode node) {
-        return new StringSubstitutor(createResolver(node), "${", "}", '\\')
-                .replace(nameTemplate);
-    }
-
-    private StringLookup createResolver(OpNode node) {
-        return spec -> {
-            String prefix;
-            String suffix;
-            String key;
-
-            String[] parts = spec.split(":");
-            if (parts.length == 1) {
-                prefix = "";
-                key = spec;
-                suffix = "";
-            } else if (parts.length == 2) {
-                prefix = parts[0];
-                key = parts[1];
-                suffix = "";
-            } else if (parts.length == 3) {
-                prefix = parts[0];
-                key = parts[1];
-                suffix = parts[2];
-            } else {
-                return "???";
-            }
-
-            List<String> values = new ArrayList<>();
-            if (prefix.isEmpty() || prefix.equals("p")) {
-                collectMatchingParams(values, key, node.getResult().getParams());
-            }
-            if (prefix.isEmpty() || prefix.equals("c")) {
-                collectMatchingParams(values, key, node.getResult().getContext());
-            }
-            if (prefix.isEmpty() || prefix.equals("r")) {
-                collectMatchingParams(values, key, node.getResult().getReturns());
-            }
-            if (prefix.isEmpty() || prefix.equals("t")) {
-                collectMatchingValues(values, key, node.getResult().getTrace());
-            }
-            if (prefix.equals("m")) {
-                collectFromMethod(values, key, node);
-            }
-            return String.join(", ", postprocess(values, suffix));
-        };
-    }
-
-    private void collectFromMethod(List<String> values, String key, OpNode node) {
-        try {
-            Object rv = MethodUtils.invokeExactMethod(node, key);
-            if (rv instanceof Collection) {
-                for (Object o : (Collection) rv) {
-                    values.add(String.valueOf(o));
-                }
-            } else if (rv != null) {
-                values.add(String.valueOf(rv));
-            }
-        } catch (Throwable t) {
-            values.add("??? " + t.getMessage());
-        }
-    }
-
-    private void collectMatchingValues(List<String> values, String path, List<TraceType> traces) {
-        UniformItemPath itemPath = ItemPathParserTemp.parseFromString(path); // FIXME (hack)
-        for (TraceType trace : traces) {
-            PrismProperty property = trace.asPrismContainerValue().findProperty(itemPath);
-            if (property != null) {
-                for (Object realValue : property.getRealValues()) {
-                    values.add(String.valueOf(realValue));
-                }
-            }
-        }
-    }
-
-    private void collectMatchingParams(List<String> values, String key, ParamsType params) {
-        int colon = key.indexOf(':');
-        String processing;
-        String realKey;
-        if (colon >= 0) {
-            realKey = key.substring(0, colon);
-            processing = key.substring(colon + 1);
-        } else {
-            realKey = key;
-            processing = "";
-        }
-        List<String> rawStringValues = asStringList(selectByKey(params, realKey));
-        values.addAll(postprocess(rawStringValues, processing));
-    }
-
-    private List<String> postprocess(List<String> raw, String processing) {
-        return raw.stream()
-                .map(s -> postprocess(s, processing))
-                .collect(Collectors.toList());
-    }
-
-    private String postprocess(String string, String processing) {
-        if (processing.contains("L")) {
-            string = string.toLowerCase();
-        }
-        return string;
     }
 
     private String getRepoCacheOpDescription(OpNode node, OperationResultType opResult, String last, String commaQualifiers) {

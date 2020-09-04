@@ -124,6 +124,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         record2.addDelta(createDeltaWithIgnoredPath(UserType.F_FAMILY_NAME));
         record2.getCustomColumnProperty().put("foo", "foo-value-2");
         record2.getCustomColumnProperty().put("bar", "bar-val");
+        record2.setTaskOid("task_oid2");
         auditService.audit(record2, NullTaskImpl.INSTANCE);
 
         AuditEventRecord record3 = new AuditEventRecord();
@@ -419,6 +420,7 @@ public class AuditSearchTest extends BaseSQLRepoTest {
 
         then("only audit events with the timestamp equal to are returned");
         assertThat(result).hasSize(1);
+        // getParameter() is used to identify specific audit records (1, 2, 3) as mentioned in init
         assertThat(result.get(0).getParameter()).isEqualTo("2");
     }
 
@@ -678,6 +680,20 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         then("only audit events with the same task OID are returned");
         assertThat(result).hasSize(1);
         assertThat(result).allMatch(r -> r.getTaskOID().equals("task-oid"));
+    }
+
+    @Test
+    public void test196SearchByTaskOidLikeWithUnderscore() throws SchemaException {
+        when("searching audit filtered by task OID LIKE with underscore");
+        SearchResultList<AuditEventRecordType> result = searchObjects(prismContext
+                .queryFor(AuditEventRecordType.class)
+                // we double down here with ignore-casing matcher
+                .item(AuditEventRecordType.F_TASK_OID).startsWith("TASK_").matchingCaseIgnore()
+                .build());
+
+        then("only audit events with matching task OID are returned (underscore is escaped)");
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).getParameter()).isEqualTo("2");
     }
 
     /*

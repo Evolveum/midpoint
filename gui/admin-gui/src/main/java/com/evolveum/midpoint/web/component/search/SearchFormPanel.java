@@ -33,10 +33,16 @@ public class SearchFormPanel extends BasePanel<Search> {
         searchForm.setOutputMarkupId(true);
 
         SearchPanel search = new SearchPanel(ID_SEARCH, getModel()) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
                 SearchFormPanel.this.searchPerformed(query, target);
+            }
+
+            @Override
+            protected void saveSearch(Search search, AjaxRequestTarget target) {
+                SearchFormPanel.this.saveSearch(search, target);
             }
         };
         searchForm.add(search);
@@ -44,5 +50,8 @@ public class SearchFormPanel extends BasePanel<Search> {
 
     protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
 
+    }
+
+    protected void saveSearch(Search search, AjaxRequestTarget target) {
     }
 }

@@ -95,6 +95,13 @@ public abstract class ContainerableListPanel<C extends Containerable> extends Ba
                             protected void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
                                 ContainerableListPanel.this.searchPerformed(target);
                             }
+
+                            @Override
+                            protected void saveSearch(Search search, AjaxRequestTarget target) {
+                                if (getPageStorage() != null) {
+                                    getPageStorage().setSearch(search);
+                                }
+                            }
                         };
                         searchPanel.add(new VisibleBehaviour(() -> isSearchVisible()));
                         return searchPanel;

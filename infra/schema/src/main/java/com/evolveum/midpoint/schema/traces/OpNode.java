@@ -607,7 +607,7 @@ public class OpNode {
     }
 
     public Integer getAssignmentEvaluationsCount() {
-        return (int) getChildrenStream(2)
+        return (int) getChildrenStream(3)
                 .filter(child -> child.getKind() == OperationKindType.ASSIGNMENT_EVALUATION)
                 .count();
     }
@@ -639,4 +639,8 @@ public class OpNode {
     public void setPresentation(OpNodePresentation presentation) {
         this.presentation = presentation;
     }
+
+    public void resolveReferenceTargetNames(OpNodeTreeBuilder.NameResolver nameResolver) {
+    }
+
 }
