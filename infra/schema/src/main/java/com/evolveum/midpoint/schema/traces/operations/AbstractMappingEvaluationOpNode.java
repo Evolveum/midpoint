@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
  */
 public class AbstractMappingEvaluationOpNode extends OpNode {
 
-    private final MappingEvaluationTraceType trace;
+    final MappingEvaluationTraceType trace;
     private final AbstractMappingType mappingBean;
     final String context;
 

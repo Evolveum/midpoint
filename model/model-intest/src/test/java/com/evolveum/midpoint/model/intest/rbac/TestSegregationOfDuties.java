@@ -159,6 +159,8 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         repoAddObjectFromFile(ROLE_CRIMINAL_FILE, initResult);
         repoAddObjectFromFile(ROLE_SELF_EXCLUSION_FILE, initResult);
         repoAddObjectFromFile(ROLE_SELF_EXCLUSION_MANAGER_MEMBER_FILE, initResult);
+
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     @Test

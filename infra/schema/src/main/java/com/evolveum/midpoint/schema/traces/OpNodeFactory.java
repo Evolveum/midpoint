@@ -29,8 +29,18 @@ public class OpNodeFactory {
                     return new MappingEvaluationOpNode(prismContext, result, info, parent, traceInfo);
                 case MAPPING_TIME_VALIDITY_EVALUATION:
                     return new MappingTimeValidityEvaluationOpNode(prismContext, result, info, parent, traceInfo);
+
                 case FOCUS_CHANGE_EXECUTION:
                     return new FocusChangeExecutionOpNode(prismContext, result, info, parent, traceInfo);
+                case PROJECTION_CHANGE_EXECUTION:
+                    return new ProjectionChangeExecutionOpNode(prismContext, result, info, parent, traceInfo);
+                case CHANGE_EXECUTION_DELTA:
+                    return new ChangeExecutionDeltaOpNode(prismContext, result, info, parent, traceInfo);
+                case UPDATE_SHADOW_SITUATION:
+                    return new UpdateShadowSituationOpNode(prismContext, result, info, parent, traceInfo);
+                case LINK_UNLINK_SHADOW:
+                    return new LinkUnlinkShadowOpNode(prismContext, result, info, parent, traceInfo);
+
                 case TRANSFORMATION_EXPRESSION_EVALUATION:
                     return new TransformationExpressionEvaluationOpNode(prismContext, result, info, parent, traceInfo);
                 case VALUE_TUPLE_TRANSFORMATION:
@@ -39,6 +49,10 @@ public class OpNodeFactory {
                     return new ItemConsolidationOpNode(prismContext, result, info, parent, traceInfo);
                 case PROJECTOR_PROJECTION:
                     return new ProjectorProjectionOpNode(prismContext, result, info, parent, traceInfo);
+                case PROJECTION_ACTIVATION:
+                    return new ProjectionActivationOpNode(prismContext, result, info, parent, traceInfo);
+                case PROJECTOR_FOCUS_POLICY_RULES:
+                    return new FocusPolicyRulesOpNode(prismContext, result, info, parent, traceInfo);
                 case PROJECTOR_INBOUND:
                 case PROJECTOR_ASSIGNMENTS:
                 case PROJECTOR_TEMPLATE_BEFORE_ASSIGNMENTS:
@@ -49,6 +63,14 @@ public class OpNodeFactory {
                     return new AssignmentEvaluationOpNode(prismContext, result, info, parent, traceInfo);
                 case ASSIGNMENT_SEGMENT_EVALUATION:
                     return new AssignmentSegmentEvaluationOpNode(prismContext, result, info, parent, traceInfo);
+                case POLICY_RULE_EVALUATION:
+                    return new PolicyRuleEvaluationOpNode(prismContext, result, info, parent, traceInfo);
+                case POLICY_CONSTRAINT_EVALUATION:
+                    return new PolicyConstraintEvaluationOpNode(prismContext, result, info, parent, traceInfo);
+                case FOCUS_REPOSITORY_LOAD:
+                    return new FocusRepositoryLoadOpNode(prismContext, result, info, parent, traceInfo);
+                case FULL_PROJECTION_LOAD:
+                    return new FullProjectionLoadOpNode(prismContext, result, info, parent, traceInfo);
             }
         }
         return new OpNode(prismContext, result, info, parent, traceInfo);

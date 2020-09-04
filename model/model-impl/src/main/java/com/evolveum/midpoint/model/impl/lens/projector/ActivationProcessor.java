@@ -165,6 +165,9 @@ public class ActivationProcessor implements ProjectorProcessor {
         SynchronizationPolicyDecision existingDecision = projCtx.getSynchronizationPolicyDecision();
         SynchronizationIntent synchronizationIntent = projCtx.getSynchronizationIntent();
 
+        result.addContext("existingDecision", String.valueOf(existingDecision));
+        result.addContext("synchronizationIntent", String.valueOf(synchronizationIntent));
+
         LOGGER.trace("processActivationUserCurrent starting for {}. Existing decision = {}, synchronization intent = {}",
                 projCtxDesc, existingDecision, synchronizationIntent);
 
@@ -178,19 +181,19 @@ public class ActivationProcessor implements ProjectorProcessor {
         }
 
         if (synchronizationIntent == SynchronizationIntent.UNLINK) {
-            projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.UNLINK);
+            setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.UNLINK, result);
             LOGGER.trace("Evaluated decision for {} to {} because of unlink synchronization intent, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.UNLINK);
             return;
         }
 
         if (projCtx.isTombstone()) {
             if (projCtx.isDelete() && ModelExecuteOptions.isForce(context.getOptions())) {
-                projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+                setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.DELETE, result);
                 LOGGER.trace("Evaluated decision for tombstone {} to {} (force), skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.DELETE);
             } else {
                 // Let's keep tombstones linked until they expire. So we do not have shadows without owners.
                 // This is also needed for async delete operations.
-                projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+                setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.KEEP, result);
                 LOGGER.trace("Evaluated decision for {} to {} because it is tombstone, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.KEEP);
             }
             return;
@@ -198,7 +201,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         if (synchronizationIntent == SynchronizationIntent.DELETE || projCtx.isDelete()) {
             // TODO: is this OK?
-            projCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.DELETE);
+            setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.DELETE, result);
             LOGGER.trace("Evaluated decision for {} to {}, skipping further activation processing", projCtxDesc, SynchronizationPolicyDecision.DELETE);
             return;
         }
@@ -283,7 +286,7 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         LOGGER.trace("Evaluated decision for projection {} to {}", projCtxDesc, decision);
 
-        projCtx.setSynchronizationPolicyDecision(decision);
+        setSynchronizationPolicyDecision(projCtx, decision, result);
 
         PrismObject<F> focusNew = context.getFocusContext().getObjectNew();
         if (focusNew == null) {
@@ -361,6 +364,11 @@ public class ActivationProcessor implements ProjectorProcessor {
         } else {
             LOGGER.trace("Skipping activation lockout status processing because {} does not have activation lockout status capability", projCtx.getResource());
         }
+    }
+
+    private void setSynchronizationPolicyDecision(LensProjectionContext projCtx, SynchronizationPolicyDecision decision, OperationResult result) {
+        projCtx.setSynchronizationPolicyDecision(decision);
+        result.addReturn("decision", String.valueOf(decision));
     }
 
     private <F extends FocusType> void processActivationMetadata(LensProjectionContext projCtx, XMLGregorianCalendar now) throws SchemaException {

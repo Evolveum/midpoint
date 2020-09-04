@@ -71,8 +71,8 @@ public class TestRbac extends AbstractRbacTest {
     public void initSystem(Task initTask, OperationResult initResult)
             throws Exception {
         super.initSystem(initTask, initResult);
-//
-//        predefinedTestMethodTracing = PredefinedTestMethodTracing.MODEL_LOGGING;
+
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     @Test
