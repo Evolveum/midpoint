@@ -14,7 +14,7 @@
     <parent>
         <artifactId>model</artifactId>
         <groupId>com.evolveum.midpoint.model</groupId>
-        <version>4.2-SNAPSHOT</version>
+        <version>4.2-M3</version>
     </parent>
 
     <artifactId>certification-api</artifactId>
@@ -29,22 +29,22 @@
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>util</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M3</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>prism-api</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M3</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
             <artifactId>schema</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M3</version>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>task-api</artifactId>
-            <version>4.2-SNAPSHOT</version>
+            <version>4.2-M3</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
