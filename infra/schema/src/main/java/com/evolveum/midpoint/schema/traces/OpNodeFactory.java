@@ -45,6 +45,10 @@ public class OpNodeFactory {
                 case PROJECTOR_TEMPLATE_AFTER_ASSIGNMENTS:
                 case PROJECTOR_COMPONENT_OTHER:
                     return new ProjectorComponentOpNode(prismContext, result, info, parent, traceInfo);
+                case ASSIGNMENT_EVALUATION:
+                    return new AssignmentEvaluationOpNode(prismContext, result, info, parent, traceInfo);
+                case ASSIGNMENT_SEGMENT_EVALUATION:
+                    return new AssignmentSegmentEvaluationOpNode(prismContext, result, info, parent, traceInfo);
             }
         }
         return new OpNode(prismContext, result, info, parent, traceInfo);
