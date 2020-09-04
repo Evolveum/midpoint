@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,44 +9,39 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
-
-import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
-import com.evolveum.midpoint.model.api.ModelService;
-
-import com.evolveum.midpoint.prism.path.ItemName;
-import com.evolveum.midpoint.task.api.TaskManager;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
 import com.evolveum.midpoint.gui.impl.registry.GuiComponentRegistryImpl;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author katka
- *
  */
-public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends PrismValue, I extends Item, VW extends PrismValueWrapper> implements ItemWrapperFactory<IW, VW, PV> {
+public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends PrismValue, I extends Item, VW extends PrismValueWrapper> implements ItemWrapperFactory<IW, VW, PV> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemWrapperFactoryImpl.class);
 
@@ -104,7 +99,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
 
         registerWrapperPanel(itemWrapper);
 
-        List<VW> valueWrappers  = createValuesWrapper(itemWrapper, (I) childItem, context);
+        List<VW> valueWrappers = createValuesWrapper(itemWrapper, (I) childItem, context);
         itemWrapper.getValues().addAll(valueWrappers);
         itemWrapper.setShowEmpty(context.isShowEmpty(), false);
 
@@ -139,7 +134,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
             return true;
         }
 
-
         if (ItemStatus.ADDED == status && def.isDeprecated()) {
             LOGGER.trace("Skipping creating wrapper for {}, because item is deprecated and doesn't contain any value.", def);
             return true;
@@ -170,7 +164,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
         return true;
     }
 
-
     protected abstract void setupWrapper(IW wrapper);
 
     protected List<VW> createValuesWrapper(IW itemWrapper, I item, WrapperContext context) throws SchemaException {
@@ -180,7 +173,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
         if (values.isEmpty()) {
             if (shouldCreateEmptyValue(item, context)) {
                 PV prismValue = createNewValue(item);
-                VW valueWrapper =  createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
+                VW valueWrapper = createValueWrapper(itemWrapper, prismValue, ValueStatus.ADDED, context);
                 setupMetadata(itemWrapper, valueWrapper, context);
                 pvWrappers.add(valueWrapper);
             }
@@ -188,7 +181,7 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
         }
 
         for (PV pcv : values) {
-            if(canCreateValueWrapper(pcv)){
+            if (canCreateValueWrapper(pcv)) {
                 VW valueWrapper = createValueWrapper(itemWrapper, pcv, ValueStatus.NOT_CHANGED, context);
                 setupMetadata(itemWrapper, valueWrapper, context);
                 pvWrappers.add(valueWrapper);
@@ -337,7 +330,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper,  PV extends
     protected boolean canCreateValueWrapper(PV pcv) {
         return true;
     }
-
 
     protected abstract PV createNewValue(I item) throws SchemaException;
 

@@ -216,11 +216,12 @@ public class DashboardServiceImpl implements DashboardService {
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ObjectCollectionType collection = getObjectCollectionType(widget, task, result);
         CollectionRefSpecificationType collectionRef = getCollectionRefSpecificationType(widget, task, result);
-        if(collection == null) {
+        if(collection == null && collectionRef.getFilter() == null) {
             return null;
         }
-        AuditSearchType auditSearch = collection.getAuditSearch();
-        SearchFilterType filter = collection.getFilter();
+        AuditSearchType auditSearch = collection != null ? collection.getAuditSearch() : null;
+        SearchFilterType filter = collectionRef.getFilter() != null ? collectionRef.getFilter() : null;
+        filter = collection != null ? collection.getFilter() : filter;
         Integer value = 0;
         Integer domainValue = null;
         if (filter != null) {
@@ -228,7 +229,7 @@ public class DashboardServiceImpl implements DashboardService {
             if (value == null) {
                 return null;
             }
-            if (collection.getDomain() != null && collection.getDomain().getCollectionRef() != null
+            if (collection != null && collection.getDomain() != null && collection.getDomain().getCollectionRef() != null
                     && collection.getDomain().getCollectionRef().getOid() != null) {
                 @NotNull PrismObject<ObjectCollectionType> domainCollection = modelService.getObject(ObjectCollectionType.class, collection.getDomain().getCollectionRef().getOid(),
                         null, task, result);
@@ -268,21 +269,25 @@ public class DashboardServiceImpl implements DashboardService {
         return generateNumberMessage(widget, createVariables(null, statType, null), data);
     }
 
-    private Integer countAuditEvents(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection, Task task, OperationResult result)
+    public Integer countAuditEvents(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection, Task task, OperationResult result)
             throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
 
-        if (collectionRef == null || collectionRef.getCollectionRef() == null || collectionRef.getCollectionRef().getOid() == null) {
+        if (collectionRef == null ||
+                ((collectionRef.getCollectionRef() == null || collectionRef.getCollectionRef().getOid() == null)
+                        && collectionRef.getFilter() == null)) {
             return null;
         }
 
-        if (collection.getType() != null && !QNameUtil.match(collection.getType(), AuditEventRecordType.COMPLEX_TYPE)) {
-            LOGGER.error("Unsupported type for audit query " + collection.getType() + " in object collection " + collection.getName());
+        if (!DashboardUtils.isAuditCollection(collectionRef, modelService, task, result)) {
+            LOGGER.error("Unsupported type for audit object collection");
             return null;
         }
 
-        SearchFilterType filter = null;
+        SearchFilterType filter;
         if (collection != null) {
             filter = collection.getFilter();
+        } else {
+            filter = collectionRef.getFilter();
         }
         ObjectFilter objectFilter = combineAuditFilter(collectionRef, filter, task, result);
         ObjectQuery query;
@@ -302,10 +307,10 @@ public class DashboardServiceImpl implements DashboardService {
     private @NotNull Collection<SelectorOptions<GetOperationOptions>> combineAuditOption(CollectionRefSpecificationType collectionRef, ObjectCollectionType collection, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
 
-        List<SelectorOptions<GetOperationOptions>> collectionOptions;
+        List<SelectorOptions<GetOperationOptions>> collectionOptions = null;
         if (collection != null) {
             collectionOptions = MiscSchemaUtil.optionsTypeToOptions(collection.getGetOptions(), prismContext);
-        } else {
+        } else if (collectionRef.getCollectionRef() != null) {
             @NotNull PrismObject<ObjectCollectionType> collectionFromRef = modelService.getObject(ObjectCollectionType.class, collectionRef.getCollectionRef().getOid(), null, task, result);
             collectionOptions = MiscSchemaUtil.optionsTypeToOptions(collectionFromRef.asObjectable().getGetOptions(), prismContext);
         }
@@ -324,8 +329,12 @@ public class DashboardServiceImpl implements DashboardService {
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         SearchFilterType filter = baseFilter;
         if (filter == null) {
-            @NotNull PrismObject<ObjectCollectionType> collection = modelService.getObject(ObjectCollectionType.class, collectionRef.getCollectionRef().getOid(), null, task, result);
-            filter = collection.asObjectable().getFilter();
+            if (collectionRef.getCollectionRef() != null) {
+                @NotNull PrismObject<ObjectCollectionType> collection = modelService.getObject(ObjectCollectionType.class, collectionRef.getCollectionRef().getOid(), null, task, result);
+                filter = collection.asObjectable().getFilter();
+            } else {
+                filter = collectionRef.getFilter();
+            }
         }
         if (collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null
                 && collectionRef.getBaseCollectionRef().getCollectionRef().getOid() != null) {
@@ -552,8 +561,14 @@ public class DashboardServiceImpl implements DashboardService {
             Class<ObjectType> refType = prismContext.getSchemaRegistry().determineClassForType(ref.getType());
             ObjectCollectionType collection = (ObjectCollectionType) modelService
                     .getObject(refType, ref.getOid(), null, task, result).asObjectable();
-            if (collection != null && collection.getFilter() != null) {
-                ObjectFilter objectFilter = combineAuditFilter(collectionConfig, collection.getFilter(), task, result);
+            if ((collection != null && collection.getFilter() != null) || collectionConfig.getFilter() != null) {
+                SearchFilterType filter;
+                if (collection != null) {
+                    filter = collection.getFilter();
+                } else {
+                    filter = collectionConfig.getFilter();
+                }
+                ObjectFilter objectFilter = combineAuditFilter(collectionConfig, filter, task, result);
                 ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(objectFilter, new ExpressionVariables(), MiscSchemaUtil.getExpressionProfile(),
                         expressionFactory, prismContext, "collection filter", task, result);
                 ObjectQuery query = prismContext.queryFactory().createQuery();

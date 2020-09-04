@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,14 +17,13 @@ import com.evolveum.midpoint.gui.impl.session.WorkItemsStorage;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * @author lazyman
  */
 public class SessionStorage implements Serializable, DebugDumpable {
 
-   private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     public static final String KEY_CONFIGURATION = "configuration";
     public static final String KEY_ROLE_MEMBERS = "roleMembers";
@@ -47,9 +46,9 @@ public class SessionStorage implements Serializable, DebugDumpable {
     public static final String KEY_LOGGING_TAB_LOGGER_TABLE = "loggingTabLoggerTable";
     public static final String KEY_FOCUS_PROJECTION_TABLE = "focusProjectionTable";
     public static final String KEY_NOTIFICATION_TAB_MAIL_SERVER_TABLE = "notificationTabMailServerTable";
-    public static final String KEY_ROLE_MEMEBER_PANEL = "roleMemberPanel";
-    public static final String KEY_ORG_MEMEBER_PANEL = "orgMemberPanel";
-    public static final String KEY_SERVICE_MEMEBER_PANEL = "serviceMemberPanel";
+    public static final String KEY_ROLE_MEMBER_PANEL = "roleMemberPanel";
+    public static final String KEY_ORG_MEMBER_PANEL = "orgMemberPanel";
+    public static final String KEY_SERVICE_MEMBER_PANEL = "serviceMemberPanel";
     public static final String KEY_WORK_ITEMS = "workItems";
     public static final String KEY_OBJECT_LIST = "objectListPage";
     public static final String KEY_CASE_WORKITEMS_TAB = "workitemsTab";
@@ -68,8 +67,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
     private Map<String, Boolean> mainMenuState = new HashMap<>();
 
     /**
-    *   Store session information for user preferences about paging size in midPoint GUI
-    * */
+     * Store session information for user preferences about paging size in midPoint GUI
+     */
     private UserProfileStorage userProfile;
 
     /**
@@ -89,7 +88,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
         if (pageStorageMap.get(KEY_CONFIGURATION) == null) {
             pageStorageMap.put(KEY_CONFIGURATION, new ConfigurationStorage());
         }
-        return (ConfigurationStorage)pageStorageMap.get(KEY_CONFIGURATION);
+        return (ConfigurationStorage) pageStorageMap.get(KEY_CONFIGURATION);
     }
 
     public OrgStructurePanelStorage getOrgStructurePanelStorage() {
@@ -106,43 +105,37 @@ public class SessionStorage implements Serializable, DebugDumpable {
         return (ObjectListStorage) pageStorageMap.get(key);
     }
 
-
-
     public RoleCatalogStorage getRoleCatalog() {
         if (pageStorageMap.get(KEY_ROLE_CATALOG) == null) {
             pageStorageMap.put(KEY_ROLE_CATALOG, new RoleCatalogStorage());
         }
-        return (RoleCatalogStorage)pageStorageMap.get(KEY_ROLE_CATALOG);
+        return (RoleCatalogStorage) pageStorageMap.get(KEY_ROLE_CATALOG);
     }
 
     public AuditLogStorage getAuditLog() {
         if (pageStorageMap.get(KEY_AUDIT_LOG) == null) {
             pageStorageMap.put(KEY_AUDIT_LOG, new AuditLogStorage());
         }
-        return (AuditLogStorage)pageStorageMap.get(KEY_AUDIT_LOG);
+        return (AuditLogStorage) pageStorageMap.get(KEY_AUDIT_LOG);
     }
 
     public AuditLogStorage getUserHistoryAuditLog() {
         if (pageStorageMap.get(KEY_USER_HISTORY_AUDIT_LOG) == null) {
             pageStorageMap.put(KEY_USER_HISTORY_AUDIT_LOG, new AuditLogStorage());
         }
-        return (AuditLogStorage)pageStorageMap.get(KEY_USER_HISTORY_AUDIT_LOG);
+        return (AuditLogStorage) pageStorageMap.get(KEY_USER_HISTORY_AUDIT_LOG);
     }
 
     public void setUserHistoryAuditLog(AuditLogStorage storage) {
-        if (pageStorageMap.containsKey(KEY_USER_HISTORY_AUDIT_LOG)) {
-            pageStorageMap.remove(KEY_USER_HISTORY_AUDIT_LOG);
-        }
         pageStorageMap.put(KEY_USER_HISTORY_AUDIT_LOG, storage);
     }
-
 
     public ResourceContentStorage getResourceContentStorage(ShadowKindType kind, String searchMode) {
         String key = getContentStorageKey(kind, searchMode);
         if (pageStorageMap.get(key) == null) {
             pageStorageMap.put(key, new ResourceContentStorage(kind));
         }
-        return (ResourceContentStorage)pageStorageMap.get(key);
+        return (ResourceContentStorage) pageStorageMap.get(key);
 
     }
 
@@ -150,7 +143,7 @@ public class SessionStorage implements Serializable, DebugDumpable {
         if (pageStorageMap.get(key) == null) {
             pageStorageMap.put(key, new ObjectTabStorage());
         }
-        return (ObjectTabStorage)pageStorageMap.get(key);
+        return (ObjectTabStorage) pageStorageMap.get(key);
     }
 
     public ObjectTabStorage getAssignmentsTabStorage() {
@@ -225,50 +218,50 @@ public class SessionStorage implements Serializable, DebugDumpable {
         if (pageStorageMap.get(KEY_WORK_ITEMS) == null) {
             pageStorageMap.put(KEY_WORK_ITEMS, new WorkItemsStorage());
         }
-        return (WorkItemsStorage)pageStorageMap.get(KEY_WORK_ITEMS);
+        return (WorkItemsStorage) pageStorageMap.get(KEY_WORK_ITEMS);
     }
 
     public CertCampaignsStorage getCertCampaigns() {
         if (pageStorageMap.get(KEY_CERT_CAMPAIGNS) == null) {
             pageStorageMap.put(KEY_CERT_CAMPAIGNS, new CertCampaignsStorage());
         }
-        return (CertCampaignsStorage)pageStorageMap.get(KEY_CERT_CAMPAIGNS);
+        return (CertCampaignsStorage) pageStorageMap.get(KEY_CERT_CAMPAIGNS);
     }
 
     public CertDecisionsStorage getCertDecisions() {
         if (pageStorageMap.get(KEY_CERT_DECISIONS) == null) {
             pageStorageMap.put(KEY_CERT_DECISIONS, new CertDecisionsStorage());
         }
-        return (CertDecisionsStorage)pageStorageMap.get(KEY_CERT_DECISIONS);
+        return (CertDecisionsStorage) pageStorageMap.get(KEY_CERT_DECISIONS);
     }
 
-    public UserProfileStorage getUserProfile(){
-        if(userProfile == null){
+    public UserProfileStorage getUserProfile() {
+        if (userProfile == null) {
             userProfile = new UserProfileStorage();
         }
         return userProfile;
     }
 
-    public PageStorage initPageStorage(String key){
+    public PageStorage initPageStorage(String key) {
         PageStorage pageStorage = null;
         if (key.startsWith(KEY_OBJECT_LIST)) {
             pageStorage = new ObjectListStorage();
             pageStorageMap.put(key, pageStorage);
-        } else if (KEY_ORG_MEMEBER_PANEL.equals(key)) {
+        } else if (KEY_ORG_MEMBER_PANEL.equals(key)) {
             pageStorage = new MemberPanelStorage();
-            pageStorageMap.put(KEY_ORG_MEMEBER_PANEL, pageStorage);
-        } else if (KEY_ROLE_MEMEBER_PANEL.equals(key)) {
+            pageStorageMap.put(KEY_ORG_MEMBER_PANEL, pageStorage);
+        } else if (KEY_ROLE_MEMBER_PANEL.equals(key)) {
             pageStorage = new MemberPanelStorage();
-            pageStorageMap.put(KEY_ROLE_MEMEBER_PANEL, pageStorage);
-        } else if (KEY_SERVICE_MEMEBER_PANEL.equals(key)) {
+            pageStorageMap.put(KEY_ROLE_MEMBER_PANEL, pageStorage);
+        } else if (KEY_SERVICE_MEMBER_PANEL.equals(key)) {
             pageStorage = new MemberPanelStorage();
-            pageStorageMap.put(KEY_SERVICE_MEMEBER_PANEL, pageStorage);
+            pageStorageMap.put(KEY_SERVICE_MEMBER_PANEL, pageStorage);
         }
         return pageStorage;
         //TODO: fixme
     }
 
-    public void setUserProfile(UserProfileStorage profile){
+    public void setUserProfile(UserProfileStorage profile) {
         userProfile = profile;
     }
 
@@ -282,8 +275,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("SessionStorage\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "userProfile", userProfile, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "pageStorageMap", pageStorageMap, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "userProfile", userProfile, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "pageStorageMap", pageStorageMap, indent + 1);
         return sb.toString();
     }
 
@@ -294,8 +287,8 @@ public class SessionStorage implements Serializable, DebugDumpable {
             DebugUtil.dumpObjectSizeEstimate(sb, "userProfile", userProfile, indent + 1);
         }
         sb.append("\n");
-        DebugUtil.dumpObjectSizeEstimate(sb, "pageStorageMap", (Serializable)pageStorageMap, indent + 1);
-        for (Entry<String,PageStorage> entry: pageStorageMap.entrySet()) {
+        DebugUtil.dumpObjectSizeEstimate(sb, "pageStorageMap", (Serializable) pageStorageMap, indent + 1);
+        for (Entry<String, PageStorage> entry : pageStorageMap.entrySet()) {
             sb.append("\n");
             DebugUtil.dumpObjectSizeEstimate(sb, entry.getKey(), entry.getValue(), indent + 2);
         }

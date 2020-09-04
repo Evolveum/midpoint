@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -40,7 +40,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Created by honchar.
  */
-public class AssignmentPopup extends BasePanel implements Popupable{
+public class AssignmentPopup extends BasePanel implements Popupable {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_TABS_PANEL = "tabsPanel";
@@ -49,14 +49,14 @@ public class AssignmentPopup extends BasePanel implements Popupable{
     private static final String ID_ASSIGN_BUTTON = "assignButton";
     private static final String ID_FORM = "form";
 
-    private List<OrgType> selectedOrgsList = new ArrayList<>();
+    private final List<OrgType> selectedOrgsList = new ArrayList<>();
 
-    public AssignmentPopup(String id){
+    public AssignmentPopup(String id) {
         super(id);
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
 
         Form form = new Form(ID_FORM);
@@ -97,8 +97,8 @@ public class AssignmentPopup extends BasePanel implements Popupable{
                 Map<String, AssignmentType> selectedAssignmentsMap = new HashMap<>();
 
                 tabs.forEach(panelTab -> {
-                    WebMarkupContainer assignmentPanel = ((PanelTab)panelTab).getPanel();
-                    if (assignmentPanel == null){
+                    WebMarkupContainer assignmentPanel = ((PanelTab) panelTab).getPanel();
+                    if (assignmentPanel == null) {
                         return;
                     }
                     if (AbstractAssignmentPopupTabPanel.class.isAssignableFrom(assignmentPanel.getClass())) {
@@ -359,70 +359,70 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         return tabs;
     }
 
-    protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel(){
+    protected PrismContainerWrapper<AssignmentType> getAssignmentWrapperModel() {
         return null;
     }
 
-    protected List<ObjectReferenceType> getArchetypeRefList(){
+    protected List<ObjectReferenceType> getArchetypeRefList() {
         return null;
     }
 
-    protected ObjectFilter getSubtypeFilter(){
+    protected ObjectFilter getSubtypeFilter() {
         return null;
     }
 
-    private boolean isTabVisible(ObjectTypes objectType){
+    private boolean isTabVisible(ObjectTypes objectType) {
         List<ObjectTypes> availableObjectTypesList = getAvailableObjectTypesList();
         return availableObjectTypesList == null || availableObjectTypesList.size() == 0 || availableObjectTypesList.contains(objectType);
     }
 
-    protected boolean isOrgTreeTabVisible(){
+    protected boolean isOrgTreeTabVisible() {
         return true;
     }
 
-    protected List<ObjectTypes> getAvailableObjectTypesList(){
+    protected List<ObjectTypes> getAvailableObjectTypesList() {
         return WebComponentUtil.createAssignableTypesList();
     }
 
-    protected QName getPredefinedRelation(){
+    protected QName getPredefinedRelation() {
         return null;
     }
 
-    protected boolean isEntitlementAssignment(){
+    protected boolean isEntitlementAssignment() {
         return false;
     }
 
-    private int getTabPanelSelectedCount(WebMarkupContainer panel){
-        if (panel instanceof AbstractAssignmentPopupTabPanel){
+    private int getTabPanelSelectedCount(WebMarkupContainer panel) {
+        if (panel instanceof AbstractAssignmentPopupTabPanel) {
             return ((AbstractAssignmentPopupTabPanel) panel).getSelectedObjectsList().size();
         }
         return 0;
     }
 
-    protected void tabLabelPanelUpdate(AjaxRequestTarget target){
+    protected void tabLabelPanelUpdate(AjaxRequestTarget target) {
         getTabbedPanel().reloadCountLabels(target);
         target.add(get(ID_FORM).get(ID_ASSIGN_BUTTON));
     }
 
-    private void selectedOrgsListUpdate(IModel<SelectableBean<OrgType>> rowModel){
-        if (rowModel == null){
+    private void selectedOrgsListUpdate(IModel<SelectableBean<OrgType>> rowModel) {
+        if (rowModel == null) {
             return;
         }
-        if (rowModel.getObject().isSelected()){
+        if (rowModel.getObject().isSelected()) {
             selectedOrgsList.add(rowModel.getObject().getValue());
         } else {
             selectedOrgsList.removeIf((OrgType org) -> org.getOid().equals(rowModel.getObject().getValue().getOid()));
         }
     }
 
-    private TabbedPanel getTabbedPanel(){
+    private TabbedPanel getTabbedPanel() {
         return (TabbedPanel) get(ID_FORM).get(ID_TABS_PANEL);
     }
 
     protected void addPerformed(AjaxRequestTarget target, List<AssignmentType> newAssignmentsList) {
     }
 
-    private IModel<String> getAddButtonTitleModel(){
+    private IModel<String> getAddButtonTitleModel() {
         return new LoadableModel<String>(true) {
             @Override
             protected String load() {
@@ -431,12 +431,12 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         };
     }
 
-    private boolean isAssignButtonEnabled(){
+    private boolean isAssignButtonEnabled() {
         TabbedPanel<ITab> tabbedPanel = getTabbedPanel();
         List<ITab> tabs = tabbedPanel.getTabs().getObject();
-        for (ITab tab : tabs){
-            WebMarkupContainer assignmentPanel = ((PanelTab)tab).getPanel();
-            if (assignmentPanel == null){
+        for (ITab tab : tabs) {
+            WebMarkupContainer assignmentPanel = ((PanelTab) tab).getPanel();
+            if (assignmentPanel == null) {
                 continue;
             }
             if (((AbstractAssignmentPopupTabPanel) assignmentPanel).getSelectedObjectsList().size() > 0) {
@@ -446,33 +446,33 @@ public class AssignmentPopup extends BasePanel implements Popupable{
         return false;
     }
 
-    protected IModel<String> getWarningMessageModel(){
+    protected IModel<String> getWarningMessageModel() {
         return null;
     }
 
-    public int getWidth(){
+    public int getWidth() {
         return 80;
     }
 
-    public int getHeight(){
+    public int getHeight() {
         return 80;
     }
 
     @Override
-    public String getWidthUnit(){
+    public String getWidthUnit() {
         return "%";
     }
 
     @Override
-    public String getHeightUnit(){
+    public String getHeightUnit() {
         return "%";
     }
 
-    public StringResourceModel getTitle(){
+    public StringResourceModel getTitle() {
         return createStringResource("TypedAssignablePanel.selectObjects");
     }
 
-    public Component getComponent(){
+    public Component getComponent() {
         return this;
     }
 }

@@ -11,18 +11,23 @@ import java.util.Map;
 
 import javax.xml.datatype.Duration;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AuditSearchType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetPresentationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetSourceTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * @author skublik
@@ -158,6 +163,40 @@ public class DashboardUtils {
             return query;
         }
         return null;
+    }
+
+    public static boolean isAuditCollection(CollectionRefSpecificationType collectionRef, ModelService modelService, Task task, OperationResult result) {
+        if (collectionRef == null) {
+            return false;
+        }
+        if (collectionRef.getCollectionRef() != null && collectionRef.getCollectionRef().getOid() != null) {
+            try {
+                @NotNull PrismObject<ObjectCollectionType> collection = modelService.getObject(ObjectCollectionType.class,
+                        collectionRef.getCollectionRef().getOid(), null, task, result);
+                if (collection != null && QNameUtil.match(collection.asObjectable().getType(), AuditEventRecordType.COMPLEX_TYPE)) {
+                    return true;
+                }
+                if (collection != null && collection.asObjectable().getAuditSearch() != null
+                        && collection.asObjectable().getAuditSearch().getRecordQuery() != null) {
+                    return true;
+                }
+            } catch (Exception e) {
+                LOGGER.error("Couldn't get object collection from oid " + collectionRef.getCollectionRef().getOid());
+            }
+        }
+        if (collectionRef.getBaseCollectionRef() != null && collectionRef.getBaseCollectionRef().getCollectionRef() != null
+                && collectionRef.getBaseCollectionRef().getCollectionRef().getOid() != null) {
+            try {
+                @NotNull PrismObject<ObjectCollectionType> collection = modelService.getObject(ObjectCollectionType.class,
+                        collectionRef.getBaseCollectionRef().getCollectionRef().getOid(), null, task, result);
+                if (collection != null && QNameUtil.match(collection.asObjectable().getType(), AuditEventRecordType.COMPLEX_TYPE)) {
+                    return true;
+                }
+            } catch (Exception e) {
+                LOGGER.error("Couldn't get object collection from oid " + collectionRef.getCollectionRef().getOid());
+            }
+        }
+        return false;
     }
 
 }

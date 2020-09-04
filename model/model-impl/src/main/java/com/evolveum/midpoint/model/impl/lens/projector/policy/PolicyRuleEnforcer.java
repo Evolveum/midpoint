@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.util.EvaluatedPolicyRuleUtil;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageList;
 import com.evolveum.midpoint.util.LocalizableMessageListBuilder;
@@ -41,6 +42,8 @@ public class PolicyRuleEnforcer {
 
     //private static final Trace LOGGER = TraceManager.getTrace(PolicyRuleEnforcer.class);
 
+    private static final String OP_EXECUTE = PolicyRuleEnforcer.class.getName() + ".execute";
+
     @Autowired private PrismContext prismContext;
     @Autowired private LocalizationService localizationService;
 
@@ -50,12 +53,21 @@ public class PolicyRuleEnforcer {
         private final List<EvaluatedPolicyRuleType> rules = new ArrayList<>();
     }
 
-    public <O extends ObjectType> void execute(@NotNull ModelContext<O> context) throws PolicyViolationException {
-        EvaluationContext evalCtx = executeInternal(context);
-        if (context.isPreview()) {
-            executePreview(context, evalCtx);
-        } else {
-            executeRegular(evalCtx);
+    public <O extends ObjectType> void execute(@NotNull ModelContext<O> context, OperationResult parentResult)
+            throws PolicyViolationException {
+        OperationResult result = parentResult.createMinorSubresult(OP_EXECUTE);
+        try {
+            EvaluationContext evalCtx = executeInternal(context);
+            if (context.isPreview()) {
+                executePreview(context, evalCtx);
+            } else {
+                executeRegular(evalCtx);
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 

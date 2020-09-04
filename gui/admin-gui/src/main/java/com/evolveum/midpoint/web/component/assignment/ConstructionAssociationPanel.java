@@ -1,20 +1,34 @@
 /*
- * Copyright (c) 2015-2018 Evolveum and contributors
- * <p>
+ * Copyright (C) 2015-2020 Evolveum and contributors
+ *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.assignment;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.LoadableDetachableModel;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ObjectBrowserPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
@@ -24,19 +38,10 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.form.multivalue.GenericMultiValueLabelEditPanel;
-import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.*;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-
 
 /**
  * Created by honchar.
@@ -58,7 +63,6 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
 
     private LoadableDetachableModel<PrismObject<ResourceType>> resourceModel;
     private LoadableDetachableModel<List<RefinedAssociationDefinition>> refinedAssociationDefinitionsModel;
-
 
     public ConstructionAssociationPanel(String id, IModel<PrismContainerWrapper<ConstructionType>> model) {
         super(id, model);
@@ -93,7 +97,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
             @Override
             protected List<RefinedAssociationDefinition> load() {
                 ConstructionType construction = getModelObject().getItem().getRealValue();
-                if (construction == null){
+                if (construction == null) {
                     return new ArrayList<>();
                 }
                 return WebComponentUtil.getRefinedAssociationDefinition(resourceModel.getObject().asObjectable(), construction.getKind(),
@@ -123,7 +127,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                                 addNewShadowRefValuePerformed(target, item.getModelObject());
                             }
 
-                            protected void addFirstPerformed(AjaxRequestTarget target){
+                            protected void addFirstPerformed(AjaxRequestTarget target) {
                                 addNewShadowRefValuePerformed(target, item.getModelObject());
                             }
 
@@ -131,10 +135,11 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                             protected IModel<String> createTextModel(final IModel<ObjectReferenceType> model) {
                                 return new IModel<String>() {
                                     private static final long serialVersionUID = 1L;
+
                                     @Override
                                     public String getObject() {
                                         ObjectReferenceType obj = model.getObject();
-                                        if (obj == null){
+                                        if (obj == null) {
                                             return "";
                                         }
                                         return WebComponentUtil.getDisplayNameOrName(obj, getPageBase(), OPERATION_LOAD_SHADOW_DISPLAY_NAME);
@@ -168,12 +173,11 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                                             }
                                         });
                                     });
-                                } catch (SchemaException ex){
+                                } catch (SchemaException ex) {
                                     LOGGER.error("Couldn't remove association value: {}", ex.getLocalizedMessage());
                                 }
                                 super.removeValuePerformed(target, item);
                             }
-
 
                         };
                         associationReferencesPanel.setOutputMarkupId(true);
@@ -197,10 +201,10 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                     PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper =
                             getModelObject().findContainer(ConstructionType.F_ASSOCIATION);
                     associationWrapper.getValues().forEach(associationValueWrapper -> {
-                        if (ValueStatus.DELETED.equals(((PrismContainerValueWrapper) associationValueWrapper).getStatus())) {
+                        if (ValueStatus.DELETED.equals(associationValueWrapper.getStatus())) {
                             return;
                         }
-                        PrismContainerValue associationValue = (PrismContainerValue)((PrismContainerValueWrapper) associationValueWrapper).getNewValue();
+                        PrismContainerValue associationValue = ((PrismContainerValueWrapper) associationValueWrapper).getNewValue();
                         ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
                         if (assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null
                                 || ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(),
@@ -216,8 +220,8 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                         }
                     });
                     return shadowsList;
-                } catch (SchemaException ex){
-
+                } catch (SchemaException ex) {
+                    // nothing?
                 }
                 return null;
             }
@@ -232,7 +236,7 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                 if (ValueStatus.DELETED.equals(((PrismContainerValueWrapper) associationValueWrapper).getStatus())) {
                     return;
                 }
-                PrismContainerValue associationValue = (PrismContainerValue) ((PrismContainerValueWrapper) associationValueWrapper).getNewValue();
+                PrismContainerValue associationValue = ((PrismContainerValueWrapper) associationValueWrapper).getNewValue();
                 ResourceObjectAssociationType assoc = (ResourceObjectAssociationType) associationValue.asContainerable();
                 if (assoc == null || assoc.getOutbound() == null || assoc.getOutbound().getExpression() == null
                         || ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(), getPageBase().getPrismContext()) == null) {
@@ -247,20 +251,20 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                     shadowsList.addAll(ExpressionUtil.getShadowRefValue(assoc.getOutbound().getExpression(), getPageBase().getPrismContext()));
                 }
             });
-        } catch (SchemaException ex){
-
+        } catch (SchemaException ex) {
+            // nothing?
         }
         return shadowsList;
 
     }
 
-    private void addNewShadowRefValuePerformed(AjaxRequestTarget target, RefinedAssociationDefinition def){
+    private void addNewShadowRefValuePerformed(AjaxRequestTarget target, RefinedAssociationDefinition def) {
         ObjectFilter filter = WebComponentUtil.createAssociationShadowRefFilter(def,
                 getPageBase().getPrismContext(), resourceModel.getObject().getOid());
         ObjectBrowserPanel<ShadowType> objectBrowserPanel = new ObjectBrowserPanel<ShadowType>(
-                getPageBase().getMainPopupBodyId(), ShadowType.class, Arrays.asList(ShadowType.COMPLEX_TYPE),
-                false, getPageBase(),
-                filter) {
+                getPageBase().getMainPopupBodyId(), ShadowType.class,
+                Collections.singletonList(ShadowType.COMPLEX_TYPE),
+                false, getPageBase(), filter) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -270,19 +274,20 @@ public class ConstructionAssociationPanel extends BasePanel<PrismContainerWrappe
                     PrismContainerWrapper<ConstructionType> constructionContainerWrapper = ConstructionAssociationPanel.this.getModelObject();
                     PrismContainerWrapper<ResourceObjectAssociationType> associationWrapper = constructionContainerWrapper.findContainer(ConstructionType.F_ASSOCIATION);
                     List<PrismContainerValue<ResourceObjectAssociationType>> associationValueList = associationWrapper.getItem().getValues();
-                    PrismContainerValue<ResourceObjectAssociationType> associationValue = null;
-                    if (CollectionUtils.isEmpty(associationValueList)){
+                    PrismContainerValue<ResourceObjectAssociationType> associationValue;
+                    if (CollectionUtils.isEmpty(associationValueList)) {
                         associationValue = associationWrapper.getItem().createNewValue();
                     } else {
                         associationValue = associationValueList.get(0);
                     }
                     ItemName associationRefPath = def.getName();
-                    ((ResourceObjectAssociationType) associationValue.asContainerable())
+                    associationValue.asContainerable()
                             .setRef(new ItemPathType(associationRefPath));
-                    ExpressionType newAssociationExpression = ((ResourceObjectAssociationType) associationValue.asContainerable()).beginOutbound().beginExpression();
-                    ExpressionUtil.addShadowRefEvaluatorValue(newAssociationExpression, object.getOid(),
-                            getPageBase().getPrismContext());
-                } catch (SchemaException ex){
+                    ExpressionType newAssociationExpression =
+                            associationValue.asContainerable().beginOutbound().beginExpression();
+                    ExpressionUtil.addShadowRefEvaluatorValue(
+                            newAssociationExpression, object.getOid(), getPageBase().getPrismContext());
+                } catch (SchemaException ex) {
                     LOGGER.error("Couldn't find association container: {}", ex.getLocalizedMessage());
                 }
                 target.add(ConstructionAssociationPanel.this);

@@ -1,21 +1,13 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
-import com.evolveum.midpoint.gui.api.GuiStyleConstants;
-import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
-import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+import java.util.List;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -23,7 +15,16 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
-import java.util.List;
+import com.evolveum.midpoint.gui.api.GuiStyleConstants;
+import com.evolveum.midpoint.gui.api.component.togglebutton.ToggleIconButton;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
+import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 
 /**
  * Created by honchar
@@ -90,6 +91,7 @@ public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismProperty
     protected Component createTitle(IModel<String> label) {
         AjaxButton labelComponent = new AjaxButton(ID_LABEL, label) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 onExpandClick(target);
@@ -100,13 +102,13 @@ public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismProperty
         return labelComponent;
     }
 
-    private boolean isExpressionValueEmpty(){
-        if (getModelObject() == null || CollectionUtils.isEmpty(getModelObject().getValues())){
+    private boolean isExpressionValueEmpty() {
+        if (getModelObject() == null || CollectionUtils.isEmpty(getModelObject().getValues())) {
             return true;
         }
         List<PrismPropertyValueWrapper<ExpressionType>> valueWrappers = getModelObject().getValues();
-        for(PrismPropertyValueWrapper<ExpressionType> expressionValueWrapper : valueWrappers){
-            if (expressionValueWrapper.getOldValue() != null && expressionValueWrapper.getOldValue().getValue() != null){
+        for (PrismPropertyValueWrapper<ExpressionType> expressionValueWrapper : valueWrappers) {
+            if (expressionValueWrapper.getOldValue() != null && expressionValueWrapper.getOldValue().getValue() != null) {
                 return false;
             }
         }
@@ -117,11 +119,11 @@ public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismProperty
         isExpanded = !isExpanded;
     }
 
-    protected void addExpressionValuePerformed(AjaxRequestTarget target){
+    protected void addExpressionValuePerformed(AjaxRequestTarget target) {
 
     }
 
-    protected void removeExpressionValuePerformed(AjaxRequestTarget target){
+    protected void removeExpressionValuePerformed(AjaxRequestTarget target) {
 
     }
 

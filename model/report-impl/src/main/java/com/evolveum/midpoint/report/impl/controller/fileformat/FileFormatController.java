@@ -11,6 +11,7 @@ import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 
 import com.google.common.collect.ImmutableSet;
@@ -365,9 +366,8 @@ public abstract class FileFormatController {
                 .getCompileTimeClassForObjectType(type);
     }
 
-    protected boolean isAuditCollection(ObjectCollectionType collection) {
-        return collection != null
-                && (collection.getAuditSearch() != null || QNameUtil.match(AuditEventRecordType.COMPLEX_TYPE, collection.getType()));
+    protected boolean isAuditCollection(CollectionRefSpecificationType collection, Task task, OperationResult result) {
+        return DashboardUtils.isAuditCollection(collection, getReportService().getModelService(), task, result);
     }
 
     protected PrismContainer<? extends Containerable> getAuditRecordAsContainer(AuditEventRecordType record) throws SchemaException {

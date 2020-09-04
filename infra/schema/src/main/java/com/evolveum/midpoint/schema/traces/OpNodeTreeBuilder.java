@@ -38,6 +38,8 @@ public class OpNodeTreeBuilder {
     public List<OpNode> build(TracingOutputType tracingOutput, NameResolver nameResolver) {
         List<OpNode> rv = new ArrayList<>();
         addNode(null, rv, tracingOutput.getResult(), new TraceInfo(tracingOutput), nameResolver);
+
+        rv.forEach(OpNode::postProcessRecursive);
         return rv;
     }
 

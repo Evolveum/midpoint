@@ -12,19 +12,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.Channel;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectCollectionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  *  TODO - get rid of XMLGregorianCalendar - Date conversions
@@ -47,7 +41,7 @@ public class AuditSearchDto implements Serializable {
     public static final String F_OUTCOME = "outcome";
     public static final String F_CHANGED_ITEM = "changedItem";
     public static final String F_VALUE_REF_TARGET_NAME = "valueRefTargetNames";
-    public static final String F_COLLECTION = "collection";
+    public static final String F_COLLECTION_REF = "collectionRef";
     public static final String F_RESOURCE_OID = "resourceOid";
 
     private XMLGregorianCalendar from;
@@ -64,7 +58,7 @@ public class AuditSearchDto implements Serializable {
     private OperationResultStatusType outcome;
     private ItemPathDto changedItem;
     private List<ObjectType> valueRefTargetNames;
-    private ObjectCollectionType collection;
+    private CollectionRefSpecificationType collectionRef;
     private String resourceOid;
 
     private ItemPathPanel.ItemPathPanelMode changedItemPanelMode = ItemPathPanel.ItemPathPanelMode.NAMESPACE_MODE;
@@ -188,12 +182,12 @@ public class AuditSearchDto implements Serializable {
         this.targetNamesObjects = targetNamesObjects;
     }
 
-    public ObjectCollectionType getCollection() {
-        return collection;
+    public CollectionRefSpecificationType getCollectionRef() {
+        return collectionRef;
     }
 
-    public void setCollection(ObjectCollectionType collection) {
-        this.collection = collection;
+    public void setCollectionRef(CollectionRefSpecificationType collectionRef) {
+        this.collectionRef = collectionRef;
     }
 
     public String getResourceOid() {

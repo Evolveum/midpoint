@@ -1,35 +1,15 @@
 /*
- * Copyright (c) 2016-2018 Evolveum and contributors
+ * Copyright (C) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.assignment.*;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
-import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
-import com.evolveum.midpoint.web.component.search.SearchFactory;
-import com.evolveum.midpoint.web.component.search.SearchPanel;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
-import com.evolveum.midpoint.web.session.RoleCatalogStorage;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -42,9 +22,28 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.assignment.*;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
+import com.evolveum.midpoint.web.component.search.SearchFactory;
+import com.evolveum.midpoint.web.component.search.SearchPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
+import com.evolveum.midpoint.web.session.RoleCatalogStorage;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Created by honchar.
@@ -68,18 +67,17 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     private static final String OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST = DOT_CLASS + "loadAssignableRelationsList";
     private static final String OPERATION_LOAD_ASSIGNMENTS_LIMIT = DOT_CLASS + "loadAssignmentsLimit";
     private static final String OPERATION_LOAD_ASSIGNMENT_TARGET_USER = DOT_CLASS + "loadAssignmentTargetUser";
-    private static final Trace LOGGER = TraceManager.getTrace(AbstractShoppingCartTabPanel.class);
 
-    private RoleManagementConfigurationType roleManagementConfig;
-    LoadableModel<UserType> targetUserModel;
+    private final RoleManagementConfigurationType roleManagementConfig;
+    private LoadableModel<UserType> targetUserModel;
 
-    public AbstractShoppingCartTabPanel(String id, RoleManagementConfigurationType roleManagementConfig){
+    public AbstractShoppingCartTabPanel(String id, RoleManagementConfigurationType roleManagementConfig) {
         super(id);
         this.roleManagementConfig = roleManagementConfig;
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         targetUserModel = new LoadableModel<UserType>(true) {
             @Override
@@ -93,12 +91,12 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     @Override
     protected void onDetach() {
         super.onDetach();
-        if (targetUserModel != null){
+        if (targetUserModel != null) {
             targetUserModel.reset();
         }
     }
 
-    private void initLayout(){
+    private void initLayout() {
         setOutputMarkupId(true);
 
         initLeftSidePanel();
@@ -113,7 +111,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         initParametersPanel(shoppingCartContainer);
     }
 
-    protected void initLeftSidePanel(){
+    protected void initLeftSidePanel() {
     }
 
     private void initSearchPanel(WebMarkupContainer shoppingCartContainer) {
@@ -140,42 +138,43 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         target.add(AbstractShoppingCartTabPanel.this);
     }
 
-    private void initShoppingCartItemsPanel(WebMarkupContainer shoppingCartContainer){
+    private void initShoppingCartItemsPanel(WebMarkupContainer shoppingCartContainer) {
         GridViewComponent<ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>> catalogItemsGrid =
                 new GridViewComponent<ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>>(ID_SHOPPING_CART_ITEMS_PANEL,
-                new LoadableModel<ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>>() {
-                    @Override
-                    protected ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> load() {
-                        return getTabPanelProvider();
-                    }
-                }) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected void populateItem(Item item) {
-                item.add(new RoleCatalogItemButton(getCellItemId(), item.getModel()){
+                        new LoadableModel<ObjectDataProvider<AssignmentEditorDto, AbstractRoleType>>() {
+                            @Override
+                            protected ObjectDataProvider<AssignmentEditorDto, AbstractRoleType> load() {
+                                return getTabPanelProvider();
+                            }
+                        }) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
-                        int assignmentsLimit = getRoleCatalogStorage().getAssignmentRequestLimit();
-                        if (AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, AbstractShoppingCartTabPanel.this.getPageBase())) {
-                            target.add(AbstractShoppingCartTabPanel.this);
-                        }
-                        AbstractShoppingCartTabPanel.this.assignmentAddedToShoppingCartPerformed(target);
-                    }
+                    protected void populateItem(Item item) {
+                        item.add(new RoleCatalogItemButton(getCellItemId(), item.getModel()) {
+                            private static final long serialVersionUID = 1L;
 
-                    @Override
-                    protected QName getNewAssignmentRelation(){
-                        return AbstractShoppingCartTabPanel.this.getNewAssignmentRelation();
+                            @Override
+                            protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target) {
+                                int assignmentsLimit = getRoleCatalogStorage().getAssignmentRequestLimit();
+                                if (AssignmentsUtil.isShoppingCartAssignmentsLimitReached(assignmentsLimit, AbstractShoppingCartTabPanel.this.getPageBase())) {
+                                    target.add(AbstractShoppingCartTabPanel.this);
+                                }
+                                AbstractShoppingCartTabPanel.this.assignmentAddedToShoppingCartPerformed(target);
+                            }
+
+                            @Override
+                            protected QName getNewAssignmentRelation() {
+                                return AbstractShoppingCartTabPanel.this.getNewAssignmentRelation();
+                            }
+                        });
                     }
-                });
-            }
-        };
-        catalogItemsGrid.add(new VisibleEnableBehaviour(){
+                };
+        catalogItemsGrid.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
+
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return isShoppingCartItemsPanelVisible();
             }
         });
@@ -183,7 +182,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         shoppingCartContainer.add(catalogItemsGrid);
     }
 
-    private void initParametersPanel(WebMarkupContainer shoppingCartContainer){
+    private void initParametersPanel(WebMarkupContainer shoppingCartContainer) {
         WebMarkupContainer parametersPanel = new WebMarkupContainer(ID_PARAMETERS_PANEL);
         parametersPanel.setOutputMarkupId(true);
         shoppingCartContainer.add(parametersPanel);
@@ -193,7 +192,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         initButtonsPanel(parametersPanel);
     }
 
-    private void initTargetUserSelectionPanel(WebMarkupContainer parametersPanel){
+    private void initTargetUserSelectionPanel(WebMarkupContainer parametersPanel) {
         UserSelectionButton targetUserPanel = new UserSelectionButton(ID_TARGET_USER_PANEL,
                 new IModel<List<UserType>>() {
                     @Override
@@ -202,21 +201,21 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                                 AbstractShoppingCartTabPanel.this.getPageBase());
                     }
                 },
-                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")){
+                true, createStringResource("AssignmentCatalogPanel.selectTargetUser")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected String getUserButtonLabel(){
+            protected String getUserButtonLabel() {
                 return getTargetUserSelectionButtonLabel(getModelObject());
             }
 
             @Override
-            protected String getTargetUserButtonClass(){
+            protected String getTargetUserButtonClass() {
                 return "btn-sm";
             }
 
             @Override
-            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target){
+            protected void onDeleteSelectedUsersPerformed(AjaxRequestTarget target) {
                 super.onDeleteSelectedUsersPerformed(target);
                 getRoleCatalogStorage().setTargetUserOidsList(new ArrayList<>());
 
@@ -225,8 +224,8 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
             }
 
             @Override
-            protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList){
-                if (CollectionUtils.isNotEmpty(usersList)){
+            protected void multipleUsersSelectionPerformed(AjaxRequestTarget target, List<UserType> usersList) {
+                if (CollectionUtils.isNotEmpty(usersList)) {
                     List<String> usersOidsList = new ArrayList<>();
                     usersList.forEach(user -> usersOidsList.add(user.getOid()));
                     getRoleCatalogStorage().setTargetUserOidsList(usersOidsList);
@@ -240,49 +239,50 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         parametersPanel.add(targetUserPanel);
     }
 
-    private void initRelationPanel(WebMarkupContainer parametersPanel){
+    private void initRelationPanel(WebMarkupContainer parametersPanel) {
         WebMarkupContainer relationContainer = new WebMarkupContainer(ID_RELATION_CONTAINER);
         relationContainer.setOutputMarkupId(true);
         parametersPanel.add(relationContainer);
 
         List<QName> assignableRelationsList = getAvailableRelationsList();
-        if (CollectionUtils.isNotEmpty(assignableRelationsList)){
-            if (assignableRelationsList.contains(SchemaConstants.ORG_DEFAULT)){
+        if (CollectionUtils.isNotEmpty(assignableRelationsList)) {
+            if (assignableRelationsList.contains(SchemaConstants.ORG_DEFAULT)) {
                 getRoleCatalogStorage().setSelectedRelation(SchemaConstants.ORG_DEFAULT);
             } else {
                 getRoleCatalogStorage().setSelectedRelation(assignableRelationsList.get(0));
             }
         }
         relationContainer.add(new RelationDropDownChoicePanel(ID_RELATION, getRoleCatalogStorage().getSelectedRelation(),
-                assignableRelationsList, false){
+                assignableRelationsList, false) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected void onValueChanged(AjaxRequestTarget target){
+            protected void onValueChanged(AjaxRequestTarget target) {
                 getRoleCatalogStorage().setSelectedRelation(getRelationValue());
                 target.add(AbstractShoppingCartTabPanel.this);
             }
 
             @Override
-            protected IModel<String> getRelationLabelModel(){
+            protected IModel<String> getRelationLabelModel() {
                 return Model.of();
             }
         });
     }
 
-    private List<QName> getAvailableRelationsList(){
+    private List<QName> getAvailableRelationsList() {
         List<QName> availableRelations = WebComponentUtil.getCategoryRelationChoices(AreaCategoryType.SELF_SERVICE, getPageBase());
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_RELATIONS_LIST);
         OperationResult result = task.getResult();
-        List<QName> assignableRelationsList = WebComponentUtil.getAssignableRelationsList(getTargetUser().asPrismObject(), (Class) ObjectTypes.getObjectTypeClass(getQueryType()),
+        List<QName> assignableRelationsList = WebComponentUtil.getAssignableRelationsList(
+                getTargetUser().asPrismObject(), ObjectTypes.getObjectTypeClass(getQueryType()),
                 WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
-        if (CollectionUtils.isEmpty(assignableRelationsList)){
+        if (CollectionUtils.isEmpty(assignableRelationsList)) {
             return availableRelations;
         }
         return assignableRelationsList;
     }
 
-    private void initButtonsPanel(WebMarkupContainer parametersPanel){
+    private void initButtonsPanel(WebMarkupContainer parametersPanel) {
         AjaxButton addAllButton = new AjaxButton(ID_ADD_ALL_BUTTON, createStringResource("AbstractShoppingCartTabPanel.addAllButton")) {
             private static final long serialVersionUID = 1L;
 
@@ -297,11 +297,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 attributes.setEventPropagation(AjaxRequestAttributes.EventPropagation.BUBBLE);
             }
         };
-        addAllButton.add(new VisibleEnableBehaviour(){
+        addAllButton.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 ObjectDataProvider provider = getGridViewComponent().getProvider();
                 return provider != null && provider.size() > 0;
 
@@ -339,11 +339,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         parametersPanel.add(goToShoppingCartButton);
     }
 
-    private String getTargetUserSelectionButtonLabel(List<UserType> usersList){
-        if (usersList == null || usersList.size() == 0){
+    private String getTargetUserSelectionButtonLabel(List<UserType> usersList) {
+        if (usersList == null || usersList.size() == 0) {
             return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
-        } else if (usersList.size() == 1){
-            if (usersList.get(0).getOid().equals(getPageBase().getPrincipalFocus().getOid())){
+        } else if (usersList.size() == 1) {
+            if (usersList.get(0).getOid().equals(getPageBase().getPrincipalFocus().getOid())) {
                 return createStringResource("AssignmentCatalogPanel.requestForMe").getString();
             } else {
                 return usersList.get(0).getName().getOrig();
@@ -354,18 +354,15 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         }
     }
 
-    private QName getRelationParameterValue(){
-        return getRelationDropDown().getRelationValue();
+    private RelationDropDownChoicePanel getRelationDropDown() {
+        return (RelationDropDownChoicePanel) get(createComponentPath(ID_SHOPPING_CART_CONTAINER, ID_PARAMETERS_PANEL, ID_RELATION_CONTAINER, ID_RELATION));
     }
 
-    private RelationDropDownChoicePanel getRelationDropDown(){
-        return (RelationDropDownChoicePanel)get(createComponentPath(ID_SHOPPING_CART_CONTAINER, ID_PARAMETERS_PANEL, ID_RELATION_CONTAINER, ID_RELATION));
-    }
+    private void addAllAssignmentsPerformed(AjaxRequestTarget target) {
+        List<AssignmentEditorDto> availableProviderData =
+                getGridViewComponent().getProvider().getAvailableData();
 
-    private void addAllAssignmentsPerformed(AjaxRequestTarget target){
-        List<AssignmentEditorDto> availableProviderData = getGridViewComponent().getProvider().getAvailableData();
-
-        if (availableProviderData != null){
+        if (availableProviderData != null) {
             int assignmentsLimit = AssignmentsUtil.loadAssignmentsLimit(new OperationResult(OPERATION_LOAD_ASSIGNMENTS_LIMIT),
                     getPageBase());
             int addedAssignmentsCount = availableProviderData.size() + getRoleCatalogStorage().getAssignmentShoppingCart().size();
@@ -374,7 +371,6 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 target.add(AbstractShoppingCartTabPanel.this.getPageBase().getFeedbackPanel());
                 return;
             }
-
 
             availableProviderData.forEach(newAssignment -> {
                 AssignmentEditorDto assignmentToAdd = newAssignment.clone();
@@ -413,15 +409,15 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         return provider;
     }
 
-    private boolean isAlreadyAssigned(PrismObject<AbstractRoleType> obj, AssignmentEditorDto assignmentDto){
+    private boolean isAlreadyAssigned(PrismObject<AbstractRoleType> obj, AssignmentEditorDto assignmentDto) {
         UserType user = targetUserModel.getObject();
-        if (user == null || user.getAssignment() == null){
+        if (user == null || user.getAssignment() == null) {
             return false;
         }
         boolean isAssigned = false;
         List<QName> assignedRelationsList = new ArrayList<>();
-        for (AssignmentType assignment : user.getAssignment()){
-            if (assignment.getTargetRef() != null && assignment.getTargetRef().getOid().equals(obj.getOid())){
+        for (AssignmentType assignment : user.getAssignment()) {
+            if (assignment.getTargetRef() != null && assignment.getTargetRef().getOid().equals(obj.getOid())) {
                 isAssigned = true;
                 assignedRelationsList.add(assignment.getTargetRef().getRelation());
             }
@@ -430,11 +426,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         return isAssigned;
     }
 
-    protected boolean isShoppingCartItemsPanelVisible(){
+    protected boolean isShoppingCartItemsPanelVisible() {
         return true;
     }
 
-    protected void appendItemsPanelStyle(WebMarkupContainer container){
+    protected void appendItemsPanelStyle(WebMarkupContainer container) {
         container.add(AttributeAppender.append("class", "col-md-12"));
     }
 
@@ -459,7 +455,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         return memberQuery;
     }
 
-    private SearchPanel getSearchPanel(){
+    private SearchPanel getSearchPanel() {
         return (SearchPanel) get(createComponentPath(ID_SHOPPING_CART_CONTAINER, ID_SEARCH_FORM, ID_SEARCH));
     }
 
@@ -468,24 +464,26 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         Task task = getPageBase().createSimpleTask(OPERATION_LOAD_ASSIGNABLE_ROLES);
         OperationResult result = task.getResult();
         UserType targetUser = targetUserModel.getObject();
-        if (targetUser == null){
+        if (targetUser == null) {
             return null;
         }
-        return WebComponentUtil.getAssignableRolesFilter(targetUser.asPrismObject(), (Class) ObjectTypes.getObjectTypeClass(getQueryType()),
-                getNewAssignmentRelation(), WebComponentUtil.AssignmentOrder.ASSIGNMENT, result, task, getPageBase());
+        return WebComponentUtil.getAssignableRolesFilter(
+                targetUser.asPrismObject(), ObjectTypes.getObjectTypeClass(getQueryType()),
+                getNewAssignmentRelation(), WebComponentUtil.AssignmentOrder.ASSIGNMENT,
+                result, task, getPageBase());
     }
 
-    private Class<R> getQueryClass(){
-        return (Class<R>)WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getQueryType());
+    private Class<R> getQueryClass() {
+        return (Class<R>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), getQueryType());
     }
 
     protected abstract QName getQueryType();
 
-    private UserType getTargetUser(){
+    private UserType getTargetUser() {
         String targetUserOid = getRoleCatalogStorage().isSelfRequest() ?
                 getPageBase().getPrincipalFocus().getOid()
                 : getRoleCatalogStorage().getTargetUserOidsList().get(0);
-        if (StringUtils.isEmpty(targetUserOid)){
+        if (StringUtils.isEmpty(targetUserOid)) {
             return null;
         }
         OperationResult result = new OperationResult(OPERATION_LOAD_ASSIGNMENT_TARGET_USER);
@@ -495,7 +493,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
         return targetUser != null ? targetUser.asObjectable() : null;
     }
 
-    protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target){
+    protected void assignmentAddedToShoppingCartPerformed(AjaxRequestTarget target) {
         getPage().success(getPageBase().createStringResource("AbstractShoppingCartTabPanel.itemIsAddedToShoppingCart",
                 getRoleCatalogStorage().getAssignmentShoppingCart().size()).getString());
         getPageBase().reloadShoppingCartIcon(target);
@@ -508,11 +506,11 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 getRoleCatalogStorage().getSelectedRelation() : WebComponentUtil.getDefaultRelationOrFail();
     }
 
-    protected RoleCatalogStorage getRoleCatalogStorage(){
+    protected RoleCatalogStorage getRoleCatalogStorage() {
         return getPageBase().getSessionStorage().getRoleCatalog();
     }
 
-    protected GridViewComponent getGridViewComponent(){
-        return (GridViewComponent)get(createComponentPath(ID_SHOPPING_CART_CONTAINER, ID_SHOPPING_CART_ITEMS_PANEL));
+    protected GridViewComponent getGridViewComponent() {
+        return (GridViewComponent) get(createComponentPath(ID_SHOPPING_CART_CONTAINER, ID_SHOPPING_CART_ITEMS_PANEL));
     }
 }

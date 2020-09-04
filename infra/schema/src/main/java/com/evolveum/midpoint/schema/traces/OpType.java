@@ -7,25 +7,19 @@
 
 package com.evolveum.midpoint.schema.traces;
 
+import static java.util.Collections.singletonList;
+
 import static com.evolveum.midpoint.schema.traces.TraceUtil.*;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.reflect.MethodUtils;
-import org.apache.commons.text.StringSubstitutor;
-import org.apache.commons.text.lookup.StringLookup;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.impl.marshaller.ItemPathParserTemp;
-import com.evolveum.midpoint.prism.path.UniformItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -39,7 +33,9 @@ public enum OpType {
     CLOCKWORK_CLICK(OperationKindType.CLOCKWORK_CLICK, "Clockwork click", "com.evolveum.midpoint.model.impl.lens.Clockwork.click",
             "Clockwork click (#${m:getClickNumber})"),
 
-    PROJECTOR_PROJECT(OperationKindType.PROJECTOR_EXECUTION, "Projector project", "com.evolveum.midpoint.model.impl.lens.projector.Projector.project"),
+    PROJECTOR_PROJECT(OperationKindType.PROJECTOR_EXECUTION, "Projector project",
+            "com.evolveum.midpoint.model.impl.lens.projector.Projector.project",
+            "Projector"),
 
     MODEL_AUDIT(OperationKindType.MODEL_AUDIT, "Audit", "com.evolveum.midpoint.model.impl.util.AuditHelper.audit",
             "Audit ${p:stage:L} - ${p:eventType} - ${p:targetName}"),
@@ -63,20 +59,35 @@ public enum OpType {
             "com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentTripleEvaluator.evaluateAssignment",
             "Assignment evaluation: → ${c:assignmentTargetName}"),
 
-    ASSIGNMENT_EVALUATION(OperationKindType.ASSIGNMENT_EVALUATION, "Assignment evaluation",
-            "com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator.evaluate",
-            "Assignment evaluation: ${m:getAssignmentInfo}"),
+    ASSIGNMENT_EVALUATION(OperationKindType.ASSIGNMENT_EVALUATION, "Assignment evaluation", null,
+            Arrays.asList("com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator.evaluate",
+                    "com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator.evaluate"),
+            "Assignment evaluation${m:getModeInfo}: ${m:getAssignmentInfo}"),
 
-    ASSIGNMENT_SEGMENT_EVALUATION(OperationKindType.OTHER, "Assignment segment evaluation",
-            "com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator.evaluateFromSegment",
+    ASSIGNMENT_SEGMENT_EVALUATION(OperationKindType.OTHER, "Assignment segment evaluation", null,
+            Arrays.asList("com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator.evaluateFromSegment",
+                "com.evolveum.midpoint.model.impl.lens.assignments.PathSegmentEvaluation.evaluate"),
             "${m:getSegmentLabel}"),
+
+    PROJECTOR_FOCUS_POLICY_RULES(OperationKindType.OTHER, "Focus policy rules",
+            "com.evolveum.midpoint.model.impl.lens.projector.Projector.focusPolicyRules",
+            "Focus policy rules ${m:getFocusPolicyRulesInfo}"),
+
+    POLICY_RULE_EVALUATION(OperationKindType.OTHER, "Policy rule evaluation",
+            "com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor.evaluateRule",
+            "Rule evaluation: ${m:getRuleInfo}"),
+
+    POLICY_CONSTRAINT_EVALUATION(OperationKindType.OTHER, "Policy constraint evaluation",
+            "com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*ConstraintEvaluator.evaluate",
+            "Constraint evaluation: ${m:getConstraintInfo}"),
 
     PROJECTION_ACTIVATION(OperationKindType.OTHER,"Projection activation",
             "com.evolveum.midpoint.model.impl.lens.projector.ActivationProcessor.projectionActivation",
-            "Activation: ${p:resourceName}"),
+            "Activation: ${p:resourceName} ${m:getDecisionInfo}"),
 
     PROJECTOR_PROJECTION(OperationKindType.OTHER,"Projector projection",
-            "com.evolveum.midpoint.model.impl.lens.projector.Projector.projection"),
+            "com.evolveum.midpoint.model.impl.lens.projector.Projector.projection",
+            "Projector projection: ${p:resourceName}"),
 
     PROJECTOR_COMPONENT_OTHER(OperationKindType.OTHER,"Projector component",
             "com.evolveum.midpoint.model.impl.lens.projector.Projector.*"),
@@ -93,14 +104,16 @@ public enum OpType {
             "Mapping time validity: ${m:getMappingInfo}"),
 
     MAPPING_PREPARATION(OperationKindType.OTHER,"Mapping preparation",
-            "com.evolveum.midpoint.model.common.mapping.MappingImpl.prepare"),
+            "com.evolveum.midpoint.model.common.mapping.MappingImpl.prepare",
+            "Mapping preparation"),
 
     MAPPING_EVALUATION_PREPARED(OperationKindType.OTHER,"Prepared mapping evaluation",
-            "com.evolveum.midpoint.model.common.mapping.MappingImpl.evaluatePrepared"),
+            "com.evolveum.midpoint.model.common.mapping.MappingImpl.evaluatePrepared",
+            "Prepared mapping evaluation"),
 
     TRANSFORMATION_EXPRESSION_EVALUATION(OperationKindType.OTHER, "Transformation expression evaluation",
             "com.evolveum.midpoint.model.common.expression.evaluator.transformation.AbstractValueTransformationExpressionEvaluator.evaluate",
-            "Transformation expression evaluation (${t:localContextDescription})"),
+            "Transformation expression evaluation (${m:getContextDescription})"),
 
     VALUE_TUPLE_TRANSFORMATION(OperationKindType.OTHER, "Value tuple transformation",
             "com.evolveum.midpoint.model.common.expression.evaluator.transformation.ValueTupleTransformation.evaluate",
@@ -114,37 +127,53 @@ public enum OpType {
             "com.evolveum.midpoint.model.impl.lens.IvwoConsolidator.consolidateToDelta",
             "Consolidation: ${m:getItemConsolidationInfo}"),
 
-    SCRIPT_EXECUTION (OperationKindType.SCRIPT_EVALUATION, "Script evaluation",
+    SCRIPT_EXECUTION(OperationKindType.SCRIPT_EVALUATION, "Script evaluation",
             "com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate"),
 
-    CHANGE_EXECUTION (OperationKindType.OTHER,"Change execution",
-            "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.execute"),
+    CHANGE_EXECUTION(OperationKindType.OTHER,"Change execution",
+            "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.execute",
+            "Change execution"),
 
-    FOCUS_CHANGE_EXECUTION (OperationKindType.FOCUS_CHANGE_EXECUTION,"Focus change execution",
-            "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.execute.focus.*"),
+    FOCUS_CHANGE_EXECUTION(OperationKindType.FOCUS_CHANGE_EXECUTION,"Focus change execution",
+            "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.execute.focus.*",
+            "Focus change execution: ${m:getInfo}"),
 
-    PROJECTION_CHANGE_EXECUTION (OperationKindType.PROJECTION_CHANGE_EXECUTION,"Projection change execution",
-            "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.execute.projection.*"),
+    PROJECTION_CHANGE_EXECUTION(OperationKindType.PROJECTION_CHANGE_EXECUTION,"Projection change execution",
+            "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.execute.projection.*",
+            "Projection change execution on ${m:getResourceName}: ${m:getInfo}"),
 
-    CHANGE_EXECUTION_DELTA (OperationKindType.OTHER,"Change execution - delta",
-            "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta"),
+    UPDATE_SHADOW_SITUATION(OperationKindType.OTHER, "Projection change: update shadow situation",
+            "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.updateSituationInShadow",
+            "Update shadow situation: ${m:getInfo}"),
 
-    CHANGE_EXECUTION_OTHER (OperationKindType.OTHER,"Change execution - other",
+    LINK_UNLINK_SHADOW(OperationKindType.OTHER, "Projection change: link/unlink shadow", null,
+            Arrays.asList("com.evolveum.midpoint.model.impl.lens.ChangeExecutor.linkShadow",
+                    "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.unlinkShadow"),
+            "${m:getLabel}"),
+
+    CHANGE_EXECUTION_DELTA(OperationKindType.OTHER,"Delta execution",
+            "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.executeDelta",
+            "Delta execution"),
+
+    @Deprecated
+    CHANGE_EXECUTION_OTHER(OperationKindType.OTHER,"Change execution - other",
             "com.evolveum.midpoint.model.impl.lens.ChangeExecutor.*"),
 
-    FOCUS_LOAD (OperationKindType.FOCUS_LOAD, "Focus load",
-            result -> isLoadedFromRepository(result),
-            "com.evolveum.midpoint.model.impl.lens.projector.ContextLoader.determineFocusContext",
-            null),
+    FOCUS_REPOSITORY_LOAD(OperationKindType.FOCUS_LOAD, "Focus load",
+            OpType::isLoadedFromRepository,
+            singletonList("com.evolveum.midpoint.model.impl.lens.projector.ContextLoader.determineFocusContext"),
+            "Focus load from repository"),
 
     FOCUS_LOAD_CHECK (OperationKindType.FOCUS_LOAD_CHECK,"Focus load check",
             "com.evolveum.midpoint.model.impl.lens.projector.ContextLoader.determineFocusContext"),
 
     SHADOW_LOAD (OperationKindType.OTHER,"Shadow load",
-            "com.evolveum.midpoint.model.impl.lens.projector.ContextLoader.loadProjection"),
+            "com.evolveum.midpoint.model.impl.lens.projector.ContextLoader.loadProjection",
+            "Shadow load"),
 
     FULL_PROJECTION_LOAD (OperationKindType.FULL_PROJECTION_LOAD, "Full projection load",
-            "com.evolveum.midpoint.model.impl.lens.projector.ContextLoader.loadFullShadow"),
+            "com.evolveum.midpoint.model.impl.lens.projector.ContextLoader.loadFullShadow",
+            "Projection load: ${m:getInfo}"),
 
     MODEL_OTHER (OperationKindType.OTHER,"Model - other",
             "com.evolveum.midpoint.model.*"),
@@ -167,16 +196,13 @@ public enum OpType {
     private final OperationKindType kind;
     private final String label;
     private final Function<OperationResultType, Boolean> predicate;
-    @SuppressWarnings("unused")
-    private final List<String> patterns;
     private final List<Pattern> compiledPatterns;
     private final String nameTemplate;
 
-    OpType(OperationKindType kind, String label, Function<OperationResultType, Boolean> predicate, String pattern, String nameTemplate) {
+    OpType(OperationKindType kind, String label, Function<OperationResultType, Boolean> predicate, List<String> patterns, String nameTemplate) {
         this.kind = kind;
         this.label = label;
         this.predicate = predicate;
-        this.patterns = Collections.singletonList(pattern);
         this.compiledPatterns = new ArrayList<>();
         for (String aPattern : patterns) {
             String regex = toRegex(aPattern);
@@ -190,11 +216,11 @@ public enum OpType {
     }
 
     OpType(OperationKindType kind, String label, String pattern) {
-        this(kind, label, null, pattern, null);
+        this(kind, label, null, singletonList(pattern), null);
     }
 
     OpType(OperationKindType kind, String label, String pattern, String nameTemplate) {
-        this(kind, label, null, pattern, nameTemplate);
+        this(kind, label, null, singletonList(pattern), nameTemplate);
     }
 
     public String getFormattedName(OpNode node) {
@@ -217,49 +243,22 @@ public enum OpType {
         } else if ("com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTransformationExpressionEvaluator.evaluateScriptExpression".equals(operation) ||
                 "com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTransformationExpressionEvaluator.evaluateExpression".equals(operation)) {
             return "Evaluate: " + getContext(opResult, "context");
-        } else if ("com.evolveum.midpoint.model.common.expression.script.ScriptExpression.evaluate".equals(operation)) {
-            return "Script: " + getContext(opResult, "context");
-        } else if ("com.evolveum.midpoint.model.impl.lens.AssignmentEvaluator.evaluateFromSegment".equals(operation)) {
-            String srcName = getContext(opResult, "segmentSourceName");
-            String tgtName = getContext(opResult, "segmentTargetName");
-            return "Segment: " + (srcName != null ? srcName + " " : "") + " → " + (tgtName != null ? " " + tgtName : "");
-        } else if ("com.evolveum.midpoint.model.impl.lens.projector.policy.PolicyRuleProcessor.evaluateRule".equals(operation)) {
-            String triggeredString = getReturn(opResult, "triggered");
-            int enabledActions = TraceUtil.getReturnsAsStringList(opResult, "enabledActions").size();
-            String triggeredSuffix = "true".equals(triggeredString) ? " # (" + enabledActions + ")" : "";
-            return "Evaluate rule: " + getParameter(opResult, "policyRule") + triggeredSuffix;
         }
 
         switch (this) {
-        case CLOCKWORK_RUN: return "Clockwork run";
-        case CLOCKWORK_CLICK: return "Clockwork click";
-        case PROJECTOR_PROJECT: return "Projector";
-        case PROJECTOR_PROJECTION:
-            return "Projector projection: " + getParameter(opResult, "resourceName");
-        case PROJECTOR_COMPONENT_OTHER:
-            return "Projector " + last;
-        case CLOCKWORK_METHOD: return "Clockwork " + last;
-
-        case MAPPING_PREPARATION: return "Mapping preparation";
-        case MAPPING_EVALUATION_PREPARED: return "Prepared mapping evaluation";
-
-        // TODO script
-        case CHANGE_EXECUTION: return "Change execution";
-        case FOCUS_CHANGE_EXECUTION: return "Change execution for focus (" + last + ")";
-        case PROJECTION_CHANGE_EXECUTION: return "Change execution for projection (" + last + ")";
-        case CHANGE_EXECUTION_DELTA: return "Delta execution";
-        case CHANGE_EXECUTION_OTHER: return "Change execution - " + last;
-        case REPOSITORY: return "Repository " + last + commaQualifiers;
-        case REPOSITORY_CACHE:
-            return getRepoCacheOpDescription(node, opResult, last, commaQualifiers);
-        case PROVISIONING_API: return "Provisioning " + last + commaQualifiers;
-        case PROVISIONING_INTERNAL: return getLastTwo(operation) + commaQualifiers;
-        case FOCUS_LOAD: return "Focus load";
-        case FOCUS_LOAD_CHECK: return "Focus load check (" + node.getResultComment() + ")";
-        case SHADOW_LOAD: return "Shadow load";
-        case MODEL_OTHER:
-        case OTHER:
-            return getLastTwo(operation) + commaQualifiers;
+            case PROJECTOR_COMPONENT_OTHER:
+                return "Projector " + last;
+            case CLOCKWORK_METHOD: return "Clockwork " + last;
+            case CHANGE_EXECUTION_OTHER: return "Change execution - " + last;
+            case REPOSITORY: return "Repository " + last + commaQualifiers;
+            case REPOSITORY_CACHE:
+                return getRepoCacheOpDescription(node, opResult, last, commaQualifiers);
+            case PROVISIONING_API: return "Provisioning " + last + commaQualifiers;
+            case PROVISIONING_INTERNAL: return getLastTwo(operation) + commaQualifiers;
+            case FOCUS_LOAD_CHECK: return "Focus load check (" + node.getResultComment() + ")";
+            case MODEL_OTHER:
+            case OTHER:
+                return getLastTwo(operation) + commaQualifiers;
         }
         return opResult.getOperation() + (qualifiers.isEmpty() ? "" : " (" + qualifiers + ")");
     }
@@ -315,7 +314,8 @@ public enum OpType {
         }
     }
 
-    private String getLast(String operation) {
+    // todo move somewhere
+    public static String getLast(String operation) {
         return StringUtils.substringAfterLast(operation, ".");
     }
 

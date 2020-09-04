@@ -14,6 +14,8 @@ import com.evolveum.midpoint.schema.traces.TraceInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingEvaluationTraceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
+import static com.evolveum.midpoint.prism.delta.DeltaSetTripleUtil.isEmpty;
+
 /**
  *
  */
@@ -24,6 +26,14 @@ public class MappingEvaluationOpNode extends AbstractMappingEvaluationOpNode {
             OpResultInfo info, OpNode parent,
             TraceInfo traceInfo) {
         super(prismContext, result, info, parent, traceInfo);
+    }
+
+    protected void postProcess() {
+        setDisabled(trace != null && hasNoOutput());
+    }
+
+    private boolean hasNoOutput() {
+        return trace != null && isEmpty(trace.getOutput());
     }
 
     public String getMappingInfo() {

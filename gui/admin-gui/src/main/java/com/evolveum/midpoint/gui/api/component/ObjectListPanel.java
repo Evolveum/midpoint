@@ -1,34 +1,18 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.component;
 
-import java.util.*;
-import java.util.Objects;
-import java.util.stream.Collectors;
+import static java.util.Collections.singleton;
 
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.search.*;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.SerializableSupplier;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,16 +23,36 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
@@ -57,17 +61,17 @@ import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.search.*;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
+import com.evolveum.midpoint.web.component.util.SerializableSupplier;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusPresentationProperties;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-
-import static java.util.Collections.singleton;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author katkav
@@ -87,13 +91,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     private LoadableModel<Search> searchModel;
 
-    private Collection<SelectorOptions<GetOperationOptions>> options;
+    private final Collection<SelectorOptions<GetOperationOptions>> options;
 
-    private boolean multiselect;
+    private final boolean multiselect;
 
-    private TableId tableId;
+    private final TableId tableId;
 
-    private String addutionalBoxCssClasses;
+    private String additionalBoxCssClasses;
 
     private Boolean manualRefreshEnabled;
 //    private static final int DEFAULT_AUTOREFRESH_INTERVAL = 60; //60seconds
@@ -101,8 +105,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     public Class<? extends O> getType() {
         return (Class) type.getClassDefinition();
     }
-
-
 
     /**
      * @param defaultType specifies type of the object that will be selected by default. It can be changed.
@@ -119,9 +121,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     }
 
     public ObjectListPanel(String id, Class<? extends O> defaultType, TableId tableId, Collection<SelectorOptions<GetOperationOptions>> options,
-                           boolean multiselect) {
+            boolean multiselect) {
         super(id);
-        this.type = defaultType  != null ? ObjectTypes.getObjectType(defaultType) : null;
+        this.type = defaultType != null ? ObjectTypes.getObjectType(defaultType) : null;
         this.options = options;
         this.multiselect = multiselect;
         this.tableId = tableId;//(!isCollectionViewPanel()) ? tableId : UserProfileStorage.TableId.COLLECTION_VIEW_TABLE; //TODO why?
@@ -138,7 +140,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return multiselect;
     }
 
-    public int getSelectedObjectsCount(){
+    public int getSelectedObjectsCount() {
         List<O> selectedList = getSelectedObjects();
         return selectedList.size();
     }
@@ -166,7 +168,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     }
 
-    protected LoadableModel<Search> initSearchModel(){
+    protected LoadableModel<Search> initSearchModel() {
         return new LoadableModel<Search>(false) {
 
             private static final long serialVersionUID = 1L;
@@ -236,7 +238,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     private BoxedTablePanel<SelectableBean<O>> createTable() {
 
         List<IColumn<SelectableBean<O>, String>> columns;
-        if (isCustomColumnsListConfigured()){
+        if (isCustomColumnsListConfigured()) {
             columns = initCustomColumns();
         } else {
             columns = initColumns();
@@ -253,7 +255,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         }
 
         BaseSortableDataProvider<SelectableBean<O>> provider = initProvider();
-
 
         BoxedTablePanel<SelectableBean<O>> table = new BoxedTablePanel<SelectableBean<O>>(ID_TABLE, provider,
                 columns, tableId,
@@ -280,7 +281,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
             }
 
             @Override
-            protected boolean hideFooterIfSinglePage(){
+            protected boolean hideFooterIfSinglePage() {
                 return ObjectListPanel.this.hideFooterIfSinglePage();
             }
 
@@ -306,7 +307,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return table;
     }
 
-
     protected WebMarkupContainer createHeader(String headerId) {
         return initSearch(headerId);
     }
@@ -319,7 +319,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         LOGGER.trace("Start to init custom columns for table of type {}", type);
         List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
         List<GuiObjectColumnType> customColumns = getGuiObjectColumnTypeList();
-        if (customColumns == null){
+        if (customColumns == null) {
             return columns;
         }
 
@@ -336,7 +336,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return columns;
     }
 
-    protected List<IColumn<SelectableBean<O>, String>> getCustomColumnsTransformed(List<GuiObjectColumnType> customColumns){
+    protected List<IColumn<SelectableBean<O>, String>> getCustomColumnsTransformed(List<GuiObjectColumnType> customColumns) {
         List<IColumn<SelectableBean<O>, String>> columns = new ArrayList<>();
         if (customColumns == null || customColumns.isEmpty()) {
             return columns;
@@ -411,7 +411,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                             }
                             if (item != null) {
                                 if (item.getDefinition() != null && item.getDefinition().getValueEnumerationRef() != null &&
-                                        item.getDefinition().getValueEnumerationRef().getOid() != null){
+                                        item.getDefinition().getValueEnumerationRef().getOid() != null) {
                                     String lookupTableOid = item.getDefinition().getValueEnumerationRef().getOid();
                                     Task task = getPageBase().createSimpleTask("loadLookupTable");
                                     OperationResult result = task.getResult();
@@ -436,7 +436,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return columns;
     }
 
-    private IModel<String> getItemValuesString(Item<?, ?> item, PrismObject<LookupTableType> lookupTable){
+    private IModel<String> getItemValuesString(Item<?, ?> item, PrismObject<LookupTableType> lookupTable) {
         return Model.of(item.getValues().stream()
                 .filter(Objects::nonNull)
                 .map(itemValue -> {
@@ -447,8 +447,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                             String lookupTableKey = ((PrismPropertyValue<?>) itemValue).getValue().toString();
                             LookupTableType lookupTableObject = lookupTable.asObjectable();
                             String rowLabel = "";
-                            for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()){
-                                if (lookupTableRow.getKey().equals(lookupTableKey)){
+                            for (LookupTableRowType lookupTableRow : lookupTableObject.getRow()) {
+                                if (lookupTableRow.getKey().equals(lookupTableKey)) {
                                     rowLabel = lookupTableRow.getLabel() != null ? lookupTableRow.getLabel().getOrig() : lookupTableRow.getValue();
                                     break;
                                 }
@@ -471,7 +471,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
             columns.add(checkboxColumn);
         }
 
-        IColumn<SelectableBean<O>, String> iconColumn = (IColumn) ColumnUtils.createIconColumn(getPageBase());
+        IColumn<SelectableBean<O>, String> iconColumn = ColumnUtils.createIconColumn(getPageBase());
         columns.add(iconColumn);
 
         IColumn<SelectableBean<O>, String> nameColumn = createNameColumn(null, null, null);
@@ -519,7 +519,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
             @NotNull
             @Override
             protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
-                List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
+                List<ObjectOrdering> customOrdering = createCustomOrdering(sortParam);
                 if (customOrdering != null) {
                     return customOrdering;
                 }
@@ -532,7 +532,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
             }
 
             @Override
-            public boolean isUseObjectCounting(){
+            public boolean isUseObjectCounting() {
                 return isCountingEnabled();
             }
         };
@@ -550,7 +550,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
             return getObjectCollectionView().getOptions();
         }
 
-        if (options == null){
+        if (options == null) {
             if (ResourceType.class.equals(type.getClassDefinition())) {
                 options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
             }
@@ -563,7 +563,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return options;
     }
 
-    protected String getTableIdKeyValue(){
+    protected String getTableIdKeyValue() {
         if (tableId == null) {
             return null;
         }
@@ -573,7 +573,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return tableId.name() + "." + getCollectionNameParameterValue().toString();
     }
 
-    protected List<O> getPreselectedObjectList(){
+    protected List<O> getPreselectedObjectList() {
         return null;
     }
 
@@ -584,45 +584,44 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     /**
      * should be overrided in case when ObjectListPanel is used
      * for additional panel of some object type (e.g. members panel on the org tree page)
-     * @return
      */
-    protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig(){
+    protected GuiObjectListPanelConfigurationType getAdditionalPanelConfig() {
         return null;
     }
 
-    protected boolean isOrderingDisabled(){
+    protected boolean isOrderingDisabled() {
         CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
-        if (isAdditionalPanel()){
+        if (isAdditionalPanel()) {
             if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
                     guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
-                    guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting() != null){
+                    guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting() != null) {
                 return guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableSorting();
             }
         } else {
-            if (guiObjectListViewType != null && guiObjectListViewType.isDisableSorting() != null){
+            if (guiObjectListViewType != null && guiObjectListViewType.isDisableSorting() != null) {
                 return guiObjectListViewType.isDisableSorting();
             }
         }
         return false;
     }
 
-    protected boolean isCountingEnabled(){
+    protected boolean isCountingEnabled() {
         CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
-        if (isAdditionalPanel()){
+        if (isAdditionalPanel()) {
             if (guiObjectListViewType != null && guiObjectListViewType.getAdditionalPanels() != null &&
                     guiObjectListViewType.getAdditionalPanels().getMemberPanel() != null &&
-                    guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting() != null){
+                    guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting() != null) {
                 return !guiObjectListViewType.getAdditionalPanels().getMemberPanel().isDisableCounting();
             }
         } else {
-            if (guiObjectListViewType != null && guiObjectListViewType.isDisableCounting() != null){
+            if (guiObjectListViewType != null && guiObjectListViewType.isDisableCounting() != null) {
                 return !guiObjectListViewType.isDisableCounting();
             }
         }
         return true;
     }
 
-    protected boolean isAdditionalPanel(){
+    protected boolean isAdditionalPanel() {
         return false;
     }
 
@@ -650,11 +649,11 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     }
 
     public String getAdditionalBoxCssClasses() {
-        return addutionalBoxCssClasses;
+        return additionalBoxCssClasses;
     }
 
     public void setAdditionalBoxCssClasses(String boxCssClasses) {
-        this.addutionalBoxCssClasses = boxCssClasses;
+        this.additionalBoxCssClasses = boxCssClasses;
     }
 
     /**
@@ -665,7 +664,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return null;
     }
 
-    protected String getStorageKey(){
+    protected String getStorageKey() {
 
         if (isCollectionViewPanelForCompiledView()) {
             StringValue collectionName = getCollectionNameParameterValue();
@@ -681,7 +680,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return key;
     }
 
-    protected PageStorage getPageStorage(String storageKey){
+    protected PageStorage getPageStorage(String storageKey) {
         PageStorage storage = getSession().getSessionStorage().getPageStorageMap().get(storageKey);
         if (storage == null) {
             storage = getSession().getSessionStorage().initPageStorage(storageKey);
@@ -691,7 +690,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     protected boolean isRefreshEnabled() {
         if (getAutoRefreshInterval() == 0) {
-            return manualRefreshEnabled == null ? false : manualRefreshEnabled.booleanValue();
+            return manualRefreshEnabled != null && manualRefreshEnabled.booleanValue();
         }
 
         if (manualRefreshEnabled == null) {
@@ -703,7 +702,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     protected int getAutoRefreshInterval() {
 
-       CompiledObjectCollectionView view = getObjectCollectionView();
+        CompiledObjectCollectionView view = getObjectCollectionView();
         if (view == null) {
 //            if (BooleanUtils.isTrue(manualRefreshEnabled)) {
 //                return DEFAULT_AUTOREFRESH_INTERVAL;
@@ -720,7 +719,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         }
 
         return autoRefreshInterval.intValue();
-
     }
 
     private QName getTypeQName() {
@@ -745,7 +743,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
             Task task = getPageBase().createSimpleTask("Create view from dashboard");
             @NotNull DashboardType dashboard = WebModelServiceUtils.loadObject(DashboardType.class, dashboardOid, getPageBase(), task, task.getResult()).getRealValue();
             if (dashboard != null) {
-                for (DashboardWidgetType widget :dashboard.getWidget()) {
+                for (DashboardWidgetType widget : dashboard.getWidget()) {
                     if (widget.getIdentifier().equals(dashboardWidgetName)
                             && widget.getData() != null && widget.getData().getCollection() != null) {
                         CollectionRefSpecificationType collectionSpec = widget.getData().getCollection();
@@ -771,9 +769,9 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return getPageBase().getCompiledGuiProfile().findObjectCollectionView(WebComponentUtil.classToQName(getPageBase().getPrismContext(), getType()), collectionName);
     }
 
-    private StringValue getCollectionNameParameterValue(){
+    private StringValue getCollectionNameParameterValue() {
         PageParameters parameters = getPageBase().getPageParameters();
-        return parameters ==  null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
+        return parameters == null ? null : parameters.get(PageBase.PARAMETER_OBJECT_COLLECTION_NAME);
     }
 
     protected boolean isCollectionViewPanelForWidget() {
@@ -794,7 +792,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return isCollectionViewPanelForCompiledView() || isCollectionViewPanelForWidget();
     }
 
-
     @SuppressWarnings("unchecked")
     protected BaseSortableDataProvider<SelectableBean<O>> getDataProvider() {
         BoxedTablePanel<SelectableBean<O>> table = getTable();
@@ -804,7 +801,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     }
 
-    protected Collection<SelectorOptions<GetOperationOptions>> getOptions(){
+    protected Collection<SelectorOptions<GetOperationOptions>> getOptions() {
         return options;
     }
 
@@ -812,7 +809,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     protected BoxedTablePanel<SelectableBean<O>> getTable() {
         return (BoxedTablePanel<SelectableBean<O>>) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
-
 
     @SuppressWarnings("deprecation")
     private void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {
@@ -860,16 +856,16 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
             }
         }
 
-        target.add((Component) table);
+        target.add(table);
         target.add(getPageBase().getFeedbackPanel());
 
     }
 
-    protected boolean isTypeChanged(Class<O> newTypeClass){
+    protected boolean isTypeChanged(Class<O> newTypeClass) {
         return !getType().equals(newTypeClass);
     }
 
-    public void resetSearchModel(){
+    public void resetSearchModel() {
         String storageKey = getStorageKey();
         if (StringUtils.isNotEmpty(storageKey)) {
             PageStorage storage = getPageStorage(storageKey);
@@ -908,12 +904,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return query;
     }
 
-    private ObjectQuery addArchetypeFilter(ObjectQuery query){
-        if (!isCollectionViewPanel()){
+    private ObjectQuery addArchetypeFilter(ObjectQuery query) {
+        if (!isCollectionViewPanel()) {
             return query;
         }
         CompiledObjectCollectionView view = getObjectCollectionView();
-        if (view == null){
+        if (view == null) {
             getFeedbackMessages().add(ObjectListPanel.this, "Unable to load collection view list", 0);
             return query;
         }
@@ -935,7 +931,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return query;
     }
 
-    protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider){
+    protected void setDefaultSorting(BaseSortableDataProvider<SelectableBean<O>> provider) {
         //should be overrided if needed
     }
 
@@ -945,8 +941,8 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     protected abstract IColumn<SelectableBean<O>, String> createCheckboxColumn();
 
-    protected IColumn<SelectableBean<O>, String> createIconColumn(){
-        return (IColumn) ColumnUtils.createIconColumn(getPageBase());
+    protected IColumn<SelectableBean<O>, String> createIconColumn() {
+        return ColumnUtils.createIconColumn(getPageBase());
     }
 
     protected abstract IColumn<SelectableBean<O>, String> createNameColumn(IModel<String> columnNameModel, String itemPath,
@@ -968,25 +964,25 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         getPageBase().hideMainPopup(target);
     }
 
-    private List<GuiObjectColumnType> getGuiObjectColumnTypeList(){
+    private List<GuiObjectColumnType> getGuiObjectColumnTypeList() {
         CompiledObjectCollectionView guiObjectListViewType = getObjectCollectionView();
         return guiObjectListViewType != null ? guiObjectListViewType.getColumns() : null;
     }
 
-    private boolean isCustomColumnsListConfigured(){
+    private boolean isCustomColumnsListConfigured() {
         List<GuiObjectColumnType> columnList = getGuiObjectColumnTypeList();
         return columnList != null && !columnList.isEmpty();
     }
 
-    private String getItemDisplayName(GuiObjectColumnType column){
+    private String getItemDisplayName(GuiObjectColumnType column) {
         ItemDefinition itemDefinition = getPageBase().getPrismContext().getSchemaRegistry()
                 .findObjectDefinitionByCompileTimeClass(type.getClassDefinition()).findItemDefinition(column.getPath().getItemPath());
         return itemDefinition == null ? "" : itemDefinition.getDisplayName();
     }
 
-    public ObjectPaging getCurrentTablePaging(){
+    public ObjectPaging getCurrentTablePaging() {
         String storageKey = getStorageKey();
-        if (StringUtils.isEmpty(storageKey)){
+        if (StringUtils.isEmpty(storageKey)) {
             return null;
         }
         PageStorage storage = getPageStorage(storageKey);
@@ -996,7 +992,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         return storage.getPaging();
     }
 
-    protected boolean hideFooterIfSinglePage(){
+    protected boolean hideFooterIfSinglePage() {
         return false;
     }
 

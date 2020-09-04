@@ -1,21 +1,19 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.session;
+
+import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * @author shood
@@ -23,13 +21,12 @@ import java.util.Map;
  */
 public class UserProfileStorage implements Serializable, DebugDumpable {
 
-
     private static final long serialVersionUID = 1L;
     public static final int DEFAULT_PAGING_SIZE = 20;
 
     /*
-    *   Enum containing IDs of all tables. where paging size can be adjusted
-    * */
+     *   Enum containing IDs of all tables. where paging size can be adjusted
+     * */
     public enum TableId {
         PAGE_USER_SELECTION,
         TABLE_ROLES,
@@ -43,10 +40,10 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         TABLE_SUBTASKS,
         TABLE_WORKERS,
         TABLE_OBJECTS_COLLECTION,
-        ROLE_MEMEBER_PANEL,
-        ORG_MEMEBER_PANEL,
-        ARCHETYPE_MEMEBER_PANEL,
-        SERVICE_MEMEBER_PANEL,
+        ROLE_MEMBER_PANEL,
+        ORG_MEMBER_PANEL,
+        ARCHETYPE_MEMBER_PANEL,
+        SERVICE_MEMBER_PANEL,
         TREE_TABLE_PANEL_CHILD,
         TREE_TABLE_PANEL_MEMBER,
         TREE_TABLE_PANEL_MANAGER,
@@ -99,7 +96,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         PAGE_CASE_EVENTS_TAB
     }
 
-    private Map<String, Integer> tables = new HashMap<>();
+    private final Map<String, Integer> tables = new HashMap<>();
 
     public Integer getPagingSize(TableId key) {
         Validate.notNull(key, "Key must not be null.");
@@ -140,7 +137,7 @@ public class UserProfileStorage implements Serializable, DebugDumpable {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("UserProfileStorage\n");
-        DebugUtil.debugDumpWithLabel(sb, "tables", tables, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "tables", tables, indent + 1);
         return sb.toString();
     }
 
