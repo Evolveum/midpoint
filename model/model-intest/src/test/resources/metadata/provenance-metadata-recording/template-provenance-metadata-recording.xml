@@ -36,19 +36,32 @@
 
     <!-- We want to maintain a list of aliases. A person's full name should be part of it.
          There can be other aliases defined typically by user himself. -->
-    <mapping>
-        <name>fullName to alias</name>
-        <strength>strong</strength>
-        <source>
-            <path>fullName</path>
-        </source>
-        <target>
-            <path>extension/alias</path>
-            <set>
-                <predefined>matchingProvenance</predefined>
-            </set>
-        </target>
-    </mapping>
+    <item>
+        <ref>extension/alias</ref>
+        <mapping>
+            <name>fullName to alias</name>
+            <strength>strong</strength>
+            <source>
+                <path>fullName</path>
+            </source>
+            <target>
+                <set>
+                    <predefined>matchingProvenance</predefined>
+                </set>
+            </target>
+        </mapping>
+
+        <meta>
+            <item>
+                <ref>transformation</ref>
+                <limitations>
+                    <processing>full</processing>
+                </limitations>
+                <persistence>persistent</persistence>
+            </item>
+        </meta>
+
+    </item>
 
     <!-- We want to maintain a list of assured organizations i.e. organizations with LoA at least 3 -->
     <mapping>
@@ -116,6 +129,14 @@
             <limitations>
                 <processing>full</processing>
             </limitations>
+        </item>
+
+        <item>
+            <ref>transformation</ref>
+            <limitations>
+                <processing>full</processing>
+            </limitations>
+            <persistence>transient</persistence>
         </item>
 
         <item>

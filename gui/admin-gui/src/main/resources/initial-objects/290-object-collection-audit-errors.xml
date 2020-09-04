@@ -7,11 +7,39 @@
   -->
 
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   oid="00000000-0000-0000-0001-000000000004">
     <name>Error audit records</name>
     <auditSearch>
         <recordQuery>select * from m_audit_event as aer where aer.outcome=3 and aer.eventStage=1</recordQuery>
-        <domainQuery>select * from m_audit_event as aer where aer.eventStage=1</domainQuery>
         <interval>P1D</interval>
     </auditSearch>
+    <type>AuditEventRecordType</type>
+    <filter>
+        <q:and>
+            <q:equal>
+                <q:path>eventStage</q:path>
+                <q:value>execution</q:value>
+            </q:equal>
+            <q:equal>
+                <q:path>outcome</q:path>
+                <q:value>fatal_error</q:value>
+            </q:equal>
+            <q:greater>
+                <q:path>timestamp</q:path>
+                <expression>
+                    <script>
+                        <code>
+                            calendar = basic.addDuration(basic.currentDateTime(), "-P1D");
+                            return calendar;
+                        </code>
+                    </script>
+                </expression>
+            </q:greater>
+        </q:and>
+    </filter>
+    <domain>
+        <collectionRef oid="00000000-0000-0000-0001-000000000285" type="c:ObjectCollectionType"/>
+    </domain>
 </objectCollection>

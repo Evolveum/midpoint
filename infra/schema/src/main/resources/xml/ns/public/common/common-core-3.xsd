@@ -8017,7 +8017,7 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="persistence" type="tns:PersistenceType" minOccurs="0">
+            <xsd:element name="persistence" type="tns:ItemPersistenceType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         Whether values of this item should be persisted.
@@ -8033,7 +8033,7 @@
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:simpleType name="PersistenceType">
+    <xsd:simpleType name="ItemPersistenceType">
         <xsd:annotation>
             <xsd:documentation>
                 Whether or how data should be persisted.
@@ -8084,6 +8084,7 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         Data are held only during computation. They are not provided to the client.
+                        (Not implemented yet.)
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="INTERNAL"/>
@@ -15034,6 +15035,17 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="meta" type="tns:MetadataHandlingType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Definition of handling of a metadata items for this particular item.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
           </xsd:extension>
        </xsd:complexContent>
@@ -17549,6 +17561,7 @@
                             <xsd:appinfo>
                                 <a:displayName>ObjectCollectionType.auditSearch</a:displayName>
                                 <a:experimental>true</a:experimental>
+                                <a:deprecated>true</a:deprecated>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -17965,6 +17978,7 @@
                 <a:container/>
                 <a:since>4.0</a:since>
                 <a:experimental>true</a:experimental>
+                <a:deprecated>true</a:deprecated>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

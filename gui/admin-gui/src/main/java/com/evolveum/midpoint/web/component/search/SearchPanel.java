@@ -571,6 +571,7 @@ public class SearchPanel extends BasePanel<Search> {
 
         ListView properties = new ListView<Property>(ID_PROPERTIES,
             new PropertyModel<>(moreDialogModel, MoreDialogDto.F_PROPERTIES)) {
+            private static final long serialVersionUID = 1L;
 
             @Override
             protected void populateItem(final ListItem<Property> item) {
@@ -740,6 +741,10 @@ public class SearchPanel extends BasePanel<Search> {
 
     void refreshSearchForm(AjaxRequestTarget target) {
         target.add(get(ID_FORM), get(ID_POPOVER));
+        saveSearch(getModelObject(), target);
+    }
+
+    protected void saveSearch(Search search, AjaxRequestTarget target) {
     }
 
     public void searchPerformed(ObjectQuery query, AjaxRequestTarget target) {

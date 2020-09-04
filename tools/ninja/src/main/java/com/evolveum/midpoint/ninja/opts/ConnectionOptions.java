@@ -34,6 +34,8 @@ public class ConnectionOptions {
     public static final String P_WEBSERVICE = "-w";
     public static final String P_WEBSERVICE_LONG = "--webservice";
 
+    public static final String P_OFFLINE_LONG = "--offline";
+
 
     @Parameter(names = {P_URL, P_URL_LONG}, validateWith = URIConverter.class, descriptionKey = "connection.url")
     private String url;
@@ -53,6 +55,9 @@ public class ConnectionOptions {
 
     @Parameter(names = {P_WEBSERVICE, P_WEBSERVICE_LONG}, descriptionKey = "connection.useWebservice", hidden = true)   //todo remove hidden when implementation is done
     private boolean useWebservice;
+
+    @Parameter(names = {P_OFFLINE_LONG}, descriptionKey = "connection.offline")
+    private boolean offline;
 
     public String getAskPassword() {
         return askPassword;
@@ -76,5 +81,9 @@ public class ConnectionOptions {
 
     public boolean isUseWebservice() {
         return useWebservice;
+    }
+
+    public boolean isOffline() {
+        return offline;
     }
 }

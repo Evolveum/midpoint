@@ -266,7 +266,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
      * These are created during mapping parsing.
      * (In rare cases, extra pre-parsed sources can be provided using builder.)
      */
-    final Collection<Source<?, ?>> sources = new ArrayList<>();
+    @NotNull final List<Source<?, ?>> sources = new ArrayList<>();
 
     /**
      * State of the mapping evaluation.
@@ -1501,5 +1501,11 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
     public @NotNull MappingSpecificationType getMappingSpecification() {
         return mappingSpecification;
+    }
+
+    public List<QName> getSourceNames() {
+        return sources.stream()
+                .map(Source::getName)
+                .collect(Collectors.toList());
     }
 }

@@ -32,19 +32,26 @@ public class TraceParser {
 
     @NotNull private final PrismContext prismContext;
 
-    @SuppressWarnings("WeakerAccess") // used externally
     public TraceParser(@NotNull PrismContext prismContext) {
         this.prismContext = prismContext;
     }
 
     public TracingOutputType parse(File file) throws IOException, SchemaException {
+        return parse(file, false);
+    }
+
+    public TracingOutputType parse(File file, boolean raw) throws IOException, SchemaException {
         boolean isZip = file.getName().toLowerCase().endsWith(".zip");
-        return parse(new FileInputStream(file), isZip, file.getPath());
+        return parse(new FileInputStream(file), isZip, raw, file.getPath());
     }
 
     public TracingOutputType parse(InputStream inputStream, boolean isZip, String description) throws SchemaException, IOException {
+        return parse(inputStream, isZip, false, description);
+    }
+
+    public TracingOutputType parse(InputStream inputStream, boolean isZip, boolean raw, String description) throws SchemaException, IOException {
         TracingOutputType wholeTracingOutput = getObject(inputStream, isZip, description);
-        if (wholeTracingOutput != null) {
+        if (!raw && wholeTracingOutput != null) {
             new DictionaryExpander(wholeTracingOutput).expand();
             new OperationCategorizer(wholeTracingOutput).categorize();
         }

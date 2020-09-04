@@ -565,6 +565,9 @@ public class PrismPropertyValueImpl<T> extends PrismValueImpl
             builder.append(", expression: ");
             builder.append(getExpression());
         }
+        if (isTransient()) {
+            builder.append(", transient");
+        }
     }
 
     @Override

@@ -6,12 +6,17 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
-
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.jetbrains.annotations.NotNull;
+
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SearchItemType;
 
 /**
  * @author honchar
@@ -19,6 +24,7 @@ import org.jetbrains.annotations.NotNull;
 public class FilterSearchItem extends SearchItem {
 
     private static final long serialVersionUID = 1L;
+    private static final Trace LOGGER = TraceManager.getTrace(FilterSearchItem.class);
 
     public static final String F_APPLY_FILTER = "applyFilter";
 
@@ -42,8 +48,16 @@ public class FilterSearchItem extends SearchItem {
     }
 
     @Override
-    protected String getTitle(){
-        return getPredefinedFilter().getFilter() != null ? getPredefinedFilter().getFilter().toString() : "";
+    protected String getTitle(PageBase pageBase) {
+        if (getPredefinedFilter() == null || getPredefinedFilter().getFilter() == null) {
+            return null;
+        }
+        try {
+            return pageBase.getPrismContext().xmlSerializer().serializeRealValue(getPredefinedFilter().getFilter());
+        } catch (SchemaException e) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
+        }
+        return null;
     }
 
     public SearchItemType getPredefinedFilter() {

@@ -231,7 +231,7 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
         if (item == null){
             return Model.of();
         }
-        return Model.of(item.getTitle());
+        return Model.of(item.getTitle(getPageBase()));
     }
 
     private void deletePerformed(AjaxRequestTarget target) {
