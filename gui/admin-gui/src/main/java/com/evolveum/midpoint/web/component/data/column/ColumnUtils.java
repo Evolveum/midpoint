@@ -32,6 +32,8 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -550,6 +552,13 @@ public class ColumnUtils {
 
                 c.add(new AttributeAppender("title", descriptionValue));
             }
+
+            @Override
+            public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(Arrays.asList(caseType.getObjectRef()), "loadCaseWorkItemObjectRef", pageBase));
+            }
         });
         columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.target")) {
             private static final long serialVersionUID = 1L;
@@ -582,6 +591,13 @@ public class ColumnUtils {
 
                 c.add(new AttributeAppender("title", descriptionValue));
             }
+
+            @Override
+            public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
+                CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
+                CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
+                return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(Arrays.asList(caseType.getTargetRef()), "loadCaseWorkItemTargetRef", pageBase));
+            }
         });
         if (isFullView) {
             columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
@@ -609,6 +625,12 @@ public class ColumnUtils {
                                 public void onClick(AjaxRequestTarget target) {
                                     dispatchToObjectDetailsPage(assigneeRef, pageBase, false);
                                 }
+
+                                @Override
+                                public boolean isEnabled() {
+                                    return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(Arrays.asList(assigneeRef), "loadCaseWorkItemAssigneeRef", pageBase));
+                                }
+
                             };
                             assigneeLinkPanel.setOutputMarkupId(true);
                             actorLinks.add(assigneeLinkPanel);
@@ -622,6 +644,8 @@ public class ColumnUtils {
                     String assignee = WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getAssigneeRef(), false);
                     return Model.of(assignee != null ? assignee : WebComponentUtil.getReferencedObjectNames(unwrapRowModel(rowModel).getCandidateRef(), true));
                 }
+
+
             });
         }
         columns.add(new AbstractExportableColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>(
