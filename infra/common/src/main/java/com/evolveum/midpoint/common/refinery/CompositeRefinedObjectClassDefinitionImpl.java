@@ -1,22 +1,28 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.common.refinery;
 
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.processor.MutableObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinitionImpl;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.SearchHierarchyScope;
+import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -26,23 +32,10 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityTy
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import static java.util.Collections.emptySet;
-
 /**
  * Used to represent combined definition of structural and auxiliary object classes.
  *
  * @author semancik
- *
  */
 public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefinedObjectClassDefinition {
     private static final long serialVersionUID = 1L;
@@ -268,9 +261,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     @Override
     public boolean isEmpty() {
         return structuralObjectClassDefinition.isEmpty()
-                && !auxiliaryObjectClassDefinitions.stream()
-                .filter(def -> def.isEmpty())
-                .findAny().isPresent();
+                && auxiliaryObjectClassDefinitions.stream().noneMatch(def -> def.isEmpty());
     }
 
     @Override
@@ -406,7 +397,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     public <T extends ItemDefinition> T findLocalItemDefinition(@NotNull QName name, @NotNull Class<T> clazz, boolean caseInsensitive) {
         T itemDef = structuralObjectClassDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
         if (itemDef == null) {
-            for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+            for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
                 itemDef = auxiliaryObjectClassDefinition.findLocalItemDefinition(name, clazz, caseInsensitive);
                 if (itemDef != null) {
                     break;
@@ -428,19 +419,19 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         if (auxiliaryObjectClassDefinitions.isEmpty()) {
             return structuralObjectClassDefinition.getAttributeDefinitions();
         }
-        Collection<? extends RefinedAttributeDefinition<?>> defs = new ArrayList<>();
-        defs.addAll((Collection)structuralObjectClassDefinition.getAttributeDefinitions());
-        for(RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
-            for (RefinedAttributeDefinition<?> auxRAttrDef: auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
+        Collection<RefinedAttributeDefinition<?>> defs =
+                new ArrayList<>(structuralObjectClassDefinition.getAttributeDefinitions());
+        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+            for (RefinedAttributeDefinition<?> auxRAttrDef : auxiliaryObjectClassDefinition.getAttributeDefinitions()) {
                 boolean add = true;
-                for (RefinedAttributeDefinition def: defs) {
+                for (RefinedAttributeDefinition def : defs) {
                     if (def.getItemName().equals(auxRAttrDef.getItemName())) {
                         add = false;
                         break;
                     }
                 }
                 if (add) {
-                    ((Collection)defs).add(auxRAttrDef);
+                    defs.add(auxRAttrDef);
                 }
             }
         }
@@ -504,7 +495,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     }
 
     public RefinedAssociationDefinition findAssociationDefinition(QName name) {
-        for (RefinedAssociationDefinition assocType: getAssociationDefinitions()) {
+        for (RefinedAssociationDefinition assocType : getAssociationDefinitions()) {
             if (QNameUtil.match(assocType.getName(), name)) {
                 return assocType;
             }
@@ -579,9 +570,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     @Override
     public boolean containsAttributeDefinition(ItemPathType pathType) {
         return getRefinedObjectClassDefinitionsStream()
-                .filter(def -> containsAttributeDefinition(pathType))
-                .findAny()
-                .isPresent();
+                .anyMatch(def -> containsAttributeDefinition(pathType));
     }
 
     private Stream<RefinedObjectClassDefinition> getRefinedObjectClassDefinitionsStream() {
@@ -591,9 +580,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     @Override
     public boolean containsAttributeDefinition(QName attributeName) {
         return getRefinedObjectClassDefinitionsStream()
-                .filter(def -> containsAttributeDefinition(attributeName))
-                .findAny()
-                .isPresent();
+                .anyMatch(def -> containsAttributeDefinition(attributeName));
     }
 
     @Override
@@ -634,7 +621,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         return findInDefinitions(def -> def.getPasswordDefinition());
     }
 
-    private <T> T findInDefinitions(Function<RefinedObjectClassDefinition,T> transform) {
+    private <T> T findInDefinitions(Function<RefinedObjectClassDefinition, T> transform) {
         if (structuralObjectClassDefinition != null) {
             T val = transform.apply(structuralObjectClassDefinition);
             if (val != null) {
@@ -642,7 +629,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
             }
         }
         // TODO what if there is a conflict?
-        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
             T val = transform.apply(auxiliaryObjectClassDefinition);
             if (val != null) {
                 return val;
@@ -675,9 +662,9 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     @Override
     public CompositeRefinedObjectClassDefinitionImpl clone() {
         RefinedObjectClassDefinition structuralObjectClassDefinitionClone = structuralObjectClassDefinition.clone();
-        Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitionsClone = null;
+        Collection<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitionsClone;
         auxiliaryObjectClassDefinitionsClone = new ArrayList<>(this.auxiliaryObjectClassDefinitions.size());
-        for(RefinedObjectClassDefinition auxiliaryObjectClassDefinition: this.auxiliaryObjectClassDefinitions) {
+        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : this.auxiliaryObjectClassDefinitions) {
             auxiliaryObjectClassDefinitionsClone.add(auxiliaryObjectClassDefinition.clone());
         }
         return new CompositeRefinedObjectClassDefinitionImpl(structuralObjectClassDefinitionClone, auxiliaryObjectClassDefinitionsClone);
@@ -745,18 +732,18 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
         if (getDisplayName() != null) {
             return getDisplayName();
         } else {
-            return getKind()+":"+getIntent();
+            return getKind() + ":" + getIntent();
         }
     }
 
     @Override
     public String toString() {
         if (auxiliaryObjectClassDefinitions.isEmpty()) {
-            return getDebugDumpClassName() + getMutabilityFlag() + " ("+getTypeName()+")";
+            return getDebugDumpClassName() + getMutabilityFlag() + " (" + getTypeName() + ")";
         } else {
             StringBuilder sb = new StringBuilder();
             sb.append(getDebugDumpClassName()).append(getMutabilityFlag()).append("(").append(getTypeName());
-            for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+            for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
                 sb.append("+").append(auxiliaryObjectClassDefinition.getTypeName());
             }
             sb.append(")");
@@ -804,7 +791,7 @@ public class CompositeRefinedObjectClassDefinitionImpl implements CompositeRefin
     @NotNull
     @Override
     public Collection<TypeDefinition> getStaticSubTypes() {
-        return emptySet();
+        return Collections.emptySet();
     }
 
     @Override
