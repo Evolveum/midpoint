@@ -23,13 +23,13 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.math.NumberUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
 import org.apache.wicket.*;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -140,7 +140,10 @@ import com.evolveum.midpoint.web.component.input.DisplayableValueChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.prism.*;
+import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.SceneUtil;
 import com.evolveum.midpoint.web.component.util.Selectable;
@@ -208,56 +211,56 @@ public final class WebComponentUtil {
      */
     private static RelationRegistry staticallyProvidedRelationRegistry;
 
-    private static final Map<Class<?>, Class<? extends PageBase>> objectDetailsPageMap;
-    private static final Map<Class<?>, Class<? extends PageBase>> createNewObjectPageMap;
+    private static final Map<Class<?>, Class<? extends PageBase>> OBJECT_DETAILS_PAGE_MAP;
+    private static final Map<Class<?>, Class<? extends PageBase>> CREATE_NEW_OBJECT_PAGE_MAP;
 
     static {
-        objectDetailsPageMap = new HashMap<>();
-        objectDetailsPageMap.put(UserType.class, PageUser.class);
-        objectDetailsPageMap.put(OrgType.class, PageOrgUnit.class);
-        objectDetailsPageMap.put(RoleType.class, PageRole.class);
-        objectDetailsPageMap.put(ServiceType.class, PageService.class);
-        objectDetailsPageMap.put(ResourceType.class, PageResource.class);
-        objectDetailsPageMap.put(TaskType.class, PageTask.class);
-        objectDetailsPageMap.put(ReportType.class, PageReport.class);
-        objectDetailsPageMap.put(ValuePolicyType.class, PageValuePolicy.class);
-        objectDetailsPageMap.put(CaseType.class, PageCase.class);
-        objectDetailsPageMap.put(ArchetypeType.class, PageArchetype.class);
-        objectDetailsPageMap.put(ShadowType.class, PageAccount.class);
-        objectDetailsPageMap.put(ObjectCollectionType.class, PageObjectCollection.class);
+        OBJECT_DETAILS_PAGE_MAP = new HashMap<>();
+        OBJECT_DETAILS_PAGE_MAP.put(UserType.class, PageUser.class);
+        OBJECT_DETAILS_PAGE_MAP.put(OrgType.class, PageOrgUnit.class);
+        OBJECT_DETAILS_PAGE_MAP.put(RoleType.class, PageRole.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ServiceType.class, PageService.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ResourceType.class, PageResource.class);
+        OBJECT_DETAILS_PAGE_MAP.put(TaskType.class, PageTask.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ReportType.class, PageReport.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ValuePolicyType.class, PageValuePolicy.class);
+        OBJECT_DETAILS_PAGE_MAP.put(CaseType.class, PageCase.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ArchetypeType.class, PageArchetype.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ShadowType.class, PageAccount.class);
+        OBJECT_DETAILS_PAGE_MAP.put(ObjectCollectionType.class, PageObjectCollection.class);
     }
 
     static {
-        createNewObjectPageMap = new HashMap<>();
-        createNewObjectPageMap.put(ResourceType.class, PageResourceWizard.class);
+        CREATE_NEW_OBJECT_PAGE_MAP = new HashMap<>();
+        CREATE_NEW_OBJECT_PAGE_MAP.put(ResourceType.class, PageResourceWizard.class);
     }
 
     // only pages that support 'advanced search' are currently listed here (TODO: generalize)
-    private static final Map<Class<?>, Class<? extends PageBase>> objectListPageMap;
+    private static final Map<Class<?>, Class<? extends PageBase>> OBJECT_LIST_PAGE_MAP;
 
     static {
-        objectListPageMap = new HashMap<>();
-        objectListPageMap.put(UserType.class, PageUsers.class);
-        objectListPageMap.put(RoleType.class, PageRoles.class);
-        objectListPageMap.put(ServiceType.class, PageServices.class);
-        objectListPageMap.put(ResourceType.class, PageResources.class);
-        objectListPageMap.put(TaskType.class, PageTasks.class);
+        OBJECT_LIST_PAGE_MAP = new HashMap<>();
+        OBJECT_LIST_PAGE_MAP.put(UserType.class, PageUsers.class);
+        OBJECT_LIST_PAGE_MAP.put(RoleType.class, PageRoles.class);
+        OBJECT_LIST_PAGE_MAP.put(ServiceType.class, PageServices.class);
+        OBJECT_LIST_PAGE_MAP.put(ResourceType.class, PageResources.class);
+        OBJECT_LIST_PAGE_MAP.put(TaskType.class, PageTasks.class);
     }
 
-    private static final Map<TableId, String> storageTableIdMap;
+    private static final Map<TableId, String> STORAGE_TABLE_ID_MAP;
 
     static {
-        storageTableIdMap = new HashMap<>();
-        storageTableIdMap.put(TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE, SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        storageTableIdMap.put(TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_RESOURCE_MODE, SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        storageTableIdMap.put(TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE, SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        storageTableIdMap.put(TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_RESOURCE_MODE, SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        storageTableIdMap.put(TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
-        storageTableIdMap.put(TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
-        storageTableIdMap.put(TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL, SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT);
-        storageTableIdMap.put(TableId.ROLE_MEMBER_PANEL, SessionStorage.KEY_ROLE_MEMBER_PANEL);
-        storageTableIdMap.put(TableId.ORG_MEMBER_PANEL, SessionStorage.KEY_ORG_MEMBER_PANEL);
-        storageTableIdMap.put(TableId.SERVICE_MEMBER_PANEL, SessionStorage.KEY_SERVICE_MEMBER_PANEL);
+        STORAGE_TABLE_ID_MAP = new HashMap<>();
+        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_REPOSITORY_MODE, SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
+        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_RESOURCE_MODE, SessionStorage.KEY_RESOURCE_ACCOUNT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
+        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_REPOSITORY_MODE, SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
+        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_ENTITLEMENT_PANEL_RESOURCE_MODE, SessionStorage.KEY_RESOURCE_ENTITLEMENT_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
+        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_GENERIC_PANEL_REPOSITORY_MODE, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_REPOSITORY_CONTENT);
+        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_GENERIC_PANEL_RESOURCE_MODE, SessionStorage.KEY_RESOURCE_GENERIC_CONTENT + SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT);
+        STORAGE_TABLE_ID_MAP.put(TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL, SessionStorage.KEY_RESOURCE_OBJECT_CLASS_CONTENT);
+        STORAGE_TABLE_ID_MAP.put(TableId.ROLE_MEMBER_PANEL, SessionStorage.KEY_ROLE_MEMBER_PANEL);
+        STORAGE_TABLE_ID_MAP.put(TableId.ORG_MEMBER_PANEL, SessionStorage.KEY_ORG_MEMBER_PANEL);
+        STORAGE_TABLE_ID_MAP.put(TableId.SERVICE_MEMBER_PANEL, SessionStorage.KEY_SERVICE_MEMBER_PANEL);
 
     }
 
@@ -1369,8 +1372,7 @@ public final class WebComponentUtil {
             }
         }
 
-        String escaped = org.apache.commons.lang.StringEscapeUtils.escapeHtml(displayName);
-        return escaped;
+        return StringEscapeUtils.escapeHtml4(displayName);
     }
 
     private static String getAcquisitionDescription(ProvenanceAcquisitionType acquisitionType) {
@@ -2388,27 +2390,27 @@ public final class WebComponentUtil {
     }
 
     public static boolean hasDetailsPage(Class<?> clazz) {
-        return objectDetailsPageMap.containsKey(clazz);
+        return OBJECT_DETAILS_PAGE_MAP.containsKey(clazz);
     }
 
     public static String getStorageKeyForTableId(TableId tableId) {
-        return storageTableIdMap.get(tableId);
+        return STORAGE_TABLE_ID_MAP.get(tableId);
     }
 
     public static Class<? extends PageBase> getObjectDetailsPage(Class<? extends ObjectType> type) {
-        return objectDetailsPageMap.get(type);
+        return OBJECT_DETAILS_PAGE_MAP.get(type);
     }
 
     public static Class<? extends PageBase> getNewlyCreatedObjectPage(Class<? extends ObjectType> type) {
         if (ResourceType.class.equals(type)) {
-            return createNewObjectPageMap.get(type);
+            return CREATE_NEW_OBJECT_PAGE_MAP.get(type);
         } else {
-            return objectDetailsPageMap.get(type);
+            return OBJECT_DETAILS_PAGE_MAP.get(type);
         }
     }
 
     public static Class<? extends PageBase> getObjectListPage(Class<? extends ObjectType> type) {
-        return objectListPageMap.get(type);
+        return OBJECT_LIST_PAGE_MAP.get(type);
     }
 
     @NotNull
@@ -3745,7 +3747,7 @@ public final class WebComponentUtil {
         if (objectTypeDisplay.getIcon() == null) {
             objectTypeDisplay.setIcon(new IconType());
         }
-        QName objectType = org.apache.commons.collections.CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) : null;
+        QName objectType = CollectionUtils.isNotEmpty(relationSpec.getObjectTypes()) ? relationSpec.getObjectTypes().get(0) : null;
         if (StringUtils.isEmpty(WebComponentUtil.getIconCssClass(objectTypeDisplay)) && objectType != null) {
             objectTypeDisplay.getIcon().setCssClass(WebComponentUtil.createDefaultBlackIcon(objectType));
         }
@@ -3824,27 +3826,24 @@ public final class WebComponentUtil {
      * The idea is to divide the list of AssignmentObjectRelation objects in such way that each AssignmentObjectRelation
      * in the list will contain not more than 1 relation. This will simplify creating of a new_assignment_button
      * on some panels
-     *
-     * @param initialRelationsList
-     * @return
      */
     public static List<AssignmentObjectRelation> divideAssignmentRelationsByRelationValue(List<AssignmentObjectRelation> initialRelationsList) {
-        if (org.apache.commons.collections.CollectionUtils.isEmpty(initialRelationsList)) {
+        if (CollectionUtils.isEmpty(initialRelationsList)) {
             return initialRelationsList;
         }
         List<AssignmentObjectRelation> combinedRelationList = new ArrayList<>();
         initialRelationsList.forEach(assignmentTargetRelation -> {
-            if (org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes()) &&
-                    org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())) {
+            if (CollectionUtils.isEmpty(assignmentTargetRelation.getObjectTypes()) &&
+                    CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())) {
                 return;
             }
-            if (org.apache.commons.collections.CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())) {
+            if (CollectionUtils.isEmpty(assignmentTargetRelation.getRelations())) {
                 combinedRelationList.add(assignmentTargetRelation);
             } else {
                 assignmentTargetRelation.getRelations().forEach(relation -> {
                     AssignmentObjectRelation relationObj = new AssignmentObjectRelation();
                     relationObj.setObjectTypes(assignmentTargetRelation.getObjectTypes());
-                    relationObj.setRelations(Arrays.asList(relation));
+                    relationObj.setRelations(Collections.singletonList(relation));
                     relationObj.setArchetypeRefs(assignmentTargetRelation.getArchetypeRefs());
                     relationObj.setDescription(assignmentTargetRelation.getDescription());
                     combinedRelationList.add(relationObj);
@@ -3858,9 +3857,6 @@ public final class WebComponentUtil {
      * The idea is to divide the list of AssignmentObjectRelation objects in such way that each AssignmentObjectRelation
      * in the list will contain not more than 1 relation, not more than 1 object type and not more than one archetype reference.
      * This will simplify creating of a new_assignment_button
-     *
-     * @param initialAssignmentRelationsList
-     * @return
      */
     public static List<AssignmentObjectRelation> divideAssignmentRelationsByAllValues(List<AssignmentObjectRelation> initialAssignmentRelationsList) {
         if (initialAssignmentRelationsList == null) {
@@ -3874,15 +3870,15 @@ public final class WebComponentUtil {
                     if (CollectionUtils.isNotEmpty(assignmentObjectRelation.getArchetypeRefs())) {
                         assignmentObjectRelation.getArchetypeRefs().forEach(archetypeRef -> {
                             AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
-                            newRelation.setObjectTypes(Arrays.asList(objectType));
+                            newRelation.setObjectTypes(Collections.singletonList(objectType));
                             newRelation.setRelations(assignmentObjectRelation.getRelations());
-                            newRelation.setArchetypeRefs(Arrays.asList(archetypeRef));
+                            newRelation.setArchetypeRefs(Collections.singletonList(archetypeRef));
                             newRelation.setDescription(assignmentObjectRelation.getDescription());
                             resultList.add(newRelation);
                         });
                     } else {
                         AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
-                        newRelation.setObjectTypes(Arrays.asList(objectType));
+                        newRelation.setObjectTypes(Collections.singletonList(objectType));
                         newRelation.setRelations(assignmentObjectRelation.getRelations());
                         newRelation.setArchetypeRefs(assignmentObjectRelation.getArchetypeRefs());
                         newRelation.setDescription(assignmentObjectRelation.getDescription());
@@ -3895,7 +3891,7 @@ public final class WebComponentUtil {
                         AssignmentObjectRelation newRelation = new AssignmentObjectRelation();
                         newRelation.setObjectTypes(assignmentObjectRelation.getObjectTypes());
                         newRelation.setRelations(assignmentObjectRelation.getRelations());
-                        newRelation.setArchetypeRefs(Arrays.asList(archetypeRef));
+                        newRelation.setArchetypeRefs(Collections.singletonList(archetypeRef));
                         newRelation.setDescription(assignmentObjectRelation.getDescription());
                         resultList.add(newRelation);
                     });
