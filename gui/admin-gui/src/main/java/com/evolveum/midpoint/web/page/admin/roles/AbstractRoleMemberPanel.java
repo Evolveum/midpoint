@@ -9,8 +9,8 @@ package com.evolveum.midpoint.web.page.admin.roles;
 import java.util.*;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -92,6 +92,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractRoleMemberPanel.class);
     private static final String DOT_CLASS = AbstractRoleMemberPanel.class.getName() + ".";
+
     protected static final String OPERATION_LOAD_MEMBER_RELATIONS = DOT_CLASS + "loadMemberRelationsList";
     protected static final String OPERATION_LOAD_ARCHETYPE_OBJECT = DOT_CLASS + "loadArchetypeObject";
 
@@ -112,21 +113,21 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
 
     protected static final String ID_SEARCH_BY_RELATION = "searchByRelation";
 
-    private static final Map<QName, Map<String, String>> authorizations = new HashMap<>();
-    private static final Map<QName, TableId> tablesId = new HashMap<>();
+    private static final Map<QName, Map<String, String>> AUTHORIZATIONS = new HashMap<>();
+    private static final Map<QName, TableId> TABLES_ID = new HashMap<>();
 
     static {
-        tablesId.put(RoleType.COMPLEX_TYPE, TableId.ROLE_MEMBER_PANEL);
-        tablesId.put(ServiceType.COMPLEX_TYPE, TableId.SERVICE_MEMBER_PANEL);
-        tablesId.put(OrgType.COMPLEX_TYPE, TableId.ORG_MEMBER_PANEL);
-        tablesId.put(ArchetypeType.COMPLEX_TYPE, TableId.ARCHETYPE_MEMBER_PANEL);
+        TABLES_ID.put(RoleType.COMPLEX_TYPE, TableId.ROLE_MEMBER_PANEL);
+        TABLES_ID.put(ServiceType.COMPLEX_TYPE, TableId.SERVICE_MEMBER_PANEL);
+        TABLES_ID.put(OrgType.COMPLEX_TYPE, TableId.ORG_MEMBER_PANEL);
+        TABLES_ID.put(ArchetypeType.COMPLEX_TYPE, TableId.ARCHETYPE_MEMBER_PANEL);
     }
 
     static {
-        authorizations.put(RoleType.COMPLEX_TYPE, GuiAuthorizationConstants.ROLE_MEMBERS_AUTHORIZATIONS);
-        authorizations.put(ServiceType.COMPLEX_TYPE, GuiAuthorizationConstants.SERVICE_MEMBERS_AUTHORIZATIONS);
-        authorizations.put(OrgType.COMPLEX_TYPE, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS);
-        authorizations.put(ArchetypeType.COMPLEX_TYPE, GuiAuthorizationConstants.ARCHETYPE_MEMBERS_AUTHORIZATIONS);
+        AUTHORIZATIONS.put(RoleType.COMPLEX_TYPE, GuiAuthorizationConstants.ROLE_MEMBERS_AUTHORIZATIONS);
+        AUTHORIZATIONS.put(ServiceType.COMPLEX_TYPE, GuiAuthorizationConstants.SERVICE_MEMBERS_AUTHORIZATIONS);
+        AUTHORIZATIONS.put(OrgType.COMPLEX_TYPE, GuiAuthorizationConstants.ORG_MEMBERS_AUTHORIZATIONS);
+        AUTHORIZATIONS.put(ArchetypeType.COMPLEX_TYPE, GuiAuthorizationConstants.ARCHETYPE_MEMBERS_AUTHORIZATIONS);
     }
 
     public AbstractRoleMemberPanel(String id, IModel<R> model) {
@@ -384,11 +385,11 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     protected TableId getTableId(QName complextType) {
-        return tablesId.get(complextType);
+        return TABLES_ID.get(complextType);
     }
 
     protected Map<String, String> getAuthorizations(QName complexType) {
-        return authorizations.get(complexType);
+        return AUTHORIZATIONS.get(complexType);
     }
 
     protected QName getComplexTypeQName() {
