@@ -1,26 +1,24 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.api.util;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.QNameUtil;
-
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -30,9 +28,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class ObjectTabVisibleBehavior<O extends ObjectType> extends VisibleEnableBehaviour {
     private static final long serialVersionUID = 1L;
 
-    private IModel<PrismObject<O>> objectModel;
-    private String uiAuthorizationUrl;
-    private PageBase pageBase;
+    private final IModel<PrismObject<O>> objectModel;
+    private final String uiAuthorizationUrl;
+    private final PageBase pageBase;
 
     public ObjectTabVisibleBehavior(IModel<PrismObject<O>> objectModel, String uiAuthorizationUrl, PageBase pageBase) {
         this.objectModel = objectModel;
@@ -68,7 +66,7 @@ public class ObjectTabVisibleBehavior<O extends ObjectType> extends VisibleEnabl
                 continue;
             }
 
-            if (ObjectUtils.equals(uiAuthorizationUrl, spec.getPanelUri())) {
+            if (Objects.equals(uiAuthorizationUrl, spec.getPanelUri())) {
                 return true;
             }
         }

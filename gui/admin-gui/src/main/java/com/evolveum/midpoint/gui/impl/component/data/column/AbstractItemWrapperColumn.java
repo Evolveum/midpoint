@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.impl.component.data.column;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -25,7 +24,9 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 /**
  * @author skublik
  */
-public abstract class AbstractItemWrapperColumn<C extends Containerable, VW extends PrismValueWrapper> extends AbstractColumn<PrismContainerValueWrapper<C>, String> implements IExportableColumn<PrismContainerValueWrapper<C>, String>{
+public abstract class AbstractItemWrapperColumn<C extends Containerable, VW extends PrismValueWrapper>
+        extends AbstractColumn<PrismContainerValueWrapper<C>, String>
+        implements IExportableColumn<PrismContainerValueWrapper<C>, String> {
 
     public enum ColumnType {
         LINK,
@@ -34,14 +35,14 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
     }
 
     private static final long serialVersionUID = 1L;
-    protected ItemPath itemName;
-
-    private ColumnType columnType;
 
     private static final String ID_VALUE = "value";
 
+    protected ItemPath itemName;
 
-    private IModel<? extends PrismContainerDefinition<C>> mainModel = null;
+    private final ColumnType columnType;
+
+    private IModel<? extends PrismContainerDefinition<C>> mainModel;
 
     AbstractItemWrapperColumn(IModel<? extends PrismContainerDefinition<C>> mainModel, ItemPath itemName, ColumnType columnType) {
         super(null);
@@ -52,7 +53,6 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
         this.itemName = itemName;
         this.columnType = columnType;
     }
-
 
     @Override
     public Component getHeader(String componentId) {
@@ -70,10 +70,8 @@ public abstract class AbstractItemWrapperColumn<C extends Containerable, VW exte
     protected abstract Component createHeader(String componentId, IModel<? extends PrismContainerDefinition<C>> mainModel);
     protected abstract <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel);
 
-
     public ColumnType getColumnType() {
         return columnType;
     }
-
 
 }

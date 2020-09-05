@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.api.component.autocomplete;
 import java.util.List;
 import java.util.Locale;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.IConverter;

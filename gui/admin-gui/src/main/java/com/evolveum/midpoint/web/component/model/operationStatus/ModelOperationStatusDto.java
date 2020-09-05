@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.model.operationStatus;
 
-import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 import java.io.Serializable;
 import java.util.ArrayList;

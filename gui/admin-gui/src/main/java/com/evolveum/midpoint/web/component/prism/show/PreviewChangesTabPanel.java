@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.web.component.prism.show;
 
-import static org.apache.commons.collections.CollectionUtils.addIgnoreNull;
+import static org.apache.commons.collections4.CollectionUtils.addIgnoreNull;
 
 import java.util.ArrayList;
 import java.util.Collections;

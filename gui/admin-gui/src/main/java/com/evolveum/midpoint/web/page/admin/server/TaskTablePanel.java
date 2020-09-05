@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;

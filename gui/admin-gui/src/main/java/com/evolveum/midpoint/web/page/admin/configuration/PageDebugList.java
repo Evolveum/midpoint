@@ -12,8 +12,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.IteratorUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections4.IteratorUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;

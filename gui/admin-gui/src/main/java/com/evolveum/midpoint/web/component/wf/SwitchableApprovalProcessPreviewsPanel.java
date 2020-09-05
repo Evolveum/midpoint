@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.component.wf;
 import java.util.Collections;
 import java.util.Optional;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxFallbackLink;
 import org.apache.wicket.markup.html.WebMarkupContainer;

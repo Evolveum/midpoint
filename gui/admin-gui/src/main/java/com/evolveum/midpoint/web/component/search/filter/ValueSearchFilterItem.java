@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.*;

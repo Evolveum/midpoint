@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,16 +9,12 @@ package com.evolveum.midpoint.gui.api.util;
 import static com.evolveum.midpoint.schema.GetOperationOptions.createNoFetchCollection;
 
 import java.util.*;
+import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
-import org.apache.commons.lang.LocaleUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.LocaleUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.Session;
 import org.apache.wicket.ThreadContext;
@@ -31,40 +27,29 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
-import com.evolveum.midpoint.schema.SchemaHelper;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.AuthorizationException;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.PolicyViolationException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.EvaluationTimeType;
-
-import javax.xml.namespace.QName;
 
 /**
  * Utility class that contains methods that interact with ModelService and other
@@ -109,7 +94,7 @@ public class WebModelServiceUtils {
             return translate ? page.getLocalizationService().translate(ref.getTargetName().toPolyString(), page.getLocale(), true)
                     : ref.getTargetName().getOrig();
         }
-        if (StringUtils.isEmpty(ref.getOid()) || ref.getType() == null){
+        if (StringUtils.isEmpty(ref.getOid()) || ref.getType() == null) {
             return null;
         }
         PrismObject<ObjectType> object = resolveReferenceNoFetch(ref, page, task, result);
@@ -152,7 +137,7 @@ public class WebModelServiceUtils {
         return loadObject(definition.getCompileTimeClass(), reference.getOid(), createNoFetchCollection(), page, task, result);
     }
 
-    public static <O extends ObjectType> List<ObjectReferenceType> createObjectReferenceList(Class<O> type, PageBase page, Map<String, String> referenceMap){
+    public static <O extends ObjectType> List<ObjectReferenceType> createObjectReferenceList(Class<O> type, PageBase page, Map<String, String> referenceMap) {
         referenceMap.clear();
 
         OperationResult result = new OperationResult(OPERATION_LOAD_OBJECT_REFS);
@@ -163,13 +148,13 @@ public class WebModelServiceUtils {
             result.recomputeStatus();
             List<ObjectReferenceType> references = new ArrayList<>();
 
-            for(PrismObject<O> object: objects){
+            for (PrismObject<O> object : objects) {
                 referenceMap.put(object.getOid(), WebComponentUtil.getName(object));
                 references.add(ObjectTypeUtil.createObjectRef(object, page.getPrismContext()));
 
             }
             return references;
-        } catch (Exception e){
+        } catch (Exception e) {
             result.recordFatalError(page.createStringResource("WebModelUtils.couldntLoadPasswordPolicies").getString(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load password policies", e);
         }
@@ -182,13 +167,13 @@ public class WebModelServiceUtils {
         return null;
     }
 
-    public static <O extends ObjectType> String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
+    public static <O extends ObjectType> String runTask(TaskType taskToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase) {
         try {
             ObjectDelta<TaskType> delta = DeltaFactory.Object.createAddDelta(taskToRun.asPrismObject());
             pageBase.getPrismContext().adopt(delta);
             Collection<ObjectDeltaOperation<?>> deltaOperationRes = pageBase.getModelService().executeChanges(MiscUtil.createCollection(delta), null,
                     operationalTask, parentResult);
-            if (StringUtils.isEmpty(delta.getOid()) && deltaOperationRes != null && !deltaOperationRes.isEmpty()){
+            if (StringUtils.isEmpty(delta.getOid()) && deltaOperationRes != null && !deltaOperationRes.isEmpty()) {
                 ObjectDeltaOperation deltaOperation = deltaOperationRes.iterator().next();
                 delta.setOid(deltaOperation.getObjectDelta().getOid());
             }
@@ -207,12 +192,12 @@ public class WebModelServiceUtils {
 
     }
 
-    public static void runTask(Collection<TaskType> tasksToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase){
+    public static void runTask(Collection<TaskType> tasksToRun, Task operationalTask, OperationResult parentResult, PageBase pageBase) {
 //        try {
 
-            for (TaskType taskToRun : tasksToRun){
-                runTask(tasksToRun, operationalTask, parentResult, pageBase);
-            }
+        for (TaskType taskToRun : tasksToRun) {
+            runTask(tasksToRun, operationalTask, parentResult, pageBase);
+        }
 
 //            }
 //            ObjectDelta<TaskType> delta = ObjectDelta.createAddDelta(taskToRun.asPrismObject());
@@ -464,23 +449,23 @@ public class WebModelServiceUtils {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't count objects", ex);
         }
 
-         LOGGER.debug("Count objects with result {}", parentResult);
-         return count;
+        LOGGER.debug("Count objects with result {}", parentResult);
+        return count;
     }
 
     public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result,
-                                                           PageBase page) {
+            PageBase page) {
         deleteObject(type, oid, null, result, page, null);
     }
 
     public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, ModelExecuteOptions options,
-                                                           OperationResult result, PageBase page) {
+            OperationResult result, PageBase page) {
         deleteObject(type, oid, options, result, page, null);
     }
 
     public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, ModelExecuteOptions options,
-                                                           OperationResult result, PageBase page,
-                                                           PrismObject<UserType> principal) {
+            OperationResult result, PageBase page,
+            PrismObject<UserType> principal) {
         LOGGER.debug("Deleting {} with oid {}, options {}", type.getSimpleName(), oid, options);
 
         OperationResult subResult;
@@ -527,9 +512,8 @@ public class WebModelServiceUtils {
         save(MiscUtil.createCollection(delta), options, result, task, page);
     }
 
-
     public static void save(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-                            OperationResult result, Task task, PageBase page) {
+            OperationResult result, Task task, PageBase page) {
         LOGGER.debug("Saving deltas {}, options {}", deltas, options);
 
         OperationResult subResult;
@@ -586,7 +570,7 @@ public class WebModelServiceUtils {
         MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
         Validate.notNull(principal, "No principal");
         if (principal.getOid() == null) {
-            throw new IllegalArgumentException("No OID in principal: "+principal);
+            throw new IllegalArgumentException("No OID in principal: " + principal);
         }
         return principal.getOid();
     }
@@ -664,7 +648,7 @@ public class WebModelServiceUtils {
 
         try {
             return TimeZone.getTimeZone(timeZone);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             LOGGER.debug("Error occurred while getting user time zone, " + ex.getMessage());
             return null;
         }
@@ -698,11 +682,11 @@ public class WebModelServiceUtils {
     }
 
     public static <O extends ObjectType> PrismObject<O> reconstructObject(Class<O> type,
-                                 String oid, String eventIdentifier, Task task, OperationResult result){
+            String oid, String eventIdentifier, Task task, OperationResult result) {
         try {
             MidPointApplication application = (MidPointApplication) MidPointApplication.get();
             return application.getAuditService().reconstructObject(type, oid, eventIdentifier, task, result);
-        } catch (Exception ex){
+        } catch (Exception ex) {
             LOGGER.debug("Error occurred while reconsructing the object, " + ex.getMessage());
         }
         return null;
@@ -712,12 +696,12 @@ public class WebModelServiceUtils {
         return schemaHelper.getOperationOptionsBuilder()
                 .item(LookupTableType.F_ROW)
                 .retrieveQuery()
-                    .asc(LookupTableRowType.F_LABEL)
+                .asc(LookupTableRowType.F_LABEL)
                 .end()
                 .build();
     }
 
-    public static ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType, PageBase pageBase){
+    public static ActivationStatusType getAssignmentEffectiveStatus(String lifecycleStatus, ActivationType activationType, PageBase pageBase) {
         return pageBase.getModelInteractionService().getAssignmentEffectiveStatus(lifecycleStatus, activationType);
     }
 
@@ -846,8 +830,8 @@ public class WebModelServiceUtils {
 
     public static PrismObject<SystemConfigurationType> loadSystemConfigurationAsPrismObject(PageBase pageBase, Task task, OperationResult result) {
         PrismObject<SystemConfigurationType> systemConfig = loadObject(
-            SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
-            pageBase, task, result);
+                SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(), null,
+                pageBase, task, result);
 
         return systemConfig;
     }

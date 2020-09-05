@@ -1,52 +1,42 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.api.util;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismReferenceWrapper;
-import com.evolveum.midpoint.gui.impl.Channel;
-import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ValueStatus;
-
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.*;
+import com.evolveum.midpoint.gui.impl.Channel;
+import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.prism.ValueStatus;
+import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
+
 /**
  * @author katka
- *
  */
 public class WebPrismUtil {
 
@@ -55,7 +45,7 @@ public class WebPrismUtil {
     private static final String DOT_CLASS = WebPrismUtil.class.getName() + ".";
     private static final String OPERATION_CREATE_NEW_VALUE = DOT_CLASS + "createNewValue";
 
-    public static <ID extends ItemDefinition<I>, I extends Item<?,?>> String getHelpText(ID def) {
+    public static <ID extends ItemDefinition<I>, I extends Item<?, ?>> String getHelpText(ID def) {
         if (def == null) {
             return null;
         }
@@ -69,7 +59,6 @@ public class WebPrismUtil {
 
         return doc.replaceAll("\\s{2,}", " ").trim();
     }
-
 
     public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(IW itemWrapper, PV newValue, PageBase pageBase, AjaxRequestTarget target) {
         LOGGER.debug("Adding value to {}", itemWrapper);
@@ -106,9 +95,6 @@ public class WebPrismUtil {
     public static <IW extends ItemWrapper, PV extends PrismValue, VW extends PrismValueWrapper> VW createNewValueWrapper(IW itemWrapper, PV newValue, ModelServiceLocator modelServiceLocator) throws SchemaException {
         LOGGER.debug("Adding value to {}", itemWrapper);
 
-
-
-
 //            if (!(itemWrapper instanceof PrismContainerWrapper)) {
 //                itemWrapper.getItem().add(newValue);
 //            }
@@ -116,18 +102,18 @@ public class WebPrismUtil {
         Task task = modelServiceLocator.createSimpleTask(OPERATION_CREATE_NEW_VALUE);
         OperationResult result = new OperationResult(OPERATION_CREATE_NEW_VALUE);
 
-            WrapperContext context = new WrapperContext(task, result);
-            context.setObjectStatus(itemWrapper.findObjectStatus());
-            context.setShowEmpty(true);
-            context.setCreateIfEmpty(true);
+        WrapperContext context = new WrapperContext(task, result);
+        context.setObjectStatus(itemWrapper.findObjectStatus());
+        context.setShowEmpty(true);
+        context.setCreateIfEmpty(true);
 
         VW newValueWrapper = modelServiceLocator.createValueWrapper(itemWrapper, newValue, ValueStatus.ADDED, context);
-            result.recordSuccess();
+        result.recordSuccess();
 
         return newValueWrapper;
     }
 
-    public static <IW extends ItemWrapper> IW findItemWrapper(ItemWrapper<?,?> child, ItemPath absoluthPathToFind, Class<IW> wrapperClass) {
+    public static <IW extends ItemWrapper> IW findItemWrapper(ItemWrapper<?, ?> child, ItemPath absoluthPathToFind, Class<IW> wrapperClass) {
         PrismObjectWrapper<?> taskWrapper = child.findObjectWrapper();
         try {
             return taskWrapper.findItem(ItemPath.create(absoluthPathToFind), wrapperClass);
@@ -137,15 +123,15 @@ public class WebPrismUtil {
         }
     }
 
-    public static <R extends Referencable> PrismReferenceWrapper<R> findReferenceWrapper(ItemWrapper<?,?> child, ItemPath pathToFind) {
+    public static <R extends Referencable> PrismReferenceWrapper<R> findReferenceWrapper(ItemWrapper<?, ?> child, ItemPath pathToFind) {
         return findItemWrapper(child, pathToFind, PrismReferenceWrapper.class);
     }
 
-    public static <T> PrismPropertyWrapper<T> findPropertyWrapper(ItemWrapper<?,?> child, ItemPath pathToFind) {
+    public static <T> PrismPropertyWrapper<T> findPropertyWrapper(ItemWrapper<?, ?> child, ItemPath pathToFind) {
         return findItemWrapper(child, pathToFind, PrismPropertyWrapper.class);
     }
 
-    public static <R extends Referencable> PrismReferenceValue findSingleReferenceValue(ItemWrapper<?,?> child, ItemPath pathToFind) {
+    public static <R extends Referencable> PrismReferenceValue findSingleReferenceValue(ItemWrapper<?, ?> child, ItemPath pathToFind) {
         PrismReferenceWrapper<R> objectRefWrapper = findReferenceWrapper(child, pathToFind);
         if (objectRefWrapper == null) {
             return null;
@@ -159,7 +145,7 @@ public class WebPrismUtil {
         }
     }
 
-    public static <T> PrismPropertyValue<T> findSinglePropertyValue(ItemWrapper<?,?> child, ItemPath pathToFind) {
+    public static <T> PrismPropertyValue<T> findSinglePropertyValue(ItemWrapper<?, ?> child, ItemPath pathToFind) {
         PrismPropertyWrapper<T> propertyWrapper = findPropertyWrapper(child, pathToFind);
         if (propertyWrapper == null) {
             return null;
@@ -208,7 +194,6 @@ public class WebPrismUtil {
         return value;
     }
 
-
     private static <T> void cleanupEmptyValues(Item item) {
         if (item instanceof PrismContainer) {
             cleanupEmptyContainers((PrismContainer) item);
@@ -248,7 +233,7 @@ public class WebPrismUtil {
     }
 
     //TODO find better place
-    public static PrismContainerValue<ValueMetadataType> getNewYieldValue() throws SchemaException {
+    public static PrismContainerValue<ValueMetadataType> getNewYieldValue() {
         MidPointApplication app = MidPointApplication.get();
         ProvenanceMetadataType provenanceMetadataType = new ProvenanceMetadataType(app.getPrismContext()).acquisition(WebPrismUtil.createAcquition());
         ValueMetadataType valueMetadataType = new ValueMetadataType(app.getPrismContext()).provenance(provenanceMetadataType);
