@@ -1,21 +1,16 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.wizard;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.IWizard;
@@ -24,23 +19,26 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.validation.IValidatable;
 import org.apache.wicket.validation.IValidator;
+import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
  */
 public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
 
+    private final PageBase pageBase;
     private OperationResult result;
-    private PageBase pageBase;
 
     public WizardStep(PageBase pageBase) {
         this.pageBase = pageBase;
@@ -50,13 +48,8 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
 
     @Override
     public Component getHeader(String id, Component parent, IWizard wizard) {
-        return new Label(id, "");        // we don't want to display step names twice (in upper bar and in page header)
-//        return new Label(id, new IModel<String>() {
-//            @Override
-//            public String getObject() {
-//                return getTitle();
-//            }
-//        });
+        // we don't want to display step names twice (in upper bar and in page header)
+        return new Label(id, "");
     }
 
     public PageBase getPageBase() {
@@ -104,21 +97,21 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
     }
 
     @NotNull
-    protected List<QName> loadResourceObjectClassList(IModel<PrismObject<ResourceType>> model, Trace LOGGER, String message){
+    protected List<QName> loadResourceObjectClassList(IModel<PrismObject<ResourceType>> model, Trace LOGGER, String message) {
         List<QName> list = new ArrayList<>();
         try {
             ResourceSchema schema = RefinedResourceSchemaImpl.getResourceSchema(model.getObject(), getPageBase().getPrismContext());
             if (schema != null) {
                 return schema.getObjectClassList();
             }
-        } catch (SchemaException|RuntimeException e){
+        } catch (SchemaException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, message, e);
             error(message + " " + e.getMessage());
         }
         return list;
     }
 
-    protected IValidator<String> createObjectClassValidator(final IModel<List<QName>> model){
+    protected IValidator<String> createObjectClassValidator(final IModel<List<QName>> model) {
         return new IValidator<String>() {
 
             @Override
@@ -127,11 +120,11 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
                 List<QName> list = model.getObject();
                 List<String> stringList = new ArrayList<>();
 
-                for(QName q: list){
+                for (QName q : list) {
                     stringList.add(q.getLocalPart());
                 }
 
-                if(!stringList.contains(value)){
+                if (!stringList.contains(value)) {
                     error(createStringResource("SchemaHandlingStep.message.validationError", value).getString());
                     AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class).get();
                     target.add(getPageBase().getFeedbackPanel());

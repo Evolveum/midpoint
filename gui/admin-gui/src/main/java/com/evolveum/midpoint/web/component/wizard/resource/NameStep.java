@@ -1,17 +1,16 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -360,7 +359,7 @@ public class NameStep extends WizardStep {
         PrismReference connHostRef = connector.findReference(ConnectorType.F_CONNECTOR_HOST_REF);
         String connHostOid = connHostRef != null ? connHostRef.getOid() : null;
         String hostOid = host != null ? host.getOid() : null;
-        return ObjectUtils.equals(connHostOid, hostOid);
+        return Objects.equals(connHostOid, hostOid);
     }
 
     @SuppressWarnings("unchecked")

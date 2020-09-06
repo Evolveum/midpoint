@@ -789,7 +789,6 @@ public class SynchronizationStep extends WizardStep {
     private void addSyncObjectPerformed(AjaxRequestTarget target) {
         ObjectSynchronizationType syncObject = new ObjectSynchronizationType();
         syncObject.setEnabled(true);
-        //syncObject.setName(generateName(getString("SynchronizationStep.label.newObjectType")));
 
         resourceModel.getObject().asObjectable().getSynchronization().getObjectSynchronization().add(syncObject);
         editSyncObjectPerformed(target, syncObject);

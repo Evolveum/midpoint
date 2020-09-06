@@ -14,10 +14,11 @@ import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.Validatable;
 
-public class JasperReportFieldDto extends Selectable implements Serializable, Editable, Validatable{
+public class JasperReportFieldDto extends Selectable<JasperReportFieldDto>
+        implements Serializable, Editable, Validatable {
 
     private String name;
-    private Class type;
+    private Class<?> type;
     private String typeAsString;
 
     private boolean editing;
@@ -26,7 +27,7 @@ public class JasperReportFieldDto extends Selectable implements Serializable, Ed
         // TODO Auto-generated constructor stub
     }
 
-    public JasperReportFieldDto(String name, Class type, String typeAsString) {
+    public JasperReportFieldDto(String name, Class<?> type, String typeAsString) {
         this.name = name;
         this.type = type;
         this.typeAsString = typeAsString;
@@ -55,8 +56,8 @@ public class JasperReportFieldDto extends Selectable implements Serializable, Ed
     }
 
     @Override
-    public boolean isEmpty(){
-        if (StringUtils.isBlank(name) && StringUtils.isBlank(typeAsString)){
+    public boolean isEmpty() {
+        if (StringUtils.isBlank(name) && StringUtils.isBlank(typeAsString)) {
             return true;
         }
         return false;

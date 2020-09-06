@@ -11,6 +11,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.wizard.resource.dto.SynchronizationActionTypeDto;
@@ -108,7 +109,7 @@ public class SynchronizationActionEditorDialog extends ModalWindow{
     }
 
     private void initLayout(WebMarkupContainer content){
-        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form form = new MidpointForm(ID_MAIN_FORM);
         form.setOutputMarkupId(true);
         content.add(form);
 

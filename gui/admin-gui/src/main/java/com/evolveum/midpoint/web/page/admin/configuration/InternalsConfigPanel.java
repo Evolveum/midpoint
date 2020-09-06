@@ -18,6 +18,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.InternalsConfigDto;
 
 public class InternalsConfigPanel extends BasePanel<InternalsConfigDto> {
@@ -49,7 +50,7 @@ public class InternalsConfigPanel extends BasePanel<InternalsConfigDto> {
 
         setOutputMarkupId(true);
 
-        Form form = new com.evolveum.midpoint.web.component.form.Form<>(ID_FORM);
+        Form form = new MidpointForm<>(ID_FORM);
         form.setOutputMarkupId(true);
         add(form);
 

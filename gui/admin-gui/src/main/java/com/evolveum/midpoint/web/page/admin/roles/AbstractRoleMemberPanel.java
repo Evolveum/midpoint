@@ -65,6 +65,7 @@ import com.evolveum.midpoint.web.component.dialog.ChooseFocusTypeAndRelationDial
 import com.evolveum.midpoint.web.component.dialog.ConfigureTaskConfirmationPanel;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.QNameObjectTypeChoiceRenderer;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
@@ -141,7 +142,7 @@ public abstract class AbstractRoleMemberPanel<R extends AbstractRoleType> extend
     }
 
     protected void initLayout() {
-        Form<?> form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
+        Form<?> form = new MidpointForm(ID_FORM);
         form.setOutputMarkupId(true);
         add(form);
         initDefaultSearchParameters();

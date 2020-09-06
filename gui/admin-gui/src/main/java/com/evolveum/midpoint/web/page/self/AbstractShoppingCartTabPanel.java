@@ -36,6 +36,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.assignment.*;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.RelationDropDownChoicePanel;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 import com.evolveum.midpoint.web.component.search.SearchPanel;
@@ -115,7 +116,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
     }
 
     private void initSearchPanel(WebMarkupContainer shoppingCartContainer) {
-        final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
+        final Form searchForm = new MidpointForm(ID_SEARCH_FORM);
         searchForm.setOutputMarkupId(true);
 
         SearchPanel search = new SearchPanel(ID_SEARCH,
@@ -394,7 +395,7 @@ public abstract class AbstractShoppingCartTabPanel<R extends AbstractRoleType> e
                 AssignmentEditorDto dto = AssignmentEditorDto.createDtoFromObject(obj.asObjectable(), UserDtoStatus.ADD, getPageBase());
                 if (!getRoleCatalogStorage().isMultiUserRequest()) {
                     dto.setAlreadyAssigned(isAlreadyAssigned(obj, dto));
-                    dto.setDefualtAssignmentConstraints(roleManagementConfig == null ? null : roleManagementConfig.getDefaultAssignmentConstraints());
+                    dto.setDefaultAssignmentConstraints(roleManagementConfig == null ? null : roleManagementConfig.getDefaultAssignmentConstraints());
                 }
                 dto.setSimpleView(true);
                 return dto;

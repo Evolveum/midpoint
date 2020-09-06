@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.form.multivalue;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import java.io.Serializable;
+import java.util.Iterator;
+import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -24,9 +24,8 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 
-import java.io.Serializable;
-import java.util.Iterator;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * todo not finished [lazyman]
@@ -47,7 +46,7 @@ public class MultiValueTextFormGroup<T extends Serializable> extends BasePanel<L
     private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
     public MultiValueTextFormGroup(String id, IModel<List<T>> value, IModel<String> label, String labelSize,
-                                   String textSize, boolean required) {
+            String textSize, boolean required) {
         super(id, value);
         setOutputMarkupId(true);
 
@@ -55,7 +54,7 @@ public class MultiValueTextFormGroup<T extends Serializable> extends BasePanel<L
     }
 
     private void initLayout(final IModel<String> label, final String labelSize, final String textSize,
-                            final boolean required) {
+            final boolean required) {
         Label l = new Label(ID_LABEL, label);
         if (StringUtils.isNotEmpty(labelSize)) {
             l.add(AttributeAppender.prepend("class", labelSize));
@@ -85,7 +84,7 @@ public class MultiValueTextFormGroup<T extends Serializable> extends BasePanel<L
                 }));
                 item.add(textWrapper);
 
-                TextField text = new TextField(ID_TEXT, createTextModel(item.getModel()));
+                TextField<?> text = new TextField<>(ID_TEXT, createTextModel(item.getModel()));
                 text.add(new AjaxFormComponentUpdatingBehavior("blur") {
                     @Override
                     protected void onUpdate(AjaxRequestTarget target) {

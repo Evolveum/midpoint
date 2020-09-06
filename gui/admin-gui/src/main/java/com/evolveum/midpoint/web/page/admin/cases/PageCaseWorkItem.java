@@ -1,10 +1,19 @@
 /*
- * Copyright (c) 2010-2018 Evolveum et al. and contributors
+ * Copyright (C) 2010-2020 Evolveum et al. and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.cases;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
@@ -13,7 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -27,14 +36,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.PageAttorneySelection;
 import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mederly
@@ -45,12 +46,12 @@ import java.util.List;
         },
         encoder = OnePageParameterEncoder.class,
         action = {
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
-                label = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_LABEL,
-                description = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_DESCRIPTION),
-        @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
-                label = "PageCaseWorkItem.auth.caseWorkItem.label",
-                description = "PageCaseWorkItem.auth.caseWorkItem.description")})
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL,
+                        label = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_LABEL,
+                        description = PageAdminCaseWorkItems.AUTH_CASE_WORK_ITEMS_ALL_DESCRIPTION),
+                @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_WORK_ITEM_URL,
+                        label = "PageCaseWorkItem.auth.caseWorkItem.label",
+                        description = "PageCaseWorkItem.auth.caseWorkItem.description") })
 public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     private static final long serialVersionUID = 1L;
 
@@ -90,13 +91,14 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     private static final String ID_BACK_BUTTON = "backButton";
     private static final String ID_CLOSE_CASE_BUTTON = "closeCaseButton";
 
+    private final LoadableModel<CaseWorkItemType> caseWorkItemModel;
+    private final PageParameters pageParameters;
+
     private LoadableModel<CaseType> caseModel;
-    private LoadableModel<CaseWorkItemType> caseWorkItemModel;
     private WorkItemId workItemId;
-    private PageParameters pageParameters;
 
     public PageCaseWorkItem() {
-        this((CaseWorkItemType)null);
+        this((CaseWorkItemType) null);
     }
 
     public PageCaseWorkItem(CaseWorkItemType workItem) {
@@ -149,7 +151,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
@@ -167,7 +169,6 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         OperationResult result = task.getResult();
         CaseType caseInstance = null;
         try {
-            //GetOperationOptionsBuilder optionsBuilder = getOperationOptionsBuilder().item(F_OBJECT_REF).resolve();
             PrismObject<CaseType> caseObject = WebModelServiceUtils.loadObject(CaseType.class, workItemId.getCaseOid(), null,//optionsBuilder.build(),
                     PageCaseWorkItem.this, task, result);
             caseInstance = caseObject.asObjectable();
@@ -197,8 +198,8 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
             if (caseWorkItemList == null) {
                 throw new ObjectNotFoundException("No case work item found for case " + workItemId.getCaseOid() + " with id " + workItemId.getId());
             }
-            for (CaseWorkItemType caseWorkItemType : caseWorkItemList){
-                if (caseWorkItemType.getId().equals(workItemId.getId())){
+            for (CaseWorkItemType caseWorkItemType : caseWorkItemList) {
+                if (caseWorkItemType.getId().equals(workItemId.getId())) {
                     return caseWorkItemType;
                 }
             }
@@ -211,7 +212,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         throw redirectBackViaRestartResponseException();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         CaseWorkItemSummaryPanel summaryPanel = new CaseWorkItemSummaryPanel(ID_SUMMARY_PANEL, caseWorkItemModel);
         summaryPanel.setOutputMarkupId(true);
         add(summaryPanel);
@@ -236,11 +237,11 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         back.setOutputMarkupId(true);
         add(back);
 
-        CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL, caseWorkItemModel){
+        CaseWorkItemActionsPanel actionsPanel = new CaseWorkItemActionsPanel(ID_CASE_WORK_ITEM_ACTIONS_PANEL, caseWorkItemModel) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved){
+            protected AbstractWorkItemOutputType getWorkItemOutput(boolean approved) {
                 return super.getWorkItemOutput(approved)
                         .comment(workItemDetailsPanel.getApproverComment())
                         .evidence(workItemDetailsPanel.getWorkItemEvidence());
@@ -253,7 +254,7 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
             }
 
             @Override
-            protected Component getCustomForm(){
+            protected Component getCustomForm() {
                 return workItemDetailsPanel.getCustomForm();
             }
 
@@ -273,11 +274,11 @@ public class PageCaseWorkItem extends PageAdminCaseWorkItems {
         redirectBack();
     }
 
-    protected PrismObject<UserType> getPowerDonor(){
+    protected PrismObject<UserType> getPowerDonor() {
         if (pageParameters != null && pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID) != null &&
-                StringUtils.isNotEmpty(pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString())){
+                StringUtils.isNotEmpty(pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString())) {
             String powerDonorOid = pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString();
-            if (StringUtils.isEmpty(powerDonorOid)){
+            if (StringUtils.isEmpty(powerDonorOid)) {
                 return null;
             }
             Task task = createSimpleTask(OPERATION_LOAD_DONOR);

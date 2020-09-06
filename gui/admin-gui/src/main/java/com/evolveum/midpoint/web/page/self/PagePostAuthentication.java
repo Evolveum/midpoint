@@ -46,7 +46,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.login.PageAbstractFlow;
 import com.evolveum.midpoint.web.page.login.PageLogin;
@@ -165,7 +165,7 @@ public class PagePostAuthentication extends PageAbstractFlow {
     @Override
     protected WebMarkupContainer initDynamicLayout() {
         Task task = createSimpleTask(OPERATION_LOAD_DYNAMIC_FORM);
-        Form<?> form = getMainForm();
+        MidpointForm<?> form = getMainForm();
         return createDynamicPanel(form, task);
     }
 

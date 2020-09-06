@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyPasswordsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordAccountDto;
 import com.evolveum.midpoint.web.page.self.component.ChangePasswordPanel;
@@ -189,7 +190,7 @@ public abstract class PageAbstractSelfCredentials extends PageSelf {
     }
 
     private void initLayout() {
-        Form<?> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
+        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
 
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new AbstractTab(createStringResource("PageSelfCredentials.tabs.password")) {

@@ -1,15 +1,14 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
 import java.io.Serializable;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -28,13 +27,12 @@ public class FocusSubwrapperDto<O extends ObjectType> implements Serializable {
     private String description;
     private OperationResult result;
 
-
     public FocusSubwrapperDto(PrismObjectWrapper<O> object, UserDtoStatus status) {
         setObject(object);
         setStatus(status);
     }
 
-    public FocusSubwrapperDto(boolean loaded, String description, OperationResult result){
+    public FocusSubwrapperDto(boolean loaded, String description, OperationResult result) {
         setLoadedOK(loaded);
         setDescription(description);
         this.result = result;

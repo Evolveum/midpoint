@@ -1,17 +1,30 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.ContainerableListPanel;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -32,18 +45,6 @@ import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Created by honchar
@@ -64,27 +65,28 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         ITEMS_FOR_PROCESS        // work items for a process
     }
 
-    private View view;
-    private  PageParameters pageParameters;
+    private final View view;
 
-    public CaseWorkItemsPanel(String id, View view){
+    private PageParameters pageParameters;
+
+    public CaseWorkItemsPanel(String id, View view) {
         super(id);
         this.view = view;
     }
 
-    public CaseWorkItemsPanel(String id, View view, PageParameters pageParameters){
+    public CaseWorkItemsPanel(String id, View view, PageParameters pageParameters) {
         super(id);
         this.view = view;
         this.pageParameters = pageParameters;
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         ContainerableListPanel workItemsPanel = new ContainerableListPanel(ID_WORKITEMS_TABLE,
                 UserProfileStorage.TableId.PAGE_CASE_WORK_ITEMS_PANEL) {
             @Override
@@ -103,7 +105,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            protected ObjectFilter getCustomFilter(){
+            protected ObjectFilter getCustomFilter() {
                 return getCaseWorkItemsFilter();
             }
 
@@ -117,17 +119,17 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            protected boolean hideFooterIfSinglePage(){
+            protected boolean hideFooterIfSinglePage() {
                 return View.DASHBOARD.equals(view);
             }
 
             @Override
-            protected boolean isSearchVisible(){
+            protected boolean isSearchVisible() {
                 return !View.DASHBOARD.equals(view);
             }
 
             @Override
-            protected void setDefaultSorting(ContainerListDataProvider provider){
+            protected void setDefaultSorting(ContainerListDataProvider provider) {
                 provider.setSort(CaseWorkItemType.F_CREATE_TIMESTAMP.getLocalPart(), SortOrder.DESCENDING);
             }
 
@@ -136,7 +138,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         add(workItemsPanel);
     }
 
-    private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> initColumns(){
+    private List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> initColumns() {
         List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> columns = new ArrayList<>();
 
         if (View.FULL_LIST.equals(view)) {
@@ -152,7 +154,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
         });
-        columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("PolicyRulesPanel.nameColumn")){
+        columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("PolicyRulesPanel.nameColumn")) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -163,7 +165,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                if (rowModel.getObject() == null || rowModel.getObject().getRealValue() == null){
+                if (rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
                     return false;
                 }
                 return true;
@@ -202,8 +204,8 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
             @Override
             public IModel<Boolean> getEnabled() {
-                IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = ((ColumnMenuAction<PrismContainerValueWrapper<CaseWorkItemType>>)getAction()).getRowModel();
-                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getRealValue() != null){
+                IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = ((ColumnMenuAction<PrismContainerValueWrapper<CaseWorkItemType>>) getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getRealValue() != null) {
                     CaseWorkItemType workItem = rowModel.getObject().getRealValue();
                     return Model.of(!CaseTypeUtil.isClosed(CaseTypeUtil.getCase(workItem)));
                 } else {
@@ -212,12 +214,12 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            public IModel<String> getConfirmationMessageModel(){
+            public IModel<String> getConfirmationMessageModel() {
                 return createStringResource("CaseWorkItemsPanel.confirmWorkItemsRejectAction");
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_NO_OBJECTS);
             }
         });
@@ -236,14 +238,14 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_ICON_ACTIVATION_ACTIVE);
             }
 
             @Override
             public IModel<Boolean> getEnabled() {
-                IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = ((ColumnMenuAction<PrismContainerValueWrapper<CaseWorkItemType>>)getAction()).getRowModel();
-                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getRealValue() != null){
+                IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel = ((ColumnMenuAction<PrismContainerValueWrapper<CaseWorkItemType>>) getAction()).getRowModel();
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getRealValue() != null) {
                     CaseWorkItemType workItem = rowModel.getObject().getRealValue();
                     return Model.of(!CaseTypeUtil.isClosed(CaseTypeUtil.getCase(workItem)));
                 } else {
@@ -252,7 +254,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
             }
 
             @Override
-            public IModel<String> getConfirmationMessageModel(){
+            public IModel<String> getConfirmationMessageModel() {
                 return createStringResource("CaseWorkItemsPanel.confirmWorkItemsApproveAction");
             }
         });
@@ -261,16 +263,16 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
     }
 
     private void workItemActionPerformed(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel, boolean approved,
-                                         AjaxRequestTarget target){
+            AjaxRequestTarget target) {
         List<PrismContainerValueWrapper<CaseWorkItemType>> selectedWorkItems = new ArrayList<>();
         if (rowModel == null) {
             ContainerableListPanel<CaseWorkItemType> tablePanel = getContainerableListPanel();
             selectedWorkItems.addAll(tablePanel.getProvider().getSelectedData());
         } else {
-            selectedWorkItems.addAll(Arrays.asList(rowModel.getObject()));
+            selectedWorkItems.addAll(Collections.singletonList(rowModel.getObject()));
         }
 
-        if (selectedWorkItems.size() == 0){
+        if (selectedWorkItems.size() == 0) {
             warn(getString("CaseWorkItemsPanel.noWorkItemIsSelected"));
             target.add(getPageBase().getFeedbackPanel());
             return;
@@ -284,7 +286,7 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
         selectedWorkItems.forEach(workItemToReject -> {
             WebComponentUtil.workItemApproveActionPerformed(target, workItemToReject.getRealValue(),
                     new AbstractWorkItemOutputType(getPrismContext()).outcome(ApprovalUtils.toUri(approved)),
-                    null, powerDonor, approved,  completeWorkItemResult, CaseWorkItemsPanel.this.getPageBase());
+                    null, powerDonor, approved, completeWorkItemResult, CaseWorkItemsPanel.this.getPageBase());
         });
 
         WebComponentUtil.clearProviderCache(getContainerableListPanel().getProvider());
@@ -295,16 +297,16 @@ public class CaseWorkItemsPanel extends BasePanel<CaseWorkItemType> {
 
     }
 
-    public ContainerableListPanel<CaseWorkItemType> getContainerableListPanel(){
+    public ContainerableListPanel<CaseWorkItemType> getContainerableListPanel() {
         return (ContainerableListPanel<CaseWorkItemType>) get(ID_WORKITEMS_TABLE);
     }
 
-    protected ObjectFilter getCaseWorkItemsFilter(){
+    protected ObjectFilter getCaseWorkItemsFilter() {
         return null;
     }
 
-    private String getPowerDonorOidParameterValue(){
-        if (pageParameters != null && pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID) != null){
+    private String getPowerDonorOidParameterValue() {
+        if (pageParameters != null && pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID) != null) {
             return pageParameters.get(PageAttorneySelection.PARAMETER_DONOR_OID).toString();
         }
         return null;

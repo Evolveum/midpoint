@@ -9,8 +9,6 @@ package com.evolveum.midpoint.web.component.objectdetails;
 import java.util.Collection;
 import java.util.Collections;
 
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
-
 import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 
 import org.apache.wicket.Component;
@@ -22,7 +20,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
@@ -40,7 +38,7 @@ public class AssignmentHolderTypeDetailsTabPanel<AHT extends AssignmentHolderTyp
 
     private static final Trace LOGGER = TraceManager.getTrace(AssignmentHolderTypeDetailsTabPanel.class);
 
-    public AssignmentHolderTypeDetailsTabPanel(String id, Form<PrismObjectWrapper<AHT>> mainForm,
+    public AssignmentHolderTypeDetailsTabPanel(String id, MidpointForm<PrismObjectWrapper<AHT>> mainForm,
             LoadableModel<PrismObjectWrapper<AHT>> focusWrapperModel) {
         super(id, mainForm, focusWrapperModel);
 

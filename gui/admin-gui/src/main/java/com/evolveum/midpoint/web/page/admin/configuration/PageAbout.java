@@ -1,11 +1,32 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 
 package com.evolveum.midpoint.web.page.admin.configuration;
+
+import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import javax.xml.namespace.QName;
+
+import org.apache.catalina.util.ServerInfo;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -15,7 +36,11 @@ import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.model.common.SystemObjectCache;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.NotFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.QueryFactory;
+import com.evolveum.midpoint.prism.query.TypeFilter;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.ProvisioningDiag;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -26,12 +51,7 @@ import com.evolveum.midpoint.security.api.MidPointPrincipal;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Producer;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -45,30 +65,6 @@ import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
-
-import org.apache.catalina.util.ServerInfo;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.Serializable;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import javax.xml.namespace.QName;
 
 /**
  * @author lazyman
@@ -130,8 +126,8 @@ public class PageAbout extends PageAdminConfiguration {
             "java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
             "os.name", "os.version", "path.separator", "user.dir", "user.home", "user.name" };
 
-    private IModel<RepositoryDiag> repoDiagModel;
-    private IModel<ProvisioningDiag> provisioningDiagModel;
+    private final IModel<RepositoryDiag> repoDiagModel;
+    private final IModel<ProvisioningDiag> provisioningDiagModel;
 
     @Autowired RepositoryCache repositoryCache;
     @Autowired protected SystemObjectCache systemObjectCache;
@@ -390,13 +386,12 @@ public class PageAbout extends PageAdminConfiguration {
     }
 
     private void copyEnvironmentInfoPerformed(AjaxRequestTarget target) {
-        StringBuilder sb = new StringBuilder("var $tempInput = document.createElement('INPUT');\n");
-        sb.append("document.body.appendChild($tempInput);\n");
-        sb.append("$tempInput.setAttribute('value', '" + getEnvironmentInfo() + "');\n");
-        sb.append("$tempInput.select();\n");
-        sb.append("document.execCommand('copy');\n");
-        sb.append("document.body.removeChild($tempInput);");
-        target.appendJavaScript(sb.toString());
+        target.appendJavaScript("var $tempInput = document.createElement('INPUT');\n"
+                + "document.body.appendChild($tempInput);\n"
+                + "$tempInput.setAttribute('value', '" + getEnvironmentInfo() + "');\n"
+                + "$tempInput.select();\n"
+                + "document.execCommand('copy');\n"
+                + "document.body.removeChild($tempInput);");
     }
 
     private String getEnvironmentInfo() {
@@ -634,8 +629,8 @@ public class PageAbout extends PageAdminConfiguration {
 
     private static class SystemItem implements Serializable {
 
-        private String property;
-        private String value;
+        private final String property;
+        private final String value;
 
         private SystemItem(String property, String value) {
             this.property = property;

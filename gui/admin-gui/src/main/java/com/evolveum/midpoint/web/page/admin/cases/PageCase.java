@@ -242,7 +242,7 @@ public class PageCase extends PageAdminObjectDetails<CaseType> {
     }
 
     @Override
-    protected Class getRestartResponsePage() {
+    protected Class<PageCases> getRestartResponsePage() {
         return PageCases.class;
     }
 

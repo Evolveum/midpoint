@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import java.io.FileInputStream;
@@ -16,7 +15,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ReaderInputStream;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -39,6 +38,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
@@ -86,7 +86,7 @@ public class PageNewReport extends PageAdmin {
     }
 
     private void initLayout() {
-        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
         final WebMarkupContainer input = new WebMarkupContainer(ID_INPUT);
@@ -191,7 +191,6 @@ public class PageNewReport extends PageAdmin {
             return;
         }
 
-        InputStream stream = null;
         File newFile = null;
         try {
             // Create new file
@@ -212,15 +211,15 @@ public class PageNewReport extends PageAdmin {
             FileUtils.copyInputStreamToFile(uploadedFile.getInputStream(), newFile);
 
             InputStreamReader reader = new InputStreamReader(new FileInputStream(newFile), StandardCharsets.UTF_8);
-            stream = new ReaderInputStream(reader, reader.getEncoding());
-            byte[] reportIn = IOUtils.toByteArray(stream);
+            try (InputStream stream = new ReaderInputStream(reader, reader.getEncoding())) {
+                byte[] reportIn = IOUtils.toByteArray(stream);
 
-            setResponsePage(new PageJasperReport(new ReportDto(Base64.encodeBase64(reportIn))));
+                setResponsePage(new PageJasperReport(new ReportDto(Base64.encodeBase64(reportIn))));
+            }
         } catch (Exception ex) {
             result.recordFatalError(getString("PageImportObject.message.savePerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file", ex);
         } finally {
-            IOUtils.closeQuietly(stream);
             FileUtils.deleteQuietly(newFile);
         }
 

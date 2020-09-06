@@ -1,29 +1,27 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.data.column;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.image.ExternalImage;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.image.ExternalImage;
-import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
@@ -59,12 +57,12 @@ public class ImagePanel extends BasePanel<DisplayType> {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         Label image = new Label(ID_IMAGE);
         image.add(AttributeModifier.replace("class", new PropertyModel<>(getModel(), "icon.cssClass")));
         image.add(AttributeModifier.replace("title", new PropertyModel<>(getModel(), "tooltip.orig")));
@@ -83,7 +81,7 @@ public class ImagePanel extends BasePanel<DisplayType> {
         ExternalImage customLogoImgSrc = new ExternalImage(ID_IMAGE_SRC,
                 WebComponentUtil.getIconUrlModel(getModelObject() != null ? getModelObject().getIcon() : null));
         customLogoImgSrc.setOutputMarkupId(true);
-        customLogoImgSrc.add(new VisibleBehaviour(() -> getModelObject()!= null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getImageUrl())));
+        customLogoImgSrc.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().getIcon() != null && StringUtils.isNotEmpty(getModelObject().getIcon().getImageUrl())));
         add(customLogoImgSrc);
     }
 

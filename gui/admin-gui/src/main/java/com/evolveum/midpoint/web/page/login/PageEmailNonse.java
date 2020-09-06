@@ -26,7 +26,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
@@ -78,7 +78,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
     }
 
     protected void initCustomLayer() {
-        Form form = new Form(ID_MAIN_FORM);
+        MidpointForm form = new MidpointForm(ID_MAIN_FORM);
         form.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
@@ -118,7 +118,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
 
     }
 
-    private void initButtons(Form form) {
+    private void initButtons(MidpointForm form) {
 
         AjaxSubmitButton submit = new AjaxSubmitButton(ID_SUBMIT, createStringResource("PageForgetPassword.resetPassword")) {
 
@@ -232,7 +232,7 @@ public class PageEmailNonse extends PageAuthenticationBase {
         return credentialByName;
     }
 
-    private void initStaticLayout(Form form) {
+    private void initStaticLayout(MidpointForm form) {
 
         WebMarkupContainer staticLayout = new WebMarkupContainer(ID_STATIC_LAYOUT);
         staticLayout.setOutputMarkupId(true);
@@ -267,8 +267,8 @@ public class PageEmailNonse extends PageAuthenticationBase {
 
     }
 
-    private Form getMainForm() {
-        return (Form) get(ID_MAIN_FORM);
+    private MidpointForm getMainForm() {
+        return (MidpointForm) get(ID_MAIN_FORM);
     }
 
     protected DynamicFormPanel getDynamicForm(){

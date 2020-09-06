@@ -41,7 +41,8 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 /**
  * @author katka
  */
-public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends PrismValue, I extends Item, VW extends PrismValueWrapper> implements ItemWrapperFactory<IW, VW, PV> {
+public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends PrismValue, I extends Item, VW extends PrismValueWrapper>
+        implements ItemWrapperFactory<IW, VW, PV> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ItemWrapperFactoryImpl.class);
 

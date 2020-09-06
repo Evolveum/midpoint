@@ -66,6 +66,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.search.Search;
@@ -201,7 +202,7 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        Form main = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form main = new MidpointForm(ID_MAIN_FORM);
         add(main);
 
         DebugSearchDto dto = searchModel.getObject();

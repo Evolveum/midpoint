@@ -1,16 +1,12 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.login;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.prism.delta.DeltaFactory;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,39 +24,34 @@ import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.gui.api.component.password.PasswordPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.DeltaFactory;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
-import com.evolveum.midpoint.web.component.form.Form;
 import com.evolveum.midpoint.web.component.input.TextPanel;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CredentialsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceCredentialsPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NonceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValuePolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
 
-
-@PageDescriptor(urls = {@Url(mountUrl = "/registration", matchUrlForSecurity = "/registration")}, permitAll = true, loginPage = true)
+@PageDescriptor(urls = { @Url(mountUrl = "/registration", matchUrlForSecurity = "/registration") }, permitAll = true, loginPage = true)
 public class PageSelfRegistration extends PageAbstractFlow {
 
     private static final long serialVersionUID = 1L;
@@ -85,9 +76,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
     private static final String ID_STATIC_FORM = "staticForm";
 
-
     private static final String PARAM_USER_OID = "user";
-
 
     private IModel<UserType> userModel;
 
@@ -172,13 +161,12 @@ public class PageSelfRegistration extends PageAbstractFlow {
         return getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
     }
 
-
     @Override
     protected WebMarkupContainer initStaticLayout() {
         // feedback
 //        final Form<?> mainForm = new Form<>(ID_MAIN_FORM);
 
-        WebMarkupContainer staticRegistrationForm = createMarkupContainer(ID_STATIC_FORM, null);
+        WebMarkupContainer staticRegistrationForm = createMarkupContainer(ID_STATIC_FORM);
 
         addMultilineLable(ID_WELCOME, createStringResource("PageSelfRegistration.welcome.message"), staticRegistrationForm);
         addMultilineLable(ID_ADDITIONAL_TEXT, createStringResource("PageSelfRegistration.additional.message",
@@ -188,8 +176,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 new ContainerFeedbackMessageFilter(PageSelfRegistration.this));
         feedback.setOutputMarkupId(true);
         add(feedback);
-
-
 
         TextPanel<String> firstName = new TextPanel<>(ID_FIRST_NAME,
                 new PropertyModel<String>(getUserModel(), UserType.F_GIVEN_NAME.getLocalPart() + ".orig") {
@@ -263,7 +249,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
     private void createPasswordPanel(WebMarkupContainer staticRegistrationForm) {
         // ProtectedStringType initialPassword = null;
         PasswordPanel password = new PasswordPanel(ID_PASSWORD,
-            new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true);
+                new PropertyModel<>(getUserModel(), "credentials.password.value"), false, true);
         password.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         password.getBaseFormComponent().setRequired(true);
         staticRegistrationForm.add(password);
@@ -284,7 +270,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
         staticRegistrationForm.add(help);
     }
 
-
     @Override
     protected WebMarkupContainer initDynamicLayout() {
         DynamicFormPanel<UserType> dynamicForm = runPrivileged(
@@ -296,7 +281,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
         return dynamicForm;
     }
 
-    private WebMarkupContainer createMarkupContainer(String id, Form<?> mainForm) {
+    private WebMarkupContainer createMarkupContainer(String id) {
         WebMarkupContainer formContainer = new WebMarkupContainer(id);
         formContainer.setOutputMarkupId(true);
 
@@ -327,7 +312,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
 
             String sequenceName = getSelfRegistrationConfiguration().getAdditionalAuthentication();
 
-            if (SecurityUtils.getSequenceByName(sequenceName, getSelfRegistrationConfiguration().getAuthenticationPolicy()) != null){
+            if (SecurityUtils.getSequenceByName(sequenceName, getSelfRegistrationConfiguration().getAuthenticationPolicy()) != null) {
                 target.add(PageSelfRegistration.this);
             } else {
 
@@ -389,7 +374,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 WebModelServiceUtils.save(userDelta, executeOptions().overwrite(), result, task, PageSelfRegistration.this);
                 return result;
             }, administrator);
-        } catch (CommonException|RuntimeException e) {
+        } catch (CommonException | RuntimeException e) {
             result.recordFatalError(getString("PageSelfRegistration.message.saveUser.fatalError"), e);
         } finally {
             result.computeStatusIfUnknown();
@@ -405,7 +390,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
             return userDelta;
         } else {
             LOGGER.trace("Preparing user MODIFY delta (preregistered user registration)");
-            ObjectDelta<UserType> delta = null;
+            ObjectDelta<UserType> delta;
             if (!isCustomFormDefined()) {
                 delta = getPrismContext().deltaFactory().object().createEmptyModifyDelta(UserType.class,
                         getOidFromParams(getPageParameters()));
@@ -440,14 +425,14 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 if (!selfRegistrationConfiguration.getRequiredLifecycleState().equals(userLifecycle)) {
                     LOGGER.error(
                             "Registration not allowed for a user {} -> Unsatisfied Configuration for required lifecycle, expected {} but was {}",
-                            new Object[] {
-                                    userToSave.getEmailAddress() != null ? userToSave.getEmailAddress()
-                                            : userToSave,
-                                    selfRegistrationConfiguration.getRequiredLifecycleState(),
-                                    userLifecycle });
+                            userToSave.getEmailAddress() != null
+                                    ? userToSave.getEmailAddress()
+                                    : userToSave,
+                            selfRegistrationConfiguration.getRequiredLifecycleState(),
+                            userLifecycle);
                     getSession().error(createStringResource(
                             "PageSelfRegistration.registration.failed.unsatisfied.registration.configuration")
-                                    .getString());
+                            .getString());
                     throw new RestartResponseException(this);
                 }
 
@@ -458,7 +443,7 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 userToSave = getDynamicFormPanel().getObject().asObjectable().clone();
             } catch (SchemaException e) {
                 LoggingUtils.logException(LOGGER, "Failed to construct delta " + e.getMessage(), e);
-                new RestartResponseException(this);
+                throw new RestartResponseException(this);
             }
         }
 
@@ -506,7 +491,6 @@ public class PageSelfRegistration extends PageAbstractFlow {
         NonceType nonceType = new NonceType();
         nonceType.setValue(nonceCredentials);
 
-
         return nonceType;
     }
 
@@ -537,7 +521,9 @@ public class PageSelfRegistration extends PageAbstractFlow {
     }
 
     private <O extends ObjectType> String generateNonce(NonceCredentialsPolicyType noncePolicy,
-            PrismObject<O> user, Task task, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+            PrismObject<O> user, Task task, OperationResult result)
+            throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         ValuePolicyType policy = null;
 
         if (noncePolicy != null && noncePolicy.getValuePolicyRef() != null) {
@@ -554,13 +540,13 @@ public class PageSelfRegistration extends PageAbstractFlow {
                 24, false, user, "nonce generation (registration)", task, result);
     }
 
-     private String getPassword() {
-         PasswordPanel password = (PasswordPanel)
-                 get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_STATIC_FORM, ID_PASSWORD));
-         return (String) password.getBaseFormComponent().getModel().getObject();
-     }
+    private String getPassword() {
+        PasswordPanel password = (PasswordPanel)
+                get(createComponentPath(ID_MAIN_FORM, ID_CONTENT_AREA, ID_STATIC_FORM, ID_PASSWORD));
+        return (String) password.getBaseFormComponent().getModel().getObject();
+    }
 
-     @Override
+    @Override
     protected boolean isBackButtonVisible() {
         return true;
     }

@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.ArrayList;
@@ -14,11 +13,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.time.DurationFormatUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -31,6 +28,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -63,7 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
                         description = PageAdminTasks.AUTH_TASKS_ALL_DESCRIPTION),
                 @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_NODES_URL,
                         label = "PageNodes.auth.nodes.label",
-                        description = "PageNodes.auth.nodes.description")})
+                        description = "PageNodes.auth.nodes.description") })
 public class PageNodes extends PageAdmin {
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
@@ -77,7 +75,6 @@ public class PageNodes extends PageAdmin {
     public PageNodes() {
         initLayout();
     }
-
 
     private void initLayout() {
         MainObjectListPanel<NodeType> table = new MainObjectListPanel<NodeType>(ID_TABLE, NodeType.class, UserProfileStorage.TableId.PAGE_TASKS_NODES_PANEL, null) {
@@ -165,7 +162,7 @@ public class PageNodes extends PageAdmin {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<NodeType>>> item, String componentId,
-                                     final IModel<SelectableBean<NodeType>> rowModel) {
+                    final IModel<SelectableBean<NodeType>> rowModel) {
                 item.add(new Label(componentId, (IModel<Object>) () -> getLastCheckInTime(rowModel)));
             }
         });
@@ -248,7 +245,7 @@ public class PageNodes extends PageAdmin {
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_START_MENU_ITEM);
             }
 
@@ -276,11 +273,11 @@ public class PageNodes extends PageAdmin {
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_STOP_MENU_ITEM);
             }
 
-            @SuppressWarnings({ "unchecked"})
+            @SuppressWarnings({ "unchecked" })
             @Override
             public IModel<String> getConfirmationMessageModel() {
                 String actionName = createStringResource("pageTasks.message.stopSchedulerAction").getString();

@@ -1,14 +1,10 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
-
-import com.evolveum.midpoint.util.QNameUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -21,12 +17,13 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 /**
  * @author katka
- *
  */
 public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContainerValueWrapper<C>>
         extends PrismContainerValuePanel<C, CVW> {
@@ -92,7 +89,7 @@ public class ValueMetadataPanel<C extends Containerable, CVW extends PrismContai
     }
 
     @Override
-    protected void createMetadataPanel(Form form) {
+    protected void createMetadataPanel(MidpointForm form) {
 
     }
 

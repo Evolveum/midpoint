@@ -1,10 +1,20 @@
 /*
- * Copyright (c) 2016-2018 Evolveum and contributors
+ * Copyright (C) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.self;
+
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -14,15 +24,6 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.orgs.OrgTreePanel;
 import com.evolveum.midpoint.web.session.OrgTreeStateStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.Model;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar
@@ -33,15 +34,15 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
     private static final String ID_TREE_PANEL_CONTAINER = "treePanelContainer";
     private static final String ID_TREE_PANEL = "treePanel";
 
-    private String roleCatalogOid;
+    private final String roleCatalogOid;
 
-    public RoleCatalogTabPanel(String id, RoleManagementConfigurationType roleManagementConfig, String roleCatalogOid){
+    public RoleCatalogTabPanel(String id, RoleManagementConfigurationType roleManagementConfig, String roleCatalogOid) {
         super(id, roleManagementConfig);
         this.roleCatalogOid = roleCatalogOid;
     }
 
     @Override
-    protected void initLeftSidePanel(){
+    protected void initLeftSidePanel() {
         if (StringUtils.isEmpty(getRoleCatalogStorage().getSelectedOid())) {
             getRoleCatalogStorage().setSelectedOid(roleCatalogOid);
         }
@@ -56,7 +57,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
 
             @Override
             protected void selectTreeItemPerformed(TreeSelectableBean<OrgType> selected,
-                                                   AjaxRequestTarget target) {
+                    AjaxRequestTarget target) {
                 setSelected(selected);
                 refreshContentPannels();
                 RoleCatalogTabPanel.this.selectTreeItemPerformed(selected, target);
@@ -72,15 +73,15 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
             }
 
             @Override
-            public OrgTreeStateStorage getOrgTreeStateStorage(){
+            public OrgTreeStateStorage getOrgTreeStateStorage() {
                 return getRoleCatalogStorage();
             }
         };
-        treePanel.add(new VisibleEnableBehaviour(){
+        treePanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public boolean isVisible(){
+            public boolean isVisible() {
                 return isRootOrgExists();
             }
         });
@@ -89,21 +90,21 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
     }
 
     @Override
-    protected boolean isShoppingCartItemsPanelVisible(){
+    protected boolean isShoppingCartItemsPanelVisible() {
         return isRootOrgExists();
     }
 
     @Override
-    protected void appendItemsPanelStyle(WebMarkupContainer container){
+    protected void appendItemsPanelStyle(WebMarkupContainer container) {
         container.add(AttributeAppender.append("class", "col-md-9"));
     }
 
-    private boolean isRootOrgExists(){
+    private boolean isRootOrgExists() {
         OrgTreePanel treePanel = getOrgTreePanel();
         return treePanel.getSelected() != null && treePanel.getSelected().getValue() != null;
     }
 
-    private OrgTreePanel getOrgTreePanel(){
+    private OrgTreePanel getOrgTreePanel() {
         return (OrgTreePanel) get(ID_TREE_PANEL_CONTAINER).get(ID_TREE_PANEL);
     }
 
@@ -134,8 +135,7 @@ public class RoleCatalogTabPanel extends AbstractShoppingCartTabPanel<AbstractRo
     }
 
     @Override
-    protected QName getQueryType(){
+    protected QName getQueryType() {
         return AbstractRoleType.COMPLEX_TYPE;
     }
-
 }

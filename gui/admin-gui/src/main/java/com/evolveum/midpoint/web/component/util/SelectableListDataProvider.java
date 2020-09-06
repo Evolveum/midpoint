@@ -10,22 +10,20 @@ package com.evolveum.midpoint.web.component.util;
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.beanutils.PropertyUtils;
-import org.apache.commons.lang.ObjectUtils;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.model.IModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * @author lazyman
@@ -33,7 +31,7 @@ import org.jetbrains.annotations.NotNull;
 public class SelectableListDataProvider<W extends Serializable, T extends Serializable>
         extends BaseSortableDataProvider<W> {
 
-    private IModel<List<T>> model;
+    private final IModel<List<T>> model;
 
     public SelectableListDataProvider(Component Component, IModel<List<T>> model) {
         super(Component);
@@ -92,22 +90,18 @@ public class SelectableListDataProvider<W extends Serializable, T extends Serial
 
     @SuppressWarnings("unchecked")
     protected <V extends Comparable<V>> void sort(List<T> list) {
-        Collections.sort(list, new Comparator<T>() {
-            @Override
-            public int compare(T o1, T o2) {
-                SortParam<String> sortParam = getSort();
-                String propertyName = sortParam.getProperty();
-                V prop1, prop2;
-                try {
-                    prop1 = (V) PropertyUtils.getProperty(o1, propertyName);
-                    prop2 = (V) PropertyUtils.getProperty(o2, propertyName);
-                } catch (RuntimeException|IllegalAccessException|InvocationTargetException|NoSuchMethodException e) {
-                    throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
-                }
-                int comparison = ObjectUtils.compare(prop1, prop2, true);
-                return sortParam.isAscending() ? comparison : -comparison;
+        list.sort((o1, o2) -> {
+            SortParam<String> sortParam = getSort();
+            String propertyName = sortParam.getProperty();
+            V prop1, prop2;
+            try {
+                prop1 = (V) PropertyUtils.getProperty(o1, propertyName);
+                prop2 = (V) PropertyUtils.getProperty(o2, propertyName);
+            } catch (RuntimeException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                throw new SystemException("Couldn't sort the object list: " + e.getMessage(), e);
             }
+            int comparison = ObjectUtils.compare(prop1, prop2, true);
+            return sortParam.isAscending() ? comparison : -comparison;
         });
     }
-
 }

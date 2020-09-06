@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.factory.wrapper;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
@@ -40,35 +40,35 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
         }
 
         TaskType task = (TaskType) prismObject.asObjectable();
-           Collection<AssignmentType> assignmentTypes = task.getAssignment()
+        Collection<AssignmentType> assignmentTypes = task.getAssignment()
                 .stream()
                 .filter(WebComponentUtil::isArchetypeAssignment)
                 .collect(Collectors.toList());
 
-           Collection<String> handlers;
-           if (assignmentTypes.isEmpty()) {
-                    handlers = getTaskManager().getAllHandlerUris(true);
-                } else if (assignmentTypes.size() == 1) {
-                    AssignmentType archetypeAssignment = assignmentTypes.iterator().next();
-                    handlers = getTaskManager().getHandlerUrisForArchetype(archetypeAssignment.getTargetRef().getOid(), true);
-                } else {
-                    throw new UnsupportedOperationException("More than 1 archetype, this is not supported");
-                }
-                LookupTableType lookupTableType = new LookupTableType(getPrismContext());
+        Collection<String> handlers;
+        if (assignmentTypes.isEmpty()) {
+            handlers = getTaskManager().getAllHandlerUris(true);
+        } else if (assignmentTypes.size() == 1) {
+            AssignmentType archetypeAssignment = assignmentTypes.iterator().next();
+            handlers = getTaskManager().getHandlerUrisForArchetype(archetypeAssignment.getTargetRef().getOid(), true);
+        } else {
+            throw new UnsupportedOperationException("More than 1 archetype, this is not supported");
+        }
+        LookupTableType lookupTableType = new LookupTableType(getPrismContext());
 
-                handlers.forEach(handler -> {
-                    LookupTableRowType row = new LookupTableRowType(getPrismContext());
-                    row.setKey(handler);
-                    handler = normalizeHandler(handler);
-                    PolyStringType handlerLabel = new PolyStringType(handler);
-                    PolyStringTranslationType translation = new PolyStringTranslationType();
-                    translation.setKey(handler);
-                    handlerLabel.setTranslation(translation);
-                    row.setLabel(handlerLabel);
-                    lookupTableType.getRow().add(row);
-                });
+        handlers.forEach(handler -> {
+            LookupTableRowType row = new LookupTableRowType(getPrismContext());
+            row.setKey(handler);
+            handler = normalizeHandler(handler);
+            PolyStringType handlerLabel = new PolyStringType(handler);
+            PolyStringTranslationType translation = new PolyStringTranslationType();
+            translation.setKey(handler);
+            handlerLabel.setTranslation(translation);
+            row.setLabel(handlerLabel);
+            lookupTableType.getRow().add(row);
+        });
 
-                return lookupTableType;
+        return lookupTableType;
     }
 
     private PrismObject<?> getParent(WrapperContext ctx) {
@@ -82,7 +82,6 @@ public class TaskHandlerWrapperFactory extends PrismPropertyWrapperFactoryImpl<S
         handler = "TaskHandlerSelector." + StringUtils.join(split, ".");
         return handler;
     }
-
 
     @Override
     public int getOrder() {

@@ -50,7 +50,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentTablePanel;
 import com.evolveum.midpoint.web.component.assignment.UserSelectionButton;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -115,7 +115,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
     public void initLayout() {
         setOutputMarkupId(true);
 
-        Form mainForm = new Form(ID_FORM);
+        MidpointForm mainForm = new MidpointForm(ID_FORM);
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 

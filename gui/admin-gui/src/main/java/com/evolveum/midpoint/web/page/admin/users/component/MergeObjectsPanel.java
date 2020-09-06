@@ -17,7 +17,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.MergeConfigurationType;
@@ -119,7 +119,7 @@ public class MergeObjectsPanel<F extends FocusType> extends BasePanel{
     }
 
     private void initLayout(){
-        Form mainForm =  new Form(ID_FORM);
+        MidpointForm mainForm =  new MidpointForm(ID_FORM);
         mainForm.setOutputMarkupId(true);
         add(mainForm);
 

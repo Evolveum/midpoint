@@ -13,7 +13,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -64,7 +64,7 @@ public class ColumnUtils {
     public static <T> List<IColumn<T, String>> createColumns(List<ColumnTypeDto<String>> columns) {
         List<IColumn<T, String>> tableColumns = new ArrayList<>();
         for (ColumnTypeDto<String> column : columns) {
-            PropertyColumn<T, String> tableColumn = null;
+            PropertyColumn<T, String> tableColumn;
             if (column.isSortable()) {
                 tableColumn = createPropertyColumn(column.getColumnName(), column.getSortableColumn(),
                         column.getColumnValue(), column.isMultivalue(), column.isTranslated());
@@ -87,7 +87,7 @@ public class ColumnUtils {
     private static <T> PropertyColumn<T, String> createPropertyColumn(String name, String sortableProperty,
             final String expression, final boolean multivalue, boolean translated) {
         if (!multivalue && translated) {
-            return new PolyStringPropertyColumn<T>(createStringResource(name), sortableProperty,
+            return new PolyStringPropertyColumn<>(createStringResource(name), sortableProperty,
                     expression);
         }
         return new PropertyColumn<T, String>(createStringResource(name), sortableProperty, expression) {
@@ -266,23 +266,20 @@ public class ColumnUtils {
     }
 
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultUserColumns() {
-        List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<String>("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
+                new ColumnTypeDto<>("UserType.givenName", UserType.F_GIVEN_NAME.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".givenName", false, true),
-                new ColumnTypeDto<String>("UserType.familyName", UserType.F_FAMILY_NAME.getLocalPart(),
+                new ColumnTypeDto<>("UserType.familyName", UserType.F_FAMILY_NAME.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".familyName", false, true),
-                new ColumnTypeDto<String>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
+                new ColumnTypeDto<>("UserType.fullName", UserType.F_FULL_NAME.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".fullName", false, true),
-                new ColumnTypeDto<String>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
+                new ColumnTypeDto<>("UserType.emailAddress", UserType.F_EMAIL_ADDRESS.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".emailAddress", false)
 
         );
-        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
 
-        return columns;
-
+        return new ArrayList<>(ColumnUtils.createColumns(columnsDefs));
     }
 
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultTaskColumns() {
@@ -308,7 +305,6 @@ public class ColumnUtils {
                         }
 
                     }
-
                 });
 
         columns.add(new AbstractColumn<SelectableBean<T>, String>(
@@ -328,7 +324,6 @@ public class ColumnUtils {
                     cellItem.add(new Label(componentId));
                 }
             }
-
         });
 
         columns.add(new AbstractColumn<SelectableBean<T>, String>(
@@ -349,13 +344,12 @@ public class ColumnUtils {
                 }
 
             }
-
         });
 
-        List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<String>("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
+        List<ColumnTypeDto<String>> columnsDefs = Collections.singletonList(
+                new ColumnTypeDto<>("TaskType.executionStatus", TaskType.F_EXECUTION_STATUS.getLocalPart(),
                         SelectableBeanImpl.F_VALUE + ".executionStatus", false));
-        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
+        columns.addAll(ColumnUtils.createColumns(columnsDefs));
 
         return columns;
 
@@ -394,8 +388,8 @@ public class ColumnUtils {
     }
 
     public static <O extends ObjectType> List<IColumn<SelectableBean<O>, String>> getDefaultObjectColumns() {
-        List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<String>("ObjectType.description",
+        List<ColumnTypeDto<String>> columnsDefs = Collections.singletonList(
+                new ColumnTypeDto<>("ObjectType.description",
                         null,
                         SelectableBeanImpl.F_VALUE + ".description", false)
         );
@@ -404,19 +398,18 @@ public class ColumnUtils {
     }
 
     public static <T extends AbstractRoleType> List<IColumn<SelectableBean<T>, String>> getDefaultAbstractRoleColumns(boolean showAccounts) {
-
-        String sortByDisplayName = null;
-        String sortByIdentifer = null;
+        String sortByDisplayName;
+        String sortByIdentifer;
         sortByDisplayName = AbstractRoleType.F_DISPLAY_NAME.getLocalPart();
         sortByIdentifer = AbstractRoleType.F_IDENTIFIER.getLocalPart();
         List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<String>("AbstractRoleType.displayName",
+                new ColumnTypeDto<>("AbstractRoleType.displayName",
                         sortByDisplayName,
                         SelectableBeanImpl.F_VALUE + ".displayName", false, true),
-                new ColumnTypeDto<String>("AbstractRoleType.description",
+                new ColumnTypeDto<>("AbstractRoleType.description",
                         null,
                         SelectableBeanImpl.F_VALUE + ".description", false),
-                new ColumnTypeDto<String>("AbstractRoleType.identifier", sortByIdentifer,
+                new ColumnTypeDto<>("AbstractRoleType.identifier", sortByIdentifer,
                         SelectableBeanImpl.F_VALUE + ".identifier", false)
 
         );
@@ -449,18 +442,14 @@ public class ColumnUtils {
     }
 
     public static <T extends ObjectType> List<IColumn<SelectableBean<T>, String>> getDefaultResourceColumns() {
-        List<IColumn<SelectableBean<T>, String>> columns = new ArrayList<>();
 
-        List<ColumnTypeDto<String>> columnsDefs = Arrays.asList(
-                new ColumnTypeDto<String>("AbstractRoleType.description", null,
+        List<ColumnTypeDto<String>> columnsDefs = Collections.singletonList(
+                new ColumnTypeDto<>("AbstractRoleType.description", null,
                         SelectableBeanImpl.F_VALUE + ".description", false)
 
         );
 
-        columns.addAll(ColumnUtils.<SelectableBean<T>>createColumns(columnsDefs));
-
-        return columns;
-
+        return new ArrayList<>(ColumnUtils.createColumns(columnsDefs));
     }
 
     public static List<IColumn<PrismContainerValueWrapper<CaseWorkItemType>, String>> getDefaultWorkItemColumns(PageBase pageBase, boolean isFullView) {
@@ -551,7 +540,8 @@ public class ColumnUtils {
             public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                 CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(Arrays.asList(caseType.getObjectRef()), "loadCaseWorkItemObjectRef", pageBase));
+                return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
+                        Collections.singletonList(caseType.getObjectRef()), "loadCaseWorkItemObjectRef", pageBase));
             }
         });
         columns.add(new LinkColumn<PrismContainerValueWrapper<CaseWorkItemType>>(createStringResource("WorkItemsPanel.target")) {
@@ -590,7 +580,8 @@ public class ColumnUtils {
             public boolean isEnabled(IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
                 CaseWorkItemType caseWorkItemType = unwrapRowModel(rowModel);
                 CaseType caseType = CaseTypeUtil.getCase(caseWorkItemType);
-                return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(Arrays.asList(caseType.getTargetRef()), "loadCaseWorkItemTargetRef", pageBase));
+                return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
+                        Collections.singletonList(caseType.getTargetRef()), "loadCaseWorkItemTargetRef", pageBase));
             }
         });
         if (isFullView) {
@@ -622,7 +613,8 @@ public class ColumnUtils {
 
                                 @Override
                                 public boolean isEnabled() {
-                                    return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(Arrays.asList(assigneeRef), "loadCaseWorkItemAssigneeRef", pageBase));
+                                    return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
+                                            Collections.singletonList(assigneeRef), "loadCaseWorkItemAssigneeRef", pageBase));
                                 }
 
                             };
@@ -714,7 +706,7 @@ public class ColumnUtils {
 
     public static List<IColumn<SelectableBean<CaseType>, String>> getDefaultCaseColumns(PageBase pageBase, boolean isDashboard) {
 
-        List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<IColumn<SelectableBean<CaseType>, String>>();
+        List<IColumn<SelectableBean<CaseType>, String>> columns = new ArrayList<>();
 
         IColumn column = new PropertyColumn(createStringResource("pageCases.table.description"), "value.description");
         columns.add(column);

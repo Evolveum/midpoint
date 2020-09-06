@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020s Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,17 +9,7 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
-
-import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -33,23 +23,32 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.component.ObjectListPanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.SelectableListDataProvider;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
-public class ResourceTasksPanel extends Panel implements Popupable{
+public class ResourceTasksPanel extends Panel implements Popupable {
     private static final long serialVersionUID = 1L;
 
     private static final String DOT_CLASS = ResourceTasksPanel.class.getName() + ".";
@@ -62,7 +61,8 @@ public class ResourceTasksPanel extends Panel implements Popupable{
     private static final String ID_RESUME = "resume";
     private static final String ID_SUSPEND = "suspend";
 
-    private PageBase pageBase;
+    private final PageBase pageBase;
+
     private IModel<PrismObject<ResourceType>> resourceModel;
     String[] resourceTaskArchetypeOids = new String[] { SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value(),
             SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value(),
@@ -101,7 +101,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 
     }
 
-    private void initLayout(final ListModel<TaskType> tasks){
+    private void initLayout(final ListModel<TaskType> tasks) {
         final MainObjectListPanel<TaskType> tasksPanel =
                 new MainObjectListPanel<TaskType>(ID_TASKS_TABLE, TaskType.class, TableId.PAGE_RESOURCE_TASKS_PANEL, null) {
                     private static final long serialVersionUID = 1L;
@@ -125,7 +125,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
 
                     @Override
                     protected void newObjectPerformed(AjaxRequestTarget target, AssignmentObjectRelation relation, CompiledObjectCollectionView collectionView) {
-                        if (collectionView == null){
+                        if (collectionView == null) {
                             collectionView = getObjectCollectionView();
                         }
 
@@ -142,7 +142,7 @@ public class ResourceTasksPanel extends Panel implements Popupable{
                             newTask.setObjectRef(resourceRef);
 
                             WebComponentUtil.initNewObjectWithReference(getPageBase(), newTask, archetypeRef);
-                        } catch (SchemaException ex){
+                        } catch (SchemaException ex) {
                             getPageBase().getFeedbackMessages().error(ResourceTasksPanel.this, ex.getUserFriendlyMessage());
                             target.add(getPageBase().getFeedbackPanel());
                         }
@@ -157,10 +157,10 @@ public class ResourceTasksPanel extends Panel implements Popupable{
                     protected List<CompiledObjectCollectionView> getNewObjectInfluencesList() {
                         List<CompiledObjectCollectionView> newObjectInfluencesList = super.getNewObjectInfluencesList();
                         List<CompiledObjectCollectionView> filteredInfluencesList = new ArrayList<>();
-                        if (newObjectInfluencesList != null){
+                        if (newObjectInfluencesList != null) {
                             newObjectInfluencesList.forEach(influence -> {
                                 if (influence.getCollection() != null && influence.getCollection().getCollectionRef() != null &&
-                                        ArrayUtils.contains(resourceTaskArchetypeOids, influence.getCollection().getCollectionRef().getOid())){
+                                        ArrayUtils.contains(resourceTaskArchetypeOids, influence.getCollection().getCollectionRef().getOid())) {
                                     filteredInfluencesList.add(influence);
                                 }
                             });
@@ -227,14 +227,14 @@ public class ResourceTasksPanel extends Panel implements Popupable{
         warn(getString("ResourceTasksPanel.noTasksSelected"));
     }
 
-    private ObjectListPanel<TaskType> getTaskListPanel(){
+    private ObjectListPanel<TaskType> getTaskListPanel() {
         //noinspection unchecked
         return (ObjectListPanel<TaskType>) get(ID_TASKS_TABLE);
     }
 
-    private List<String> createOidList(List<TaskType> tasks){
+    private List<String> createOidList(List<TaskType> tasks) {
         List<String> oids = new ArrayList<>();
-        for (TaskType task : tasks){
+        for (TaskType task : tasks) {
             oids.add(task.getOid());
         }
         return oids;
@@ -251,12 +251,12 @@ public class ResourceTasksPanel extends Panel implements Popupable{
     }
 
     @Override
-    public String getWidthUnit(){
+    public String getWidthUnit() {
         return "px";
     }
 
     @Override
-    public String getHeightUnit(){
+    public String getHeightUnit() {
         return "px";
     }
 

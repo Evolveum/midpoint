@@ -1,11 +1,17 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.data;
+
+import java.io.Serializable;
+import java.util.*;
+
+import org.apache.commons.lang3.Validate;
+import org.apache.wicket.Component;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -27,12 +33,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * @author lazyman
@@ -58,7 +58,7 @@ public class RepositoryObjectDataProvider
 
     @Override
     public Iterator<DebugObjectItem> internalIterator(long first, long count) {
-        LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
+        LOGGER.trace("begin::iterator() from {} count {}.", new Object[] { first, count });
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_SEARCH_OBJECTS);
@@ -82,7 +82,7 @@ public class RepositoryObjectDataProvider
             result.computeStatusIfUnknown();
         }
 
-            getPage().showResult(result, false);
+        getPage().showResult(result, false);
 
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
@@ -91,9 +91,9 @@ public class RepositoryObjectDataProvider
     @NotNull
     private Collection<SelectorOptions<GetOperationOptions>> getOptions() {
         return getDefaultOptionsBuilder()
-            .raw()
-            .retrieve(RetrieveOption.DEFAULT)
-            .build();
+                .raw()
+                .retrieve(RetrieveOption.DEFAULT)
+                .build();
     }
 
     @Override

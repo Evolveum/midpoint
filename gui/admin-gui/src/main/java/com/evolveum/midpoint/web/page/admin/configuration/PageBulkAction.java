@@ -1,11 +1,18 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.configuration;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.model.api.ScriptExecutionException;
 import com.evolveum.midpoint.model.api.ScriptExecutionResult;
@@ -14,12 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -27,16 +29,10 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.BulkActionDto;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ExecuteScriptType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.ScriptingExpressionType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
@@ -59,14 +55,14 @@ public class PageBulkAction extends PageAdminConfiguration {
     private static final String ID_EDITOR = "editor";
     private static final String ID_ASYNC = "async";
 
-    private IModel<BulkActionDto> model = new Model<>(new BulkActionDto());
+    private final IModel<BulkActionDto> model = new Model<>(new BulkActionDto());
 
     public PageBulkAction() {
         initLayout();
     }
 
     private void initLayout() {
-        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
         CheckBox async = new CheckBox(ID_ASYNC, new PropertyModel<>(model, BulkActionDto.F_ASYNC));
@@ -96,7 +92,7 @@ public class PageBulkAction extends PageAdminConfiguration {
 
         BulkActionDto bulkActionDto = model.getObject();
 
-        if(StringUtils.isEmpty(bulkActionDto.getScript())){
+        if (StringUtils.isEmpty(bulkActionDto.getScript())) {
             warn(getString("PageBulkAction.message.emptyString"));
             target.add(getFeedbackPanel());
             return;
@@ -110,7 +106,7 @@ public class PageBulkAction extends PageAdminConfiguration {
             } else if (!(parsed instanceof ExecuteScriptType) && !(parsed instanceof ScriptingExpressionType)) {
                 result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.notBulkAction", "{scripting-3}ScriptingExpressionType", parsed.getClass()).getString());
             }
-        } catch (SchemaException|RuntimeException e) {
+        } catch (SchemaException | RuntimeException e) {
             result.recordFatalError(createStringResource("PageBulkAction.message.startPerformed.fatalError.parse").getString(), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't parse bulk action object", e);
         }

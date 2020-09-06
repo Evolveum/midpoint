@@ -12,7 +12,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemT
 
 import java.util.*;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Application;
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
@@ -97,9 +97,6 @@ public class PageSelfDashboard extends PageSelf {
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
 
-    private static final int MAX_WORK_ITEMS = 1000;
-    private static final int MAX_REQUESTS = 1000;
-
     private final Model<PrismObject<? extends FocusType>> principalModel = new Model<>();
     private final CompiledGuiProfile compiledGuiProfile;
 
@@ -117,7 +114,7 @@ public class PageSelfDashboard extends PageSelf {
         super.createBreadcrumb();
 
         Breadcrumb bc = getLastBreadcrumb();
-        bc.setIcon(new Model("fa fa-dashboard"));
+        bc.setIcon(new Model<>("fa fa-dashboard"));
     }
 
     private void initLayout() {

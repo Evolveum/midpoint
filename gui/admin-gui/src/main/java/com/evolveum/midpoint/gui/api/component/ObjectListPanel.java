@@ -62,6 +62,7 @@ import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.search.*;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -127,7 +128,6 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
         this.options = options;
         this.multiselect = multiselect;
         this.tableId = tableId;//(!isCollectionViewPanel()) ? tableId : UserProfileStorage.TableId.COLLECTION_VIEW_TABLE; //TODO why?
-
     }
 
     @Override
@@ -158,7 +158,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
     }
 
     private void initLayout() {
-        Form<O> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
+        Form<O> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
         searchModel = initSearchModel();

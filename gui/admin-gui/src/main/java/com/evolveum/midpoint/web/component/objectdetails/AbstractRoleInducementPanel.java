@@ -11,7 +11,7 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.web.component.assignment.InducementsPanel;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 
@@ -22,7 +22,7 @@ public class AbstractRoleInducementPanel<R extends AbstractRoleType> extends Abs
 
     private static final String ID_INDUCEMENT_PANEL = "inducementPanel";
 
-    public AbstractRoleInducementPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<R>> focusWrapperModel,
+    public AbstractRoleInducementPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<R>> focusWrapperModel,
                                     PageBase page) {
         super(id, mainForm, focusWrapperModel);
         initLayout();

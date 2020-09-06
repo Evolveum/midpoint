@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -44,7 +44,7 @@ public class FocusPersonasTabPanel<F extends FocusType> extends AbstractObjectTa
 
     private static final String ID_PERSONAS_TABLE = "personasTable";
 
-    public FocusPersonasTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
+    public FocusPersonasTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel) {
         super(id, mainForm, focusModel);
     }
 
