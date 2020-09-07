@@ -11,6 +11,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathComparatorUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -32,10 +35,8 @@ import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -332,8 +333,8 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
                         SearchFactory.getAvailableDefinitions(objectDef, true);
                 List<Property> propertiesList = new ArrayList<>();
                 availableDefs.forEach(searchItemDef -> {
-                    if (!isPropertyAlreadyAdded(searchItemDef.getDef())) {
-                        propertiesList.add(new Property(searchItemDef.getDef()));
+                    if (!isPropertyAlreadyAdded(searchItemDef.getPath())) {
+                        propertiesList.add(new Property(searchItemDef.getDef(), searchItemDef.getPath()));
                     }
                 });
                 return propertiesList;
@@ -341,10 +342,10 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         };
     }
 
-    private boolean isPropertyAlreadyAdded(ItemDefinition def) {
+    private boolean isPropertyAlreadyAdded(ItemPath itemName) {
         List<SelectableBean<ValueSearchFilterItem>> properties = provider.getAvailableData();
         for (SelectableBean<ValueSearchFilterItem> prop : properties) {
-            if (QNameUtil.match(prop.getValue().getPropertyPath(), def.getItemName())) {
+            if (ItemPathComparatorUtil.equivalent(prop.getValue().getPropertyPath(), itemName)) {
                 return true;
             }
         }

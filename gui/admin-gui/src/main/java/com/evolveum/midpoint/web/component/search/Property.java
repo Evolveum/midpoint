@@ -10,11 +10,9 @@ import java.io.Serializable;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
-import org.apache.wicket.model.StringResourceModel;
+import com.evolveum.midpoint.prism.path.ItemPath;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import org.apache.commons.lang3.Validate;
 import com.evolveum.midpoint.prism.ItemDefinition;
 
 /**
@@ -27,11 +25,13 @@ public class Property implements Serializable, Comparable<Property> {
 
     private final ItemDefinition definition;
     private boolean selected;
+    private ItemPath fullPath;
 
-    public Property(ItemDefinition definition) {
+    public Property(ItemDefinition definition, ItemPath fullPath) {
         Validate.notNull(definition, "Property name must no be null");
 
         this.definition = definition;
+        this.fullPath = fullPath;
     }
 
     public ItemDefinition getDefinition() {
@@ -48,6 +48,10 @@ public class Property implements Serializable, Comparable<Property> {
 
     public void setSelected(boolean selected) {
         this.selected = selected;
+    }
+
+    public ItemPath getFullPath() {
+        return fullPath;
     }
 
     @Override
