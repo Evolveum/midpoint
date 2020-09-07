@@ -14,9 +14,14 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.util.AuditHelper;
 import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.util.exception.*;
@@ -104,6 +109,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     @Autowired private ChangeNotificationDispatcher changeNotificationDispatcher;
     @Autowired private AuditHelper auditHelper;
     @Autowired private Clock clock;
+    @Autowired private ExpressionFactory expressionFactory;
     @Autowired
     @Qualifier("cacheRepositoryService")
     private RepositoryService repositoryService;
@@ -662,17 +668,27 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
             return query;
         }
 
-        ObjectQuery taskQuery = prismContext.getQueryConverter().createObjectQuery(ShadowType.class, queryType);
+        ObjectFilter taskFilter = prismContext.getQueryConverter().createObjectFilter(ShadowType.class, queryType.getFilter());
+        ObjectFilter evaluatedFilter = null;
+        try {
+            evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(taskFilter, new ExpressionVariables(), MiscSchemaUtil.getExpressionProfile(),
+                    expressionFactory, prismContext, "collection filter", localCoordinatorTask, localCoordinatorTask.getResult());
+        } catch (SecurityViolationException e) {
+            LOGGER.error("Couldn't evaluate query from task.");
+            return query;
+        }
 
-        if (taskQuery == null || taskQuery.getFilter() == null) {
+        if (taskFilter == null) {
             return query;
         }
 
         if (query == null || query.getFilter() == null) {
+            ObjectQuery taskQuery = prismContext.queryFactory().createQuery();
+            taskQuery.setFilter(evaluatedFilter);
             return taskQuery;
         }
 
-        AndFilter andFilter =  prismContext.queryFactory().createAnd(query.getFilter(), taskQuery.getFilter());
+        AndFilter andFilter =  prismContext.queryFactory().createAnd(query.getFilter(), evaluatedFilter);
         ObjectQuery finalQuery = prismContext.queryFactory().createQuery(andFilter);
         provisioningService.applyDefinition(ShadowType.class, finalQuery, localCoordinatorTask, localCoordinatorTask.getResult());
         return finalQuery;
