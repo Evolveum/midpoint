@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.model.StringResourceModel;
@@ -37,7 +39,7 @@ public class Property implements Serializable, Comparable<Property> {
     }
 
     public String getName() {
-        return getItemDefinitionName(definition);
+        return WebComponentUtil.getItemDefinitionDisplayNameOrName(definition, null);
     }
 
     public boolean isSelected() {
@@ -69,8 +71,8 @@ public class Property implements Serializable, Comparable<Property> {
 
     @Override
     public int compareTo(Property o) {
-        String n1 = getItemDefinitionName(definition);
-        String n2 = getItemDefinitionName(o.definition);
+        String n1 = WebComponentUtil.getItemDefinitionDisplayNameOrName(definition, null);
+        String n2 = WebComponentUtil.getItemDefinitionDisplayNameOrName(o.definition, null);
 
         if (n1 == null || n2 == null) {
             return 0;
@@ -79,23 +81,6 @@ public class Property implements Serializable, Comparable<Property> {
         return String.CASE_INSENSITIVE_ORDER.compare(n1, n2);
     }
 
-    private String getItemDefinitionName(ItemDefinition def) {
-        if (def == null) {
-            return null;
-        }
-
-        if (def.getDisplayName() != null) {
-            StringResourceModel nameModel = PageBase.createStringResourceStatic(null, def.getDisplayName());
-            if (StringUtils.isNotEmpty(nameModel.getString())) {
-                return nameModel.getString();
-            }
-        }
-        String name = def.getDisplayName();        // TODO this is always null here, isn't it?
-        if (StringUtils.isEmpty(name)) {
-            name = def.getItemName().getLocalPart();
-        }
-        return name;
-    }
 
     @Override
     public String toString() {

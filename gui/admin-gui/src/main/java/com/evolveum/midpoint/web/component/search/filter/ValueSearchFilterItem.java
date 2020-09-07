@@ -13,6 +13,8 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.prism.*;
@@ -117,16 +119,19 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     public ValueSearchFilterItem(ValueFilter filter, boolean applyNegation) {
         this.filter = filter;
         this.applyNegation = applyNegation;
-        propertyName = filter.getElementName().toString();
         propertyPath = filter.getElementName();
         propertyDef = filter.getDefinition();
+        propertyName = WebComponentUtil.getItemDefinitionDisplayNameOrName(propertyDef, null);
         value = CollectionUtils.isNotEmpty(filter.getValues()) ? filter.getValues().get(0) : null;
+        if (propertyDef instanceof PrismReferenceDefinition && value == null) {
+            value = new ObjectReferenceType();
+        }
         this.expression = filter.getExpression();
         parseFilterName();
     }
 
     public ValueSearchFilterItem(Property property, boolean applyNegation) {
-        propertyName = property.getDefinition().getItemName().toString();
+        propertyName = property.getName();
         propertyPath = property.getDefinition().getItemName();
         propertyDef = property.getDefinition();
         this.applyNegation = applyNegation;
@@ -266,6 +271,8 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
             filterTypeName = FilterName.findFilterName(filter);
         }
     }
+
+
 
     public List<FilterName> getAvailableFilterNameList() {
         if (propertyDef == null) {

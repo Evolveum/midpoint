@@ -1375,6 +1375,20 @@ public final class WebComponentUtil {
         return StringEscapeUtils.escapeHtml4(displayName);
     }
 
+    public static String getItemDefinitionDisplayNameOrName(ItemDefinition def, Component component) {
+        if (def == null) {
+            return null;
+        }
+
+        if (def.getDisplayName() != null) {
+            StringResourceModel nameModel = PageBase.createStringResourceStatic(component, def.getDisplayName());
+            if (StringUtils.isNotEmpty(nameModel.getString()) && !def.getDisplayName().equals(nameModel.getString())) {
+                return nameModel.getString();
+            }
+        }
+        return def.getItemName().getLocalPart();
+    }
+
     private static String getAcquisitionDescription(ProvenanceAcquisitionType acquisitionType) {
         if (acquisitionType == null) {
             return null;
