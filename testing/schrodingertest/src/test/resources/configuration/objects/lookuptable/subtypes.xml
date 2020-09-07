@@ -6,13 +6,13 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <lookupTable oid="d74d9990-3953-11e6-ab88-7fda62960e11">
-    <name>Subtypes</name>
+    <name>Titles</name>
     <row id="1">
-        <key>EMP</key>
-        <label>Employee</label>
+        <key>PhD</key>
+        <label>PhD.</label>
     </row>
     <row id="2">
-        <key>EXT</key>
-        <label>Extern</label>
+        <key>Ing</key>
+        <label>Ing.</label>
     </row>
 </lookupTable>

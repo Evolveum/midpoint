@@ -84,7 +84,7 @@ public class UsersTest extends AbstractSchrodingerTest {
         user.selectTabBasic()
                 .form()
                 .addAttributeValue("name", "searchUser")
-                .addAttributeValue("subtype", "Extern")
+                .addAttributeValue("title", "PhD.")
                 .and()
                 .and()
                 .clickSave();
@@ -96,8 +96,19 @@ public class UsersTest extends AbstractSchrodingerTest {
             users
                 .table()
                     .search()
-                        .byItemName("subtype")
-                            .inputValue("Extern")
+                        .byItemName("title")
+                            .inputValue("PhD.")
+                    .updateSearch()
+                    .and()
+                .currentTableContains("searchUser")
+        );
+
+        Assert.assertTrue(
+                users
+                .table()
+                    .search()
+                        .byItemName("title")
+                            .inputValue("PhD")
                     .updateSearch()
                     .and()
                 .currentTableContains("searchUser")
@@ -107,8 +118,19 @@ public class UsersTest extends AbstractSchrodingerTest {
             users
                 .table()
                     .search()
-                        .byItemName("subtype")
-                            .inputValue("Employee")
+                        .byItemName("title")
+                            .inputValue("Ing.")
+                    .updateSearch()
+                    .and()
+                .currentTableContains("searchUser")
+        );
+
+        Assert.assertFalse(
+            users
+                .table()
+                    .search()
+                        .byItemName("title")
+                            .inputValue("Ing")
                     .updateSearch()
                     .and()
                 .currentTableContains("searchUser")

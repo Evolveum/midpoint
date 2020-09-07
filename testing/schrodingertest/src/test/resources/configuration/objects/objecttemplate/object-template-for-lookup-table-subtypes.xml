@@ -6,10 +6,10 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 <objectTemplate oid="6fd041a4-3954-11e6-b2db-63400448082e">
-    <name>lookup table item subtypes</name>
+    <name>lookup table item title</name>
     <item>
-        <ref>subtype</ref>
-        <displayName>subtype</displayName>
+        <ref>title</ref>
+        <displayName>title</displayName>
         <valueEnumerationRef oid="d74d9990-3953-11e6-ab88-7fda62960e11"/>
     </item>
 </objectTemplate>
