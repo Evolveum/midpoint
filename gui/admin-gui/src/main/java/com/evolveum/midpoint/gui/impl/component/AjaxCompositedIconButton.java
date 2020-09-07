@@ -1,26 +1,22 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.impl.component;
 
-import java.util.Map.Entry;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.parser.XmlTag;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -37,7 +33,7 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
         super(id);
 
         this.title = title;
-        this.icon =icon;
+        this.icon = icon;
 
         add(AttributeAppender.append("class", new IModel<String>() {
 
@@ -74,17 +70,17 @@ public abstract class AjaxCompositedIconButton extends AjaxLink<String> {
         StringBuilder sb = new StringBuilder();
 
         CompositedIcon icon = this.icon;
-        if(icon.hasBasicIcon()) {
+        if (icon.hasBasicIcon()) {
             sb.append("<i class=\"").append(icon.getBasicIcon()).append("\"");
-            if (icon.hasBasicIconHtmlColor()){
+            if (icon.hasBasicIconHtmlColor()) {
                 sb.append(" style=\"color: " + icon.getBasicIconHtmlColor() + ";\"");
             }
             sb.append("></i> ");
         }
 
-        if(icon.hasLayerIcons()) {
-            for(IconType entry : icon.getLayerIcons()) {
-                if (entry == null){
+        if (icon.hasLayerIcons()) {
+            for (IconType entry : icon.getLayerIcons()) {
+                if (entry == null) {
                     continue;
                 }
                 if (StringUtils.isNotEmpty(entry.getCssClass())) {

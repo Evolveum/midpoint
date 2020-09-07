@@ -1,50 +1,41 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.gui.api.GuiConstants;
-import com.evolveum.midpoint.model.api.ModelInteractionService;
-import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
-import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
-import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
-import com.evolveum.midpoint.model.api.authentication.StateOfModule;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import org.apache.commons.lang.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.springframework.security.saml.util.StringUtils.stripSlashes;
+
+import java.io.IOException;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.security.web.savedrequest.RequestCache;
 import org.springframework.security.web.savedrequest.SavedRequest;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-import static org.springframework.security.saml.util.StringUtils.stripSlashes;
+import com.evolveum.midpoint.gui.api.GuiConstants;
+import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
+import com.evolveum.midpoint.model.api.authentication.ModuleAuthentication;
+import com.evolveum.midpoint.model.api.authentication.StateOfModule;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.web.security.module.configuration.ModuleWebSecurityConfigurationImpl;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
  * @author skublik
  */
-
 public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
-
-    @Autowired
-    private ModelInteractionService modelInteractionService;
-
-    @Autowired
-    private TaskManager taskManager;
 
     private String defaultTargetUrl;
 
+    // TODO: this seems to be useless, but setPrefix is called from multiple places
     private String prefix = "";
 
     public MidPointAuthenticationSuccessHandler setPrefix(String prefix) {
@@ -93,7 +84,7 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
         }
         if (savedRequest != null && authenticatedChannel != null) {
             int startIndex = savedRequest.getRedirectUrl().indexOf(request.getContextPath()) + request.getContextPath().length();
-            int endIndex = savedRequest.getRedirectUrl().length()-1;
+            int endIndex = savedRequest.getRedirectUrl().length() - 1;
             String channelSavedRequest = null;
             if ((startIndex < endIndex)) {
                 String localePath = savedRequest.getRedirectUrl().substring(startIndex, endIndex);
@@ -116,10 +107,8 @@ public class MidPointAuthenticationSuccessHandler extends SavedRequestAwareAuthe
     @Override
     protected String getTargetUrlParameter() {
 
-
         return defaultTargetUrl;
     }
-
 
     @Override
     public void setDefaultTargetUrl(String defaultTargetUrl) {

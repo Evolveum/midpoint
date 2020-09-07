@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2018 Evolveum and contributors
+ * Copyright (C) 2014-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -17,7 +17,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
- *
  */
 @Listeners({ com.evolveum.midpoint.tools.testng.AlphabeticalMethodInterceptor.class })
 public class TestOpenDj extends AbstractLdapConnTest {
@@ -80,7 +79,7 @@ public class TestOpenDj extends AbstractLdapConnTest {
 
     @Override
     protected String getPeopleLdapSuffix() {
-        return "ou=people,"+getLdapSuffix();
+        return "ou=people," + getLdapSuffix();
     }
 
     @Override
@@ -109,7 +108,7 @@ public class TestOpenDj extends AbstractLdapConnTest {
     }
 
     @Override
-    protected boolean needsGroupFakeMemeberEntry() {
+    protected boolean needsGroupFakeMemberEntry() {
         return true;
     }
 
@@ -133,7 +132,6 @@ public class TestOpenDj extends AbstractLdapConnTest {
     @Override
     protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd)
             throws ObjectNotFoundException, SchemaException {
-        assertSyncToken(syncTaskOid, (Integer)(step + getInitialSyncToken()));
+        assertSyncToken(syncTaskOid, step + getInitialSyncToken());
     }
-
 }

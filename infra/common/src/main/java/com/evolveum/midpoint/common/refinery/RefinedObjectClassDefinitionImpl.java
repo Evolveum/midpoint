@@ -1,10 +1,23 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.common.refinery;
+
+import static java.util.Collections.emptySet;
+
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
 import com.evolveum.midpoint.prism.*;
@@ -24,32 +37,16 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CountObjectsCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.PagedSearchCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.*;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-
-import static java.util.Collections.emptySet;
 
 /**
  * @author semancik
  */
 public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClassDefinition {
-
-    private static final Trace LOGGER = TraceManager.getTrace(RefinedObjectClassDefinition.class);
 
     @NotNull private final List<RefinedAttributeDefinition<?>> attributeDefinitions = new ArrayList<>();
     @NotNull private final List<RefinedAssociationDefinition> associationDefinitions = new ArrayList<>();
@@ -368,16 +365,16 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
             accountShadow = getPrismContext().createObject(ShadowType.class);
         } catch (SchemaException e) {
             // This should not happen
-            throw new SystemException("Internal error instantiating account shadow: "+e.getMessage(), e);
+            throw new SystemException("Internal error instantiating account shadow: " + e.getMessage(), e);
         }
         ShadowType accountShadowType = accountShadow.asObjectable();
 
         accountShadowType
-            .intent(getIntent())
-            .kind(getKind())
-            .tag(tag)
-            .objectClass(getObjectClassDefinition().getTypeName())
-            .resourceRef(getResourceOid(), ResourceType.COMPLEX_TYPE);
+                .intent(getIntent())
+                .kind(getKind())
+                .tag(tag)
+                .objectClass(getObjectClassDefinition().getTypeName())
+                .resourceRef(getResourceOid(), ResourceType.COMPLEX_TYPE);
 
         // Setup definition
         PrismObjectDefinition<ShadowType> newDefinition = accountShadow.getDefinition().cloneWithReplacedDefinition(
@@ -507,7 +504,6 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         return password.getFetchStrategy();
     }
 
-
     @Override
     public ObjectReferenceType getSecurityPolicyRef() {
         if (schemaHandlingObjectTypeDefinitionType == null) {
@@ -520,15 +516,14 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     @Deprecated // Remove in 4.4
     public ObjectReferenceType getPasswordPolicy() {
         ResourcePasswordDefinitionType password = getPasswordDefinition();
-        if (password == null || password.getPasswordPolicyRef() == null){
+        if (password == null || password.getPasswordPolicyRef() == null) {
             return null;
         }
         return password.getPasswordPolicyRef();
     }
 
-
     @Override
-    public ResourceActivationDefinitionType getActivationSchemaHandling(){
+    public ResourceActivationDefinitionType getActivationSchemaHandling() {
         if (schemaHandlingObjectTypeDefinitionType == null) {
             return null;
         }
@@ -552,7 +547,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         } else if (QNameUtil.match(ActivationType.F_LOCKOUT_EXPIRATION_TIMESTAMP, propertyName)) {
             return null;            // todo implement this
         } else {
-            throw new IllegalArgumentException("Unknown activation property "+propertyName);
+            throw new IllegalArgumentException("Unknown activation property " + propertyName);
         }
     }
 
@@ -582,7 +577,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         }
         CapabilitiesType capabilitiesType = new CapabilitiesType(getPrismContext());
         capabilitiesType.setConfigured(configuredCapabilities);
-        return  capabilitiesType;
+        return capabilitiesType;
     }
 
     @Override
@@ -694,16 +689,12 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     /**
      * Creates a derived version of this ROCD for a given layer.
      * TODO clone if necessary/if specified (currently there is no cloning)
-     *
-     * @param layerType
-     * @return
      */
     @Override
     public LayerRefinedObjectClassDefinition forLayer(@NotNull LayerType layerType) {
         Validate.notNull(layerType);
         return LayerRefinedObjectClassDefinitionImpl.wrap(this, layerType);
     }
-
 
     //region Delegations ========================================================
     @NotNull
@@ -933,14 +924,14 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
             intent = SchemaConstants.INTENT_DEFAULT;
         }
         RefinedObjectClassDefinition rObjectClassDef = parseRefinedObjectClass(entTypeDefType,
-                resourceType, rSchema, prismContext, kind, intent, kind.value(), kind.value() + " type definition '"+intent+"' in " + contextDescription);
+                resourceType, rSchema, prismContext, kind, intent, kind.value(), kind.value() + " type definition '" + intent + "' in " + contextDescription);
 
         return rObjectClassDef;
     }
 
     private static void parseProtected(RefinedObjectClassDefinition rAccountDef,
             ResourceObjectTypeDefinitionType accountTypeDefType, PrismContext prismContext) throws SchemaException {
-        for (ResourceObjectPatternType protectedType: accountTypeDefType.getProtected()) {
+        for (ResourceObjectPatternType protectedType : accountTypeDefType.getProtected()) {
             ResourceObjectPattern protectedPattern = convertToPattern(protectedType, rAccountDef, prismContext);
             rAccountDef.getProtectedObjectPatterns().add(protectedPattern);
         }
@@ -960,8 +951,8 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     }
 
     public static RefinedObjectClassDefinition parseFromSchema(ObjectClassComplexTypeDefinition objectClassDef, ResourceType resourceType,
-                                                        RefinedResourceSchema rSchema,
-                                                        PrismContext prismContext, String contextDescription) throws SchemaException {
+            RefinedResourceSchema rSchema,
+            PrismContext prismContext, String contextDescription) throws SchemaException {
 
         RefinedObjectClassDefinitionImpl rOcDef = new RefinedObjectClassDefinitionImpl(resourceType.getOid(), objectClassDef);
 
@@ -1007,7 +998,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
                 throw new SchemaException("Object class " + objectClass + " was not found in " + contextDescription);
             }
         } else {
-            throw new SchemaException("Definition of "+typeDesc+" type " + schemaHandlingObjDefType.getIntent() + " does not have objectclass, in " + contextDescription);
+            throw new SchemaException("Definition of " + typeDesc + " type " + schemaHandlingObjDefType.getIntent() + " does not have objectclass, in " + contextDescription);
         }
 
         RefinedObjectClassDefinitionImpl rOcDef = new RefinedObjectClassDefinitionImpl(resourceType.getOid(), objectClassDef);
@@ -1048,7 +1039,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
                     rOcDef.setSearchHierarchyScope(SearchHierarchyScope.SUB);
                     break;
                 default:
-                    throw new SchemaException("Unknown search hierarchy scope: "+rOcDef.schemaHandlingObjectTypeDefinitionType.getSearchHierarchyScope());
+                    throw new SchemaException("Unknown search hierarchy scope: " + rOcDef.schemaHandlingObjectTypeDefinitionType.getSearchHierarchyScope());
             }
         }
 
@@ -1059,7 +1050,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         if (schemaHandlingObjectTypeDefinitionType == null) {
             return;
         }
-        for (ResourceObjectAssociationType resourceObjectAssociationType: schemaHandlingObjectTypeDefinitionType.getAssociation()) {
+        for (ResourceObjectAssociationType resourceObjectAssociationType : schemaHandlingObjectTypeDefinitionType.getAssociation()) {
             RefinedAssociationDefinition rAssocDef = new RefinedAssociationDefinition(resourceObjectAssociationType);
             ShadowKindType assocKind = rAssocDef.getKind();
             RefinedObjectClassDefinition assocTarget = rSchema.getRefinedDefinition(assocKind, rAssocDef.getIntents());
@@ -1073,10 +1064,10 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
             return;
         }
         List<QName> auxiliaryObjectClassQNames = schemaHandlingObjectTypeDefinitionType.getAuxiliaryObjectClass();
-        for (QName auxiliaryObjectClassQName: auxiliaryObjectClassQNames) {
+        for (QName auxiliaryObjectClassQName : auxiliaryObjectClassQNames) {
             RefinedObjectClassDefinition auxiliaryObjectClassDef = rSchema.getRefinedDefinition(auxiliaryObjectClassQName);
             if (auxiliaryObjectClassDef == null) {
-                throw new SchemaException("Auxiliary object class "+auxiliaryObjectClassQName+" specified in "+this+" does not exist");
+                throw new SchemaException("Auxiliary object class " + auxiliaryObjectClassQName + " specified in " + this + " does not exist");
             }
             auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDef);
         }
@@ -1089,7 +1080,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         }
 
         parseAttributesFrom(rSchema, getObjectClassDefinition(), false, contextDescription);
-        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition: auxiliaryObjectClassDefinitions) {
+        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
             parseAttributesFrom(rSchema, auxiliaryObjectClassDefinition, true, contextDescription);
         }
 
@@ -1120,7 +1111,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
 
             // TODO !!!! fix the cast
             RefinedAttributeDefinition<?> rAttrDef = RefinedAttributeDefinitionImpl.parse(road, attrDefType, ocDef,
-                    rSchema.getPrismContext(), "in "+kind+" type " + intent + ", in " + contextDescription);
+                    rSchema.getPrismContext(), "in " + kind + " type " + intent + ", in " + contextDescription);
             if (!auxiliary) {
                 processIdentifiers(rAttrDef, ocDef);
             }
@@ -1129,8 +1120,8 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
                 if (auxiliary) {
                     continue;
                 } else {
-                    throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getItemName() + " in "+kind+" type " +
-                        intent + ", in " + contextDescription);
+                    throw new SchemaException("Duplicate definition of attribute " + rAttrDef.getItemName() + " in " + kind + " type " +
+                            intent + ", in " + contextDescription);
                 }
             }
             add(rAttrDef);
@@ -1145,15 +1136,15 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         QName attrName = rAttrDef.getItemName();
 
         if (objectClassDef.isPrimaryIdentifier(attrName)) {
-            ((Collection)getPrimaryIdentifiers()).add(rAttrDef);
+            getPrimaryIdentifiers().add(rAttrDef);
         }
 
         if (rAttrDef.isSecondaryIdentifierOverride() == null) {
             if (objectClassDef.isSecondaryIdentifier(attrName)) {
-                ((Collection)getSecondaryIdentifiers()).add(rAttrDef);
+                getSecondaryIdentifiers().add(rAttrDef);
             }
         } else if (rAttrDef.isSecondaryIdentifierOverride()) {
-            ((Collection)getSecondaryIdentifiers()).add(rAttrDef);
+            getSecondaryIdentifiers().add(rAttrDef);
         }
     }
 
@@ -1167,7 +1158,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
                     if (foundAttrDefType == null) {
                         foundAttrDefType = attrDefType;
                     } else {
-                        throw new SchemaException("Duplicate definition of attribute " + ref + " in "+kind+" type "
+                        throw new SchemaException("Duplicate definition of attribute " + ref + " in " + kind + " type "
                                 + rOcDefType.getIntent() + ", in " + contextDescription);
                     }
                 }
@@ -1210,7 +1201,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
             sb.append(",layer=").append(layer);
         }
         sb.append(")");
-        for (RefinedAttributeDefinition rAttrDef: _this.getAttributeDefinitions()) {
+        for (RefinedAttributeDefinition rAttrDef : _this.getAttributeDefinitions()) {
             sb.append("\n");
             sb.append(rAttrDef.debugDump(indent + 1, layer));
         }
@@ -1229,7 +1220,7 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
         if (getDisplayName() != null) {
             return getDisplayName();
         } else if (getKind() != null) {
-            return getKind()+":"+getIntent();
+            return getKind() + ":" + getIntent();
         } else {
             return getTypeName().getLocalPart();
         }
@@ -1238,9 +1229,9 @@ public final class RefinedObjectClassDefinitionImpl implements RefinedObjectClas
     @Override
     public String toString() {
         if (getKind() == null) {
-            return getDebugDumpClassName() + getMutabilityFlag() + "("+PrettyPrinter.prettyPrint(getTypeName())+")";
+            return getDebugDumpClassName() + getMutabilityFlag() + "(" + PrettyPrinter.prettyPrint(getTypeName()) + ")";
         } else {
-            return getDebugDumpClassName() + getMutabilityFlag() + "("+getKind()+":"+getIntent()+"="+PrettyPrinter.prettyPrint(getTypeName())+")";
+            return getDebugDumpClassName() + getMutabilityFlag() + "(" + getKind() + ":" + getIntent() + "=" + PrettyPrinter.prettyPrint(getTypeName()) + ")";
         }
     }
 

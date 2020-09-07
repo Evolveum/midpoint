@@ -1,24 +1,16 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.util;
 
 import java.io.Serializable;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
-import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferencePanel;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.reflect.FieldUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
@@ -28,6 +20,10 @@ import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.Response;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismPropertyPanel;
+import com.evolveum.midpoint.gui.impl.prism.panel.PrismReferencePanel;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.PrismHeaderPanel;
@@ -115,7 +111,7 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
         try {
             String key = (String) FieldUtils.readField(model, "resourceKey", true);
             if (key.startsWith("${")) {
-                String expression = key.substring(2, key.length()-1);
+                String expression = key.substring(2, key.length() - 1);
                 key = new PropertyModel<String>(FieldUtils.readField(model, "model", true), expression).getObject();
             }
             if (key != null) {
@@ -131,6 +127,6 @@ public class SchrodingerComponentInitListener implements IComponentInitializatio
             return null;
         }
 
-        return StringUtils.join(new Object[]{qname.getNamespaceURI(), qname.getLocalPart()}, "#");
+        return StringUtils.join(new Object[] { qname.getNamespaceURI(), qname.getLocalPart() }, "#");
     }
 }

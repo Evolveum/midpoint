@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,36 +9,27 @@ package com.evolveum.midpoint.gui.impl.component.data.column;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperColumn.ColumnType;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.PrismPropertyValueWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.AssignmentsUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateModelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LifecycleStateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PendingOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyActionsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyConstraintsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author katka
- *
  */
 public class PrismContainerWrapperColumnPanel<C extends Containerable> extends AbstractItemWrapperColumnPanel<PrismContainerWrapper<C>, PrismContainerValueWrapper<C>> {
 
@@ -52,7 +43,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
     @Override
     protected String createLabel(PrismContainerValueWrapper<C> object) {
         C realValue = object.getRealValue();
-        if(realValue == null) {
+        if (realValue == null) {
             return "";
         }
 
@@ -68,7 +59,6 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
             return getActivationLabelLabel((ActivationType) realValue);
         }
 
-
         //TODO what to show?
         if (LifecycleStateModelType.class.isAssignableFrom(realValue.getClass())) {
             return realValue.toString();
@@ -76,7 +66,7 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
 
         if (LifecycleStateType.class.isAssignableFrom(realValue.getClass())) {
             LifecycleStateType state = (LifecycleStateType) realValue;
-            if(StringUtils.isBlank(state.getDisplayName())) {
+            if (StringUtils.isBlank(state.getDisplayName())) {
                 return state.getName();
             }
             return state.getDisplayName();
@@ -86,21 +76,20 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
             return getAssociationLabel((ResourceObjectAssociationType) realValue);
         }
 
-        if(PendingOperationType.class.isAssignableFrom(realValue.getClass())) {
+        if (PendingOperationType.class.isAssignableFrom(realValue.getClass())) {
             return WebComponentUtil.getPendingOperationLabel((PendingOperationType) realValue, this);
         }
 
         return realValue.toString();
 
-
     }
 
-    private String getActivationLabelLabel(ActivationType activation){
+    private String getActivationLabelLabel(ActivationType activation) {
         if (activation.getAdministrativeStatus() != null) {
             return activation.getAdministrativeStatus().value();
         }
 
-        PrismContainerWrapper<AssignmentType> assignmentModel =  (PrismContainerWrapper<AssignmentType>) getModel().getObject();
+        PrismContainerWrapper<AssignmentType> assignmentModel = (PrismContainerWrapper<AssignmentType>) getModel().getObject();
         PrismPropertyWrapper<String> lifecycle = null;
         try {
             lifecycle = assignmentModel.findProperty(AssignmentType.F_LIFECYCLE_STATE);
@@ -115,9 +104,8 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
 
     }
 
-
-    private String getAssociationLabel(ResourceObjectAssociationType association){
-        if (association == null){
+    private String getAssociationLabel(ResourceObjectAssociationType association) {
+        if (association == null) {
             return "";
         }
         return association != null ?
@@ -125,7 +113,6 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
                 : null;
 
     }
-
 
     private String getLifecycleState(PrismPropertyWrapper<String> lifecycle) {
         if (lifecycle == null) {
@@ -139,7 +126,6 @@ public class PrismContainerWrapperColumnPanel<C extends Containerable> extends A
 
         return values.iterator().next().getRealValue();
     }
-
 
     @Override
     protected Panel createValuePanel(String id, IModel<PrismContainerWrapper<C>> headerModel, PrismContainerValueWrapper<C> object) {

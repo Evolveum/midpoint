@@ -1,24 +1,22 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.common;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.builder.S_MaybeDelete;
@@ -30,12 +28,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationDescriptionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 public class SynchronizationUtils {
 
@@ -70,7 +63,6 @@ public class SynchronizationUtils {
                 timestamp, sourceChannel, full, prismContext);
         propertyDeltas.add(syncDescriptionDelta);
 
-
         propertyDeltas.addAll(createSynchronizationTimestampsDelta(shadow, timestamp, full, prismContext));
 
         PropertyDelta<SynchronizationSituationType> syncSituationDelta = createSynchronizationSituationDelta(shadow, situation, prismContext);
@@ -90,8 +82,7 @@ public class SynchronizationUtils {
         syncSituationDescription.setFull(full);
 
         S_MaybeDelete builder = prismContext.deltaFor(ShadowType.class)
-            .item(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION).add(syncSituationDescription);
-
+                .item(ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION).add(syncSituationDescription);
 
         List<SynchronizationSituationDescriptionType> oldSituationDescriptions = getSituationFromSameChannel(
                 shadow, sourceChannel);
@@ -104,8 +95,8 @@ public class SynchronizationUtils {
 
     public static List<PropertyDelta<?>> createSynchronizationTimestampsDelta(
             PrismObject<ShadowType> shadow, PrismContext prismContext) {
-            XMLGregorianCalendar timestamp = XmlTypeConverter
-                    .createXMLGregorianCalendar(System.currentTimeMillis());
+        XMLGregorianCalendar timestamp = XmlTypeConverter
+                .createXMLGregorianCalendar(System.currentTimeMillis());
         return createSynchronizationTimestampsDelta(shadow, timestamp, true, prismContext);
     }
 
@@ -159,7 +150,6 @@ public class SynchronizationUtils {
                 return false;
             }
         }
-
 
         RefinedResourceSchema schema = RefinedResourceSchemaImpl.getRefinedSchema(resource);
         if (schema == null) {

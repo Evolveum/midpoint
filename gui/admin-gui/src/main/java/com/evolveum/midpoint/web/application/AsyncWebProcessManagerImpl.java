@@ -1,18 +1,20 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.application;
 
-import com.evolveum.midpoint.security.api.SecurityContextManager;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import org.apache.commons.lang.StringUtils;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import javax.annotation.PreDestroy;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ISessionListener;
 import org.apache.wicket.Session;
 import org.apache.wicket.protocol.http.servlet.ServletWebRequest;
@@ -23,13 +25,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-import javax.annotation.PreDestroy;
-import javax.servlet.http.HttpSession;
-import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.SecurityContextAwareCallable;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 
 /**
  * Created by Viliam Repan (lazyman).
@@ -41,9 +41,9 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
     @Autowired
     private MidPointApplication application;
 
-    private ExecutorService executor = Executors.newCachedThreadPool();
+    private final ExecutorService executor = Executors.newCachedThreadPool();
 
-    private Map<Key, AsyncWebProcess> processes = new Hashtable<>();
+    private final Map<Key, AsyncWebProcess<?>> processes = new Hashtable<>();
 
     @PreDestroy
     public void destroy() {
@@ -59,10 +59,7 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
     public void onUnbound(String sessionId) {
         LOGGER.trace("Cleaning up processes for session id {}", sessionId);
 
-        Set<Key> keys = new HashSet();
-        keys.addAll(processes.keySet());
-
-        int count = 0;
+        Set<Key> keys = new HashSet<>(processes.keySet());
         for (Key key : keys) {
             if (!key.sessionId.equals(sessionId)) {
                 continue;
@@ -76,7 +73,7 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
     public <T> AsyncWebProcess<T> createProcess(T data) {
         Key key = createProcessIdentifier(UUID.randomUUID().toString());
 
-        AsyncWebProcess process = new AsyncWebProcess(key.processId, application);
+        AsyncWebProcess<T> process = new AsyncWebProcess<>(key.processId, application);
         process.setData(data);
         processes.put(key, process);
 
@@ -109,7 +106,7 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
         submit(processId, new SecurityContextAwareCallable(secManager, auth) {
 
             @Override
-            public Object callWithContextPrepared() throws Exception {
+            public Object callWithContextPrepared() {
                 runnable.run();
 
                 return null;
@@ -125,7 +122,7 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
             throw new IllegalStateException("Process with id '" + processId + "' doesn't exist");
         }
 
-        Callable securityAware = callable;
+        Callable<?> securityAware = callable;
 
         if (!(callable instanceof SecurityContextAwareCallable)) {
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -140,7 +137,7 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
             };
         }
 
-        Future future = executor.submit(securityAware);
+        Future<?> future = executor.submit(securityAware);
         process.setFuture(future);
     }
 
@@ -154,7 +151,7 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
             process.getFuture().cancel(true);
         }
 
-        return processes.remove(key)!= null;
+        return processes.remove(key) != null;
     }
 
     private Key createProcessIdentifier(String processId) {
@@ -177,13 +174,13 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false; }
 
             Key key = (Key) o;
 
-            if (sessionId != null ? !sessionId.equals(key.sessionId) : key.sessionId != null) return false;
-            return processId != null ? processId.equals(key.processId) : key.processId == null;
+            return Objects.equals(sessionId, key.sessionId)
+                    && Objects.equals(processId, key.processId);
         }
 
         @Override
@@ -195,7 +192,7 @@ public class AsyncWebProcessManagerImpl implements ISessionListener, AsyncWebPro
 
         @Override
         public String toString() {
-            return StringUtils.join(new Object[]{sessionId, processId}, "/");
+            return StringUtils.join(new Object[] { sessionId, processId }, "/");
         }
     }
 }

@@ -1,15 +1,11 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.session.UserProfileStorage;
-import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
@@ -20,10 +16,16 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.validation.validator.RangeValidator;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
+
 /**
  * @author lazyman
  */
-public class PageSizePopover extends BasePanel {
+public class PageSizePopover extends BasePanel<PageSizePopover> {
 
     private static final String ID_POP_BUTTON = "popButton";
     private static final String ID_POPOVER = "popover";
@@ -43,15 +45,12 @@ public class PageSizePopover extends BasePanel {
 
         String buttonId = get(ID_POP_BUTTON).getMarkupId();
 
-        StringBuilder sb = new StringBuilder();
-        sb.append("initPageSizePopover('").append(buttonId);
-        sb.append("','").append(get(ID_POPOVER).getMarkupId());
-        sb.append("','").append(buttonId);
-        sb.append("');");
-
-        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
+        response.render(OnDomReadyHeaderItem.forScript(
+                "initPageSizePopover('" + buttonId
+                        + "','" + get(ID_POPOVER).getMarkupId()
+                        + "','" + buttonId
+                        + "');"));
     }
-
 
     protected void initLayout() {
         Button popButton = new Button(ID_POP_BUTTON);
@@ -62,7 +61,7 @@ public class PageSizePopover extends BasePanel {
         popover.setOutputMarkupId(true);
         add(popover);
 
-        Form form = new com.evolveum.midpoint.web.component.form.Form(ID_FORM);
+        Form<?> form = new MidpointForm<>(ID_FORM);
         popover.add(form);
 
         AjaxSubmitButton button = new AjaxSubmitButton(ID_BUTTON) {
@@ -82,8 +81,8 @@ public class PageSizePopover extends BasePanel {
         };
         form.add(button);
 
-        TextField input = new TextField(ID_INPUT, createInputModel());
-        input.add(new RangeValidator(5, 100));
+        TextField<?> input = new TextField<>(ID_INPUT, createInputModel());
+        input.add(new RangeValidator<>(5, 100));
         input.setLabel(createStringResource("PageSizePopover.title"));
         input.add(new SearchFormEnterBehavior(button));
         input.setType(Integer.class);
@@ -95,7 +94,7 @@ public class PageSizePopover extends BasePanel {
 
             @Override
             public Integer getObject() {
-                TablePanel tablePanel = findParent(TablePanel.class);
+                TablePanel<?> tablePanel = findParent(TablePanel.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
 
                 return getPageBase().getSessionStorage().getUserProfile().getPagingSize(tableId);
@@ -103,7 +102,7 @@ public class PageSizePopover extends BasePanel {
 
             @Override
             public void setObject(Integer o) {
-                TablePanel tablePanel = findParent(TablePanel.class);
+                TablePanel<?> tablePanel = findParent(TablePanel.class);
                 UserProfileStorage.TableId tableId = tablePanel.getTableId();
 
                 getPageBase().getSessionStorage().getUserProfile().setPagingSize(tableId, o);

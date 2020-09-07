@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,27 +11,26 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.ItemProcessing;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.util.DefinitionUtil;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.BooleanUtils;
-
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinitionImpl;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DisplayableValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.apache.commons.lang.StringUtils;
-import org.jetbrains.annotations.NotNull;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
@@ -54,7 +53,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     private AttributeStorageStrategyType storageStrategy;
     private MappingType outboundMappingType;
     private List<MappingType> inboundMappingTypes;
-    private Map<LayerType,PropertyLimitations> limitationsMap = new HashMap<>();
+    private Map<LayerType, PropertyLimitations> limitationsMap = new HashMap<>();
     private QName matchingRuleQName = null;
     private Integer modificationPriority;
     private Boolean readReplaceMode;
@@ -190,7 +189,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
 
     @Override
     public String getDisplayName() {
-        if (displayName == null && attributeDefinition != null && StringUtils.isNotEmpty(attributeDefinition.getNativeAttributeName())){
+        if (displayName == null && attributeDefinition != null && StringUtils.isNotEmpty(attributeDefinition.getNativeAttributeName())) {
             return attributeDefinition.getNativeAttributeName();
         }
         return displayName;
@@ -360,12 +359,12 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
     }
 
     @Override
-    public List<String> getTolerantValuePattern(){
+    public List<String> getTolerantValuePattern() {
         return tolerantValuePattern;
     }
 
     @Override
-    public List<String> getIntolerantValuePattern(){
+    public List<String> getIntolerantValuePattern() {
         return intolerantValuePattern;
     }
 
@@ -394,7 +393,7 @@ public class RefinedAttributeDefinitionImpl<T> extends ResourceAttributeDefiniti
         }
 
         if (schemaHandlingAttrDefType != null && schemaHandlingAttrDefType.getDisplayOrder() != null) {
-                rAttrDef.setDisplayOrder(schemaHandlingAttrDefType.getDisplayOrder());
+            rAttrDef.setDisplayOrder(schemaHandlingAttrDefType.getDisplayOrder());
         } else {
             if (schemaAttrDef.getDisplayOrder() != null) {
                 rAttrDef.setDisplayOrder(schemaAttrDef.getDisplayOrder());

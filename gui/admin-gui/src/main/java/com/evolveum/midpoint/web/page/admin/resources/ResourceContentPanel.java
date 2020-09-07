@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,7 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -126,11 +126,12 @@ public abstract class ResourceContentPanel extends Panel {
     private static final String ID_LIVE_SYNC = "liveSync";
     private static final String ID_TOTALS = "totals";
 
-    private PageBase pageBase;
-    private ShadowKindType kind;
+    private final PageBase pageBase;
+    private final ShadowKindType kind;
+    private final String intent;
+    private final QName objectClass;
+
     private String searchMode;
-    private String intent;
-    private QName objectClass;
     private SelectableBeanObjectDataProvider<ShadowType> provider;
 
     IModel<PrismObject<ResourceType>> resourceModel;
@@ -209,7 +210,7 @@ public abstract class ResourceContentPanel extends Panel {
                 default:
                     return TableId.PAGE_RESOURCE_OBJECT_CLASS_PANEL;
             }
-        } else if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT)){
+        } else if (searchMode.equals(SessionStorage.KEY_RESOURCE_PAGE_RESOURCE_CONTENT)) {
             switch (kind) {
                 case ACCOUNT:
                     return TableId.PAGE_RESOURCE_ACCOUNTS_PANEL_RESOURCE_MODE;
@@ -234,105 +235,103 @@ public abstract class ResourceContentPanel extends Panel {
 
         MainObjectListPanel<ShadowType> shadowListPanel =
                 new MainObjectListPanel<ShadowType>(ID_TABLE,
-                ShadowType.class, getTableId(), createSearchOptions()) {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            protected List<InlineMenuItem> createInlineMenu() {
-                return ResourceContentPanel.this.createRowMenuItems();
-            }
-
-            @Override
-            protected List<IColumn<SelectableBean<ShadowType>, String>> createColumns() {
-                return ResourceContentPanel.this.initColumns();
-            }
-
-            @Override
-            protected void objectDetailsPerformed(AjaxRequestTarget target, ShadowType object) {
-                shadowDetailsPerformed(target, WebComponentUtil.getName(object), object.getOid());
-
-            }
-
-            @Override
-            protected boolean isCreateNewObjectEnabled(){
-                return false;
-            }
-
-            @Override
-            protected BaseSortableDataProvider<SelectableBean<ShadowType>> initProvider() {
-                provider = (SelectableBeanObjectDataProvider<ShadowType>) super.initProvider();
-                provider.setEmptyListOnNullQuery(true);
-                provider.setSort(null);
-                provider.setUseObjectCounting(isUseObjectCounting());
-                provider.setDefaultCountIfNull(Integer.MAX_VALUE);
-                return provider;
-            }
-
-            @Override
-            protected ObjectQuery createContentQuery() {
-                ObjectQuery parentQuery = super.createContentQuery();
-                QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
-
-                List<ObjectFilter> filters = new ArrayList<>();
-                if (parentQuery != null) {
-                    filters.add(parentQuery.getFilter());
-                }
-
-                ObjectQuery customQuery = ResourceContentPanel.this.createQuery();
-                if (customQuery != null && customQuery.getFilter() != null) {
-                    filters.add(customQuery.getFilter());
-                }
-                if (filters.size() == 1) {
-                    return queryFactory.createQuery(filters.iterator().next());
-                }
-                if (filters.size() == 0) {
-                    return null;
-                }
-                return queryFactory.createQuery(queryFactory.createAnd(filters));
-            }
-
-            @Override
-            protected LoadableModel<Search> initSearchModel() {
-                return new LoadableModel<Search>(false) {
-
+                        ShadowType.class, getTableId(), createSearchOptions()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public Search load() {
-                        String storageKey = getStorageKey();
-                        Search search = null;
-                        if (org.apache.commons.lang3.StringUtils.isNotEmpty(storageKey)) {
-                            PageStorage storage = getPageStorage(storageKey);
-                            if (storage != null) {
-                                search = storage.getSearch();
-                            }
-                        }
-                        Search newSearch = createSearch();
-                        if (search == null
-                                || !search.getAvailableDefinitions().containsAll(newSearch.getAvailableDefinitions())) {
-                            search = newSearch;
+                    protected List<InlineMenuItem> createInlineMenu() {
+                        return ResourceContentPanel.this.createRowMenuItems();
+                    }
+
+                    @Override
+                    protected List<IColumn<SelectableBean<ShadowType>, String>> createColumns() {
+                        return ResourceContentPanel.this.initColumns();
+                    }
+
+                    @Override
+                    protected void objectDetailsPerformed(AjaxRequestTarget target, ShadowType object) {
+                        shadowDetailsPerformed(target, WebComponentUtil.getName(object), object.getOid());
+
+                    }
+
+                    @Override
+                    protected boolean isCreateNewObjectEnabled() {
+                        return false;
+                    }
+
+                    @Override
+                    protected BaseSortableDataProvider<SelectableBean<ShadowType>> initProvider() {
+                        provider = (SelectableBeanObjectDataProvider<ShadowType>) super.initProvider();
+                        provider.setEmptyListOnNullQuery(true);
+                        provider.setSort(null);
+                        provider.setUseObjectCounting(isUseObjectCounting());
+                        provider.setDefaultCountIfNull(Integer.MAX_VALUE);
+                        return provider;
+                    }
+
+                    @Override
+                    protected ObjectQuery createContentQuery() {
+                        ObjectQuery parentQuery = super.createContentQuery();
+                        QueryFactory queryFactory = pageBase.getPrismContext().queryFactory();
+
+                        List<ObjectFilter> filters = new ArrayList<>();
+                        if (parentQuery != null) {
+                            filters.add(parentQuery.getFilter());
                         }
 
-                        String searchByName = getSearchByNameParameterValue();
-                        if (searchByName != null) {
-                            for (PropertySearchItem item : search.getPropertyItems()) {
-                                if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
-                                    item.setValue(new SearchValue(searchByName));
-                                }
-                            }
+                        ObjectQuery customQuery = ResourceContentPanel.this.createQuery();
+                        if (customQuery != null && customQuery.getFilter() != null) {
+                            filters.add(customQuery.getFilter());
                         }
-                        return search;
+                        if (filters.size() == 1) {
+                            return queryFactory.createQuery(filters.iterator().next());
+                        }
+                        if (filters.size() == 0) {
+                            return null;
+                        }
+                        return queryFactory.createQuery(queryFactory.createAnd(filters));
+                    }
+
+                    @Override
+                    protected LoadableModel<Search> initSearchModel() {
+                        return new LoadableModel<Search>(false) {
+
+                            private static final long serialVersionUID = 1L;
+
+                            @Override
+                            public Search load() {
+                                String storageKey = getStorageKey();
+                                Search search = null;
+                                if (org.apache.commons.lang3.StringUtils.isNotEmpty(storageKey)) {
+                                    PageStorage storage = getPageStorage(storageKey);
+                                    if (storage != null) {
+                                        search = storage.getSearch();
+                                    }
+                                }
+                                Search newSearch = createSearch();
+                                if (search == null
+                                        || !search.getAvailableDefinitions().containsAll(newSearch.getAvailableDefinitions())) {
+                                    search = newSearch;
+                                }
+
+                                String searchByName = getSearchByNameParameterValue();
+                                if (searchByName != null) {
+                                    for (PropertySearchItem item : search.getPropertyItems()) {
+                                        if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
+                                            item.setValue(new SearchValue<>(searchByName));
+                                        }
+                                    }
+                                }
+                                return search;
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected Search createSearch() {
+                        return ResourceContentPanel.this.createSearch();
                     }
                 };
-            }
-
-            @Override
-            protected Search createSearch() {
-                return ResourceContentPanel.this.createSearch();
-
-            }
-
-        };
         shadowListPanel.setOutputMarkupId(true);
         shadowListPanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
@@ -458,8 +457,8 @@ public abstract class ResourceContentPanel extends Panel {
         getPageBase().navigateToNext(new PageTask(taskType.asPrismObject(), true));
     }
 
-    private ObjectQuery createInTaskOidQuery(List<TaskType> tasksList){
-        if (tasksList == null){
+    private ObjectQuery createInTaskOidQuery(List<TaskType> tasksList) {
+        if (tasksList == null) {
             tasksList = new ArrayList<>();
         }
         List<String> taskOids = new ArrayList<>();
@@ -468,10 +467,11 @@ public abstract class ResourceContentPanel extends Panel {
                 .id(taskOids.toArray(new String[0]))
                 .build();
     }
+
     private void redirectToTasksListPage(ObjectQuery tasksQuery, String archetypeOid, AjaxRequestTarget target) {
         String taskCollectionViewName = getTaskCollectionViewNameByArchetypeOid(archetypeOid);
         PageParameters pageParameters = new PageParameters();
-        if (StringUtils.isNotEmpty(taskCollectionViewName)){
+        if (StringUtils.isNotEmpty(taskCollectionViewName)) {
             pageParameters.add(PageBase.PARAMETER_OBJECT_COLLECTION_NAME, taskCollectionViewName);
             PageTasks pageTasks = new PageTasks(tasksQuery, pageParameters);
             getPageBase().setResponsePage(pageTasks);
@@ -608,10 +608,10 @@ public abstract class ResourceContentPanel extends Panel {
     private List<IColumn<SelectableBean<ShadowType>, String>> initColumns() {
 
         List<ColumnTypeDto<String>> columnDefs = Arrays.asList(
-                new ColumnTypeDto<String>("ShadowType.synchronizationSituation",
+                new ColumnTypeDto<>("ShadowType.synchronizationSituation",
                         SelectableBeanImpl.F_VALUE + ".synchronizationSituation",
                         ShadowType.F_SYNCHRONIZATION_SITUATION.getLocalPart()),
-                new ColumnTypeDto<String>("ShadowType.intent", SelectableBeanImpl.F_VALUE + ".intent",
+                new ColumnTypeDto<>("ShadowType.intent", SelectableBeanImpl.F_VALUE + ".intent",
                         ShadowType.F_INTENT.getLocalPart()));
 
         List<IColumn<SelectableBean<ShadowType>, String>> columns = new ArrayList<>();
@@ -641,7 +641,7 @@ public abstract class ResourceContentPanel extends Panel {
         };
         columns.add(identifiersColumn);
 
-        columns.addAll((Collection) ColumnUtils.createColumns(columnDefs));
+        columns.addAll(ColumnUtils.createColumns(columnDefs));
 
         ObjectLinkColumn<SelectableBean<ShadowType>> ownerColumn = new ObjectLinkColumn<SelectableBean<ShadowType>>(
                 createStringResource("pageContentAccounts.owner")) {
@@ -656,9 +656,6 @@ public abstract class ResourceContentPanel extends Panel {
                     @Override
                     public FocusType getObject() {
                         FocusType owner = loadShadowOwner(rowModel);
-                        if (owner == null) {
-                            return null;
-                        }
                         return owner;
                     }
 
@@ -680,19 +677,12 @@ public abstract class ResourceContentPanel extends Panel {
 
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ShadowType>>> cellItem,
-                                     String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
-                cellItem.add(new PendingOperationPanel(componentId, new PropertyModel<List<PendingOperationType>>(rowModel, SelectableBeanImpl.F_VALUE + "." + ShadowType.F_PENDING_OPERATION.getLocalPart())));
+                    String componentId, IModel<SelectableBean<ShadowType>> rowModel) {
+                cellItem.add(new PendingOperationPanel(componentId,
+                        new PropertyModel<>(rowModel, SelectableBeanImpl.F_VALUE + "." + ShadowType.F_PENDING_OPERATION.getLocalPart())));
             }
         });
         return columns;
-    }
-
-    private ShadowType getShadow(IModel<SelectableBean<ShadowType>> model) {
-        if (model == null || model.getObject() == null || model.getObject().getValue() == null) {
-            return null;
-        }
-
-        return (ShadowType) model.getObject().getValue();
     }
 
     private void ownerDetailsPerformed(AjaxRequestTarget target, FocusType owner) {
@@ -771,7 +761,7 @@ public abstract class ResourceContentPanel extends Panel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
-                        if (getRowModel() == null){
+                        if (getRowModel() == null) {
                             updateResourceObjectStatusPerformed(null, target, true);
                         } else {
                             SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
@@ -792,7 +782,7 @@ public abstract class ResourceContentPanel extends Panel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
-                        if (getRowModel() == null){
+                        if (getRowModel() == null) {
                             updateResourceObjectStatusPerformed(null, target, false);
                         } else {
                             SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
@@ -813,7 +803,7 @@ public abstract class ResourceContentPanel extends Panel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
-                        if (getRowModel() == null){
+                        if (getRowModel() == null) {
                             deleteResourceObjectPerformed(null, target);
                         } else {
                             SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
@@ -836,7 +826,7 @@ public abstract class ResourceContentPanel extends Panel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
-                        if (getRowModel() == null){
+                        if (getRowModel() == null) {
                             importResourceObject(null, target);
                         } else {
                             SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
@@ -847,7 +837,7 @@ public abstract class ResourceContentPanel extends Panel {
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_IMPORT_MENU_ITEM);
             }
         });
@@ -864,7 +854,7 @@ public abstract class ResourceContentPanel extends Panel {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target) {
-                        if (getRowModel() == null){
+                        if (getRowModel() == null) {
                             changeOwner(null, target, null, Operation.REMOVE);
                         } else {
                             SelectableBeanImpl<ShadowType> shadow = getRowModel().getObject();
@@ -904,12 +894,12 @@ public abstract class ResourceContentPanel extends Panel {
             }
 
             @Override
-            public CompositedIconBuilder getIconCompositedBuilder(){
+            public CompositedIconBuilder getIconCompositedBuilder() {
                 return getDefaultCompositedIconBuilder(GuiStyleConstants.CLASS_RECONCILE_MENU_ITEM);
             }
 
             @Override
-            public boolean isHeaderMenuItem(){
+            public boolean isHeaderMenuItem() {
                 return false;
             }
 
@@ -992,7 +982,6 @@ public abstract class ResourceContentPanel extends Panel {
                     | PolicyViolationException | SecurityViolationException e) {
                 result.recordPartialError("Could not delete object " + shadow, e);
                 LOGGER.error("Could not delete {}, using option {}", shadow, opts, e);
-                continue;
             }
         }
 
@@ -1010,15 +999,13 @@ public abstract class ResourceContentPanel extends Panel {
             @Override
             public String getObject() {
                 List<ShadowType> selectedShadow = getSelectedShadowsList(selected);
-                switch (selectedShadow.size()) {
-                    case 1:
-                        Object first = selectedShadow.get(0);
-                        String name = WebComponentUtil.getName(((ShadowType) first));
-                        return getPageBase().createStringResource(oneDeleteKey, name).getString();
-                    default:
-                        return getPageBase().createStringResource(moreDeleteKey, selectedShadow.size())
-                                .getString();
+                if (selectedShadow.size() == 1) {
+                    ShadowType first = selectedShadow.get(0);
+                    String name = WebComponentUtil.getName(first);
+                    return getPageBase().createStringResource(oneDeleteKey, name).getString();
                 }
+                return getPageBase().createStringResource(moreDeleteKey, selectedShadow.size())
+                        .getString();
             }
         };
     }
@@ -1054,11 +1041,13 @@ public abstract class ResourceContentPanel extends Panel {
             } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                     | ExpressionEvaluationException | CommunicationException | ConfigurationException
                     | PolicyViolationException | SecurityViolationException e) {
-                // TODO Auto-generated catch block
-                result.recordPartialError(pageBase.createStringResource("ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow).getString(), e);
-                LOGGER.error("Could not update status (to {}) for {}, using option {}", status, shadow, opts,
+                result.recordPartialError(
+                        pageBase.createStringResource(
+                                "ResourceContentPanel.message.updateResourceObjectStatusPerformed.partialError", status, shadow)
+                                .getString(),
                         e);
-                continue;
+                LOGGER.error("Could not update status (to {}) for {}, using option {}",
+                        status, shadow, opts, e);
             }
         }
 
@@ -1087,7 +1076,7 @@ public abstract class ResourceContentPanel extends Panel {
 
         Collection<? extends ItemDelta> modifications = new ArrayList<>();
 
-        ReferenceDelta delta = null;
+        ReferenceDelta delta;
         switch (operation) {
 
             case REMOVE:
@@ -1148,9 +1137,10 @@ public abstract class ResourceContentPanel extends Panel {
             AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
         Task task = pageBase.createSimpleTask(OPERATION_CHANGE_OWNER);
-        ObjectDelta objectDelta = pageBase.getPrismContext().deltaFactory().object()
-                .createModifyDelta(ownerOid, modifications, ownerType);
-        Collection deltas = new ArrayList<>();
+        ObjectDelta<? extends ObjectType> objectDelta =
+                pageBase.getPrismContext().deltaFactory().object()
+                        .createModifyDelta(ownerOid, modifications, ownerType);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<>();
         deltas.add(objectDelta);
         try {
             if (!deltas.isEmpty()) {
@@ -1160,7 +1150,7 @@ public abstract class ResourceContentPanel extends Panel {
         } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
                 | ExpressionEvaluationException | CommunicationException | ConfigurationException
                 | PolicyViolationException | SecurityViolationException e) {
-
+            // nothing?
         }
 
         result.computeStatusIfUnknown();
@@ -1172,7 +1162,7 @@ public abstract class ResourceContentPanel extends Panel {
     }
 
     private List<ShadowType> getSelectedShadowsList(ShadowType shadow) {
-        List<ShadowType> selectedShadow = null;
+        List<ShadowType> selectedShadow;
         if (shadow != null) {
             selectedShadow = new ArrayList<>();
             selectedShadow.add(shadow);
@@ -1183,32 +1173,12 @@ public abstract class ResourceContentPanel extends Panel {
         return selectedShadow;
     }
 
-    private ObjectQuery getExistingTasksQuery(String archetypeRefOid){
+    private ObjectQuery getExistingTasksQuery(String archetypeRefOid) {
         return getPageBase().getPrismContext().queryFor(TaskType.class)
                 .item(TaskType.F_OBJECT_REF).ref(resourceModel.getObject().getOid())
                 .and()
                 .item(AssignmentHolderType.F_ARCHETYPE_REF).ref(archetypeRefOid)
                 .build();
-    }
-
-    private QName getTaskObjectClass(){
-        QName objectClass = getObjectClass();
-        if (objectClass == null) {
-            LOGGER.trace("Trying to determine objectClass for kind: {}, intent: {}", getKind(), getIntent());
-            RefinedObjectClassDefinition objectClassDef = null;
-            try {
-                objectClassDef = getDefinitionByKind();
-            } catch (SchemaException e) {
-                LOGGER.error("Failed to search for objectClass definition. Reason: {}", e.getMessage(), e);
-            }
-            if (objectClassDef == null) {
-                LOGGER.warn("Cannot find any definition for kind: {}, intent: {}", getKind(), getIntent());
-                return null;
-            }
-
-            objectClass = objectClassDef.getTypeName();
-        }
-        return objectClass;
     }
 
     protected abstract GetOperationOptionsBuilder addAdditionalOptions(GetOperationOptionsBuilder builder);

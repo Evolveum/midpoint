@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,11 +9,9 @@ package com.evolveum.midpoint.gui.api.component.path;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
@@ -26,6 +24,7 @@ import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteItemDefi
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.EmptyOnBlurAjaxFormUpdatingBehaviour;
 
 public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 
@@ -48,20 +47,21 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
 
         Label label = new Label(ID_PARENT,
                 new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-                @Override
-                public String getObject() {
+                    private static final long serialVersionUID = 1L;
 
-                    if (getModelObject().getParentPath() == null) {
-                        return null;
+                    @Override
+                    public String getObject() {
+
+                        if (getModelObject().getParentPath() == null) {
+                            return null;
+                        }
+
+                        if (getModelObject().getParentPath().toItemPath() == null) {
+                            return null;
+                        }
+
+                        return getString("ItemPathSegmentPanel.itemToSearch", getModelObject().getParentPath().toItemPath().toString());
                     }
-
-                    if (getModelObject().getParentPath().toItemPath() == null) {
-                        return null;
-                    }
-
-                    return getString("ItemPathSegmentPanel.itemToSearch", getModelObject().getParentPath().toItemPath().toString());
-                }
                 });
 
         label.add(new VisibleEnableBehaviour() {
@@ -85,11 +85,11 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
             }
 
             @Override
-                    protected void onUpdateAutoComplete(AjaxRequestTarget target,
-                            Model<String> itemDefinitionAsStringModel, IModel<ItemDefinition<?>> model) {
-                        super.onUpdateAutoComplete(target, itemDefinitionAsStringModel, model);
-                        onUpdateAutoCompletePanel(target);
-                    }
+            protected void onUpdateAutoComplete(AjaxRequestTarget target,
+                    Model<String> itemDefinitionAsStringModel, IModel<ItemDefinition<?>> model) {
+                super.onUpdateAutoComplete(target, itemDefinitionAsStringModel, model);
+                onUpdateAutoCompletePanel(target);
+            }
 
         };
         itemDefPanel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -153,9 +153,7 @@ public class ItemPathSegmentPanel extends BasePanel<ItemPathDto> {
     }
 
     public Component getBaseFormComponent() {
-        return ((AutoCompleteItemDefinitionPanel)get(ID_DEFINITION)).getBaseFormComponent();
+        return ((AutoCompleteItemDefinitionPanel) get(ID_DEFINITION)).getBaseFormComponent();
     }
-
-
 
 }

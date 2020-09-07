@@ -1,25 +1,24 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.common;
 
-import org.apache.commons.lang.Validate;
+import java.util.Locale;
+
+import org.apache.commons.lang3.Validate;
 import org.springframework.context.MessageSource;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.NoSuchMessageException;
-
-import java.util.Locale;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class LocalizationMessageSource implements MessageSource {
 
-    private LocalizationService localizationService;
+    private final LocalizationService localizationService;
 
     public LocalizationMessageSource(LocalizationService localizationService) {
         this.localizationService = localizationService;

@@ -6,23 +6,14 @@
  */
 package com.evolveum.midpoint.web.component.input;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormSubmitBehavior;
@@ -30,6 +21,14 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author shood
@@ -45,8 +44,9 @@ public class UploadDownloadPanel extends InputPanel {
     private static final String ID_BUTTON_DELETE = "remove";
     private static final String ID_INPUT_FILE = "fileInput";
 
-    private String downloadFileName = null;
-    private String downloadContentType = "text/plain";
+    private static final String DOWNLOAD_CONTENT_TYPE = "text/plain";
+
+    private final String downloadFileName = null;
 
     public UploadDownloadPanel(String id, boolean isReadOnly) {
         super(id);
@@ -61,11 +61,11 @@ public class UploadDownloadPanel extends InputPanel {
             public String[] getInputAsArray() {
                 List<String> input = new ArrayList<>();
                 try {
-                    input.add(new String (IOUtils.toByteArray(getStream())));
+                    input.add(new String(IOUtils.toByteArray(getStream())));
                 } catch (IOException e) {
                     LOGGER.error("Unable to define file content type: {}", e.getLocalizedMessage());
                 }
-                return input.toArray(new String[input.size()]);
+                return input.toArray(new String[0]);
             }
         };
         Form form = this.findParent(Form.class);
@@ -84,7 +84,7 @@ public class UploadDownloadPanel extends InputPanel {
                 UploadDownloadPanel.this.uploadFilePerformed(target);
             }
         });
-        fileUpload.add(new VisibleEnableBehaviour(){
+        fileUpload.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -104,10 +104,10 @@ public class UploadDownloadPanel extends InputPanel {
                 InputStream is = getStream();
                 try {
                     String newContentType = URLConnection.guessContentTypeFromStream(is);
-                    if (StringUtils.isNotEmpty(newContentType)){
+                    if (StringUtils.isNotEmpty(newContentType)) {
                         setContentType(newContentType);
                     }
-                } catch (IOException ex){
+                } catch (IOException ex) {
                     LOGGER.error("Unable to define download file content type: {}", ex.getLocalizedMessage());
                 }
                 return is;
@@ -200,7 +200,7 @@ public class UploadDownloadPanel extends InputPanel {
     }
 
     public String getDownloadContentType() {
-        return downloadContentType;
+        return DOWNLOAD_CONTENT_TYPE;
     }
 
     private void downloadPerformed(AjaxDownloadBehaviorFromStream downloadBehavior,
@@ -208,7 +208,7 @@ public class UploadDownloadPanel extends InputPanel {
         downloadBehavior.initiate(target);
     }
 
-    private FileUploadField getInputFile(){
-        return (FileUploadField)get(ID_INPUT_FILE);
+    private FileUploadField getInputFile() {
+        return (FileUploadField) get(ID_INPUT_FILE);
     }
 }

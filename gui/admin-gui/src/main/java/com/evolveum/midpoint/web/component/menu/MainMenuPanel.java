@@ -1,20 +1,15 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.menu;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
-import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import org.apache.commons.lang.StringUtils;
+import java.io.Serializable;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.IPageFactory;
 import org.apache.wicket.Session;
@@ -32,8 +27,14 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.flow.RedirectToUrlException;
 
-import java.io.Serializable;
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
+import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageClass;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 
 /**
  * @author Viliam Repan (lazyman)
@@ -59,7 +60,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         super(id, model);
     }
 
-    private boolean initialized =false;
+    private boolean initialized = false;
 
     @Override
     protected void onBeforeRender() {
@@ -107,7 +108,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
                     mainMenuPerformed(menu);
                 }
             };
-        } else if (menu instanceof AdditionalMenuItem){
+        } else if (menu instanceof AdditionalMenuItem) {
             link = new AjaxLink<Void>(ID_LINK) {
                 private static final long serialVersionUID = 1L;
 
@@ -289,7 +290,7 @@ public class MainMenuPanel extends BasePanel<MainMenuItem> {
         if (menu.getPageClass() != null) {
             setResponsePage(menu.getPageClass());
         } else {
-            throw new RedirectToUrlException(((AdditionalMenuItem)menu).getTargetUrl());
+            throw new RedirectToUrlException(((AdditionalMenuItem) menu).getTargetUrl());
         }
     }
 }

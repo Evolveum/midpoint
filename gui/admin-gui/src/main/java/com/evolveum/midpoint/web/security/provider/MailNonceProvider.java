@@ -9,7 +9,7 @@ package com.evolveum.midpoint.web.security.provider;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -169,11 +169,7 @@ public class MailNonceProvider extends AbstractCredentialProvider<NonceAuthentic
 
     @Override
     public boolean supports(Class<?> authentication) {
-        if (MailNonceAuthenticationToken.class.equals(authentication)) {
-            return true;
-        }
-
-        return false;
+        return MailNonceAuthenticationToken.class.equals(authentication);
     }
 
     @Override

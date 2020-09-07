@@ -28,7 +28,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.SimpleRoleSelector;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -57,7 +57,7 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
 
     private static final Trace LOGGER = TraceManager.getTrace(SampleFormFocusTabPanel.class);
 
-    public SampleFormFocusTabPanel(String id, Form<PrismObjectWrapper<F>> mainForm,
+    public SampleFormFocusTabPanel(String id, MidpointForm<PrismObjectWrapper<F>> mainForm,
                                    LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
                                    LoadableModel<List<ShadowWrapper>> projectionModel) {
         super(id, mainForm, focusWrapperModel, projectionModel);

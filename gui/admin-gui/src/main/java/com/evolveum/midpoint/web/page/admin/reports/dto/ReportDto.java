@@ -1,20 +1,22 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import org.apache.commons.lang.BooleanUtils;
+import java.io.Serializable;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.model.IModel;
 
-import java.io.Serializable;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.JasperReportEngineConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ReportType;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * @author lazyman
@@ -23,7 +25,6 @@ public class ReportDto implements Serializable {
 
     public static final String F_PARENT = "parent";
     public static final String F_OID = "oid";
-    public static final String F_XML = "xml";
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
     public static final String F_EXPORT_TYPE = "exportType";
@@ -35,10 +36,8 @@ public class ReportDto implements Serializable {
 
     private boolean parent;
     private String oid;
-//    private String xml;
     private String name;
     private String description;
-    private boolean searchOnResource;
     private JasperExportType exportType;
     private JasperReportDto jasperReportDto;
     private byte[] templateStyle;
@@ -46,10 +45,10 @@ public class ReportDto implements Serializable {
     private Integer virtualizerKickOn;
     private Integer maxPages;
     private Integer timeout;
-//    private ReportEngineSelectionType reportEngineType;
+    //    private ReportEngineSelectionType reportEngineType;
     private IModel<PrismObjectWrapper<ReportType>> newReportModel;
 
-//    private PrismObject<ReportType> object;
+    //    private PrismObject<ReportType> object;
     private ReportType reportType;
 
     public ReportDto() {
@@ -64,9 +63,8 @@ public class ReportDto implements Serializable {
         this.name = reportType.getName().getOrig();
         this.description = reportType.getDescription();
         this.reportType = reportType;
-        this.searchOnResource = false;
 //        this.reportEngineType = reportType.getReportEngine();
-        if(reportType.getJasper() != null) {
+        if (reportType.getJasper() != null) {
             JasperReportEngineConfigurationType jasperConfig = reportType.getJasper();
             this.exportType = jasperConfig.getExport();
             //        this.xml = new String(Base64.decodeBase64(reportType.getTemplate()));
@@ -115,7 +113,7 @@ public class ReportDto implements Serializable {
         reportType.setName(new PolyStringType(name));
         reportType.setDescription(description);
 //        reportType.setReportEngine(reportEngineType);
-        if(reportType.getJasper() != null) {
+        if (reportType.getJasper() != null) {
 
             JasperReportEngineConfigurationType jasperConfig = new JasperReportEngineConfigurationType();
             jasperConfig.setExport(exportType);
@@ -143,7 +141,7 @@ public class ReportDto implements Serializable {
         this.oid = oid;
     }
 
-//    public ReportEngineSelectionType getReportEngineType() {
+    //    public ReportEngineSelectionType getReportEngineType() {
 //        return reportEngineType;
 //    }
 //

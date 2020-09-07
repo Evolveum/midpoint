@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -195,14 +195,12 @@ public class ResourceAttributeEditor extends BasePanel<ResourceAttributeDefiniti
         add(description);
 
         AjaxLink<Void> limitations = new AjaxLink<Void>(ID_BUTTON_LIMITATIONS) {
-
             private static final long serialVersionUID = 1L;
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 limitationsEditPerformed(target);
             }
-
         };
 
         add(limitations);

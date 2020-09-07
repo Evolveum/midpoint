@@ -1,15 +1,17 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.util;
 
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.StringUtils;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.core.util.resource.locator.IResourceNameIterator;
 import org.apache.wicket.core.util.resource.locator.ResourceStreamLocator;
@@ -17,20 +19,13 @@ import org.apache.wicket.util.file.IResourceFinder;
 import org.apache.wicket.util.resource.IResourceStream;
 import org.apache.wicket.util.resource.ResourceUtils;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-
 /**
  * Created by Viliam Repan (lazyman).
  */
 public class MidPointResourceStreamLocator extends ResourceStreamLocator {
 
-    private static final Trace LOGGER = TraceManager.getTrace(MidPointResourceStreamLocator.class);
-
-    private static final String[] EXTENSIONS = {"js", "css", "html"};
-    private static final String[] MIMIFIED_EXTENSIONS = {"js", "css"};
+    private static final String[] EXTENSIONS = { "js", "css", "html" };
+    private static final String[] MINIFIED_EXTENSIONS = { "js", "css" };
 
     public MidPointResourceStreamLocator(List<IResourceFinder> finders) {
         super(finders);
@@ -42,7 +37,7 @@ public class MidPointResourceStreamLocator extends ResourceStreamLocator {
 
         // If path contains a locale, then it'll replace the locale provided to this method
         ResourceUtils.PathLocale data = ResourceUtils.getLocaleFromFilename(path);
-        if ((data != null) && (data.locale != null)) {
+        if (data.locale != null) {
             path = data.path;
             locale = data.locale;
         }
@@ -83,7 +78,7 @@ public class MidPointResourceStreamLocator extends ResourceStreamLocator {
 
         List<String> extensions = new ArrayList<>();
 
-        if (containsIgnoreCase(MIMIFIED_EXTENSIONS, ext)
+        if (containsIgnoreCase(MINIFIED_EXTENSIONS, ext)
                 && Application.exists() && Application.get().getResourceSettings().getUseMinifiedResources()
                 && !pathWithoutExtension.endsWith(".min")) {
             extensions.add("min." + ext);
@@ -106,8 +101,8 @@ public class MidPointResourceStreamLocator extends ResourceStreamLocator {
 
     private static class SimpleResourceNameIterator implements IResourceNameIterator {
 
-        private String path;
-        private Iterator<String> extensions;
+        private final String path;
+        private final Iterator<String> extensions;
 
         private String current;
 

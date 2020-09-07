@@ -64,4 +64,13 @@ public class AssignmentEvaluationOpNode extends OpNode {
         super.resolveReferenceTargetNames(nameResolver);
         resolveAssignmentReferenceNames(assignment, nameResolver);
     }
+
+    public String getModeInfo() {
+        String mode = getParameter("primaryAssignmentMode").toLowerCase();
+        if ("plus".equals(mode) || "minus".equals(mode)) {
+            return " (" + mode + ")";
+        } else {
+            return "";
+        }
+    }
 }

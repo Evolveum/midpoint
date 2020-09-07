@@ -1,11 +1,19 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.input;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -23,19 +31,10 @@ import com.evolveum.midpoint.web.util.ExpressionUtil;
 import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 import com.evolveum.midpoint.web.util.WebXmlUtil;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-import org.jetbrains.annotations.NotNull;
 
 /**
- *  @author shood
- * */
+ * @author shood
+ */
 public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchFilterPanel.class);
@@ -75,11 +74,10 @@ public class SearchFilterPanel<T extends SearchFilterType> extends BasePanel<T> 
         }
     }
 
-
     protected void initLayout(NonEmptyModel<Boolean> readOnlyModel) {
 
         TextArea<String> description = new TextArea<>(ID_DESCRIPTION,
-                new PropertyModel<String>(getModel(), SearchFilterType.F_DESCRIPTION.getLocalPart()));
+                new PropertyModel<>(getModel(), SearchFilterType.F_DESCRIPTION.getLocalPart()));
         description.add(WebComponentUtil.enabledIfFalse(readOnlyModel));
         add(description);
 

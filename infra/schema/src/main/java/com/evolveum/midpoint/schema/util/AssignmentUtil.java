@@ -110,6 +110,10 @@ public class AssignmentUtil {
             sb.append(" (").append(getOrderInfo(segment.getAssignment())).append(")");
         }
 
+        if (Boolean.TRUE.equals(segment.isMatchingOrder())) {
+            sb.append("*");
+        }
+
         return sb.toString();
     }
 

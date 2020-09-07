@@ -1,10 +1,25 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.search;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.autocomplete.AutoCompleteTextPanel;
@@ -28,21 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
 /**
  * @author Kateryna Honchar
  */
@@ -54,9 +54,9 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
     private static final String ID_EXPRESSION_FIELD = "expressionField";
     private static final String ID_SWITCH_BUTTON = "switchButton";
 
-    private boolean isExpressionMode = false;
+    private boolean isExpressionMode;
 
-    public SwitchablePropertyValuePanel(String id, IModel<SelectableBean<ValueSearchFilterItem>> model){
+    public SwitchablePropertyValuePanel(String id, IModel<SelectableBean<ValueSearchFilterItem>> model) {
         super(id, model);
         isExpressionMode = getExpressionWrapper() != null;
     }
@@ -67,7 +67,7 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         setOutputMarkupId(true);
 
         WebMarkupContainer valueContainer = new WebMarkupContainer(ID_PROPERTY_VALUE_PANEL);
@@ -78,17 +78,16 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
         valueField.add(new VisibleBehaviour(() -> !isExpressionMode));
         valueContainer.add(valueField);
 
-
         ExpressionWrapper expression = getExpressionWrapper();
         ExpressionType expressionType = null;
         if (expression != null) {
             Object expressionValue = expression.getExpression();
-            if (expressionValue instanceof ExpressionType){
+            if (expressionValue instanceof ExpressionType) {
                 expressionType = (ExpressionType) expressionValue;
             }
         }
-        AceEditorPanel expressionField  =  new AceEditorPanel(ID_EXPRESSION_FIELD, null,
-                new ExpressionModel(Model.of(expressionType) , getPageBase()), 200){
+        AceEditorPanel expressionField = new AceEditorPanel(ID_EXPRESSION_FIELD, null,
+                new ExpressionModel(Model.of(expressionType), getPageBase()), 200) {
 
             private static final long serialVersionUID = 1L;
 
@@ -107,9 +106,9 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (isExpressionMode){
+                if (isExpressionMode) {
                     SwitchablePropertyValuePanel.this.getModelObject().getValue().setExpression(null);
-                    if (isReferenceFilterValue()){
+                    if (isReferenceFilterValue()) {
                         SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(new ObjectReferenceType());
                     }
                 } else {
@@ -131,19 +130,19 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
 
     }
 
-    private <T extends Object> Component getValueField(String id) {
+    private <T> Component getValueField(String id) {
         Component searchItemField = null;
         ValueSearchFilterItem valueSearchFilter = getModelObject().getValue();
         ItemDefinition propertyDef = valueSearchFilter.getPropertyDef();
         if (propertyDef != null) {
             PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(propertyDef, getPageBase());
             if (propertyDef instanceof PrismReferenceDefinition) {
-                 searchItemField = new ReferenceValueSearchPanel(id, new PropertyModel<>(getModel(), "value.value"),
-                        (PrismReferenceDefinition) propertyDef){
+                searchItemField = new ReferenceValueSearchPanel(id, new PropertyModel<>(getModel(), "value.value"),
+                        (PrismReferenceDefinition) propertyDef) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected void referenceValueUpdated(ObjectReferenceType ort){
+                    protected void referenceValueUpdated(ObjectReferenceType ort) {
                         SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(ort);
                     }
                 };
@@ -167,15 +166,15 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
                     };
                 } else if (CollectionUtils.isNotEmpty(allowedValues)) {
                     List<T> allowedValuesList = new ArrayList<>();
-                    allowedValues.forEach(val -> allowedValuesList.add((T)val.getValue()));
+                    allowedValues.forEach(val -> allowedValuesList.add((T) val.getValue()));
                     searchItemField = new DropDownChoicePanel<T>(id,
-                            new PropertyModel<T>(getModel(), "value." + ValueSearchFilterItem.F_VALUE),
+                            new PropertyModel<>(getModel(), "value." + ValueSearchFilterItem.F_VALUE),
                             Model.ofList(allowedValuesList), new IChoiceRenderer<T>() {
                         private static final long serialVersionUID = 1L;
 
                         @Override
                         public Object getDisplayValue(T val) {
-                            if (val instanceof DisplayableValue){
+                            if (val instanceof DisplayableValue) {
                                 return ((DisplayableValue) val).getLabel();
                             }
                             return val;
@@ -197,24 +196,23 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
                 }
             }
         }
-        if (searchItemField != null && searchItemField instanceof InputPanel){
+        if (searchItemField instanceof InputPanel) {
             ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         }
         return searchItemField != null ? searchItemField : new WebMarkupContainer(id);
     }
 
-    private boolean isReferenceFilterValue(){
+    private boolean isReferenceFilterValue() {
         ValueSearchFilterItem valueSearchFilter = getModelObject().getValue();
         ItemDefinition propertyDef = valueSearchFilter.getPropertyDef();
         return propertyDef instanceof PrismReferenceDefinition;
     }
 
-    private ExpressionWrapper getExpressionWrapper(){
+    private ExpressionWrapper getExpressionWrapper() {
         SelectableBean<ValueSearchFilterItem> filterModelObj = getModelObject();
-        if (filterModelObj == null || filterModelObj.getValue() == null || filterModelObj.getValue().getExpression() == null){
+        if (filterModelObj == null || filterModelObj.getValue() == null || filterModelObj.getValue().getExpression() == null) {
             return null;
         }
         return filterModelObj.getValue().getExpression();
     }
-
 }

@@ -14,6 +14,8 @@ import com.evolveum.midpoint.schema.traces.TraceInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueTransformationExpressionEvaluationTraceType;
 
+import org.apache.commons.lang3.StringUtils;
+
 /**
  *
  */
@@ -31,4 +33,17 @@ public class TransformationExpressionEvaluationOpNode extends OpNode {
         return trace;
     }
 
+    public String getContextDescription() {
+        if (trace != null && trace.getLocalContextDescription() != null) {
+            return trace.getLocalContextDescription();
+        }
+        String context = getContext("context");
+        if (StringUtils.isNotEmpty(context)) {
+            return context;
+        }
+        if (trace != null && trace.getContextDescription() != null) {
+            return trace.getContextDescription();
+        }
+        return "";
+    }
 }

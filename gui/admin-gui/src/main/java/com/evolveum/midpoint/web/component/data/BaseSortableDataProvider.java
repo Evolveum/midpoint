@@ -1,17 +1,31 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.data;
+
+import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
+
+import java.io.Serializable;
+import java.util.*;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.Validate;
+import org.apache.wicket.Component;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.*;
-import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionView;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
@@ -28,21 +42,6 @@ import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DistinctSearchOptionType;
 
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.Component;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.jetbrains.annotations.NotNull;
-
-import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.*;
-
-import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.safeLongToInteger;
-
 /**
  * @author lazyman
  */
@@ -52,15 +51,18 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     private static final String DOT_CLASS = BaseSortableDataProvider.class.getName() + ".";
     private static final String OPERATION_GET_EXPORT_SIZE_LIMIT = DOT_CLASS + "getDefaultExportSizeLimit";
 
-    private Component component;
+    private final Component component;
+    private final Map<Serializable, CachedSize> cache = new HashMap<>();
+    private final boolean useCache;
+
     private List<T> availableData;
     private ObjectQuery query;
 
-    // after this amount of time cached size will be removed
-    // from cache and replaced by new value, time in seconds
-    private Map<Serializable, CachedSize> cache = new HashMap<>();
+    /**
+     * After this amount of time cached size will be removed from cache and replaced by new value
+     * (time in seconds).
+     */
     private int cacheCleanupThreshold = 60;
-    private boolean useCache;
     private boolean exportSize = false;
     private long exportLimit = -1;
 
@@ -326,8 +328,8 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 
     public static class CachedSize implements Serializable {
 
-        private long timestamp;
-        private long size;
+        private final long timestamp;
+        private final long size;
 
         private CachedSize(long size, long timestamp) {
             this.size = size;
@@ -344,15 +346,13 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
 
         @Override
         public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
+            if (this == o) { return true; }
+            if (o == null || getClass() != o.getClass()) { return false; }
 
             CachedSize that = (CachedSize) o;
 
-            if (size != that.size) return false;
-            if (timestamp != that.timestamp) return false;
-
-            return true;
+            if (size != that.size) { return false; }
+            return timestamp == that.timestamp;
         }
 
         @Override

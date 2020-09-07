@@ -27,6 +27,22 @@ public class ProjectorComponentOpNode extends OpNode {
         trace = getTrace(ProjectorComponentTraceType.class);
     }
 
+    // temporary implementation
+    protected void postProcess() {
+        if (trace != null && info.getType() != null) {
+            switch (info.getType()) {
+                case PROJECTOR_INBOUND:
+                case PROJECTOR_TEMPLATE_BEFORE_ASSIGNMENTS:
+                case PROJECTOR_TEMPLATE_AFTER_ASSIGNMENTS:
+                    setDisabled(getMappingsCount() == 0);
+                    break;
+                case PROJECTOR_ASSIGNMENTS:
+                    setDisabled(getAssignmentEvaluationsCount() == 0);
+                    break;
+            }
+        }
+    }
+
     public ProjectorComponentTraceType getTrace() {
         return trace;
     }

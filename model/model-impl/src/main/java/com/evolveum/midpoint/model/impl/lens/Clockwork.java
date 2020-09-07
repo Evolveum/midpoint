@@ -287,7 +287,7 @@ public class Clockwork {
 
             projector.projectAllWaves(context, "preview", task, result);
             clockworkHookHelper.invokePreview(context, task, result);
-            policyRuleEnforcer.execute(context);
+            policyRuleEnforcer.execute(context, result);
             policyRuleSuspendTaskExecutor.execute(context, task, result);
 
         } catch (ConfigurationException | SecurityViolationException | ObjectNotFoundException | SchemaException |
@@ -476,7 +476,7 @@ public class Clockwork {
             ExpressionEvaluationException, PreconditionViolationException {
         switch (state) {
             case INITIAL:
-                processInitialToPrimary(context);
+                processInitialToPrimary(context, result);
                 break;
             case PRIMARY:
                 processPrimaryToSecondary(context, task, result);
@@ -500,9 +500,10 @@ public class Clockwork {
         context.setState(newState);
     }
 
-    private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context) throws PolicyViolationException {
+    private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context, OperationResult result)
+            throws PolicyViolationException {
         // To mimic operation of the original enforcer hook, we execute the following only in the initial state.
-        policyRuleEnforcer.execute(context);
+        policyRuleEnforcer.execute(context, result);
 
         switchState(context, ModelState.PRIMARY);
     }

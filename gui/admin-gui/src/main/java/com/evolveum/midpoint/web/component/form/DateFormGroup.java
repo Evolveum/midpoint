@@ -1,17 +1,14 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.form;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.DateInput;
-import com.evolveum.midpoint.web.model.XmlGregorianCalendarModel;
+import javax.xml.datatype.XMLGregorianCalendar;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -19,7 +16,9 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 
-import javax.xml.datatype.XMLGregorianCalendar;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.DateInput;
+import com.evolveum.midpoint.web.model.XmlGregorianCalendarModel;
 
 /**
  * @author lazyman
@@ -32,7 +31,7 @@ public class DateFormGroup extends BasePanel<XMLGregorianCalendar> {
     private static final String ID_FEEDBACK = "feedback";
 
     public DateFormGroup(String id, IModel<XMLGregorianCalendar> value, IModel<String> label, String labelSize, String textSize,
-                         boolean required) {
+            boolean required) {
         super(id, value);
 
         initLayout(label, labelSize, textSize, required);

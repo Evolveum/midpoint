@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -14,8 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.util.file.File;
 import org.apache.wicket.util.file.Files;
@@ -117,10 +116,8 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         String fileName = "ExportedData_" + getType().getSimpleName() + "_" + currentTime + "." + suffix;
         File file = new File(folder, fileName);
 
-        Writer writer = null;
-        try {
-            LOGGER.debug("Creating file '{}'.", file.getAbsolutePath());
-            writer = createWriter(file);
+        LOGGER.debug("Creating file '{}'.", file.getAbsolutePath());
+        try (Writer writer = createWriter(file)) {
             LOGGER.debug("Exporting objects.");
             dumpHeader(writer);
             dumpObjectsToStream(writer, result);
@@ -131,14 +128,12 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         } catch (Exception ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't init download link", ex);
             result.recordFatalError(getPage().createStringResource("PageDebugDownloadBehaviour.message.initFile.fatalError").getString(), ex);
-        } finally {
-            IOUtils.closeQuietly(writer);
         }
 
         if (!WebComponentUtil.isSuccessOrHandledError(result)) {
             page.showResult(result);
             page.getSession().error(page.getString("pageDebugList.message.createFileException"));
-            LOGGER.debug("Removing file '{}'.", new Object[] { file.getAbsolutePath() });
+            LOGGER.debug("Removing file '{}'.", file.getAbsolutePath());
             Files.remove(file);
 
             throw new RestartResponseException(PageDebugList.class);

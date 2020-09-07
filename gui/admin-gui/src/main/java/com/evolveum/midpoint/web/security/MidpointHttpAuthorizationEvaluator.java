@@ -1,10 +1,19 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.security;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.ConfigAttribute;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.Authentication;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.MidpointAuthentication;
@@ -29,19 +38,9 @@ import com.evolveum.midpoint.web.security.module.authentication.HttpModuleAuthen
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
-import org.springframework.security.access.AccessDeniedException;
-import org.springframework.security.access.ConfigAttribute;
-import org.springframework.security.authentication.InsufficientAuthenticationException;
-import org.springframework.security.core.Authentication;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
 /**
  * @author skublik
  */
-
 public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorizationEvaluator {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointHttpAuthorizationEvaluator.class);
@@ -50,12 +49,12 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
 
     public static final String OPERATION_REST_SERVICE = CLASS_DOT + "restService";
 
-    private ModelService model;
-    private TaskManager taskManager;
-    private SecurityContextManager securityContextManager;
+    private final ModelService model;
+    private final TaskManager taskManager;
+    private final SecurityContextManager securityContextManager;
 
     public MidpointHttpAuthorizationEvaluator(SecurityEnforcer securityEnforcer, SecurityContextManager securityContextManager,
-                                              TaskManager taskManager, ModelService model) {
+            TaskManager taskManager, ModelService model) {
         super(securityEnforcer, securityContextManager, taskManager);
         this.model = model;
         this.taskManager = taskManager;
@@ -68,8 +67,8 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
         if (authentication instanceof MidpointAuthentication) {
             for (ModuleAuthentication moduleAuthentication : ((MidpointAuthentication) authentication).getAuthentications()) {
                 if (StateOfModule.SUCCESSFULLY.equals(moduleAuthentication.getState())
-                    && moduleAuthentication instanceof HttpModuleAuthentication
-                    && ((HttpModuleAuthentication) moduleAuthentication).getProxyUserOid() != null) {
+                        && moduleAuthentication instanceof HttpModuleAuthentication
+                        && ((HttpModuleAuthentication) moduleAuthentication).getProxyUserOid() != null) {
                     String oid = ((HttpModuleAuthentication) moduleAuthentication).getProxyUserOid();
                     Task task = taskManager.createTaskInstance(OPERATION_REST_SERVICE);
                     task.setChannel(SchemaConstants.CHANNEL_REST_URI);
@@ -87,7 +86,7 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
                         MidPointPrincipal actualPrincipal = getPrincipalFromAuthentication(authentication, object, configAttributes);
                         decideInternal(actualPrincipal, requiredActions, authentication, object, task, AuthorizationParameters.Builder.buildObject(authorizedUser));
 
-                        MidPointPrincipal principal= securityContextManager.getUserProfileService().getPrincipal(authorizedUser);
+                        MidPointPrincipal principal = securityContextManager.getUserProfileService().getPrincipal(authorizedUser);
                         ((MidpointAuthentication) authentication).setPrincipal(principal);
                         ((MidpointAuthentication) authentication).setAuthorities(principal.getAuthorities());
                     } catch (SystemException | SchemaException | CommunicationException | ConfigurationException
@@ -111,7 +110,7 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
             LOGGER.error("Error while processing authorization: {}", e.getMessage(), e);
             LOGGER.trace("DECIDE: authentication={}, object={}, requiredActions={}: ERROR {}",
                     authentication, object, requiredActions, e.getMessage());
-            throw new SystemException("Error while processing authorization: "+e.getMessage(), e);
+            throw new SystemException("Error while processing authorization: " + e.getMessage(), e);
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -142,6 +141,5 @@ public class MidpointHttpAuthorizationEvaluator extends MidPointGuiAuthorization
 
             }
         });
-
     }
 }

@@ -6,35 +6,33 @@
  */
 package com.evolveum.midpoint.web.model;
 
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Application;
 import org.apache.wicket.Session;
 import org.apache.wicket.core.util.lang.PropertyResolver;
 import org.apache.wicket.core.util.lang.PropertyResolverConverter;
 import org.apache.wicket.model.AbstractPropertyModel;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableRowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.LookupTableType;
+
 /**
  * @author shood
- *
  */
 public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
-    /**
-     * @param modelObject
-     */
-    public LookupPropertyModel(Object modelObject) {
-        super(modelObject);
-        // TODO Auto-generated constructor stub
-    }
 
     private static final long serialVersionUID = 1L;
 
     protected final String expression = null;
+
     protected final LookupTableType lookupTable = null;
     protected boolean isStrict = true; // if true, allow only values found in lookupTable, false - allow also input that is not in the lookupTable
+
+    public LookupPropertyModel(Object modelObject) {
+        super(modelObject);
+        // TODO Auto-generated constructor stub
+    }
 
 //    public LookupPropertyModel(Object modelObject, String expression, LookupTableType lookupTable) {
 //        super(modelObject);
@@ -70,10 +68,10 @@ public class LookupPropertyModel<T> extends AbstractPropertyModel<T> {
 
             Object value = null;
             if (isSupportsDisplayName()) {
-                 value = PropertyResolver.getValue("displayName", target);
-                 if (value != null) {
-                     return (T) value;
-                 }
+                value = PropertyResolver.getValue("displayName", target);
+                if (value != null) {
+                    return (T) value;
+                }
             }
 
             value = PropertyResolver.getValue(expression, target);

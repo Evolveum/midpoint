@@ -13,6 +13,8 @@ import java.util.stream.Stream;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.traces.operations.MappingEvaluationOpNode;
+
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 import org.jetbrains.annotations.NotNull;
@@ -30,9 +32,9 @@ public class OpNode {
 
     private final PrismContext prismContext;
     protected final OperationResultType result;
-    private final List<OpNode> children = new ArrayList<>();
+    protected final List<OpNode> children = new ArrayList<>();
     private final OpNode parent;
-    private final OpResultInfo info;
+    protected final OpResultInfo info;
     private final TraceInfo traceInfo;
     private OpNodePresentation presentation;
 
@@ -40,6 +42,7 @@ public class OpNode {
     private TraceVisualizationInstructionType visualizationInstruction;
     private boolean stop = false;
     private boolean visible = true;
+    private boolean disabled = false;
 
     public OpNode(PrismContext prismContext, OperationResultType result, OpResultInfo info, OpNode parent, TraceInfo traceInfo) {
         this.prismContext = prismContext;
@@ -72,6 +75,14 @@ public class OpNode {
 
     public List<OpNode> getChildren() {
         return children;
+    }
+
+    public <T extends OpNode> List<T> getChildren(Class<T> aClass) {
+        //noinspection unchecked
+        return children.stream()
+                .filter(child -> aClass.isAssignableFrom(child.getClass()))
+                .map(child -> (T) child)
+                .collect(Collectors.toList());
     }
 
     public OpNode getParent() {
@@ -197,6 +208,21 @@ public class OpNode {
             }
             return null;
         }
+    }
+
+    public <T extends OpNode> List<T> getNodesDownwards(Class<T> aClass, int maxLevel) {
+        List<T> nodes = new ArrayList<>();
+        if (aClass.isAssignableFrom(this.getClass())) {
+            //noinspection unchecked
+            nodes.add((T) this);
+        }
+
+        if (maxLevel > 0) {
+            for (OpNode child : children) {
+                nodes.addAll(child.getNodesDownwards(aClass, maxLevel-1));
+            }
+        }
+        return nodes;
     }
 
     public boolean isVisible() {
@@ -602,7 +628,7 @@ public class OpNode {
 
     public int getMappingsCount() {
         return (int) children.stream()
-                .filter(child -> child.getKind() == OperationKindType.MAPPING_EVALUATION)
+                .filter(child -> child instanceof MappingEvaluationOpNode)
                 .count();
     }
 
@@ -641,6 +667,38 @@ public class OpNode {
     }
 
     public void resolveReferenceTargetNames(OpNodeTreeBuilder.NameResolver nameResolver) {
+    }
+
+    public boolean isDisabled() {
+        return disabled;
+    }
+
+    public void setDisabled(boolean disabled) {
+        this.disabled = disabled;
+    }
+
+    public final void postProcessRecursive() {
+        postProcess();
+        children.forEach(OpNode::postProcessRecursive);
+    }
+
+    protected void postProcess() {
+        // nothing to do at general level
+    }
+
+    @NotNull
+    public String getContext(String name) {
+        return TraceUtil.getContext(result, name);
+    }
+
+    @NotNull
+    public String getReturn(String name) {
+        return TraceUtil.getReturn(result, name);
+    }
+
+    @NotNull
+    public String getParameter(String name) {
+        return TraceUtil.getParameter(result, name);
     }
 
 }

@@ -65,6 +65,7 @@ public class TestSoD extends AbstractWfTestPolicy {
         roleRespectableOid = repoAddObjectFromFile(ROLE_RESPECTABLE_FILE, initResult).getOid();
         userSodApproverOid = addAndRecomputeUser(USER_SOD_APPROVER_FILE, initTask, initResult);
 
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
         //DebugUtil.setDetailedDebugDump(true);
     }
 

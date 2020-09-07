@@ -1,9 +1,18 @@
+/*
+ * Copyright (C) 2010-2020 Evolveum and contributors
+ *
+ * This work is dual-licensed under the Apache License 2.0
+ * and European Union Public License. See LICENSE file for details.
+ */
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.io.InputStream;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -379,10 +388,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     private void deleteItem(AjaxRequestTarget target, ItemName... itemName) throws SchemaException {
-        List<ItemName> items = Arrays.asList(itemName);
-
         Collection<ItemDelta<?, ?>> itemDeltas = new ArrayList<>();
-        for (ItemName item : items) {
+        for (ItemName item : itemName) {
             ItemDelta<?, ?> delta = createDeleteItemDelta(item);
             if (delta == null) {
                 LOGGER.trace("Nothing to delete for {}", item);
@@ -709,7 +716,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                 continue;
             }
             List<VW> values = iw.getValues();
-            PrismContainerWrapper oldValWrapper = null;
+            PrismContainerWrapper oldValWrapper;
             try {
                 oldValWrapper = rememberedObjectWrapper.findContainer(iw.getPath());
                 if (oldValWrapper != null) {
@@ -800,5 +807,4 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         }
         return true;
     }
-
 }

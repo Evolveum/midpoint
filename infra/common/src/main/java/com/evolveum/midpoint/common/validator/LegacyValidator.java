@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.common.validator;
 
 import java.io.ByteArrayInputStream;
@@ -16,18 +15,14 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamConstants;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
 
-import com.evolveum.midpoint.prism.PrismParserNoIO;
-import com.evolveum.midpoint.util.QNameUtil;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.staxmate.dom.DOMConverter;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -37,11 +32,12 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.PrismParserNoIO;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,12 +47,11 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Class to validate (and possible transform) large sets of objects.
- *
+ * <p>
  * LEGACY: This is all very old code. And it is XML-only. It will be probably
  * thrown away and re-written in a more reasonable way.
  *
  * @author Radovan Semancik
- *
  */
 public class LegacyValidator {
 
@@ -67,12 +62,14 @@ public class LegacyValidator {
     private static final String OPERATION_RESOURCE_BASICS_CHECK = OPERATION_PREFIX + "objectBasicsCheck";
     private static final String START_LINE_NUMBER = "startLineNumber";
     private static final String END_LINE_NUMBER = "endLineNumber";
+
+    private final PrismContext prismContext;
+
     private boolean verbose = false;
     private boolean validateSchemas = true;
     private boolean validateName = true;
     private boolean allowAnyType = false;
     private EventHandler handler;
-    private PrismContext prismContext;
     private javax.xml.validation.Validator xsdValidator;
     private long progress = 0;
     private long errors = 0;
@@ -190,9 +187,9 @@ public class LegacyValidator {
 
             int eventType = stream.nextTag();
             if (eventType == XMLStreamConstants.DTD || eventType == XMLStreamConstants.ENTITY_DECLARATION
-                    || eventType == XMLStreamConstants.ENTITY_REFERENCE  || eventType == XMLStreamConstants.NOTATION_DECLARATION) {
+                    || eventType == XMLStreamConstants.ENTITY_REFERENCE || eventType == XMLStreamConstants.NOTATION_DECLARATION) {
                 // We do not want those, e.g. we want to void XXE vulnerabilities. Make this check explicit.
-                throw new SystemException("Use of "+eventType+" in XML is prohibited");
+                throw new SystemException("Use of " + eventType + " in XML is prohibited");
             }
             if (eventType == XMLStreamConstants.START_ELEMENT) {
                 if (!QNameUtil.match(stream.getName(), SchemaConstants.C_OBJECTS)) {
@@ -361,7 +358,7 @@ public class LegacyValidator {
                 try {
                     cont = handler.preMarshall(objectElement, postValidationTree, objectResult);
                 } catch (RuntimeException e) {
-                    objectResult.recordFatalError("Internal error: preMarshall call failed: "+e.getMessage(), e);
+                    objectResult.recordFatalError("Internal error: preMarshall call failed: " + e.getMessage(), e);
                     throw e;
                 }
                 if (!cont.isCont()) {
@@ -390,7 +387,7 @@ public class LegacyValidator {
             try {
                 object.checkConsistence();
             } catch (RuntimeException e) {
-                objectResult.recordFatalError("Internal object inconsistence, probably a parser bug: "+e.getMessage(), e);
+                objectResult.recordFatalError("Internal object inconsistence, probably a parser bug: " + e.getMessage(), e);
                 return EventResult.skipObject(e.getMessage());
             }
 
@@ -409,7 +406,7 @@ public class LegacyValidator {
                     cont = handler.postMarshall(object, objectElement, objectResult);
                 } catch (RuntimeException e) {
                     // Make sure that unhandled exceptions are recorded in object result before they are rethrown
-                    objectResult.recordFatalError("Internal error: postMarshall call failed: "+e.getMessage(), e);
+                    objectResult.recordFatalError("Internal error: postMarshall call failed: " + e.getMessage(), e);
                     throw e;
                 }
                 if (!cont.isCont()) {
@@ -433,7 +430,7 @@ public class LegacyValidator {
                     handler.handleGlobalError(validatorResult);
                 } catch (RuntimeException e) {
                     // Make sure that unhandled exceptions are recorded in object result before they are rethrown
-                    objectResult.recordFatalError("Internal error: handleGlobalError call failed: "+e.getMessage(), e);
+                    objectResult.recordFatalError("Internal error: handleGlobalError call failed: " + e.getMessage(), e);
                     throw e;
                 }
             }
@@ -449,7 +446,7 @@ public class LegacyValidator {
                     handler.handleGlobalError(validatorResult);
                 } catch (RuntimeException e) {
                     // Make sure that unhandled exceptions are recorded in object result before they are rethrown
-                    objectResult.recordFatalError("Internal error: handleGlobalError call failed: "+e.getMessage(), e);
+                    objectResult.recordFatalError("Internal error: handleGlobalError call failed: " + e.getMessage(), e);
                     throw e;
                 }
             }
@@ -556,5 +553,4 @@ public class LegacyValidator {
         subResult.addContext(OperationResult.CONTEXT_ITEM, propertyName);
         subResult.recordFatalError("<" + propertyName + ">: " + message);
     }
-
 }

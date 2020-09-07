@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.util;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.Behavior;
@@ -43,8 +42,7 @@ public class TooltipBehavior extends Behavior {
     public void renderHead(Component component, IHeaderResponse response) {
         super.renderHead(component, response);
 
-        StringBuilder componentSb = new StringBuilder("$('#").append(component.getMarkupId()).append("')");
-        String componentSelector = componentSb.toString();
+        String componentSelector = "$('#" + component.getMarkupId() + "')";
 
         StringBuilder sb = new StringBuilder();
         sb.append("if (typeof ");
@@ -57,8 +55,7 @@ public class TooltipBehavior extends Behavior {
         sb.append(".tooltip({html: true");
         sb.append(", whiteList: wl");
 
-
-        if(!isInsideModal()){
+        if (!isInsideModal()) {
             sb.append(", 'container':'body'");
         } else {
             sb.append(", 'container':'#");
@@ -71,15 +68,15 @@ public class TooltipBehavior extends Behavior {
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
-    public String getModalContainer(Component component){
+    public String getModalContainer(Component component) {
         return component.getMarkupId();
     }
 
-    public String getDataPlacement(){
+    public String getDataPlacement() {
         return "right";
     }
 
-    public boolean isInsideModal(){
+    public boolean isInsideModal() {
         return false;
     }
 

@@ -1,12 +1,12 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.provisioning.impl.dummy;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.assertProvisioningAccountShadow;
@@ -1033,7 +1033,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         for (ResourceAttributeDefinition attributeToReturnDef : attributesToReturn.getAttributesToReturn()) {
             attrs.add(attributeToReturnDef.getItemName().getLocalPart());
         }
-        // No "memebers" attribute here
+        // No "members" attribute here
         PrismAsserts.assertSets("Wrong attribute to return", attrs, "uid", "name", "description", "cc");
 
         assertSteadyResource();
@@ -1057,7 +1057,9 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         ConnectorOperationalStatus operationalStatus = operationalStatuses.get(0);
 
         assertEquals("Wrong connectorClassName", getDummyConnectorClass().getName(), operationalStatus.getConnectorClassName());
-        assertEquals("Wrong poolConfigMinSize", null, operationalStatus.getPoolConfigMinSize());
+        assertThat(operationalStatus.getPoolConfigMinSize())
+                .as("Wrong poolConfigMinSize")
+                .isNull();
         assertEquals("Wrong poolConfigMaxSize", (Integer) 10, operationalStatus.getPoolConfigMaxSize());
         assertEquals("Wrong poolConfigMinIdle", (Integer) 1, operationalStatus.getPoolConfigMinIdle());
         assertEquals("Wrong poolConfigMaxIdle", (Integer) 10, operationalStatus.getPoolConfigMaxIdle());

@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import static org.apache.commons.lang3.BooleanUtils.isTrue;
@@ -14,12 +13,9 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportOptionsType;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
@@ -35,6 +31,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.util.file.File;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -47,11 +44,13 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DataLanguagePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ImportOptionsPanel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ImportOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ModelExecuteOptionsType;
 
 /**
@@ -109,7 +108,7 @@ public class PageImportObject extends PageAdminConfiguration {
     }
 
     private void initLayout() {
-        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         mainForm.setMultiPart(true);
         add(mainForm);
 
@@ -120,7 +119,7 @@ public class PageImportObject extends PageAdminConfiguration {
         input.setOutputMarkupId(true);
         mainForm.add(input);
 
-        final WebMarkupContainer buttonBar = new WebMarkupContainer(ID_BUTTON_BAR);
+        WebMarkupContainer buttonBar = new WebMarkupContainer(ID_BUTTON_BAR);
         buttonBar.setOutputMarkupId(true);
         mainForm.add(buttonBar);
 
@@ -331,26 +330,24 @@ public class PageImportObject extends PageAdminConfiguration {
 
             return;
         }
-        InputStream stream = null;
 
         try {
             Task task = createSimpleTask(operationName);
             InputDescription inputDescription = getInputDescription(raw);
-            stream = inputDescription.inputStream;
-            ImportOptionsType options = optionsModel.getObject();
-            if (isTrue(fullProcessingModel.getObject())) {
-                options.setModelExecutionOptions(new ModelExecuteOptionsType(getPrismContext()).raw(false));
-            } else {
-                options.setModelExecutionOptions(null);
-            }
-            getModelService().importObjectsFromStream(stream, inputDescription.dataLanguage, options, task, result);
+            try (InputStream stream = inputDescription.inputStream) {
+                ImportOptionsType options = optionsModel.getObject();
+                if (isTrue(fullProcessingModel.getObject())) {
+                    options.setModelExecutionOptions(new ModelExecuteOptionsType(getPrismContext()).raw(false));
+                } else {
+                    options.setModelExecutionOptions(null);
+                }
+                getModelService().importObjectsFromStream(stream, inputDescription.dataLanguage, options, task, result);
 
-            result.recomputeStatus();
+                result.recomputeStatus();
+            }
         } catch (Exception ex) {
             result.recordFatalError(getString("PageImportObject.message.savePerformed.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't import file", ex);
-        } finally {
-            IOUtils.closeQuietly(stream);
         }
 
         showResult(result);

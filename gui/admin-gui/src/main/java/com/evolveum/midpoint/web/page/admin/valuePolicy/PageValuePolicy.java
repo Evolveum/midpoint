@@ -42,7 +42,7 @@ import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.component.ValuePolicyBasicPanel;
 import com.evolveum.midpoint.web.page.admin.valuePolicy.component.ValuePolicySummaryPanel;
@@ -167,7 +167,7 @@ public class PageValuePolicy extends PageAdmin {
                 Model.of(valuePolicyModel.getObject().getObject().asObjectable()), this);
         add(summaryPanel);
 
-        Form mainForm = new Form(ID_MAIN_FORM);
+        MidpointForm mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
 
@@ -184,7 +184,7 @@ public class PageValuePolicy extends PageAdmin {
         initButtons(mainForm);
 
     }
-    private void initTabs(Form mainForm){
+    private void initTabs(MidpointForm mainForm){
         List<ITab> tabs = new ArrayList<>();
             PageBase baseParameter = this;
         tabs.add(new AbstractTab(createStringResource("PageValuePolicy.basic")) {
@@ -204,7 +204,7 @@ public class PageValuePolicy extends PageAdmin {
         mainForm.add(tabPanel);
 
     }
-    private void initButtons(Form mainForm){
+    private void initButtons(MidpointForm mainForm){
         AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON,createStringResource("PageValuePolicy.button.back")){
             @Override
             public void onClick(AjaxRequestTarget target) {

@@ -1,38 +1,30 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.data;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReference;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.data.column.ImagePanel;
-import com.evolveum.midpoint.web.component.util.EnableBehaviour;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
-
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.Referencable;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.web.component.data.column.ImagePanel;
+import com.evolveum.midpoint.web.component.util.EnableBehaviour;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
  * Created by honchar
@@ -51,12 +43,12 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 
     IModel<PrismReferenceValue> referenceModel;
 
-    public LinkedReferencePanel(String id, IModel<R> objectReferenceModel){
+    public LinkedReferencePanel(String id, IModel<R> objectReferenceModel) {
         super(id, objectReferenceModel);
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initReferencedObjectModel();
         initLayout();
@@ -108,10 +100,10 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 //            };
     }
 
-    private void initLayout(){
+    private void initLayout() {
         setOutputMarkupId(true);
 
-        IModel<DisplayType> displayModel = new ReadOnlyModel<>( () -> {
+        IModel<DisplayType> displayModel = new ReadOnlyModel<>(() -> {
 
             PrismReferenceValue ref = referenceModel.getObject();
             if (ref == null) {
@@ -119,16 +111,14 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
             }
 
             DisplayType displayType = WebComponentUtil.getDisplayTypeForObject(ref.getObject(), null, getPageBase());
-            if (displayType == null){
+            if (displayType == null) {
                 displayType = new DisplayType();
             }
-            if (displayType.getIcon() == null){
+            if (displayType.getIcon() == null) {
                 displayType.setIcon(WebComponentUtil.createIconType(WebComponentUtil.createDefaultBlackIcon(ref.getTargetType())));
             }
             return displayType;
         });
-
-
 
         ImagePanel imagePanel = new ImagePanel(ID_ICON, displayModel);
         imagePanel.setOutputMarkupId(true);
@@ -142,12 +132,12 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
             }
         };
         nameLink.add(new EnableBehaviour(() -> {
-                PrismReferenceValue ref = referenceModel.getObject();
-                if (ref == null) {
-                    return false;
-                }
+            PrismReferenceValue ref = referenceModel.getObject();
+            if (ref == null) {
+                return false;
+            }
 
-                return ref.getObject() != null;
+            return ref.getObject() != null;
 //                referencedObjectModel != null && referencedObjectModel.getObject() != null
 //                && !new QName("dummy").getLocalPart().equals(
 //                        referencedObjectModel.getObject().asPrismContainer().getElementName().getLocalPart())));
@@ -181,8 +171,6 @@ public class LinkedReferencePanel<R extends Referencable> extends BasePanel<R> {
 //        }
 //        String nameLinkTextVal = (referencedObject instanceof UserType)?WebComponentUtil.getDisplayNameAndName(referencedObjectRef):
 //                WebComponentUtil.getDisplayNameOrName(referencedObjectRef);
-
-
 
     }
 

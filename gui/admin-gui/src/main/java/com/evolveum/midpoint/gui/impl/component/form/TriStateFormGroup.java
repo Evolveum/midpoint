@@ -1,25 +1,24 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.component.form;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.input.TriStateComboPanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 /**
  * @author lazyman
@@ -52,7 +51,7 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
     }
 
     public TriStateFormGroup(String id, IModel<Boolean> value, IModel<String> label, String tooltipKey,
-                          boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
+            boolean isTooltipInModal, String labelCssClass, String textCssClass, boolean required, boolean isSimilarAsPropertyPanel) {
         super(id, value);
 
         initLayout(label, tooltipKey, isTooltipInModal, labelCssClass, textCssClass, required, isSimilarAsPropertyPanel);
@@ -67,7 +66,7 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
         if (StringUtils.isNotEmpty(labelCssClass)) {
             labelContainer.add(AttributeAppender.prepend("class", labelCssClass));
         }
-        if(isSimilarAsPropertyPanel) {
+        if (isSimilarAsPropertyPanel) {
             labelContainer.add(AttributeAppender.prepend("class", " col-xs-2 prism-property-label "));
         } else {
             labelContainer.add(AttributeAppender.prepend("class", " control-label "));
@@ -75,15 +74,10 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
         labelContainer.add(l);
 
         Label tooltipLabel = new Label(ID_TOOLTIP, new Model<>());
-        tooltipLabel.add(new AttributeAppender("data-original-title", new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return getString(tooltipKey);
-            }
-        }));
+        tooltipLabel.add(new AttributeAppender("data-original-title",
+                (IModel<String>) () -> getString(tooltipKey)));
         tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
-        tooltipLabel.add(new VisibleEnableBehaviour(){
+        tooltipLabel.add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
@@ -109,7 +103,7 @@ public class TriStateFormGroup extends BasePanel<Boolean> {
         if (StringUtils.isNotEmpty(textCssClass)) {
             valueWrapper.add(AttributeAppender.prepend("class", textCssClass));
         }
-        if(isSimilarAsPropertyPanel) {
+        if (isSimilarAsPropertyPanel) {
             propertyLabel.add(AttributeAppender.prepend("class", " col-md-10 prism-property-value "));
             rowLabel.add(AttributeAppender.prepend("class", " row "));
         }

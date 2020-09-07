@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -65,7 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Used as a main component of the Org tree page.
- *
+ * <p>
  * todo create function computeHeight() in midpoint.js, update height properly
  * when in "mobile" mode... [lazyman] todo implement midpoint theme for tree
  * [lazyman]
@@ -76,7 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class TreeTablePanel extends BasePanel<String> {
 
     private static final long serialVersionUID = 1L;
-    private PageBase parentPage;
+    private final PageBase parentPage;
 
     @Override
     public PageBase getPageBase() {
@@ -104,7 +104,6 @@ public class TreeTablePanel extends BasePanel<String> {
     protected static final String ID_MANAGER_TABLE = "managerTable";
     protected static final String ID_MANAGER_MENU = "managerMenu";
     protected static final String ID_MANAGER_MENU_BODY = "managerMenuBody";
-
 
     private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
@@ -378,7 +377,7 @@ public class TreeTablePanel extends BasePanel<String> {
         return items;
     }
 
-    private boolean isAllowRead(OrgType org){
+    private boolean isAllowRead(OrgType org) {
         boolean allowRead = false;
         try {
             allowRead = org == null ||
@@ -392,7 +391,7 @@ public class TreeTablePanel extends BasePanel<String> {
         return allowRead;
     }
 
-    private boolean isAllowModify(OrgType org){
+    private boolean isAllowModify(OrgType org) {
         boolean allowModify = false;
         try {
             allowModify = org == null ||
@@ -406,7 +405,7 @@ public class TreeTablePanel extends BasePanel<String> {
         return allowModify;
     }
 
-    private boolean isAllowAddNew(){
+    private boolean isAllowAddNew() {
         boolean allowAddNew = false;
         try {
             allowAddNew = parentPage.isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
@@ -419,8 +418,7 @@ public class TreeTablePanel extends BasePanel<String> {
         return allowAddNew;
     }
 
-
-    private boolean isAllowDelete(OrgType org){
+    private boolean isAllowDelete(OrgType org) {
         boolean allowDelete = false;
         try {
             allowDelete = org == null ||
@@ -434,7 +432,7 @@ public class TreeTablePanel extends BasePanel<String> {
         return allowDelete;
     }
 
-    // TODO: merge this with AbstractRoleMemeberPanel.initObjectForAdd, also see MID-3233
+    // TODO: merge this with AbstractRoleMemberPanel.initObjectForAdd, also see MID-3233
     private void initObjectForAdd(ObjectReferenceType parentOrgRef, QName type, QName relation,
             AjaxRequestTarget target) throws SchemaException {
         TreeTablePanel.this.getPageBase().hideMainPopup(target);
@@ -478,19 +476,17 @@ public class TreeTablePanel extends BasePanel<String> {
 
     private void moveRootPerformed(final TreeSelectableBean<OrgType> root, AjaxRequestTarget target) {
 
-        final SelectableBeanImpl<OrgType> orgToMove = root;
-
         OrgTreeAssignablePanel orgAssignablePanel = new OrgTreeAssignablePanel(
                 parentPage.getMainPopupBodyId(), false) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onItemSelect(SelectableBeanImpl<OrgType> selected, AjaxRequestTarget target) {
-                moveConfirmPerformed(orgToMove, selected, target);
+                moveConfirmPerformed(root, selected, target);
             }
 
             @Override
-            protected OrgType getAssignmentOwnerObject(){
+            protected OrgType getAssignmentOwnerObject() {
                 return root.getValue();
             }
         };
@@ -501,7 +497,7 @@ public class TreeTablePanel extends BasePanel<String> {
     }
 
     private void moveConfirmPerformed(SelectableBeanImpl<OrgType> orgToMove, SelectableBeanImpl<OrgType> selected,
-                                      AjaxRequestTarget target) {
+            AjaxRequestTarget target) {
         getPageBase().hideMainPopup(target);
 
         Task task = getPageBase().createSimpleTask(OPERATION_MOVE_OBJECT);
@@ -516,7 +512,7 @@ public class TreeTablePanel extends BasePanel<String> {
                 );
 
         try {
-            for ( ObjectReferenceType parentOrgRef : toMove.getParentOrgRef()) {
+            for (ObjectReferenceType parentOrgRef : toMove.getParentOrgRef()) {
                 AssignmentType oldRoot = new AssignmentType();
                 oldRoot.setTargetRef(ObjectTypeUtil.createObjectRef(parentOrgRef.asReferenceValue().getObject(), getPageBase().getPrismContext()));
 
@@ -548,7 +544,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
         parentPage.showResult(result);
         target.add(parentPage.getFeedbackPanel());
-        if(parentPage instanceof PageOrgTree && ((PageOrgTree) parentPage).getTabPanel() != null
+        if (parentPage instanceof PageOrgTree && ((PageOrgTree) parentPage).getTabPanel() != null
                 && ((PageOrgTree) parentPage).getTabPanel().getTabbedPanel() != null) {
             ((PageOrgTree) parentPage).getTabPanel().getTabbedPanel().setSelectedTab(0);
         }
@@ -651,7 +647,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
-                    deleteNodeConfirmedPerformed(orgToDelete, target);
+                deleteNodeConfirmedPerformed(orgToDelete, target);
             }
         };
 
@@ -676,7 +672,6 @@ public class TreeTablePanel extends BasePanel<String> {
             return false;
         }
     }
-
 
     private void deleteNodeConfirmedPerformed(SelectableBeanImpl<OrgType> orgToDelete, AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
@@ -726,5 +721,4 @@ public class TreeTablePanel extends BasePanel<String> {
         parameters.add(OnePageParameterEncoder.PARAMETER, root.getValue().getOid());
         getPageBase().navigateToNext(PageOrgUnit.class, parameters);
     }
-
 }

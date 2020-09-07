@@ -1,10 +1,21 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.form.multivalue;
+
+import java.util.List;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.list.ListItem;
+import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.prism.Referencable;
@@ -14,22 +25,12 @@ import com.evolveum.midpoint.web.component.form.ValueChoosePanel;
 import com.evolveum.midpoint.web.component.util.EnableBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.model.IModel;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar
  */
-public abstract class MultiValueObjectChoosePanel<R extends Referencable> extends BasePanel<List<R>>{
+public abstract class MultiValueObjectChoosePanel<R extends Referencable> extends BasePanel<List<R>> {
+
     private static final long serialVersionUID = 1L;
 
     private static final String ID_EMPTY_MODEL_CONTAINER = "emptyModelContainer";
@@ -45,22 +46,22 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
 
     private boolean emptyObjectPanelDisplay = false;
 
-    public MultiValueObjectChoosePanel(String id, IModel<List<R>> referenceListModel){
+    public MultiValueObjectChoosePanel(String id, IModel<List<R>> referenceListModel) {
         super(id, referenceListModel);
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         initEmptyModelInputPanel();
         initMultiValuesListPanel();
     }
 
-    private void initEmptyModelInputPanel(){
+    private void initEmptyModelInputPanel() {
         WebMarkupContainer emptyModelContainer = new WebMarkupContainer(ID_EMPTY_MODEL_CONTAINER);
         emptyModelContainer.setOutputMarkupId(true);
         emptyModelContainer.add(new VisibleBehaviour(() -> isEmptyModel() || emptyObjectPanelDisplay));
@@ -71,7 +72,7 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
             public R getObject() {
                 return null;
             }
-        }){
+        }) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -123,80 +124,80 @@ public abstract class MultiValueObjectChoosePanel<R extends Referencable> extend
         buttonsWhenEmptyContainer.add(removeWhenEmptyButton);
     }
 
-    private void initMultiValuesListPanel(){
-        ListView<R> multiValuesPanel = new ListView<R>(ID_MULTI_SHADOW_REF_VALUE, MultiValueObjectChoosePanel.this.getModel()){
+    private void initMultiValuesListPanel() {
+        ListView<R> multiValuesPanel = new ListView<R>(ID_MULTI_SHADOW_REF_VALUE, MultiValueObjectChoosePanel.this.getModel()) {
             private static final long serialVersionUID = 1L;
 
-                @Override
-                protected void populateItem(final ListItem<R> item) {
-                    ValueChoosePanel<R> valueChoosePanel = new ValueChoosePanel<R>(ID_REFERENCE_VALUE_INPUT, item.getModel()){
-                        private static final long serialVersionUID = 1L;
+            @Override
+            protected void populateItem(final ListItem<R> item) {
+                ValueChoosePanel<R> valueChoosePanel = new ValueChoosePanel<R>(ID_REFERENCE_VALUE_INPUT, item.getModel()) {
+                    private static final long serialVersionUID = 1L;
 
-                        @Override
-                        protected ObjectFilter createCustomFilter() {
-                            return MultiValueObjectChoosePanel.this.createCustomFilter();
-                        }
+                    @Override
+                    protected ObjectFilter createCustomFilter() {
+                        return MultiValueObjectChoosePanel.this.createCustomFilter();
+                    }
 
-                        @Override
-                        public List<QName> getSupportedTypes() {
-                            return MultiValueObjectChoosePanel.this.getSupportedTypes();
-                        }
+                    @Override
+                    public List<QName> getSupportedTypes() {
+                        return MultiValueObjectChoosePanel.this.getSupportedTypes();
+                    }
 
-                        @Override
-                        protected <O extends ObjectType> void choosePerformedHook(AjaxRequestTarget target, O object) {
-                            chooseObjectPerformed(target, object);
-                        }
-                    };
-                    valueChoosePanel.setOutputMarkupId(true);
-                    item.add(valueChoosePanel);
+                    @Override
+                    protected <O extends ObjectType> void choosePerformedHook(AjaxRequestTarget target, O object) {
+                        chooseObjectPerformed(target, object);
+                    }
+                };
+                valueChoosePanel.setOutputMarkupId(true);
+                item.add(valueChoosePanel);
 
-                    WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_CONTAINER);
-                    buttonsContainer.setOutputMarkupId(true);
-                    item.add(buttonsContainer);
+                WebMarkupContainer buttonsContainer = new WebMarkupContainer(ID_BUTTONS_CONTAINER);
+                buttonsContainer.setOutputMarkupId(true);
+                item.add(buttonsContainer);
 
-                    AjaxButton addButton = new AjaxButton(ID_ADD_BUTTON) {
-                        private static final long serialVersionUID = 1L;
+                AjaxButton addButton = new AjaxButton(ID_ADD_BUTTON) {
+                    private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            emptyObjectPanelDisplay = true;
-                            target.add(MultiValueObjectChoosePanel.this);
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        emptyObjectPanelDisplay = true;
+                        target.add(MultiValueObjectChoosePanel.this);
 //                            MultiValueObjectChoosePanel.this.getModelObject().add(null);
-                        }
-                    };
-                    addButton.setOutputMarkupId(true);
-                    addButton.add(new EnableBehaviour(() -> item.getModelObject() != null));
-                    buttonsContainer.add(addButton);
+                    }
+                };
+                addButton.setOutputMarkupId(true);
+                addButton.add(new EnableBehaviour(() -> item.getModelObject() != null));
+                buttonsContainer.add(addButton);
 
-                    AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
-                        private static final long serialVersionUID = 1L;
+                AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
+                    private static final long serialVersionUID = 1L;
 
-                        @Override
-                        public void onClick(AjaxRequestTarget target) {
-                            MultiValueObjectChoosePanel.this.getModelObject().remove(item.getModelObject());
-                            target.add(MultiValueObjectChoosePanel.this);
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        MultiValueObjectChoosePanel.this.getModelObject().remove(item.getModelObject());
+                        target.add(MultiValueObjectChoosePanel.this);
 
-                        }
-                    };
-                    removeButton.setOutputMarkupId(true);
-                    removeButton.add(new EnableBehaviour(() -> item.getModelObject() != null));
-                    buttonsContainer.add(removeButton);
-                }
+                    }
+                };
+                removeButton.setOutputMarkupId(true);
+                removeButton.add(new EnableBehaviour(() -> item.getModelObject() != null));
+                buttonsContainer.add(removeButton);
+            }
         };
         multiValuesPanel.add(new VisibleBehaviour(() -> !isEmptyModel()));
         multiValuesPanel.setOutputMarkupId(true);
         add(multiValuesPanel);
     }
 
-    private boolean isEmptyModel(){
+    private boolean isEmptyModel() {
         return CollectionUtils.isEmpty(getModelObject());
     }
 
-    protected ObjectFilter createCustomFilter(){
+    protected ObjectFilter createCustomFilter() {
         return null;
     }
 
-    protected <O extends ObjectType> void chooseObjectPerformed(AjaxRequestTarget target, O object){
+    protected <O extends ObjectType> void chooseObjectPerformed(AjaxRequestTarget target, O object) {
     }
 
     protected abstract List<QName> getSupportedTypes();

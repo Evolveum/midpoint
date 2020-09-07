@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012-2017 Biznet, Evolveum and contributors
+ * Copyright (C) 2012-2020 Biznet, Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,18 +10,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Properties;
-
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
+import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringEscapeUtils;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -49,19 +42,21 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Producer;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.page.admin.home.component.MyPasswordQuestionsPanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.PasswordQuestionsDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SecurityQuestionAnswerDTO;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
-
 
 @PageDescriptor(url = "/securityquestionsold", permitAll = true)
 public class PageSecurityQuestions extends PageBase {
@@ -100,7 +95,7 @@ public class PageSecurityQuestions extends PageBase {
 
     public void initLayout() {
 
-        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form mainForm = new MidpointForm(ID_MAIN_FORM);
 
         pqPanels = new ArrayList<>();
 
@@ -204,6 +199,7 @@ public class PageSecurityQuestions extends PageBase {
     private ListView<MyPasswordQuestionsPanel> getPanels(List<MyPasswordQuestionsPanel> p) {
         return new ListView<MyPasswordQuestionsPanel>(ID_PASSWORD_QUESTIONS_PANEL, p) {
             private static final long serialVersionUID = 1L;
+
             @Override
             protected void populateItem(ListItem<MyPasswordQuestionsPanel> item) {
                 item.add(item.getModelObject());
@@ -243,8 +239,8 @@ public class PageSecurityQuestions extends PageBase {
             if (userQuestionList != null) {
                 for (SecurityQuestionAnswerDTO securityQuestionAnswerDTO : userQuestionList) {
                     // TODO do this in a proper way, what is this.
-                    String results = StringEscapeUtils.unescapeHtml((type
-                            .get(MyPasswordQuestionsPanel.F_QUESTION)).getDefaultModelObjectAsString());
+                    String results = StringEscapeUtils.unescapeHtml4(
+                            type.get(MyPasswordQuestionsPanel.F_QUESTION).getDefaultModelObjectAsString());
                     if (getQuestionIdentifierFromQuestion(results).trim().equalsIgnoreCase(
                             securityQuestionAnswerDTO.getPwdQuestion().trim())) {
 
@@ -268,7 +264,6 @@ public class PageSecurityQuestions extends PageBase {
             target.add(getFeedbackPanel());
         }
     }
-
 
     private void loadUserAndSecurityQuestions(PageParameters parameters) {
         String userOid = parameters.get(SESSION_ATTRIBUTE_POID).toString();
@@ -351,8 +346,9 @@ public class PageSecurityQuestions extends PageBase {
 
     private String getQuestionIdentifierFromQuestion(String questionItself) {
         for (SecurityQuestionDefinitionType securityQuestionDefinitionType : questionList) {
-            if (questionItself.equalsIgnoreCase(securityQuestionDefinitionType.getQuestionText()))
+            if (questionItself.equalsIgnoreCase(securityQuestionDefinitionType.getQuestionText())) {
                 return securityQuestionDefinitionType.getIdentifier();
+            }
         }
         return null;
     }
@@ -447,7 +443,7 @@ public class PageSecurityQuestions extends PageBase {
                             if (serverList.size() > 0) {
                                 MailServerConfigurationType mailServerType = mailConfig.getServer().get(0);
                                 sendMailToUser(mailServerType.getUsername(), getMidpointApplication()
-                                        .getProtector().decryptString(mailServerType.getPassword()),
+                                                .getProtector().decryptString(mailServerType.getPassword()),
                                         newPassword, mailServerType.getHost(), mailServerType.getPort()
                                                 .toString(), mailConfig.getDefaultFrom(),
                                         user.getEmailAddress());

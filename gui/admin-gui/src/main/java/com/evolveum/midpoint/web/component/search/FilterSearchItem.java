@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.search;
 
-import org.apache.commons.lang.Validate;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
@@ -38,12 +37,12 @@ public class FilterSearchItem extends SearchItem {
     }
 
     @Override
-    public String getName(){
+    public String getName() {
         return WebComponentUtil.getTranslatedPolyString(predefinedFilter.getDisplayName());
     }
 
     @Override
-    public Type getType(){
+    public Type getType() {
         return Type.FILTER;
     }
 
@@ -78,9 +77,9 @@ public class FilterSearchItem extends SearchItem {
 
     @Override
     public String toString() {
-        return new ToStringBuilder(this)
-                .append("search", getSearch())
-                .append("predefinedFilter", predefinedFilter)
-                .toString();
+        return "FilterSearchItem{" +
+                "search=" + getSearch() +
+                ", predefinedFilter=" + predefinedFilter +
+                '}';
     }
 }
