@@ -10,7 +10,7 @@ package com.evolveum.midpoint.schema;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.LITERAL;
-import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.NOT_LITERAL;
+import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.DATA;
 
 import java.io.File;
 import java.util.Arrays;
@@ -471,7 +471,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
         PrismObject<RoleType> role1 = PrismTestUtil.parseObject(ROLE_1);
         PrismObject<RoleType> role2 = PrismTestUtil.parseObject(ROLE_2);
 
-        ObjectDelta<RoleType> delta = role1.diff(role2, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<RoleType> delta = role1.diff(role2, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         assertFalse(delta.isEmpty());
     }
 
@@ -504,7 +504,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
 
         ObjectDelta<UserType> diffIgnoreMetadataNotLiteral = user1.diff(user2, EquivalenceStrategy.IGNORE_METADATA);
         ObjectDelta<UserType> diffWithMetadataAndLiteral = user1.diff(user2, EquivalenceStrategy.LITERAL);
-        ObjectDelta<UserType> diffWithMetadataNotLiteral = user1.diff(user2, EquivalenceStrategy.NOT_LITERAL);
+        ObjectDelta<UserType> diffWithMetadataNotLiteral = user1.diff(user2, EquivalenceStrategy.DATA);
 
         assertTrue("Diff ignoring metadata is not empty:\n" + diffIgnoreMetadataNotLiteral.debugDump(),
                 diffIgnoreMetadataNotLiteral.isEmpty());
@@ -542,7 +542,7 @@ public class TestDiffEquals extends AbstractSchemaTest {
 
         assertHashAndEquals(userParsed, userRaw, null);
         assertHashAndEquals(userParsed, userRaw, LITERAL);
-        assertHashAndEquals(userParsed, userRaw, NOT_LITERAL);
+        assertHashAndEquals(userParsed, userRaw, DATA);
     }
 
     private void assertHashAndEquals(PrismObject<UserType> user1, PrismObject<UserType> user2,

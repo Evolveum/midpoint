@@ -24,7 +24,7 @@ import java.util.Comparator;
  */
 public class TestEquals extends AbstractPrismTest {
 
-    @Test(enabled = false) // containsEquivalentValue was removed from Item because of weird contract
+    @Test
     public void testContainsEquivalentValue01() throws Exception {
         // GIVEN
 
@@ -44,16 +44,18 @@ public class TestEquals extends AbstractPrismTest {
         // WHEN, THEN
         when();
         Comparator<PrismContainerValue<AssignmentType>> comparator =
-                EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS.prismValueComparator();
+                EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS.prismValueComparator();
 
+        // This is no longer true. Original method containsEquivalentValue took care for container ID equality.
 //        assertTrue(ASSIGNMENT_PATLAMA_ID + ":null",
-//                assignmentContainer.containsEquivalentValue(createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null), comparator));
-//        assertTrue("null:" + ASSIGNMENT_PATLAMA_DESCRIPTION,
-//                assignmentContainer.containsEquivalentValue(createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION), comparator));
-//        assertFalse("364576:null",
-//                assignmentContainer.containsEquivalentValue(createAssignmentValue(364576L, null), comparator));
-//        assertFalse("null:never ever never",
-//                assignmentContainer.containsEquivalentValue(createAssignmentValue(null, "never ever never"), comparator));
+//                ItemCollectionsUtil.containsEquivalentValue(assignmentContainer, createAssignmentValue(ASSIGNMENT_PATLAMA_ID, null), comparator));
+
+        assertTrue("null:" + ASSIGNMENT_PATLAMA_DESCRIPTION,
+                ItemCollectionsUtil.containsEquivalentValue(assignmentContainer, createAssignmentValue(null, ASSIGNMENT_PATLAMA_DESCRIPTION), comparator));
+        assertFalse("364576:null",
+                ItemCollectionsUtil.containsEquivalentValue(assignmentContainer, createAssignmentValue(364576L, null), comparator));
+        assertFalse("null:never ever never",
+                ItemCollectionsUtil.containsEquivalentValue(assignmentContainer, createAssignmentValue(null, "never ever never"), comparator));
     }
 
     @Test(enabled = false)                // normalization no longer removes empty values

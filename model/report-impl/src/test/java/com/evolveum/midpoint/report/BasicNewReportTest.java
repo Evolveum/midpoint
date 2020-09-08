@@ -239,7 +239,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         OperationResult result = task.getResult();
         PrismObject<ReportType> reportBefore = report.clone();
         report.asObjectable().setFileFormat(getFileFormatConfiguration());
-        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
 
         // WHEN
@@ -265,7 +265,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         OperationResult result = task.getResult();
         PrismObject<ReportType> reportBefore = report.clone();
         report.asObjectable().setFileFormat(getFileFormatConfiguration());
-        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
 
         PrismObject<ReportDataType> reportData = prismContext.getSchemaRegistry()

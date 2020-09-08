@@ -6,7 +6,7 @@
  */
 package com.evolveum.midpoint.schema;
 
-import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.NOT_LITERAL;
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.DATA;
 import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import static org.testng.AssertJUnit.*;
@@ -109,7 +109,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         userAfter.asObjectable().getAssignment().add(assignmentAfter);
 
         Collection<? extends ItemDelta> userDeltas =
-                assignmentBefore.asPrismContainerValue().diff(assignmentAfter.asPrismContainerValue());
+                assignmentBefore.asPrismContainerValue().diff(assignmentAfter.asPrismContainerValue(), EquivalenceStrategy.IGNORE_METADATA);
         userBefore.checkConsistence();
         userAfter.checkConsistence();
 
@@ -126,7 +126,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         activation = new ActivationType();
         activation.setAdministrativeStatus(null);
         assignmentAfter.setActivation(activation);
-        userDeltas = assignmentBefore.asPrismContainerValue().diff(assignmentAfter.asPrismContainerValue());
+        userDeltas = assignmentBefore.asPrismContainerValue().diff(assignmentAfter.asPrismContainerValue(), EquivalenceStrategy.IGNORE_METADATA);
         userBefore.checkConsistence();
         userAfter.checkConsistence();
 
@@ -137,7 +137,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         assertNotNull("Property delta for " + path + " not found",
                 ItemDeltaCollectionsUtil.findPropertyDelta(userDeltas, path));
 
-        userDeltas = assignmentAfter.asPrismContainerValue().diff(assignmentBefore.asPrismContainerValue());
+        userDeltas = assignmentAfter.asPrismContainerValue().diff(assignmentBefore.asPrismContainerValue(), EquivalenceStrategy.IGNORE_METADATA);
         userBefore.checkConsistence();
         userAfter.checkConsistence();
 
@@ -428,7 +428,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
 
         // WHEN
 
-        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, EquivalenceStrategy.LITERAL);
 
         // THEN
 
@@ -576,7 +576,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         resourceAfter.checkConsistence();
 
         // WHEN
-        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, EquivalenceStrategy.LITERAL);
 
         // THEN
 
@@ -605,7 +605,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
 
             // WHEN
             String xmlBroken = getPrismContext().xmlSerializer().serialize(resourceBroken);
-            ObjectDelta<ResourceType> resourceDelta = resourceBroken.diff(resourceFixed, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+            ObjectDelta<ResourceType> resourceDelta = resourceBroken.diff(resourceFixed, EquivalenceStrategy.LITERAL);
 
             // THEN
 
@@ -707,7 +707,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
 
         PrismObject<TaskType> changed = prismObject.clone();
         ItemDeltaCollectionsUtil.applyTo(delta.getModifications(), changed);
-        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, EquivalenceStrategy.LITERAL);
 
         ItemDeltaCollectionsUtil.applyTo(processedModifications, prismObject);
 
@@ -719,7 +719,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         PrismObject<ResourceType> before = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-before.xml"));
         PrismObject<ResourceType> after = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-after.xml"));
 
-        Collection<? extends ItemDelta> differences = before.diffModifications(after, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        Collection<? extends ItemDelta> differences = before.diffModifications(after, EquivalenceStrategy.LITERAL);
 
         assertEquals(1, differences.size());
         System.out.println(differences.iterator().next().debugDump());
@@ -769,7 +769,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         System.out.println("DELTA:");
         System.out.println(delta.debugDump());
 
-        ObjectDelta<SystemConfigurationType> deltaNarrowed = delta.narrow(before, NOT_LITERAL, REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
+        ObjectDelta<SystemConfigurationType> deltaNarrowed = delta.narrow(before, DATA, REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
         System.out.println("DELTA NARROWED:");
         System.out.println(deltaNarrowed.debugDump());
 

@@ -132,15 +132,9 @@ public interface ItemDelta<V extends PrismValue,D extends ItemDefinition> extend
 
     boolean isValueToAdd(V value);
 
-    boolean isValueToAdd(V value, boolean ignoreMetadata);
-
     boolean isValueToDelete(V value);
 
-    boolean isValueToDelete(V value, boolean ignoreMetadata);
-
     boolean isValueToReplace(V value);
-
-    boolean isValueToReplace(V value, boolean ignoreMetadata);
 
     V getAnyValue();
 

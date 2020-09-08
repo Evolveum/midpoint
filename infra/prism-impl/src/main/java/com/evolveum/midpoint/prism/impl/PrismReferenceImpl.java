@@ -120,7 +120,7 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
             // these two object if they are equals..this can avoid of bad resolving
             // (e.g. creating user and adding two or more accounts at the same time)
             if (value.getObject() != null && existingValue.getObject() != null && !value
-                    .equals(existingValue, EquivalenceStrategy.NOT_LITERAL)) {
+                    .equals(existingValue, EquivalenceStrategy.DATA)) {
                 return add(value);
             }
 
@@ -136,7 +136,7 @@ public class PrismReferenceImpl extends ItemImpl<PrismReferenceValue, PrismRefer
             // needed for parent org refs, becasue there can exist more than one
             // reference with the same oid, but they should be different (e.g. user
             // is member and also manager of the org. unit.)
-            if (!value.equals(existingValue, EquivalenceStrategy.NOT_LITERAL)) {
+            if (!value.equals(existingValue, EquivalenceStrategy.DATA)) {
                 return add(value);
             }
 

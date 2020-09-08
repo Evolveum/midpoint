@@ -759,7 +759,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 }
 
                 private boolean isPresent(ValueMetadataType toBeAdded) {
-                    // TODO Consider the strategy. REAL_VALUE (instead of NOT_LITERAL) prevents uninteresting changes to be applied.
+                    // TODO Consider the strategy. REAL_VALUE (instead of DATA) prevents uninteresting changes to be applied.
                     //  But what about timestamps, channels, actors, etc?
                     return existing.stream()
                             .anyMatch(e -> e.asPrismContainerValue().equals(toBeAdded.asPrismContainerValue(), EquivalenceStrategy.REAL_VALUE));

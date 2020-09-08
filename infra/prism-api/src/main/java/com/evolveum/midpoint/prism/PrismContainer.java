@@ -205,8 +205,6 @@ public interface PrismContainer<C extends Containerable>
 
     ContainerDelta<C> diff(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy);
 
-    List<? extends ItemDelta> diffModifications(PrismContainer<C> other);
-
     List<? extends ItemDelta> diffModifications(PrismContainer<C> other, ParameterizedEquivalenceStrategy strategy);
 
     @Override

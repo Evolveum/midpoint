@@ -8,6 +8,8 @@ package com.evolveum.midpoint.web.page.admin;
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -392,7 +394,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         LOGGER.debug("Handling modified assignment '{}', computing delta.", assDto.getName());
 
         PrismValue oldValue = assDto.getOldValue();
-        Collection<? extends ItemDelta> deltas = oldValue.diff(newValue);
+        Collection<? extends ItemDelta> deltas = oldValue.diff(newValue, EquivalenceStrategy.IGNORE_METADATA);
 
         for (ItemDelta delta : deltas) {
             ItemPath deltaPath = delta.getPath().rest();

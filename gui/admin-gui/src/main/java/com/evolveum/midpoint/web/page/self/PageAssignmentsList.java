@@ -10,6 +10,8 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProces
 
 import java.util.*;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -433,7 +435,7 @@ public class PageAssignmentsList<F extends FocusType> extends PageBase {
         LOGGER.debug("Handling modified assignment '{}', computing delta.", assDto.getName());
 
         PrismValue oldValue = assDto.getOldValue();
-        Collection<? extends ItemDelta> deltas = oldValue.diff(newValue);
+        Collection<? extends ItemDelta> deltas = oldValue.diff(newValue, EquivalenceStrategy.IGNORE_METADATA);
 
         for (ItemDelta delta : deltas) {
             ItemPath deltaPath = delta.getPath().rest();

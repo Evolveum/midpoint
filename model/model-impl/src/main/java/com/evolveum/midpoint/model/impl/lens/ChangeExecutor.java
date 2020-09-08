@@ -1048,10 +1048,10 @@ public class ChangeExecutor {
         // LookupTableType operation optimization is not available here, because it looks like that isRedundant
         // does not work reliably for key-based row deletions (MID-5276).
         //
-        // NOT_LITERAL: we consider value metadata as making a difference
+        // DATA: we consider value metadata as making a difference
         if (diffDelta != null && objectContext instanceof LensFocusContext<?> &&
                 !objectContext.isOfType(LookupTableType.class) &&
-                diffDelta.isRedundant(objectContext.getObjectCurrent(), EquivalenceStrategy.NOT_LITERAL,
+                diffDelta.isRedundant(objectContext.getObjectCurrent(), EquivalenceStrategy.DATA,
                         EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, false)) {
             LOGGER.trace("delta is idempotent related to {}", objectContext.getObjectCurrent());
             return null;
@@ -1073,11 +1073,6 @@ public class ChangeExecutor {
      * Unfortunately, this mechanism is not well-defined, and seems to work more
      * "by accident" than "by design". It should be replaced with something more
      * serious. Perhaps by re-reading current focus state when repeating a wave?
-     * Actually, it is a supplement for rewriting ADD->MODIFY deltas in
-     * LensElementContext.getFixedPrimaryDelta. That method converts primary
-     * deltas (and as far as I know, that is the only place where this problem
-     * should occur). Nevertheless, for historical and safety reasons I keep
-     * also the processing in this method.
      * <p>
      * Anyway, currently it treats only three cases:
      * 1) if the objectDelta is present in the list of executed deltas
@@ -1099,7 +1094,7 @@ public class ChangeExecutor {
         if (lastRelated == null) {
             return objectDelta; // nothing found, let us apply our delta
         }
-        if (lastRelated.getExecutionResult().isSuccess() && lastRelated.containsDelta(objectDelta)) {
+        if (lastRelated.getExecutionResult().isSuccess() && lastRelated.containsDelta(objectDelta, EquivalenceStrategy.IGNORE_METADATA)) {
             return null; // case 1 - exact match found with SUCCESS result,
             // let's skip the processing of our delta
         }
@@ -1129,45 +1124,44 @@ public class ChangeExecutor {
     }
 
     private <T extends ObjectType> ObjectDeltaOperation<T> findLastRelatedDelta(
-            List<? extends ObjectDeltaOperation<T>> executedDeltas, ObjectDelta<T> objectDelta) {
+            List<? extends ObjectDeltaOperation<T>> executedDeltas, ObjectDelta<T> deltaToExecute) {
         for (int i = executedDeltas.size() - 1; i >= 0; i--) {
             ObjectDeltaOperation<T> currentOdo = executedDeltas.get(i);
             if (currentOdo.getExecutionResult().isFatalError()) {
                 continue;
             }
-            ObjectDelta<T> current = currentOdo.getObjectDelta();
+            ObjectDelta<T> currentDelta = currentOdo.getObjectDelta();
 
-            if (current.equals(objectDelta)) {
+            if (currentDelta.equals(deltaToExecute)) {
                 return currentOdo;
             }
 
-            String oid1 = current.isAdd() ? current.getObjectToAdd().getOid() : current.getOid();
-            String oid2 = objectDelta.isAdd() ? objectDelta.getObjectToAdd().getOid()
-                    : objectDelta.getOid();
+            String oid1 = currentDelta.isAdd() ? currentDelta.getObjectToAdd().getOid() : currentDelta.getOid();
+            String oid2 = deltaToExecute.isAdd() ? deltaToExecute.getObjectToAdd().getOid() : deltaToExecute.getOid();
             if (oid1 != null && oid2 != null) {
                 if (oid1.equals(oid2)) {
                     return currentOdo;
+                } else {
+                    continue;
                 }
-                continue;
             }
             // ADD-MODIFY and ADD-DELETE combinations lead to applying whole
             // delta (as a result of computeDiffDelta)
             // so we can be lazy and check only ADD-ADD combinations here...
-            if (!current.isAdd() || !objectDelta.isAdd()) {
+            if (!currentDelta.isAdd() || !deltaToExecute.isAdd()) {
                 continue;
             }
             // we simply check the type (for focus objects) and
             // resource+kind+intent (for shadows)
-            PrismObject<T> currentObject = current.getObjectToAdd();
-            PrismObject<T> objectTypeToAdd = objectDelta.getObjectToAdd();
-            Class currentObjectClass = currentObject.getCompileTimeClass();
-            Class objectTypeToAddClass = objectTypeToAdd.getCompileTimeClass();
-            if (currentObjectClass == null || !currentObjectClass.equals(objectTypeToAddClass)) {
+            PrismObject<T> objectAdded = currentDelta.getObjectToAdd();
+            PrismObject<T> objectToAdd = deltaToExecute.getObjectToAdd();
+            Class objectAddedClass = objectAdded.getCompileTimeClass();
+            Class objectToAddClass = objectToAdd.getCompileTimeClass();
+            if (objectAddedClass == null || !objectAddedClass.equals(objectToAddClass)) {
                 continue;
             }
-            if (FocusType.class.isAssignableFrom(currentObjectClass)) {
-                return currentOdo; // we suppose there is only one delta of
-                // Focus class
+            if (FocusType.class.isAssignableFrom(objectAddedClass)) {
+                return currentOdo; // we suppose there is only one delta of Focus class (shouldn't this be AssignmentHolderType?)
             }
         }
         return null;
