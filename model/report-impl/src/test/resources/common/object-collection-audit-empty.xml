@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<objectCollection oid="00000000-0000-0000-0001-000000gh1234">
+    <name>Audit records empty</name>
+    <type>AuditEventRecordType</type>
+    <filter>
+        <and>
+            <equal>
+                <path>eventStage</path>
+                <value>execution</value>
+            </equal>
+            <greater>
+                <path>timestamp</path>
+                <value>9999-01-01T00:00:00.000+02:00</value>
+            </greater>
+        </and>
+    </filter>
+</objectCollection>
+
