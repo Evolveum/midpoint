@@ -74,7 +74,6 @@
             <xsd:element ref="tns:kind" minOccurs="0"/>
             <xsd:element ref="tns:intent" minOccurs="0"/>
             <xsd:element ref="tns:filename" minOccurs="0"/>
-            <xsd:element ref="tns:endpoint" minOccurs="0"/>
             <xsd:element ref="tns:optionRaw" minOccurs="0"/>
             <xsd:element ref="tns:diagnose" minOccurs="0"/>
             <xsd:element ref="tns:fix" minOccurs="0"/>
