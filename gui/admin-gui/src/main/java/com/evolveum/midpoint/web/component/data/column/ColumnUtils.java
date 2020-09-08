@@ -592,37 +592,13 @@ public class ColumnUtils {
                 @Override
                 public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<CaseWorkItemType>>> cellItem,
                         String componentId, IModel<PrismContainerValueWrapper<CaseWorkItemType>> rowModel) {
-                    RepeatingView actorLinks = new RepeatingView(componentId);
-                    actorLinks.setOutputMarkupId(true);
                     List<ObjectReferenceType> assigneeRefs;
                     if (CaseWorkItemUtil.doesAssigneeExist(unwrapRowModel(rowModel))) {
                         assigneeRefs = unwrapRowModel(rowModel).getAssigneeRef();
                     } else {
                         assigneeRefs = unwrapRowModel(rowModel).getCandidateRef();
                     }
-                    if (assigneeRefs != null) {
-                        assigneeRefs.forEach(assigneeRef -> {
-                            LinkPanel assigneeLinkPanel = new LinkPanel(actorLinks.newChildId(),
-                                    Model.of(WebModelServiceUtils.resolveReferenceName(assigneeRef, pageBase))) {
-                                private static final long serialVersionUID = 1L;
-
-                                @Override
-                                public void onClick(AjaxRequestTarget target) {
-                                    dispatchToObjectDetailsPage(assigneeRef, pageBase, false);
-                                }
-
-                                @Override
-                                public boolean isEnabled() {
-                                    return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
-                                            Collections.singletonList(assigneeRef), "loadCaseWorkItemAssigneeRef", pageBase));
-                                }
-
-                            };
-                            assigneeLinkPanel.setOutputMarkupId(true);
-                            actorLinks.add(assigneeLinkPanel);
-                        });
-                    }
-                    cellItem.add(actorLinks);
+                    cellItem.add(getMultilineLinkPanel(componentId, assigneeRefs, pageBase));
                 }
 
                 @Override
@@ -853,29 +829,33 @@ public class ColumnUtils {
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<CaseType>>> item, String componentId, IModel<SelectableBean<CaseType>> rowModel) {
                 CaseType caseInstance = rowModel != null ? rowModel.getObject().getValue() : null;
-                item.add(getMultilineLinkPanel(componentId, getActorsForCase(rowModel != null ? rowModel.getObject().getValue() : null),
-                        caseInstance, pageBase));
+                item.add(getMultilineLinkPanel(componentId, getActorsForCase(rowModel != null ? rowModel.getObject().getValue() : null), pageBase));
             }
         };
     }
 
-    public static RepeatingView getMultilineLinkPanel(String componentId, List<ObjectReferenceType> referencesList,
-            CaseType caseType, PageBase pageBase) {
+    public static RepeatingView getMultilineLinkPanel(String componentId, List<ObjectReferenceType> referencesList, PageBase pageBase) {
         RepeatingView multilineLinkPanel = new RepeatingView(componentId);
         multilineLinkPanel.setOutputMarkupId(true);
         if (referencesList != null) {
             referencesList.forEach(reference -> {
-                LinkPanel assigneeLinkPanel = new LinkPanel(multilineLinkPanel.newChildId(),
+                LinkPanel referenceLinkPanel = new LinkPanel(multilineLinkPanel.newChildId(),
                         Model.of(WebModelServiceUtils.resolveReferenceName(reference, pageBase))) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        dispatchToObjectDetailsPage(caseType.getObjectRef(), pageBase, false);
+                        dispatchToObjectDetailsPage(reference, pageBase, false);
+                    }
+
+                    @Override
+                    public boolean isEnabled() {
+                        return CollectionUtils.isNotEmpty(WebComponentUtil.loadReferencedObjectList(
+                                Collections.singletonList(reference), "loadCaseReferenceObject", pageBase));
                     }
                 };
-                assigneeLinkPanel.setOutputMarkupId(true);
-                multilineLinkPanel.add(assigneeLinkPanel);
+                referenceLinkPanel.setOutputMarkupId(true);
+                multilineLinkPanel.add(referenceLinkPanel);
             });
         }
         return multilineLinkPanel;
