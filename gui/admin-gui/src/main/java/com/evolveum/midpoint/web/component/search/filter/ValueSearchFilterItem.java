@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.prism.*;
@@ -111,7 +113,7 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     private FilterName filterTypeName = FilterName.EQUAL;
     private MatchingRule matchingRule = null;
     private String propertyName;
-    private QName propertyPath;
+    private ItemPath propertyPath;
     private Object value;
     private ExpressionWrapper expression;
     private ItemDefinition propertyDef;
@@ -119,7 +121,7 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     public ValueSearchFilterItem(ValueFilter filter, boolean applyNegation) {
         this.filter = filter;
         this.applyNegation = applyNegation;
-        propertyPath = filter.getElementName();
+        propertyPath = filter.getDefinition().getItemName();
         propertyDef = filter.getDefinition();
         propertyName = WebComponentUtil.getItemDefinitionDisplayNameOrName(propertyDef, null);
         value = CollectionUtils.isNotEmpty(filter.getValues()) ? filter.getValues().get(0) : null;
@@ -132,7 +134,7 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
 
     public ValueSearchFilterItem(Property property, boolean applyNegation) {
         propertyName = property.getName();
-        propertyPath = property.getDefinition().getItemName();
+        propertyPath = property.getFullPath();
         propertyDef = property.getDefinition();
         this.applyNegation = applyNegation;
         if (propertyDef instanceof PrismReferenceDefinition) {
@@ -188,11 +190,11 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         this.propertyName = propertyName;
     }
 
-    public QName getPropertyPath() {
+    public ItemPath getPropertyPath() {
         return propertyPath;
     }
 
-    public void setPropertyPath(QName propertyPath) {
+    public void setPropertyPath(ItemPath propertyPath) {
         this.propertyPath = propertyPath;
     }
 
