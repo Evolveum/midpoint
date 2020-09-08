@@ -71,6 +71,13 @@ public class TestCsvReport extends BasicNewReportTest {
     }
 
     @Override
+    public void test004CreateDashboardReportEmpty() throws Exception {
+        expectedColumns = 3;
+        expectedRow = 3;
+        super.test004CreateDashboardReportEmpty();
+    }
+
+    @Override
     public void test101CreateAuditCollectionReportWithDefaultColumn() throws Exception {
         expectedColumns = 8;
         expectedRow = -1;
@@ -96,6 +103,13 @@ public class TestCsvReport extends BasicNewReportTest {
         expectedColumns = 8;
         expectedRow = 2;
         super.test104CreateAuditCollectionReportWithCondition();
+    }
+
+    @Override
+    public void test105CreateAuditCollectionReportEmpty() throws Exception {
+        expectedColumns = 8;
+        expectedRow = 1;
+        super.test105CreateAuditCollectionReportEmpty();
     }
 
     @Override
@@ -138,6 +152,13 @@ public class TestCsvReport extends BasicNewReportTest {
         expectedColumns = 6;
         expectedRow = 2;
         super.test115CreateObjectCollectionReportWithCondition();
+    }
+
+    @Test
+    public void test116CreateObjectCollectionEmptyReport() throws Exception {
+        expectedColumns = 6;
+        expectedRow = 1;
+        super.test116CreateObjectCollectionEmptyReport();
     }
 
     @Test
@@ -242,7 +263,7 @@ public class TestCsvReport extends BasicNewReportTest {
 
     private void setExpectedValueForDashboardReport() {
         expectedColumns = 3;
-        expectedRow = 7;
+        expectedRow = 8;
     }
 
     @Override
