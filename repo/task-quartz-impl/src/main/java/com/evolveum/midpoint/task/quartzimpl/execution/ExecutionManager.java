@@ -1,27 +1,16 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.task.quartzimpl.execution;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.quartz.JobKey;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
-import org.quartz.TriggerKey;
+import org.quartz.*;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -29,18 +18,8 @@ import com.evolveum.midpoint.repo.api.PreconditionViolationException;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.RunningTask;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskExecutionStatus;
-import com.evolveum.midpoint.task.api.TaskManagerException;
-import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
-import com.evolveum.midpoint.task.api.UseThreadInterrupt;
-import com.evolveum.midpoint.task.quartzimpl.InternalTaskInterface;
-import com.evolveum.midpoint.task.quartzimpl.RunningTaskQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
-import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImpl;
-import com.evolveum.midpoint.task.quartzimpl.TaskQuartzImplUtil;
+import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.quartzimpl.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -50,15 +29,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DiagnosticInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.IterativeTaskInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationStatsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SchedulerInformationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionLimitationsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskExecutionStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskGroupExecutionLimitationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * Manages task threads (clusterwide). Concerned mainly with stopping threads and querying their state.
@@ -78,10 +49,10 @@ public class ExecutionManager {
 
     private static final long ALLOWED_CLUSTER_STATE_INFORMATION_AGE = 1500L;
 
-    private TaskManagerQuartzImpl taskManager;
-    private LocalNodeManager localNodeManager;
-    private RemoteNodesManager remoteNodesManager;
-    private TaskSynchronizer taskSynchronizer;
+    private final TaskManagerQuartzImpl taskManager;
+    private final LocalNodeManager localNodeManager;
+    private final RemoteNodesManager remoteNodesManager;
+    private final TaskSynchronizer taskSynchronizer;
 
     private Scheduler quartzScheduler;
 
@@ -201,14 +172,6 @@ public class ExecutionManager {
 
             LOGGER.trace("Getting node and task info from the current node ({})", node.asObjectable().getNodeIdentifier());
 
-//            List<ClusterStatusInformation.TaskInfo> taskInfoList = new ArrayList<>();
-//            Set<Task> tasks = localNodeManager.getLocallyRunningTasks(result);
-//            for (Task task : tasks) {
-//                taskInfoList.add(new ClusterStatusInformation.TaskInfo(task.getOid()));
-//            }
-//            node.asObjectable().setExecutionStatus(localNodeManager.getLocalNodeExecutionStatus());
-//            node.asObjectable().setErrorStatus(taskManager.getLocalNodeErrorStatus());
-
             SchedulerInformationType schedulerInformation = getLocalSchedulerInformation(result);
             if (schedulerInformation.getNode() == null) {   // shouldn't occur
                 schedulerInformation.setNode(node.asObjectable());
@@ -233,7 +196,7 @@ public class ExecutionManager {
 
     /**
      * Signals all running tasks that they have to finish. Waits for their completion.
-     *
+     * <p>
      * Terminology: STOP TASK means "tell the task to stop" (using any appropriate means)
      *
      * @param timeToWait How long to wait (milliseconds); 0 means forever.
@@ -243,11 +206,18 @@ public class ExecutionManager {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "stopAllTasksOnThisNodeAndWait");
         result.addParam("timeToWait", timeToWait);
 
-        LOGGER.info("Stopping all tasks on local node");
-        Collection<Task> tasks = localNodeManager.getLocallyRunningTasks(result);
-        boolean retval = stopTasksRunAndWait(tasks, null, timeToWait, false, result);
-        result.computeStatus();
-        return retval;
+        try {
+            LOGGER.info("Stopping all tasks on local node");
+            Collection<Task> tasks = localNodeManager.getLocallyRunningTasks(result);
+            return stopTasksRunAndWait(tasks, null, timeToWait, false, result);
+        } catch (Throwable e) {
+            LoggingUtils.logUnexpectedException(LOGGER,
+                    "Unexpected failure during ExecutionManager shutdown", e);
+            result.recordFatalError(e);
+            throw e;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     /**
@@ -255,14 +225,12 @@ public class ExecutionManager {
      *
      * @param tasks Tasks to stop.
      * @param csi Cluster status information. Must be relatively current, i.e. got AFTER a moment preventing new tasks
-     *            to be scheduled (e.g. when suspending tasks, CSI has to be taken after tasks have been unscheduled;
-     *            when stopping schedulers, CSI has to be taken after schedulers were stopped). May be null; in that case
-     *            the method will query nodes themselves.
+     * to be scheduled (e.g. when suspending tasks, CSI has to be taken after tasks have been unscheduled;
+     * when stopping schedulers, CSI has to be taken after schedulers were stopped). May be null; in that case
+     * the method will query nodes themselves.
      * @param waitTime How long to wait for task stop. Value less than zero means no wait will be performed.
      * @param clusterwide If false, only tasks running on local node will be stopped.
-     * @return
-     *
-     * Note: does not throw exceptions: it tries hard to stop the tasks, if something breaks, it just return 'false'
+     * @return Note: does not throw exceptions: it tries hard to stop the tasks, if something breaks, it just return 'false'
      */
     public boolean stopTasksRunAndWait(Collection<Task> tasks, ClusterStatusInformation csi, long waitTime, boolean clusterwide, OperationResult parentResult) {
 
@@ -294,12 +262,6 @@ public class ExecutionManager {
         return stopped;
     }
 
-//    boolean stopTaskAndWait(Task task, long waitTime, boolean clusterwide) {
-//        ArrayList<Task> list = new ArrayList<Task>(1);
-//        list.add(task);
-//        return stopTasksRunAndWait(list, waitTime, clusterwide);
-//    }
-
     // returns true if tasks are down
     private boolean waitForTaskRunCompletion(Collection<Task> tasks, long maxWaitTime, boolean clusterwide, OperationResult parentResult) {
 
@@ -322,8 +284,7 @@ public class ExecutionManager {
         long singleWait = WAIT_FOR_COMPLETION_INITIAL;
         long started = System.currentTimeMillis();
 
-        for(;;) {
-
+        while (true) {
             boolean isAnythingExecuting = false;
             ClusterStatusInformation rtinfo = getClusterStatusInformation(clusterwide, false, result);
             for (String oid : oids) {
@@ -369,7 +330,6 @@ public class ExecutionManager {
             }
         }
     }
-
 
     // if clusterwide, csi must not be null
     // on entry we do not know if the task is really running
@@ -440,26 +400,8 @@ public class ExecutionManager {
 
 
     /*
-    * ==================== THREAD QUERY METHODS ====================
-    */
-
-//    boolean isTaskThreadActiveClusterwide(String oid) {
-//        ClusterStatusInformation info = getClusterStatusInformation(true);
-//        return info.findNodeInfoForTask(oid) != null;
-//    }
-
-
-    /*
-     * Various auxiliary methods
+     * ==================== THREAD QUERY METHODS ====================
      */
-
-//    private OperationResult createOperationResult(String methodName) {
-//        return new OperationResult(ExecutionManager.class.getName() + "." + methodName);
-//    }
-//
-//    private ClusterManager getClusterManager() {
-//        return taskManager.getClusterManager();
-//    }
 
     void setQuartzScheduler(Scheduler quartzScheduler) {
         this.quartzScheduler = quartzScheduler;
@@ -486,8 +428,8 @@ public class ExecutionManager {
     }
 
     /**
-     *  Robust version of 'shutdownScheduler', ignores exceptions, shuts down the scheduler only if not shutdown already.
-     *  Used for emergency situations, e.g. node error.
+     * Robust version of 'shutdownScheduler', ignores exceptions, shuts down the scheduler only if not shutdown already.
+     * Used for emergency situations, e.g. node error.
      */
     public void shutdownLocalSchedulerChecked() {
 
@@ -497,7 +439,6 @@ public class ExecutionManager {
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot shutdown scheduler.", e);
         }
     }
-
 
     public boolean stopSchedulerAndTasksLocally(long timeToWait, OperationResult result) {
         return localNodeManager.stopSchedulerAndTasks(timeToWait, result);
@@ -578,7 +519,7 @@ public class ExecutionManager {
                 localNode.setTaskExecutionLimitations(null);
             }
             info.setNode(localNode);
-            for (String oid: getLocallyRunningTasksOids(result)) {
+            for (String oid : getLocallyRunningTasksOids(result)) {
                 TaskType task = new TaskType(taskManager.getPrismContext()).oid(oid);
                 info.getExecutingTask().add(task);
             }
@@ -918,4 +859,3 @@ public class ExecutionManager {
         return output.toString();
     }
 }
-
