@@ -1,22 +1,10 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.evolveum.midpoint.gui.impl.prism.panel.component.ContainersPopupDto;
-import com.evolveum.midpoint.prism.*;
-
-import com.evolveum.midpoint.util.QNameUtil;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceMetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ValueMetadataType;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -24,29 +12,25 @@ import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.LambdaModel;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ValueMetadataWrapperImpl;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
@@ -69,8 +53,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private static final String ID_METADATA = "metadata";
 
-
-    private ItemPanelSettings settings;
+    private final ItemPanelSettings settings;
 
     public PrismValuePanel(String id, IModel<VW> model, ItemPanelSettings settings) {
         super(id, model);
@@ -85,7 +68,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     private void initLayout() {
-        Form<VW> form = new Form<>(ID_VALUE_FORM);
+        MidpointForm<VW> form = new MidpointForm<>(ID_VALUE_FORM);
         add(form);
         form.add(createHeaderPanel());
 
@@ -134,7 +117,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-    private void createValuePanel(Form form) {
+    private void createValuePanel(MidpointForm form) {
 
         GuiComponentFactory factory = null;
         if (getModelObject() != null && getModelObject().getParent() != null) {
@@ -183,7 +166,7 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-    protected void createMetadataPanel(Form form) {
+    protected void createMetadataPanel(MidpointForm form) {
         PrismValueMetadataPanel metadataPanel = new PrismValueMetadataPanel(ID_METADATA, new PropertyModel<>(getModel(), "valueMetadata"));
         metadataPanel.add(new VisibleBehaviour(() -> getModelObject().isShowMetadata()));
         metadataPanel.setOutputMarkupId(true);
@@ -297,8 +280,8 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     }
 
-    private Form<VW> getForm() {
-        return (Form) get(ID_VALUE_FORM);
+    private MidpointForm<VW> getForm() {
+        return (MidpointForm) get(ID_VALUE_FORM);
     }
 
     protected FeedbackAlerts getFeedback() {

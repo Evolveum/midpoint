@@ -7,28 +7,32 @@
 
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.evolveum.midpoint.web.component.util.Selectable;
 
 /**
  * @author lazyman
  */
-public class PasswordAccountDto extends Selectable implements Comparable<PasswordAccountDto> {
+public class PasswordAccountDto extends Selectable<PasswordAccountDto>
+        implements Comparable<PasswordAccountDto> {
 
     public static final String F_DISPLAY_NAME = "displayName";
     public static final String F_RESOURCE_NAME = "resourceName";
     public static final String F_ENABLED = "enabled";
 
-    private String oid;
-    private String displayName;
-    private String resourceName;
+    private final String oid;
+    private final String displayName;
+    private final String resourceName;
+    private final boolean enabled;
+
     private String cssClass = "";
-    private boolean enabled;
     private boolean passwordOutbound;
     private boolean passwordCapabilityEnabled;
     /**
      * true if this DTO represents default midpoint account;
      */
-    private boolean midpoint;
+    private final boolean midpoint;
 
     public PasswordAccountDto(String oid, String displayName, String resourceName, boolean enabled) {
         this(oid, displayName, resourceName, enabled, false);
@@ -87,21 +91,22 @@ public class PasswordAccountDto extends Selectable implements Comparable<Passwor
     }
 
     @Override
-    public int compareTo(PasswordAccountDto o) {
-        if (o == null) {
-            return 1;
-        }
+    public int compareTo(@NotNull PasswordAccountDto that) {
+        // TODO by contract it is never null, remove in 2021 if you still see this
+//        if (that == null) {
+//            return 1;
+//        }
 
-        if (isMidpoint() != o.isMidpoint()) {
+        if (isMidpoint() != that.isMidpoint()) {
             return isMidpoint() ? -1 : 1;
         }
 
-        int value = compareString(getResourceName(), o.getResourceName());
+        int value = compareString(getResourceName(), that.getResourceName());
         if (value != 0) {
             return value;
         }
 
-        return compareString(getDisplayName(), o.getDisplayName());
+        return compareString(getDisplayName(), that.getDisplayName());
     }
 
     private int compareString(String s1, String s2) {

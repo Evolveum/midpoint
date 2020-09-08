@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,7 +13,11 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.CollectionUtils;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.query.*;
@@ -67,14 +71,14 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
                 return FilterName.SUBSTRING_ANCHOR_START;
             } else if (filter instanceof SubstringFilter && ((SubstringFilter) filter).isAnchorEnd() && !((SubstringFilter) filter).isAnchorStart()) {
                 return FilterName.SUBSTRING_ANCHOR_END;
-            } else{
+            } else {
                 return findFilterName(filter.getClass());
             }
         }
 
-        public static FilterName findFilterName(Class<? extends ValueFilter> filterType){
-            for (FilterName filterName : values()){
-                if (filterName.getFilterType().equals(filterType.getInterfaces()[0])){
+        public static FilterName findFilterName(Class<? extends ValueFilter> filterType) {
+            for (FilterName filterName : values()) {
+                if (filterName.getFilterType().equals(filterType.getInterfaces()[0])) {
                     return filterName;
                 }
             }
@@ -109,7 +113,7 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     private FilterName filterTypeName = FilterName.EQUAL;
     private MatchingRule matchingRule = null;
     private String propertyName;
-    private QName propertyPath;
+    private ItemPath propertyPath;
     private Object value;
     private ExpressionWrapper expression;
     private ItemDefinition propertyDef;
@@ -117,20 +121,23 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     public ValueSearchFilterItem(ValueFilter filter, boolean applyNegation) {
         this.filter = filter;
         this.applyNegation = applyNegation;
-        propertyName = filter.getElementName().toString();
-        propertyPath = filter.getElementName();
+        propertyPath = filter.getDefinition().getItemName();
         propertyDef = filter.getDefinition();
+        propertyName = WebComponentUtil.getItemDefinitionDisplayNameOrName(propertyDef, null);
         value = CollectionUtils.isNotEmpty(filter.getValues()) ? filter.getValues().get(0) : null;
+        if (propertyDef instanceof PrismReferenceDefinition && value == null) {
+            value = new ObjectReferenceType();
+        }
         this.expression = filter.getExpression();
         parseFilterName();
     }
 
     public ValueSearchFilterItem(Property property, boolean applyNegation) {
-        propertyName = property.getDefinition().getItemName().toString();
-        propertyPath = property.getDefinition().getItemName();
+        propertyName = property.getName();
+        propertyPath = property.getFullPath();
         propertyDef = property.getDefinition();
         this.applyNegation = applyNegation;
-        if (propertyDef instanceof PrismReferenceDefinition){
+        if (propertyDef instanceof PrismReferenceDefinition) {
             value = new ObjectReferenceType();
         }
         parseFilterName();
@@ -183,11 +190,11 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         this.propertyName = propertyName;
     }
 
-    public QName getPropertyPath() {
+    public ItemPath getPropertyPath() {
         return propertyPath;
     }
 
-    public void setPropertyPath(QName propertyPath) {
+    public void setPropertyPath(ItemPath propertyPath) {
         this.propertyPath = propertyPath;
     }
 
@@ -211,7 +218,7 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         this.expression = expression;
     }
 
-    public ObjectFilter buildFilter(PrismContext prismContext, Class<O> type){
+    public ObjectFilter buildFilter(PrismContext prismContext, Class<O> type) {
         S_ConditionEntry conditionEntry = prismContext.queryFor(type).item(propertyPath);
         ObjectFilter builtFilter = null;
         if (FilterName.EQUAL.equals(filterTypeName)) {
@@ -227,9 +234,9 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         } else if (FilterName.REF.equals(filterTypeName)) {
             if (value != null) {
                 PrismReferenceValue refVal = null;
-                if (value instanceof PrismReferenceValue){
+                if (value instanceof PrismReferenceValue) {
                     refVal = (PrismReferenceValue) value;
-                } else if (value instanceof ObjectReferenceType){
+                } else if (value instanceof ObjectReferenceType) {
                     refVal = ((ObjectReferenceType) value).asReferenceValue();
                 }
                 if (refVal.getParent() instanceof RefFilter) {
@@ -247,36 +254,38 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         } else if (FilterName.SUBSTRING_ANCHOR_END.equals(filterTypeName)) {
             builtFilter = conditionEntry.endsWith(value).buildFilter();
         }
-        if (builtFilter instanceof ValueFilter && matchingRule != null){
+        if (builtFilter instanceof ValueFilter && matchingRule != null) {
             ((ValueFilter) builtFilter).setMatchingRule(matchingRule.getMatchingRuleName());
         }
-        if (builtFilter instanceof ValueFilter && expression != null){
+        if (builtFilter instanceof ValueFilter && expression != null) {
             ((ValueFilter) builtFilter).setExpression(expression);
         }
-        if (isApplyNegation()){
+        if (isApplyNegation()) {
             builtFilter = prismContext.queryFactory().createNot(builtFilter);
         }
         return builtFilter != null ? builtFilter : prismContext.queryFor(type).buildFilter();
     }
 
-    private void parseFilterName (){
-        if (propertyDef instanceof PrismReferenceDefinition){
+    private void parseFilterName() {
+        if (propertyDef instanceof PrismReferenceDefinition) {
             filterTypeName = FilterName.REF;
         } else if (filter != null) {
             filterTypeName = FilterName.findFilterName(filter);
         }
     }
 
-    public List<FilterName> getAvailableFilterNameList(){
-        if (propertyDef == null){
+
+
+    public List<FilterName> getAvailableFilterNameList() {
+        if (propertyDef == null) {
             return Arrays.asList(FilterName.values());
         }
-        if (propertyDef instanceof PrismReferenceDefinition){
+        if (propertyDef instanceof PrismReferenceDefinition) {
             return Collections.singletonList(FilterName.REF);
         } else {
             List<FilterName> filterNames = new ArrayList<>();
             for (FilterName val : FilterName.values()) {
-                if (!FilterName.REF.equals(val)){
+                if (!FilterName.REF.equals(val)) {
                     filterNames.add(val);
                 }
             }
@@ -284,9 +293,9 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
         }
     }
 
-    public List<MatchingRule> getAvailableMatchingRuleList(){
+    public List<MatchingRule> getAvailableMatchingRuleList() {
         List<MatchingRule> matchingRules = Arrays.asList(MatchingRule.values());
-        if (propertyDef == null){
+        if (propertyDef == null) {
             return matchingRules;
         }
         //todo

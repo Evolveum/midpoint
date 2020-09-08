@@ -8,25 +8,21 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
 
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
-
-import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-
-import com.evolveum.midpoint.web.util.ExpressionValidator;
-
-import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang3.ClassUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemMandatoryHandler;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.ExpressionValidator;
 
 public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Serializable {
 
@@ -34,7 +30,7 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
 
     private Component parentComponent;
 
-    private IModel<IW> itemWrapper;
+    private final IModel<IW> itemWrapper;
     private IModel<? extends PrismValueWrapper<T>> valueWrapperModel;
 //    private ItemRealValueModel<T> realValueModel;
 
@@ -73,13 +69,14 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
         return parentComponent;
     }
 
+    @SuppressWarnings("unchecked")
     public Class<T> getTypeClass() {
         Class<T> clazz = unwrapWrapperModel().getTypeClass();
         if (clazz == null) {
             clazz = getPrismContext().getSchemaRegistry().determineClassForType(unwrapWrapperModel().getTypeName());
         }
         if (clazz != null && clazz.isPrimitive()) {
-            clazz = ClassUtils.primitiveToWrapper(clazz);
+            clazz = (Class<T>) ClassUtils.primitiveToWrapper(clazz);
         }
         return clazz;
     }
@@ -149,17 +146,17 @@ public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Ser
     }
 
     /**
- * @return the form
- */
-public Form<?> getForm() {
-    return form;
-}
+     * @return the form
+     */
+    public Form<?> getForm() {
+        return form;
+    }
 
-/**
- * @param form the form to set
- */
-public void setForm(Form<?> form) {
-    this.form = form;
-}
+    /**
+     * @param form the form to set
+     */
+    public void setForm(Form<?> form) {
+        this.form = form;
+    }
 
 }

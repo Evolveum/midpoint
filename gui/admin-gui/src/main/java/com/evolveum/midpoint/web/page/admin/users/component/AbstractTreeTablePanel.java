@@ -1,19 +1,15 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
-import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
-import com.evolveum.midpoint.web.page.admin.orgs.MidpointNestedTree;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -27,13 +23,15 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.prism.query.builder.S_AtomicFilterExit;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.BasicSearchPanel;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
+import com.evolveum.midpoint.web.component.util.TreeSelectableBean;
+import com.evolveum.midpoint.web.page.admin.orgs.MidpointNestedTree;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 
 /**
@@ -68,7 +66,6 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
         super(id, rootOid);
     }
 
-
     protected TreeSelectableBean<OrgType> getRootFromProvider() {
         MidpointNestedTree tree = getTree();
         ITreeProvider<TreeSelectableBean<OrgType>> provider = tree.getProvider();
@@ -80,7 +77,7 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
     protected void refreshTabbedPanel(AjaxRequestTarget target) {
         PageBase page = getPageBase();
 
-        TabbedPanel tabbedPanel = findParent(TabbedPanel.class);
+        TabbedPanel<ITab> tabbedPanel = findParent(TabbedPanel.class);
         IModel<List<ITab>> tabs = tabbedPanel.getTabs();
 
         if (tabs instanceof LoadableModel) {
@@ -111,10 +108,10 @@ public abstract class AbstractTreeTablePanel extends BasePanel<String> {
         SelectableBeanImpl<OrgType> dto = selected.getObject();
         String oid = dto != null && dto.getValue() != null ? dto.getValue().getOid() : getModel().getObject();
 
-        BasicSearchPanel<String> basicSearch = (BasicSearchPanel) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
+        BasicSearchPanel<String> basicSearch = (BasicSearchPanel<String>) get(createComponentPath(ID_SEARCH_FORM, ID_BASIC_SEARCH));
         String object = basicSearch.getModelObject();
 
-        DropDownChoice<String> searchScopeChoice = (DropDownChoice) get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_SCOPE));
+        DropDownChoice<String> searchScopeChoice = (DropDownChoice<String>) get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_SCOPE));
         String scope = searchScopeChoice.getModelObject();
 
         if (StringUtils.isBlank(object)) {

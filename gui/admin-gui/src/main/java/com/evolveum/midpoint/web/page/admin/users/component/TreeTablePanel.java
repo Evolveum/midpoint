@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -76,7 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 public class TreeTablePanel extends BasePanel<String> {
 
     private static final long serialVersionUID = 1L;
-    private PageBase parentPage;
+    private final PageBase parentPage;
 
     @Override
     public PageBase getPageBase() {
@@ -476,15 +476,13 @@ public class TreeTablePanel extends BasePanel<String> {
 
     private void moveRootPerformed(final TreeSelectableBean<OrgType> root, AjaxRequestTarget target) {
 
-        final SelectableBeanImpl<OrgType> orgToMove = root;
-
         OrgTreeAssignablePanel orgAssignablePanel = new OrgTreeAssignablePanel(
                 parentPage.getMainPopupBodyId(), false) {
             private static final long serialVersionUID = 1L;
 
             @Override
             protected void onItemSelect(SelectableBeanImpl<OrgType> selected, AjaxRequestTarget target) {
-                moveConfirmPerformed(orgToMove, selected, target);
+                moveConfirmPerformed(root, selected, target);
             }
 
             @Override
@@ -723,5 +721,4 @@ public class TreeTablePanel extends BasePanel<String> {
         parameters.add(OnePageParameterEncoder.PARAMETER, root.getValue().getOid());
         getPageBase().navigateToNext(PageOrgUnit.class, parameters);
     }
-
 }

@@ -1,15 +1,15 @@
 /*
- * Copyright (c) 2020 Evolveum and contributors
+ * Copyright (C) 2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl;
 
+import org.apache.commons.lang3.StringUtils;
+
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-
-import org.apache.commons.lang.StringUtils;
 
 public enum Channel {
 
@@ -28,9 +28,9 @@ public enum Channel {
     IMPORT(SchemaConstants.CHANNEL_IMPORT_URI, "Channel.import", "fa fa-upload"),
     ASYNC_UPDATE(SchemaConstants.CHANNEL_ASYNC_UPDATE_URI, "Channel.asyncUpdate", "fa fa-gears");
 
-    private String channel;
-    private String resourceKey;
-    private String iconCssClass;
+    private final String channel;
+    private final String resourceKey;
+    private final String iconCssClass;
 
     Channel(String channel, String resourceKey, String iconCssClass) {
         this.channel = channel;

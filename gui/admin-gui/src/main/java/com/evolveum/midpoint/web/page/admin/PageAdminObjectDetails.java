@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,34 +8,10 @@ package com.evolveum.midpoint.web.page.admin;
 
 import java.util.*;
 import java.util.stream.Collectors;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.api.component.*;
-import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
-import com.evolveum.midpoint.web.component.refresh.Refreshable;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
-import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
-import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
@@ -55,35 +31,59 @@ import org.apache.wicket.util.string.StringValue;
 import org.apache.wicket.util.time.Duration;
 import org.jetbrains.annotations.NotNull;
 
+import com.evolveum.midpoint.gui.api.component.AssignmentPopup;
+import com.evolveum.midpoint.gui.api.component.FocusTypeAssignmentPopupTabPanel;
+import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.ItemStatus;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
-import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.AuthorizationException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.ObjectSummaryPanel;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectMainPanel;
+import com.evolveum.midpoint.web.component.prism.show.PagePreviewChanges;
 import com.evolveum.midpoint.web.component.progress.ProgressPanel;
 import com.evolveum.midpoint.web.component.progress.ProgressReportingAwarePage;
+import com.evolveum.midpoint.web.component.refresh.Refreshable;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
+import com.evolveum.midpoint.web.page.admin.server.OperationalButtonsPanel;
+import com.evolveum.midpoint.web.page.admin.server.RefreshableTabPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.FocusSubwrapperDto;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.validation.MidpointFormValidator;
 import com.evolveum.midpoint.web.util.validation.SimpleValidationError;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author semancik
@@ -123,8 +123,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     private boolean saveOnConfigure;        // ugly hack - whether to invoke 'Save' when returning to this page
 
     private boolean editingFocus = false;             //before we got isOidParameterExists status depending only on oid parameter existence
-                                                    //we should set editingFocus=true not only when oid parameter exists but also
-                                                    //when object is given as a constructor parameter
+    //we should set editingFocus=true not only when oid parameter exists but also
+    //when object is given as a constructor parameter
 
     // TODO put this into correct place
     protected boolean previewRequested;
@@ -159,7 +159,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        if (PageAdminObjectDetails.this instanceof PageSystemConfiguration){
+        if (PageAdminObjectDetails.this instanceof PageSystemConfiguration) {
             return super.createPageTitleModel();
         }
 
@@ -248,7 +248,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     public abstract Class<O> getCompileTimeClass();
-
 
     public void initialize(final PrismObject<O> objectToEdit) {
         boolean isNewObject = objectToEdit == null && StringUtils.isEmpty(getObjectOidParameter());
@@ -346,19 +345,19 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
             @Override
             protected O load() {
-                PrismObjectWrapper<O> wrapper =  getObjectWrapper();
+                PrismObjectWrapper<O> wrapper = getObjectWrapper();
                 if (wrapper == null) {
                     return null;
                 }
 
-                PrismObject<O> object =  wrapper.getObject();
+                PrismObject<O> object = wrapper.getObject();
                 loadParentOrgs(object);
                 return object.asObjectable();
             }
         };
     }
 
-    protected void setSummaryPanelVisibility(ObjectSummaryPanel<O> summaryPanel){
+    protected void setSummaryPanelVisibility(ObjectSummaryPanel<O> summaryPanel) {
         summaryPanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
@@ -369,7 +368,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         });
     }
 
-    private void initOperationalButtonsPanel(){
+    private void initOperationalButtonsPanel() {
         OperationalButtonsPanel opButtonPanel = new OperationalButtonsPanel(ID_BUTTONS) {
             private static final long serialVersionUID = 1L;
 
@@ -403,11 +402,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     public boolean isRefreshEnabled() {
         return false;
-   }
+    }
 
-   public void refresh(AjaxRequestTarget target) {
+    public void refresh(AjaxRequestTarget target) {
         refresh(target, true);
-   }
+    }
 
     public void refresh(AjaxRequestTarget target, boolean soft) {
 
@@ -432,11 +431,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         }
     }
 
-   public int getRefreshInterval() {
+    public int getRefreshInterval() {
         return 30;
-   }
+    }
 
-    protected void initOperationalButtons(RepeatingView repeatingView){
+    protected void initOperationalButtons(RepeatingView repeatingView) {
         if (getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())) {
             AjaxButton changeArchetype = new AjaxButton(repeatingView.newChildId(), createStringResource("PageAdminObjectDetails.button.changeArchetype")) {
                 @Override
@@ -450,11 +449,11 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         }
     }
 
-    protected OperationalButtonsPanel getOperationalButtonsPanel(){
+    protected OperationalButtonsPanel getOperationalButtonsPanel() {
         return (OperationalButtonsPanel) get(ID_BUTTONS);
     }
 
-    private void changeArchetypeButtonClicked(AjaxRequestTarget target){
+    private void changeArchetypeButtonClicked(AjaxRequestTarget target) {
 
         AssignmentPopup changeArchetypePopup = new AssignmentPopup(getMainPopupBodyId()) {
 
@@ -480,13 +479,12 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                 try {
                     ObjectDelta<O> delta = getPrismContext().deltaFor(getCompileTimeClass())
                             .item(AssignmentHolderType.F_ASSIGNMENT)
-                                .delete(oldArchetypAssignment.clone())
+                            .delete(oldArchetypAssignment.clone())
                             .asObjectDelta(getObjectWrapper().getOid());
                     delta.addModificationAddContainer(AssignmentHolderType.F_ASSIGNMENT, newAssignmentsList.iterator().next());
 
                     Task task = createSimpleTask(OPERATION_EXECUTE_ARCHETYPE_CHANGES);
                     getModelService().executeChanges(MiscUtil.createCollection(delta), null, task, result);
-
 
                 } catch (Exception e) {
                     LOGGER.error("Cannot find assignment wrapper: {}", e.getMessage(), e);
@@ -536,8 +534,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                             }
 
                             @Override
-                            protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<ArchetypeType>> rowModel){
-                                if (rowModel == null){
+                            protected IModel<Boolean> getObjectSelectCheckBoxEnableModel(IModel<SelectableBean<ArchetypeType>> rowModel) {
+                                if (rowModel == null) {
                                     return Model.of(false);
                                 }
                                 List selectedObjects = getSelectedObjectsList();
@@ -545,14 +543,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                                         || (rowModel.getObject() != null && rowModel.getObject().isSelected()));
                             }
 
-
                             @Override
                             protected ObjectTypes getObjectType() {
                                 return ObjectTypes.ARCHETYPE;
                             }
 
                             @Override
-                            protected ObjectQuery addFilterToContentQuery(ObjectQuery query){
+                            protected ObjectQuery addFilterToContentQuery(ObjectQuery query) {
                                 super.addFilterToContentQuery(query);
                                 if (query == null) {
                                     query = getPrismContext().queryFactory().createQuery();
@@ -571,7 +568,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             }
 
             @Override
-            protected IModel<String> getWarningMessageModel(){
+            protected IModel<String> getWarningMessageModel() {
                 return createStringResource("PageAdminObjectDetails.button.changeArchetype.warningMessage");
             }
         };
@@ -602,28 +599,28 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return oldAssignments.iterator().next();
     }
 
-    private List<String> getArchetypeOidsListToAssign(){
+    private List<String> getArchetypeOidsListToAssign() {
         List<String> archetypeOidsList = getFilteredArchetypeOidsList();
 
         ObjectReferenceType archetypeRef = getObjectArchetypeRef();
-        if (archetypeRef != null && StringUtils.isNotEmpty(archetypeRef.getOid())){
-            if (archetypeOidsList.contains(archetypeRef.getOid())){
+        if (archetypeRef != null && StringUtils.isNotEmpty(archetypeRef.getOid())) {
+            if (archetypeOidsList.contains(archetypeRef.getOid())) {
                 archetypeOidsList.remove(archetypeRef.getOid());
             }
         }
         return archetypeOidsList;
     }
 
-    private List<String> getFilteredArchetypeOidsList(){
+    private List<String> getFilteredArchetypeOidsList() {
         OperationResult result = new OperationResult(OPERATION_LOAD_FILTERED_ARCHETYPES);
         PrismObject obj = getObjectWrapper().getObject();
         List<String> oidsList = new ArrayList<>();
         try {
             List<ArchetypeType> filteredArchetypes = getModelInteractionService().getFilteredArchetypesByHolderType(obj, result);
-            if (filteredArchetypes != null){
+            if (filteredArchetypes != null) {
                 filteredArchetypes.forEach(archetype -> oidsList.add(archetype.getOid()));
             }
-        } catch (SchemaException ex){
+        } catch (SchemaException ex) {
             result.recordPartialError(ex.getLocalizedMessage());
             LOGGER.error("Couldn't load assignment target specification for the object {} , {}", obj.getName(), ex.getLocalizedMessage());
         }
@@ -714,7 +711,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         if (isReadonly) {
             context.setReadOnly(isReadonly);
         }
-
 
         try {
             wrapper = factory.createObjectWrapper(object, itemStatus, context);
@@ -812,8 +808,8 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         // (error message is still displayed)
         delta = null;
 
-        if(task == null) {
-        task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
+        if (task == null) {
+            task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
         }
 
         ModelExecuteOptions options = getOptions(previewOnly);
@@ -854,7 +850,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground() && !previewOnly){
+                        if (isSaveInBackground() && !previewOnly) {
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
@@ -903,7 +899,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground() && !previewOnly){
+                        if (isSaveInBackground() && !previewOnly) {
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
@@ -913,13 +909,13 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
                         if (checkValidationErrors(target, validationErrors)) {
                             return;
                         }
-                        if (isSaveInBackground() && !previewOnly){
+                        if (isSaveInBackground() && !previewOnly) {
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
                         }
-                    } else if (previewOnly && delta.isEmpty() && delegationChangesExist){
-                        if (isSaveInBackground() && !previewOnly){
+                    } else if (previewOnly && delta.isEmpty() && delegationChangesExist) {
+                        if (isSaveInBackground() && !previewOnly) {
                             progressPanel.executeChangesInBackground(deltas, previewOnly, options, task, result, target);
                         } else {
                             progressPanel.executeChanges(deltas, previewOnly, options, task, result, target);
@@ -965,7 +961,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         LOGGER.trace("returning from saveOrPreviewPerformed");
     }
 
-    protected boolean processDeputyAssignments(boolean previewOnly){
+    protected boolean processDeputyAssignments(boolean previewOnly) {
         return false;
     }
 
@@ -1025,7 +1021,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return getMainPanel().getExecuteChangeOptionsDto().isKeepDisplayingResults();
     }
 
-    protected boolean isSaveInBackground(){
+    protected boolean isSaveInBackground() {
         return getMainPanel().getExecuteChangeOptionsDto().isSaveInBackground();
     }
 
@@ -1077,7 +1073,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             return objectForms;
         }
         List<ObjectFormType> validObjectForms = new ArrayList<>();
-        for (ObjectFormType objectForm: objectForms) {
+        for (ObjectFormType objectForm : objectForms) {
             if (isSupportedObjectType(objectForm.getType())) {
                 validObjectForms.add(objectForm);
             }
@@ -1087,7 +1083,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
 
     protected boolean isSupportedObjectType(QName type) {
         ObjectTypes objectType = ObjectTypes.getObjectType(getCompileTimeClass());
-        return QNameUtil.match(objectType.getTypeQName(),type);
+        return QNameUtil.match(objectType.getTypeQName(), type);
     }
 
     public void setSaveOnConfigure(boolean saveOnConfigure) {
@@ -1111,7 +1107,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             finishPreviewProcessing(target, result);
             return;
         }
-        if (result.isSuccess() && getDelta() != null  && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
+        if (result.isSuccess() && getDelta() != null && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
             Session.get().setLocale(WebModelServiceUtils.getLocale());
             LOGGER.debug("Using {} as locale", getLocale());
             WebSession.get().getClientInfo().getProperties().
@@ -1168,6 +1164,6 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         navigateToNext(new PagePreviewChanges(modelContextMap, getModelInteractionService()));
     }
 
-    protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap){
+    protected void processAdditionalFocalObjectsForPreview(Map<PrismObject<O>, ModelContext<? extends ObjectType>> modelContextMap) {
     }
 }

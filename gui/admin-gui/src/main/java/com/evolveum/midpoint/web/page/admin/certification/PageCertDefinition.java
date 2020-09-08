@@ -1,11 +1,23 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.page.admin.certification;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.certification.api.AccessCertificationApiConstants;
 import com.evolveum.midpoint.gui.api.component.tabs.CountablePanelTab;
@@ -33,26 +45,14 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.certification.dto.CertDefinitionDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationReviewerSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AccessCertificationStageDefinitionType;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-
-/**
- * @author mederly
- */
 @PageDescriptor(url = "/admin/certification/definition",
         action = {
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_ALL,
@@ -61,7 +61,7 @@ import java.util.List;
                 @AuthorizationAction(actionUri = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION,
                         label = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION_LABEL,
                         description = PageAdminCertification.AUTH_CERTIFICATION_DEFINITION_DESCRIPTION)
-                })
+        })
 public class PageCertDefinition extends PageAdminCertification {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCertDefinition.class);
@@ -79,8 +79,9 @@ public class PageCertDefinition extends PageAdminCertification {
     private static final String OPERATION_SAVE_DEFINITION = DOT_CLASS + "saveDefinition";
     private static final String ID_TAB_PANEL = "tabPanel";
 
+    private final String definitionOid;
+
     private LoadableModel<CertDefinitionDto> definitionModel;
-    private String definitionOid;
 
     public PageCertDefinition(PageParameters parameters) {
         definitionOid = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
@@ -149,7 +150,7 @@ public class PageCertDefinition extends PageAdminCertification {
         summaryPanel.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(definitionModel.getObject().getOldDefinition().getOid())));
         add(summaryPanel);
 
-        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
         initTabs(mainForm);
@@ -178,6 +179,7 @@ public class PageCertDefinition extends PageAdminCertification {
                 return new DefinitionStagesPanel(panelId,
                         new PropertyModel<>(definitionModel, CertDefinitionDto.F_STAGE_DEFINITION), PageCertDefinition.this);
             }
+
             @Override
             public String getCount() {
                 return String.valueOf(definitionModel.getObject().getNumberOfStages());

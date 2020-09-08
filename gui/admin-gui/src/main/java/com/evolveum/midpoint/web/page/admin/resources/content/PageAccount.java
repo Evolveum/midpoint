@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.AjaxTabbedPanel;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
@@ -153,7 +154,7 @@ public class PageAccount extends PageAdmin {
         });
         add(protectedMessage);
 
-        com.evolveum.midpoint.web.component.form.Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        MidpointForm mainForm = new MidpointForm(ID_MAIN_FORM);
         mainForm.setMultiPart(true);
         add(mainForm);
 
@@ -163,7 +164,7 @@ public class PageAccount extends PageAdmin {
     }
 
 
-    private AjaxTabbedPanel<ITab> createTabsPanel(com.evolveum.midpoint.web.component.form.Form<PrismObjectWrapper<ShadowType>> form) {
+    private AjaxTabbedPanel<ITab> createTabsPanel(MidpointForm<PrismObjectWrapper<ShadowType>> form) {
         List<ITab> tabs = new ArrayList<>();
 
         tabs.add(new PanelTab(createStringResource("PageAccount.tab.details")) {

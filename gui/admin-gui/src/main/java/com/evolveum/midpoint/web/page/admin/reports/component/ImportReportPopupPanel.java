@@ -8,7 +8,6 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -19,6 +18,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.TextAreaPanel;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 
@@ -86,7 +86,7 @@ public class ImportReportPopupPanel extends BasePanel<ReportDto> implements Popu
 
     protected void initLayout() {
 
-        Form<?> mainForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_MAIN_FORM);
+        Form<?> mainForm = new MidpointForm<>(ID_MAIN_FORM);
         add(mainForm);
 
         FeedbackAlerts feedback = new FeedbackAlerts(ID_POPUP_FEEDBACK);

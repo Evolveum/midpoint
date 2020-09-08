@@ -1,23 +1,18 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.impl.page.admin.configuration.component;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -37,6 +32,7 @@ import org.apache.wicket.model.StringResourceModel;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.DisplayNamePanel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.MultivalueContainerDetailsPanel;
@@ -46,7 +42,8 @@ import com.evolveum.midpoint.gui.impl.component.data.column.AbstractItemWrapperC
 import com.evolveum.midpoint.gui.impl.component.data.column.PrismPropertyWrapperColumn;
 import com.evolveum.midpoint.gui.impl.component.input.QNameIChoiceRenderer;
 import com.evolveum.midpoint.gui.impl.factory.panel.ItemRealValueModel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
+import com.evolveum.midpoint.model.api.AssignmentObjectRelation;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -59,7 +56,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuButtonColumn;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
@@ -69,14 +66,7 @@ import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.web.session.PageStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage.TableId;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingAuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SyslogAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author skublik
@@ -96,20 +86,18 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
     private static final String ID_APPENDERS_CHOICE = "appendersChoice";
     private static final String ID_CHOICE_APPENDER_TYPE_FORM = "choiceAppenderTypeForm";
 
-
     public LoggingConfigurationTabPanel(String id, IModel<PrismContainerWrapper<LoggingConfigurationType>> model) {
         super(id, model);
     }
 
     @Override
     protected void onInitialize() {
-            super.onInitialize();
-            initLayout();
+        super.onInitialize();
+        initLayout();
     }
 
     protected void initLayout() {
         try {
-//            getModelObject().setShowOnTopLevel(true);
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder();
             builder.visibilityHandler(itemWrapper -> getLoggingVisibility(itemWrapper.getPath()));
             Panel loggingPanel = getPageBase().initItemPanel(ID_LOGGING, LoggingConfigurationType.COMPLEX_TYPE, getModel(), builder.build());
@@ -122,12 +110,10 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         TableId tableIdLoggers = UserProfileStorage.TableId.LOGGING_TAB_LOGGER_TABLE;
         PageStorage pageStorageLoggers = getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage();
 
-
         PrismContainerWrapperModel<LoggingConfigurationType, ClassLoggerConfigurationType> loggerModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_CLASS_LOGGER);
 
-        MultivalueContainerListPanel<ClassLoggerConfigurationType, S> loggersMultivalueContainerListPanel =
-                new MultivalueContainerListPanel<ClassLoggerConfigurationType, S>(ID_LOGGERS, loggerModel,
-                tableIdLoggers, pageStorageLoggers) {
+        MultivalueContainerListPanel<ClassLoggerConfigurationType, S> loggersMultivalueContainerListPanel = new MultivalueContainerListPanel<ClassLoggerConfigurationType, S>(
+                ID_LOGGERS, loggerModel, tableIdLoggers, pageStorageLoggers) {
 
             private static final long serialVersionUID = 1L;
 
@@ -156,7 +142,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 
             @Override
             protected ObjectQuery createQuery() {
-               return null;
+                return null;
             }
 
             @Override
@@ -184,13 +170,10 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         TableId tableIdAppenders = UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE;
         PageStorage pageStorageAppenders = getPageBase().getSessionStorage().getLoggingConfigurationTabAppenderTableStorage();
 
-
         PrismContainerWrapperModel<LoggingConfigurationType, AppenderConfigurationType> appenderModel = PrismContainerWrapperModel.fromContainerWrapper(getModel(), LoggingConfigurationType.F_APPENDER);
 
-        MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appendersMultivalueContainerListPanel =
-                new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>(ID_APPENDERS, appenderModel,
-                tableIdAppenders, pageStorageAppenders) {
-
+        MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appendersMultivalueContainerListPanel = new MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>(
+                ID_APPENDERS, appenderModel, tableIdAppenders, pageStorageAppenders) {
             private static final long serialVersionUID = 1L;
 
             @Override
@@ -242,7 +225,7 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             protected WebMarkupContainer initButtonToolbar(String contentAreaId) {
                 Fragment searchContainer = new Fragment(contentAreaId, ID_BUTTON_TOOLBAR_FRAGMENT, LoggingConfigurationTabPanel.this);
 
-                Form appenderTypeForm = new Form(ID_CHOICE_APPENDER_TYPE_FORM);
+                MidpointForm appenderTypeForm = new MidpointForm(ID_CHOICE_APPENDER_TYPE_FORM);
                 searchContainer.add(appenderTypeForm);
 
                 AjaxSubmitButton newObjectIcon = new AjaxSubmitButton(ID_NEW_ITEM_BUTTON, new Model<>("<i class=\"fa fa-plus\"></i>")) {
@@ -270,16 +253,18 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
                 });
                 newObjectIcon.add(AttributeModifier.append("class", createStyleClassModelForNewObjectIcon()));
                 appenderTypeForm.add(newObjectIcon);
-                List<QName> appendersChoicesList = new ArrayList<QName>();
+                List<QName> appendersChoicesList = new ArrayList<>();
                 appendersChoicesList.add(FileAppenderConfigurationType.COMPLEX_TYPE);
                 appendersChoicesList.add(SyslogAppenderConfigurationType.COMPLEX_TYPE);
-                DropDownChoicePanel<QName> appenderChoise =  new DropDownChoicePanel(ID_APPENDERS_CHOICE, new Model(FileAppenderConfigurationType.COMPLEX_TYPE), Model.of(appendersChoicesList),
+                DropDownChoicePanel<QName> appenderChoice = new DropDownChoicePanel<>(
+                        ID_APPENDERS_CHOICE,
+                        new Model<>(FileAppenderConfigurationType.COMPLEX_TYPE),
+                        Model.ofList(appendersChoicesList),
                         new QNameIChoiceRenderer("LoggingConfigurationTabPanel." + ID_APPENDERS_CHOICE));
-                appenderChoise.setOutputMarkupId(true);
-                appenderTypeForm.addOrReplace(appenderChoise);
+                appenderChoice.setOutputMarkupId(true);
+                appenderTypeForm.addOrReplace(appenderChoice);
                 return searchContainer;
             }
-
         };
         add(appendersMultivalueContainerListPanel);
 
@@ -314,7 +299,6 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         return ItemVisibility.HIDDEN;
     }
 
-
     private List<IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String>> initLoggersBasicColumns(IModel<PrismContainerWrapper<ClassLoggerConfigurationType>> loggersModel) {
         List<IColumn<PrismContainerValueWrapper<ClassLoggerConfigurationType>, String>> columns = new ArrayList<>();
 
@@ -337,7 +321,6 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             public String getCssClass() {
                 return " col-md-5 ";
             }
-
         });
         columns.add(new PrismPropertyWrapperColumn<>(loggersModel, ClassLoggerConfigurationType.F_LEVEL, ColumnType.VALUE, getPageBase()));
         columns.add(new PrismPropertyWrapperColumn<>(loggersModel, ClassLoggerConfigurationType.F_APPENDER, ColumnType.VALUE, getPageBase()));
@@ -356,24 +339,23 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
 
     private void loggerEditPerformed(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<ClassLoggerConfigurationType>> rowModel,
             List<PrismContainerValueWrapper<ClassLoggerConfigurationType>> listItems) {
-        if(rowModel != null) {
+        if (rowModel != null) {
             PrismContainerValueWrapper<ClassLoggerConfigurationType> logger = rowModel.getObject();
             logger.setSelected(true);
         } else {
-            for(PrismContainerValueWrapper<ClassLoggerConfigurationType> logger : listItems) {
+            for (PrismContainerValueWrapper<ClassLoggerConfigurationType> logger : listItems) {
                 logger.setSelected(true);
             }
         }
         target.add(getLoggersMultivalueContainerListPanel());
     }
 
-
     protected void newAppendersClickPerformed(AjaxRequestTarget target) {
         MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> appenders
                 = (MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>) get(ID_APPENDERS);
-        DropDownChoicePanel<QName> appendersChoice = (DropDownChoicePanel<QName>) getAppendersMultivalueContainerListPanel().getItemTable().getFooterButtonToolbar().get(createComponentPath(ID_CHOICE_APPENDER_TYPE_FORM ,ID_APPENDERS_CHOICE));
+        DropDownChoicePanel<QName> appendersChoice = (DropDownChoicePanel<QName>) getAppendersMultivalueContainerListPanel().getItemTable().getFooterButtonToolbar().get(createComponentPath(ID_CHOICE_APPENDER_TYPE_FORM, ID_APPENDERS_CHOICE));
         PrismContainerValue<AppenderConfigurationType> newObjectPolicy = null;
-        if(QNameUtil.match(appendersChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)){
+        if (QNameUtil.match(appendersChoice.getModel().getObject(), FileAppenderConfigurationType.COMPLEX_TYPE)) {
             newObjectPolicy = new FileAppenderConfigurationType().asPrismContainerValue();
         } else {
             newObjectPolicy = new SyslogAppenderConfigurationType().asPrismContainerValue();
@@ -382,13 +364,13 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         newObjectPolicy.setPrismContext(getPageBase().getPrismContext());
 
         PrismContainerValueWrapper<AppenderConfigurationType> newAppenderContainerWrapper = getAppendersMultivalueContainerListPanel().createNewItemContainerValueWrapper(newObjectPolicy, appenders.getModelObject(), target);
-        getAppendersMultivalueContainerListPanel().itemDetailsPerformed(target, Arrays.asList(newAppenderContainerWrapper));
+        getAppendersMultivalueContainerListPanel().itemDetailsPerformed(target, Collections.singletonList(newAppenderContainerWrapper));
     }
 
     private MultivalueContainerDetailsPanel<AppenderConfigurationType> getAppendersMultivalueContainerDetailsPanel(
             ListItem<PrismContainerValueWrapper<AppenderConfigurationType>> item) {
-        MultivalueContainerDetailsPanel<AppenderConfigurationType> detailsPanel =
-                new  MultivalueContainerDetailsPanel<AppenderConfigurationType>(MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
+        MultivalueContainerDetailsPanel<AppenderConfigurationType> detailsPanel = new MultivalueContainerDetailsPanel<AppenderConfigurationType>(
+                MultivalueContainerListPanelWithDetailsPanel.ID_ITEM_DETAILS, item.getModel()) {
 
             private static final long serialVersionUID = 1L;
 
@@ -403,21 +385,21 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
                         return item.getModelObject().getRealValue();
                     }
                 };
-                return new DisplayNamePanel<AppenderConfigurationType>(displayNamePanelId, displayNameModel);
+                return new DisplayNamePanel<>(displayNamePanelId, displayNameModel);
             }
         };
         return detailsPanel;
     }
 
     private boolean isFileAppender(IModel<AppenderConfigurationType> appender) {
-        if(appender == null || appender.getObject() == null) {
+        if (appender == null || appender.getObject() == null) {
             return false;
         }
         return (appender.getObject() instanceof FileAppenderConfigurationType);
     }
 
     private boolean isSyslogAppender(IModel<AppenderConfigurationType> appender) {
-        if(appender == null || appender.getObject() == null) {
+        if (appender == null || appender.getObject() == null) {
             return false;
         }
         return (appender.getObject() instanceof SyslogAppenderConfigurationType);
@@ -437,22 +419,22 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         return header;
     }
 
-    private MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> getAppendersMultivalueContainerListPanel(){
-        return ((MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>)get(ID_APPENDERS));
+    private MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S> getAppendersMultivalueContainerListPanel() {
+        return ((MultivalueContainerListPanelWithDetailsPanel<AppenderConfigurationType, S>) get(ID_APPENDERS));
     }
 
-    private MultivalueContainerListPanel<ClassLoggerConfigurationType, S> getLoggersMultivalueContainerListPanel(){
-        return ((MultivalueContainerListPanel<ClassLoggerConfigurationType, S>)get(ID_LOGGERS));
+    private MultivalueContainerListPanel<ClassLoggerConfigurationType, S> getLoggersMultivalueContainerListPanel() {
+        return ((MultivalueContainerListPanel<ClassLoggerConfigurationType, S>) get(ID_LOGGERS));
     }
 
     private void initAppenderPaging() {
         getPageBase().getSessionStorage().getLoggingConfigurationTabAppenderTableStorage().setPaging(
-                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
+                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase) getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
     }
 
     private void initLoggerPaging() {
         getPageBase().getSessionStorage().getLoggingConfigurationTabLoggerTableStorage().setPaging(
-                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase)getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
+                getPrismContext().queryFactory().createPaging(0, (int) ((PageBase) getPage()).getItemsPerPage(UserProfileStorage.TableId.LOGGING_TAB_APPENDER_TABLE)));
     }
 
     private List<IColumn<PrismContainerValueWrapper<AppenderConfigurationType>, String>> initAppendersBasicColumns(IModel<PrismContainerWrapper<AppenderConfigurationType>> appenderModel) {
@@ -485,18 +467,18 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
             }
         });
 
-        columns.add(new AbstractColumn<PrismContainerValueWrapper<AppenderConfigurationType>, String>(createStringResource("LoggingConfigurationTabPanel.appender.typeColumn")){
+        columns.add(new AbstractColumn<PrismContainerValueWrapper<AppenderConfigurationType>, String>(createStringResource("LoggingConfigurationTabPanel.appender.typeColumn")) {
             private static final long serialVersionUID = 1L;
 
             @Override
             public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AppenderConfigurationType>>> item, String componentId,
-                                     final IModel<PrismContainerValueWrapper<AppenderConfigurationType>> rowModel) {
+                    final IModel<PrismContainerValueWrapper<AppenderConfigurationType>> rowModel) {
                 ItemRealValueModel<AppenderConfigurationType> appender =
                         new ItemRealValueModel<>(rowModel);
                 String type = "";
-                if(appender != null && appender.getObject() instanceof FileAppenderConfigurationType) {
+                if (appender != null && appender.getObject() instanceof FileAppenderConfigurationType) {
                     type = "File appender";
-                } else if(appender != null && appender.getObject() instanceof SyslogAppenderConfigurationType) {
+                } else if (appender != null && appender.getObject() instanceof SyslogAppenderConfigurationType) {
                     type = "Syslog appender";
                 }
                 item.add(new Label(componentId, Model.of(type)));
@@ -514,4 +496,3 @@ public class LoggingConfigurationTabPanel<S extends Serializable> extends BasePa
         return columns;
     }
 }
-

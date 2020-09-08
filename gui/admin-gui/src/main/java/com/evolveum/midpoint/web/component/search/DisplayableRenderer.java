@@ -1,22 +1,22 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.search;
 
-import com.evolveum.midpoint.util.DisplayableValue;
-import org.apache.commons.lang.StringUtils;
+import java.io.Serializable;
+import java.util.List;
+import java.util.Locale;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.convert.ConversionException;
 import org.apache.wicket.util.convert.converter.AbstractConverter;
 
-import java.io.Serializable;
-import java.util.List;
-import java.util.Locale;
+import com.evolveum.midpoint.util.DisplayableValue;
 
 /**
  * @author Viliam Repan (lazyman)

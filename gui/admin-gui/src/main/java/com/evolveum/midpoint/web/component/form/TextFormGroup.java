@@ -1,17 +1,12 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.form;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ContainerFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -20,6 +15,10 @@ import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.util.InfoTooltipBehavior;
 
 /**
  * @author lazyman
@@ -42,7 +41,7 @@ public class TextFormGroup extends BasePanel<String> {
     }
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelCssClass, String textCssClass,
-                         boolean required) {
+            boolean required) {
         this(id, value, label, null, false, labelCssClass, textCssClass, required, required, false);
     }
 
@@ -52,7 +51,7 @@ public class TextFormGroup extends BasePanel<String> {
     }
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String tooltipKey, boolean isTooltipInModel, String labelCssClass,
-                         String textCssClass, boolean required, boolean markAsRequired, boolean isSimilarAsPropertyPanel) {
+            String textCssClass, boolean required, boolean markAsRequired, boolean isSimilarAsPropertyPanel) {
         super(id, value);
 
         initLayout(label, tooltipKey, isTooltipInModel, labelCssClass, textCssClass, required, markAsRequired, isSimilarAsPropertyPanel);
@@ -67,7 +66,7 @@ public class TextFormGroup extends BasePanel<String> {
         if (StringUtils.isNotEmpty(labelCssClass)) {
             labelContainer.add(AttributeAppender.prepend("class", labelCssClass));
         }
-        if(isSimilarAsPropertyPanel) {
+        if (isSimilarAsPropertyPanel) {
             labelContainer.add(AttributeAppender.prepend("class", " col-xs-2 prism-property-label "));
         } else {
             labelContainer.add(AttributeAppender.prepend("class", " control-label "));
@@ -83,7 +82,7 @@ public class TextFormGroup extends BasePanel<String> {
             }
         }));
         tooltipLabel.add(new InfoTooltipBehavior(isTooltipInModal));
-        tooltipLabel.add(new VisibleEnableBehaviour(){
+        tooltipLabel.add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
@@ -108,7 +107,7 @@ public class TextFormGroup extends BasePanel<String> {
         if (StringUtils.isNotEmpty(textCssClass)) {
             textWrapper.add(AttributeAppender.prepend("class", textCssClass));
         }
-        if(isSimilarAsPropertyPanel) {
+        if (isSimilarAsPropertyPanel) {
             propertyLabel.add(AttributeAppender.prepend("class", " col-md-10 prism-property-value "));
             rowLabel.add(AttributeAppender.prepend("class", " row "));
         }
@@ -126,14 +125,13 @@ public class TextFormGroup extends BasePanel<String> {
     }
 
     protected TextField createText(IModel<String> model, IModel<String> label, boolean required) {
-        TextField text = new TextField(ID_TEXT, model);
+        TextField<?> text = new TextField<>(ID_TEXT, model);
         text.setRequired(required);
-//        text.add(AttributeAppender.replace("placeholder", label));
 
         return text;
     }
 
-    public TextField getField(){
+    public TextField getField() {
         return (TextField) get(createComponentPath(ID_PROPERTY_LABEL, ID_ROW, ID_TEXT_WRAPPER, ID_TEXT));
     }
 }

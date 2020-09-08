@@ -79,8 +79,7 @@ public class TestInitialObjects extends AbstractGuiUnitTest {
 
     private boolean isIgnoredWarning(ValidationResult validationResult) {
         for (ValidationItem item : validationResult.getItems()){
-            if ((!item.getItemPath().equivalent(ItemPath.create(ReportType.F_JASPER))
-                    && !item.getItemPath().equivalent(ItemPath.create(ObjectCollectionType.F_AUDIT_SEARCH)))
+            if (!item.getItemPath().equivalent(ItemPath.create(ReportType.F_JASPER))
                     || !item.getStatus().equals(OperationResultStatus.WARNING)){
                 return false;
             }

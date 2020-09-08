@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,13 +10,12 @@ import java.util.*;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
-import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CollectionRefSpecificationType;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
@@ -50,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatu
 public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEventRecordType> {
     private static final long serialVersionUID = 1L;
 
-    @SuppressWarnings("unused")
     private static final Trace LOGGER = TraceManager.getTrace(BaseSortableDataProvider.class);
 
     public static final String PARAMETER_VALUE_REF_TARGET_NAMES = "valueRefTargetNames";

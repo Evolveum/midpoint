@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,12 +8,9 @@ package com.evolveum.midpoint.web.component.form;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -22,7 +19,6 @@ import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -36,28 +32,19 @@ import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 /**
- *
  * TODO: rename to ValueObjectChoicePanel, PrismValueObjectSelectorPanel or
  * something better
- *
- * @param <T>
- * @param <O>
- *            common superclass for all the options of objects that this panel
- *            should choose
  */
 public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(ValueChoosePanel.class);
-    private static final String DOT_CLASS = ValueChoosePanel.class.getName() + ".";
-    protected static final String OPERATION_LOAD_REFERENCE_OBJECT_DISPLAY_NAME = DOT_CLASS + "loadReferenceObjectDisplayName";
 
     private static final String ID_TEXT_WRAPPER = "textWrapper";
     private static final String ID_TEXT = "text";
@@ -105,6 +92,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         edit.add(new VisibleEnableBehaviour() {
 
             private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isEnabled() {
                 return isEditButtonEnabled();
@@ -164,7 +152,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
 
     /**
      * @return css class for off-setting other values (not first, left to the
-     *         first there is a label)
+     * first there is a label)
      */
     protected String getOffsetClass() {
         return "col-md-offset-4";
@@ -180,10 +168,10 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
             public String getObject() {
                 R prv = model.getObject();
 
-                    return prv == null ? null
-                            : (prv.getTargetName() != null ? (WebComponentUtil.getTranslatedPolyString(prv.getTargetName())
-                                    + (prv.getType() != null ? ": " + prv.getType().getLocalPart() : ""))
-                                    : prv.getOid());
+                return prv == null ? null
+                        : (prv.getTargetName() != null ? (WebComponentUtil.getTranslatedPolyString(prv.getTargetName())
+                        + (prv.getType() != null ? ": " + prv.getType().getLocalPart() : ""))
+                        : prv.getOid());
             }
 
             @Override
@@ -196,7 +184,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         List<QName> supportedTypes = getSupportedTypes();
         ObjectFilter filter = createChooseQuery() == null ? null
                 : createChooseQuery().getFilter();
-        if (CollectionUtils.isEmpty(supportedTypes)){
+        if (CollectionUtils.isEmpty(supportedTypes)) {
             supportedTypes = WebComponentUtil.createObjectTypeList();
         }
         Class<O> defaultType = getDefaultType(supportedTypes);
@@ -221,10 +209,9 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         return WebComponentUtil.createObjectTypeList();
     }
 
-    protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes){
+    protected <O extends ObjectType> Class<O> getDefaultType(List<QName> supportedTypes) {
         return (Class<O>) WebComponentUtil.qnameToClass(getPageBase().getPrismContext(), supportedTypes.iterator().next());
     }
-
 
     /*
      * TODO - this method contains check, if chosen object already is not in
@@ -244,34 +231,19 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
         target.add(getTextWrapperComponent());
     }
 
-    public WebMarkupContainer getTextWrapperComponent(){
-        return (WebMarkupContainer)get(ID_TEXT_WRAPPER);
+    public WebMarkupContainer getTextWrapperComponent() {
+        return (WebMarkupContainer) get(ID_TEXT_WRAPPER);
     }
 
     protected void initButtons() {
     }
 
     protected <O extends ObjectType> boolean isObjectUnique(O object) {
-
         Referencable old = getModelObject();
-//        if (modelObject instanceof PrismReferenceValue) {
-//
-//            PrismReferenceValue old = (PrismReferenceValue) modelObject;
-//            if (old == null || old.isEmpty()) {
-//                return true;
-//            }
-//
-//            return !old.getOid().equals(object.getOid());
-//        } else if (modelObject instanceof ObjectReferenceType) {
-//            ObjectReferenceType old = (ObjectReferenceType) modelObject;
-            if (old == null) {
-                return true;
-            }
-            return !MiscUtil.equals(old.getOid(),object.getOid());
-//        }
-//
-//        return true;
-
+        if (old == null) {
+            return true;
+        }
+        return !MiscUtil.equals(old.getOid(), object.getOid());
     }
 
     /**
@@ -281,9 +253,7 @@ public class ValueChoosePanel<R extends Referencable> extends BasePanel<R> {
     protected <O extends ObjectType> void choosePerformedHook(AjaxRequestTarget target, O object) {
     }
 
-
     public FormComponent<String> getBaseFormComponent() {
         return (FormComponent<String>) getTextWrapperComponent().get(ID_TEXT);
     }
-
 }

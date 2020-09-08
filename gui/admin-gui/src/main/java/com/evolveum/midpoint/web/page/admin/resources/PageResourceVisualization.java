@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceVisualizationDto;
@@ -124,7 +124,7 @@ public class PageResourceVisualization extends PageAdmin {
     }
 
     private void initLayout() {
-        Form form = new Form(ID_FORM);
+        MidpointForm form = new MidpointForm(ID_FORM);
         add(form);
 
         WebMarkupContainer dotContainer = new WebMarkupContainer(ID_DOT_CONTAINER);

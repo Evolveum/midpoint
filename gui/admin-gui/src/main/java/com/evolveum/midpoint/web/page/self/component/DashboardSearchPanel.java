@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -10,9 +10,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.ss.formula.functions.T;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -24,16 +22,19 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.util.ListModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * Created by honchar.
@@ -63,14 +64,14 @@ public class DashboardSearchPanel extends BasePanel<T> {
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
         setOutputMarkupId(true);
     }
 
     protected void initLayout() {
-        final Form<?> searchForm = new com.evolveum.midpoint.web.component.form.Form<>(ID_SEARCH_FORM);
+        final Form<?> searchForm = new MidpointForm<>(ID_SEARCH_FORM);
         add(searchForm);
         searchForm.setOutputMarkupId(true);
 
@@ -111,8 +112,8 @@ public class DashboardSearchPanel extends BasePanel<T> {
         searchForm.add(searchButton);
         searchForm.setDefaultButton(searchButton);
 
-        ListView<SearchType> li = new ListView<SearchType>(ID_SEARCH_TYPES,
-                new ListModel<SearchType>(new ArrayList<>(searchTypes.keySet()))) {
+        ListView<SearchType> li = new ListView<SearchType>(
+                ID_SEARCH_TYPES, new ListModel<>(new ArrayList<>(searchTypes.keySet()))) {
 
             private static final long serialVersionUID = 1L;
 
@@ -133,7 +134,6 @@ public class DashboardSearchPanel extends BasePanel<T> {
                         target.add(DashboardSearchPanel.this.get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_BUTTON)));
                     }
 
-
                 };
                 searchTypeLink.setOutputMarkupId(true);
                 item.add(searchTypeLink);
@@ -142,19 +142,19 @@ public class DashboardSearchPanel extends BasePanel<T> {
         li.setOutputMarkupId(true);
         searchForm.add(li);
 
-
     }
 
- private  String getSearchText() {
-     TextField<String> searchInput =  (TextField<String>) get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_INPUT));
-     if (searchInput == null) {
-         LOGGER.error("cannot find search input component");
-         return null;
-     }
+    private String getSearchText() {
+        //noinspection unchecked
+        TextField<String> searchInput =
+                (TextField<String>) get(createComponentPath(ID_SEARCH_FORM, ID_SEARCH_INPUT));
+        if (searchInput == null) {
+            LOGGER.error("cannot find search input component");
+            return null;
+        }
 
-     return searchInput.getModelObject();
- }
-
+        return searchInput.getModelObject();
+    }
 
     private void performSearch(String text) {
 
@@ -176,7 +176,5 @@ public class DashboardSearchPanel extends BasePanel<T> {
             default:
                 setResponsePage(PageUsers.class, params);
         }
-
     }
-
 }

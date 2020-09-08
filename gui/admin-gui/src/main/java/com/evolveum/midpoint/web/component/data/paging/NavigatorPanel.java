@@ -1,14 +1,12 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.data.paging;
 
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import org.apache.commons.lang.BooleanUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxChannel;
@@ -23,6 +21,8 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.markup.repeater.AbstractRepeater;
 import org.apache.wicket.model.IModel;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 /**
  * @author lazyman
  */
@@ -36,7 +36,7 @@ public class NavigatorPanel extends Panel {
     private static final String ID_FIRST_LINK = "firstLink";
     private static final String ID_LAST = "last";
     private static final String ID_LAST_LINK = "lastLink";
-//    private static final String ID_DOTS = "dots";
+    //    private static final String ID_DOTS = "dots";
     private static final String ID_NAVIGATION = "navigation";
     private static final String ID_PAGE_LINK = "pageLink";
     private static final String ID_NEXT = "next";
@@ -206,7 +206,7 @@ public class NavigatorPanel extends Panel {
         }
 
         //TODO - this is just quick dirty fix for MID-1808. Fix algorithm later
-        if(count == 4 && current == 3){
+        if (count == 4 && current == 3) {
             result++;
         }
 
@@ -291,8 +291,8 @@ public class NavigatorPanel extends Panel {
         return pageable.getCurrentPage() > 0;
     }
 
-    private boolean isLastEnabled(){
-        return pageable.getCurrentPage() +1 < pageable.getPageCount();
+    private boolean isLastEnabled() {
+        return pageable.getCurrentPage() + 1 < pageable.getPageCount();
     }
 
     private void previousPerformed(AjaxRequestTarget target) {
@@ -303,7 +303,7 @@ public class NavigatorPanel extends Panel {
         changeCurrentPage(target, 0);
     }
 
-    private void lastPerformed(AjaxRequestTarget target){
+    private void lastPerformed(AjaxRequestTarget target) {
         changeCurrentPage(target, pageable.getPageCount() - 1);
     }
 
@@ -331,7 +331,7 @@ public class NavigatorPanel extends Panel {
     protected void onPageChanged(AjaxRequestTarget target, long page) {
     }
 
-    protected boolean isCountingDisabled(){
+    protected boolean isCountingDisabled() {
         return false;
     }
 }

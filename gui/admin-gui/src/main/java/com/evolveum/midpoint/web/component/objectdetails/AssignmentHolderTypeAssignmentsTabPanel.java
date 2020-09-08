@@ -15,7 +15,7 @@ import org.apache.wicket.model.Model;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.web.component.assignment.SwitchAssignmentTypePanel;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
@@ -32,7 +32,7 @@ public class AssignmentHolderTypeAssignmentsTabPanel<AHT extends AssignmentHolde
     private static final String ID_ASSIGNMENTS = "assignmentsContainer";
     private static final String ID_ASSIGNMENTS_PANEL = "assignmentsPanel";
 
-    public AssignmentHolderTypeAssignmentsTabPanel(String id, Form<PrismObjectWrapper<AHT>> mainForm, LoadableModel<PrismObjectWrapper<AHT>> focusWrapperModel) {
+    public AssignmentHolderTypeAssignmentsTabPanel(String id, MidpointForm<PrismObjectWrapper<AHT>> mainForm, LoadableModel<PrismObjectWrapper<AHT>> focusWrapperModel) {
         super(id, mainForm, focusWrapperModel);
 
     }

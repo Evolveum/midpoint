@@ -14,6 +14,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.session.SessionStorage;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -117,7 +118,7 @@ public class ResourceContentTabPanel extends Panel {
     private void initLayout(final IModel<PrismObject<ResourceType>> model, final PageBase parentPage) {
         setOutputMarkupId(true);
 
-        final Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        final Form mainForm = new MidpointForm(ID_MAIN_FORM);
         mainForm.setOutputMarkupId(true);
         mainForm.addOrReplace(initTable(model));
         add(mainForm);

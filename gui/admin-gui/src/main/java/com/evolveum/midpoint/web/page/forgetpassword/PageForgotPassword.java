@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.DynamicFormPanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.forgetpassword.ResetPolicyDto.ResetMethod;
@@ -95,7 +96,7 @@ public class PageForgotPassword extends PageRegistrationBase {
     }
 
     private void initLayout() {
-        Form<?> form = new com.evolveum.midpoint.web.component.form.Form(ID_PWDRESETFORM);
+        Form<?> form = new MidpointForm(ID_PWDRESETFORM);
         form.setOutputMarkupId(true);
         form.add(new VisibleEnableBehaviour() {
 

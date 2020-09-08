@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -165,7 +166,7 @@ public class PageCertCampaigns extends PageAdminCertification {
     }
 
     private void initLayout() {
-        Form mainForm = new com.evolveum.midpoint.web.component.form.Form(ID_MAIN_FORM);
+        Form mainForm = new MidpointForm(ID_MAIN_FORM);
         add(mainForm);
 
         CertCampaignListItemDtoProvider provider = createProvider();
@@ -192,7 +193,7 @@ public class PageCertCampaigns extends PageAdminCertification {
         }
 
         private void initLayout() {
-            final Form searchForm = new com.evolveum.midpoint.web.component.form.Form(ID_SEARCH_FORM);
+            final Form searchForm = new MidpointForm(ID_SEARCH_FORM);
             add(searchForm);
             searchForm.setOutputMarkupId(true);
 

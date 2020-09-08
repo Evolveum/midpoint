@@ -1,25 +1,21 @@
 /*
- * Copyright (c) 2010-2013 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.input;
 
 import java.util.List;
-
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
+import javax.xml.namespace.QName;
 
 import org.apache.wicket.markup.html.form.ChoiceRenderer;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 
-import javax.xml.namespace.QName;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 /**
  * @author lazyman
@@ -34,7 +30,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
     }
 
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices, boolean allowNull) {
-        this(id, model, choices, new ChoiceRenderer(), allowNull);
+        this(id, model, choices, new ChoiceRenderer<>(), allowNull);
     }
 
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices, IChoiceRenderer<T> renderer) {
@@ -42,7 +38,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
     }
 
     public DropDownChoicePanel(String id, IModel<T> model, IModel<? extends List<? extends T>> choices, IChoiceRenderer<T> renderer,
-                               boolean allowNull) {
+            boolean allowNull) {
         super(id);
 
         DropDownChoice<T> input = new DropDownChoice<T>(ID_INPUT, model,
@@ -52,7 +48,7 @@ public class DropDownChoicePanel<T> extends InputPanel {
 
             @Override
             protected CharSequence getDefaultChoice(String selectedValue) {
-                if (allowNull){
+                if (allowNull) {
                     return super.getDefaultChoice(selectedValue);
                 } else {
                     return getString("DropDownChoicePanel.notDefined");
@@ -86,7 +82,8 @@ public class DropDownChoicePanel<T> extends InputPanel {
 
     @Override
     public DropDownChoice<T> getBaseFormComponent() {
-        return (DropDownChoice) get("input");
+        //noinspection unchecked
+        return (DropDownChoice<T>) get("input");
     }
 
     public IModel<T> getModel() {

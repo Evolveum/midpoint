@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,7 +9,7 @@ package com.evolveum.midpoint.gui.impl.prism.wrapper;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -23,7 +23,6 @@ import com.evolveum.midpoint.web.component.prism.ValueStatus;
 
 /**
  * @author katka
- *
  */
 public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
 
@@ -67,14 +66,13 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
             }
         }
 
-
         getNewValue().setValue(newRealValue);
         setStatus(ValueStatus.MODIFIED);
     }
 
     private T trimValueIfNeeded(T realValue) {
         if (ValueStatus.ADDED == getStatus() || ValueStatus.MODIFIED == getStatus()) {
-            if (realValue instanceof  String) {
+            if (realValue instanceof String) {
                 return (T) ((String) realValue).trim();
             }
 
@@ -110,7 +108,7 @@ public class PrismPropertyValueWrapper<T> extends PrismValueWrapperImpl<T> {
         QName typeName = getParent().getTypeName();
 
         if (QNameUtil.match(DOMUtil.XSD_QNAME, typeName)) {
-            return ((QName)getRealValue()).getLocalPart();
+            return ((QName) getRealValue()).getLocalPart();
         }
 
         if (QNameUtil.match(DOMUtil.XSD_DATETIME, typeName)) {

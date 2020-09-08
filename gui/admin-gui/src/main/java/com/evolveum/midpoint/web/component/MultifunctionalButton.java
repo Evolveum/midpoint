@@ -1,10 +1,19 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component;
+
+import java.util.List;
+import java.util.Map;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
 import com.evolveum.midpoint.gui.api.component.BasePanel;
@@ -18,15 +27,6 @@ import com.evolveum.midpoint.model.api.authentication.CompiledObjectCollectionVi
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.DisplayType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.IconType;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.markup.repeater.RepeatingView;
-import org.apache.wicket.model.Model;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * Created by honchar
@@ -36,28 +36,26 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
     private static final String ID_MAIN_BUTTON = "mainButton";
     private static final String ID_BUTTON = "additionalButton";
 
-    private static final String DEFAULT_BUTTON_STYLE = "btn btn-default btn-sm buttons-panel-marging";
+    private final List<MultiFunctinalButtonDto> buttonDtos;
 
-    private List<MultiFunctinalButtonDto> buttonDtos;
-
-    public MultifunctionalButton(String id, List<MultiFunctinalButtonDto> buttonDtos){
+    public MultifunctionalButton(String id, List<MultiFunctinalButtonDto> buttonDtos) {
         super(id);
         this.buttonDtos = buttonDtos;
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
 //        List<S> additionalButtons =  getAdditionalButtonsObjects();
 
         DisplayType defaultObjectButtonDisplayType = fixDisplayTypeIfNeeded(getDefaultObjectButtonDisplayType());
         DisplayType mainButtonDisplayType = fixDisplayTypeIfNeeded(getMainButtonDisplayType());
         //we set default button icon class if no other is defined
-        if (StringUtils.isEmpty(mainButtonDisplayType.getIcon().getCssClass())){
+        if (StringUtils.isEmpty(mainButtonDisplayType.getIcon().getCssClass())) {
             mainButtonDisplayType.getIcon().setCssClass(defaultObjectButtonDisplayType.getIcon().getCssClass());
         }
         final CompositedIconBuilder builder = new CompositedIconBuilder();
@@ -65,9 +63,7 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(mainButtonDisplayType));
         final Map<IconCssStyle, IconType> layerIcons = getMainButtonLayerIcons();
         if (layerIcons != null) {
-            layerIcons.entrySet().forEach(layerIconStyle -> {
-                builder.appendLayerIcon(layerIconStyle.getValue(), layerIconStyle.getKey());
-            });
+            layerIcons.forEach((key, value) -> builder.appendLayerIcon(value, key));
         }
 
         AjaxCompositedIconButton mainButton = new AjaxCompositedIconButton(ID_MAIN_BUTTON, builder.build(),
@@ -77,13 +73,13 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                if (!additionalButtonsExist()){
+                if (!additionalButtonsExist()) {
                     buttonClickPerformed(target, null, null);
                 }
             }
         };
         mainButton.add(AttributeAppender.append(" data-toggle", additionalButtonsExist() ? "dropdown" : ""));
-        if(!additionalButtonsExist()){
+        if (!additionalButtonsExist()) {
             mainButton.add(new VisibleBehaviour(this::isMainButtonVisible));
         }
         add(mainButton);
@@ -102,7 +98,7 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
             }
 
             @Override
-            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews){
+            protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews) {
                 MultifunctionalButton.this.buttonClickPerformed(target, relationSepc, collectionViews);
             }
 
@@ -116,7 +112,7 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
         add(buttonsPanel);
     }
 
-    protected boolean isDefaultButtonVisible(){
+    protected boolean isDefaultButtonVisible() {
         return true;
     }
 
@@ -136,11 +132,10 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
     /**
      * this method should return the display properties for the last button on the dropdown  panel with additional buttons.
      * The last button is supposed to produce a default action (an action with no additional objects to process)
-     * @return
      */
     protected abstract DisplayType getDefaultObjectButtonDisplayType();
 
-    protected CompositedIconBuilder getAdditionalIconBuilder(DisplayType additionalButtonDisplayType){
+    protected CompositedIconBuilder getAdditionalIconBuilder(DisplayType additionalButtonDisplayType) {
         CompositedIconBuilder builder = new CompositedIconBuilder();
         builder.setBasicIcon(WebComponentUtil.getIconCssClass(additionalButtonDisplayType), IconCssStyle.IN_ROW_STYLE)
                 .appendColorHtmlValue(WebComponentUtil.getIconColor(additionalButtonDisplayType))
@@ -148,32 +143,32 @@ public abstract class MultifunctionalButton extends BasePanel<List<MultiFunctina
         return builder;
     }
 
-    private DisplayType fixDisplayTypeIfNeeded(DisplayType displayType){
-        if (displayType == null){
+    private DisplayType fixDisplayTypeIfNeeded(DisplayType displayType) {
+        if (displayType == null) {
             displayType = new DisplayType();
         }
-        if (displayType.getIcon() == null){
+        if (displayType.getIcon() == null) {
             displayType.setIcon(new IconType());
         }
-        if (displayType.getIcon().getCssClass() == null){
+        if (displayType.getIcon().getCssClass() == null) {
             displayType.getIcon().setCssClass("");
         }
 
         return displayType;
     }
 
-    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews){
+    protected void buttonClickPerformed(AjaxRequestTarget target, AssignmentObjectRelation relationSepc, CompiledObjectCollectionView collectionViews) {
     }
 
     private boolean additionalButtonsExist() {
         return CollectionUtils.isNotEmpty(buttonDtos);
     }
 
-    protected boolean isMainButtonVisible(){
+    protected boolean isMainButtonVisible() {
         return true;
     }
 
-    protected Map<IconCssStyle, IconType> getMainButtonLayerIcons(){
+    protected Map<IconCssStyle, IconType> getMainButtonLayerIcons() {
         return null;
     }
 

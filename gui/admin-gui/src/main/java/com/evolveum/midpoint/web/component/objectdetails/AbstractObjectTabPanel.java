@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -8,11 +8,7 @@ package com.evolveum.midpoint.web.component.objectdetails;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemHeaderPanel;
-
-import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -23,6 +19,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
+import com.evolveum.midpoint.gui.impl.prism.panel.ItemPanelSettingsBuilder;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -30,7 +27,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.prism.ItemVisibility;
 import com.evolveum.midpoint.web.model.PrismPropertyWrapperModel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -45,10 +42,10 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
 
     private static final Trace LOGGER = TraceManager.getTrace(AbstractObjectTabPanel.class);
 
-    private LoadableModel<PrismObjectWrapper<O>> objectWrapperModel;
-    private Form<PrismObjectWrapper<O>> mainForm;
+    private final LoadableModel<PrismObjectWrapper<O>> objectWrapperModel;
+    private final MidpointForm<PrismObjectWrapper<O>> mainForm;
 
-    public AbstractObjectTabPanel(String id, Form<PrismObjectWrapper<O>> mainForm, LoadableModel<PrismObjectWrapper<O>> objectWrapperModel) {
+    public AbstractObjectTabPanel(String id, MidpointForm<PrismObjectWrapper<O>> mainForm, LoadableModel<PrismObjectWrapper<O>> objectWrapperModel) {
         super(id);
         this.objectWrapperModel = objectWrapperModel;
         this.mainForm = mainForm;
@@ -74,7 +71,7 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
         return (PageBase) getPage();
     }
 
-    public Form<PrismObjectWrapper<O>> getMainForm() {
+    public MidpointForm<PrismObjectWrapper<O>> getMainForm() {
         return mainForm;
     }
 
@@ -98,7 +95,6 @@ public abstract class AbstractObjectTabPanel<O extends ObjectType> extends Panel
     protected void showResult(OperationResult result, boolean showSuccess) {
         getPageBase().showResult(result, showSuccess);
     }
-
 
     protected WebMarkupContainer getFeedbackPanel() {
         return getPageBase().getFeedbackPanel();

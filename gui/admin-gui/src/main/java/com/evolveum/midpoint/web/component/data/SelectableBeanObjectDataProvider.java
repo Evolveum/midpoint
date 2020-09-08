@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.data;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -15,7 +14,7 @@ import static com.evolveum.midpoint.schema.DefinitionProcessingOption.ONLY_IF_EX
 import java.io.Serializable;
 import java.util.*;
 
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.wicket.Component;
 import org.jetbrains.annotations.NotNull;
 
@@ -118,7 +117,7 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
 
     @Override
     public Iterator<SelectableBean<O>> internalIterator(long offset, long pageSize) {
-        LOGGER.trace("begin::iterator() offset {} pageSize {}.", new Object[] { offset, pageSize });
+        LOGGER.trace("begin::iterator() offset {} pageSize {}.", offset, pageSize);
 
         preprocessSelectedData();
 

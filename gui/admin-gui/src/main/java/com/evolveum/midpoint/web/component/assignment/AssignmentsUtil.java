@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -13,17 +13,15 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -35,6 +33,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.session.RoleCatalogStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
  * Created by honchar.
@@ -51,7 +50,7 @@ public class AssignmentsUtil {
     }
 
     public static String createActivationTitleModel(ActivationStatusType administrativeStatus, XMLGregorianCalendar validFrom, XMLGregorianCalendar validTo,
-                                                            PageBase basePanel) {
+            PageBase basePanel) {
         IModel<String> label = new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
@@ -94,18 +93,18 @@ public class AssignmentsUtil {
         ActivationStatusType status = activation.getEffectiveStatus();
         String statusString = transformStatusLambda.apply(status);
 
-                if (activation.getValidFrom() != null && activation.getValidTo() != null) {
-                    basePanel.createStringResource("AssignmentEditorPanel.enabledFromTo", statusString, MiscUtil.asDate(activation.getValidFrom()),
-                            MiscUtil.asDate(activation.getValidTo()));
-                } else if (activation.getValidFrom() != null) {
-                    return basePanel.createStringResource("AssignmentEditorPanel.enabledFrom", statusString,
-                            MiscUtil.asDate(activation.getValidFrom()));
-                } else if (activation.getValidTo() != null) {
-                    return basePanel.createStringResource("AssignmentEditorPanel.enabledTo", statusString,
-                            MiscUtil.asDate(activation.getValidTo()));
-                }
+        if (activation.getValidFrom() != null && activation.getValidTo() != null) {
+            basePanel.createStringResource("AssignmentEditorPanel.enabledFromTo", statusString, MiscUtil.asDate(activation.getValidFrom()),
+                    MiscUtil.asDate(activation.getValidTo()));
+        } else if (activation.getValidFrom() != null) {
+            return basePanel.createStringResource("AssignmentEditorPanel.enabledFrom", statusString,
+                    MiscUtil.asDate(activation.getValidFrom()));
+        } else if (activation.getValidTo() != null) {
+            return basePanel.createStringResource("AssignmentEditorPanel.enabledTo", statusString,
+                    MiscUtil.asDate(activation.getValidTo()));
+        }
 
-                return basePanel.createStringResource(statusString);
+        return basePanel.createStringResource(statusString);
 
     }
 
@@ -123,7 +122,6 @@ public class AssignmentsUtil {
                     return "";
                 }, basePanel);
     }
-
 
     @SuppressWarnings("unchecked")
     private static IModel<String> createTimeIntervalStatusMessage(TimeIntervalStatusType timeIntervalStatus, ActivationType activation, BasePanel basePanel) {
@@ -171,7 +169,7 @@ public class AssignmentsUtil {
         };
     }
 
-    public static IModel<String> createAssignmentIconTitleModel(BasePanel panel, AssignmentEditorDtoType type){
+    public static IModel<String> createAssignmentIconTitleModel(BasePanel panel, AssignmentEditorDtoType type) {
         return new IModel<String>() {
             private static final long serialVersionUID = 1L;
 
@@ -211,7 +209,7 @@ public class AssignmentsUtil {
             return null;
         }
 
-        if (assignment.getPolicyRule() != null){
+        if (assignment.getPolicyRule() != null) {
             StringBuilder sbName = new StringBuilder();
             String policyRuleName = assignment.getPolicyRule().getName();
 
@@ -219,13 +217,13 @@ public class AssignmentsUtil {
                 sbName.append(policyRuleName).append("\n");
             }
 
-            if (StringUtils.isNotEmpty(sbName.toString())){
+            if (StringUtils.isNotEmpty(sbName.toString())) {
                 return sbName.toString();
             } else {
                 PolicyRuleType policyRuleContainer = assignment.getPolicyRule();
                 StringBuilder sb = new StringBuilder();
                 PolicyConstraintsType constraints = policyRuleContainer.getPolicyConstraints();
-                if (constraints != null && constraints.getExclusion() != null && constraints.getExclusion().size() > 0){
+                if (constraints != null && constraints.getExclusion() != null && constraints.getExclusion().size() > 0) {
                     if (pageBase == null) {
                         sb.append(PageBase.createStringResourceStatic(null, "PolicyConstraintsType.exclusion").getString()).append(": ");
                     } else {
@@ -319,26 +317,25 @@ public class AssignmentsUtil {
         return sb.toString();
     }
 
-
     private static boolean isNotEmptyRef(ObjectReferenceType ref) {
         return ref != null && ref.getOid() != null && ref.getType() != null;
     }
 
     public static String getAssignmentSpecificInfoLabel(AssignmentType assignmentType, PageBase pageBase) {
-        if (assignmentType == null){
+        if (assignmentType == null) {
             return "";
         }
         StringBuilder sb = new StringBuilder();
-        if (assignmentType.getConstruction() != null){
+        if (assignmentType.getConstruction() != null) {
             ShadowKindType kindValue = assignmentType.getConstruction().getKind();
-            if (kindValue != null){
+            if (kindValue != null) {
                 sb.append(pageBase.createStringResource("AssignmentPanel.kind").getString());
                 sb.append(" ");
                 sb.append(kindValue.value());
             }
             String intentValue = assignmentType.getConstruction().getIntent();
-            if (StringUtils.isNotEmpty(intentValue)){
-                if (StringUtils.isNotEmpty(sb.toString())){
+            if (StringUtils.isNotEmpty(intentValue)) {
+                if (StringUtils.isNotEmpty(sb.toString())) {
                     sb.append(", ");
                 }
                 sb.append(pageBase.createStringResource("AssignmentPanel.intent").getString());
@@ -360,8 +357,8 @@ public class AssignmentsUtil {
         ObjectReferenceType tenantRef = assignmentType.getTenantRef();
         if (tenantRef != null && tenantRef.getOid() != null) {
             String tenantDisplayName = WebComponentUtil.getEffectiveName(tenantRef, OrgType.F_DISPLAY_NAME, pageBase, "loadTenantName");
-            if (StringUtils.isNotEmpty(tenantDisplayName)){
-                if (StringUtils.isNotEmpty(sb.toString())){
+            if (StringUtils.isNotEmpty(tenantDisplayName)) {
+                if (StringUtils.isNotEmpty(sb.toString())) {
                     sb.append(", ");
                 }
                 sb.append(pageBase.createStringResource("roleMemberPanel.tenant").getString());
@@ -373,8 +370,8 @@ public class AssignmentsUtil {
         ObjectReferenceType orgRef = assignmentType.getOrgRef();
         if (orgRef != null && orgRef.getOid() != null) {
             String orgDisplayName = WebComponentUtil.getEffectiveName(orgRef, OrgType.F_DISPLAY_NAME, pageBase, "loadOrgName");
-            if (StringUtils.isNotEmpty(orgDisplayName)){
-                if (StringUtils.isNotEmpty(sb.toString())){
+            if (StringUtils.isNotEmpty(orgDisplayName)) {
+                if (StringUtils.isNotEmpty(sb.toString())) {
                     sb.append(", ");
                 }
                 sb.append(pageBase.createStringResource("roleMemberPanel.project").getString());
@@ -394,7 +391,7 @@ public class AssignmentsUtil {
         } else if (assignment.getTargetRef() != null) {
             return AssignmentEditorDtoType.getType(assignment.getTargetRef().getType());
         }
-        if (assignment.getPolicyRule() != null){
+        if (assignment.getPolicyRule() != null) {
             return AssignmentEditorDtoType.POLICY_RULE;
         }
 
@@ -411,7 +408,7 @@ public class AssignmentsUtil {
                 !UserType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
     }
 
-   public static boolean isArchetypeAssignment(AssignmentType assignment) {
+    public static boolean isArchetypeAssignment(AssignmentType assignment) {
         return assignment.getTargetRef() != null
                 && ArchetypeType.COMPLEX_TYPE.equals(assignment.getTargetRef().getType());
     }
@@ -435,14 +432,14 @@ public class AssignmentsUtil {
         } else if (assignment.getTargetRef() != null && assignment.getTargetRef().getType() != null) {
             return assignment.getTargetRef().getType();
         }
-        if (assignment.getPolicyRule() != null){
+        if (assignment.getPolicyRule() != null) {
             return PolicyRuleType.COMPLEX_TYPE;
         }
 
         if (assignment.getPersonaConstruction() != null) {
             return PersonaConstructionType.COMPLEX_TYPE;
         }
-        if (assignment.getFocusMappings() != null){
+        if (assignment.getFocusMappings() != null) {
             return MappingType.COMPLEX_TYPE;
         }
 
@@ -451,32 +448,32 @@ public class AssignmentsUtil {
 
     }
 
-    public static IModel<String> getShoppingCartAssignmentsLimitReachedTitleModel(PageBase pageBase){
-                return new LoadableModel<String>(true) {
+    public static IModel<String> getShoppingCartAssignmentsLimitReachedTitleModel(PageBase pageBase) {
+        return new LoadableModel<String>(true) {
             @Override
             protected String load() {
                 int assignmentsLimit = pageBase.getSessionStorage().getRoleCatalog().getAssignmentRequestLimit();
                 return isShoppingCartAssignmentsLimitReached(assignmentsLimit, pageBase) ?
-                                                pageBase.createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", assignmentsLimit)
-                                                        .getString() : "";
-                            }
+                        pageBase.createStringResource("RoleCatalogItemButton.assignmentsLimitReachedTitle", assignmentsLimit)
+                                .getString() : "";
+            }
         };
-            }
+    }
 
-            public static boolean isShoppingCartAssignmentsLimitReached(int assignmentsLimit, PageBase pageBase){
-                RoleCatalogStorage storage = pageBase.getSessionStorage().getRoleCatalog();
-                return assignmentsLimit >= 0 && storage.getAssignmentShoppingCart().size() >= assignmentsLimit;
-            }
+    public static boolean isShoppingCartAssignmentsLimitReached(int assignmentsLimit, PageBase pageBase) {
+        RoleCatalogStorage storage = pageBase.getSessionStorage().getRoleCatalog();
+        return assignmentsLimit >= 0 && storage.getAssignmentShoppingCart().size() >= assignmentsLimit;
+    }
 
-    public static int loadAssignmentsLimit(OperationResult result, PageBase pageBase){
+    public static int loadAssignmentsLimit(OperationResult result, PageBase pageBase) {
         int assignmentsLimit = -1;
         try {
             CompiledGuiProfile adminGuiConfig = pageBase.getModelInteractionService().getCompiledGuiProfile(
                     pageBase.createSimpleTask(result.getOperation()), result);
-            if (adminGuiConfig.getRoleManagement() != null){
+            if (adminGuiConfig.getRoleManagement() != null) {
                 assignmentsLimit = adminGuiConfig.getRoleManagement().getAssignmentApprovalRequestLimit();
             }
-        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex){
+        } catch (ObjectNotFoundException | SchemaException | CommunicationException | ConfigurationException | SecurityViolationException | ExpressionEvaluationException ex) {
             LOGGER.error("Error getting system configuration: {}", ex.getMessage(), ex);
         }
         return assignmentsLimit;

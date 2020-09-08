@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.breadcrumbs.Breadcrumb;
 import com.evolveum.midpoint.web.component.breadcrumbs.BreadcrumbPageInstance;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
@@ -78,7 +79,7 @@ public class PagePreviewChanges<O extends ObjectType> extends PageAdmin {
 
 
     private void initLayout() {
-        Form mainForm = new com.evolveum.midpoint.web.component.form.Form("mainForm");
+        Form mainForm = new MidpointForm("mainForm");
         mainForm.setMultiPart(true);
         add(mainForm);
 

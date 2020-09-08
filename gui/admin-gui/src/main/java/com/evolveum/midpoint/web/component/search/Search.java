@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.search;
 
 import java.io.Serializable;
@@ -13,13 +12,11 @@ import java.util.Collections;
 import java.util.List;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.builder.ToStringBuilder;
+import org.apache.commons.lang3.StringUtils;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.QueryFactory;
@@ -53,40 +50,38 @@ public class Search implements Serializable, DebugDumpable {
 
     private SearchBoxModeType searchType;
 
-    private boolean showAdvanced = false;
-    private boolean isFullTextSearchEnabled = false;
+    private boolean isFullTextSearchEnabled;
     private boolean canConfigure = true; //TODO should be changed to false
 
     private String advancedQuery;
     private String advancedError;
     private String fullText;
 
-    private Class<? extends Containerable> type;
-    private List<SearchItemDefinition> allDefinitions;
+    private final Class<? extends Containerable> type;
+    private final List<SearchItemDefinition> allDefinitions;
 
-    private List<ItemDefinition> availableDefinitions = new ArrayList<>();
-    private List<SearchItem> items = new ArrayList<>();
+    private final List<ItemDefinition> availableDefinitions = new ArrayList<>();
+    private final List<SearchItem> items = new ArrayList<>();
 
     public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions) {
         this(type, allDefinitions, false, null);
     }
 
     public Search(Class<? extends Containerable> type, List<SearchItemDefinition> allDefinitions,
-                  boolean isFullTextSearchEnabled, SearchBoxModeType searchBoxModeType) {
+            boolean isFullTextSearchEnabled, SearchBoxModeType searchBoxModeType) {
         this.type = type;
         this.allDefinitions = allDefinitions;
 
         this.isFullTextSearchEnabled = isFullTextSearchEnabled;
 
-        if (searchBoxModeType != null){
+        if (searchBoxModeType != null) {
             searchType = searchBoxModeType;
-        } else if (isFullTextSearchEnabled ){
+        } else if (isFullTextSearchEnabled) {
             searchType = SearchBoxModeType.FULLTEXT;
         } else {
             searchType = SearchBoxModeType.BASIC;
         }
-        allDefinitions.stream().forEach(searchItemDef -> availableDefinitions.add(searchItemDef.getDef()));
-//        availableDefinitions.addAll(allDefinitions.values());
+        allDefinitions.forEach(searchItemDef -> availableDefinitions.add(searchItemDef.getDef()));
     }
 
     public List<SearchItem> getItems() {
@@ -96,8 +91,8 @@ public class Search implements Serializable, DebugDumpable {
     public List<PropertySearchItem> getPropertyItems() {
         List<PropertySearchItem> propertyItems = new ArrayList<>();
         items.forEach(item -> {
-            if (item instanceof PropertySearchItem){
-                propertyItems.add((PropertySearchItem)item);
+            if (item instanceof PropertySearchItem) {
+                propertyItems.add((PropertySearchItem) item);
             }
         });
         return Collections.unmodifiableList(propertyItems);
@@ -106,8 +101,8 @@ public class Search implements Serializable, DebugDumpable {
     public List<FilterSearchItem> getFilterItems() {
         List<FilterSearchItem> filterItems = new ArrayList<>();
         items.forEach(item -> {
-            if (item instanceof FilterSearchItem){
-                filterItems.add((FilterSearchItem)item);
+            if (item instanceof FilterSearchItem) {
+                filterItems.add((FilterSearchItem) item);
             }
         });
         return Collections.unmodifiableList(filterItems);
@@ -119,20 +114,20 @@ public class Search implements Serializable, DebugDumpable {
 
     public List<ItemDefinition> getAllDefinitions() {
         List<ItemDefinition> allDefs = new ArrayList<>();
-        allDefinitions.stream().forEach(searchItemDef -> allDefs.add(searchItemDef.getDef()));
+        allDefinitions.forEach(searchItemDef -> allDefs.add(searchItemDef.getDef()));
         return allDefs;
     }
 
     public SearchItem addItem(ItemDefinition def) {
         boolean isPresent = false;
-        for (ItemDefinition itemDefinition : availableDefinitions){
+        for (ItemDefinition itemDefinition : availableDefinitions) {
             if (itemDefinition.getItemName() != null &&
-                    itemDefinition.getItemName().equals(def.getItemName())){
+                    itemDefinition.getItemName().equals(def.getItemName())) {
                 isPresent = true;
                 break;
             }
         }
-        if (!isPresent){
+        if (!isPresent) {
             return null;
         }
 
@@ -184,7 +179,7 @@ public class Search implements Serializable, DebugDumpable {
         if (items.remove(item)) {
             if (item instanceof PropertySearchItem) {
                 availableDefinitions.add(((PropertySearchItem) item).getDefinition());
-            } else if (item instanceof FilterSearchItem){
+            } else if (item instanceof FilterSearchItem) {
                 //todo remove filter search item
             }
         }
@@ -196,9 +191,9 @@ public class Search implements Serializable, DebugDumpable {
 
     public ObjectQuery createObjectQuery(PrismContext ctx) {
         LOGGER.debug("Creating query from {}", this);
-        if (SearchBoxModeType.ADVANCED.equals(searchType)){
+        if (SearchBoxModeType.ADVANCED.equals(searchType)) {
             return createObjectQueryAdvanced(ctx);
-        } else if (SearchBoxModeType.FULLTEXT.equals(searchType)){
+        } else if (SearchBoxModeType.FULLTEXT.equals(searchType)) {
             return createObjectQueryFullText(ctx);
         } else {
             return createObjectQuerySimple(ctx);
@@ -213,24 +208,24 @@ public class Search implements Serializable, DebugDumpable {
 
         List<ObjectFilter> conditions = new ArrayList<>();
         for (PropertySearchItem item : getPropertyItems()) {
-                ObjectFilter filter = createFilterForSearchItem((PropertySearchItem) item, ctx);
-                if (filter != null) {
-                    conditions.add(filter);
-                }
+            ObjectFilter filter = createFilterForSearchItem(item, ctx);
+            if (filter != null) {
+                conditions.add(filter);
+            }
         }
 
-       for (FilterSearchItem item : getFilterItems()) {
-           if (item.isApplyFilter()) {
-               SearchFilterType filter = item.getPredefinedFilter().getFilter();
-               try {
-                   ObjectFilter convertedFilter = ctx.getQueryConverter().parseFilter(filter, getType());
-                   if (convertedFilter != null) {
-                       conditions.add(convertedFilter);
-                   }
-               } catch (SchemaException e) {
-                   LOGGER.warn("Unable to parse filter {}, {} ", filter, e);
-               }
-           }
+        for (FilterSearchItem item : getFilterItems()) {
+            if (item.isApplyFilter()) {
+                SearchFilterType filter = item.getPredefinedFilter().getFilter();
+                try {
+                    ObjectFilter convertedFilter = ctx.getQueryConverter().parseFilter(filter, getType());
+                    if (convertedFilter != null) {
+                        conditions.add(convertedFilter);
+                    }
+                } catch (SchemaException e) {
+                    LOGGER.warn("Unable to parse filter {}, {} ", filter, e);
+                }
+            }
         }
 
         QueryFactory queryFactory = ctx.queryFactory();
@@ -267,17 +262,17 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     private ObjectFilter createFilterForSearchValue(PropertySearchItem item, DisplayableValue searchValue,
-                                                    PrismContext ctx) {
+            PrismContext ctx) {
 
         ItemDefinition definition = item.getDefinition();
         ItemPath path = item.getPath();
 
         if (definition instanceof PrismReferenceDefinition) {
-            PrismReferenceValue refValue = ((ObjectReferenceType)searchValue.getValue()).asReferenceValue();
+            PrismReferenceValue refValue = ((ObjectReferenceType) searchValue.getValue()).asReferenceValue();
             if (refValue.isEmpty()) {
                 return null;
             }
-            RefFilter refFilter =  (RefFilter) ctx.queryFor(ObjectType.class)
+            RefFilter refFilter = (RefFilter) ctx.queryFor(ObjectType.class)
                     .item(path, definition).ref(refValue.clone())
                     .buildFilter();
             refFilter.setOidNullAsAny(true);
@@ -315,11 +310,9 @@ public class Search implements Serializable, DebugDumpable {
         } else if (SchemaConstants.T_POLY_STRING_TYPE.equals(propDef.getTypeName())) {
             //we're looking for string value, therefore substring filter should be used
             String text = (String) searchValue.getValue();
-            PolyStringNormalizer normalizer = ctx.getDefaultPolyStringNormalizer();
-            String value = normalizer.normalize(text);
             return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).contains(text).matchingNorm().buildFilter();
-        } else if (propDef.getValueEnumerationRef() != null){
+        } else if (propDef.getValueEnumerationRef() != null) {
             String value = (String) searchValue.getValue();
             return ctx.queryFor(ObjectType.class)
                     .item(path, propDef).contains(value).matchingCaseIgnore().buildFilter();
@@ -373,7 +366,7 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     public ObjectQuery createObjectQueryFullText(PrismContext ctx) {
-        if (StringUtils.isEmpty(fullText)){
+        if (StringUtils.isEmpty(fullText)) {
             return null;
         }
         ObjectQuery query = ctx.queryFor(type)
@@ -403,7 +396,6 @@ public class Search implements Serializable, DebugDumpable {
 
         return false;
     }
-
 
     public SearchBoxModeType getSearchType() {
         return searchType;
@@ -446,13 +438,6 @@ public class Search implements Serializable, DebugDumpable {
     }
 
     @Override
-    public String toString() {
-        return new ToStringBuilder(this)
-                .append("items", items)
-                .toString();
-    }
-
-    @Override
     public String debugDump() {
         return debugDump(0);
     }
@@ -462,13 +447,19 @@ public class Search implements Serializable, DebugDumpable {
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("Search\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "showAdvanced", showAdvanced, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "type", type, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "allDefinitions", allDefinitions, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "availableDefinitions", availableDefinitions, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "items", items, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "advancedQuery", advancedQuery, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "advancedError", advancedError, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "type", type, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "allDefinitions", allDefinitions, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "availableDefinitions", availableDefinitions, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "items", items, indent + 1);
         return sb.toString();
+    }
+
+    @Override
+    public String toString() {
+        return "Search{" +
+                "items=" + items +
+                '}';
     }
 }

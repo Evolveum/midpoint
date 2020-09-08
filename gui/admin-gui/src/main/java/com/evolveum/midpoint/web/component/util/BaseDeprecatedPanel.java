@@ -1,13 +1,12 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.util;
 
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -20,7 +19,7 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 @Deprecated
 public abstract class BaseDeprecatedPanel<T> extends Panel {
 
-    private IModel<T> model;
+    private final IModel<T> model;
     private boolean initialized;
 
     public BaseDeprecatedPanel(String id, IModel<T> model) {
@@ -50,10 +49,9 @@ public abstract class BaseDeprecatedPanel<T> extends Panel {
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return PageBase.createStringResourceStatic(this, resourceKey, objects);
-//        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
-    public StringResourceModel createStringResource(Enum e) {
+    public StringResourceModel createStringResource(Enum<?> e) {
         String resourceKey = e.getDeclaringClass().getSimpleName() + "." + e.name();
         return createStringResource(resourceKey);
     }

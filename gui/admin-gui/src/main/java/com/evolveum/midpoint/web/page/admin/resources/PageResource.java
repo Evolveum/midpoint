@@ -1,10 +1,22 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.page.admin.resources;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import com.evolveum.midpoint.gui.api.component.tabs.PanelTab;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
@@ -32,17 +44,6 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 /**
  * @author katkav
@@ -181,6 +182,7 @@ public class PageResource extends PageAdmin {
         };
         setMaintenance.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return canEdit(resourceModel);
@@ -199,6 +201,7 @@ public class PageResource extends PageAdmin {
         };
         refreshSchema.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return isVisibleRefresSchemaButton(resourceModel);
@@ -221,6 +224,7 @@ public class PageResource extends PageAdmin {
         AjaxButton configurationEdit = new AjaxButton(BUTTON_CONFIGURATION_EDIT_ID,
                 createStringResource("pageResource.button.configurationEdit")) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 startWizard(true, false);
@@ -228,6 +232,7 @@ public class PageResource extends PageAdmin {
         };
         configurationEdit.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return canEdit(resourceModel);
@@ -237,6 +242,7 @@ public class PageResource extends PageAdmin {
         AjaxButton wizardShow = new AjaxButton(BUTTON_WIZARD_SHOW_ID,
                 createStringResource("pageResource.button.wizardShow")) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 startWizard(false, true);
@@ -244,6 +250,7 @@ public class PageResource extends PageAdmin {
         };
         wizardShow.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return canEdit(resourceModel);
@@ -253,6 +260,7 @@ public class PageResource extends PageAdmin {
         AjaxButton wizardEdit = new AjaxButton(BUTTON_WIZARD_EDIT_ID,
                 createStringResource("pageResource.button.wizardEdit")) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 startWizard(false, false);
@@ -260,6 +268,7 @@ public class PageResource extends PageAdmin {
         };
         wizardEdit.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
+
             @Override
             public boolean isVisible() {
                 return canEdit(resourceModel);
@@ -313,14 +322,14 @@ public class PageResource extends PageAdmin {
         navigateToNext(new PageResourceWizard(parameters));
     }
 
-    private ResourceSummaryPanel createResourceSummaryPanel(){
-         ResourceSummaryPanel resourceSummaryPanel = new ResourceSummaryPanel(PANEL_RESOURCE_SUMMARY,
-                 Model.of(resourceModel.getObject().asObjectable()), this);
-         resourceSummaryPanel.setOutputMarkupId(true);
-            return resourceSummaryPanel;
+    private ResourceSummaryPanel createResourceSummaryPanel() {
+        ResourceSummaryPanel resourceSummaryPanel = new ResourceSummaryPanel(PANEL_RESOURCE_SUMMARY,
+                Model.of(resourceModel.getObject().asObjectable()), this);
+        resourceSummaryPanel.setOutputMarkupId(true);
+        return resourceSummaryPanel;
     }
 
-    private AjaxTabbedPanel<ITab> createTabsPanel(){
+    private AjaxTabbedPanel<ITab> createTabsPanel() {
         List<ITab> tabs = new ArrayList<>();
 
         tabs.add(new PanelTab(createStringResource("PageResource.tab.details")) {
@@ -401,7 +410,6 @@ public class PageResource extends PageAdmin {
         return resourceTabs;
     }
 
-
     private void testConnectionPerformed(AjaxRequestTarget target) {
         final PrismObject<ResourceType> dto = resourceModel.getObject();
         if (dto == null || StringUtils.isEmpty(dto.getOid())) {
@@ -420,7 +428,6 @@ public class PageResource extends PageAdmin {
                     protected void okPerformed(AjaxRequestTarget target) {
                         refreshStatus(target);
                     }
-
 
                 };
         testConnectionPanel.setOutputMarkupId(true);

@@ -1,27 +1,25 @@
 /*
- * Copyright (c) 2016 Evolveum and contributors
+ * Copyright (C) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.component.objectdetails;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.midpoint.web.page.admin.cases.CasesListPanel;
-import com.evolveum.midpoint.wf.util.QueryUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.markup.html.basic.Label;
 
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
+import com.evolveum.midpoint.web.page.admin.cases.CasesListPanel;
+import com.evolveum.midpoint.wf.util.QueryUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType;
 
 /**
  * @author mederly
@@ -33,10 +31,9 @@ public class FocusTasksTabPanel<F extends FocusType>
 
     protected static final String ID_TASK_TABLE = "taskTable";
     protected static final String ID_LABEL = "label";
-    protected boolean tasksExist = false;
-    private static final Trace LOGGER = TraceManager.getTrace(FocusTasksTabPanel.class);
+    protected boolean tasksExist;
 
-    public FocusTasksTabPanel(String id, Form mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel, boolean tasksExist) {
+    public FocusTasksTabPanel(String id, MidpointForm mainForm, LoadableModel<PrismObjectWrapper<F>> focusModel, boolean tasksExist) {
         super(id, mainForm, focusModel);
         this.tasksExist = tasksExist;
     }
@@ -58,7 +55,7 @@ public class FocusTasksTabPanel<F extends FocusType>
 
             @Override
             protected ObjectFilter getCasesFilter() {
-                String oid = null;
+                String oid;
                 if (getObjectWrapper() == null || StringUtils.isEmpty(getObjectWrapper().getOid())) {
                     oid = "non-existent"; // TODO !!!!!!!!!!!!!!!!!!!!
                 } else {
@@ -70,7 +67,7 @@ public class FocusTasksTabPanel<F extends FocusType>
             }
 
             @Override
-            protected boolean isDashboard(){
+            protected boolean isDashboard() {
                 return true;
             }
         };

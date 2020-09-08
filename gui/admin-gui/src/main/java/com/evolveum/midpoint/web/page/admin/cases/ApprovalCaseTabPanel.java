@@ -6,13 +6,20 @@
  */
 package com.evolveum.midpoint.web.page.admin.cases;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.model.Model;
+
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.util.ApprovalContextUtil;
 import com.evolveum.midpoint.schema.util.CaseTypeUtil;
-import com.evolveum.midpoint.web.component.form.Form;
+import com.evolveum.midpoint.web.component.form.MidpointForm;
 import com.evolveum.midpoint.web.component.objectdetails.AbstractObjectTabPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.wf.DecisionsPanel;
@@ -20,12 +27,6 @@ import com.evolveum.midpoint.web.component.wf.SwitchableApprovalProcessPreviewsP
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.model.Model;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Created by honchar
@@ -38,19 +39,19 @@ public class ApprovalCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
     private static final String ID_HISTORY_PANEL = "historyPanel";
     private static final String ID_HISTORY_HELP = "approvalHistoryHelp";
 
-    public ApprovalCaseTabPanel(String id, Form<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
+    public ApprovalCaseTabPanel(String id, MidpointForm<PrismObjectWrapper<CaseType>> mainForm, LoadableModel<PrismObjectWrapper<CaseType>> objectWrapperModel, PageBase pageBase) {
         super(id, mainForm, objectWrapperModel);
     }
 
     @Override
-    protected void onInitialize(){
+    protected void onInitialize() {
         super.onInitialize();
         initLayout();
     }
 
-    private void initLayout(){
+    private void initLayout() {
         SwitchableApprovalProcessPreviewsPanel approvalPanel = new SwitchableApprovalProcessPreviewsPanel(ID_APPROVAL_CASE_PANEL, Model.of(getObjectWrapper().getOid()),
-                    Model.of(ApprovalContextUtil.isInStageBeforeLastOne(getObjectWrapper().getObject().asObjectable())), getPageBase());
+                Model.of(ApprovalContextUtil.isInStageBeforeLastOne(getObjectWrapper().getObject().asObjectable())), getPageBase());
         approvalPanel.setOutputMarkupId(true);
         approvalPanel.add(new VisibleBehaviour(() -> CaseTypeUtil.approvalSchemaExists(getObjectWrapper().getObject().asObjectable())));
         add(approvalPanel);
@@ -64,7 +65,7 @@ public class ApprovalCaseTabPanel extends AbstractObjectTabPanel<CaseType> {
 
         DecisionsPanel historyPanel = new DecisionsPanel(ID_HISTORY_PANEL,
                 Model.ofList(decisionList), UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL,
-                        (int) getPageBase().getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL));
+                (int) getPageBase().getItemsPerPage(UserProfileStorage.TableId.PAGE_WORK_ITEM_HISTORY_PANEL));
         historyPanel.setOutputMarkupId(true);
         historyContainer.add(historyPanel);
     }
