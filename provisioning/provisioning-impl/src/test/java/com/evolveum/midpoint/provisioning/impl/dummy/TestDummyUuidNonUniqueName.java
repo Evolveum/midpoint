@@ -141,7 +141,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
         assertAttribute(accountRepo, SchemaConstants.ICFS_NAME, ACCOUNT_FETTUCINI_NAME);
         String icfUid = getIcfUid(accountRepo);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
                 oid, null, task, result);

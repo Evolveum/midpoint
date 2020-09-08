@@ -126,7 +126,7 @@ public class TestDummyExtra extends TestDummy {
 
         account.checkConsistence();
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_ELIZABETH_OID, null, task, result);
@@ -167,7 +167,7 @@ public class TestDummyExtra extends TestDummy {
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
         delta.checkConsistence();
 
         DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
@@ -210,7 +210,7 @@ public class TestDummyExtra extends TestDummy {
         display("modifyObject result", result);
         TestUtil.assertSuccess(result);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
         delta.checkConsistence();
 
         DummyAccount dummyAccountWill = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, ACCOUNT_WILL_USERNAME);
@@ -244,7 +244,7 @@ public class TestDummyExtra extends TestDummy {
         then();
         assertSuccess(result);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
         assertNoRepoObject(ShadowType.class, ACCOUNT_ELIZABETH_OID);
 
         assertNoDummyAccount(ACCOUNT_ELIZABETH_USERNAME, ACCOUNT_ELIZABETH_USERNAME);
