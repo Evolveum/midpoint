@@ -2780,6 +2780,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         OperationResult result = new OperationResult("assertNoRepoShadow");
         try {
             PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, oid, GetOperationOptions.createRawCollection(), result);
+            display("Unexpected repo shadow", shadow);
             fail("Expected that shadow " + oid + " will not be in the repo. But it was: " + shadow);
         } catch (ObjectNotFoundException e) {
             // Expected

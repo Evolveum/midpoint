@@ -1116,7 +1116,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
         }
         assertWillRepoShadowAfterCreate(accountRepo);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);

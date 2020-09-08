@@ -170,38 +170,38 @@
             </dataField>
         </presentation>
     </widget>
-    <!--<widget>-->
-    <!--    <identifier>shadow-of-resource</identifier>-->
-    <!--    <display>-->
-    <!--        <label>Shadow of resource</label>-->
-    <!--        <color>#00a65a</color>-->
-    <!--        <icon>-->
-    <!--            <cssClass>fa fa-database</cssClass>-->
-    <!--        </icon>-->
-    <!--    </display>-->
-    <!--    <data>-->
-    <!--        <sourceType>objectCollection</sourceType>-->
-    <!--        <collection>-->
-    <!--            <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb244" relation="default" type="ObjectCollectionType"/>-->
-    <!--        </collection>-->
-    <!--    </data>-->
-    <!--    <presentation>-->
-    <!--        <dataField>-->
-    <!--            <fieldType>value</fieldType>-->
-    <!--            <expression>-->
-    <!--                <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ProportionalExpressionEvaluatorType">-->
-    <!--                    <style>value-only</style>-->
-    <!--                </proportional>-->
-    <!--            </expression>-->
-    <!--        </dataField>-->
-    <!--        <dataField>-->
-    <!--            <fieldType>unit</fieldType>-->
-    <!--            <expression>-->
-    <!--                <value>shadows</value>-->
-    <!--            </expression>-->
-    <!--        </dataField>-->
-    <!--    </presentation>-->
-    <!--</widget>-->
+    <widget>
+        <identifier>shadow-of-resource</identifier>
+        <display>
+            <label>Shadow of resource</label>
+            <color>#00a65a</color>
+            <icon>
+                <cssClass>fa fa-database</cssClass>
+            </icon>
+        </display>
+        <data>
+            <sourceType>objectCollection</sourceType>
+            <collection>
+                <collectionRef oid="72b1f98e-f587-4b9f-b92b-72e251dbb244" relation="default" type="ObjectCollectionType"/>
+            </collection>
+        </data>
+        <presentation>
+            <dataField>
+                <fieldType>value</fieldType>
+                <expression>
+                    <proportional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3" xsi:type="c:ProportionalExpressionEvaluatorType">
+                        <style>value-only</style>
+                    </proportional>
+                </expression>
+            </dataField>
+            <dataField>
+                <fieldType>unit</fieldType>
+                <expression>
+                    <value>shadows</value>
+                </expression>
+            </dataField>
+        </presentation>
+    </widget>
     <widget>
         <identifier>all audit</identifier>
         <display>

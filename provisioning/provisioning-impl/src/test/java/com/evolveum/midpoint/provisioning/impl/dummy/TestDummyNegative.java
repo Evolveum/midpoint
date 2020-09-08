@@ -140,7 +140,7 @@ public class TestDummyNegative extends AbstractDummyTest {
         }
 
         then();
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
     }
 
     @Test
@@ -167,7 +167,7 @@ public class TestDummyNegative extends AbstractDummyTest {
             displayExpectedException(e);
         }
 
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
     }
 
     @Test
@@ -196,7 +196,7 @@ public class TestDummyNegative extends AbstractDummyTest {
             displayExpectedException(e);
         }
 
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
     }
 
     @Test

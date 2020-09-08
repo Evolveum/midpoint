@@ -219,6 +219,14 @@ public class XmlTypeConverter {
                 toBigDecimal(duration.getField(DatatypeConstants.SECONDS)));
     }
 
+    public static boolean isZero(Duration duration) {
+        if (duration == null) {
+            return true;
+        }
+        return duration.getSign() == 0;
+    }
+
+
     // to be used from within createDuration only (for general use it should be rewritten!!)
     private static BigDecimal toBigDecimal(Number number) {
         if (number instanceof BigDecimal) {
@@ -510,4 +518,5 @@ public class XmlTypeConverter {
             return new PolyString(orig, norm);
         }
     }
+
 }

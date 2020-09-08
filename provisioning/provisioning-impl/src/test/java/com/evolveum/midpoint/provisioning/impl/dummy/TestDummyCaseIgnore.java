@@ -133,7 +133,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
         assertMember(group, getWillRepoIcfName());
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
@@ -172,7 +172,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
         assertSteadyResource();
     }
 
@@ -208,7 +208,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
         IntegrationTestTools.assertGroupMember(group, getWillRepoIcfName(),true);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, task, result);
         display("Shadow after", shadow);
@@ -249,7 +249,7 @@ public class TestDummyCaseIgnore extends TestDummy {
         DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
         assertNotNull("Account will is gone!", dummyAccount);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
         assertSteadyResource();
     }
 
