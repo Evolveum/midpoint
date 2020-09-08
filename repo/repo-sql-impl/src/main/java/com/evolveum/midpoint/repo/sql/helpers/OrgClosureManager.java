@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2014 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -95,7 +95,6 @@ public class OrgClosureManager {
      * @param oid OID of the object.
      * @param type Type of the object.
      * @param operation Operation that is carried out.
-     * @param closureContext
      */
     public <T extends ObjectType> void updateOrgClosure(PrismObject<? extends ObjectType> originalObject,
             Collection<? extends ItemDelta> modifications, Session session, String oid, Class<T> type, Operation operation,
@@ -594,12 +593,7 @@ public class OrgClosureManager {
 
                 long startUpdate = System.currentTimeMillis();
                 String updateInClosureQueryText;
-                if (isH2()) {
-                    updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
-                            "set val = val + (select val from " + deltaTempTableName + " td " +
-                            "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
-                            "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
-                } else if (isPostgreSQL()) {
+                if (isH2() || isPostgreSQL()) {
                     updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
                             "set val = val + (select val from " + deltaTempTableName + " td " +
                             "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
@@ -622,9 +616,7 @@ public class OrgClosureManager {
                         "insert into " + CLOSURE_TABLE_NAME + " (descendant_oid, ancestor_oid, val) " +
                                 "select descendant_oid, ancestor_oid, val from " + deltaTempTableName + " delta ";
                 if (countUpdate > 0) {
-                    if (isH2()) {
-                        addQuery += " where (descendant_oid, ancestor_oid) not in (select (descendant_oid, ancestor_oid) from " + CLOSURE_TABLE_NAME + ")";
-                    } else if (isPostgreSQL()) {
+                    if (isH2() || isPostgreSQL()) {
                         addQuery += " where not exists (select 1 from " + CLOSURE_TABLE_NAME + " cl where cl.descendant_oid=delta.descendant_oid and cl.ancestor_oid=delta.ancestor_oid)";
                     } else {
                         throw new UnsupportedOperationException("Org. closure manager - unsupported database operation");
@@ -807,18 +799,7 @@ public class OrgClosureManager {
             int count;
 
             String deleteFromClosureQueryText, updateInClosureQueryText;
-            if (isH2()) {
-                // delete with join is not supported by H2
-                // and the "postgresql/oracle version" does not work for some reasons
-                deleteFromClosureQueryText = "delete from " + CLOSURE_TABLE_NAME + " cl " +
-                        "where exists (" +
-                        "select 0 from " + deltaTempTableName + " delta " +
-                        "where cl.descendant_oid = delta.descendant_oid and cl.ancestor_oid = delta.ancestor_oid and cl.val = delta.val)";
-                updateInClosureQueryText = "update " + CLOSURE_TABLE_NAME + " " +
-                        "set val = val - (select val from " + deltaTempTableName + " td " +
-                        "where td.descendant_oid=" + CLOSURE_TABLE_NAME + ".descendant_oid and td.ancestor_oid=" + CLOSURE_TABLE_NAME + ".ancestor_oid) " +
-                        "where (descendant_oid, ancestor_oid) in (select (descendant_oid, ancestor_oid) from " + deltaTempTableName + ")";
-            } else if (isPostgreSQL() || isOracle()) {
+            if (isH2() || isPostgreSQL() || isOracle()) {
                 deleteFromClosureQueryText = "delete from " + CLOSURE_TABLE_NAME + " " +
                         "where (descendant_oid, ancestor_oid, val) in " +
                         "(select descendant_oid, ancestor_oid, val from " + deltaTempTableName + ")";
@@ -1199,10 +1180,6 @@ public class OrgClosureManager {
             for (ObjectReferenceType ort : originalObject.asObjectable().getParentOrgRef()) {
                 retval.add(ort.getOid());
             }
-//            // is this really necessary?  (no, and actually, it is harmful)
-//            for (OrgType org : originalObject.asObjectable().getParentOrg()) {
-//                retval.add(org.getOid());
-//            }
         }
         return retval;
     }
@@ -1266,8 +1243,8 @@ public class OrgClosureManager {
     //region Helper classes
 
     public static class Edge {
-        private String descendant;              // i.e. child, or technically, edge tail
-        private String ancestor;                // i.e. parent, or technically, edge head
+        private final String descendant; // i.e. child, or technically, edge tail
+        private final String ancestor; // i.e. parent, or technically, edge head
 
         public Edge(String descendant, String ancestor) {
             this.descendant = descendant;
@@ -1302,9 +1279,7 @@ public class OrgClosureManager {
             Edge edge = (Edge) o;
 
             if (!ancestor.equals(edge.ancestor)) { return false; }
-            if (!descendant.equals(edge.descendant)) { return false; }
-
-            return true;
+            return descendant.equals(edge.descendant);
         }
 
         @Override
@@ -1321,7 +1296,7 @@ public class OrgClosureManager {
 
         NONE("none"), CHECK("check"), REBUILD_IF_NEEDED("rebuildIfNeeded"), ALWAYS_REBUILD("alwaysRebuild");
 
-        private String value;
+        private final String value;
 
         StartupAction(String value) {
             this.value = value;
@@ -1346,21 +1321,4 @@ public class OrgClosureManager {
         String temporaryTableName;
     }
     //endregion
-
-//    private void lockClosureTableIfNeeded(Session session) {
-//        if (!getConfiguration().isUsingH2()) {
-//            return;
-//        }
-//
-//        long start = System.currentTimeMillis();
-//        LOGGER.info("Locking closure table");
-//        if (getConfiguration().isUsingH2()) {
-//            //NativeQuery q = session.createNativeQuery("SELECT * FROM " + OrgClosureManager.CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
-//            NativeQuery q = session.createNativeQuery("SELECT * FROM m_connector_host WHERE 1=0 FOR UPDATE");
-//            q.list();
-//        }
-//        LOGGER.info("...locked in {} ms", System.currentTimeMillis()-start);
-//
-//    }
-
 }
