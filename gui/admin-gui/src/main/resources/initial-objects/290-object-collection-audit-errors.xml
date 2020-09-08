@@ -11,10 +11,6 @@
                   xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   oid="00000000-0000-0000-0001-000000000004">
     <name>Error audit records</name>
-    <auditSearch>
-        <recordQuery>select * from m_audit_event as aer where aer.outcome=3 and aer.eventStage=1</recordQuery>
-        <interval>P1D</interval>
-    </auditSearch>
     <type>AuditEventRecordType</type>
     <filter>
         <q:and>

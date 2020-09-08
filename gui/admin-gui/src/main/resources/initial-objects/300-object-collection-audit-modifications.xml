@@ -38,8 +38,4 @@
     <domain>
         <collectionRef oid="00000000-0000-0000-0001-000000000285" type="c:ObjectCollectionType"/>
     </domain>
-    <auditSearch>
-        <recordQuery>select * from m_audit_event as aer where aer.eventType=2 and aer.eventStage=1</recordQuery>
-        <interval>P1D</interval>
-    </auditSearch>
 </objectCollection>
