@@ -12,6 +12,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDeltaUtil;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -41,6 +46,8 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.EvaluatedTriggerGroupDt
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ApprovalSchemaExecutionInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PolicyRuleEnforcerPreviewOutputType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by kate on 22.8.2018.
@@ -85,8 +92,16 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             if (modelContext != null) {
                 if (modelContext.getFocusContext() != null) {
                     addIgnoreNull(primaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getPrimaryDelta()));
-                    addIgnoreNull(secondaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getSecondaryDelta())); // todo adapt this, see MID-6465
+
+                    ObjectDelta<O> summaryDelta = CloneUtil.clone(modelContext.getFocusContext().getSummaryDelta());
+                    for (ItemDelta primaryModification : modelContext.getFocusContext().getPrimaryDelta().getModifications()) {
+                        summaryDelta.removeModification(primaryModification);
+                    }
+                    if (!summaryDelta.getModifications().isEmpty()) {
+                        addIgnoreNull(secondaryDeltas, summaryDelta);
+                    }
                 }
+
                 for (ModelProjectionContext projCtx : modelContext.getProjectionContexts()) {
                     addIgnoreNull(primaryDeltas, CloneUtil.clone(projCtx.getPrimaryDelta()));
                     addIgnoreNull(secondaryDeltas, CloneUtil.clone(projCtx.getExecutableDelta()));
