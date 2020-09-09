@@ -143,7 +143,7 @@ public abstract class TestCompare extends AbstractPrismTest {
         PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
 
         // WHEN
-        ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified, ParameterizedEquivalenceStrategy.NOT_LITERAL);
+        ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified, ParameterizedEquivalenceStrategy.DATA);
 
         // THEN
         System.out.println("Jack delta:");
@@ -383,42 +383,37 @@ public abstract class TestCompare extends AbstractPrismTest {
 
         assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, null);
         assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.LITERAL);
-        assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.NOT_LITERAL);
+        assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.DATA);
         assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.IGNORE_METADATA);
-        assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS);
         assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.REAL_VALUE);
         assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilter2, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
 
         assertInequality("refWithFilter - refWithFilterDifferentPath", refWithFilter, refWithFilterDifferentPath, null);
         assertInequality("refWithFilter - refWithFilterDifferentPath", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.LITERAL);
         // if the filter was parsed this should be an equality
-        assertInequality("refWithFilter - refWithFilterDifferentPath", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.NOT_LITERAL);
+        assertInequality("refWithFilter - refWithFilterDifferentPath", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.DATA);
         assertInequality("refWithFilter - refWithFilterDifferentPath", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.IGNORE_METADATA);
-        assertInequality("refWithFilter - refWithFilterDifferentPath", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS);
         assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.REAL_VALUE);
         assertEquality("refWithFilter - refWithFilter2", refWithFilter, refWithFilterDifferentPath, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
 
         assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, null);
         assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.LITERAL);
-        assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.NOT_LITERAL);
+        assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.DATA);
         assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.IGNORE_METADATA);
-        assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS);
         assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.REAL_VALUE);
         assertInequality("refWithFilter - refWithFilterNoOid", refWithFilter, refWithFilterNoOid, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
 
         assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, null);
         assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.LITERAL);
-        assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.NOT_LITERAL);
+        assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.DATA);
         assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.IGNORE_METADATA);
-        assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS);
         assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.REAL_VALUE);
         assertEquality("refWithFilterNoOid2 - refWithFilterNoOid", refWithFilterNoOid2, refWithFilterNoOid, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
 
         assertInequality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, null);
         assertInequality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.LITERAL);
-        assertInequality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.NOT_LITERAL);
+        assertInequality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.DATA);
         assertInequality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.IGNORE_METADATA);
-        assertInequality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS);
         assertEquality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.REAL_VALUE);
         assertEquality("refWithFilter - refWithoutFilter", refWithFilter, refWithoutFilter, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
     }

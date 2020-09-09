@@ -142,7 +142,7 @@
                                         log.error("Couldn't create delta, because user before executing of script is same as after executing of script.")
                                         return null;
                                     }
-                                    delta = userBefore.asPrismObject().diff(user.asPrismObject(), EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+                                    delta = userBefore.asPrismObject().diff(user.asPrismObject(), EquivalenceStrategy.DATA);
                                     log.info("delta: " + delta);
                                     log.info("-----------FINISH-----------");
                                     return DeltaConvertor.toObjectDeltaType(delta);

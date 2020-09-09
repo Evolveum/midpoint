@@ -121,7 +121,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
             assertNull("Activation sneaked in (repo)", activationRepo);
         }
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -222,7 +222,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
         assertTest123ModifyObjectReplaceResult(result);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
     }
 
@@ -332,7 +332,7 @@ public class TestDummyPrioritiesAndReadReplace extends AbstractDummyTest {
 
         assertTest150ModifyObjectAddDeleteResult(result);
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         //assertSteadyResource();
     }

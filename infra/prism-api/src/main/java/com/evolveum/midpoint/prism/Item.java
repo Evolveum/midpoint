@@ -320,7 +320,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     /**
      * Adds a given value, overwriting existing one.
      *
-     * It compares values using DEFAULT_FOR_EQUALS (NOT_LITERAL) strategy, so it e.g. takes value metadata differences into account.
+     * It compares values using DEFAULT_FOR_EQUALS (DATA) strategy, so it e.g. takes value metadata differences into account.
      * It is because this method is used during parsing, internal computations (typically using generated beans),
      * and similar situations where we expect little sophistication when it comes to value comparison.
      * The less surprises the better.
@@ -334,7 +334,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
      *
      * @return true if this item changed as a result of the call. This is either during real value addition
      * or during overwriting existing value with a different one. The "difference" is taken using the
-     * DEFAULT_FOR_EQUALS (NOT_LITERAL) equivalence strategy.
+     * DEFAULT_FOR_EQUALS (DATA) equivalence strategy.
      */
     boolean add(@NotNull V newValue, @NotNull EquivalenceStrategy strategy) throws SchemaException;
 
@@ -385,7 +385,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
         List<V> valuesToDelete = getValues().stream().filter(predicate).collect(Collectors.toList());
         for (V valueToDelete : valuesToDelete) {
             // We selected values directly from the item. So we can use rather strict equivalence strategy when deleting.
-            remove(valueToDelete, EquivalenceStrategy.NOT_LITERAL);
+            remove(valueToDelete, EquivalenceStrategy.DATA);
         }
     }
 
@@ -434,7 +434,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     //region Finding and comparing values
 
     /**
-     * Compares this item to the specified object under DEFAULT_FOR_EQUALS (NOT_LITERAL) strategy.
+     * Compares this item to the specified object under DEFAULT_FOR_EQUALS (DATA) strategy.
      */
     @Override
     boolean equals(Object obj);
@@ -450,7 +450,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
     boolean equals(Object obj, @NotNull ParameterizedEquivalenceStrategy equivalenceStrategy);
 
     /**
-     * Computes hash code to be used under DEFAULT_FOR_EQUALS (currently NOT_LITERAL) equivalence strategy.
+     * Computes hash code to be used under DEFAULT_FOR_EQUALS (currently DATA) equivalence strategy.
      */
     @Override
     int hashCode();
@@ -467,7 +467,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     /**
      * @return true if the item contains a given value (by default using DEFAULT_FOR_EQUALS
-     * i.e. NOT_LITERAL strategy)
+     * i.e. DATA strategy)
      *
      * Note that the "sameness" (ID-only value matching) is NOT considered here.
      */
@@ -502,7 +502,7 @@ public interface Item<V extends PrismValue, D extends ItemDefinition> extends It
 
     /**
      * Computes a difference (delta) with the specified item using DEFAULT_FOR_DELTA_APPLICATION
-     * (IGNORE_METADATA_CONSIDER_DIFFERENT_IDS) equivalence strategy.
+     * (REAL_VALUE_CONSIDER_DIFFERENT_IDS) equivalence strategy.
      *
      * Compares item values only -- does NOT dive into lower levels.
      */

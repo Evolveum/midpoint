@@ -163,7 +163,7 @@ public class TestWrapperDelta extends AbstractInitializedGuiIntegrationTest {
         assertEquals("Unexpected number of assignments " + assignmentValues.size(), 1, assignmentValues.size());
 
         PrismContainerValue<AssignmentType> assignmentValue = assignmentValues.iterator().next();
-        assertTrue(newAssignmentClone.equals(assignmentValue, ParameterizedEquivalenceStrategy.IGNORE_METADATA_CONSIDER_DIFFERENT_IDS));
+        assertTrue(newAssignmentClone.equals(assignmentValue, ParameterizedEquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS));
 
     }
 

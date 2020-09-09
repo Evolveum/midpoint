@@ -341,7 +341,7 @@ public class SynchronizationServiceMock
         return new ResourceObjectShadowChangeDescriptionAsserter(lastChange);
     }
 
-    public SynchronizationServiceMock assertNotifySuccessOnly() {
+    public SynchronizationServiceMock assertSingleNotifySuccessOnly() {
         assert wasSuccess : "Expected that notifySuccess will be called but it was not";
         assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
         assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
@@ -349,7 +349,14 @@ public class SynchronizationServiceMock
         return this;
     }
 
-    public SynchronizationServiceMock assertNotifyFailureOnly() {
+    public SynchronizationServiceMock assertNotifySuccessOnly() {
+        assert wasSuccess : "Expected that notifySuccess will be called but it was not";
+        assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";
+        assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
+        return this;
+    }
+
+    public SynchronizationServiceMock assertSingleNotifyFailureOnly() {
         assert wasFailure : "Expected that notifyFailure will be called but it was not";
         assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
         assert !wasInProgress : "Expected that notifyInProgress will NOT be called but it was";
@@ -372,7 +379,7 @@ public class SynchronizationServiceMock
         return this;
     }
 
-    public SynchronizationServiceMock assertNotifyInProgressOnly() {
+    public SynchronizationServiceMock assertSingleNotifyInProgressOnly() {
         assert wasInProgress : "Expected that notifyInProgress will be called but it was not";
         assert !wasSuccess : "Expected that notifySuccess will NOT be called but it was";
         assert !wasFailure : "Expected that notifyFailure will NOT be called but it was";

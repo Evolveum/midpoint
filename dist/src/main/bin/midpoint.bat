@@ -50,7 +50,6 @@ echo Using BOOT_OUT:        "%BOOT_OUT%"
 
 rem ----- Execute The Requested Start Command ---------------------------------------
 
-shift
 set RUN_JAVA=javaw
 if not "%JAVA_HOME%" == "" set RUN_JAVA=%JAVA_HOME%\bin\javaw
 
@@ -59,14 +58,13 @@ echo Using JAVA_OPTS:       "%JAVA_OPTS%"
 echo Using parameters:      "%*"
 echo.
 echo Starting midPoint.
-start /b "midPoint" "%RUN_JAVA%" -jar %JAVA_OPTS% -Dmidpoint.home="%MIDPOINT_HOME%" "%LIB_DIR%\midpoint.war" %* > "%BOOT_OUT%" 2>&1
+start /b "midPoint" "%RUN_JAVA%" -jar %JAVA_OPTS% -Dmidpoint.home="%MIDPOINT_HOME%" "%LIB_DIR%\midpoint.war" %2 %3 %4 %5 %6 %7 %8 %9 > "%BOOT_OUT%" 2>&1
 goto end
 
 :doStop
 
 set MIDPOINT_PORT=8080
 
-shift
 echo Trying to find and stop a process listening on port %MIDPOINT_PORT%...
 set MIDPOINT_FOUND=
 FOR /F "usebackq tokens=5" %%i IN (`netstat -aon ^| findstr "0.0.0.0:%MIDPOINT_PORT% "`) DO (

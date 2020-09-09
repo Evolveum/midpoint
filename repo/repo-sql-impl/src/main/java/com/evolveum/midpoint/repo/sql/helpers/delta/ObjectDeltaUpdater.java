@@ -104,7 +104,7 @@ public class ObjectDeltaUpdater {
         // Category-2 changes are to be treated very carefully: we should avoid phantom add+delete in tables.
         // Category-3 changes are (hopefully) not narrowed out. [See assumeMissingItems / MID-5280.]
         Collection<? extends ItemDelta> narrowedModifications = prismObject.narrowModifications(modifications,
-                EquivalenceStrategy.NOT_LITERAL, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
+                EquivalenceStrategy.DATA, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS, true);
         LOGGER.trace("Narrowed modifications:\n{}", DebugUtil.debugDumpLazily(narrowedModifications));
 
         // Here we can still have some ADD or REPLACE operations that are significant from the point of full object application

@@ -164,16 +164,6 @@ public interface PrismValue extends Visitable, PathVisitable, Serializable, Debu
 
     boolean equals(PrismValue otherValue, @NotNull ParameterizedEquivalenceStrategy strategy);
 
-    // TODO: No caller found
-    @Deprecated
-    boolean equals(PrismValue thisValue, PrismValue otherValue);
-
-    /**
-     * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
-     * E.g. the container with the same ID.
-     */
-    Collection<? extends ItemDelta> diff(PrismValue otherValue);
-
     /**
      * Assumes matching representations. I.e. it assumes that both this and otherValue represent the same instance of item.
      * E.g. the container with the same ID.

@@ -154,10 +154,10 @@ public abstract class AbstractPrismValueParserTest<T extends PrismValue> extends
 
             assertPrismValue(reparsed);
 
-            Collection<? extends ItemDelta> deltas = value.diff(reparsed);
+            Collection<? extends ItemDelta> deltas = value.diff(reparsed, EquivalenceStrategy.DATA);
             assertTrue("Deltas not empty", deltas.isEmpty());
 
-            assertTrue("Values not equal", value.equals(reparsed, EquivalenceStrategy.NOT_LITERAL));
+            assertTrue("Values not equal", value.equals(reparsed, EquivalenceStrategy.DATA));
         }
 
         } catch (SchemaException e) {

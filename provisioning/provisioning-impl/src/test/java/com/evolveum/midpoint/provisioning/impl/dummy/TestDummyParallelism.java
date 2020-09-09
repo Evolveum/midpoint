@@ -153,7 +153,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
                 .delta()
                 .assertModify();
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         assertSteadyResource();
     }
@@ -171,7 +171,7 @@ public class TestDummyParallelism extends AbstractBasicDummyTest {
         // THEN
         then();
         assertSuccess(result);
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         assertNoDummyAccount(transformNameFromResource(ACCOUNT_WILL_USERNAME), willIcfUid);
 

@@ -134,7 +134,7 @@ public class TestDummySecurity extends AbstractDummyTest {
         assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "RUM");
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
     }
 
     @Test
@@ -164,7 +164,7 @@ public class TestDummySecurity extends AbstractDummyTest {
         assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "pirate");
 
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
     }
 
     @Test

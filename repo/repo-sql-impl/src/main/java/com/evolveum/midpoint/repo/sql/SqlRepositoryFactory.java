@@ -221,6 +221,9 @@ public class SqlRepositoryFactory implements RepositoryServiceFactory {
             args.add("-tcpPort");
             args.add(Integer.toString(config.getPort()));
         }
+        // Allows auto-creation of remote database, which is a security hole and was forbidden
+        // from 1.4.138, see https://h2database.com/html/tutorial.html#creating_new_databases
+        args.add("-ifNotExists");
 
         return args.toArray(new String[0]);
     }
