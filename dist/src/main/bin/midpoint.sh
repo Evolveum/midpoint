@@ -112,9 +112,17 @@ if [ "$1" = "start" ]; then
   echo "MIDPOINT_HOME=$MIDPOINT_HOME"
 
   # shellcheck disable=SC2086
-  eval $_NOHUP "\"$_RUNJAVA\"" -jar $LOGGING_MANAGER $JAVA_OPTS \
-    "${BASE_DIR}/lib/midpoint.war" "$@" \
+  eval $_NOHUP "\"$_RUNJAVA\"" $LOGGING_MANAGER $JAVA_OPTS \
+    -jar "${BASE_DIR}/lib/midpoint.war" "$@" \
     "&" >>"$BOOT_OUT" 2>&1
+  # using loader.path produces strange failures on schema validation during start on closed networks
+  #  eval $_NOHUP "\"$_RUNJAVA\"" \
+  #    $LOGGING_MANAGER $JAVA_OPTS \
+  #    -cp "${BASE_DIR}/lib/midpoint.war" \
+  #    -Dloader.path=WEB-INF/classes,WEB-INF/lib,WEB-INF/lib-provided,$MIDPOINT_HOME/lib/ \
+  #    org.springframework.boot.loader.PropertiesLauncher \
+  #    "$@" \
+  #    "&" >>"$BOOT_OUT" 2>&1
 
   if [[ -n "$PID_FILE" ]]; then
     echo $! >"$PID_FILE"
