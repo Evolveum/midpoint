@@ -232,6 +232,24 @@
             <artifactId>mariadb-java-client</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <!--
+        Following drivers are excluded in repackaging, we don't want to distribute it (or can't).
+        -->
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc8</artifactId>
+            <scope>runtime</scope>
+        </dependency>
 
         <!-- MIDPOINT -->
         <dependency>
@@ -742,14 +760,6 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
         </dependency>
-
-        <!-- Optional for development only (not packaged) -->
-        <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <scope>runtime</scope>
-            <optional>true</optional>
-        </dependency>
     </dependencies>
 
     <build>
@@ -836,16 +846,35 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <fork>true</fork>
                     <!-- <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments> -->
                     <!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
                     <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments>
+                    <!--
+                    TODO: exclude does NOT work for WAR repackaging: https://github.com/spring-projects/spring-boot/issues/15808
+                    Also, exclude does NOT exclude transitive dependencies (as of Boot 2.3.3). How crazy is that?!
+                    See truezip-maven-plugin plugin lower.
+                    <excludes>
+                        <exclude>
+                            <groupId>mysql</groupId>
+                            <artifactId>mysql-connector-java</artifactId>
+                        </exclude>
+                        <exclude>
+                            <groupId>com.microsoft.sqlserver</groupId>
+                            <artifactId>mssql-jdbc</artifactId>
+                        </exclude>
+                        <exclude>
+                            <groupId>com.oracle.database.jdbc</groupId>
+                            <artifactId>ojdbc8</artifactId>
+                        </exclude>
+                    </excludes>
+                    -->
                 </configuration>
                 <executions>
                     <execution>
                         <goals>
                             <goal>repackage</goal>
                         </goals>
+                        <phase>package</phase>
                         <configuration>
                             <classifier>executable</classifier>
                             <layoutFactory implementation="com.evolveum.midpoint.tools.layout.MidPointWarLayoutFactory"/>
@@ -859,6 +888,37 @@
                         <version>${project.version}</version>
                     </dependency>
                 </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>truezip-maven-plugin</artifactId>
+                <version>1.2</version>
+                <executions>
+                    <execution>
+                        <id>remove-unwanted-libs</id>
+                        <goals>
+                            <goal>remove</goal>
+                        </goals>
+                        <phase>package</phase>
+                        <configuration>
+                            <fileset>
+                                <!-- note how the archive is treated as a normal file directory -->
+                                <directory>${project.build.directory}/midpoint-executable.war/WEB-INF/lib</directory>
+                                <includes>
+                                    <include>ojdbc8-*.jar</include>
+                                    <include>ucp-*.jar</include>
+                                    <include>oraclepki-*.jar</include>
+                                    <include>osdt_cert-*.jar</include>
+                                    <include>osdt_core-*.jar</include>
+                                    <include>simplefan-*.jar</include>
+                                    <include>ons-*.jar</include>
+                                    <include>mssql-jdbc-*.jar</include>
+                                    <include>mysql-connector-java-*.jar</include>
+                                </includes>
+                            </fileset>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <!-- reference failsafe to run integration tests (surefire/units run by default) -->
