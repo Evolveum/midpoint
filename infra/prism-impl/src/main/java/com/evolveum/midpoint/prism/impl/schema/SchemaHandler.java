@@ -1,20 +1,15 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.impl.schema;
 
 import java.io.IOException;
 import java.text.MessageFormat;
 
-import org.xml.sax.EntityResolver;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
+import org.xml.sax.*;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -24,13 +19,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * errors to log.
  *
  * @author Vilo Repan
- *
  */
 public class SchemaHandler implements ErrorHandler, EntityResolver {
 
     private static final Trace LOGGER = TraceManager.getTrace(SchemaHandler.class);
 
-    private EntityResolver entityResolver;
+    private final EntityResolver entityResolver;
 
     public SchemaHandler(EntityResolver entityResolver) {
         super();
@@ -38,7 +32,7 @@ public class SchemaHandler implements ErrorHandler, EntityResolver {
     }
 
     @Override
-    public void warning(SAXParseException e) throws SAXException {
+    public void warning(SAXParseException e) {
         print("[Warning]", e);
     }
 
@@ -81,15 +75,16 @@ public class SchemaHandler implements ErrorHandler, EntityResolver {
         }
         try {
             InputSource source = entityResolver.resolveEntity(publicId, systemId);
-            LOGGER.trace("Resolved entity '{}', '{}': '{}' (resolver: {})", new Object[] { publicId, systemId, source, entityResolver});
+            LOGGER.trace("Resolved entity '{}', '{}': '{}' (resolver: {})",
+                    publicId, systemId, source, entityResolver);
             return source;
         } catch (SAXException e) {
             LOGGER.error("XML error resolving entity '{}', '{}': '{}-{}'",
-                    new Object[] { publicId, systemId, e.getMessage(), e });
+                    publicId, systemId, e.getMessage(), e);
             throw e;
         } catch (IOException e) {
             LOGGER.error("IO error resolving entity '{}', '{}': '{}-{}'",
-                    new Object[] { publicId, systemId, e.getMessage(), e });
+                    publicId, systemId, e.getMessage(), e);
             throw e;
         }
     }
