@@ -64,7 +64,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>2.3.0.RELEASE</version>
+        <version>2.3.3.RELEASE</version>
+        <!-- This parent also declares dependencies listed here:
+        https://docs.spring.io/spring-boot/docs/2.3.3.RELEASE/reference/html/appendix-dependency-versions.html
+        Or for current version of Spring Boot:
+        https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html
+        -->
     </parent>
 
     <groupId>com.evolveum.midpoint</groupId>
