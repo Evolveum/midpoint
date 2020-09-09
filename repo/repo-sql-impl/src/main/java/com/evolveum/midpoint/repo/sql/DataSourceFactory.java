@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import java.io.Closeable;
@@ -46,21 +45,26 @@ public class DataSourceFactory {
     public DataSource createDataSource() throws RepositoryServiceFactoryException {
         LOGGER.info("Loading datasource.");
         if (configuration == null) {
-            throw new RepositoryServiceFactoryException("SQL configuration is null, couldn't create datasource.");
+            throw new RepositoryServiceFactoryException(
+                    "SQL configuration is null, couldn't create datasource.");
         }
 
         try {
             if (StringUtils.isNotEmpty(configuration.getDataSource())) {
-                LOGGER.info("JNDI datasource present in configuration, looking for '{}'.", configuration.getDataSource());
+                LOGGER.info("JNDI datasource present in configuration, looking for '{}'.",
+                        configuration.getDataSource());
                 dataSource = createJndiDataSource();
             } else {
-                LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}", configuration.getJdbcUrl());
+                LOGGER.info("Constructing default datasource with connection pooling; JDBC URL: {}"
+                                + "\n Using driver: {}",
+                        configuration.getJdbcUrl(), configuration.getDriverClassName());
                 dataSource = createDataSourceInternal();
                 internalDataSource = true;
             }
             return dataSource;
         } catch (Exception ex) {
-            throw new RepositoryServiceFactoryException("Couldn't initialize datasource, reason: " + ex.getMessage(), ex);
+            throw new RepositoryServiceFactoryException(
+                    "Couldn't initialize datasource, reason: " + ex.getMessage(), ex);
         }
     }
 
