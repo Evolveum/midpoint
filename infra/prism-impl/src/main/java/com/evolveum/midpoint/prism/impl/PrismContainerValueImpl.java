@@ -1030,7 +1030,6 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         }
     }
 
-
     public boolean removeRawElement(Object element) {
         checkMutable();
         throw new UnsupportedOperationException("Definition-less containers are not supported any more.");
@@ -1044,7 +1043,6 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
     private void diffItems(PrismContainerValue<C> thisValue, PrismContainerValue<C> other,
             Collection<? extends ItemDelta> deltas, ParameterizedEquivalenceStrategy strategy) {
 
-        thisValue.getItems();
         for (Item<?,?> thisItem: thisValue.getItems()) {
             Item otherItem = other.findItem(thisItem.getElementName());
             if (!strategy.isConsideringOperationalData()) {
@@ -1061,7 +1059,6 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
             ((ItemImpl) thisItem).diffInternal(otherItem, deltas, false, strategy);
         }
 
-        other.getItems();
         for (Item otherItem: other.getItems()) {
             Item thisItem = thisValue.findItem(otherItem.getElementName());
             if (thisItem != null) {
@@ -1379,16 +1376,11 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
                 return false;
             }
         }
-        if (!this.equalsItems((PrismContainerValue<C>) other, strategy)) {
-            return false;
-        }
-        return true;
+        return equalsItems((PrismContainerValue<C>) other, strategy);
     }
 
     private boolean equalsItems(PrismContainerValue<C> other, ParameterizedEquivalenceStrategy strategy) {
         Collection<? extends ItemDelta<?,?>> deltas = new ArrayList<>();
-        // The EMPTY_PATH is a lie. We don't really care if the returned deltas have correct path or not
-        // we only care whether some deltas are returned or not.
         diffItems(this, other, deltas, strategy);
         return deltas.isEmpty();
     }

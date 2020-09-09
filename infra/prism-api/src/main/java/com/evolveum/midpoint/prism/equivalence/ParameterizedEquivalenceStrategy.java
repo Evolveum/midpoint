@@ -20,26 +20,68 @@ import java.util.Objects;
  *
  *  These strategies are still in progress and (most probably) will be changed.
  *
+ *     L = literalDomComparison
+ *
+ *         Compares DOM nodes literally. Currently this means that the comparison considers namespace prefixes.
+ *         Also (a bit unrelated to DOM): when comparing relations, treats "null" and "org:default" relations as different.
+ *
+ *     E = consideringElementNames
+ *
+ *         Takes item names into account. So, for example, "c:user ..." is different from "x:dummy xsi:type=UserType ...".
+ *         It looks like a negligible difference that is good to ignore, but beware: this also ensures that
+ *         uid=jack attribute is different from name=jack attribute, when comparing attributes as prism properties.
+ *         (When comparing them in their containers, element names are treated as different automatically.)
+ *
+ *     O = consideringOperationalData
+ *
+ *         Takes operational items into account (when comparing PCVs). Assumes that the definition is set,
+ *         otherwise operational status cannot be determined.
+ *
+ *         Currently, when calling operationalItem1.equals(operationalItem2), the fact that "root" items are operational,
+ *         does not play any role. This could change in the future. See TestParseDiffPath.checkComparisonOfOperationalItems.
+ *
+ *     I = consideringContainerIds
+ *
+ *         When comparing PCVs we require their IDs are equal. So (e.g.) null vs. null is OK, 123 vs. 123 is OK,
+ *         null vs. 123 is not OK, 123 vs. 456 is not OK.
+ *
+ *     i = consideringDifferentContainerIds
+ *
+ *         When comparing PCVs we require their IDs are not contradicting. So (e.g.) null vs. 123 is OK, null vs. null is OK,
+ *         123 vs. 456 is not OK.
+ *
+ *     F = consideringReferenceFilters
+ *
+ *         When comparing references, should we compare also reference filters? (An exception is the case when both OIDs
+ *         are null: in that case we always compare the references.)
+ *
+ *     r = consideringReferenceOptions (resolution time, reference integrity)
+ *
+ *         When comparing references, should we compare also resolution options, i.e. resolution time and referential integrity?
+ *
+ *     M = consideringValueMetadata
+ *
+ *         When comparing prism values, should we take into account value metadata? If yes, we apply the same strategy to them
+ *         as was used for data comparison.
+ *
+ *
+ *  Summary of individual strategies:
+ *
+ *     LITERAL                                  L E O I i F r M
+ *     DATA                                     - E O I i F r M
+ *     IGNORE_METADATA                          - E - - - F r -
+ *     REAL_VALUE_CONSIDER_DIFFERENT_IDS        - - - - i - - -
+ *     REAL_VALUE                               - - - - - - - -
+ *
+ *
+ *  Open questions
+ *  ==============
+ *
  *  The difference between REAL_VALUE and IGNORE_METADATA is to be established yet.
  *
  *  Basically, REAL_VALUE is oriented towards the effective content of the item or value.
  *  Contrary to IGNORE_METADATA it ignores reference filters (if OID is present) and
  *  reference resolution options (resolution time, reference integrity).
- *
- *     L = literalDomComparison
- *     E = consideringElementNames
- *     O = consideringOperationalData
- *     I = consideringContainerIds
- *     i = consideringDifferentContainerIds
- *     F = consideringReferenceFilters
- *     r = consideringReferenceOptions (resolution time, reference integrity)
- *     M = consideringValueMetadata
- *
- *     LITERAL                                  L E O I i F r M
- *     DATA                                     - - O I i F r M
- *     IGNORE_METADATA                          - - - - - F r -
- *     REAL_VALUE_CONSIDER_DIFFERENT_IDS        - - - - i - - -
- *     REAL_VALUE                               - - - - - - - -
  *
  */
 @SuppressWarnings({ "unused", "DuplicatedCode" })
@@ -61,7 +103,9 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy, Cl
     static ParameterizedEquivalenceStrategy data() {
         ParameterizedEquivalenceStrategy data = new ParameterizedEquivalenceStrategy();
         data.literalDomComparison = false;
-        data.consideringElementNames = false;
+        // This is necessary for correct equals/hashCode working for prism items (namely, attributes
+        // and extension items).
+        data.consideringElementNames = true;
         data.consideringOperationalData = true;
         data.consideringContainerIds = true;
         data.consideringDifferentContainerIds = true;
@@ -74,7 +118,7 @@ public class ParameterizedEquivalenceStrategy implements EquivalenceStrategy, Cl
     static ParameterizedEquivalenceStrategy ignoreMetadata() {
         ParameterizedEquivalenceStrategy ignoreMetadata = new ParameterizedEquivalenceStrategy();
         ignoreMetadata.literalDomComparison = false;
-        ignoreMetadata.consideringElementNames = false;
+        ignoreMetadata.consideringElementNames = true;
         ignoreMetadata.consideringOperationalData = false;
         ignoreMetadata.consideringContainerIds = false;
         ignoreMetadata.consideringDifferentContainerIds = false;

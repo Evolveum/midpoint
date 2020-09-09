@@ -7,8 +7,8 @@
   -->
 
 <user oid="deadbeef-c001-f00d-1111-222233330001"
-      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-      xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>jack</name>
     <extension>
         <ext:stringType>ABC</ext:stringType>
@@ -19,9 +19,6 @@
     <c:credentials xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
         <c:password>
             <c:value
-                    xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
-                    xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-3"
-                    xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-3"
                     xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
                     xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
                 <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
@@ -35,6 +32,10 @@
                     </enc:CipherData>
                 </enc:EncryptedData>
             </c:value>
+            <c:failedLogins>1</c:failedLogins>
+            <c:lastFailedLogin>
+                <c:timestamp>2012-04-02T15:26:51.035+02:00</c:timestamp>
+            </c:lastFailedLogin>
         </c:password>
     </c:credentials>
 

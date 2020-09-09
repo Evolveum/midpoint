@@ -11,6 +11,11 @@ import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
 import java.io.File;
 import java.io.IOException;
 
+import com.evolveum.midpoint.prism.path.ItemName;
+
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
+
 import org.testng.annotations.BeforeSuite;
 import org.xml.sax.SAXException;
 
@@ -42,6 +47,12 @@ public abstract class AbstractSchemaTest extends AbstractUnitTest {
     public static final String ROLE_CONSTRUCTION_OID = "cc7dd820-b653-11e3-936d-001e8c717e5b";
     public static final long ROLE_CONSTRUCTION_INDUCEMENT_ID = 1001L;
     public static final String ROLE_CONSTRUCTION_RESOURCE_OID = "10000000-0000-0000-0000-000000000004";
+
+    public static final String NS_EXT = "http://midpoint.evolveum.com/xml/ns/test/extension";
+    public static final ItemName EXT_STRING_TYPE = new ItemName(NS_EXT, "stringType");
+    public static final ItemName EXT_DIFFERENT_STRING_TYPE = new ItemName(NS_EXT, "differentStringType");
+    public static final ItemPath EXT_STRING_TYPE_PATH = ItemPath.create(ObjectType.F_EXTENSION, EXT_STRING_TYPE);
+    static final ItemPath EXT_DIFFERENT_STRING_TYPE_PATH = ItemPath.create(ObjectType.F_EXTENSION, EXT_DIFFERENT_STRING_TYPE);
 
     @BeforeSuite
     public void setup() throws SchemaException, SAXException, IOException {

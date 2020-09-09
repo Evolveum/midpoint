@@ -6,24 +6,27 @@
  */
 package com.evolveum.midpoint.schema;
 
-import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.DATA;
-import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS;
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.*;
 import static com.evolveum.midpoint.prism.util.PrismTestUtil.getPrismContext;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.*;
 
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
+
+import org.jetbrains.annotations.NotNull;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemName;
@@ -54,44 +57,119 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
     private static final String TEST_DIR = "src/test/resources/diff/";
 
     private static final File USER_BEFORE_FILE = new File(TEST_DIR, "user-before.xml");
-    private static final File USER_AFTER_FILE = new File(TEST_DIR, "user-after.xml");
+    private static final File USER_AFTER_FAILED_LOGIN_FILE = new File(TEST_DIR, "user-after-failed-login.xml");
+    private static final File USER_AFTER_EXTENSION_CHANGE_FILE = new File(TEST_DIR, "user-after-extension-change.xml");
+
     private static final File TASK_BEFORE_FILE = new File(TEST_DIR, "task-before.xml");
     private static final File TASK_AFTER_FILE = new File(TEST_DIR, "task-after.xml");
+
     private static final File RESOURCE_BEFORE_FILE = new File(TEST_DIR, "resource-before.xml");
     private static final File RESOURCE_AFTER_FILE = new File(TEST_DIR, "resource-after.xml");
     private static final File RESOURCE_AFTER_CONST_FILE = new File(TEST_DIR, "resource-after-const.xml");
     private static final File RESOURCE_AFTER_NS_CHANGE_FILE = new File(TEST_DIR, "resource-after-ns-change.xml");
     private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
+
     private static final File SYSTEM_CONFIGURATION_BEFORE_FILE = new File(TEST_DIR, "system-configuration-before.xml");
     private static final File SYSTEM_CONFIGURATION_AFTER_FILE = new File(TEST_DIR, "system-configuration-after.xml");
 
+    /**
+     * The differences are: failed logins, last failed logins, and some unused xmlns declarations (in non-raw data).
+     *
+     * As the two items are operational, they should be visible only in LITERAL and DATA comparisons, not in REAL_VALUE one.
+     * The namespace difference should be invisible.
+     */
     @Test
-    public void testUserCredentialsDiff() throws Exception {
+    public void testUserFailedLoginDiff() throws Exception {
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_BEFORE_FILE);
-        userBefore.checkConsistence();
-        PrismObject<UserType> userAfter = PrismTestUtil.parseObject(USER_AFTER_FILE);
-        userAfter.checkConsistence();
-
-        ObjectDelta<UserType> userDelta = userBefore.diff(userAfter, EquivalenceStrategy.LITERAL);      // failedLogins is now operational property
-        System.out.println("DELTA:");
-        System.out.println(userDelta.debugDump());
+        PrismObject<UserType> userAfter = PrismTestUtil.parseObject(USER_AFTER_FAILED_LOGIN_FILE);
 
         userBefore.checkConsistence();
         userAfter.checkConsistence();
-        userDelta.checkConsistence();
-        userDelta.assertDefinitions();
 
-        ItemPath path = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
-                CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
-        PrismAsserts.assertPropertyAdd(userDelta, path, 1);
-        path = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS,
-                CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
-        PropertyDelta propertyDelta = userDelta.findPropertyDelta(path);
-        assertNotNull("Property delta for " + path + " not found", propertyDelta);
+        assertCredentialsDelta(userBefore, userAfter, LITERAL);
+        assertCredentialsDelta(userBefore, userAfter, DATA);
+        assertNoCredentialsDelta(userBefore, userAfter, REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+        assertNoCredentialsDelta(userBefore, userAfter, REAL_VALUE);
+
+        checkComparisonOfOperationalItems(userAfter);
+    }
+
+    private void checkComparisonOfOperationalItems(PrismObject<UserType> userAfter) {
+        ItemPath failedLoginsPath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
+        PrismProperty<Object> failedLogins1 = userAfter.findProperty(failedLoginsPath);
+        PrismProperty<Object> failedLogins2 = failedLogins1.clone();
+        failedLogins2.setRealValue(2);
+
+        PrismAsserts.assertDifferent(null, failedLogins1, failedLogins2, LITERAL);
+        PrismAsserts.assertDifferent(null, failedLogins1, failedLogins2, DATA);
+
+        // we are ignoring the fact that failedLogins is operational (maybe correctly, maybe not)
+        PrismAsserts.assertDifferent(null, failedLogins1, failedLogins2, REAL_VALUE);
+    }
+
+    private void assertCredentialsDelta(PrismObject<UserType> userBefore, PrismObject<UserType> userAfter,
+            ParameterizedEquivalenceStrategy strategy) throws SchemaException {
+        ObjectDelta<UserType> userDelta = computeDelta(userBefore, userAfter, strategy);
+
+        ItemPath failedLoginsPath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_FAILED_LOGINS);
+        PrismAsserts.assertPropertyAdd(userDelta, failedLoginsPath, 1);
+
+        ItemPath lastFailedLoginPath = ItemPath.create(SchemaConstantsGenerated.C_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_LAST_FAILED_LOGIN);
+        PropertyDelta propertyDelta = userDelta.findPropertyDelta(lastFailedLoginPath);
+        assertNotNull("Property delta for " + lastFailedLoginPath + " not found", propertyDelta);
         assertEquals(1, propertyDelta.getValuesToAdd().size());
     }
 
-    // was commented from 2014 to 2020, but it seem to work - now what?
+    @SuppressWarnings("SameParameterValue")
+    private void assertNoCredentialsDelta(PrismObject<UserType> userBefore, PrismObject<UserType> userAfter,
+            ParameterizedEquivalenceStrategy strategy) throws SchemaException {
+        ObjectDelta<UserType> userDelta = computeDelta(userBefore, userAfter, strategy);
+        PrismAsserts.assertDeltaEmpty(null, userDelta);
+    }
+
+    /**
+     * The differences are: extension stringType is changed to differentStringType (with the same value of ABC).
+     */
+    @Test
+    public void testUserExtensionChange() throws Exception {
+        PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_BEFORE_FILE);
+        PrismObject<UserType> userAfter = PrismTestUtil.parseObject(USER_AFTER_EXTENSION_CHANGE_FILE);
+
+        userBefore.checkConsistence();
+        userAfter.checkConsistence();
+
+        assertExtensionDelta(userBefore, userAfter, LITERAL);
+        assertExtensionDelta(userBefore, userAfter, DATA);
+        assertExtensionDelta(userBefore, userAfter, REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+        assertExtensionDelta(userBefore, userAfter, REAL_VALUE);
+        assertExtensionDelta(userBefore, userAfter, IGNORE_METADATA);
+
+        PrismAsserts.assertDifferent(null, userBefore, userAfter, LITERAL);
+        PrismAsserts.assertDifferent(null, userBefore, userAfter, DATA);
+        PrismAsserts.assertDifferent(null, userBefore, userAfter, REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+        PrismAsserts.assertDifferent(null, userBefore, userAfter, REAL_VALUE);
+        PrismAsserts.assertDifferent(null, userBefore, userAfter, IGNORE_METADATA);
+
+        Item extensionItemBefore = getSingleExtensionItem(userBefore);
+        Item extensionItemAfter = getSingleExtensionItem(userAfter);
+
+        PrismAsserts.assertDifferent(null, extensionItemBefore, extensionItemAfter, LITERAL);
+        PrismAsserts.assertDifferent(null, extensionItemBefore, extensionItemAfter, DATA);
+        PrismAsserts.assertEquals(null, extensionItemBefore, extensionItemAfter, REAL_VALUE_CONSIDER_DIFFERENT_IDS);
+        PrismAsserts.assertEquals(null, extensionItemBefore, extensionItemAfter, REAL_VALUE);
+        PrismAsserts.assertDifferent(null, extensionItemBefore, extensionItemAfter, IGNORE_METADATA);
+    }
+
+    private void assertExtensionDelta(PrismObject<UserType> userBefore, PrismObject<UserType> userAfter,
+            ParameterizedEquivalenceStrategy strategy) throws SchemaException {
+        ObjectDelta<UserType> userDelta = computeDelta(userBefore, userAfter, strategy);
+
+        assertThat(userDelta.isModify()).isTrue();
+        assertThat(userDelta.getModifications().size()).isEqualTo(2);
+        PrismAsserts.assertPropertyDelete(userDelta, EXT_STRING_TYPE_PATH, "ABC");
+        PrismAsserts.assertPropertyAdd(userDelta, EXT_DIFFERENT_STRING_TYPE_PATH, "ABC");
+    }
+
     @Test
     public void testAssignmentActivationDiff() throws Exception {
         PrismObject<UserType> userBefore = PrismTestUtil.parseObject(USER_BEFORE_FILE);
@@ -428,7 +506,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
 
         // WHEN
 
-        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, EquivalenceStrategy.LITERAL);
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, LITERAL);
 
         // THEN
 
@@ -576,7 +654,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         resourceAfter.checkConsistence();
 
         // WHEN
-        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, EquivalenceStrategy.LITERAL);
+        ObjectDelta<ResourceType> resourceDelta = resourceBefore.diff(resourceAfter, LITERAL);
 
         // THEN
 
@@ -605,7 +683,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
 
             // WHEN
             String xmlBroken = getPrismContext().xmlSerializer().serialize(resourceBroken);
-            ObjectDelta<ResourceType> resourceDelta = resourceBroken.diff(resourceFixed, EquivalenceStrategy.LITERAL);
+            ObjectDelta<ResourceType> resourceDelta = resourceBroken.diff(resourceFixed, LITERAL);
 
             // THEN
 
@@ -707,7 +785,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
 
         PrismObject<TaskType> changed = prismObject.clone();
         ItemDeltaCollectionsUtil.applyTo(delta.getModifications(), changed);
-        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, EquivalenceStrategy.LITERAL);
+        Collection<? extends ItemDelta> processedModifications = prismObject.diffModifications(changed, LITERAL);
 
         ItemDeltaCollectionsUtil.applyTo(processedModifications, prismObject);
 
@@ -719,7 +797,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         PrismObject<ResourceType> before = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-before.xml"));
         PrismObject<ResourceType> after = PrismTestUtil.parseObject(new File(TEST_DIR, "resource-white-after.xml"));
 
-        Collection<? extends ItemDelta> differences = before.diffModifications(after, EquivalenceStrategy.LITERAL);
+        Collection<? extends ItemDelta> differences = before.diffModifications(after, LITERAL);
 
         assertEquals(1, differences.size());
         System.out.println(differences.iterator().next().debugDump());
@@ -741,7 +819,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         PrismObject<SystemConfigurationType> after = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_AFTER_FILE);
         after.checkConsistence();
 
-        ObjectDelta<SystemConfigurationType> delta = before.diff(after, EquivalenceStrategy.LITERAL);
+        ObjectDelta<SystemConfigurationType> delta = before.diff(after, LITERAL);
         System.out.println("DELTA:");
         System.out.println(delta.debugDump());
 
@@ -765,7 +843,7 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         PrismObject<SystemConfigurationType> after = PrismTestUtil.parseObject(SYSTEM_CONFIGURATION_AFTER_FILE);
         after.checkConsistence();
 
-        ObjectDelta<SystemConfigurationType> delta = before.diff(after, EquivalenceStrategy.LITERAL);
+        ObjectDelta<SystemConfigurationType> delta = before.diff(after, LITERAL);
         System.out.println("DELTA:");
         System.out.println(delta.debugDump());
 
@@ -840,5 +918,27 @@ public class TestParseDiffPatch extends AbstractSchemaTest {
         assertEquals("Wrong values to delete", activation1.getValues(), diff.getValuesToDelete());
         //noinspection SimplifiedTestNGAssertion
         assertEquals("Wrong values to replace", null, diff.getValuesToReplace());
+    }
+
+    @NotNull
+    private ObjectDelta<UserType> computeDelta(PrismObject<UserType> userBefore, PrismObject<UserType> userAfter, ParameterizedEquivalenceStrategy strategy) throws SchemaException {
+        ObjectDelta<UserType> userDelta = userBefore.diff(userAfter, strategy);
+
+        System.out.println("DELTA (equivalence strategy = " + strategy + "):");
+        System.out.println(userDelta.debugDump());
+        System.out.println();
+
+        userBefore.checkConsistence();
+        userAfter.checkConsistence();
+
+        userDelta.checkConsistence();
+        userDelta.assertDefinitions();
+        return userDelta;
+    }
+
+    private Item getSingleExtensionItem(PrismObject<?> object) {
+        PrismContainerValue<?> pcv = Objects.requireNonNull(object.getExtensionContainerValue(), "no extension");
+        assertThat(pcv.size()).isEqualTo(1);
+        return pcv.getItems().iterator().next();
     }
 }

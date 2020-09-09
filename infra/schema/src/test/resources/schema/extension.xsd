@@ -23,6 +23,8 @@
 
     <xsd:element name="stringType" type="xsd:string"/>
 
+    <xsd:element name="differentStringType" type="xsd:string"/>
+
     <xsd:element name="doubleType" type="xsd:double"/>
 
     <xsd:element name="intType" type="xsd:int"/>

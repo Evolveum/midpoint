@@ -39,7 +39,7 @@ public interface EquivalenceStrategy {
 
     /**
      * Captures the data. Ignores minor serialization-related things that are not relevant for the parsed data,
-     * like namespace prefixes or element names.
+     * like namespace prefixes. Also ignores the difference between null and default relation.
      *
      * Currently this is the default for equals/hashCode.
      */
@@ -71,7 +71,8 @@ public interface EquivalenceStrategy {
     /**
      * This is something between {@link #DATA} and {@link #REAL_VALUE}: ignores
      * operational items and values, container IDs, value metadata (just like REAL_VALUE) but
-     * takes reference filters and reference resolution options (time, integrity) into account (like DATA).
+     * takes reference filters and reference resolution options (time, integrity), as well as
+     * item names into account (like DATA).
      *
      * It is not quite clear whether and when to use this strategy.
      */
