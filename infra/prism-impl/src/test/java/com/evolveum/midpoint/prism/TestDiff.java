@@ -12,6 +12,8 @@ import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_OID;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -391,17 +393,17 @@ public class TestDiff extends AbstractPrismTest {
         ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "blah blah", PrismTestUtil.getPrismContext());
 
         // WHEN
-        Collection<? extends ItemDelta> modifications = ass1.diffModifications(ass2);
+        Collection<? extends ItemDelta> modifications = ass1.diffModifications(ass2, EquivalenceStrategy.DATA);
 
         // THEN
         assertNotNull(modifications);
         System.out.println(DebugUtil.debugDump(modifications));
-        assertEquals("Unexpected number of midifications", 0, modifications.size());
+        assertEquals("Unexpected number of modifications", 0, modifications.size());
         ItemDeltaCollectionsUtil.checkConsistence(modifications);
     }
 
     @Test
-    public void testContainerDiffModificationsDesciption() throws Exception {
+    public void testContainerDiffModificationsDescription() throws Exception {
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
         PrismContainerDefinition<AssignmentType> assignmentContDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
@@ -417,12 +419,12 @@ public class TestDiff extends AbstractPrismTest {
         ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala", PrismTestUtil.getPrismContext());
 
         // WHEN
-        Collection<? extends ItemDelta> modifications = ass1.diffModifications(ass2);
+        Collection<? extends ItemDelta> modifications = ass1.diffModifications(ass2, EquivalenceStrategy.REAL_VALUE);
 
         // THEN
         assertNotNull(modifications);
         System.out.println(DebugUtil.debugDump(modifications));
-        assertEquals("Unexpected number of midifications", 1, modifications.size());
+        assertEquals("Unexpected number of modifications", 1, modifications.size());
         PrismAsserts.assertPropertyReplace(
                 modifications,
                 ItemPath.create(UserType.F_ASSIGNMENT, 1L, AssignmentType.F_DESCRIPTION),
@@ -431,7 +433,7 @@ public class TestDiff extends AbstractPrismTest {
     }
 
     @Test
-    public void testContainerValueDiffDesciptionNoPath() throws Exception {
+    public void testContainerValueDiffDescriptionNoPath() throws Exception {
         // GIVEN
         PrismObjectDefinition<UserType> userDef = getUserTypeDefinition();
         PrismContainerDefinition<AssignmentType> assignmentContDef = userDef.findContainerDefinition(UserType.F_ASSIGNMENT);
@@ -445,7 +447,7 @@ public class TestDiff extends AbstractPrismTest {
         ass2cval.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "chamalalia patlama paprtala", PrismTestUtil.getPrismContext());
 
         // WHEN
-        Collection<? extends ItemDelta> modifications = ass1cval.diff(ass2cval);
+        Collection<? extends ItemDelta> modifications = ass1cval.diff(ass2cval, EquivalenceStrategy.IGNORE_METADATA);
 
         // THEN
         assertNotNull(modifications);

@@ -384,7 +384,7 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         PrismObject newTask = PrismTestUtil.parseObject(
                 new File(TEST_DIR, "task-new.xml"));
 
-        ObjectDelta<TaskType> delta = oldTask.diff(newTask, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<TaskType> delta = oldTask.diff(newTask, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         System.out.println("Delta:");
         System.out.println(delta.debugDump());
 

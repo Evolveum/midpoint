@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -71,7 +71,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
     private XMLGregorianCalendar lastRequestEndTs;
     private XMLGregorianCalendar lastAttemptStartTs;
     private XMLGregorianCalendar lastAttemptEndTs;
-    private String shadowMorganOid = ACCOUNT_MORGAN_OID;
+    protected String shadowMorganOid = ACCOUNT_MORGAN_OID;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -122,7 +122,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         assertSuccess(result);
         assertEquals(ACCOUNT_WILL_OID, addedObjectOid);
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -187,7 +187,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertEquals(ACCOUNT_MORGAN_OID, addedObjectOid);
         account.checkConsistence();
         lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         assertUncreatedMorgan(1);
 
@@ -319,7 +319,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         assertUncreatedMorgan(2);
 
@@ -357,12 +357,12 @@ public class TestDummyConsistency extends AbstractDummyTest {
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
 
         assertMorganDead();
     }
 
-    private void assertMorganDead() throws Exception {
+    protected void assertMorganDead() throws Exception {
         PrismObject<ShadowType> repoShadow = getShadowRepo(ACCOUNT_MORGAN_OID);
         assertNotNull("Shadow was not created in the repository", repoShadow);
 
@@ -515,7 +515,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         assertInProgress(result);
         account.checkConsistence();
         lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         assertUncreatedMorgan(1);
 
@@ -583,7 +583,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Result", result);
         assertSuccess(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         assertCreatedMorgan(2);
 
@@ -614,7 +614,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         assertInProgress(result);
         lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         assertUnmodifiedMorgan(1, 2, ACCOUNT_MORGAN_FULLNAME_HM);
 
@@ -683,7 +683,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         assertUnmodifiedMorgan(2, 2, ACCOUNT_MORGAN_FULLNAME_HM);
 
@@ -721,7 +721,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
 
         assertMorganModifyFailed();
 
@@ -779,7 +779,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         assertInProgress(result);
         lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         assertUnmodifiedMorgan(1, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
 
@@ -888,7 +888,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Result", result);
         assertPartialError(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         assertUnmodifiedMorgan(2, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
 
@@ -924,7 +924,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Result", result);
         assertSuccess(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         assertModifiedMorgan(3, 3, ACCOUNT_MORGAN_FULLNAME_CHM);
 
@@ -954,7 +954,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         assertInProgress(result);
         lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         assertUndeletedMorgan(1, 4);
 
@@ -1023,7 +1023,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         assertUndeletedMorgan(2, 4);
 
@@ -1061,7 +1061,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         result.computeStatus();
         TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyFailureOnly();
+        syncServiceMock.assertSingleNotifyFailureOnly();
 
         assertMorganDeleteFailed();
     }
@@ -1117,7 +1117,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         assertInProgress(result);
         lastRequestEndTs = lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         assertUndeletedMorgan(1, 5);
 
@@ -1156,13 +1156,17 @@ public class TestDummyConsistency extends AbstractDummyTest {
         display("Result", result);
         assertSuccess(result);
         lastAttemptEndTs = clock.currentTimeXMLGregorianCalendar();
-        syncServiceMock.assertNotifySuccessOnly();
+        assertDeadShadowNotify();
 
         assertDeletedMorgan(2, 5);
 
         // Resource -> up
         assertResourceStatusChangeCounterIncrements();
         assertSteadyResources();
+    }
+
+    protected void assertDeadShadowNotify() {
+        syncServiceMock.assertSingleNotifySuccessOnly();
     }
 
     /**
@@ -1346,7 +1350,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         assertNoRepoObject(ShadowType.class, ACCOUNT_MORGAN_OID);
 
@@ -1381,7 +1385,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
         then();
         display("Result", result);
         assertSuccess(result);
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         assertNoRepoObject(ShadowType.class, shadowMorganOid);
 
@@ -1440,7 +1444,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertNone();
 
         syncServiceMock
-            .assertNotifyFailureOnly()
+            .assertSingleNotifyFailureOnly()
             .assertNotifyChange()
             .assertNotifyChangeCalls(1)
             .lastNotifyChange()
@@ -1517,7 +1521,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertNone();
 
         syncServiceMock
-            .assertNotifyFailureOnly()
+            .assertSingleNotifyFailureOnly()
             .assertNotifyChange()
             .assertNotifyChangeCalls(1)
             .lastNotifyChange()
@@ -1634,7 +1638,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertNone();
 
         syncServiceMock
-            .assertNotifyFailureOnly()
+            .assertSingleNotifyFailureOnly()
             .assertNotifyChange()
             .assertNotifyChangeCalls(1)
             .lastNotifyChange()
@@ -1712,7 +1716,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
             .assertNone();
 
         syncServiceMock
-            .assertNotifyFailureOnly()
+            .assertSingleNotifyFailureOnly()
             .assertNotifyChange()
             .assertNotifyChangeCalls(1)
             .lastNotifyChange()
@@ -2000,7 +2004,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
 
         // @formatter:off
         syncServiceMock
-            .assertNotifyFailureOnly()
+            .assertSingleNotifyFailureOnly()
             .assertNotifyChange()
             .assertNotifyChangeCalls(1)
             .lastNotifyChange()
@@ -2748,7 +2752,7 @@ public class TestDummyConsistency extends AbstractDummyTest {
                 .assertPassword(ACCOUNT_MORGAN_PASSWORD);
     }
 
-    private void assertDeletedMorgan(int expectedAttemptNumber, int expectedNumberOfPendingOperations) throws Exception {
+    protected void assertDeletedMorgan(int expectedAttemptNumber, int expectedNumberOfPendingOperations) throws Exception {
 
         PrismObject<ShadowType> repoShadow = getShadowRepo(shadowMorganOid);
         assertNotNull("Shadow was not created in the repository", repoShadow);

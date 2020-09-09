@@ -199,7 +199,7 @@ public class TestCsvReport extends BasicNewReportTest {
         importOptions.setOverwrite(true);
         behavior.setImportOptions(importOptions);
         report.asObjectable().setBehavior(behavior);
-        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.LITERAL_IGNORE_METADATA);
+        ObjectDelta<ReportType> diffDelta = reportBefore.diff(report, EquivalenceStrategy.REAL_VALUE_CONSIDER_DIFFERENT_IDS);
         executeChanges(diffDelta, ModelExecuteOptions.createRaw(), task, result);
 
         PrismObject<UserType> oldWill = searchObjectByName(UserType.class, "will");

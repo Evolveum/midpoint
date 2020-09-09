@@ -14,10 +14,6 @@ import com.evolveum.midpoint.model.api.ModelAuditRecorder;
 import com.evolveum.midpoint.model.api.authentication.*;
 import com.evolveum.midpoint.model.api.util.AuthenticationEvaluatorUtil;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.security.api.ConnectionEnvironment;
 import com.evolveum.midpoint.security.api.MidPointPrincipal;
@@ -55,7 +51,6 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
     @Autowired private PrismContext prismContext;
     @Autowired private Clock clock;
     @Autowired private GuiProfiledPrincipalManager focusProfileService;
-
 
     public MidPointLdapAuthenticationProvider(LdapAuthenticator authenticator) {
         this.authenticatorProvider = createAuthenticatorProvider(authenticator);
@@ -248,12 +243,6 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
         recordAuthenticationSuccess(principal.getFocus(), channel);
     }
 
-    private Collection<? extends ItemDelta<?, ?>> computeModifications(@NotNull FocusType before, @NotNull FocusType after) {
-        ObjectDelta<? extends FocusType> delta = ((PrismObject<FocusType>)before.asPrismObject()).diff((PrismObject<FocusType>) after.asPrismObject(), ParameterizedEquivalenceStrategy.LITERAL);
-        assert delta.isModify();
-        return delta.getModifications();
-    }
-
     private String getChannel() {
         Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
         if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getAuthenticationChannel() != null) {
@@ -264,10 +253,10 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
     }
 
     private void recordAuthenticationSuccess(@NotNull FocusType focusType, @NotNull String channel) {
-        auditProvider.auditLoginSuccess(focusType, createConnectEnviroment(channel));
+        auditProvider.auditLoginSuccess(focusType, createConnectEnvironment(channel));
     }
 
-    private ConnectionEnvironment createConnectEnviroment(String channel) {
+    private ConnectionEnvironment createConnectEnvironment(String channel) {
         ConnectionEnvironment env = ConnectionEnvironment.create(channel);
         Authentication actualAuthentication = SecurityContextHolder.getContext().getAuthentication();
         if (actualAuthentication instanceof MidpointAuthentication && ((MidpointAuthentication) actualAuthentication).getSessionId() != null) {
@@ -327,6 +316,6 @@ public class MidPointLdapAuthenticationProvider extends MidPointAbstractAuthenti
     }
 
     protected void recordAuthenticationFailure(String name, FocusType focus, String channel, String reason) {
-        auditProvider.auditLoginFailure(name, focus, createConnectEnviroment(channel), "bad credentials");
+        auditProvider.auditLoginFailure(name, focus, createConnectEnvironment(channel), "bad credentials");
     }
 }

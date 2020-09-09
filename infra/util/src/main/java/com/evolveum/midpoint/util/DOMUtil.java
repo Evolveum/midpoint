@@ -1123,10 +1123,7 @@ public class DOMUtil {
     }
 
     public static boolean compareElement(Element a, Element b, boolean considerNamespacePrefixes, boolean considerWhitespaces) {
-        if (a==b) {
-            return true;
-        }
-        if (a == null && b == null) {
+        if (a == b) {
             return true;
         }
         if (a == null || b == null) {
@@ -1145,10 +1142,7 @@ public class DOMUtil {
     }
 
     public static boolean compareDocument(Document a, Document b, boolean considerNamespacePrefixes, boolean considerWhitespaces) {
-        if (a==b) {
-            return true;
-        }
-        if (a == null && b == null) {
+        if (a == b) {
             return true;
         }
         if (a == null || b == null) {
@@ -1179,18 +1173,12 @@ public class DOMUtil {
     }
 
     private static boolean compareAttributes(NamedNodeMap a, NamedNodeMap b, boolean considerNamespacePrefixes) {
-        if (a==b) {
+        if (a == b) {
             return true;
         }
-        if (a == null && b == null) {
-            return true;
-        }
-        if (a == null || b == null) {
-            return false;
-        }
-
-        return (compareAttributesIsSubset(a,b,considerNamespacePrefixes)
-                && compareAttributesIsSubset(b,a,considerNamespacePrefixes));
+        return a != null && b != null &&
+                compareAttributesIsSubset(a, b, considerNamespacePrefixes) &&
+                compareAttributesIsSubset(b, a, considerNamespacePrefixes);
     }
 
     private static boolean compareAttributesIsSubset(NamedNodeMap subset, NamedNodeMap superset, boolean considerNamespacePrefixes) {
@@ -1232,10 +1220,7 @@ public class DOMUtil {
     }
 
     private static boolean compareNodeList(NodeList a, NodeList b, boolean considerNamespacePrefixes, boolean considerWhitespaces) {
-        if (a==b) {
-            return true;
-        }
-        if (a == null && b == null) {
+        if (a == b) {
             return true;
         }
         if (a == null || b == null) {

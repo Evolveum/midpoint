@@ -87,8 +87,6 @@ public interface ObjectDelta<O extends Objectable> extends DebugDumpable, PrismC
      */
     <D extends ItemDelta> D addModification(D itemDelta);
 
-    boolean containsModification(ItemDelta itemDelta);
-
     boolean containsModification(ItemDelta itemDelta, EquivalenceStrategy strategy);
 
     boolean containsAllModifications(Collection<? extends ItemDelta<?, ?>> itemDeltas, EquivalenceStrategy strategy);

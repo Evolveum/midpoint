@@ -640,35 +640,23 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
     }
 
     public boolean isValueToAdd(V value) {
-        return isValueSet(value, false, valuesToAdd);
-    }
-
-    public boolean isValueToAdd(V value, boolean ignoreMetadata) {
-        return isValueSet(value, ignoreMetadata, valuesToAdd);
+        return isValueSet(value, valuesToAdd);
     }
 
     public boolean isValueToDelete(V value) {
-        return isValueSet(value, false, valuesToDelete);
-    }
-
-    public boolean isValueToDelete(V value, boolean ignoreMetadata) {
-        return isValueSet(value, ignoreMetadata, valuesToDelete);
+        return isValueSet(value, valuesToDelete);
     }
 
     public boolean isValueToReplace(V value) {
-        return isValueSet(value, false, valuesToReplace);
+        return isValueSet(value, valuesToReplace);
     }
 
-    public boolean isValueToReplace(V value, boolean ignoreMetadata) {
-        return isValueSet(value, ignoreMetadata, valuesToReplace);
-    }
-
-    private boolean isValueSet(V value, boolean ignoreMetadata, Collection<V> set) {
+    private boolean isValueSet(V value, Collection<V> set) {
         if (set == null) {
             return false;
         }
         for (V myVal : set) {
-            if (myVal.equals(value, ignoreMetadata ? EquivalenceStrategy.IGNORE_METADATA : NOT_LITERAL)) {
+            if (myVal.equals(value, DATA)) {
                 return true;
             }
         }
@@ -1618,7 +1606,7 @@ public abstract class ItemDeltaImpl<V extends PrismValue, D extends ItemDefiniti
         }
         for (V valueToAdd : valuesToAdd) {
             if (valueToAdd != null && !valueToAdd.equals(existingValue, REAL_VALUE_CONSIDER_DIFFERENT_IDS) &&
-                    !ItemCollectionsUtil.contains(remainingValuesToDelete, existingValue, NOT_LITERAL)) {
+                    !ItemCollectionsUtil.contains(remainingValuesToDelete, existingValue, DATA)) {
                 squashIntoDeleteList(remainingValuesToDelete, existingValue);
             }
         }

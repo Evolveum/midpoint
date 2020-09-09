@@ -363,7 +363,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertShadowActivationAdministrativeStatusFromCache(shadowRepoAsserter, ActivationStatusType.ENABLED);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         ShadowAsserter<Void> shadowProvisioningAsserter = assertShadowProvisioning(ACCOUNT_WILL_OID)
             .assertConception()
@@ -633,7 +633,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertShadowActivationAdministrativeStatusFromCache(shadowRepo, ActivationStatusType.ENABLED);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -845,7 +845,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -1045,7 +1045,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         // In this case check notifications at the end. There were some reads that
         // internally triggered refresh. Maku sure no extra notifications were sent.
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
     }
 
     /**
@@ -1221,7 +1221,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -1306,7 +1306,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -1405,7 +1405,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         ShadowAsserter.forShadow(shadowProvisioning, "provisioning")
             .assertName(ACCOUNT_WILL_USERNAME)
@@ -1663,7 +1663,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -2150,7 +2150,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertAttributeFromCache(shadowRepo, ATTR_FULLNAME_QNAME, ACCOUNT_WILL_FULLNAME_PIRATE);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNotifyInProgressOnly();
+        syncServiceMock.assertSingleNotifyInProgressOnly();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);
@@ -2272,7 +2272,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         assertShadowDead(shadowRepo);
 
         syncServiceMock.assertNoNotifyChange();
-        syncServiceMock.assertNotifySuccessOnly();
+        syncServiceMock.assertSingleNotifySuccessOnly();
 
         PrismObject<ShadowType> shadowProvisioning = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_WILL_OID, null, task, result);

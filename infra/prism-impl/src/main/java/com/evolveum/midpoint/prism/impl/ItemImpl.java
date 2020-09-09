@@ -7,8 +7,7 @@
 
 package com.evolveum.midpoint.prism.impl;
 
-import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.LITERAL_IGNORE_METADATA;
-import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.NOT_LITERAL;
+import static com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy.DATA;
 import static com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy.DEFAULT_FOR_EQUALS;
 
 import java.lang.reflect.Array;
@@ -454,8 +453,8 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
             PrismContainerValue<Containerable> sameProvenance = existingValueMetadata.findValue(newMetadataValue, metadataEquivalenceStrategy);
             if (sameProvenance != null) {
                 // REAL_VALUE is unsafe here (also) because some parts of metadata are mistakenly marked as operational.
-                // Anyway, it is best to use NOT_LITERAL as "sameProvenance" is taken directly from existingValueMetadata.
-                existingValueMetadata.remove(sameProvenance, NOT_LITERAL);
+                // Anyway, it is best to use DATA as "sameProvenance" is taken directly from existingValueMetadata.
+                existingValueMetadata.remove(sameProvenance, DATA);
             }
             existingValueMetadata.add(newMetadataValue.clone());
         }
@@ -482,7 +481,7 @@ public abstract class ItemImpl<V extends PrismValue, D extends ItemDefinition> e
         ValueMetadata existingValueMetadata = existingValue.getValueMetadata();
         existingValueMetadata.removeAll(metadataToRemove.getValues(), metadataEquivalenceStrategy);
         if (existingValueMetadata.hasNoValues()) {
-            remove(existingValue, LITERAL_IGNORE_METADATA); // should work under any equivalence strategy that does not regard metadata
+            remove(existingValue, DATA.exceptForValueMetadata());
         }
     }
 

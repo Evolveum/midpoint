@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
+import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -208,14 +209,12 @@ public class PrismValueCollectionsUtil {
         return clones;
     }
 
-
-
-    public static <V extends PrismValue> boolean collectionContainsEquivalentValue(Collection<V> collection, V value) {
+    public static <V extends PrismValue> boolean collectionContainsEquivalentValue(Collection<V> collection, V value, ParameterizedEquivalenceStrategy equivalenceStrategy) {
         if (collection == null) {
             return false;
         }
         for (V collectionVal: collection) {
-            if (collectionVal.equals(value, EquivalenceStrategy.IGNORE_METADATA)) {
+            if (collectionVal.equals(value, equivalenceStrategy)) {
                 return true;
             }
         }

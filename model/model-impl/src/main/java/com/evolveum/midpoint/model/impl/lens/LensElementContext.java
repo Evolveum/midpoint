@@ -381,7 +381,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
         ObjectDelta<O> currentDelta = getCurrentDelta();
         // TODO change this
-        if (currentDelta != null && currentDelta.containsModification(itemDelta, EquivalenceStrategy.LITERAL_IGNORE_METADATA)) {
+        if (currentDelta != null && currentDelta.containsModification(itemDelta, EquivalenceStrategy.DATA.exceptForValueMetadata())) {
             return;
         }
 

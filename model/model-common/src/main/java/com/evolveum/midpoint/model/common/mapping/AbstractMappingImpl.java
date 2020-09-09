@@ -857,7 +857,7 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
                     // Looking for metadata with the same mapping spec but not present in "new" value.
                     // What about the equivalence strategy?
                     //
-                    // - One option is NOT_LITERAL: This will remove all values that are not exactly the same as the newly
+                    // - One option is DATA: This will remove all values that are not exactly the same as the newly
                     //   computed one. It will provide "clean slate" to reflect even some minor non-real-value affecting changes.
                     //   The cost is that phantom adds could be generated.
                     //
