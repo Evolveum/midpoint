@@ -23,6 +23,8 @@ import java.util.stream.StreamSupport;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -834,6 +836,13 @@ public final class WebComponentUtil {
         MidPointApplication app = MidPointApplication.get();
         String translatedValue = app.getLocalizationService().translate(descriptor.getLocalizationKey(), null, getCurrentLocale());
         return translatedValue != null ? translatedValue : descriptor.getLocalizationKey();
+    }
+
+    public static List<QName> createContainerableTypesQnameList() {
+        List<QName> objectTypeList = createObjectTypesList().stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
+        //todo create enum for containerable types?
+        objectTypeList.add(AuditEventRecordType.COMPLEX_TYPE);
+        return objectTypeList;
     }
 
     public static List<QName> createAssignmentHolderTypeQnamesList() {

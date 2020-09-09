@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2020 Evolveum and contributors
+  ~ Copyright (C) 2010-2020 Evolveum and contributors
   ~
   ~ This work is dual-licensed under the Apache License 2.0
   ~ and European Union Public License. See LICENSE file for details.
@@ -174,7 +174,13 @@
         <cron4j.version>2.2.3</cron4j.version>
         <!-- We can't upgrade to 5.3 unless we get rid of EntityRegionAccessStrategy -->
         <hibernate.version>5.2.12.Final</hibernate.version>
-        <h2.version>1.4.193</h2.version>
+        <!--
+        Default Spring Boot 2.3 uses H2 1.4.200 but that one has NPE bug:
+        https://github.com/h2database/h2database/issues/2191
+        Sometimes happens, e.g. on TestDummyParallelism, it's fixed, so we're waiting for v201 release.
+        -->
+        <h2.version>1.4.199</h2.version>
+        <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
         <jdbc.postgres>42.2.2</jdbc.postgres>
         <jdbc.sqlserver>6.4.0.jre8</jdbc.sqlserver>
         <jdbc.mariadb>2.3.0</jdbc.mariadb>
@@ -342,11 +348,6 @@
                 <groupId>org.python</groupId>
                 <artifactId>jython</artifactId>
                 <version>2.5.3</version>
-            </dependency>
-            <dependency>
-                <groupId>com.h2database</groupId>
-                <artifactId>h2</artifactId>
-                <version>${h2.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.hibernate</groupId>
@@ -867,7 +868,7 @@
             <dependency>
                 <groupId>com.evolveum.polygon</groupId>
                 <artifactId>connector-ldap</artifactId>
-                <version>3.1-SNAPSHOT</version>
+                <version>3.0</version>
                 <exclusions>
                     <!-- Needed otherwise the JDK14 SLF4J binding can override the midpoint's logback binding -->
                     <exclusion>

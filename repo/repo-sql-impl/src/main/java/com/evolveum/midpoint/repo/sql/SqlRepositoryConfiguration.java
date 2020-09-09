@@ -567,11 +567,14 @@ public class SqlRepositoryConfiguration {
 
     private String getDefaultEmbeddedJdbcUrl() {
         return getDefaultEmbeddedJdbcUrlPrefix()
-                + ";MVCC=FALSE"                // Turn off MVCC, revert to table locking.
-                + ";DB_CLOSE_ON_EXIT=FALSE"    // Disable database closing on exit. By default, a database is closed when the last connection is closed.
-                + ";LOCK_MODE=1"               // Both read locks and write locks are kept until the transaction commits.
-                + ";LOCK_TIMEOUT=100"          // This is experimental setting - let's resolve locking conflicts by midPoint itself
-                + ";MAX_LENGTH_INPLACE_LOB=10240"; // We want to store blob data i.e. full xml object right in table (it's often only a few kb)
+                // Disable database closing on exit. By default, a database is closed when the last connection is closed.
+                + ";DB_CLOSE_ON_EXIT=FALSE"
+                // Both read locks and write locks are kept until the transaction commits.
+                + ";LOCK_MODE=1"
+                // This is experimental setting - let's resolve locking conflicts by midPoint itself
+                + ";LOCK_TIMEOUT=100"
+                // We want to store blob data i.e. full xml object right in table (it's often only a few kb)
+                + ";MAX_LENGTH_INPLACE_LOB=10240";
     }
 
     private String getDerivedBaseDir() {
