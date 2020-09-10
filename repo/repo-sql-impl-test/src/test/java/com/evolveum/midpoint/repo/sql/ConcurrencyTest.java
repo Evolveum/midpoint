@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -408,8 +407,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
     abstract class DeleteObjectsThread<T extends ObjectType> extends WorkerThread {
 
-        private Class<T> objectClass;
-        String description;
+        private final Class<T> objectClass;
+        private final String description;
 
         DeleteObjectsThread(int id, Class<T> objectClass, String description) {
             super(id);
@@ -498,10 +497,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
     @Test
     public void test100AddOperationExecution() throws Exception {
-
-        if (getConfiguration().isUsingH2()) {
-            return;         // TODO
-        }
+        skipTestIf(isUsingH2(), "because of H2 database");
 
         int THREADS = 8;
         long DURATION = 30000L;
@@ -539,24 +535,21 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
     @Test
     public void test110AddAssignments() throws Exception {
-
-        if (getConfiguration().isUsingH2()) {
-            // Because of:
-            // Caused by: javax.persistence.EntityExistsException: A different object with the same identifier value was already associated with the session : [com.evolveum.midpoint.repo.sql.data.common.container.RAssignment#RContainerId{44c3e25d-e790-4142-958d-ff7ff3ff3a9f, 62}]
-            //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:118)
-            //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:157)
-            //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:164)
-            //    at org.hibernate.internal.SessionImpl.doFlush(SessionImpl.java:1443)
-            //    at org.hibernate.internal.SessionImpl.managedFlush(SessionImpl.java:493)
-            //    at org.hibernate.internal.SessionImpl.flushBeforeTransactionCompletion(SessionImpl.java:3207)
-            //    at org.hibernate.internal.SessionImpl.beforeTransactionCompletion(SessionImpl.java:2413)
-            //    at org.hibernate.engine.jdbc.internal.JdbcCoordinatorImpl.beforeTransactionCompletion(JdbcCoordinatorImpl.java:473)
-            //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.beforeCompletionCallback(JdbcResourceLocalTransactionCoordinatorImpl.java:156)
-            //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.access$100(JdbcResourceLocalTransactionCoordinatorImpl.java:38)
-            //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.commit(JdbcResourceLocalTransactionCoordinatorImpl.java:231)
-            //    at org.hibernate.engine.transaction.internal.TransactionImpl.commit(TransactionImpl.java:68)
-            return;         // TODO
-        }
+        // Because of:
+        // Caused by: javax.persistence.EntityExistsException: A different object with the same identifier value was already associated with the session : [com.evolveum.midpoint.repo.sql.data.common.container.RAssignment#RContainerId{44c3e25d-e790-4142-958d-ff7ff3ff3a9f, 62}]
+        //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:118)
+        //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:157)
+        //    at org.hibernate.internal.ExceptionConverterImpl.convert(ExceptionConverterImpl.java:164)
+        //    at org.hibernate.internal.SessionImpl.doFlush(SessionImpl.java:1443)
+        //    at org.hibernate.internal.SessionImpl.managedFlush(SessionImpl.java:493)
+        //    at org.hibernate.internal.SessionImpl.flushBeforeTransactionCompletion(SessionImpl.java:3207)
+        //    at org.hibernate.internal.SessionImpl.beforeTransactionCompletion(SessionImpl.java:2413)
+        //    at org.hibernate.engine.jdbc.internal.JdbcCoordinatorImpl.beforeTransactionCompletion(JdbcCoordinatorImpl.java:473)
+        //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.beforeCompletionCallback(JdbcResourceLocalTransactionCoordinatorImpl.java:156)
+        //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl.access$100(JdbcResourceLocalTransactionCoordinatorImpl.java:38)
+        //    at org.hibernate.resource.transaction.backend.jdbc.internal.JdbcResourceLocalTransactionCoordinatorImpl$TransactionDriverControlImpl.commit(JdbcResourceLocalTransactionCoordinatorImpl.java:231)
+        //    at org.hibernate.engine.transaction.internal.TransactionImpl.commit(TransactionImpl.java:68)
+        skipTestIf(isUsingH2(), "because of H2 database");
 
         int THREADS = 8;
         long DURATION = 30000L;
@@ -783,9 +776,5 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                 throw new AssertionError("Modifier thread " + thread.id + " finished with an exception: " + thread.threadResult, thread.threadResult);
             }
         }
-    }
-
-    private SqlRepositoryConfiguration getConfiguration() {
-        return ((SqlRepositoryServiceImpl) repositoryService).sqlConfiguration();
     }
 }
