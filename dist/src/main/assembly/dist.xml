@@ -64,6 +64,10 @@
             <fileMode>0755</fileMode>
         </fileSet>
         <fileSet>
+            <directory>${project.basedir}/src/main/var</directory>
+            <outputDirectory>var</outputDirectory>
+        </fileSet>
+        <fileSet>
             <directory>target/lib</directory>
             <outputDirectory>lib</outputDirectory>
             <directoryMode>755</directoryMode>
