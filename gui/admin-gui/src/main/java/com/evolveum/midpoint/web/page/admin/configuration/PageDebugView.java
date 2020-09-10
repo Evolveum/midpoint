@@ -11,6 +11,7 @@ import java.util.Collection;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.TextArea;
@@ -59,7 +60,7 @@ public class PageDebugView extends PageAdminConfiguration {
     private static final String DOT_CLASS = PageDebugView.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "initObjectViewObject";
     private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
-    private static final String ID_PLAIN_TEXTAREA = "plain-textarea";
+    private static final String ID_PLAIN_TEXTAREA = "plainTextarea";
     private static final String ID_VIEW_BUTTON_PANEL = "viewButtonPanel";
 
     private static final String ID_FORM = "mainForm";
@@ -73,6 +74,7 @@ public class PageDebugView extends PageAdminConfiguration {
 
     private IModel<ObjectViewDto<?>> objectViewDtoModel;
     private final DebugViewOptions debugViewConfiguration = new DebugViewOptions();
+    private static final int DEFAULT_EDITOR_ROWS_NUMBER = 50;
 
     public PageDebugView() {
     }
@@ -180,6 +182,8 @@ public class PageDebugView extends PageAdminConfiguration {
 
         TextArea<String> plainTextarea = new TextArea<>(ID_PLAIN_TEXTAREA, new PropertyModel<>(objectViewDtoModel, ObjectViewDto.F_XML));
         plainTextarea.add(new VisibleBehaviour(() -> isTrue(DebugViewOptions.ID_SWITCH_TO_PLAINTEXT)));
+        plainTextarea.add(new AttributeModifier("rows", DEFAULT_EDITOR_ROWS_NUMBER));
+        plainTextarea.add(new AttributeModifier("style", "min-width:100%; max-width: 100%;"));
         mainForm.add(plainTextarea);
 
         initAceEditor(mainForm);
