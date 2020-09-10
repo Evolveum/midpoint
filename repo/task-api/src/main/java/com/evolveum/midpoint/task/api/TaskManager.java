@@ -240,12 +240,12 @@ public interface TaskManager {
      * result with specified operation name.
      *
      * @param taskPrism Prism representation of the task
-     * @param operationName operation name to use as a root for new result in task
+     * @param operationName operation name to use as a root for new result in task -- IGNORED
      * @return new Java representation of the task
      * @throws SchemaException The provided taskType is not compliant to schema
      */
     @NotNull
-    Task createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException;
+    Task createTaskInstance(PrismObject<TaskType> taskPrism, @Deprecated String operationName, OperationResult parentResult) throws SchemaException;
 
     /**
      * Returns a task with specified OID.

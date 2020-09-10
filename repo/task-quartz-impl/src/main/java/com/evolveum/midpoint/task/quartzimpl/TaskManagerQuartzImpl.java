@@ -826,11 +826,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
     @Override
     public TaskQuartzImpl createTaskInstance(String operationName) {
-        LightweightIdentifier taskIdentifier = generateTaskIdentifier();
-        return new TaskQuartzImpl(this, taskIdentifier, operationName);
+        return TaskQuartzImpl.createNew(this, operationName);
     }
 
-    private LightweightIdentifier generateTaskIdentifier() {
+    LightweightIdentifier generateTaskIdentifier() {
         return lightweightIdentifierGenerator.generate();
     }
 
@@ -842,11 +841,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
     @Override
     @NotNull
-    public TaskQuartzImpl createTaskInstance(PrismObject<TaskType> taskPrism, String operationName, OperationResult parentResult) throws SchemaException {
+    public TaskQuartzImpl createTaskInstance(PrismObject<TaskType> taskPrism, @Deprecated String operationName, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createMinorSubresult(DOT_INTERFACE + "createTaskInstance");
         result.addParam("taskPrism", taskPrism);
 
-        TaskQuartzImpl task = new TaskQuartzImpl(this, taskPrism, repositoryService);
+        TaskQuartzImpl task = TaskQuartzImpl.createFromPrismObject(this, taskPrism);
         task.resolveOwnerRef(result);
         result.recordSuccessIfUnknown();
         return task;
@@ -917,11 +916,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         // hack: set Category if it is not set yet
         if (taskImpl.getCategory() == null) {
             taskImpl.setCategoryTransient(taskImpl.getCategoryFromHandler());
-        }
-
-        // Make sure that the task has repository service instance, so it can fully work as "persistent"
-        if (taskImpl.getRepositoryService() == null) {
-            taskImpl.setRepositoryService(repositoryService);
         }
 
         try {
@@ -2621,7 +2615,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             return ((RunningTaskQuartzImpl) task);
         } else {
             PrismObject<TaskType> taskPrismObject = task.getUpdatedTaskObject();
-            return new RunningTaskQuartzImpl(this, taskPrismObject, repositoryService);
+            return new RunningTaskQuartzImpl(this, taskPrismObject);
         }
     }
 
