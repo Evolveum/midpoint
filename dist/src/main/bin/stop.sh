@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright (C) 2017-2020 Evolveum and contributors
 #
 # This work is dual-licensed under the Apache License 2.0
@@ -9,7 +9,7 @@ set -eu
 SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd -P)
 EXECUTABLE=midpoint.sh
 
-if [ ! -x "${SCRIPT_DIR}/${EXECUTABLE}" ]; then
+if [[ ! -x "${SCRIPT_DIR}/${EXECUTABLE}" ]]; then
   echo "Cannot find ${SCRIPT_DIR}/${EXECUTABLE}"
   echo "The file is absent or does not have execute permission"
   echo "This file is needed to run this program"
