@@ -50,7 +50,7 @@ public class RestConfig
         for (MediaType mediaType : MidpointYamlHttpMessageConverter.MEDIA_TYPES) {
             configurer.mediaType(mediaType.getSubtype(), mediaType);
         }
-        configurer.defaultContentType(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML);
+        configurer.defaultContentType(MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON);
     }
 
     @Bean
