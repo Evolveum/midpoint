@@ -80,7 +80,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
     private static final List<ItemPath> BASIC_USER_CONTAINERS_PATHS = Arrays.asList(
             UserType.F_EXTENSION,
-            //UserType.F_METADATA, // Temporary - see MID-6335
             UserType.F_ASSIGNMENT,
             UserType.F_ACTIVATION,
             UserType.F_TRIGGER,
@@ -89,7 +88,6 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             UserType.F_BEHAVIOR);
     private static final List<ItemPath> BASIC_SHADOW_CONTAINERS_PATHS = Arrays.asList(
             ShadowType.F_EXTENSION,
-            //ShadowType.F_METADATA, // Temporary - see MID-6335
             ShadowType.F_PENDING_OPERATION,
             ShadowType.F_ATTRIBUTES,
             ShadowType.F_TRIGGER,
@@ -98,12 +96,10 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
             ShadowType.F_CREDENTIALS);
     private static final List<ItemPath> BASIC_ORG_CONTAINERS_PATHS = Arrays.asList(
             OrgType.F_EXTENSION,
-            //OrgType.F_METADATA, // Temporary - see MID-6335
             OrgType.F_ASSIGNMENT,
             OrgType.F_ACTIVATION,
             OrgType.F_INDUCEMENT,
             OrgType.F_AUTHORIZATION,
-//            OrgType.F_EXCLUSION,
             OrgType.F_CONDITION,
             OrgType.F_ADMIN_GUI_CONFIGURATION,
             OrgType.F_DATA_PROTECTION,
@@ -633,7 +629,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 //        PrismAsserts.assertPropertyValue(groupAssociationValuePVal.asReferencable().getTargetName(), GROUP_DUMMY_MAPMAKERS_NAME);
     }
 
-    @Test(enabled = false)
+    @Test
     public void test240OrgScummBarModifyTransformDescription() throws Exception {
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_SCUMM_BAR_OID);
 
@@ -669,7 +665,7 @@ public class TestIntegrationObjectWrapperFactory extends AbstractInitializedGuiI
 
     }
 
-    @Test(enabled = false)
+    @Test
     public void test241OrgScummBarModifyTransformProperties() throws Exception {
         PrismObject<OrgType> org = getObject(OrgType.class, ORG_SCUMM_BAR_OID);
 
