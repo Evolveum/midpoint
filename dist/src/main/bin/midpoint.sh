@@ -27,8 +27,7 @@ JAVA_OPTS="${JAVA_OPTS:-}
 -Xmx4096M
 -Dpython.cachedir=${MIDPOINT_HOME}/tmp
 -Djavax.net.ssl.trustStore=${MIDPOINT_HOME}/keystore.jceks
--Djavax.net.ssl.trustStoreType=jceks
--Dmidpoint.home=${MIDPOINT_HOME}"
+-Djavax.net.ssl.trustStoreType=jceks"
 
 # Apply bin/setenv.sh if it exists. This setenv.sh does not depend on MIDPOINT_HOME.
 # The script can either append or overwrite JAVA_OPTS, e.g. to set -Dmidpoint.nodeId.
@@ -54,6 +53,7 @@ if [[ ! -f "${BASE_DIR}/lib/midpoint.war" ]]; then
   exit 1
 fi
 
+# TODO probably useless from Tomcat 7 and before history, remove and check LDAP/ConnId logging
 : "${LOGGING_MANAGER:="-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager"}"
 
 # Set UMASK unless it has been overridden
@@ -128,7 +128,7 @@ if [[ "$1" == "start" ]]; then
 
   # shellcheck disable=SC2086
   eval "${_NOHUP}" "\"${_RUNJAVA}\"" \
-    ${LOGGING_MANAGER} ${JAVA_OPTS} \
+    ${LOGGING_MANAGER} ${JAVA_OPTS} -Dmidpoint.home=${MIDPOINT_HOME}\
     -cp "${BASE_DIR}/lib/midpoint.war" \
     -Dloader.path=WEB-INF/classes,WEB-INF/lib,WEB-INF/lib-provided,${MIDPOINT_HOME}/lib/ \
     org.springframework.boot.loader.PropertiesLauncher \
