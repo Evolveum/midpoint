@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.path.*;
 
 import com.evolveum.midpoint.prism.query.*;
@@ -325,7 +326,7 @@ public class PrismAsserts {
     public static void assertModifications(String message, ObjectDelta<?> objectDelta, int expectedNumberOfModifications) {
         assertIsModify(objectDelta);
         assert objectDelta.getModifications().size() == expectedNumberOfModifications :
-                (message == null ? "" : (message + ": ")) +
+                toPrefix(message) +
                 "Wrong number of modifications in object delta "
                     + objectDelta + ". Expected "+expectedNumberOfModifications+", was "+objectDelta.getModifications().size();
     }
@@ -556,13 +557,18 @@ public class PrismAsserts {
     }
 
     private static <V extends PrismValue> void assertNoSet(String message, String type, Collection<V> set) {
-        assert set == null : (message == null ? "" : message + ": ") + "Delta "+type+" set expected to be null but it is "+set;
+        assert set == null : toPrefix(message) + "Delta "+type+" set expected to be null but it is "+set;
     }
 
     public static void assertNoDelta(String message, ObjectDelta<?> delta) {
         assert delta == null : "Unexpected "+message+"; got "+delta;
     }
 
+    public static void assertDeltaEmpty(String message, ObjectDelta<?> delta) {
+        if (!ObjectDelta.isEmpty(delta)) {
+            fail(toPrefix(message) + "Delta is not empty: " + delta);
+        }
+    }
 
     // DeltaSetTriple asserts
 
@@ -627,6 +633,22 @@ public class PrismAsserts {
         assert triple.isEmpty() : "triple is not empty, it is: "+triple;
     }
 
+    public static void assertEquals(String message, Item item1, Item item2, EquivalenceStrategy strategy) {
+        if (!item1.equals(item2, strategy)) {
+            fail(toPrefix(message) + "Items are not equal under " + strategy + ": " + item1 + " vs " + item2);
+        }
+    }
+
+    public static void assertDifferent(String message, Item item1, Item item2, EquivalenceStrategy strategy) {
+        if (item1.equals(item2, strategy)) {
+            fail(toPrefix(message) + "Items are not different under " + strategy + ": " + item1 + " vs " + item2);
+        }
+    }
+
+    @NotNull
+    private static String toPrefix(String message) {
+        return message == null ? "" : message + ": ";
+    }
 
     public static void assertEquals(String message, PolyString expected, PolyString actual) {
         assert expected.equals(actual) : message + "; expected " + DebugUtil.dump(expected) + ", was " +
