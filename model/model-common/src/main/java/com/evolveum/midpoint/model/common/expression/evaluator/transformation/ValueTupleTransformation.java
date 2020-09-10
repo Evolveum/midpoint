@@ -329,8 +329,10 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         TransformationValueMetadataComputer valueMetadataComputer = context.getValueMetadataComputer();
         if (valueMetadataComputer == null) {
+            // TODO clear existing metadata?
             LOGGER.trace("No value metadata computer present, skipping metadata computation.");
         } else if (outputSet == PlusMinusZero.MINUS) {
+            // TODO clear existing metadata?
             LOGGER.trace("Transforming for minus set, skipping metadata computation.");
         } else {
             ValueMetadataType outputValueMetadata = valueMetadataComputer.compute(valuesTuple, result);
@@ -347,6 +349,8 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
                         }
                     }
                 }
+            } else {
+                // TODO clear existing metadata?
             }
         }
     }

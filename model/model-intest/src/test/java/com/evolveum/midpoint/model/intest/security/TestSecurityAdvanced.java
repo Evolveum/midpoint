@@ -872,11 +872,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
                 (task, result) -> unassignRole(userCobbOid, ROLE_UNINTERESTING_OID, task, result));
         assertDeny("unassign uninteresting role from rum",
                 (task, result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
-        // Temporarily disabled, see MID-6376
-//        assertDeny("unassign approver role from jack",
-//                (task, result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
-//        assertDeny("unassign ordinary role from lechuck",
-//                (task, result) -> unassignRole(USER_LECHUCK_OID, ROLE_ORDINARY_OID, task, result));
+        assertDeny("unassign approver role from jack",
+                (task, result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
+        assertDeny("unassign ordinary role from lechuck",
+                (task, result) -> unassignRole(USER_LECHUCK_OID, ROLE_ORDINARY_OID, task, result));
 
         assertAddDeny();
         assertModifyDeny();
@@ -935,9 +934,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
                 (task, result) -> unassignRole(userCobbOid, ROLE_UNINTERESTING_OID, task, result));
         assertDeny("unassign uninteresting role from rum",
                 (task, result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
-        // Temporarily disabled, see MID-6376
-//        assertDeny("unassign ordinary role from lechuck",
-//                (task, result) -> unassignRole(USER_LECHUCK_OID, ROLE_ORDINARY_OID, task, result));
+        assertDeny("unassign ordinary role from lechuck",
+                (task, result) -> unassignRole(USER_LECHUCK_OID, ROLE_ORDINARY_OID, task, result));
 
         assertAddDeny();
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
@@ -986,11 +984,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         assertDeny("unassign ordinary role from cobb",
                 (task, result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));
-        // Temporarily disabled, see MID-6376
-//        assertDeny("unassign uninteresting role from rum",
-//                (task, result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
-//        assertDeny("unassign approver role from jack",
-//                (task, result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
+        assertDeny("unassign uninteresting role from rum",
+                (task, result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
+        assertDeny("unassign approver role from jack",
+                (task, result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
 
         assertAddDeny();
         assertModifyDeny();
@@ -1038,11 +1035,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         assertDeny("unassign ordinary role from cobb",
                 (task, result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));
-        // Temporarily disabled, see MID-6376
-//        assertDeny("unassign uninteresting role from rum",
-//                (task, result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
-//        assertDeny("unassign approver role from jack",
-//                (task, result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
+        assertDeny("unassign uninteresting role from rum",
+                (task, result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
+        assertDeny("unassign approver role from jack",
+                (task, result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
 
         assertAddDeny();
         assertModifyDeny();
@@ -1090,11 +1086,10 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
 
         assertDeny("unassign ordinary role from cobb",
                 (task, result) -> unassignRole(userCobbOid, ROLE_ORDINARY_OID, task, result));
-        // Temporarily disabled, see MID-6376
-//        assertDeny("unassign uninteresting role from rum",
-//                (task, result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
-//        assertDeny("unassign approver role from jack",
-//                (task, result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
+        assertDeny("unassign uninteresting role from rum",
+                (task, result) -> unassignRole(userRumRogersOid, ROLE_UNINTERESTING_OID, task, result));
+        assertDeny("unassign approver role from jack",
+                (task, result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
 
         assertAddDeny();
         assertModifyDeny();
@@ -1137,9 +1132,8 @@ public class TestSecurityAdvanced extends AbstractSecurityTest {
                 (task, result) -> unassignRole(USER_JACK_OID, ROLE_APPROVER_UNASSIGN_ROLES_OID, task, result));
 
         // Lechuck is not a member of ordinary role
-        // Temporarily disabled, see MID-6376
-//        assertDeny("unassign ordinary role from lechuck",
-//                (task, result) -> unassignRole(USER_LECHUCK_OID, ROLE_ORDINARY_OID, task, result));
+        assertDeny("unassign ordinary role from lechuck",
+                (task, result) -> unassignRole(USER_LECHUCK_OID, ROLE_ORDINARY_OID, task, result));
 
         assertAddDeny();
         assertModifyDeny();
