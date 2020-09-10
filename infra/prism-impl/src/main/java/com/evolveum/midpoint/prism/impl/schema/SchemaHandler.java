@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.prism.impl.schema;
 
 import java.io.IOException;
-import java.text.MessageFormat;
 
 import org.xml.sax.*;
 
@@ -49,17 +48,10 @@ public class SchemaHandler implements ErrorHandler, EntityResolver {
     }
 
     private void print(String header, SAXParseException e) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Error occurred during schema parsing: ");
-        builder.append(header);
-        builder.append(" ");
-        builder.append(MessageFormat.format("on line {0} at {1}, {2}",
-                Integer.toString(e.getLineNumber()), e.getSystemId(), e.getPublicId()));
-        builder.append(" ");
-        builder.append(e.getMessage());
-
-        LOGGER.error(builder.toString());
-        LOGGER.trace(builder.toString(), e);
+        String error = "Error occurred during schema parsing: " + header + " "
+                + "on line " + e.getLineNumber() + " at " + e.getSystemId() + ", " + e.getPublicId()
+                + " " + e.getMessage();
+        LOGGER.error(error, e);
     }
 
     /*
