@@ -21,6 +21,7 @@ BASE_DIR=$(cd "${SCRIPT_DIR}/.." && pwd -P)
 
 mkdir -p "${MIDPOINT_HOME}/log"
 
+ORIG_JAVA_OPTS="${JAVA_OPTS:-}"
 JAVA_OPTS="${JAVA_OPTS:-}
 -Xms2048M
 -Xmx4096M
@@ -31,6 +32,7 @@ JAVA_OPTS="${JAVA_OPTS:-}
 
 # Apply bin/setenv.sh if it exists. This setenv.sh does not depend on MIDPOINT_HOME.
 # The script can either append or overwrite JAVA_OPTS, e.g. to set -Dmidpoint.nodeId.
+# It can also utilize ORIG_JAVA_OPTS that is original JAVA_OPTS before running midpoint.sh.
 if [[ -r "${SCRIPT_DIR}/setenv.sh" ]]; then
   echo "Applying setenv.sh from ${SCRIPT_DIR} directory."
   # shellcheck disable=SC1091
@@ -56,7 +58,7 @@ fi
 
 # Set UMASK unless it has been overridden
 : "${UMASK:="0027"}"
-umask $UMASK
+umask ${UMASK}
 
 if [[ ! -v JAVA_HOME ]]; then
   _RUNJAVA=java
@@ -64,7 +66,7 @@ else
   _RUNJAVA="${JAVA_HOME}/bin/java"
 fi
 
-if [[ "$USE_NOHUP" == "true" ]]; then
+if [[ "${USE_NOHUP}" == "true" ]]; then
   _NOHUP="nohup"
 else
   _NOHUP=""
@@ -120,14 +122,18 @@ if [[ "$1" == "start" ]]; then
   echo "Starting midPoint..."
   echo "MIDPOINT_HOME=${MIDPOINT_HOME}"
 
+  echo -e "\nStarting at $(date)\nMIDPOINT_HOME=${MIDPOINT_HOME}\nJava binary: ${_RUNJAVA}\nJava version:" &>> "${BOOT_OUT}"
+  "${_RUNJAVA}" -version &>> "${BOOT_OUT}"
+  echo &>> "${BOOT_OUT}"
+
   # shellcheck disable=SC2086
   eval "${_NOHUP}" "\"${_RUNJAVA}\"" \
     ${LOGGING_MANAGER} ${JAVA_OPTS} \
     -cp "${BASE_DIR}/lib/midpoint.war" \
-    -Dloader.path=WEB-INF/classes,WEB-INF/lib,WEB-INF/lib-provided,$MIDPOINT_HOME/lib/ \
+    -Dloader.path=WEB-INF/classes,WEB-INF/lib,WEB-INF/lib-provided,${MIDPOINT_HOME}/lib/ \
     org.springframework.boot.loader.PropertiesLauncher \
     "$@" \
-    "&" >>"$BOOT_OUT" 2>&1
+    "&" >>"${BOOT_OUT}" 2>&1
 
   if [[ -n "${PID_FILE}" ]]; then
     echo $! >"${PID_FILE}"
@@ -197,7 +203,7 @@ elif [[ "$1" == "stop" ]]; then
   KILL_SLEEP_INTERVAL=5
   if ((FORCE == 1)); then
     if [[ -f "${PID_FILE}" ]]; then
-      echo "Killing midPoint with the PID: $PID"
+      echo "Killing midPoint with the PID: ${PID}"
       kill -9 "${PID}"
       while ((KILL_SLEEP_INTERVAL > 0)); do
         kill -0 "${PID}" >/dev/null 2>&1 || {
