@@ -161,7 +161,7 @@ public class BaseSQLRepoTest extends AbstractSpringTest
         }
     }
 
-    protected boolean isH2() {
+    protected boolean isUsingH2() {
         return baseHelper.getConfiguration().isUsingH2();
     }
 

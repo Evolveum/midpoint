@@ -52,7 +52,7 @@ public class RestApiIndex extends AbstractRestController {
                 .map(entry -> new OperationInfo(entry.getKey(), entry.getValue()));
     }
 
-    @GetMapping()
+    @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
     public List<OperationJson> index(HttpServletRequest request) {
         String uri = request.getRequestURI();
         return uiRestInfo.stream()
@@ -61,7 +61,7 @@ public class RestApiIndex extends AbstractRestController {
                 .collect(Collectors.toList());
     }
 
-    @GetMapping(produces = "text/html")
+    @GetMapping(produces = MediaType.TEXT_PLAIN_VALUE)
     public String indexHtml(HttpServletRequest request) {
         StringBuilder html = new StringBuilder("<!DOCTYPE html><html>"
                 + "<head><meta charset='UTF-8'><title>REST-ish API</title>"

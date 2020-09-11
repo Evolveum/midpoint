@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2020 Evolveum and contributors
+ * Copyright (C) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -526,8 +526,6 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         final int ITERATIONS = 300;
         final long TIMEOUT = 600_000;
 
-//        skipTestIf(isH2(), "because of H2 database");
-
         // creating objects
         List<String> oids = new ArrayList<>(NUM_THREADS);
         for (int i = 0; i < NUM_THREADS; i++) {
@@ -600,10 +598,8 @@ public class TestAudit extends AbstractInitializedModelIntegrationTest {
         final int ITERATIONS = 300;
         final long TIMEOUT = 600_000;
 
-        // Originally we wanted to skip this because of possible concurrency issues on H2, but we'll try it for a while
-//        skipTestIf(isH2(), "H2 database can have MVCC issues");
-
-        final AtomicBoolean failed = new AtomicBoolean(false);        // signal to kill other threads after a failure
+        // signal to kill other threads after a failure
+        final AtomicBoolean failed = new AtomicBoolean(false);
 
         // creating threads + starting them
         List<Thread> threads = new ArrayList<>(NUM_THREADS);

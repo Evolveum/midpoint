@@ -64,7 +64,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-dependencies</artifactId>
-        <version>2.3.0.RELEASE</version>
+        <version>2.3.3.RELEASE</version>
+        <!-- This parent also declares dependencies listed here:
+        https://docs.spring.io/spring-boot/docs/2.3.3.RELEASE/reference/html/appendix-dependency-versions.html
+        Or for current version of Spring Boot:
+        https://docs.spring.io/spring-boot/docs/current/reference/html/appendix-dependency-versions.html
+        -->
     </parent>
 
     <groupId>com.evolveum.midpoint</groupId>
@@ -175,16 +180,15 @@
         <!-- We can't upgrade to 5.3 unless we get rid of EntityRegionAccessStrategy -->
         <hibernate.version>5.2.12.Final</hibernate.version>
         <!--
-        Default Spring Boot 2.3 uses H2 1.4.200 but that one has NPE bug:
-        https://github.com/h2database/h2database/issues/2191
-        Sometimes happens, e.g. on TestDummyParallelism, it's fixed, so we're waiting for v201 release.
+        Default Spring Boot 2.3.3 uses H2 1.4.200 but that one has NPE bug:
+        https://github.com/h2database/h2database/issues/1808
+        Sometimes occurs on heavy concurrent test, e.g. on TestDummyParallelism.
+        This bug was introduced in 1.4.198, which was major version that also changed queries in OrgClosureManager.
+        If h2<=1.4.197 is used, the OrgClosureManager must be changed to previous version.
+        With 1.4.200 TestObjectLifecycleApprovalGlobal fails consistently.
         -->
         <h2.version>1.4.199</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
-        <jdbc.postgres>42.2.2</jdbc.postgres>
-        <jdbc.sqlserver>6.4.0.jre8</jdbc.sqlserver>
-        <jdbc.mariadb>2.3.0</jdbc.mariadb>
-        <jdbc.mysql>8.0.21</jdbc.mysql>
         <wicket.version>8.6.0</wicket.version>
         <groovy.version>2.5.12</groovy.version>
         <xmlsec.version>2.1.4</xmlsec.version>
@@ -996,26 +1000,6 @@
                 <groupId>xml-resolver</groupId>
                 <artifactId>xml-resolver</artifactId>
                 <version>${xml.resolver.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>mysql</groupId>
-                <artifactId>mysql-connector-java</artifactId>
-                <version>${jdbc.mysql}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.postgresql</groupId>
-                <artifactId>postgresql</artifactId>
-                <version>${jdbc.postgres}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.microsoft.sqlserver</groupId>
-                <artifactId>mssql-jdbc</artifactId>
-                <version>${jdbc.sqlserver}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.mariadb.jdbc</groupId>
-                <artifactId>mariadb-java-client</artifactId>
-                <version>${jdbc.mariadb}</version>
             </dependency>
             <dependency>
                 <groupId>commons-cli</groupId>
