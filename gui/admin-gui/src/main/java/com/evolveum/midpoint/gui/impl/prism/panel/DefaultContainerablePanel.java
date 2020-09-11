@@ -181,7 +181,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
             Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), settings);
             panel.setOutputMarkupId(true);
             panel.add(AttributeModifier.append("class", appendStyleClassModel(item.getModel())));
-            panel.add(new VisibleEnableBehaviour() {
+            item.add(new VisibleEnableBehaviour() {
                 @Override
                 public boolean isVisible() {
                     return itemWrapper.isVisible(getModelObject(), getVisibilityHandler());
