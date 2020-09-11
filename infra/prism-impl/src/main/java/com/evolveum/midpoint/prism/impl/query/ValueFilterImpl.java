@@ -119,13 +119,12 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
     }
 
     @NotNull
-    MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem) {
-        ItemDefinition itemDefinition = filterItem.getDefinition();
-        if (itemDefinition == null) {
-            throw new IllegalArgumentException("No definition in item " + filterItem);
+    MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry) {
+        if (definition == null) {
+            throw new IllegalArgumentException("No definition in item " + fullPath);
         }
         try {
-            return matchingRuleRegistry.getMatchingRule(matchingRule, itemDefinition.getTypeName());
+            return matchingRuleRegistry.getMatchingRule(matchingRule, definition.getTypeName());
         } catch (SchemaException ex) {
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
@@ -285,6 +284,12 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
             }
         }
         return filterItem;
+    }
+
+    @NotNull
+    Collection<PrismValue> getFilterItemValues() throws SchemaException {
+        //noinspection unchecked
+        return getFilterItem().getValues();
     }
 
     @Override

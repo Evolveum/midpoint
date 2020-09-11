@@ -136,7 +136,7 @@ public class ExtensionTest extends BaseSQLRepoTest {
     }
 
     private boolean checkCounts() {
-        return isH2();
+        return isUsingH2();
     }
 
     private void assertCounts(int queries, int executions) {
