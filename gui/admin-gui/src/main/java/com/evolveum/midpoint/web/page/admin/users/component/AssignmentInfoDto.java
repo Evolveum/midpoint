@@ -12,6 +12,8 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -261,12 +263,12 @@ public class AssignmentInfoDto extends Selectable<AssignmentInfoDto> implements 
     }
 
     public IModel<String> getRelationDisplayNameModel(Component component) {
-        String localizationKey;
-        if (WebComponentUtil.isDefaultRelation(relation)) {
-            localizationKey = null;
-        } else {
-            localizationKey = WebComponentUtil.getRelationHeaderLabelKey(relation);
+        if (relation == null) {
+            return Model.of("");
         }
-        return localizationKey != null ? PageBase.createStringResourceStatic(component, localizationKey) : Model.of("");
+        String relationDisplayName = WebComponentUtil.getRelationHeaderLabelKeyIfKnown(relation);
+        return StringUtils.isNotEmpty(relationDisplayName) ?
+                PageBase.createStringResourceStatic(component, relationDisplayName) :
+                PageBase.createStringResourceStatic(component, relation.getLocalPart());
     }
 }

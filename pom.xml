@@ -185,8 +185,9 @@
         Sometimes occurs on heavy concurrent test, e.g. on TestDummyParallelism.
         This bug was introduced in 1.4.198, which was major version that also changed queries in OrgClosureManager.
         If h2<=1.4.197 is used, the OrgClosureManager must be changed to previous version.
-        <h2.version>1.4.199</h2.version>
+        With 1.4.200 TestObjectLifecycleApprovalGlobal fails consistently.
         -->
+        <h2.version>1.4.199</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
         <wicket.version>8.6.0</wicket.version>
         <groovy.version>2.5.12</groovy.version>
