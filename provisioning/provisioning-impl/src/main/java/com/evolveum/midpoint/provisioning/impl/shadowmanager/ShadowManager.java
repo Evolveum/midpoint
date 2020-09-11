@@ -1926,7 +1926,13 @@ public class ShadowManager {
     public void deleteShadow(ProvisioningContext ctx, PrismObject<ShadowType> oldRepoShadow, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         LOGGER.trace("Deleting repository {}", oldRepoShadow);
-        repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
+        try {
+            repositoryService.deleteObject(ShadowType.class, oldRepoShadow.getOid(), parentResult);
+        } catch (ObjectNotFoundException e) {
+            // Attempt to delete shadow that is already deleted. No big deal.
+            parentResult.muteLastSubresultError();
+            LOGGER.trace("Attempt to delete repository {} that is already deleted. Ignoring error.", oldRepoShadow);
+        }
     }
 
 
