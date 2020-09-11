@@ -59,7 +59,6 @@ public class GreaterFilterImpl<T> extends ComparativeFilterImpl<T> implements Gr
         return new GreaterFilterImpl<>(propertyPath, definition, matchingRule, null, null, rightSidePath, rightSideDefinition, equals);
     }
 
-    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public GreaterFilterImpl<T> clone() {
         return new GreaterFilterImpl<>(getFullPath(), getDefinition(), getMatchingRule(), getClonedValue(), getExpression(),
@@ -74,5 +73,10 @@ public class GreaterFilterImpl<T> extends ComparativeFilterImpl<T> implements Gr
     @Override
     public boolean equals(Object obj, boolean exact) {
         return obj instanceof GreaterFilter && super.equals(obj, exact);
+    }
+
+    @Override
+    boolean processComparisonResult(int result) {
+        return isEquals() ? result >= 0 : result > 0;
     }
 }

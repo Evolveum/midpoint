@@ -1,30 +1,31 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.prism.impl.query;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang3.Validate;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
-import com.evolveum.midpoint.prism.path.*;
+import com.evolveum.midpoint.prism.path.ItemName;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import org.apache.commons.lang.Validate;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
 
 public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefinition> extends ObjectFilterImpl implements
         ValueFilter<V, D> {
@@ -88,13 +89,13 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
             return definition.getItemName();        // this is more precise, as the name in path can be unqualified
         }
         if (fullPath.isEmpty()) {
-            throw new IllegalStateException("Empty full path in filter "+this);
+            throw new IllegalStateException("Empty full path in filter " + this);
         }
         Object last = fullPath.last();
         if (ItemPath.isName(last)) {
             return ItemPath.toName(last);
         } else {
-            throw new IllegalStateException("Got "+last+" as a last path segment in value filter "+this);
+            throw new IllegalStateException("Got " + last + " as a last path segment in value filter " + this);
         }
     }
 
@@ -118,14 +119,13 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
     }
 
     @NotNull
-    MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem) {
-        ItemDefinition itemDefinition = filterItem.getDefinition();
-        if (itemDefinition == null) {
-            throw new IllegalArgumentException("No definition in item "+filterItem);
+    MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry) {
+        if (definition == null) {
+            throw new IllegalArgumentException("No definition in item " + fullPath);
         }
         try {
-            return matchingRuleRegistry.getMatchingRule(matchingRule, itemDefinition.getTypeName());
-        } catch (SchemaException ex){
+            return matchingRuleRegistry.getMatchingRule(matchingRule, definition.getTypeName());
+        } catch (SchemaException ex) {
             throw new IllegalArgumentException(ex.getMessage(), ex);
         }
     }
@@ -233,7 +233,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
 
     public boolean isRaw() {
         if (values != null) {
-            for (V value: values) {
+            for (V value : values) {
                 if (value.isRaw()) {
                     return true;
                 }
@@ -270,13 +270,13 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
     // TODO revise
     @NotNull
     Item getFilterItem() throws SchemaException {
-        if (getDefinition() == null){
+        if (getDefinition() == null) {
             throw new SchemaException("Could not find definition for item " + getPath());
         }
         Item filterItem = getDefinition().instantiate();
         if (getValues() != null && !getValues().isEmpty()) {
             try {
-                for (PrismValue v : getValues()){
+                for (PrismValue v : getValues()) {
                     filterItem.add(v.clone());
                 }
             } catch (SchemaException e) {
@@ -284,6 +284,12 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
             }
         }
         return filterItem;
+    }
+
+    @NotNull
+    Collection<PrismValue> getFilterItemValues() throws SchemaException {
+        //noinspection unchecked
+        return getFilterItem().getValues();
     }
 
     @Override
@@ -297,8 +303,12 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
 
     @Override
     public boolean equals(Object o, boolean exact) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ValueFilterImpl<?, ?> that = (ValueFilterImpl<?, ?>) o;
         return fullPath.equals(that.fullPath, exact) &&
                 (!exact || Objects.equals(definition, that.definition)) &&
@@ -306,7 +316,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
                 MiscUtil.nullableCollectionsEqual(values, that.values) &&
                 Objects.equals(expression, that.expression) &&
                 (rightHandSidePath == null && that.rightHandSidePath == null ||
-                    rightHandSidePath != null && rightHandSidePath.equals(that.rightHandSidePath, exact)) &&
+                        rightHandSidePath != null && rightHandSidePath.equals(that.rightHandSidePath, exact)) &&
                 (!exact || Objects.equals(rightHandSideDefinition, that.rightHandSideDefinition));
     }
 
@@ -335,12 +345,12 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
 
     protected void debugDump(int indent, StringBuilder sb) {
         sb.append("\n");
-        DebugUtil.indentDebugDump(sb, indent+1);
+        DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("PATH: ");
         sb.append(getFullPath().toString());
 
         sb.append("\n");
-        DebugUtil.indentDebugDump(sb, indent+1);
+        DebugUtil.indentDebugDump(sb, indent + 1);
         sb.append("DEF: ");
         if (getDefinition() != null) {
             sb.append(getDefinition().toString());
@@ -351,7 +361,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         List<V> values = getValues();
         if (values != null) {
             sb.append("\n");
-            DebugUtil.indentDebugDump(sb, indent+1);
+            DebugUtil.indentDebugDump(sb, indent + 1);
             sb.append("VALUE:");
             for (PrismValue val : getValues()) {
                 sb.append("\n");
@@ -362,7 +372,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         ExpressionWrapper expression = getExpression();
         if (expression != null && expression.getExpression() != null) {
             sb.append("\n");
-            DebugUtil.indentDebugDump(sb, indent+1);
+            DebugUtil.indentDebugDump(sb, indent + 1);
             sb.append("EXPRESSION:");
             sb.append("\n");
             sb.append(DebugUtil.debugDump(expression.getExpression(), indent + 2));
@@ -370,11 +380,11 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
 
         if (getRightHandSidePath() != null) {
             sb.append("\n");
-            DebugUtil.indentDebugDump(sb, indent+1);
+            DebugUtil.indentDebugDump(sb, indent + 1);
             sb.append("RIGHT SIDE PATH: ");
             sb.append(getFullPath().toString());
             sb.append("\n");
-            DebugUtil.indentDebugDump(sb, indent+1);
+            DebugUtil.indentDebugDump(sb, indent + 1);
             sb.append("RIGHT SIDE DEF: ");
             if (getRightHandSideDefinition() != null) {
                 sb.append(getRightHandSideDefinition().toString());
@@ -386,7 +396,7 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         QName matchingRule = getMatchingRule();
         if (matchingRule != null) {
             sb.append("\n");
-            DebugUtil.indentDebugDump(sb, indent+1);
+            DebugUtil.indentDebugDump(sb, indent + 1);
             sb.append("MATCHING: ");
             sb.append(matchingRule);
         }
@@ -396,14 +406,14 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
         sb.append(getFullPath().toString());
         sb.append(",");
         if (getValues() != null) {
-            for (int i = 0; i< getValues().size() ; i++) {
+            for (int i = 0; i < getValues().size(); i++) {
                 PrismValue value = getValues().get(i);
                 if (value == null) {
                     sb.append("null");
                 } else {
                     sb.append(value.toString());
                 }
-                if (i != getValues().size() -1) {
+                if (i != getValues().size() - 1) {
                     sb.append(",");
                 }
             }
@@ -417,17 +427,17 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
     @Override
     public void checkConsistence(boolean requireDefinitions) {
         if (requireDefinitions && definition == null) {
-            throw new IllegalArgumentException("Null definition in "+this);
+            throw new IllegalArgumentException("Null definition in " + this);
         }
         if (fullPath.isEmpty()) {
-            throw new IllegalArgumentException("Empty path in "+this);
+            throw new IllegalArgumentException("Empty path in " + this);
         }
         Object last = fullPath.last();
         if (!ItemPath.isName(last) && !ItemPath.isIdentifier(last)) {
             throw new IllegalArgumentException("Last segment of item path is not a name or identifier segment: " + fullPath + " (it is " + last + ")");
         }
         if (rightHandSidePath != null && rightHandSidePath.isEmpty()) {
-            throw new IllegalArgumentException("Not-null but empty right side path in "+this);
+            throw new IllegalArgumentException("Not-null but empty right side path in " + this);
         }
         int count = 0;
         if (values != null) {
@@ -444,15 +454,15 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
                     + "), expression (" + expression + "), rightHandSidePath (" + rightHandSidePath + ") in " + this);
         }
         if (values != null) {
-            for (V value: values) {
+            for (V value : values) {
                 if (value == null) {
-                    throw new IllegalArgumentException("Null value in "+this);
+                    throw new IllegalArgumentException("Null value in " + this);
                 }
                 if (value.getParent() != this) {
-                    throw new IllegalArgumentException("Value "+value+" in "+this+" has a bad parent "+value.getParent());
+                    throw new IllegalArgumentException("Value " + value + " in " + this + " has a bad parent " + value.getParent());
                 }
                 if (value.isEmpty() && !value.isRaw()) {
-                    throw new IllegalArgumentException("Empty value in "+this);
+                    throw new IllegalArgumentException("Empty value in " + this);
                 }
             }
         }
@@ -464,5 +474,4 @@ public abstract class ValueFilterImpl<V extends PrismValue, D extends ItemDefini
             // todo check consistence for ID-based filters
         }
     }
-
 }

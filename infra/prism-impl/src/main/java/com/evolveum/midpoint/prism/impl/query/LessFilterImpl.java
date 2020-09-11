@@ -58,7 +58,6 @@ public final class LessFilterImpl<T> extends ComparativeFilterImpl<T> implements
         return new LessFilterImpl<>(propertyPath, definition, matchingRule, null, null, rightSidePath, rightSideDefinition, equals);
     }
 
-    @SuppressWarnings("CloneDoesntCallSuperClone")
     @Override
     public LessFilterImpl<T> clone() {
         return new LessFilterImpl<>(getFullPath(), getDefinition(), getMatchingRule(), getClonedValue(), getExpression(),
@@ -73,5 +72,10 @@ public final class LessFilterImpl<T> extends ComparativeFilterImpl<T> implements
     @Override
     public boolean equals(Object obj, boolean exact) {
         return obj instanceof LessFilter && super.equals(obj, exact);
+    }
+
+    @Override
+    boolean processComparisonResult(int result) {
+        return isEquals() ? result <= 0 : result < 0;
     }
 }
