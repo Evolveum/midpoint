@@ -228,6 +228,7 @@ public class ScriptExpressionFactory implements Cacheable {
         if (type == null || type.isAssignableFrom(FunctionLibraryType.class)) {
             // Currently we don't try to select entries to be cleared based on OID
             customFunctionLibraryCache.clear();
+            initialized.set(false);
         }
     }
 
