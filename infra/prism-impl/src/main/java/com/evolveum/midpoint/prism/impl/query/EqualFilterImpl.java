@@ -110,7 +110,7 @@ public class EqualFilterImpl<T> extends PropertyValueFilterImpl<T> implements Eq
             return true;                    // because filter item is empty as well (checked by super.match)
         }
         Item filterItem = getFilterItem();
-        MatchingRule<?> matchingRule = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
+        MatchingRule<?> matchingRule = getMatchingRuleFromRegistry(matchingRuleRegistry);
         for (Object filterItemValue : filterItem.getValues()) {
             checkPrismPropertyValue(filterItemValue);
             for (Object objectItemValue : objectItemValues) {
@@ -121,12 +121,6 @@ public class EqualFilterImpl<T> extends PropertyValueFilterImpl<T> implements Eq
             }
         }
         return false;
-    }
-
-    private void checkPrismPropertyValue(Object value) {
-        if (!(value instanceof PrismPropertyValue)) {
-            throw new IllegalArgumentException("Not supported prism value for equals filter. It must be an instance of PrismPropertyValue but it is " + value.getClass());
-        }
     }
 
     private <T1> boolean matches(PrismPropertyValue<?> filterValue, PrismPropertyValue<?> objectValue, MatchingRule<T1> matchingRule) {

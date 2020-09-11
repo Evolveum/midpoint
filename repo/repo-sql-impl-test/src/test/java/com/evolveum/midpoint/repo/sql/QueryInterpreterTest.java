@@ -7,6 +7,8 @@
 
 package com.evolveum.midpoint.repo.sql;
 
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.F_EMPLOYEE_NUMBER;
+
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_ID;
@@ -76,8 +78,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.query_3.QueryType;
 
 /**
- * @author lazyman
- * @author mederly
+ * Tests repository query interpreter.
  */
 @ContextConfiguration(locations = { "../../../../../ctx-test.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
@@ -3956,7 +3957,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(UserType.class)
-                    .item(UserType.F_EMPLOYEE_NUMBER).isNull()
+                    .item(F_EMPLOYEE_NUMBER).isNull()
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
             String expected = "select\n"
@@ -4702,9 +4703,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            /*
-             *  ### user: Equal (name, "asdf", PolyStringNorm)
-             */
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
                             PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
@@ -4717,6 +4715,128 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     "where\n" +
                     "  u.passwordCreateTimestamp > :passwordCreateTimestamp";
 
+            String real = getInterpretedQuery(session, UserType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test736QueryPolyStringGtOrig() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(F_NAME).gt("J").matchingOrig()
+                    .build();
+
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "where\n"
+                    + "  u.nameCopy.orig > :orig\n";
+            String real = getInterpretedQuery(session, UserType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test737QueryPolyStringGtNorm() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(F_NAME).gt("j").matchingNorm()
+                    .build();
+
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "where\n"
+                    + "  u.nameCopy.norm > :norm";
+            String real = getInterpretedQuery(session, UserType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test738QueryPolyStringGtStrict() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(F_NAME).gt("j").matchingStrict()
+                    .build();
+
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    u.nameCopy.orig > :orig and\n"
+                    + "    u.nameCopy.norm > :norm\n"
+                    + "  )\n";
+            String real = getInterpretedQuery(session, UserType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    // For polystrings, default matching is the strict one.
+    @Test
+    public void test739QueryPolyStringGtDefault() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(F_NAME).gt("j")
+                    .build();
+
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    u.nameCopy.orig > :orig and\n"
+                    + "    u.nameCopy.norm > :norm\n"
+                    + "  )\n";
+            String real = getInterpretedQuery(session, UserType.class, query);
+            assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test
+    public void test740QueryStringGtIgnoreCase() throws Exception {
+        Session session = open();
+
+        try {
+            ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(F_EMPLOYEE_NUMBER).gt("j").matchingCaseIgnore()
+                    .build();
+
+            String expected = "select\n"
+                    + "  u.oid,\n"
+                    + "  u.fullObject\n"
+                    + "from\n"
+                    + "  RUser u\n"
+                    + "where\n"
+                    + "  lower(u.employeeNumber) > :employeeNumber";
             String real = getInterpretedQuery(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
         } finally {
