@@ -435,7 +435,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
 
     void resetDeltasAfterExecution() {
-        secondaryDeltas.add(secondaryDelta);
+        secondaryDeltas.add(getLensContext().getExecutionWave(), secondaryDelta);
         secondaryDelta = null;
         primaryDeltaExecuted = true;
     }
