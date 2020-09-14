@@ -387,7 +387,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             logOutputTripleMap(focusOutputTripleMap);
 
             DeltaSetTripleMapConsolidation<AH> consolidation = new DeltaSetTripleMapConsolidation<>(focusOutputTripleMap,
-                    focusOdoRelative.getNewObject(), focusOdoRelative.getObjectDelta(), context::itemDeltaExists,
+                    focusOdoRelative.getNewObject(), focusOdoRelative.getObjectDelta(), context::primaryFocusItemDeltaExists,
                     null, null,
                     focusContext.getObjectDefinition(), env, beans, context, result);
             consolidation.computeItemDeltas();

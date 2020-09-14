@@ -446,10 +446,8 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         secondaryDeltas.clear();
     }
 
-    // TODO optimize ... or should this be applied only to primary delta? - MID-6406
-    boolean itemDeltaExists(ItemPath path) {
-        ObjectDelta<O> summaryDelta = getSummaryDelta();
-        return summaryDelta != null && !ItemDelta.isEmpty(summaryDelta.findItemDelta(path));
+    boolean primaryItemDeltaExists(ItemPath path) {
+        return primaryDelta != null && !ItemDelta.isEmpty(primaryDelta.findItemDelta(path));
     }
 
     public boolean isPrimaryDeltaExecuted() {
