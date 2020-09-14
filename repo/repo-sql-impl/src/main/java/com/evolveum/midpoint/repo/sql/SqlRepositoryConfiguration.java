@@ -567,6 +567,8 @@ public class SqlRepositoryConfiguration {
 
     private String getDefaultEmbeddedJdbcUrl() {
         return getDefaultEmbeddedJdbcUrlPrefix()
+                // TODO: Was used for 1.4.193, but do we really need it?
+//                + ";MVCC=FALSE" // Turn off MVCC, revert to table locking.
                 // Disable database closing on exit. By default, a database is closed when the last connection is closed.
                 + ";DB_CLOSE_ON_EXIT=FALSE"
                 // Both read locks and write locks are kept until the transaction commits.

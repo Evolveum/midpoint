@@ -447,7 +447,7 @@ public class TaskManagerConfiguration {
             if (explicitJdbcUrl == null) {
                 if (sqlConfig != null) {
                     if (sqlConfig.isEmbedded()) {
-                        jdbcUrl = defaultJdbcUrlPrefix + "-quartz;DB_CLOSE_ON_EXIT=FALSE";
+                        jdbcUrl = defaultJdbcUrlPrefix + "-quartz;MVCC=TRUE;DB_CLOSE_ON_EXIT=FALSE";
                     } else {
                         jdbcUrl = sqlConfig.getJdbcUrl();
                     }

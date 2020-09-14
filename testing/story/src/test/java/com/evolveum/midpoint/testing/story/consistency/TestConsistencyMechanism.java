@@ -4,7 +4,7 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.story;
+package com.evolveum.midpoint.testing.story.consistency;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
@@ -82,7 +82,7 @@ import com.evolveum.prism.xml.ns._public.types_3.RawType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
-    private static final String TEST_DIR = "src/test/resources/consistency/";
+    protected static final String TEST_DIR = "src/test/resources/consistency/";
 
     private static final String SYSTEM_CONFIGURATION_FILENAME = TEST_DIR + "system-configuration.xml";
 
@@ -94,7 +94,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     private static final String SAMPLE_CONFIGURATION_OBJECT_FILENAME = TEST_DIR + "sample-configuration-object.xml";
 
-    private static final String RESOURCE_OPENDJ_FILENAME = TEST_DIR + "resource-opendj.xml";
+    private static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
     private static final String RESOURCE_OPENDJ_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
     private static final String RESOURCE_OPENDJ_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance-3";
     private static final QName RESOURCE_OPENDJ_ACCOUNT_OBJECTCLASS = new QName(RESOURCE_OPENDJ_NS, "inetOrgPerson");
@@ -136,7 +136,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     private static final String USER_ELAINE_FILENAME = TEST_DIR + "user-elaine.xml";
     private static final File USER_ELAINE_FILE = new File(USER_ELAINE_FILENAME);
-    private static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-111111116666";
+    protected static final String USER_ELAINE_OID = "c0c010c0-d34d-b33f-f00d-111111116666";
 
     private static final String USER_HERMAN_FILENAME = TEST_DIR + "user-herman.xml";
     private static final String USER_HERMAN_OID = "c0c010c0-d34d-b33f-f00d-111111119999";
@@ -186,7 +186,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
     private static final String ACCOUNT_DENIELS_FILENAME = TEST_DIR + "account-deniels.xml";
     private static final File ACCOUNT_DENIELS_FILE = new File(ACCOUNT_DENIELS_FILENAME);
-    private static final String ACCOUNT_DENIELS_OID = "a0c010c0-d34d-b33f-f00d-111111111555";
+    protected static final String ACCOUNT_DENIELS_OID = "a0c010c0-d34d-b33f-f00d-111111111555";
     private static final String ACCOUNT_DENIELS_LDAP_UID = "deniels";
     private static final String ACCOUNT_DENIELS_LDAP_DN = "uid=" + ACCOUNT_DENIELS_LDAP_UID + "," + OPENDJ_PEOPLE_SUFFIX;
 
@@ -252,12 +252,16 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // Need to import instead of add, so the (dynamic) connector reference
         // will be resolved correctly
-        importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
+        importObjectFromFile(getResourceFile(), initResult);
 
         repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, initResult);
         repoAddObjectFromFile(USER_TEMPLATE_FILENAME, initResult);
 
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+    }
+
+    protected File getResourceFile() {
+        return RESOURCE_OPENDJ_FILE;
     }
 
 //    @Override
@@ -690,6 +694,22 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         executeChanges(deleteDelta, null, task, parentResult);
         parentResult.computeStatus();
 
+        // THEN
+        then();
+        checkTest130DeadShadow(task, parentResult);
+
+        assertNoRepoShadow(ACCOUNT_GUYBRUSH_OID);
+
+        clock.resetOverride();
+
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        UserAsserter.forUser(userAfter)
+                .assertLinks(0);
+
+        repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, parentResult);
+    }
+
+    protected void checkTest130DeadShadow(Task task, OperationResult parentResult) throws CommonException {
         PrismObject<ShadowType> shadowRepo = getShadowRepo(ACCOUNT_GUYBRUSH_OID);
         ShadowAsserter.forShadow(shadowRepo)
                 .assertTombstone()
@@ -700,23 +720,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         then();
         provisioningService.refreshShadow(shadowRepo, null, task, parentResult);
-
-        try {
-            repositoryService.getObject(ShadowType.class, ACCOUNT_GUYBRUSH_OID, null, parentResult);
-            fail("Unexpected object found");
-        } catch (Exception ex) {
-            if (!(ex instanceof ObjectNotFoundException)) {
-                fail("Expected ObjectNotFoundException but got " + ex);
-            }
-        }
-
-        clock.resetOverride();
-
-        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
-        UserAsserter.forUser(userAfter)
-                .assertLinks(0);
-
-        repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, parentResult);
     }
 
     /**
@@ -756,6 +759,19 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         // THEN
         then();
+        checkTest140DeadShadow(task, result);
+
+        assertNoRepoShadow(ACCOUNT_GUYBRUSH_OID);
+
+        clock.resetOverride();
+        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
+        UserAsserter.forUser(userAfter)
+                .assertLinks(0);
+
+//        repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, result);
+    }
+
+    protected void checkTest140DeadShadow(Task task, OperationResult result) throws CommonException {
         PrismObject<ShadowType> shadowAfter = getShadowRepo(ACCOUNT_GUYBRUSH_OID);
         ShadowAsserter.forShadow(shadowAfter)
                 .assertTombstone()
@@ -764,22 +780,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         clockForward("PT20M");
         provisioningService.refreshShadow(shadowAfter, null, task, result);
-
-        try {
-            repositoryService.getObject(ShadowType.class, ACCOUNT_GUYBRUSH_OID, null, result);
-            fail("Expected ObjectNotFound but did not get one.");
-        } catch (Exception ex) {
-            if (!(ex instanceof ObjectNotFoundException)) {
-                fail("Expected ObjectNotFoundException but got " + ex);
-            }
-        }
-
-        clock.resetOverride();
-        PrismObject<UserType> userAfter = getUser(USER_GUYBRUSH_OID);
-        UserAsserter.forUser(userAfter)
-                .assertLinks(0);
-
-//        repositoryService.deleteObject(UserType.class, USER_GUYBRUSH_OID, result);
     }
 
     /**
@@ -2576,7 +2576,17 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         assertAttribute(modifiedAccount, "givenName", "Jackkk");
         assertAttribute(modifiedAccount, "employeeNumber", "emp4321");
 
-        // check if the account was marked as dead during the reconciliation process
+        // check if the account was marked as dead (or deleted) during the reconciliation process
+        assert800DeadShadows();
+
+        accountOid = assertUserOneAccountRef(USER_JACKIE_OID);
+        ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, "jack2", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
+        assertAttribute(jack2Shadow, "givenName", "jackNew2a");
+        assertAttribute(jack2Shadow, "cn", "jackNew2a");
+
+    }
+
+    protected void assert800DeadShadows() throws CommonException {
         assertRepoShadow(ACCOUNT_DENIELS_OID)
                 .assertDead();
 
@@ -2610,11 +2620,6 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .display()
                 .delta()
                 .assertAdd();
-
-        accountOid = assertUserOneAccountRef(USER_JACKIE_OID);
-        ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, "jack2", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
-        assertAttribute(jack2Shadow, "givenName", "jackNew2a");
-        assertAttribute(jack2Shadow, "cn", "jackNew2a");
 
     }
 

@@ -182,12 +182,13 @@
         <!--
         Default Spring Boot 2.3.3 uses H2 1.4.200 but that one has NPE bug:
         https://github.com/h2database/h2database/issues/1808
-        Sometimes occurs on heavy concurrent test, e.g. on TestDummyParallelism.
+        Sometimes occurs on heavy concurrent test, e.g. on TestDummyParallelism, but also during app run.
         This bug was introduced in 1.4.198, which was major version that also changed queries in OrgClosureManager.
-        If h2<=1.4.197 is used, the OrgClosureManager must be changed to previous version.
+        Between 1.4.197 and 198 changes of OrgClosureManager and around MVCC must be made (see commit history).
         With 1.4.200 TestObjectLifecycleApprovalGlobal fails consistently.
+        197 seems to be last version that works OK with midPoint before very disruptive changes.
         -->
-        <h2.version>1.4.199</h2.version>
+        <h2.version>1.4.197</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
         <wicket.version>8.6.0</wicket.version>
         <groovy.version>2.5.12</groovy.version>

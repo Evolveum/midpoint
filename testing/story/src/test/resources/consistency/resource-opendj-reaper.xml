@@ -6,6 +6,8 @@
   ~ and European Union Public License. See LICENSE file for details.
   -->
 
+<!-- This version of the resorce reaps dead shadows immediately (deadShadowRetentionPeriod=0) -->
+
 <resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
@@ -17,7 +19,7 @@
           xmlns:my="http://whatever.com/my">
 
     <!-- Resource printable name -->
-    <name>Embedded Test OpenDJ</name>
+    <name>Embedded Test OpenDJ: Reaper</name>
 
     <!-- Reference to the ICF LDAP connector. This is dynamic reference, it will be translated to
           OID during import. -->
@@ -642,7 +644,7 @@
         <shadowConstraintsCheck>light</shadowConstraintsCheck>
         <pendingOperationGracePeriod>PT15M</pendingOperationGracePeriod>
         <pendingOperationRetentionPeriod>PT30M</pendingOperationRetentionPeriod>
-        <deadShadowRetentionPeriod>PT5M</deadShadowRetentionPeriod>
+        <deadShadowRetentionPeriod>PT0H</deadShadowRetentionPeriod>
         <reshreshOnRead>false</reshreshOnRead>
     </consistency>
 
