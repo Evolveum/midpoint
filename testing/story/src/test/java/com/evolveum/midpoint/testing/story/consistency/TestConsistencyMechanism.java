@@ -22,6 +22,8 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+
 import org.apache.commons.lang3.StringUtils;
 import org.opends.server.types.Entry;
 import org.opends.server.util.EmbeddedUtils;
@@ -1387,7 +1389,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         Task task = taskManager.createTaskInstance();
 
         XMLGregorianCalendar lastRequestStartTs = clock.currentTimeXMLGregorianCalendar();
-        executeChanges(objectDelta, null, task, parentResult);
+        executeChanges(objectDelta, ModelExecuteOptions.create(prismContext).pushChanges(), task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         parentResult.computeStatus();
@@ -1428,7 +1430,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertNotDead()
                 .assertNoLegacyConsistency()
-                //.assertAdministrativeStatus(ActivationStatusType.ENABLED) // MID-6420
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED) // MID-6420
                 .attributes()
                 .assertValue(LDAP_ATTRIBUTE_CN, "jackNew2")
                 .end()
@@ -1469,7 +1471,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .createModifyDelta(USER_JACKIE_OID, modifications, UserType.class);
         Task task = taskManager.createTaskInstance();
 
-        executeChanges(objectDelta, null, task, parentResult);
+        executeChanges(objectDelta, ModelExecuteOptions.create(prismContext).pushChanges(), task, parentResult);
         XMLGregorianCalendar lastRequestEndTs = clock.currentTimeXMLGregorianCalendar();
 
         parentResult.computeStatus();
@@ -1531,7 +1533,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
                 .assertKind(ShadowKindType.ACCOUNT)
                 .assertNotDead()
                 .assertNoLegacyConsistency()
-                //.assertAdministrativeStatus(ActivationStatusType.ENABLED)  // MID-6420
+                .assertAdministrativeStatus(ActivationStatusType.ENABLED) // MID-6420
                 .attributes()
                 .assertValue(LDAP_ATTRIBUTE_CN, "jackNew2a")
                 .assertValue(LDAP_ATTRIBUTE_GIVENNAME, "jackNew2a")

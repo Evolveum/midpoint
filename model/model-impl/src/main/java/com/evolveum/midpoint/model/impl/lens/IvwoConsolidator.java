@@ -398,7 +398,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
                 addingOrigins.addAll(equivalenceClass.zeroOrigins);
             } else if (addUnchangedValuesExceptForNormalMappings) {
                 for (I zeroIvwo : equivalenceClass.zeroOrigins) {
-                    if (zeroIvwo.isStrong() || zeroIvwo.isNormal() && zeroIvwo.isSourceless() || zeroIvwo.isWeak()) {
+                    if (zeroIvwo.isStrong() || zeroIvwo.isNormal() && (zeroIvwo.isSourceless() || zeroIvwo.isPushChanges()) || zeroIvwo.isWeak()) {
                         addingOrigins.add(zeroIvwo);
                     }
                 }

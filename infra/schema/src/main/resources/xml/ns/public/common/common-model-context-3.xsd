@@ -1428,6 +1428,13 @@
                     <xsd:element name="conditionResultNew" type="xsd:boolean" minOccurs="0"/>
                     <xsd:element name="implicitSourcePath" type="t:ItemPathType" minOccurs="0"/>
                     <xsd:element name="implicitTargetPath" type="t:ItemPathType" minOccurs="0"/>
+                    <xsd:element name="pushChangesRequested" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="source" type="tns:MappingSourceEvaluationTraceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:appinfo>
@@ -1451,6 +1458,13 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:since>4.0.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="pushChanges" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1757,33 +1771,13 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="hasPlus" type="xsd:boolean" minOccurs="0">
+                    <xsd:element name="inputOrigin" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Does this tuple contain a value that is present in plus set of its source?
-                                (This is an internal implementation information. So this item can change in later versions.)
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="hasMinus" type="xsd:boolean" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Does this tuple contain a value that is present in minus set of its source?
-                                (This is an internal implementation information. So this item can change in later versions.)
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:since>4.2</a:since>
-                            </xsd:appinfo>
-                        </xsd:annotation>
-                    </xsd:element>
-                    <xsd:element name="hasZero" type="xsd:boolean" minOccurs="0">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Does this tuple contain a value that is present in zero set of its source?
-                                (This is an internal implementation information. So this item can change in later versions.)
+                                String representation of the input origin.
+                                P means plus, M means minus, Z means zero for each input in question.
+                                (This awkward form was chosen because multivalued properties in containers
+                                have no guaranteed value ordering.)
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.2</a:since>

@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import org.jetbrains.annotations.NotNull;
 
@@ -141,5 +142,10 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 
     boolean isSourceless() {
         return mapping != null && mapping.isSourceless();
+    }
+
+    @Experimental
+    public boolean isPushChanges() {
+        return mapping != null && mapping.isPushChanges();
     }
 }

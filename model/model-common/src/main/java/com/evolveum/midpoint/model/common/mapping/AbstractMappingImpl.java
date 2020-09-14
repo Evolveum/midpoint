@@ -285,6 +285,23 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     private PrismValueDeltaSetTriple<V> outputTriple;
 
     /**
+     * Whether we were requested to "push" (phantom) changes: source items that have a delta but their
+     * real value has not changed.
+     *
+     * TODO move to "configuration" options and provide via builder.
+     *  (Current way of determining via lens context is more a hack than real solution.)
+     */
+    @Experimental
+    private boolean pushChangesRequested;
+
+    /**
+     * Whether the conditions for pushing the changes at output were fulfilled,
+     * so we instruct the consolidator (or analogous component) to do that.
+     */
+    @Experimental
+    private boolean pushChanges;
+
+    /**
      * Result of the condition evaluation in old vs. new state.
      */
     private PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> conditionOutputTriple;
@@ -758,8 +775,12 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     }
 
     private void recordOutput() {
-        if (trace != null && outputTriple != null) {
-            trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, beans.prismContext));
+        if (trace != null) {
+            if (outputTriple != null) {
+                trace.setOutput(DeltaSetTripleType.fromDeltaSetTriple(outputTriple, beans.prismContext));
+            }
+            trace.setPushChangesRequested(pushChangesRequested);
+            trace.setPushChanges(pushChanges);
         }
     }
 
@@ -1269,6 +1290,9 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
 
         outputTriple = expression.evaluate(context, result);
 
+        pushChangesRequested = determinePushChangesRequested();
+        pushChanges = pushChangesRequested && sourcesChanged();
+
         if (outputTriple == null) {
 
             if (conditionResultNew) {
@@ -1306,6 +1330,8 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
     protected abstract TransformationValueMetadataComputer createValueMetadataComputer(OperationResult result) throws CommunicationException,
             ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
             ExpressionEvaluationException;
+
+    protected abstract boolean determinePushChangesRequested();
 
     @Override
     public PrismValueDeltaSetTriple<V> getOutputTriple() {
@@ -1488,12 +1514,6 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         }
     }
 
-//    // TEMPORARY
-//    List<MetadataMappingType> getMetadataMappings() {
-//        return mappingBean instanceof MappingType ?
-//                ((MappingType) mappingBean).getMetadataMapping() : null;
-//    }
-//
     @NotNull
     public ModelCommonBeans getBeans() {
         return beans;
@@ -1507,5 +1527,11 @@ public abstract class AbstractMappingImpl<V extends PrismValue, D extends ItemDe
         return sources.stream()
                 .map(Source::getName)
                 .collect(Collectors.toList());
+    }
+
+    @Experimental
+    @Override
+    public boolean isPushChanges() {
+        return pushChanges;
     }
 }

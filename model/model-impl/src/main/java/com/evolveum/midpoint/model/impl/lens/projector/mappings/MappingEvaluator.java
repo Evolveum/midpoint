@@ -13,7 +13,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathSegmentImpl;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 
@@ -248,10 +247,8 @@ public class MappingEvaluator {
             evaluateMapping(mapping, params.getContext(), task, result);
 
             PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Output triple of mapping {}\n{}", mapping.getContextDescription(),
-                        mappingOutputTriple == null ? null : mappingOutputTriple.debugDump(1));
-            }
+            LOGGER.trace("Output triple of mapping {}\n{}", mapping.getContextDescription(),
+                    mappingOutputTriple == null ? null : mappingOutputTriple.debugDumpLazily(1));
 
             if (isMeaningful(mappingOutputTriple)) {
 
@@ -268,6 +265,21 @@ public class MappingEvaluator {
                         if (!params.getTargetLoader().isLoaded()) {
                             aPrioriTargetObject = params.getTargetLoader().load("strong mapping", task, result);
                             LOGGER.trace("Loaded object because of strong mapping: {}", aPrioriTargetObject);
+                            hasFullTargetObject = true;
+                        }
+                    }
+                }
+
+                // experimental
+                if (mapping.isPushChanges()) {
+                    mappingOutputStruct.setPushChanges(true);
+
+                    // TODO should we really load the resource object also if we are pushing the changes?
+                    //  (but it looks like we have to!)
+                    if (!hasFullTargetObject && params.getTargetLoader() != null && aPrioriTargetObject != null && aPrioriTargetObject.getOid() != null) {
+                        if (!params.getTargetLoader().isLoaded()) {
+                            aPrioriTargetObject = params.getTargetLoader().load("pushing changes", task, result);
+                            LOGGER.trace("Loaded object because of pushing changes: {}", aPrioriTargetObject);
                             hasFullTargetObject = true;
                         }
                     }
@@ -428,14 +440,15 @@ public class MappingEvaluator {
 
                     Collection<V> valuesToReplace;
 
-                    if (hasFullTargetObject && mappingOutputStruct.isStrongMappingWasUsed()) {
+                    if (hasFullTargetObject && (mappingOutputStruct.isStrongMappingWasUsed() || mappingOutputStruct.isPushChanges())) {
                         valuesToReplace = outputTriple.getNonNegativeValues();
                     } else {
                         valuesToReplace = outputTriple.getPlusSet();
                     }
 
-                    LOGGER.trace("{}: hasFullTargetObject={}, isStrongMappingWasUsed={}, valuesToReplace={}",
-                            mappingDesc, hasFullTargetObject, mappingOutputStruct.isStrongMappingWasUsed(), valuesToReplace);
+                    LOGGER.trace("{}: hasFullTargetObject={}, isStrongMappingWasUsed={}, pushingChange={}, valuesToReplace={}",
+                            mappingDesc, hasFullTargetObject, mappingOutputStruct.isStrongMappingWasUsed(),
+                            mappingOutputStruct.isPushChanges(), valuesToReplace);
 
                     if (!valuesToReplace.isEmpty()) {
 
