@@ -18,344 +18,114 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaWaveType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaWavesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.io.Serializable;
 import java.util.*;
 
 /**
- * @author semancik
+ * Secondary deltas from already completed waves.
  *
- * TODO clean up. Put wave number into object delta wave structure. (Because the wave # no longer
- *  corresponds to the index value.) MID-6406.
+ * The meaning of this structure changed in midPoint 4.2. Originally, we stored here "live" secondary deltas for each
+ * wave. Since 4.2, the current secondary deltas are stored directly in LensFocusContext; and they are moved here
+ * after change execution.
  */
-public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<O>>, DebugDumpable, Serializable {
+public class ObjectDeltaWaves<O extends ObjectType> implements Iterable<ObjectDelta<O>>, DebugDumpable, Serializable {
 
-    private final List<ObjectDelta<O>> waves = new ArrayList<>();
+    private final List<WaveDelta<O>> waveDeltas = new ArrayList<>();
 
-//    /**
-//     * Get merged deltas from all the waves.
-//     */
-//    ObjectDelta<O> getMergedDeltas() throws SchemaException {
-//        return getMergedDeltas(null, -1);
-//    }
-//
-//    /**
-//     * Get merged deltas from the waves up to maxWave (including). Optional initial delta may be supplied.
-//     * Negative maxWave means to merge all available waves.
-//     */
-//    ObjectDelta<O> getMergedDeltas(ObjectDelta<O> initialDelta, int maxWave) throws SchemaException {
-//        ObjectDelta<O> merged = initialDelta != null ? initialDelta.clone() : null;
-//        int waveNum = 0;
-//        for (ObjectDelta<O> delta: waves) {
-//            if (delta != null) {
-//                if (merged == null) {
-//                    merged = delta.clone();
-//                } else {
-//                    merged.merge(delta);
-//                }
-//                if (maxWave >= 0 && waveNum >= maxWave) {
-//                    break;
-//                }
-//            }
-//        }
-//        return merged;
-//    }
+    public void add(int wave, ObjectDelta<O> delta) {
+        waveDeltas.add(new WaveDelta<>(wave, delta));
+    }
+
+    public boolean isEmpty() {
+        return waveDeltas.isEmpty();
+    }
+
+    public void clear() {
+        waveDeltas.clear();
+    }
+
+    public int size() {
+        return waveDeltas.size();
+    }
+
+    public WaveDelta<O> get(int index) {
+        return waveDeltas.get(index);
+    }
+
+    @Override
+    public @NotNull Iterator<ObjectDelta<O>> iterator() {
+        return new Iterator<ObjectDelta<O>>() {
+
+            private final Iterator<WaveDelta<O>> waveDeltaIterator = waveDeltas.iterator();
+
+            @Override
+            public boolean hasNext() {
+                return waveDeltaIterator.hasNext();
+            }
+
+            @Override
+            public ObjectDelta<O> next() {
+                return waveDeltaIterator.next().delta;
+            }
+        };
+    }
 
     public void setOid(String oid) {
-        for (ObjectDelta<O> delta: waves) {
-            if (delta == null) {
-                continue;
-            }
-            delta.setOid(oid);
+        for (WaveDelta<O> waveDelta: waveDeltas) {
+            waveDelta.setOid(oid);
         }
     }
 
     public void checkConsistence(boolean requireOid, String shortDesc) {
-        for (int wave = 0; wave < waves.size(); wave++) {
-            ObjectDelta<O> delta = waves.get(wave);
-            if (delta == null) {
-                continue;
-            }
-            try {
-                delta.checkConsistence(requireOid, true, true, ConsistencyCheckScope.THOROUGH);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException(e.getMessage()+"; in "+shortDesc+", wave "+wave, e);
-            } catch (IllegalStateException e) {
-                throw new IllegalStateException(e.getMessage()+"; in "+shortDesc+", wave "+wave, e);
-            }
+        for (WaveDelta<O> waveDelta : waveDeltas) {
+            waveDelta.checkConsistence(requireOid, shortDesc);
+        }
+    }
+
+    public void checkEncrypted(String shortDesc) {
+        for (WaveDelta<O> waveDelta : waveDeltas) {
+            waveDelta.checkEncrypted(shortDesc);
         }
     }
 
     public void normalize() {
-        for (ObjectDelta<O> wave: waves) {
-            if (wave != null) {
-                wave.normalize();
-            }
+        for (WaveDelta<O> waveDelta: waveDeltas) {
+            waveDelta.normalize();
         }
     }
 
+    @SuppressWarnings("MethodDoesntCallSuperMethod")
     public ObjectDeltaWaves<O> clone() {
         ObjectDeltaWaves<O> clone = new ObjectDeltaWaves<>();
         copyValues(clone);
         return clone;
     }
 
-    protected void copyValues(ObjectDeltaWaves<O> clone) {
-        for (ObjectDelta<O> thisWave: this.waves) {
-            if (thisWave != null) {
-                clone.waves.add(thisWave.clone());
-            } else {
-                clone.waves.add(null);
-            }
+    private void copyValues(ObjectDeltaWaves<O> clone) {
+        for (WaveDelta<O> thisWaveDelta: this.waveDeltas) {
+            clone.waveDeltas.add(thisWaveDelta.clone());
         }
     }
 
     public void adopt(PrismContext prismContext) throws SchemaException {
-        for (ObjectDelta<O> thisWave: this.waves) {
-            if (thisWave != null) {
-                prismContext.adopt(thisWave);
-            }
+        for (WaveDelta<O> waveDelta: this.waveDeltas) {
+            waveDelta.adopt(prismContext);
         }
-    }
-
-
-    // DELEGATED METHODS (with small tweaks)
-
-    /* (non-Javadoc)
-     * @see java.util.List#size()
-     */
-    @Override
-    public int size() {
-        return waves.size();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#isEmpty()
-     */
-    @Override
-    public boolean isEmpty() {
-        return waves.isEmpty();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#contains(java.lang.Object)
-     */
-    @Override
-    public boolean contains(Object o) {
-        return waves.contains(o);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#iterator()
-     */
-    @Override
-    public Iterator<ObjectDelta<O>> iterator() {
-        return waves.iterator();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#toArray()
-     */
-    @Override
-    public Object[] toArray() {
-        return waves.toArray();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#toArray(T[])
-     */
-    @Override
-    public <T> T[] toArray(T[] a) {
-        return waves.toArray(a);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#add(java.lang.Object)
-     */
-    @Override
-    public boolean add(ObjectDelta<O> e) {
-        return waves.add(e);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#remove(java.lang.Object)
-     */
-    @Override
-    public boolean remove(Object o) {
-        return waves.remove(o);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#containsAll(java.util.Collection)
-     */
-    @Override
-    public boolean containsAll(Collection<?> c) {
-        return waves.containsAll(c);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#addAll(java.util.Collection)
-     */
-    @Override
-    public boolean addAll(Collection<? extends ObjectDelta<O>> c) {
-        return waves.addAll(c);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#addAll(int, java.util.Collection)
-     */
-    @Override
-    public boolean addAll(int index, Collection<? extends ObjectDelta<O>> c) {
-        return waves.addAll(index, c);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#removeAll(java.util.Collection)
-     */
-    @Override
-    public boolean removeAll(Collection<?> c) {
-        return waves.removeAll(c);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#retainAll(java.util.Collection)
-     */
-    @Override
-    public boolean retainAll(Collection<?> c) {
-        return waves.retainAll(c);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#clear()
-     */
-    @Override
-    public void clear() {
-        waves.clear();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#get(int)
-     */
-    @Override
-    public ObjectDelta<O> get(int index) {
-        if (index >= waves.size()) {
-            return null;
-        }
-        return waves.get(index);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#set(int, java.lang.Object)
-     */
-    @Override
-    public ObjectDelta<O> set(int index, ObjectDelta<O> element) {
-        if (index >= waves.size()) {
-            for (int i = waves.size(); i < index; i++) {
-                waves.add(null);
-            }
-            waves.add(element);
-            return element;
-        }
-        return waves.set(index, element);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#add(int, java.lang.Object)
-     */
-    @Override
-    public void add(int index, ObjectDelta<O> element) {
-        waves.add(index, element);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#remove(int)
-     */
-    @Override
-    public ObjectDelta<O> remove(int index) {
-        return waves.remove(index);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#indexOf(java.lang.Object)
-     */
-    @Override
-    public int indexOf(Object o) {
-        return waves.indexOf(o);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#lastIndexOf(java.lang.Object)
-     */
-    @Override
-    public int lastIndexOf(Object o) {
-        return waves.lastIndexOf(o);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#listIterator()
-     */
-    @Override
-    public ListIterator<ObjectDelta<O>> listIterator() {
-        return waves.listIterator();
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#listIterator(int)
-     */
-    @Override
-    public ListIterator<ObjectDelta<O>> listIterator(int index) {
-        return waves.listIterator(index);
-    }
-
-    /* (non-Javadoc)
-     * @see java.util.List#subList(int, int)
-     */
-    @Override
-    public List<ObjectDelta<O>> subList(int fromIndex, int toIndex) {
-        return waves.subList(fromIndex, toIndex);
-    }
-
-    // DUMP
-
-    public String dump(boolean showTriples) {
-        return debugDump(0, showTriples);
     }
 
     @Override
     public String debugDump(int indent) {
-        return debugDump(indent, true);
-    }
-
-    public String debugDump(int indent, boolean showTriples) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.indentDebugDump(sb, indent);
-        sb.append("ObjectDeltaWaves:");
+        DebugUtil.debugDumpLabel(sb, "ObjectDeltaWaves", indent);
 
-        if (waves.isEmpty()) {
+        if (waveDeltas.isEmpty()) {
             sb.append(" empty");
-            return sb.toString();
-        }
-
-        if (waves.size() == 1) {
-            sb.append(" single wave\n");
-            if (waves.get(0) != null) {
-                sb.append(waves.get(0).debugDump(indent + 1));
-            } else {
-                DebugUtil.indentDebugDump(sb, indent + 1);
-                sb.append("null\n");
-            }
         } else {
-            sb.append(waves.size()).append(" waves");
-            for (int wave = 0; wave < waves.size(); wave++) {
+            for (WaveDelta<O> waveDelta : waveDeltas) {
                 sb.append("\n");
-                ObjectDelta<O> delta = waves.get(wave);
-                DebugUtil.indentDebugDump(sb, indent + 1);
-                sb.append("delta:");
-                if (delta == null) {
-                    sb.append(" null");
-                } else {
-                    sb.append("\n");
-                    sb.append(delta.debugDump(indent + 2));
-                }
+                sb.append(waveDelta.debugDump(indent + 1));
             }
         }
 
@@ -364,70 +134,129 @@ public class ObjectDeltaWaves<O extends ObjectType> implements List<ObjectDelta<
 
     @Override
     public String toString() {
-        return "ObjectDeltaWaves(" + waves + ")";
+        return "ObjectDeltaWaves(" + waveDeltas + ")";
     }
 
-
     public ObjectDeltaWavesType toObjectDeltaWavesType() throws SchemaException {
-        ObjectDeltaWavesType objectDeltaWavesType = new ObjectDeltaWavesType();
-        for (int i = 0; i < waves.size(); i++) {
-            ObjectDelta wave = waves.get(i);
-            if (wave != null) {
-                ObjectDeltaWaveType objectDeltaWaveType = new ObjectDeltaWaveType();
-                objectDeltaWaveType.setNumber(i);
-                objectDeltaWaveType.setDelta(DeltaConvertor.toObjectDeltaType(wave));
-                objectDeltaWavesType.getWave().add(objectDeltaWaveType);
+        ObjectDeltaWavesType objectDeltaWavesBean = new ObjectDeltaWavesType();
+        for (int i = 0; i < waveDeltas.size(); i++) {
+            WaveDelta<O> waveDelta = waveDeltas.get(i);
+            ObjectDeltaWaveType objectDeltaWaveBean = new ObjectDeltaWaveType();
+            objectDeltaWaveBean.setNumber(i);
+            if (waveDelta.delta != null) {
+                objectDeltaWaveBean.setDelta(DeltaConvertor.toObjectDeltaType(waveDelta.delta));
             }
+            objectDeltaWavesBean.getWave().add(objectDeltaWaveBean);
         }
-        return objectDeltaWavesType;
+        return objectDeltaWavesBean;
     }
 
     // don't forget to apply provisioning definitions to resulting deltas (it's the client responsibility)
-    public static <O extends ObjectType> ObjectDeltaWaves<O> fromObjectDeltaWavesType(ObjectDeltaWavesType secondaryDeltas, PrismContext prismContext) throws SchemaException {
-        if (secondaryDeltas == null) {
+    public static <O extends ObjectType> ObjectDeltaWaves<O> fromObjectDeltaWavesType(ObjectDeltaWavesType objectDeltaWavesBean,
+            PrismContext prismContext) throws SchemaException {
+        if (objectDeltaWavesBean == null) {
             return null;
         }
 
-        ObjectDeltaWaves<O> retval = new ObjectDeltaWaves<>();
-        if (secondaryDeltas.getWave().isEmpty()) {
-            return retval;
-        }
-
-        int max = 0;
-        for (ObjectDeltaWaveType odwt : secondaryDeltas.getWave()) {
-            if (odwt.getNumber() > max) {
-                max = odwt.getNumber();
+        ObjectDeltaWaves<O> objectDeltaWaves = new ObjectDeltaWaves<>();
+        for (ObjectDeltaWaveType objectDeltaWaveBean : objectDeltaWavesBean.getWave()) {
+            if (objectDeltaWaveBean.getNumber() == null) {
+                throw new SchemaException("Missing wave number in " + objectDeltaWaveBean);
+            }
+            if (objectDeltaWaveBean.getDelta() != null) {
+                objectDeltaWaves.add(objectDeltaWaveBean.getNumber(),
+                        DeltaConvertor.createObjectDelta(objectDeltaWaveBean.getDelta(), prismContext));
+            } else {
+                objectDeltaWaves.add(objectDeltaWaveBean.getNumber(), null);
             }
         }
-
-        ObjectDelta<O>[] wavesAsArray = new ObjectDelta[max + 1];
-        for (ObjectDeltaWaveType odwt : secondaryDeltas.getWave()) {
-            wavesAsArray[odwt.getNumber()] = DeltaConvertor.createObjectDelta(odwt.getDelta(), prismContext);
-        }
-
-        for (int i = 0; i <= max; i++) {
-            retval.waves.add(wavesAsArray[i]);
-        }
-        return retval;
+        return objectDeltaWaves;
     }
 
-    public void checkEncrypted(String shortDesc) {
-        for (int wave = 0; wave < waves.size(); wave++) {
-            ObjectDelta<O> delta = waves.get(wave);
-            if (delta == null) {
-                continue;
-            }
-            try {
-                CryptoUtil.checkEncrypted(delta);
-            } catch (IllegalArgumentException e) {
-                throw new IllegalArgumentException(e.getMessage()+"; in "+shortDesc+", wave "+wave, e);
-            } catch (IllegalStateException e) {
-                throw new IllegalStateException(e.getMessage()+"; in "+shortDesc+", wave "+wave, e);
+    /**
+     * Delta for a specific execution wave.
+     */
+    public static class WaveDelta<O extends ObjectType> implements DebugDumpable, Serializable {
+
+        private final int wave;
+        private final ObjectDelta<O> delta;
+
+        private WaveDelta(int wave, ObjectDelta<O> delta) {
+            this.wave = wave;
+            this.delta = delta;
+        }
+
+        @SuppressWarnings("MethodDoesntCallSuperMethod")
+        public WaveDelta<O> clone() {
+            return new WaveDelta<>(wave, delta != null ? delta.clone() : null);
+        }
+
+        public void adopt(PrismContext prismContext) throws SchemaException {
+            if (delta != null) {
+                prismContext.adopt(delta);
             }
         }
-    }
 
-    public void deleteDeltas() {
-        waves.clear();
+        public void setOid(String oid) {
+            if (delta != null) {
+                delta.setOid(oid);
+            }
+        }
+
+        public void checkConsistence(boolean requireOid, String shortDesc) {
+            if (delta != null) {
+                try {
+                    delta.checkConsistence(requireOid, true, true, ConsistencyCheckScope.THOROUGH);
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException(e.getMessage() + "; in " + shortDesc + ", wave " + wave, e);
+                } catch (IllegalStateException e) {
+                    throw new IllegalStateException(e.getMessage() + "; in " + shortDesc + ", wave " + wave, e);
+                }
+            }
+        }
+
+        public void checkEncrypted(String shortDesc) {
+            if (delta != null) {
+                try {
+                    CryptoUtil.checkEncrypted(delta);
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException(e.getMessage() + "; in " + shortDesc + ", wave " + wave, e);
+                } catch (IllegalStateException e) {
+                    throw new IllegalStateException(e.getMessage() + "; in " + shortDesc + ", wave " + wave, e);
+                }
+            }
+        }
+
+        public void normalize() {
+            if (delta != null) {
+                delta.normalize();
+            }
+        }
+
+        @Override
+        public String debugDump(int indent) {
+            StringBuilder sb = new StringBuilder();
+            DebugUtil.debugDumpWithLabelLn(sb, "wave", wave, indent);
+            DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent);
+            return sb.toString();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof WaveDelta)) {
+                return false;
+            }
+            WaveDelta<?> waveDelta = (WaveDelta<?>) o;
+            return wave == waveDelta.wave &&
+                    Objects.equals(delta, waveDelta.delta);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(wave, delta);
+        }
     }
 }
