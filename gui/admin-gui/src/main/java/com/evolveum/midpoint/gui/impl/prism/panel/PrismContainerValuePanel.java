@@ -219,7 +219,8 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
                 @Override
                 public boolean isVisible() {
-                    return shouldBeButtonsShown() && getModelObject()!= null && getModelObject().isHeterogenous();
+                    return shouldBeButtonsShown() && getModelObject()!= null && getModelObject().isHeterogenous() &&
+                            !getModelObject().isVirtual();
                 }
             });
             addChildContainerButton.setOutputMarkupId(true);
@@ -310,6 +311,7 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
 
     @Override
     protected boolean isRemoveButtonVisible() {
-        return super.isRemoveButtonVisible() && getModelObject().isExpanded() && !(getModelObject() instanceof PrismObjectValueWrapper);
+        return super.isRemoveButtonVisible() && getModelObject().isExpanded() && !(getModelObject() instanceof PrismObjectValueWrapper)
+                && !getModelObject().isVirtual();
     }
 }
