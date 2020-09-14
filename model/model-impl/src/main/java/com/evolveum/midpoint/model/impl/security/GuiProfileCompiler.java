@@ -302,11 +302,11 @@ public class GuiProfileCompiler {
         }
         CollectionRefSpecificationType collection = objectListViewType.getCollection();
         if (collection == null) {
-            return objectListViewType.getType().getLocalPart();
+            return objectListViewType.getType() != null ? objectListViewType.getType().getLocalPart() : null;
         }
         ObjectReferenceType collectionRef = collection.getCollectionRef();
         if (collectionRef == null) {
-            return objectListViewType.getType().getLocalPart();
+            return objectListViewType.getType() != null ? objectListViewType.getType().getLocalPart() : null;
         }
         return collectionRef.getOid();
     }
