@@ -386,6 +386,9 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
     }
 
     private String toChar(PlusMinusZero set) {
+        if (set == null) {
+            return "x"; // Occurs for empty sources
+        }
         switch (set) {
             case PLUS:
                 return "P";
