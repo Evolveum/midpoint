@@ -751,6 +751,10 @@ public class ConsolidationProcessor {
                         return null;
                     }
                     @Override
+                    public boolean isPushChanges() {
+                        return false;
+                    }
+                    @Override
                     public String toHumanReadableDescription() {
                         return "auxiliary object class construction " + evaluatedConstruction;
                     }

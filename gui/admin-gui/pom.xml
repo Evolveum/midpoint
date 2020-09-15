@@ -238,17 +238,17 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <scope>runtime</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.microsoft.sqlserver</groupId>
             <artifactId>mssql-jdbc</artifactId>
-            <scope>runtime</scope>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.oracle.database.jdbc</groupId>
             <artifactId>ojdbc8</artifactId>
-            <scope>runtime</scope>
+            <scope>provided</scope>
         </dependency>
 
         <!-- MIDPOINT -->
@@ -846,7 +846,6 @@
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
-                    <!-- <jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=8000 -Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments> -->
                     <!-- TODO question: CAN this argument be active by default, or should be there a different profile defined for this? -->
                     <jvmArguments>-Dserver.port=${server.port} -Dmidpoint.home=${midpoint.home} -Dmidpoint.schrodinger=${midpoint.schrodinger} -Djavax.net.ssl.trustStore=${javax.net.ssl.trustStore} -Djavax.net.ssl.trustStoreType=${javax.net.ssl.trustStoreType}</jvmArguments>
                     <!--
@@ -871,6 +870,7 @@
                 </configuration>
                 <executions>
                     <execution>
+                        <id>repackage-war</id>
                         <goals>
                             <goal>repackage</goal>
                         </goals>
@@ -903,7 +903,7 @@
                         <configuration>
                             <fileset>
                                 <!-- note how the archive is treated as a normal file directory -->
-                                <directory>${project.build.directory}/midpoint-executable.war/WEB-INF/lib</directory>
+                                <directory>${project.build.directory}/midpoint-executable.war/WEB-INF/lib-provided</directory>
                                 <includes>
                                     <include>ojdbc8-*.jar</include>
                                     <include>ucp-*.jar</include>

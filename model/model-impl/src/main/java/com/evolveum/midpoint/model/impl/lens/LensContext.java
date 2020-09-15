@@ -1709,9 +1709,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
         // nothing like this for projections (yet)
     }
 
-    // TEMPORARY!!!
-    public boolean itemDeltaExists(ItemPath path) {
-        return focusContext != null && focusContext.itemDeltaExists(path);
+    public boolean primaryFocusItemDeltaExists(ItemPath path) {
+        return focusContext != null && focusContext.primaryItemDeltaExists(path);
     }
 
     public void deleteSecondaryDeltas() {

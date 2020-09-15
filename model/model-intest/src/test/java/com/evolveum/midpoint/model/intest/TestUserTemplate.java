@@ -2197,7 +2197,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         UserType userAfterType = userAfter.asObjectable();
         assertLinks(userAfter, 1);
 
-        assertEquals("Wrong timezone", "High Seas/Coffin", userAfterType.getTimezone());
+        // There is a mapping "locality->timezone" in the object template (plus: High Seas/Coffin)
+        // but also a mapping "()->timezone" in Rastaman role (zero: Caribbean/Whatever)
+        // Because the normal mapping is source-less, it is evaluated and its result is taken into account.
+        assertEquals("Wrong timezone", "Caribbean/Whatever", userAfterType.getTimezone());
         assertEquals("Wrong locale", "WE", userAfterType.getLocale());
 
         assertEquals("Unexpected value of employeeNumber",
@@ -2242,7 +2245,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         UserType userAfterType = userAfter.asObjectable();
         assertLinks(userAfter, 1);
 
-        assertEquals("Wrong timezone", "High Seas/Six feet under", userAfterType.getTimezone());
+        // There is a mapping "locality->timezone" in the object template (plus: High Seas/Six feet under)
+        // but also a mapping "()->timezone" in Rastaman role (zero: Caribbean/Whatever)
+        // Because the normal mapping is source-less, it is evaluated and its result is taken into account.
+        assertEquals("Wrong timezone", "Caribbean/Whatever", userAfterType.getTimezone());
         assertEquals("Wrong locale", "WE", userAfterType.getLocale());
 
         assertEquals("Unexpected value of employeeNumber",

@@ -56,4 +56,6 @@ public interface PrismValueDeltaSetTripleProducer<V extends PrismValue, D extend
     default boolean isWeak() {
         return getStrength() == MappingStrengthType.WEAK;
     }
+
+    boolean isPushChanges();
 }

@@ -6644,4 +6644,36 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     protected ModelExecuteOptions executeOptions() {
         return ModelExecuteOptions.create(prismContext);
     }
+
+    public interface TracedFunctionCall<X> {
+        X execute() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
+    }
+
+    public interface TracedProcedureCall {
+        void execute() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
+                ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
+    }
+
+    protected <X> X traced(TracedFunctionCall<X> tracedCall) throws CommunicationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, PolicyViolationException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        setGlobalTracingOverride(createModelLoggingTracingProfile());
+        try {
+            return tracedCall.execute();
+        } finally {
+            unsetGlobalTracingOverride();
+        }
+    }
+
+    protected void traced(TracedProcedureCall tracedCall) throws CommunicationException, ObjectNotFoundException,
+            ObjectAlreadyExistsException, PolicyViolationException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        setGlobalTracingOverride(createModelLoggingTracingProfile());
+        try {
+            tracedCall.execute();
+        } finally {
+            unsetGlobalTracingOverride();
+        }
+    }
 }

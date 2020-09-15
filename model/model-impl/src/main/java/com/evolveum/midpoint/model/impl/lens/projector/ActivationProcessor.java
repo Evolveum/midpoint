@@ -660,7 +660,6 @@ public class ActivationProcessor implements ProjectorProcessor {
 
         evaluateOutboundMapping(context, projCtx, bidirectionalMappingType, focusPropertyPath, projectionPropertyPath, initializer,
                 now, current, desc + " outbound activation mapping", task, result);
-
     }
 
     private <T, F extends FocusType> void evaluateOutboundMapping(final LensContext<F> context,
@@ -723,7 +722,6 @@ public class ActivationProcessor implements ProjectorProcessor {
         if (projCtx.isDoReconciliation()) {
             reconcileOutboundValue(context, projCtx, outputTripleMap, desc);
         }
-
     }
 
     /**
@@ -770,10 +768,8 @@ public class ActivationProcessor implements ProjectorProcessor {
 
             Collection<PrismPropertyValue<T>> shouldHaveValues = outputTriple.getNonNegativeValues();
 
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Reconciliation of {}:\n  hasValues:\n{}\n  shouldHaveValues\n{}",
-                        mappingOutputPath, DebugUtil.debugDump(hasValues, 2), DebugUtil.debugDump(shouldHaveValues, 2));
-            }
+            LOGGER.trace("Reconciliation of {}:\n  hasValues:\n{}\n  shouldHaveValues\n{}",
+                    mappingOutputPath, DebugUtil.debugDumpLazily(hasValues, 2), DebugUtil.debugDumpLazily(shouldHaveValues, 2));
 
             for (PrismPropertyValue<T> shouldHaveValue: shouldHaveValues) {
                 if (!PrismValueCollectionsUtil.containsRealValue(hasValues, shouldHaveValue)) {
@@ -802,10 +798,7 @@ public class ActivationProcessor implements ProjectorProcessor {
                 projCtx.swallowToSecondaryDelta(targetItemDelta);
             }
         }
-
     }
-
-
 
     private ItemDeltaItem<PrismPropertyValue<Boolean>,PrismPropertyDefinition<Boolean>> getLegalIdi(LensProjectionContext accCtx) throws SchemaException {
         Boolean legal = accCtx.isLegal();

@@ -20,6 +20,7 @@ public class MappingOutputStruct<V extends PrismValue> implements DebugDumpable 
     private PrismValueDeltaSetTriple<V> outputTriple = null;
     private boolean strongMappingWasUsed = false;
     private boolean weakMappingWasUsed = false;
+    private boolean pushChanges = false;
 
     public PrismValueDeltaSetTriple<V> getOutputTriple() {
         return outputTriple;
@@ -37,6 +38,14 @@ public class MappingOutputStruct<V extends PrismValue> implements DebugDumpable 
         this.strongMappingWasUsed = strongMappingWasUsed;
     }
 
+    public boolean isPushChanges() {
+        return pushChanges;
+    }
+
+    public void setPushChanges(boolean pushChanges) {
+        this.pushChanges = pushChanges;
+    }
+
     public boolean isWeakMappingWasUsed() {
         return weakMappingWasUsed;
     }
@@ -50,7 +59,8 @@ public class MappingOutputStruct<V extends PrismValue> implements DebugDumpable 
         StringBuilder sb = DebugUtil.createTitleStringBuilderLn(MappingOutputStruct.class, indent);
         DebugUtil.debugDumpWithLabelLn(sb, "outputTriple", outputTriple, indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "strongMappingWasUsed", strongMappingWasUsed, indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "weakMappingWasUsed", weakMappingWasUsed, indent + 1);
+        DebugUtil.debugDumpWithLabelLn(sb, "weakMappingWasUsed", weakMappingWasUsed, indent + 1);
+        DebugUtil.debugDumpWithLabel(sb, "pushChanges", pushChanges, indent + 1);
         return sb.toString();
     }
 

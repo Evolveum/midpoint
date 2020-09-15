@@ -38,16 +38,10 @@ public class ValueTupleTransformationOpNode extends OpNode {
                 sb.append("for ").append(trace.getLocalContextDescription()).append(" ");
             }
             sb.append("(");
-            if (Boolean.TRUE.equals(trace.isHasPlus())) {
-                sb.append("+");
+            if (trace.getInputOrigin() != null) {
+                sb.append(trace.getInputOrigin()).append(" → ");
             }
-            if (Boolean.TRUE.equals(trace.isHasMinus())) {
-                sb.append("-");
-            }
-            if (Boolean.TRUE.equals(trace.isHasZero())) {
-                sb.append("0");
-            }
-            sb.append(" → ").append(trace.getDestination());
+            sb.append(trace.getDestination());
             sb.append(")");
             if (Boolean.FALSE.equals(trace.isConditionResult())) {
                 sb.append(" [cond: false]");

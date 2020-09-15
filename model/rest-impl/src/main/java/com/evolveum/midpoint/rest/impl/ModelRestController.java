@@ -286,7 +286,6 @@ public class ModelRestController extends AbstractRestController {
 
         try {
             FocusType loggedInUser = SecurityUtil.getPrincipal().getFocus();
-            System.out.println("loggedInUser = " + loggedInUser);
             PrismObject<UserType> user = model.getObject(UserType.class, loggedInUser.getOid(), null, task, parentResult);
             response = createResponse(HttpStatus.OK, user, parentResult, true);
             parentResult.recordSuccessIfUnknown();
@@ -388,7 +387,8 @@ public class ModelRestController extends AbstractRestController {
     @PutMapping("/{type}/{id}")
     public <T extends ObjectType> ResponseEntity<?> addObject(
             @PathVariable("type") String type,
-            @PathVariable("id") String id, // TODO is it OK that this is not used or at least asserted?
+            // TODO is it OK that this is not used or at least asserted?
+            @SuppressWarnings("unused") @PathVariable("id") String id,
             @RequestParam(value = "options", required = false) List<String> options,
             @RequestBody @NotNull PrismObject<T> object) {
         logger.debug("model rest service for add operation start");
@@ -407,10 +407,11 @@ public class ModelRestController extends AbstractRestController {
 
         ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options, prismContext);
         if (modelExecuteOptions == null) {
-            modelExecuteOptions = ModelExecuteOptions.create(prismContext).overwrite();
-        } else if (!ModelExecuteOptions.isOverwrite(modelExecuteOptions)) {
-            modelExecuteOptions.overwrite(Boolean.TRUE);
+            modelExecuteOptions = ModelExecuteOptions.create(prismContext);
         }
+        // TODO: Do we want to overwrite in any case? Because of PUT?
+        //  This was original logic... and then there's that ignored ID.
+        modelExecuteOptions.overwrite();
 
         String oid;
         ResponseEntity<?> response;

@@ -195,7 +195,7 @@ public class TemplateMappingsEvaluation<F extends AssignmentHolderType, T extend
                 context.getFocusTemplate(),
                 focusContext.getIteration(), focusContext.getIterationToken(),
                 targetSpecification, focusContext.getCurrentDelta(),
-                context::itemDeltaExists,
+                context::primaryFocusItemDeltaExists,
                 focusContext.getObjectDefinition(),
                 "focus " + focusContext.getObjectAny(), now, task, result);
     }

@@ -1008,7 +1008,7 @@ class InboundMappingsEvaluation<F extends FocusType> {
                         .skipNormalMappingAPrioriDeltaCheck(true);
 
         DeltaSetTripleMapConsolidation<F> consolidation = new DeltaSetTripleMapConsolidation<>(
-                outputTripleMap, focusNew, focusAPrioriDelta, context::itemDeltaExists,
+                outputTripleMap, focusNew, focusAPrioriDelta, context::primaryFocusItemDeltaExists,
                 true, customizer, focusDefinition,
                 env, beans, context, result);
         consolidation.computeItemDeltas();

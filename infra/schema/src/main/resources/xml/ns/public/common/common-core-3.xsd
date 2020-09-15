@@ -22885,6 +22885,19 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="pushChanges" type="xsd:boolean" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        "Pushes" changes even if they are phantom. For example, when disabling already disabled user with this
+                        option, all related administrativeStatus-sourced mappings are evaluated even if they would be normally
+                        skipped. This restores behavior of midPoint before 4.2.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="raw" type="xsd:boolean" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>

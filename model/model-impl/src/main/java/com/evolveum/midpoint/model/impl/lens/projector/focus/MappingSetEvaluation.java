@@ -237,7 +237,7 @@ class MappingSetEvaluation<F extends AssignmentHolderType, T extends AssignmentH
                     .ivwoTriple(triple)
                     .itemDefinition(itemDefinition)
                     .aprioriItemDelta(getAprioriItemDelta(focusOdo.getObjectDelta(), path))
-                    .itemDeltaExists(context.itemDeltaExists(path)) // TODO optimize
+                    .itemDeltaExists(context.primaryFocusItemDeltaExists(path))
                     .itemContainer(focusOdo.getNewObject()) // covers existingItem
                     .valueMatcher(null)
                     .comparator(null)

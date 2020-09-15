@@ -12,6 +12,7 @@ import static java.util.Collections.emptySet;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.ValueMetadata;
 
@@ -65,6 +66,11 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
     @NotNull private final List<SourceTriple<?, ?>> sourceTripleList;
 
     /**
+     * Sets (plus/minus/zero) from which individual values were selected.
+     */
+    @NotNull private final List<PlusMinusZero> sets;
+
+    /**
      * Currently transformed value tuple - one value from every source.
      */
     @NotNull private final List<PrismValue> valuesTuple;
@@ -89,21 +95,6 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
      */
     private final int numberOfSources;
 
-//    /**
-//     * Does this tuple contain a value that is present in plus set of its source?
-//     */
-//    private boolean hasPlus;
-//
-//    /**
-//     * Does this tuple contain a value that is present in minus set of its source?
-//     */
-//    private boolean hasMinus;
-//
-//    /**
-//     * Does this tuple contain a value that is present in zero set of its source?
-//     */
-//    private boolean hasZero;
-
     /**
      * What state (old, new) should be input variables taken from?
      */
@@ -125,11 +116,12 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
      */
     private Collection<V> transformationResult;
 
-    ValueTupleTransformation(List<PrismValue> valuesTuple, PlusMinusZero outputSet, CombinatorialEvaluation<V, ?, ?> combinatorialEvaluation,
-            OperationResult parentResult) {
+    ValueTupleTransformation(@NotNull List<PlusMinusZero> sets, List<PrismValue> valuesTuple, PlusMinusZero outputSet,
+            CombinatorialEvaluation<V, ?, ?> combinatorialEvaluation, OperationResult parentResult) {
         this.combinatorialEvaluation = combinatorialEvaluation;
         this.context = combinatorialEvaluation.context;
         this.sourceTripleList = combinatorialEvaluation.sourceTripleList;
+        this.sets = sets;
         this.valuesTuple = valuesTuple;
         this.outputSet = outputSet;
         this.inputVariableState = InputVariableState.forOutputSet(outputSet);
@@ -387,6 +379,23 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
             SourceTriple<?, ?> sourceTriple = sourceTriplesIterator.next();
             trace.getInput().add(TraceUtil.toNamedValueType(pval, sourceTriple.getName(), combinatorialEvaluation.prismContext));
         }
+        trace.setInputOrigin(
+                sets.stream()
+                        .map(this::toChar)
+                        .collect(Collectors.joining()));
+    }
+
+    private String toChar(PlusMinusZero set) {
+        switch (set) {
+            case PLUS:
+                return "P";
+            case MINUS:
+                return "M";
+            case ZERO:
+                return "Z";
+            default:
+                throw new AssertionError(set);
+        }
     }
 
     private void recordBeforeTransformation() {
@@ -395,9 +404,6 @@ class ValueTupleTransformation<V extends PrismValue> implements AutoCloseable {
                 context.isSkipEvaluationPlus(), context.isSkipEvaluationMinus(),
                 outputSet, inputVariableState);
         if (trace != null) {
-//            trace.setHasPlus(hasPlus);
-//            trace.setHasMinus(hasMinus);
-//            trace.setHasZero(hasZero);
             trace.setLocalContextDescription(context.getLocalContextDescription());
         }
     }

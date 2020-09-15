@@ -623,16 +623,17 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
      *
      * TODO Sure? Enabling already enabled user is a phantom change. As such, it is now filtered out.
      */
-    @Test(enabled = false) // MID-6420
+    @Test
     public void test114ModifyUserJackEnable() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+        ModelExecuteOptions options = ModelExecuteOptions.create(prismContext).pushChanges(); // MID-6420
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, options, task, result, ActivationStatusType.ENABLED);
 
         // THEN
         result.computeStatus();
@@ -658,15 +659,16 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     /**
      * Re-enabling the user should enable the account as well. Even if the user is already enabled.
      */
-    @Test(enabled = false) // MID-6420, see above
+    @Test
     public void test115ModifyUserJackAdministrativeStatusNull() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        ModelExecuteOptions options = ModelExecuteOptions.create(prismContext).pushChanges(); // MID-6420
 
         // WHEN
-        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result);
+        modifyUserReplace(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, options, task, result);
 
         // THEN
         result.computeStatus();
