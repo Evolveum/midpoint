@@ -1,13 +1,10 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql;
-
-import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.F_EMPLOYEE_NUMBER;
 
 import static org.testng.AssertJUnit.*;
 
@@ -32,6 +29,7 @@ import static com.evolveum.midpoint.xml.ns._public.common.common_3.MetadataType.
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.F_NAME;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggerType.F_TIMESTAMP;
+import static com.evolveum.midpoint.xml.ns._public.common.common_3.UserType.F_EMPLOYEE_NUMBER;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,6 +39,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.assertj.core.api.Assertions;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -4706,7 +4705,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(UserType.class)
                     .item(ItemPath.create(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD,
                             PasswordType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP))
-                            .gt(DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar())).build();
+                    .gt(DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar())).build();
 
             String expected = "select\n" +
                     "  u.oid, u.fullObject\n" +
@@ -4839,6 +4838,38 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     + "  lower(u.employeeNumber) > :employeeNumber";
             String real = getInterpretedQuery(session, UserType.class, query);
             assertEqualsIgnoreWhitespace(expected, real);
+        } finally {
+            close(session);
+        }
+    }
+
+    // reproduced MID-6501
+    @Test
+    public void test800QueryAssignmentPathOnNonFocusTypes() throws Exception {
+        Session session = open();
+
+        try {
+            given("a Case (non-focus object type) query with assignment attribute");
+            ObjectQuery query = prismContext.queryFor(CaseType.class)
+                    .exists(F_ASSIGNMENT)
+                    .item(AssignmentType.F_TARGET_REF).ref("target-oid-123")
+                    .build();
+
+            when("the query is executed");
+            String real = getInterpretedQuery(session, CaseType.class, query);
+
+            then("expected HQL is generated");
+            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+                    + "  c.oid,\n"
+                    + "  c.fullObject\n"
+                    + "from\n"
+                    + "  RCase c\n"
+                    + "    left join c.assignments a with a.assignmentOwner = :assignmentOwner\n"
+                    + "where\n"
+                    + "  (\n"
+                    + "    a.targetRef.targetOid = :targetOid and\n"
+                    + "    a.targetRef.relation in (:relation)\n"
+                    + "  )");
         } finally {
             close(session);
         }
