@@ -260,16 +260,16 @@ public class MemberOperationsHelper {
     public static <R extends AbstractRoleType> ObjectQuery createDirectMemberQuery(R targetObject, QName objectType, Collection<QName> relations, ObjectViewDto<OrgType> tenant, ObjectViewDto<OrgType> project, PrismContext prismContext) {
         // We assume tenantRef.relation and orgRef.relation are always default ones (see also MID-3581)
         S_FilterEntry q0;
-        if (objectType == null || FocusType.COMPLEX_TYPE.equals(objectType)) {
-            q0 = prismContext.queryFor(FocusType.class);
+        if (objectType == null || AssignmentHolderType.COMPLEX_TYPE.equals(objectType)) {
+            q0 = prismContext.queryFor(AssignmentHolderType.class);
         } else {
-            q0 = prismContext.queryFor(FocusType.class)
+            q0 = prismContext.queryFor(AssignmentHolderType.class)
                     .type(objectType);
         }
 
         // Use exists filter to build a query like this:
         // $a/targetRef = oid1 and $a/tenantRef = oid2 and $a/orgRef = oid3
-        S_AtomicFilterExit q = q0.exists(FocusType.F_ASSIGNMENT)
+        S_AtomicFilterExit q = q0.exists(AssignmentHolderType.F_ASSIGNMENT)
                 .block()
                 .item(AssignmentType.F_TARGET_REF)
                 .ref(createReferenceValuesList(targetObject, relations));
