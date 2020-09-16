@@ -235,7 +235,6 @@ public class AssignmentTripleEvaluator<AH extends AssignmentHolderType> {
                 // we optimize here are consider the assignments that were there before replace and still are there
                 // after it as unchanged.
                 //
-                // TODO consider using augmented origin here (isOld / isCurrent / isNew values) -- MID-6404
                 boolean hadValue = assignmentElement.isCurrent();
                 boolean willHaveValue = assignmentElement.isNew();
                 if (hadValue && willHaveValue) {

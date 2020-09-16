@@ -52,5 +52,6 @@
             <xsd:element name="value" type="xsd:string" minOccurs="1"/>
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="quasiMap" type="tns:QuasiMapType" />
 
 </xsd:schema>

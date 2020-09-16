@@ -204,7 +204,7 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
         mappingBuilder.rootNode(focusOdo);
         mappingBuilder.originType(OriginType.OUTBOUND);
         mappingBuilder.mappingKind(MappingKindType.OUTBOUND);
-        mappingBuilder.implicitTargetPath(ItemPath.create(ShadowType.F_ATTRIBUTES, attributeQName));
+        mappingBuilder.implicitTargetPath(targetPath);
         mappingBuilder.refinedObjectClassDefinition(rOcDef);
 
         if (projCtx.isDelete()) {
