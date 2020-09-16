@@ -58,7 +58,8 @@ public class PolicyRuleScriptExecutor {
             }
             DeltaSetTriple<EvaluatedAssignmentImpl<?>> triple = ((LensContext<?>) context).getEvaluatedAssignmentTriple();
             if (triple != null) {
-                for (EvaluatedAssignment<?> assignment : triple.getNonNegativeValues()) {
+                // We need to apply rules from all the assignments - even those that were deleted.
+                for (EvaluatedAssignment<?> assignment : triple.getAllValues()) {
                     for (EvaluatedPolicyRule rule : assignment.getAllTargetsPolicyRules()) {
                         executeRuleScriptingActions(rule, context, task, result);
                     }
