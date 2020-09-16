@@ -92,6 +92,14 @@ public class ClusterRestService {
     }
 
     @POST
+    @Path(EVENT_INVALIDATION)
+    @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
+    public Response executeClusterCacheInvalidationEvent(@Context MessageContext mc) {
+        return executeClusterCacheInvalidationEvent(null, null, mc);
+    }
+
+    @POST
     @Path(EVENT_INVALIDATION + "{type}")
     @Consumes({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
     @Produces({MediaType.APPLICATION_XML, MediaType.APPLICATION_JSON, RestServiceUtil.APPLICATION_YAML})
