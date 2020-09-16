@@ -525,6 +525,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
                 .implicitTargetPath(implicitTargetPath)
                 .sourceContext(getFocusOdoAbsolute())
                 .defaultTargetDefinition(outputDefinition)
+                .defaultTargetPath(implicitTargetPath)
                 .originType(getOriginType())
                 .originObject(getSource())
                 .refinedObjectClassDefinition(getRefinedObjectClassDefinition())

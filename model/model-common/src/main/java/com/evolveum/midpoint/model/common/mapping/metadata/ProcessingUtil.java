@@ -46,7 +46,7 @@ class ProcessingUtil {
         } else {
             List<ItemPath> includes = getPathsFromSpecs(applicability.getInclude());
             List<ItemPath> excludes = getPathsFromSpecs(applicability.getExclude());
-            while (!dataItemPath.isEmpty()) {
+            while (dataItemPath != null && !dataItemPath.isEmpty()) {
                 boolean yes = ItemPathCollectionsUtil.containsEquivalent(includes, dataItemPath);
                 boolean no = ItemPathCollectionsUtil.containsEquivalent(excludes, dataItemPath);
                 if (yes && no) {

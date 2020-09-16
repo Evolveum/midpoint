@@ -173,7 +173,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                         .feedback()
                             .isSuccess();
 
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "kirk"));
+        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "login", "kirk"));
 
         showUser("kirk")
                 .selectTabBasic()
@@ -185,7 +185,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                         .feedback()
                             .isSuccess();
 
-        PrismForm<AccountPage> accountForm = showShadow(CSV_1_RESOURCE_NAME, "Login", "kirk")
+        PrismForm<AccountPage> accountForm = showShadow(CSV_1_RESOURCE_NAME, "login", "kirk")
                 .form();
 
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
@@ -210,7 +210,7 @@ public class M3ResourcesAttributesAndMappingsTest extends AbstractLabTest {
                         .feedback()
                             .isSuccess();
 
-        Assert.assertFalse(existShadow(CSV_1_RESOURCE_NAME, "Login", "kirk"));
+        Assert.assertFalse(existShadow(CSV_1_RESOURCE_NAME, "login", "kirk"));
 
     }
 }
