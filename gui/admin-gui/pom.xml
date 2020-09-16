@@ -943,7 +943,7 @@
                             <dependency>
                                 <groupId>com.evolveum.midpoint</groupId>
                                 <artifactId>midpoint-war-layout</artifactId>
-                                <version>4.0-M2</version>
+                                <version>${project.version}</version>
                             </dependency>
                         </dependencies>
                     </plugin>
