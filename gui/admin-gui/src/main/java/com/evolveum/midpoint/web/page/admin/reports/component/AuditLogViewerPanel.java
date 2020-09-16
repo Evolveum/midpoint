@@ -783,7 +783,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
 
             @Override
             public IModel<String> getDataModel(IModel<AuditEventRecordType> rowModel) {
-                return WebComponentUtil.createLocalizedModelForEnum(rowModel.getObject().getOutcome(), AuditLogViewerPanel.this);
+                return rowModel.getObject().getOutcome() != null ?
+                        WebComponentUtil.createLocalizedModelForEnum(rowModel.getObject().getOutcome(), AuditLogViewerPanel.this) : Model.of();
             }
         };
         columns.add(outcomeColumn);
