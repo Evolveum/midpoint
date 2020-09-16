@@ -6,7 +6,9 @@
  */
 package com.evolveum.midpoint.web.boot;
 
+import org.apache.catalina.Context;
 import org.apache.catalina.startup.Tomcat;
+import org.apache.catalina.webresources.ExtractingRoot;
 import org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory;
 import org.springframework.boot.web.embedded.tomcat.TomcatWebServer;
 
@@ -39,6 +41,9 @@ public class MidPointTomcatServletWebServerFactory extends TomcatServletWebServe
         return super.getTomcatWebServer(tomcat);
     }
 
-
+    @Override
+    protected void postProcessContext(Context context) {
+        context.setResources(new ExtractingRoot());
+    }
 
 }
