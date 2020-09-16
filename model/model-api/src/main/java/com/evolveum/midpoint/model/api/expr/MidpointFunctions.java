@@ -1000,7 +1000,13 @@ public interface MidpointFunctions {
 
     ShadowType getLinkedShadow(FocusType focus, String resourceOid)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
+    @NotNull
+    List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
     ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    @NotNull
+    List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid, boolean repositoryObjectOnly)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
     ShadowType getLinkedShadow(FocusType focus, ResourceType resource)  throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
