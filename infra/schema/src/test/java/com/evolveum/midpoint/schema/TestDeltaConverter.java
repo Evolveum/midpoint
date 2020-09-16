@@ -575,6 +575,18 @@ public class TestDeltaConverter extends AbstractSchemaTest {
         roundTrip(delta);
     }
 
+    @Test
+    public void test130ExtensionChange() throws Exception {
+        System.out.println("===[ test130ExtensionChange ]====");
+
+        ObjectDeltaType deltaBean =
+                getPrismContext().parserFor(new File(TEST_DIR, "user-modify-extension.xml"))
+                        .parseRealValue(ObjectDeltaType.class);
+
+        ObjectDelta<UserType> objectDelta = DeltaConvertor.createObjectDelta(deltaBean, getPrismContext());
+        roundTrip(objectDelta);
+    }
+
     private void roundTrip(ObjectDelta delta) throws Exception {
 
         ObjectDeltaType deltaType = DeltaConvertor.toObjectDeltaType(delta);

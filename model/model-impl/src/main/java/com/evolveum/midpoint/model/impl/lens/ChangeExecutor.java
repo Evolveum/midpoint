@@ -853,6 +853,7 @@ public class ChangeExecutor {
                     SelectorOptions.createCollection(getOptions), task, result);
         } catch (ObjectNotFoundException ex) {
             LOGGER.trace("Shadow is gone, skipping modifying situation in shadow.");
+            result.muteLastSubresultError();
             result.recordSuccess();
             return;
         } catch (Exception ex) {

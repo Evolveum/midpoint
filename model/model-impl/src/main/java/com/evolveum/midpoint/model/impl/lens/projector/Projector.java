@@ -12,6 +12,7 @@ import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,7 +72,7 @@ public class Projector {
     @Autowired private ProjectionCredentialsProcessor projectionCredentialsProcessor;
     @Autowired private ActivationProcessor activationProcessor;
     @Autowired private DependencyProcessor dependencyProcessor;
-    @Autowired private ConsolidationProcessor consolidationProcessor;
+    @Autowired private ObjectTemplateProcessor objectTemplateProcessor;
     @Autowired private Clock clock;
     @Autowired private ClockworkMedic medic;
 
@@ -211,6 +212,12 @@ public class Projector {
             }
 
             context.checkConsistenceIfNeeded();
+
+            medic.partialExecute(Components.OBJECT_TEMPLATE_AFTER_PROJECTIONS, objectTemplateProcessor,
+                    objectTemplateProcessor::processTemplateAfterProjections,
+                    partialProcessingOptions::getObjectTemplateAfterAssignments,
+                    Projector.class, context, now, task, result);
+
             context.incrementProjectionWave();
 
             dependencyProcessor.checkDependenciesFinal(context, result);
