@@ -4002,7 +4002,7 @@ public final class WebComponentUtil {
                 return displayType;
             }
         }
-        return createDisplayType(GuiStyleConstants.EVO_ASSIGNMENT_ICON, "green", pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString());
+        return createDisplayType("", "", pageBase.createStringResource(defaultTitleKey, typeTitle, relationTitle).getString());
     }
 
     public static void saveTask(PrismObject<TaskType> oldTask, OperationResult result, PageBase pageBase) {
