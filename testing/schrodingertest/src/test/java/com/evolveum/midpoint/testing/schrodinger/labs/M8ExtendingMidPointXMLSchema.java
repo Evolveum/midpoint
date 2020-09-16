@@ -126,15 +126,15 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
                 .feedback()
                     .isSuccess();
 
-        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jsmith");
+        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "login", "jsmith");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
         Assert.assertTrue(accountForm.compareInputAttributeValue("dep", "Human Resources"));
 
-        showShadow(CSV_2_RESOURCE_NAME, "Login", "jsmith");
+        showShadow(CSV_2_RESOURCE_NAME, "login", "jsmith");
         Assert.assertTrue(accountForm.compareInputAttributeValue("department", "Human Resources"));
 
-        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=John Smith,ou=0300,ou=ExAmPLE,dc=example,dc=com"));
+        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "dn", "cn=John Smith,ou=0300,ou=ExAmPLE,dc=example,dc=com"));
     }
 }
