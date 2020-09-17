@@ -7,6 +7,16 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.component.form.CheckBoxPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
@@ -16,15 +26,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TracingProfileType;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
-
-import java.util.List;
 
 /**
  * @author lazyman
@@ -186,6 +187,7 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
             public void onUpdate(AjaxRequestTarget target) {
                 if (reloadPanelOnUpdate){
                     target.add(ExecuteChangeOptionsPanel.this);
+                    reloadPanelOnOptionsUpdate(target);
                 }
             }
 
@@ -207,6 +209,9 @@ public class ExecuteChangeOptionsPanel extends BasePanel<ExecuteChangeOptionsDto
             return !getModelObject().isKeepDisplayingResults();
         }
         return true;
+    }
+
+    protected void reloadPanelOnOptionsUpdate(AjaxRequestTarget target) {
     }
 
     private CheckBoxPanel getKeepDisplayingResultsPanel(){

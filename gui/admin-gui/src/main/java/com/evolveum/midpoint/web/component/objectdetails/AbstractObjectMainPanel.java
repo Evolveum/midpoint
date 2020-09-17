@@ -41,7 +41,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
     public static final String PARAMETER_SELECTED_TAB = "tab";
 
-    private static final String ID_MAIN_FORM = "mainForm";
+    protected static final String ID_MAIN_FORM = "mainForm";
     public static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
     private static final String ID_BACK = "back";
@@ -122,7 +122,14 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
 
     protected void initLayoutOptions() {
         ExecuteChangeOptionsPanel optionsPanel = new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS,
-                executeOptionsModel, true, false);
+                executeOptionsModel, true, false) {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void reloadPanelOnOptionsUpdate(AjaxRequestTarget target) {
+                reloadSavePreviewButtons(target);
+            }
+        };
         optionsPanel.setOutputMarkupId(true);
         optionsPanel.add(new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
@@ -164,7 +171,7 @@ public abstract class AbstractObjectMainPanel<O extends ObjectType> extends Pane
         mainForm.add(saveButton);
     }
 
-    protected VisibleEnableBehaviour getVisibilityForSaveButton() {
+    private VisibleEnableBehaviour getVisibilityForSaveButton() {
         return new VisibleEnableBehaviour() {
             private static final long serialVersionUID = 1L;
 
