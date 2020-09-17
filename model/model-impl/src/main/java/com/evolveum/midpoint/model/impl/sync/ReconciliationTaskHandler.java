@@ -217,7 +217,7 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
                     TaskRunResultStatus.PERMANENT_ERROR, opResult);
             return runResult;
         } catch (MaintenanceException ex) {
-            LOGGER.warn("Reconciliation: {}-{}", new Object[]{ex.getMessage(), ex});
+            LOGGER.warn("Reconciliation: {}-{}", ex.getMessage(), ex);
             opResult.recordHandledError(ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR); // Resource is in the maintenance, do not suspend the task
             return runResult;

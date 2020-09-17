@@ -1195,8 +1195,8 @@ public class ChangeExecutor {
 
             if (context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON))) {
                 // TODO: this is probably wrong. We should not have special case
-                // for recon channel! This should be handled by the provisioning task
-                // setting the right options there.
+                //  for recon channel! This should be handled by the provisioning task
+                //  setting the right options there.
                 provisioningOptions.setCompletePostponed(false);
             }
 

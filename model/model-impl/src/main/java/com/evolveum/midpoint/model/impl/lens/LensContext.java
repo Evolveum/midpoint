@@ -87,8 +87,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     private transient SecurityPolicyType globalSecurityPolicy;
 
     /**
-     * Channel that is the source of primary change (GUI, live sync, import,
-     * ...)
+     * Channel that is the source of primary change (GUI, live sync, import, ...)
      */
     private String channel;
 
