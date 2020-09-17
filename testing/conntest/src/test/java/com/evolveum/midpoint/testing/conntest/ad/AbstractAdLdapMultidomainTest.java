@@ -1,27 +1,25 @@
 /*
- * Copyright (c) 2015-2019 Evolveum and contributors
+ * Copyright (C) 2015-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_CREDENTIALS_PASSWORD_VALUE;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Properties;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
@@ -38,6 +36,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -66,8 +65,8 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.testing.conntest.AbstractLdapTest;
 import com.evolveum.midpoint.testing.conntest.UserLdapConnectionConfig;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
@@ -76,7 +75,7 @@ import com.evolveum.prism.xml.ns._public.types_3.ProtectedStringType;
  * Active Directory multidomain test abstract superclass.
  * This tests configuration of Active Directory forrest with two domains: parent domain and child domain.
  * Whole forrest is configured as a single resource.
- *
+ * <p>
  * This is a "live and conservative" conntest.
  * Which means that it runs on very realy and very live Active Directory forrest.
  * The AD servers are NOT cleaned and reset after/before test.
@@ -176,8 +175,6 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     protected String groupMeleeIslandPiratesOid;
 
     private String accountSubmanOid;
-
-    private String accountSubmarineOid;
 
     @Override
     protected String getResourceOid() {
@@ -357,8 +354,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         Properties p = System.getProperties();
         Enumeration keys = p.keys();
         while (keys.hasMoreElements()) {
-            String key = (String)keys.nextElement();
-            String value = (String)p.get(key);
+            String key = (String) keys.nextElement();
+            String value = (String) p.get(key);
             System.out.println("PROP: " + key + ": " + value);
         }
 
@@ -402,7 +399,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     }
 
     @Test
-    public void test100SeachJackBySamAccountName() throws Exception {
+    public void test100SearchJackBySamAccountName() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -445,7 +442,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
      * MID-3730
      */
     @Test
-    public void test101SeachJackByDn() throws Exception {
+    public void test101SearchJackByDn() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -490,7 +487,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
      * MID-3730
      */
     @Test
-    public void test102SeachNotExistByDn() throws Exception {
+    public void test102SearchNotExistByDn() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -518,7 +515,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     }
 
     @Test
-    public void test105SeachPiratesByCn() throws Exception {
+    public void test105SearchPiratesByCn() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -579,7 +576,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         IntegrationTestTools.assertAssociation(shadow, getAssociationGroupQName(), groupPiratesOid);
 
-        assertAttribute(shadow, "dn", "CN=Jack Sparrow,"+getPeopleLdapSuffix());
+        assertAttribute(shadow, "dn", "CN=Jack Sparrow," + getPeopleLdapSuffix());
         assertAttribute(shadow, "cn", ACCOUNT_JACK_FULL_NAME);
         assertAttribute(shadow, "sn", "Sparrow");
         assertAttribute(shadow, "description", "The best pirate the world has ever seen");
@@ -601,7 +598,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
      * No paging. It should return all accounts.
      */
     @Test
-    public void test150SeachAllAccounts() throws Exception {
+    public void test150SearchAllAccounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -635,7 +632,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
      * This is in one block.
      */
     @Test
-    public void test152SeachFirst2Accounts() throws Exception {
+    public void test152SearchFirst2Accounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -661,7 +658,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     }
 
     @Test
-    public void test154SeachFirst5Accounts() throws Exception {
+    public void test154SearchFirst5Accounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -687,7 +684,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     }
 
     @Test
-    public void test162SeachFirst2AccountsOffset0() throws Exception {
+    public void test162SearchFirst2AccountsOffset0() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -747,7 +744,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
      * No explicit sorting.
      */
     @Test
-    public void test174SeachFirst5AccountsOffset2() throws Exception {
+    public void test174SearchFirst5AccountsOffset2() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -812,7 +809,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
     }
 
     protected String getExpected182FirstShadow() {
-        return "CN=Administrator,"+getPeopleLdapSuffix();
+        return "CN=Administrator," + getPeopleLdapSuffix();
     }
 
     @Test
@@ -1055,8 +1052,8 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
         assertModelShadow(shadowOid)
                 .attributes()
-                    .attribute(ATTRIBUTE_USER_PARAMETERS_NAME)
-                        .assertRealValues(VERY_STRANGE_PARAMETER);
+                .attribute(ATTRIBUTE_USER_PARAMETERS_NAME)
+                .assertRealValues(VERY_STRANGE_PARAMETER);
 
 //        assertLdapConnectorInstances(2);
     }
@@ -2197,7 +2194,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         String shadowOid = getSingleLinkOid(userAfter);
         PrismObject<ShadowType> shadow = getShadowModel(shadowOid);
         display("Shadow (model)", shadow);
-        accountSubmarineOid = shadow.getOid();
+        assertThat(shadow.getOid()).isNotBlank();
         Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getPrimaryIdentifiers(shadow);
         String accountIcfUid = (String) identifiers.iterator().next().getRealValue();
         assertNotNull("No identifier in " + shadow, accountIcfUid);
@@ -2251,7 +2248,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     // DISABLED because we do not know how to properly configure sync privileges in a AD forrest.
     // More experiments are needed, but only after we migrate our old AD servers.
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void test900ImportSyncTask() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -2276,7 +2273,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     // DISABLED because we do not know how to properly configure sync privileges in a AD forrest.
     // More experiments are needed, but only after we migrate our old AD servers.
-    @Test(enabled=false)
+    @Test(enabled = false)
     public void test901SyncAddAccountHt() throws Exception {
         // GIVEN
         Task task = getTestTask();
@@ -2311,7 +2308,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
         PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
         assertNotNull("No sync token", syncTokenProperty);
         assertNotNull("No sync token value", syncTokenProperty.getRealValue());
-        assertNotNull("Empty sync token value", StringUtils.isBlank(syncTokenProperty.getRealValue()));
+        assertThat(StringUtils.isBlank(syncTokenProperty.getRealValue()))
+                .as("Empty sync token value")
+                .isTrue();
         assertSuccess(result);
     }
 
@@ -2477,11 +2476,7 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     private byte[] encodePassword(String password) {
         String quotedPassword = "\"" + password + "\"";
-        try {
-            return quotedPassword.getBytes("UTF-16LE");
-        } catch (UnsupportedEncodingException e) {
-            throw new SystemException(e.getMessage(), e);
-        }
+        return quotedPassword.getBytes(StandardCharsets.UTF_16LE);
     }
 
     public <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
