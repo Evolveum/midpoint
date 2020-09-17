@@ -40,7 +40,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
 
     protected static final String ID_LABEL = "label";
-    protected static final String ID_LABEL_CONTAINER = "labelContainer";
+//    protected static final String ID_LABEL_CONTAINER = "labelContainer";
     protected static final String ID_HELP = "help";
     private static final String ID_EXPERIMENTAL = "experimental";
     private static final String ID_DEPRECATED = "deprecated";
@@ -74,44 +74,48 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
     protected void initHeaderLabel(){
 
-        WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
-        labelContainer.setOutputMarkupId(true);
-        add(labelContainer);
+//        WebMarkupContainer labelContainer = new WebMarkupContainer(ID_LABEL_CONTAINER);
+//        labelContainer.setOutputMarkupId(true);
+//        add(labelContainer);
 
-        createTitle(labelContainer);
-        createHelpText(labelContainer);
-        createExperimentalTooltip(labelContainer);
-        createDeprecated(labelContainer);
-        createRequeired(labelContainer);
+        createTitle();
+        createHelpText();
+        createExperimentalTooltip();
+        createDeprecated();
+        createRequeired();
 
         //TODO: pending operations
     }
 
-    protected WebMarkupContainer getLabelContainer() {
-        return (WebMarkupContainer)get(ID_LABEL_CONTAINER);
-    }
+//    protected WebMarkupContainer getLabelContainer() {
+//        return (WebMarkupContainer)get(ID_LABEL_CONTAINER);
+//    }
 
-    private void createTitle(WebMarkupContainer labelContainer) {
+    private void createTitle() {
         Component displayName = createTitle(new PropertyModel<>(getModel(), "displayName"));//.of(getModel(), IW::getDisplayName));
-        displayName.add(new AttributeModifier("style", getDeprecatedCss()));
+        displayName.add(new AttributeModifier("style", getDeprecatedCss())); //TODO create deprecated css class?
 
-        labelContainer.add(displayName);
+        add(displayName);
 
     }
 
     protected abstract Component createTitle(IModel<String> model);
 
-    private void createHelpText(WebMarkupContainer labelContainer) {
+    private void createHelpText() {
 
         Label help = new Label(ID_HELP);
-        IModel<String> helpModel = new PropertyModel<String>(getModel(), "help");
+        IModel<String> helpModel = new PropertyModel<>(getModel(), "help");
         help.add(AttributeModifier.replace("title",createStringResource(helpModel.getObject() != null ? helpModel.getObject() : "")));
         help.add(new InfoTooltipBehavior());
-        help.add(new VisibleBehaviour(() -> getModelObject() != null && StringUtils.isNotEmpty(getModelObject().getHelp())));
-        labelContainer.add(help);
+        help.add(new VisibleBehaviour(() -> isHelpTextVisible()));
+        add(help);
     }
 
-    private void createExperimentalTooltip(WebMarkupContainer labelContainer) {
+    protected boolean isHelpTextVisible() {
+        return getModelObject() != null && StringUtils.isNotEmpty(getModelObject().getHelp());
+    }
+
+    private void createExperimentalTooltip() {
         Label experimental = new Label(ID_EXPERIMENTAL);
 
         experimental.add(new InfoTooltipBehavior() {
@@ -127,11 +131,11 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
         });
         experimental.add(AttributeModifier.replace("title", createStringResource("ItemHeaderPanel.experimentalFeature")));
         experimental.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isExperimental()));
-        labelContainer.add(experimental);
+        add(experimental);
 
     }
 
-    private void createDeprecated(WebMarkupContainer labelContainer) {
+    private void createDeprecated() {
         Label deprecated = new Label(ID_DEPRECATED);
         deprecated.add(AttributeModifier.replace("deprecated", new PropertyModel<>(getModel(), "deprecatedSince")));
         deprecated.add(new InfoTooltipBehavior() {
@@ -146,13 +150,13 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
 
         });
         deprecated.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isDeprecated()));
-        labelContainer.add(deprecated);
+        add(deprecated);
     }
 
-    private void createRequeired(WebMarkupContainer labelContainer) {
+    private void createRequeired() {
         WebMarkupContainer required = new WebMarkupContainer(ID_REQUIRED);
         required.add(new VisibleBehaviour(() -> getModelObject() != null && getModelObject().isMandatory()));
-        labelContainer.add(required);
+        add(required);
     }
 
     public IModel<String> getDeprecatedCss() {
@@ -192,7 +196,7 @@ public abstract class ItemHeaderPanel<V extends PrismValue, I extends Item<V, ID
                 removeItem(target);
             }
         };
-        removeButton.add(new VisibleBehaviour(() -> isButtonEnabled()));
+        removeButton.add(new VisibleBehaviour(this::isButtonEnabled));
         add(removeButton);
     }
 

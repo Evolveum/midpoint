@@ -624,15 +624,15 @@ public abstract class ItemWrapperImpl<I extends Item, VW extends PrismValueWrapp
         this.readOnly = readOnly;
     }
 
-    @Override
-    public boolean isStripe() {
-        return stripe;
-    }
-
-    @Override
-    public void setStripe(boolean stripe) {
-        this.stripe = stripe;
-    }
+//    @Override
+//    public boolean isStripe() {
+//        return stripe;
+//    }
+//
+//    @Override
+//    public void setStripe(boolean stripe) {
+//        this.stripe = stripe;
+//    }
 
     public I getOldItem() {
         return oldItem;

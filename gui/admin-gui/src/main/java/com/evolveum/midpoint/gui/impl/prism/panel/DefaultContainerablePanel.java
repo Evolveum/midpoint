@@ -13,7 +13,6 @@ import java.util.Locale;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -53,13 +52,9 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
     }
 
     private void initLayout() {
-//        WebMarkupContainer defaultPanel = new WebMarkupContainer(id);
-//        defaultPanel.add(createNonContainersPanel());
         createNonContainersPanel();
         createContainersPanel();
         setOutputMarkupId(true);
-//        defaultPanel.add(createContainersPanel());
-//        return defaultPanel;
     }
 
     private void createNonContainersPanel() {
@@ -148,23 +143,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(collator, getModelObject().isSorted());
         if (CollectionUtils.isNotEmpty(nonContainers)) {
             nonContainers.sort((Comparator) comparator);
-
-            int visibleProperties = 0;
-
-            for (ItemWrapper<?,?> item : nonContainers) {
-                if (item.isVisible(getModelObject(), getVisibilityHandler())) {
-                    visibleProperties++;
-                }
-
-                if (visibleProperties % 2 == 0) {
-                    item.setStripe(false);
-                } else {
-                    item.setStripe(true);
-                }
-
-            }
         }
-
         return nonContainers;
     }
 
@@ -180,7 +159,6 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
             ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
             Panel panel = getPageBase().initItemPanel("property", typeName, item.getModel(), settings);
             panel.setOutputMarkupId(true);
-            panel.add(AttributeModifier.append("class", appendStyleClassModel(item.getModel())));
             item.add(new VisibleEnableBehaviour() {
                 @Override
                 public boolean isVisible() {
@@ -209,7 +187,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
             ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
             Panel panel = getPageBase().initItemPanel("container", itemWrapper.getTypeName(), container.getModel(), settings);
             panel.setOutputMarkupId(true);
-            panel.add(new VisibleEnableBehaviour() {
+            container.add(new VisibleEnableBehaviour() {
                 @Override
                 public boolean isVisible() {
                     return itemWrapper.isVisible(getModelObject(), getVisibilityHandler());
@@ -237,20 +215,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         CVW wrapper = getModelObject();
         wrapper.setShowEmpty(!wrapper.isShowEmpty());
         target.add(DefaultContainerablePanel.this);
-//        target.add(getPageBase().getFeedbackPanel());
-//        target.add(findParent(PrismContainerValuePanel.class));
-    }
 
-    private <IW extends ItemWrapper<?,?>> IModel<String> appendStyleClassModel(final IModel<IW> wrapper) {
-        return new IModel<String>() {
-            private static final long serialVersionUID = 1L;
-
-            @Override
-            public String getObject() {
-                ItemWrapper<?, ?> property = wrapper.getObject();
-                return property.isStripe() ? "stripe" : null;
-            }
-        };
     }
 
     private ItemPanelSettings getSettings() {

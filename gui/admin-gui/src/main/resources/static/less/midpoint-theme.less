@@ -932,11 +932,15 @@ body .treeview-menu > li > span:hover {
   .prism-property {
     padding-left: 40px;
 
-    &.stripe {
-      background-color: @table-stripe-bg-color;
-    }
+    //&.stripe {
+    //  background-color: @table-stripe-bg-color;
+    //}
   }
 
+}
+
+.property-stripe:nth-of-type(odd) {
+  background-color: @table-stripe-bg-color;
 }
 
 .prism-header {
@@ -951,6 +955,7 @@ body .treeview-menu > li > span:hover {
 	margin-right: 15px;
 	float: left;
 	padding-top: 3px;
+    cursor: pointer;
 }
 
 .prism-property {
@@ -1527,10 +1532,6 @@ th.countLabel{
 	color: @text-label-color;
 	font-size: 12px;
 	padding-bottom: 5px;
-}
-
-.labelContainer > .text-info { // aligning i button to one row with title of container
-	float: left;
 }
 
 // This will make the tooltip respect new lines.
