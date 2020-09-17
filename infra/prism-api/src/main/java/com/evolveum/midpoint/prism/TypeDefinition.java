@@ -7,15 +7,15 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.namespace.QName;
 import java.util.Collection;
 
-/**
- * @author mederly
- */
 public interface TypeDefinition extends Definition {
 
     /**
@@ -41,4 +41,11 @@ public interface TypeDefinition extends Definition {
     Integer getInstantiationOrder();
 
     boolean canRepresent(QName typeName);
+
+    /**
+     * @return True if variables of this type can be assigned value of specified other type, i.e. if
+     * this type is equal or supertype of the other type.
+     */
+    @Experimental
+    boolean isAssignableFrom(TypeDefinition other, SchemaRegistry registry);
 }

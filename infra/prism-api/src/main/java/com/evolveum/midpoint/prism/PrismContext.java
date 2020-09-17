@@ -297,6 +297,14 @@ public interface PrismContext extends ProtectorCreator {
      */
     boolean relationMatches(@NotNull List<QName> relationQuery, QName relation);
 
+    /**
+     * @return Name of the generic type for object/container extension (e.g. c:ExtensionType).
+     */
+    @Experimental
+    QName getExtensionContainerTypeName();
+
+    void setExtensionContainerTypeName(QName typeName);
+
     ParsingContext getDefaultParsingContext();
 
     ParsingContext createParsingContextForAllowMissingRefTypes();
