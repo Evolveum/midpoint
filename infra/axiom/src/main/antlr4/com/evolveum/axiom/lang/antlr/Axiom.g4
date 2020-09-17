@@ -25,8 +25,9 @@ itemName: infraName | dataName;
 dataName: prefixedName;
 infraName: '@' prefixedName;
 
-item: SEP* itemName SEP* itemValue;
-itemValue: (argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (item)* SEP* RIGHT_BRACE SEP*) SEP*;
+file: SEP* item SEP* EOF;
+item: itemName itemValue;
+itemValue: (SEP+ argument)? SEP* (SEMICOLON | LEFT_BRACE SEP* (item SEP*)* RIGHT_BRACE);
 
 prefixedName : (prefix COLON)? localName;
 

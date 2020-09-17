@@ -206,6 +206,7 @@ public class ShadowCaretaker {
             PrismObjectDefinition<ShadowType> clonedDefinition = objectDefinition.cloneWithReplacedDefinition(
                     ShadowType.F_ATTRIBUTES, objectClassDefinition.toResourceAttributeContainerDefinition());
             shadow.setDefinition(clonedDefinition);
+            clonedDefinition.freeze();
         }
 
         return subctx;

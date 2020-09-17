@@ -15071,6 +15071,10 @@
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="beforeAssignments">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of template mappings before assignments are evaluated.
+                        This is the most common phase for template mappings.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="BEFORE_ASSIGNMENTS"/>
                     </xsd:appinfo>
@@ -15078,8 +15082,27 @@
             </xsd:enumeration>
             <xsd:enumeration value="afterAssignments">
                 <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of template mappings after assignments are evaluated
+                        but before uniqueness check is done and before projections are considered.
+                    </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="AFTER_ASSIGNMENTS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="afterProjections">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of template mappings after activation and values of projections
+                        are processed. So, it is possible to use e.g. hasLinkedAccount function call
+                        here to determine the new state of a projection. On the other hand, results of
+                        these mappings are not reflected in projection outbound mappings.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:experimental>true</a:experimental>
+                        <a:since>4.2</a:since>
+                        <jaxb:typesafeEnumMember name="AFTER_PROJECTIONS"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -23102,6 +23125,7 @@
             <xsd:element name="projectionCredentials" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="projectionReconciliation" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="projectionLifecycle" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
+            <xsd:element name="objectTemplateAfterProjections" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="approvals" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="execution" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>
             <xsd:element name="notification" type="tns:PartialProcessingTypeType" minOccurs="0" default="automatic"/>

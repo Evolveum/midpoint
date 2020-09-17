@@ -853,6 +853,7 @@ public class ChangeExecutor {
                     SelectorOptions.createCollection(getOptions), task, result);
         } catch (ObjectNotFoundException ex) {
             LOGGER.trace("Shadow is gone, skipping modifying situation in shadow.");
+            result.muteLastSubresultError();
             result.recordSuccess();
             return;
         } catch (Exception ex) {
@@ -1747,7 +1748,7 @@ public class ChangeExecutor {
 
         PrismPropertyDefinition<String> scriptArgumentDefinition = prismContext.definitionFactory().createPropertyDefinition(
                 fakeScriptArgumentName, DOMUtil.XSD_STRING);
-
+        scriptArgumentDefinition.freeze();
         String shortDesc = "Provisioning script argument expression";
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
                 .makeExpression(argument, scriptArgumentDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);

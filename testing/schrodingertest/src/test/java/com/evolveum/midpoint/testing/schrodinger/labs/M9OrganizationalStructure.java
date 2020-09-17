@@ -204,7 +204,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                             .containsText("kirk"));
 
         Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+                showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk")
                         .form()
                         .compareInputAttributeValues("groups", "Internal Employees",
                                 "Essential Documents", "Teleportation", "Time Travel"));
@@ -234,7 +234,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                                         .isSuccess();
 
         Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+                showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk")
                         .form()
                         .compareInputAttributeValues("groups", "Internal Employees",
                                 "Essential Documents", "Teleportation", "Time Travel"));
@@ -256,7 +256,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .isInfo();
 
         Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
+                showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk")
                         .form()
                         .compareInputAttributeValues("groups", "Internal Employees",
                                 "Essential Documents", "Teleportation", "Time Travel", "Lucky Numbers",
