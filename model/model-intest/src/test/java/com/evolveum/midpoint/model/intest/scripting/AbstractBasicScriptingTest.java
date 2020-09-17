@@ -1224,9 +1224,10 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         OperationResult result = task.getResult();
 
         String taskOid = repoAddObjectFromFile(getFile(SCRIPTING_USERS_IN_BACKGROUND_ITERATIVE_TASK), result).getOid();
+        int numberOfUsers = modelService.countObjects(UserType.class, null, null, task, result);
 
         when();
-        waitForTaskFinish(taskOid, false);
+        Task taskAfterFirstRun = waitForTaskFinish(taskOid, false);
 
         then();
         PrismObject<UserType> jack = getUser(USER_JACK_OID);
@@ -1235,6 +1236,21 @@ public abstract class AbstractBasicScriptingTest extends AbstractInitializedMode
         display("administrator", administrator);
         assertEquals("Wrong jack description", "hello jack", jack.asObjectable().getDescription());
         assertEquals("Wrong administrator description", "hello administrator", administrator.asObjectable().getDescription());
+
+        assertTask(taskAfterFirstRun, "task after first run")
+                .assertProgress(numberOfUsers)
+                .iterativeTaskInformation()
+                    .assertSuccessCount(numberOfUsers);
+
+        // Testing for MID-6488
+        when("second run");
+        Task taskAfterSecondRun = rerunTask(taskOid, result);
+
+        then("second run");
+        assertTask(taskAfterSecondRun, "task after second run")
+                .assertProgress(numberOfUsers)
+                .iterativeTaskInformation()
+                    .assertSuccessCount(numberOfUsers);
     }
 
     @Test
