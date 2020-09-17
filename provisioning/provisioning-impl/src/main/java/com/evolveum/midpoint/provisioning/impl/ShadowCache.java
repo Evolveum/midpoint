@@ -905,9 +905,7 @@ public class ShadowCache {
         ResourceOperationDescription operationDescription = new ResourceOperationDescription();
         operationDescription.setCurrentShadow(shadowType);
         operationDescription.setResource(ctx.getResource().asPrismObject());
-        if (ctx.getTask() != null) {
-            operationDescription.setSourceChannel(ctx.getTask().getChannel());
-        }
+        operationDescription.setSourceChannel(ctx.getChannel());
         operationDescription.setObjectDelta(delta);
         operationDescription.setResult(parentResult);
         return operationDescription;
