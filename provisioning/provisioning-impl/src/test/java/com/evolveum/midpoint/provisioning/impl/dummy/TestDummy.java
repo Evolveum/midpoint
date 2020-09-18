@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -514,7 +514,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     @Test
-    public void test111SeachIterativeNoFetch() throws Exception {
+    public void test111SearchIterativeNoFetch() throws Exception {
         // GIVEN
         OperationResult result = createOperationResult();
 
@@ -566,7 +566,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     }
 
     @Test
-    public void test112SeachIterativeKindIntent() throws Exception {
+    public void test112SearchIterativeKindIntent() throws Exception {
         // GIVEN
         OperationResult result = createOperationResult();
 
@@ -619,8 +619,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test113SearchAllShadowsInRepository() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + ".test113SearchAllShadowsInRepository");
+        OperationResult result = createOperationResult();
         ObjectQuery query = IntegrationTestTools.createAllShadowsQuery(resourceType, prismContext);
         displayDumpable("All shadows query", query);
 
@@ -720,8 +719,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test117CountNullQueryResource() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + ".test117CountNullQueryResource");
+        OperationResult result = createOperationResult();
 
         // WHEN
         int count = provisioningService.countObjects(ResourceType.class, null, null, null, result);
@@ -1809,7 +1807,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test171SearchShipSeaMonkey() throws Exception {
-        testSeachIterativeSingleAttrFilter(
+        testSearchIterativeSingleAttrFilter(
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey", null, true,
                 "meathook");
     }
@@ -1817,7 +1815,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     // See MID-1460
     @Test(enabled = false)
     public void test172SearchShipNull() throws Exception {
-        testSeachIterativeSingleAttrFilter(
+        testSearchIterativeSingleAttrFilter(
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, null, null, true,
                 "daemon");
     }
@@ -1836,7 +1834,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
         IntegrationTestTools.display("dummy", dummyResource.debugDump());
 
-        testSeachIterativeSingleAttrFilter(
+        testSearchIterativeSingleAttrFilter(
                 DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", null, true,
                 transformNameFromResource("morgan"), "carla");
     }
@@ -1844,7 +1842,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     @Test
     public void test175SearchUidExact() throws Exception {
         dummyResource.setDisableNameHintChecks(true);
-        testSeachIterativeSingleAttrFilter(
+        testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_UID, willIcfUid, null, true,
                 transformNameFromResource("Will"));
         dummyResource.setDisableNameHintChecks(false);
@@ -1852,14 +1850,14 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test176SearchUidExactNoFetch() throws Exception {
-        testSeachIterativeSingleAttrFilter(SchemaConstants.ICFS_UID, willIcfUid,
+        testSearchIterativeSingleAttrFilter(SchemaConstants.ICFS_UID, willIcfUid,
                 GetOperationOptions.createNoFetch(), false,
                 transformNameFromResource("Will"));
     }
 
     @Test
     public void test177SearchIcfNameRepoized() throws Exception {
-        testSeachIterativeSingleAttrFilter(
+        testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_NAME, getWillRepoIcfName(), null, true,
                 transformNameFromResource(ACCOUNT_WILL_USERNAME));
     }
@@ -1868,7 +1866,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     public void test180SearchNullPagingOffset0Size3() throws Exception {
         ObjectPaging paging = prismContext.queryFactory().createPaging(0, 3);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME));
-        SearchResultMetadata searchMetadata = testSeachIterativePaging(null, paging, null,
+        SearchResultMetadata searchMetadata = testSearchIterativePaging(null, paging, null,
                 getSortedUsernames18x(0, 3));
         assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
     }
@@ -1881,7 +1879,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     public void test181SearchNullPagingOffset0Size3Desc() throws Exception {
         ObjectPaging paging = prismContext.queryFactory().createPaging(0, 3);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME, OrderDirection.DESCENDING));
-        SearchResultMetadata searchMetadata = testSeachIterativePaging(null, paging, null,
+        SearchResultMetadata searchMetadata = testSearchIterativePaging(null, paging, null,
                 getSortedUsernames18xDesc(0, 3));
         assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
     }
@@ -1890,7 +1888,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     public void test182SearchNullPagingOffset1Size2() throws Exception {
         ObjectPaging paging = prismContext.queryFactory().createPaging(1, 2);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME));
-        SearchResultMetadata searchMetadata = testSeachIterativePaging(null, paging, null,
+        SearchResultMetadata searchMetadata = testSearchIterativePaging(null, paging, null,
                 getSortedUsernames18x(1, 2));
         assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
     }
@@ -1899,7 +1897,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     public void test183SearchNullPagingOffset2Size3Desc() throws Exception {
         ObjectPaging paging = prismContext.queryFactory().createPaging(2, 3);
         paging.setOrdering(createAttributeOrdering(SchemaConstants.ICFS_NAME, OrderDirection.DESCENDING));
-        SearchResultMetadata searchMetadata = testSeachIterativePaging(null, paging, null,
+        SearchResultMetadata searchMetadata = testSearchIterativePaging(null, paging, null,
                 getSortedUsernames18xDesc(2, 3));
         assertApproxNumberOfAllResults(searchMetadata, getTest18xApproxNumberOfSearchResults());
     }
@@ -1932,21 +1930,21 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     @Test
     public void test194SearchIcfNameRepoizedNoFetch() throws Exception {
-        testSeachIterativeSingleAttrFilter(SchemaConstants.ICFS_NAME, getWillRepoIcfName(),
+        testSearchIterativeSingleAttrFilter(SchemaConstants.ICFS_NAME, getWillRepoIcfName(),
                 GetOperationOptions.createNoFetch(), false,
                 transformNameFromResource(ACCOUNT_WILL_USERNAME));
     }
 
     @Test
     public void test195SearchIcfNameExact() throws Exception {
-        testSeachIterativeSingleAttrFilter(
+        testSearchIterativeSingleAttrFilter(
                 SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME), null, true,
                 transformNameFromResource(ACCOUNT_WILL_USERNAME));
     }
 
     @Test
     public void test196SearchIcfNameExactNoFetch() throws Exception {
-        testSeachIterativeSingleAttrFilter(SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME),
+        testSearchIterativeSingleAttrFilter(SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME),
                 GetOperationOptions.createNoFetch(), false,
                 transformNameFromResource(ACCOUNT_WILL_USERNAME));
     }
@@ -1954,7 +1952,7 @@ public class TestDummy extends AbstractBasicDummyTest {
     // TEMPORARY todo move to more appropriate place (model-intest?)
     @Test
     public void test197SearchIcfNameAndUidExactNoFetch() throws Exception {
-        testSeachIterativeAlternativeAttrFilter(SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME),
+        testSearchIterativeAlternativeAttrFilter(SchemaConstants.ICFS_NAME, transformNameFromResource(ACCOUNT_WILL_USERNAME),
                 SchemaConstants.ICFS_UID, willIcfUid,
                 GetOperationOptions.createNoFetch(), false,
                 transformNameFromResource(ACCOUNT_WILL_USERNAME));
@@ -2052,13 +2050,13 @@ public class TestDummy extends AbstractBasicDummyTest {
         return query;
     }
 
-    protected <T> void testSeachIterativeSingleAttrFilter(String attrName, T attrVal,
+    protected <T> void testSearchIterativeSingleAttrFilter(String attrName, T attrVal,
             GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountIds) throws Exception {
-        testSeachIterativeSingleAttrFilter(dummyResourceCtl.getAttributeQName(attrName), attrVal,
+        testSearchIterativeSingleAttrFilter(dummyResourceCtl.getAttributeQName(attrName), attrVal,
                 rootOptions, fullShadow, expectedAccountIds);
     }
 
-    protected <T> void testSeachIterativeSingleAttrFilter(QName attrQName, T attrVal,
+    protected <T> void testSearchIterativeSingleAttrFilter(QName attrQName, T attrVal,
             GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
         ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
@@ -2069,7 +2067,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         testSearchIterative(filter, rootOptions, fullShadow, true, false, expectedAccountNames);
     }
 
-    protected <T> void testSeachIterativeAlternativeAttrFilter(QName attr1QName, T attr1Val,
+    protected <T> void testSearchIterativeAlternativeAttrFilter(QName attr1QName, T attr1Val,
             QName attr2QName, T attr2Val,
             GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
         ResourceSchema resourceSchema = RefinedResourceSchemaImpl.getResourceSchema(resource, prismContext);
@@ -2168,7 +2166,7 @@ public class TestDummy extends AbstractBasicDummyTest {
 
     // This has to be a different method than ordinary search. We care about ordering here.
     // Also, paged search without sorting does not make much sense anyway.
-    private SearchResultMetadata testSeachIterativePaging(ObjectFilter attrFilter,
+    private SearchResultMetadata testSearchIterativePaging(ObjectFilter attrFilter,
             ObjectPaging paging, GetOperationOptions rootOptions, String... expectedAccountNames)
             throws Exception {
         OperationResult result = createOperationResult();
@@ -3975,8 +3973,7 @@ public class TestDummy extends AbstractBasicDummyTest {
         dummyResource.clearDeltas();
         syncServiceMock.reset();
 
-        OperationResult result = new OperationResult(TestDummy.class.getName()
-                + ".test800LiveSyncInit");
+        OperationResult result = createOperationResult();
 
         // Dry run to remember the current sync token in the task instance.
         // Otherwise a last sync token whould be used and
@@ -4663,5 +4660,4 @@ public class TestDummy extends AbstractBasicDummyTest {
         assertEquals("Wrong value of ICF name attribute in old  shadow", repoName,
                 icfsNameAttribute.getRealValue());
     }
-
 }
