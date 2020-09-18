@@ -646,11 +646,6 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     }
 
     @Override
-    public void continueEditing(AjaxRequestTarget target) {
-
-    }
-
-    @Override
     public int getRefreshInterval() {
         return REFRESH_INTERVAL;
     }

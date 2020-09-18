@@ -112,10 +112,6 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
         return PageObjectCollection.class;
     }
 
-    @Override
-    public void continueEditing(AjaxRequestTarget target) {
-    }
-
     private List<ITab> getTabs(){
         List<ITab> tabs = new ArrayList<>();
         tabs.add(new PanelTab(createStringResource("pageObjectCollection.basic.title")) {
@@ -193,13 +189,13 @@ public class PageObjectCollection extends PageAdminObjectDetails<ObjectCollectio
         return PrismContainerWrapperModel.fromContainerWrapper(model, itemName);
     }
 
-    @Override
-    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
-        if (!isKeepDisplayingResults()) {
-            showResult(result);
-            redirectBack();
-        }
-    }
+//    @Override
+//    public void finishProcessing(AjaxRequestTarget target, Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas, boolean returningFromAsync, OperationResult result) {
+//        if (!isKeepDisplayingResults()) {
+//            showResult(result);
+//            redirectBack();
+//        }
+//    }
 
     @Override
     protected AbstractObjectMainPanel<ObjectCollectionType> createMainPanel(String id) {
