@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -12,7 +12,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -983,7 +986,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         byte[] jpegPhotoLdap = OpenDJController.getAttributeValueBinary(entry, "jpegPhoto");
         assertNotNull("No jpegPhoto in LDAP entry", jpegPhotoLdap);
         assertEquals("Byte length changed (LDAP)", bytesIn.length, jpegPhotoLdap.length);
-        assertTrue("Bytes do not match (LDAP)", Arrays.equals(bytesIn, jpegPhotoLdap));
+        assertArrayEquals("Bytes do not match (LDAP)", bytesIn, jpegPhotoLdap);
 
         PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class,
                 ACCOUNT_JACK_OID, null, taskManager.createTaskInstance(), result);
@@ -997,7 +1000,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         displayValue("Bytes out", MiscUtil.binaryToHex(bytesOut));
 
         assertEquals("Byte length changed (shadow)", bytesIn.length, bytesOut.length);
-        assertTrue("Bytes do not match (shadow)", Arrays.equals(bytesIn, bytesOut));
+        assertArrayEquals("Bytes do not match (shadow)", bytesIn, bytesOut);
 
         assertShadows(3);
     }
@@ -1355,7 +1358,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Entry response = openDJController.searchAndAssertByEntryUuid(uid);
         display("LDAP account", response);
 
-        String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
+        String disabled = OpenDJController.getAttributeValue(response, "ds-pwp-account-disabled");
         assertNotNull("no ds-pwp-account-disabled attribute in account " + uid, disabled);
 
         display("ds-pwp-account-disabled after change: " + disabled);
@@ -1401,7 +1404,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Entry response = openDJController.searchAndAssertByEntryUuid(uid);
         display("LDAP account", response);
 
-        String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
+        String disabled = OpenDJController.getAttributeValue(response, "ds-pwp-account-disabled");
         assertNotNull("no ds-pwp-account-disabled attribute in account " + uid, disabled);
 
         System.out.println("ds-pwp-account-disabled after change: " + disabled);
@@ -1449,7 +1452,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Entry response = openDJController.searchAndAssertByEntryUuid(uid);
         display("LDAP account", response);
 
-        String disabled = openDJController.getAttributeValue(response, "ds-pwp-account-disabled");
+        String disabled = OpenDJController.getAttributeValue(response, "ds-pwp-account-disabled");
         assertEquals("ds-pwp-account-disabled not set to \"FALSE\"", "FALSE", disabled);
     }
 
@@ -1523,7 +1526,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         Entry response = openDJController.searchAndAssertByEntryUuid(uid);
         display("LDAP account", response);
 
-        String pager = openDJController.getAttributeValue(response, "pager");
+        String pager = OpenDJController.getAttributeValue(response, "pager");
         assertNull("Pager attribute found in account " + uid + ": " + pager, pager);
 
         PrismAsserts.assertPropertyValue(shadow, SchemaConstants.PATH_ACTIVATION_LOCKOUT_STATUS,
@@ -1593,7 +1596,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // THEN
         result.computeStatus();
         assertSuccess(result);
-        display("Search resutls", searchResults);
+        display("Search results", searchResults);
 
         assertEquals("Unexpected number of search results", 14, searchResults.size());
 
@@ -1763,7 +1766,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // THEN
         then();
         assertSuccess(result);
-        display("Search resutls", searchResults);
+        display("Search results", searchResults);
 
         assertSearchResults(searchResults, "cook", "drake", "hbarbossa");
 
@@ -1796,7 +1799,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         // THEN
         then();
         assertSuccess(result);
-        display("Search resutls", searchResults);
+        display("Search results", searchResults);
 
         assertSearchResults(searchResults, "cook", "drake", "hbarbossa", "idm");
 
@@ -1829,7 +1832,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         result.computeStatus();
         assertSuccess(result);
-        display("Search resutls", searchResults);
+        display("Search results", searchResults);
 
         // The results should be this:
         assertSearchResults(searchResults, "hbarbossa", "idm", "jbeckett", "jbond", "jgibbs");
@@ -1866,7 +1869,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         result.computeStatus();
         assertSuccess(result);
-        display("Search resutls", searchResults);
+        display("Search results", searchResults);
 
         assertSearchResults(searchResults, "monk", "hbarbossa", "jbeckett", "jbond");
 
@@ -1902,7 +1905,7 @@ public class TestOpenDj extends AbstractOpenDjTest {
         then();
         result.computeStatus();
         assertSuccess(result);
-        display("Search resutls", searchResults);
+        display("Search results", searchResults);
 
         assertSearchResults(searchResults, "jbeckett", "jbond", "cook", "drake");
 

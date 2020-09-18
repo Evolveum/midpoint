@@ -835,6 +835,7 @@ public class ExpressionUtil {
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
         ItemDefinition outputDefinition = expressionFactory.getPrismContext().definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, DOMUtil.XSD_BOOLEAN);
+        outputDefinition.freeze();
         //noinspection unchecked
         return (PrismPropertyValue<Boolean>) evaluateExpression(variables, outputDefinition, expressionType, expressionProfile,
                 expressionFactory, shortDesc, task, parentResult);

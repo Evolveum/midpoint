@@ -57,7 +57,7 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition, E ext
         recordEvaluationStart(ValueTransformationEvaluationModeType.SINGLE_SHOT);
 
         PrismValueDeltaSetTriple<V> outputTriple;
-        if (context.hasDeltas() || expressionDependsOnSystemState()) {
+        if (context.hasDeltas()) {
             outputTriple = evaluateAbsoluteExpressionWithDeltas();
         } else {
             outputTriple = evaluateAbsoluteExpressionWithoutDeltas();
@@ -65,14 +65,6 @@ class SingleShotEvaluation<V extends PrismValue, D extends ItemDefinition, E ext
 
         recordEvaluationEnd(outputTriple);
         return outputTriple;
-    }
-
-    // FIXME remove this temporary hack - MID-6406
-    private boolean expressionDependsOnSystemState() {
-        E evaluatorBean = evaluator.getExpressionEvaluatorBean();
-        return evaluatorBean instanceof ScriptExpressionEvaluatorType &&
-                ((ScriptExpressionEvaluatorType) evaluatorBean).getCode() != null &&
-                ((ScriptExpressionEvaluatorType) evaluatorBean).getCode().contains("hasLinkedAccount");
     }
 
     private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpressionWithDeltas() throws ExpressionEvaluationException,

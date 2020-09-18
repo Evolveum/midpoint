@@ -205,6 +205,7 @@ public class SearchFactory {
                 if (searchItemDef.getPath() != null) {
                     ItemDefinition def = objDef.findItemDefinition(searchItemDef.getPath());
                     item = search.addItem(def);
+                    ((PropertySearchItem) item).setDisplayName(searchItemDef.getDisplayName());
                 } else if (searchItemDef.getPredefinedFilter() != null) {
                     item = search.addItem(searchItemDef.getPredefinedFilter());
                 }
@@ -260,6 +261,7 @@ public class SearchFactory {
             for (SearchItemDefinition def : availableDefinitions) {
                 ItemPathType searchItemPath = new ItemPathType(def.getPath());
                 if (searchItem.getPath() != null && searchItem.getPath().equivalent(searchItemPath)) {
+                    def.setDisplayName(searchItem.getDisplayName());
                     configuredSearchItemList.add(def);
                     return;
                 }

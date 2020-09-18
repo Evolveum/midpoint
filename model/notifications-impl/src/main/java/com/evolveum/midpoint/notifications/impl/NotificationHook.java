@@ -159,13 +159,12 @@ public class NotificationHook implements ChangeHook {
     private ModelEvent createModelEvent(PrismObject<?> object, ModelContext<?> modelContext, Task task) {
         ModelEventImpl event = new ModelEventImpl(lightweightIdentifierGenerator, modelContext);
         setCommonEventProperties(object, task, modelContext, event);
-        // TODO is this correct? it's not quite clear how we work with channel info in task / modelContext
-        String channel = task.getChannel();
-        if (channel == null) {
-            channel = modelContext.getChannel();
-        }
-        event.setChannel(channel);
+        event.setChannel(getChannel(modelContext, task));
         return event;
+    }
+
+    private String getChannel(ModelContext<?> modelContext, Task task) {
+        return modelContext.getChannel() != null ? modelContext.getChannel() : task.getChannel();
     }
 
     private void setCommonEventProperties(PrismObject<?> object, Task task, ModelContext<?> modelContext, Event event) {

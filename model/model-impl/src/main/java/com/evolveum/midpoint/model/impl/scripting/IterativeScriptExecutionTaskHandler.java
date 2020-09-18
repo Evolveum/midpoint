@@ -44,7 +44,8 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
 
     public IterativeScriptExecutionTaskHandler() {
         super("Execute script", OperationConstants.EXECUTE_SCRIPT);
-        setLogFinishInfo(true);     // todo
+        setPreserveStatistics(false);
+        setLogFinishInfo(true); // todo
     }
 
     @PostConstruct

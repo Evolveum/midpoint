@@ -72,6 +72,11 @@ public class ClusterRestController extends AbstractRestController {
         // nothing to do
     }
 
+    @PostMapping(ClusterServiceConsts.EVENT_INVALIDATION)
+    public ResponseEntity<?> executeClusterCacheInvalidationEvent() {
+        return executeClusterCacheInvalidationEvent(null, null);
+    }
+
     @PostMapping(ClusterServiceConsts.EVENT_INVALIDATION + "{type}")
     public ResponseEntity<?> executeClusterCacheInvalidationEvent(
             @PathVariable("type") String type) {

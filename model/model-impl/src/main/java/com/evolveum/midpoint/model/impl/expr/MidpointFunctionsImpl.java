@@ -444,42 +444,64 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
 
     @Override
+    public @NotNull List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        return getLinkedShadows(focus, resourceOid, false);
+    }
+
+    @Override
     public ShadowType getLinkedShadow(FocusType focus, String resourceOid, boolean repositoryObjectOnly)
             throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException {
-        if (focus == null) {
+        List<ShadowType> shadows = getLinkedShadows(focus, resourceOid, repositoryObjectOnly);
+        if (shadows.isEmpty()) {
             return null;
+        } else {
+            return shadows.get(0);
         }
+    }
+
+    @Override
+    public @NotNull List<ShadowType> getLinkedShadows(FocusType focus, String resourceOid, boolean repositoryObjectOnly)
+            throws SchemaException, SecurityViolationException, CommunicationException, ConfigurationException,
+            ExpressionEvaluationException {
+        if (focus == null) {
+            return emptyList();
+        }
+
+        List<ShadowType> shadows = new ArrayList<>();
+
         List<ObjectReferenceType> linkRefs = focus.getLinkRef();
         for (ObjectReferenceType linkRef : linkRefs) {
-            ShadowType shadowType;
+            ShadowType shadow;
             try {
-                shadowType = getObject(ShadowType.class, linkRef.getOid(),
+                shadow = getObject(ShadowType.class, linkRef.getOid(),
                         SelectorOptions.createCollection(GetOperationOptions.createNoFetch()));
             } catch (ObjectNotFoundException e) {
                 // Shadow is gone in the meantime. MidPoint will resolve that by itself.
                 // It is safe to ignore this error in this method.
-                LOGGER.trace("Ignoring shadow " + linkRef.getOid() + " linked in " + focus
-                        + " because it no longer exists in repository");
+                LOGGER.trace("Ignoring shadow {} linked in {} because it no longer exists in repository",
+                        linkRef.getOid(), focus);
                 continue;
             }
-            if (shadowType.getResourceRef().getOid().equals(resourceOid)) {
+            if (shadow.getResourceRef().getOid().equals(resourceOid)) {
                 // We have repo shadow here. Re-read resource shadow if necessary.
                 if (!repositoryObjectOnly) {
                     try {
-                        shadowType = getObject(ShadowType.class, shadowType.getOid());
+                        shadow = getObject(ShadowType.class, shadow.getOid());
                     } catch (ObjectNotFoundException e) {
                         // Shadow is gone in the meantime. MidPoint will resolve that by itself.
                         // It is safe to ignore this error in this method.
-                        LOGGER.trace("Ignoring shadow " + linkRef.getOid() + " linked in " + focus
-                                + " because it no longer exists on resource");
+                        LOGGER.trace("Ignoring shadow {} linked in {} because it no longer exists on the resource",
+                                linkRef.getOid(), focus);
                         continue;
                     }
                 }
-                return shadowType;
+                shadows.add(shadow);
             }
         }
-        return null;
+        return shadows;
     }
 
     @Override

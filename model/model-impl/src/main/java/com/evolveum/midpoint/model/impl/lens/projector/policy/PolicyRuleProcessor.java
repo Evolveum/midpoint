@@ -15,7 +15,6 @@ import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentTargetImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
-import com.evolveum.midpoint.model.impl.lens.projector.focus.PruningOperation;
 import com.evolveum.midpoint.model.impl.lens.projector.util.ProcessorExecution;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
 import com.evolveum.midpoint.model.impl.lens.projector.policy.evaluators.*;
@@ -28,11 +27,9 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -45,7 +42,6 @@ import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -84,8 +80,6 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     @Autowired private CompositeConstraintEvaluator compositeConstraintEvaluator;
     @Autowired private TransitionConstraintEvaluator transitionConstraintEvaluator;
     @Autowired private ExpressionFactory expressionFactory;
-
-    private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
     //region ------------------------------------------------------------------ Assignment policy rules
     /**
@@ -584,8 +578,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
                 .mappingKind(MappingKindType.POLICY_RULE_CONDITION)
                 .contextDescription("condition in global policy rule " + globalPolicyRule.getName())
                 .sourceContext(focusOdo)
-                .defaultTargetDefinition(
-                        prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
+                .defaultTargetDefinition(LensUtil.createConditionDefinition(prismContext))
                 .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo)
                 .addAliasRegistration(ExpressionConstants.VAR_USER, null)

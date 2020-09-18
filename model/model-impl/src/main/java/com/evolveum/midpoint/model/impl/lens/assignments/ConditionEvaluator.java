@@ -7,8 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.assignments;
 
-import javax.xml.namespace.QName;
-
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
@@ -16,13 +14,10 @@ import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -36,8 +31,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 class ConditionEvaluator {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConditionEvaluator.class);
-
-    private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 
     private final EvaluationContext<?> ctx;
 
@@ -79,7 +72,7 @@ class ConditionEvaluator {
                 .sourceContext(ctx.ae.focusOdoAbsolute)
                 .originType(OriginType.ASSIGNMENTS)
                 .originObject(source)
-                .defaultTargetDefinition(ctx.ae.prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
+                .defaultTargetDefinition(LensUtil.createConditionDefinition(ctx.ae.prismContext))
                 .addVariableDefinitions(ctx.ae.getAssignmentEvaluationVariables())
                 .rootNode(ctx.ae.focusOdoAbsolute)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, ctx.ae.focusOdoAbsolute)
@@ -110,7 +103,7 @@ class ConditionEvaluator {
                 .sourceContext(ctx.ae.focusOdoRelative)
                 .originType(OriginType.ASSIGNMENTS)
                 .originObject(source)
-                .defaultTargetDefinition(ctx.ae.prismContext.definitionFactory().createPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN))
+                .defaultTargetDefinition(LensUtil.createConditionDefinition(ctx.ae.prismContext))
                 .addVariableDefinitions(ctx.ae.getAssignmentEvaluationVariables())
                 .rootNode(ctx.ae.focusOdoRelative)
                 .addVariableDefinition(ExpressionConstants.VAR_FOCUS, ctx.ae.focusOdoRelative)

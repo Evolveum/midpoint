@@ -853,6 +853,7 @@ public class ChangeExecutor {
                     SelectorOptions.createCollection(getOptions), task, result);
         } catch (ObjectNotFoundException ex) {
             LOGGER.trace("Shadow is gone, skipping modifying situation in shadow.");
+            result.muteLastSubresultError();
             result.recordSuccess();
             return;
         } catch (Exception ex) {
@@ -1194,8 +1195,8 @@ public class ChangeExecutor {
 
             if (context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANNEL_RECON))) {
                 // TODO: this is probably wrong. We should not have special case
-                // for recon channel! This should be handled by the provisioning task
-                // setting the right options there.
+                //  for recon channel! This should be handled by the provisioning task
+                //  setting the right options there.
                 provisioningOptions.setCompletePostponed(false);
             }
 
@@ -1747,7 +1748,7 @@ public class ChangeExecutor {
 
         PrismPropertyDefinition<String> scriptArgumentDefinition = prismContext.definitionFactory().createPropertyDefinition(
                 fakeScriptArgumentName, DOMUtil.XSD_STRING);
-
+        scriptArgumentDefinition.freeze();
         String shortDesc = "Provisioning script argument expression";
         Expression<PrismPropertyValue<String>, PrismPropertyDefinition<String>> expression = expressionFactory
                 .makeExpression(argument, scriptArgumentDefinition, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
