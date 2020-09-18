@@ -675,7 +675,6 @@ public class AssignmentProcessor implements ProjectorProcessor {
             } catch (ObjectNotFoundException ex) {
                 LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
                         SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignmentType()));
-                iterator.remove(); // TODO this is cruel! Review this. MID-6401
                 if (!ModelExecuteOptions.isForce(context.getOptions())) {
                     ModelImplUtils.recordFatalError(result, ex);
                 }
@@ -696,7 +695,6 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 if (accCtx != null) {
                     accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
                 }
-                iterator.remove(); // TODO this is cruel! Review this. MID-6401
             }
         }
     }
