@@ -198,9 +198,8 @@ public class SecurityUtils {
         }
         String[] partsOfLocalPath = stripStartingSlashes(localePath).split("/");
 
-        AuthenticationSequenceType specificSequence = getSpecificSequence(httpRequest);
-        if (specificSequence != null) {
-            return specificSequence;
+        if (isSpecificSequence(httpRequest)) {
+            return getSpecificSequence(httpRequest);
         }
 
         List<AuthenticationSequenceType> sequences = getSequencesForNodeGroups(nodeGroups, authenticationPolicy);
@@ -319,11 +318,28 @@ public class SecurityUtils {
                     sequence.setName(AuthenticationModuleNameConstants.CLUSTER);
                     AuthenticationSequenceChannelType seqChannel = new AuthenticationSequenceChannelType();
                     seqChannel.setUrlSuffix(AuthenticationModuleNameConstants.CLUSTER.toLowerCase());
+                    seqChannel.setChannelId(SchemaConstants.CHANNEL_REST_URI);
+                    sequence.setChannel(seqChannel);
                     return sequence;
                 }
             }
         }
         return null;
+    }
+
+    public static boolean isSpecificSequence(HttpServletRequest httpRequest) {
+        String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
+        String channel = searchChannelByPath(localePath);
+        if (SchemaConstants.CHANNEL_REST_URI.equals(channel)) {
+            String header = httpRequest.getHeader("Authorization");
+            if (header != null) {
+                String type = header.split(" ")[0];
+                if (AuthenticationModuleNameConstants.CLUSTER.toLowerCase().equals(type.toLowerCase())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private static AuthenticationSequenceType searchSequence(String comparisonAttribute, boolean inputIsChannel, List<AuthenticationSequenceType> sequences) {
@@ -372,13 +388,13 @@ public class SecurityUtils {
             CredentialsPolicyType credentialPolicy, Map<Class<?>, Object> sharedObjects,
             AuthenticationChannel authenticationChannel) {
         Validate.notNull(authRegistry, "Registry for module factories is null");
-        Validate.notEmpty(sequence.getModule(), "Sequence " + sequence.getName() + " don't contains authentication modules");
 
-        List<AuthModule> specificModules = getSpecificModuleFilter(sequence.getChannel().getUrlSuffix(), request,
-                sharedObjects, authenticationModulesType, credentialPolicy);
-        if (specificModules != null) {
-            return specificModules;
+        if (isSpecificSequence(request)) {
+            return getSpecificModuleFilter(authRegistry, sequence.getChannel().getUrlSuffix(), request,
+                    sharedObjects, authenticationModulesType, credentialPolicy);
         }
+
+        Validate.notEmpty(sequence.getModule(), "Sequence " + sequence.getName() + " don't contains authentication modules");
 
         List<AuthenticationSequenceModuleType> sequenceModules = SecurityPolicyUtil.getSortedModules(sequence);
         List<AuthModule> authModules = new ArrayList<>();
@@ -399,7 +415,7 @@ public class SecurityUtils {
         return authModules;
     }
 
-    private static List<AuthModule> getSpecificModuleFilter(String urlSuffix, HttpServletRequest httpRequest, Map<Class<?>, Object> sharedObjects,
+    private static List<AuthModule> getSpecificModuleFilter(AuthModuleRegistryImpl authRegistry, String urlSuffix, HttpServletRequest httpRequest, Map<Class<?>, Object> sharedObjects,
             AuthenticationModulesType authenticationModulesType, CredentialsPolicyType credentialPolicy) {
         String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
         String channel = searchChannelByPath(localePath);
@@ -409,8 +425,7 @@ public class SecurityUtils {
                 String type = header.split(" ")[0];
                 if (AuthenticationModuleNameConstants.CLUSTER.toLowerCase().equals(type.toLowerCase())) {
                     List<AuthModule> authModules = new ArrayList<>();
-                    WebApplicationContext context = ContextLoader.getCurrentWebApplicationContext();
-                    HttpClusterModuleFactory factory = context.getBean(HttpClusterModuleFactory.class);
+                    HttpClusterModuleFactory factory = authRegistry.findModelFactoryByClass(HttpClusterModuleFactory.class);
                     AbstractAuthenticationModuleType module = new AbstractAuthenticationModuleType() {
                     };
                     module.setName(AuthenticationModuleNameConstants.CLUSTER.toLowerCase() + "-module");

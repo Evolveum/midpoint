@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Evolveum and contributors
+ * Copyright (C) 2018-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -90,14 +90,15 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         DummyGroup group = new DummyGroup(GROUP_PIRATES_NAME);
         getDummyResourceDir().addGroup(group);
 
-        // WHEN
         when();
-
+        // TODO fails on JDK 8 long tests in funny way, every second time:
+        //  java.lang.AssertionError: Timeout (25000) while waiting for Task(id:7d79f012-d861-11e8-b788-07bda6c5bb24,
+        //  name:Live Sync: Dummy Dir Resource, oid:7d79f012-d861-11e8-b788-07bda6c5bb24) to finish. Last result R(run IN_PROGRESS null)
+        //   at com.evolveum.midpoint.testing.story.TestInboundOutboundAssociation.liveSyncDir(TestInboundOutboundAssociation.java:514)
+        //  This then takes with it tests 130, 140, 149, 150, 152, 153, 154 and 159.
         liveSyncDir();
 
-        // THEN
         then();
-
         displayDumpable("dir after", getDummyResourceDir());
 
         RoleAsserter<Void> rolePiratesAsserter = assertRoleAfterByName(groupRoleName(GROUP_PIRATES_NAME));
@@ -122,11 +123,9 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -148,13 +147,10 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
      */
     @Test
     public void test115Stability() throws Exception {
-        // WHEN
         when();
         liveSyncDir();
 
-        // THEN
         then();
-
         displayDumpable("dir after", getDummyResourceDir());
 
         assertDummyAccountByUsername(RESOURCE_DUMMY_DIR_NAME, USER_JACK_USERNAME)
@@ -177,14 +173,10 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         getDummyResourceDir().getAccountByUsername(USER_JACK_USERNAME)
                 .replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "rum");
 
-        // WHEN
         when();
-
         liveSyncDir();
 
-        // THEN
         then();
-
         displayDumpable("dir after", getDummyResourceDir());
 
         assertUserAfter(USER_JACK_OID)
@@ -207,11 +199,9 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         unassignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -234,11 +224,9 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         assignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -268,11 +256,9 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         unassignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -301,11 +287,9 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         unassignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -326,11 +310,9 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         assignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -352,11 +334,9 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         assignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -391,11 +371,9 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
                 rolePiratesOid, RoleType.COMPLEX_TYPE,
                 null, null, false);
 
-        // WHEN
         when();
         ModelContext<UserType> previewContext = previewChanges(focusDelta, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -431,11 +409,9 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         unassignRole(USER_JACK_OID, rolePiratesOid, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -461,11 +437,9 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         unassignAccount(UserType.class, USER_JACK_OID, RESOURCE_DUMMY_DIR_OID, null, task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -489,11 +463,9 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
         Task task = getTestTask();
         OperationResult result = task.getResult();
 
-        // WHEN
         when();
         assignAccountToUser(USER_MANCOMB_OID, RESOURCE_DUMMY_DIR_OID, "default", task, result);
 
-        // THEN
         then();
         assertSuccess(result);
 
@@ -517,5 +489,4 @@ public class TestInboundOutboundAssociation extends AbstractStoryTest {
     private DummyResource getDummyResourceDir() {
         return getDummyResource(RESOURCE_DUMMY_DIR_NAME);
     }
-
 }

@@ -601,17 +601,18 @@ public class DashboardServiceImpl implements DashboardService {
 
     private <T extends Object> List<T> evaluateCondition(ExpressionType condition, List<T> values, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        List<T> newValues = new ArrayList();
-        for (T value : values) {
+        Iterator<T> iterator = values.iterator();
+        while (iterator.hasNext()) {
+            T value = iterator.next();
             ExpressionVariables variables = new ExpressionVariables();
             variables.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
             PrismPropertyValue<Boolean> conditionValue = ExpressionUtil.evaluateCondition(variables, condition, null, expressionFactory,
                     "Evaluate condition", task, result);
-            if (conditionValue != null && Boolean.TRUE.equals(conditionValue.getRealValue())) {
-                newValues.add(value);
+            if (conditionValue == null || Boolean.FALSE.equals(conditionValue.getRealValue())) {
+                iterator.remove();
             }
         }
-        return newValues;
+        return values;
     }
 
     @Override

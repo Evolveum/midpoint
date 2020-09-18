@@ -111,7 +111,7 @@ public abstract class ResourceContentPanel extends Panel {
     private static final Trace LOGGER = TraceManager.getTrace(ResourceContentPanel.class);
 
     private static final String DOT_CLASS = ResourceContentTabPanel.class.getName() + ".";
-    private static final String OPERATION_SEARCH_TASKS_FOR_RESOURCE = DOT_CLASS + "seachTasks";
+    private static final String OPERATION_SEARCH_TASKS_FOR_RESOURCE = DOT_CLASS + "searchTasks";
     private static final String OPERATION_CHANGE_OWNER = DOT_CLASS + "changeOwner";
     private static final String OPERATION_LOAD_SHADOW_OWNER = DOT_CLASS + "loadOwner";
     private static final String OPERATION_UPDATE_STATUS = DOT_CLASS + "updateStatus";

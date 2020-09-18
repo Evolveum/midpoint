@@ -9,6 +9,7 @@ package com.evolveum.midpoint.util.logging;
 
 import ch.qos.logback.classic.Level;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -16,7 +17,7 @@ import java.util.Set;
 /**
  *
  */
-public class LoggingLevelOverrideConfiguration {
+public class LoggingLevelOverrideConfiguration implements Serializable {
 
     private final List<Entry> entries = new ArrayList<>();
 
@@ -28,7 +29,7 @@ public class LoggingLevelOverrideConfiguration {
         entries.add(entry);
     }
 
-    public static class Entry {
+    public static class Entry implements Serializable {
         private final Set<String> loggers;
         private final Level level;
 
