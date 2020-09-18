@@ -24,6 +24,8 @@ import java.util.function.Supplier;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.springframework.util.ReflectionUtils;
 import org.springframework.util.ReflectionUtils.FieldCallback;
 
@@ -767,5 +769,27 @@ public class DebugUtil {
             }
         }
         sb.append("]");
+    }
+
+    @Experimental
+    public static class LazilyDumpable {
+        private final Supplier<Object> supplier;
+        private String stringified;
+
+        private LazilyDumpable(Supplier<Object> supplier) {
+            this.supplier = supplier;
+        }
+
+        public static LazilyDumpable of(Supplier<Object> supplier) {
+            return new LazilyDumpable(supplier);
+        }
+
+        @Override
+        public String toString() {
+            if (stringified == null) {
+                stringified = supplier.toString();
+            }
+            return stringified;
+        }
     }
 }

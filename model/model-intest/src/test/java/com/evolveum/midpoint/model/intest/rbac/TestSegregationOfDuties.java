@@ -18,6 +18,8 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.test.TestResource;
+
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -152,6 +154,14 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
 
     private static final String GLOBAL_POLICY_RULE_SOD_APPROVAL_NAME = "exclusion-global-sod-approval";
 
+    private static final TestResource METAROLE_EXCLUSION_APPLICATION = new TestResource(TEST_DIR, "metarole-exclusion-application.xml", "420e5734-3c9b-4a13-8c29-00e745701225");
+    private static final TestResource ROLE_APPLICATION_1 = new TestResource(TEST_DIR, "role-application1.xml", "67a972f6-a399-48e3-ac8d-9140d3323259");
+    private static final TestResource ROLE_APPLICATION_2 = new TestResource(TEST_DIR, "role-application2.xml", "7e468bbf-a1c3-4c6c-a327-39b720c27930");
+    private static final TestResource ROLE_BUSINESS_1 = new TestResource(TEST_DIR, "role-business1.xml", "0a75e61a-d5d8-422b-aae5-2f8ec4426df5");
+    private static final TestResource ROLE_BUSINESS_2 = new TestResource(TEST_DIR, "role-business2.xml", "a6bd00fd-2fd4-48b1-8a4f-6edd038beea3");
+    private static final TestResource USER_PETR = new TestResource(TEST_DIR, "user-petr.xml", "16a61473-9542-4068-98be-3380802afbfe");
+    private static final TestResource USER_MARTIN = new TestResource(TEST_DIR, "user-martin.xml", "1bf090da-b070-4049-a10e-ba4a7c8430cd");
+
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
@@ -182,6 +192,17 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         repoAddObjectFromFile(ROLE_CRIMINAL_FILE, initResult);
         repoAddObjectFromFile(ROLE_SELF_EXCLUSION_FILE, initResult);
         repoAddObjectFromFile(ROLE_SELF_EXCLUSION_MANAGER_MEMBER_FILE, initResult);
+
+        repoAdd(METAROLE_EXCLUSION_APPLICATION, initResult);
+        repoAdd(ROLE_APPLICATION_1, initResult);
+        repoAdd(ROLE_APPLICATION_2, initResult);
+        repoAdd(ROLE_BUSINESS_1, initResult);
+        repoAdd(ROLE_BUSINESS_2, initResult);
+
+        addObject(USER_PETR, initTask, initResult);
+        addObject(USER_MARTIN, initTask, initResult);
+
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     @Test
@@ -1623,6 +1644,52 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertNotAssignedRole(userAfter, ROLE_MINISTER_OID);
     }
 
+    /**
+     * Petr has business1 (inducing application1 with application exclusion).
+     * Now we assign him application1 explicitly. Pruning should NOT be carried out.
+     *
+     * MID-6268.
+     */
+    @Test
+    public void test830AddApplicationRoleExplicitly() throws Exception {
+        final String TEST_NAME = "test830AddApplicationRoleExplicitly";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        assignRole(USER_PETR.oid, ROLE_APPLICATION_1.oid, task, result);
+
+        assertUserAfter(USER_PETR.oid)
+                .assignments()
+                .assertAssignments(2)
+                .assertRole(ROLE_APPLICATION_1.oid)
+                .assertRole(ROLE_BUSINESS_1.oid);
+    }
+
+    /**
+     * Martin has application2. Now we assign him business2 (inducing application2 with application
+     * exclusion). Pruning should NOT be carried out.
+     *
+     * MID-6268.
+     */
+    @Test
+    public void test835AddBusinessRole() throws Exception {
+        final String TEST_NAME = "test835AddBusinessRole";
+        displayTestTitle(TEST_NAME);
+
+        Task task = createTask(TEST_NAME);
+        OperationResult result = task.getResult();
+
+        assignRole(USER_MARTIN.oid, ROLE_BUSINESS_2.oid, task, result);
+
+        assertUserAfter(USER_MARTIN.oid)
+                .assignments()
+                .assertAssignments(2)
+                    .assertRole(ROLE_APPLICATION_2.oid)
+                    .assertRole(ROLE_BUSINESS_2.oid);
+    }
+
     @Test
     public void test900ApplyGlobalPolicyRulesSoDApproval() throws Exception {
         final String TEST_NAME = "test900ApplyGlobalPolicyRulesSoDApproval";
@@ -1725,37 +1792,11 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         EvaluatedPolicyRuleTrigger<?> sodTrigger = getSinglePolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getTriggers());
         display("Own trigger", sodTrigger);
         assertEvaluatedPolicyRuleTriggers(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), 2);
-        EvaluatedPolicyRuleTrigger situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule, evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
+        EvaluatedPolicyRuleTrigger situationTrigger = getEvaluatedPolicyRuleTrigger(evaluatedSodPolicyRule.getAllTriggers(), PolicyConstraintKindType.SITUATION);
         display("Situation trigger", situationTrigger);
         PolicyActionsType sodActions = evaluatedSodPolicyRule.getActions();
         display("Actions", sodActions);
         assertPolicyActionApproval(evaluatedSodPolicyRule);
-    }
-
-    private void assertPolicyActionApproval(EvaluatedPolicyRule evaluatedPolicyRule) {
-        PolicyActionsType actions = evaluatedPolicyRule.getActions();
-        assertNotNull("No policy actions in "+evaluatedPolicyRule, actions);
-        assertFalse("No approval action in "+evaluatedPolicyRule, actions.getApproval().isEmpty());
-    }
-
-    private void assertEvaluatedPolicyRuleTriggers(EvaluatedPolicyRule evaluatedPolicyRule,
-            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
-        assertEquals("Wrong number of triggers in evaluated policy rule "+evaluatedPolicyRule.getName(), expectedNumberOfTriggers, triggers.size());
-    }
-
-    private EvaluatedPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
-        assertEvaluatedPolicyRuleTriggers(evaluatedPolicyRule, triggers, 1);
-        return triggers.iterator().next();
-    }
-
-    private EvaluatedPolicyRuleTrigger getEvaluatedPolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule,
-            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, PolicyConstraintKindType expectedConstraintType) {
-        return triggers.stream().filter(trigger -> expectedConstraintType.equals(trigger.getConstraintKind())).findFirst().get();
-    }
-
-
-    private EvaluatedPolicyRule getEvaluatedPolicyRule(Collection<EvaluatedPolicyRule> evaluatedPolicyRules, String ruleName) {
-        return evaluatedPolicyRules.stream().filter(rule -> ruleName.equals(rule.getName())).findFirst().get();
     }
 
     @Test
@@ -1884,6 +1925,31 @@ public class TestSegregationOfDuties extends AbstractInitializedModelIntegration
         assertAssignedRole(userAfter, ROLE_PRIZE_GOLD_OID);
         assertNotAssignedRole(userAfter, ROLE_PRIZE_SILVER_OID);
         assertNotAssignedRole(userAfter, ROLE_PRIZE_BRONZE_OID);
+    }
+
+    private void assertPolicyActionApproval(EvaluatedPolicyRule evaluatedPolicyRule) {
+        PolicyActionsType actions = evaluatedPolicyRule.getActions();
+        assertNotNull("No policy actions in " + evaluatedPolicyRule, actions);
+        assertFalse("No approval action in " + evaluatedPolicyRule, actions.getApproval().isEmpty());
+    }
+
+    private void assertEvaluatedPolicyRuleTriggers(EvaluatedPolicyRule evaluatedPolicyRule,
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, int expectedNumberOfTriggers) {
+        assertEquals("Wrong number of triggers in evaluated policy rule " + evaluatedPolicyRule.getName(), expectedNumberOfTriggers, triggers.size());
+    }
+
+    private EvaluatedPolicyRuleTrigger<?> getSinglePolicyRuleTrigger(EvaluatedPolicyRule evaluatedPolicyRule, Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
+        assertEvaluatedPolicyRuleTriggers(evaluatedPolicyRule, triggers, 1);
+        return triggers.iterator().next();
+    }
+
+    private EvaluatedPolicyRuleTrigger getEvaluatedPolicyRuleTrigger(
+            Collection<EvaluatedPolicyRuleTrigger<?>> triggers, PolicyConstraintKindType expectedConstraintType) {
+        return triggers.stream().filter(trigger -> expectedConstraintType.equals(trigger.getConstraintKind())).findFirst().get();
+    }
+
+    private EvaluatedPolicyRule getEvaluatedPolicyRule(Collection<? extends EvaluatedPolicyRule> evaluatedPolicyRules, String ruleName) {
+        return evaluatedPolicyRules.stream().filter(rule -> ruleName.equals(rule.getName())).findFirst().get();
     }
 
     private PrismObject<UserType> assignRolePolicyFailure(String TEST_NAME, String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, SecurityViolationException {

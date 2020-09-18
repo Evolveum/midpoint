@@ -75,6 +75,12 @@ public class PolicyRuleTypeUtil {
         CONSTRAINT_NAMES.put(PolicyConstraintsType.F_TRANSITION.getLocalPart(), SYMBOL_TRANSITION);
     }
 
+    public static String toShortString(JAXBElement<? extends AbstractPolicyConstraintType> constraint) {
+        StringBuilder sb = new StringBuilder();
+        toShortString(sb, constraint, ' ');
+        return sb.toString();
+    }
+
     public static String toShortString(PolicyConstraintsType constraints) {
         return toShortString(constraints, JOIN_AND);
     }
@@ -86,34 +92,7 @@ public class PolicyRuleTypeUtil {
         StringBuilder sb = new StringBuilder();
         // we ignore refs to be able to dump even unresolved policy rules
         for (JAXBElement<AbstractPolicyConstraintType> constraint : toConstraintsList(constraints, false, true)) {
-            QName name = constraint.getName();
-            String abbreviation = CONSTRAINT_NAMES.get(name.getLocalPart());
-            if (sb.length() > 0) {
-                sb.append(join);
-            }
-            if (QNameUtil.match(name, PolicyConstraintsType.F_AND)) {
-                sb.append('(');
-                sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_AND));
-                sb.append(')');
-            } else if (QNameUtil.match(name, PolicyConstraintsType.F_OR)) {
-                sb.append('(');
-                sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_OR));
-                sb.append(')');
-            } else if (QNameUtil.match(name, PolicyConstraintsType.F_NOT)) {
-                sb.append('(');
-                sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_AND));
-                sb.append(')');
-            } else if (QNameUtil.match(name, PolicyConstraintsType.F_TRANSITION)) {
-                TransitionPolicyConstraintType trans = (TransitionPolicyConstraintType) constraint.getValue();
-                sb.append(SYMBOL_TRANSITION);
-                sb.append(toTransSymbol(trans.isStateBefore()));
-                sb.append(toTransSymbol(trans.isStateAfter()));
-                sb.append('(');
-                sb.append(toShortString(trans.getConstraints(), JOIN_AND));
-                sb.append(')');
-            } else {
-                sb.append(abbreviation != null ? abbreviation : name.getLocalPart());
-            }
+            toShortString(sb, constraint, join);
         }
         for (PolicyConstraintReferenceType ref : constraints.getRef()) {
             if (sb.length() > 0) {
@@ -122,6 +101,37 @@ public class PolicyRuleTypeUtil {
             sb.append("ref:").append(ref.getName());
         }
         return sb.toString();
+    }
+
+    private static void toShortString(StringBuilder sb, JAXBElement<? extends AbstractPolicyConstraintType> constraint, char join) {
+        QName name = constraint.getName();
+        String abbreviation = CONSTRAINT_NAMES.get(name.getLocalPart());
+        if (sb.length() > 0) {
+            sb.append(join);
+        }
+        if (QNameUtil.match(name, PolicyConstraintsType.F_AND)) {
+            sb.append('(');
+            sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_AND));
+            sb.append(')');
+        } else if (QNameUtil.match(name, PolicyConstraintsType.F_OR)) {
+            sb.append('(');
+            sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_OR));
+            sb.append(')');
+        } else if (QNameUtil.match(name, PolicyConstraintsType.F_NOT)) {
+            sb.append('(');
+            sb.append(toShortString((PolicyConstraintsType) constraint.getValue(), JOIN_AND));
+            sb.append(')');
+        } else if (QNameUtil.match(name, PolicyConstraintsType.F_TRANSITION)) {
+            TransitionPolicyConstraintType trans = (TransitionPolicyConstraintType) constraint.getValue();
+            sb.append(SYMBOL_TRANSITION);
+            sb.append(toTransSymbol(trans.isStateBefore()));
+            sb.append(toTransSymbol(trans.isStateAfter()));
+            sb.append('(');
+            sb.append(toShortString(trans.getConstraints(), JOIN_AND));
+            sb.append(')');
+        } else {
+            sb.append(abbreviation != null ? abbreviation : name.getLocalPart());
+        }
     }
 
     private static String toTransSymbol(Boolean state) {
