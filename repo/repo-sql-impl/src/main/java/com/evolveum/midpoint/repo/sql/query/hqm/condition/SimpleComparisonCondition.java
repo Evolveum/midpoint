@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -49,6 +49,12 @@ public class SimpleComparisonCondition extends PropertyCondition {
         String parameterNamePrefix = createParameterName(propertyPath);
         String parameterName = rootHibernateQuery.addParameter(parameterNamePrefix, finalPropertyValue);
         sb.append(finalPropertyPath).append(" ").append(operator).append(" :").append(parameterName);
+        // See RootHibernateQuery.createLike for the other part of the solution.
+        // Design note: probably a bit cyclic dependency, but the knowledge about escaping still
+        // needs to be on both places anyway, so it's less messy than an additional parameter.
+        if (operator.equals("like")) {
+            sb.append(" escape '" + RootHibernateQuery.LIKE_ESCAPE_CHAR + '\'');
+        }
     }
 
     @Override
