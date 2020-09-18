@@ -148,6 +148,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
         this.preserveStatistics = preserveStatistics;
     }
 
+    public void setCountObjectsOnStart(boolean countObjectsOnStart) {
+        this.countObjectsOnStart = countObjectsOnStart;
+    }
+
     public void setLogFinishInfo(boolean logFinishInfo) {
         this.logFinishInfo = logFinishInfo;
     }

@@ -39,7 +39,7 @@ import java.util.List;
 /**
  * @author Radovan Semancik
  *
- * PMed: In theory, the assertions counting # of invocations could fail even if trigger task handler works well
+ * In theory, the assertions counting # of invocations could fail even if trigger task handler works well
  * - if the scanner task would run more than once. If that occurs in reality, we'll deal with it.
  *
  */

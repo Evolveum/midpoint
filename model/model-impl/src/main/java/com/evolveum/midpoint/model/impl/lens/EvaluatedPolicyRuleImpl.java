@@ -23,7 +23,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.PolicyRuleTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.TreeNode;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -47,6 +46,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.evolveum.midpoint.schema.constants.ExpressionConstants.VAR_RULE_EVALUATION_CONTEXT;
+import static com.evolveum.midpoint.util.DebugUtil.*;
 import static com.evolveum.midpoint.xml.ns._public.common.common_3.TriggeredPolicyRulesStorageStrategyType.FULL;
 
 /**
@@ -179,6 +179,31 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
         return rv;
     }
 
+    @Override
+    public <T extends EvaluatedPolicyRuleTrigger<?>> Collection<T> getAllTriggers(Class<T> type) {
+        List<T> selectedTriggers = new ArrayList<>();
+        collectTriggers(selectedTriggers, getAllTriggers(), type);
+        return selectedTriggers;
+    }
+
+    private <T extends EvaluatedPolicyRuleTrigger<?>> void collectTriggers(Collection<T> collected,
+            Collection<EvaluatedPolicyRuleTrigger<?>> all, Class<T> type) {
+        for (EvaluatedPolicyRuleTrigger<?> trigger : all) {
+            if (type.isAssignableFrom(trigger.getClass())) {
+                //noinspection unchecked
+                collected.add((T) trigger);
+            }
+            if (trigger instanceof EvaluatedCompositeTrigger) {
+                EvaluatedCompositeTrigger compositeTrigger = (EvaluatedCompositeTrigger) trigger;
+                if (compositeTrigger.getConstraintKind() != PolicyConstraintKindType.NOT) {
+                    collectTriggers(collected, compositeTrigger.getInnerTriggers(), type);
+                } else {
+                    // there is no use in collecting "negated" triggers
+                }
+            }
+        }
+    }
+
     void addTriggers(Collection<EvaluatedPolicyRuleTrigger<?>> triggers) {
         this.triggers.addAll(triggers);
     }
@@ -281,16 +306,16 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        DebugUtil.debugDumpLabelLn(sb, "EvaluatedPolicyRule " + (getName() != null ? getName() + " " : "") + "(triggers: " + triggers.size() + ")", indent);
-        DebugUtil.debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
-        DebugUtil.debugDumpLabelLn(sb, "policyRuleType", indent + 1);
-        DebugUtil.indentDebugDump(sb, indent + 2);
+        debugDumpLabelLn(sb, "EvaluatedPolicyRule " + (getName() != null ? getName() + " " : "") + "(triggers: " + triggers.size() + ")", indent);
+        debugDumpWithLabelLn(sb, "name", getName(), indent + 1);
+        debugDumpLabelLn(sb, "policyRuleType", indent + 1);
+        indentDebugDump(sb, indent + 2);
         PrismPrettyPrinter.debugDumpValue(sb, indent + 2, policyRuleType, prismContextForDebugDump, PolicyRuleType.COMPLEX_TYPE, PrismContext.LANG_XML);
         sb.append('\n');
-        DebugUtil.debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
-        DebugUtil.debugDumpWithLabelLn(sb, "directOwner", ObjectTypeUtil.toShortString(directOwner), indent + 1);
-        DebugUtil.debugDumpWithLabel(sb, "rootObjects", assignmentPath != null ? String.valueOf(assignmentPath.getFirstOrderChain()) : null, indent + 1);
+        debugDumpWithLabelLn(sb, "assignmentPath", assignmentPath, indent + 1);
+        debugDumpWithLabelLn(sb, "triggers", triggers, indent + 1);
+        debugDumpWithLabelLn(sb, "directOwner", ObjectTypeUtil.toShortString(directOwner), indent + 1);
+        debugDumpWithLabel(sb, "rootObjects", assignmentPath != null ? String.valueOf(assignmentPath.getFirstOrderChain()) : null, indent + 1);
         return sb.toString();
     }
 
@@ -465,7 +490,7 @@ public class EvaluatedPolicyRuleImpl implements EvaluatedPolicyRule {
                     LOGGER.trace("Accepting action {} ({}) because the condition evaluated to true", action.getName(), action.getClass().getSimpleName());
                 }
             }
-            LOGGER.trace("Adding action {} into the enabled action list.", action);
+            LOGGER.trace("Adding action {} ({}) into the enabled action list.", action, action.getClass().getSimpleName());
             enabledActions.add(action);
         }
         enabledActionsComputed = true;
