@@ -203,7 +203,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         // PROCESSING POLICIES
 
         policyRuleProcessor.evaluateAssignmentPolicyRules(context, evaluatedAssignmentTriple, task, result);
-        boolean needToReevaluateAssignments = processPruning(context, evaluatedAssignmentTriple);
+        boolean needToReevaluateAssignments = processPruning(context, evaluatedAssignmentTriple, result);
 
         if (needToReevaluateAssignments) {
             LOGGER.debug("Re-evaluating assignments because exclusion pruning rule was triggered");
@@ -236,9 +236,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     private <F extends AssignmentHolderType> boolean processPruning(LensContext<F> context,
-            DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple) throws SchemaException {
+            DeltaSetTriple<EvaluatedAssignmentImpl<F>> evaluatedAssignmentTriple, OperationResult result) throws SchemaException {
         PruningOperation pruningOperation = new PruningOperation<>(context, evaluatedAssignmentTriple, beans);
-        return pruningOperation.execute();
+        return pruningOperation.execute(result);
     }
 
     private <AH extends AssignmentHolderType> void processProjections(LensContext<AH> context,

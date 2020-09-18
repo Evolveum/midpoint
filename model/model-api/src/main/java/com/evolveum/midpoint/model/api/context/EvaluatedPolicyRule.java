@@ -38,6 +38,12 @@ public interface EvaluatedPolicyRule extends DebugDumpable, Serializable, Clonea
     @NotNull
     Collection<EvaluatedPolicyRuleTrigger<?>> getAllTriggers();
 
+    /**
+     * Returns all triggers of given type, stepping down to situation policy rules and composite triggers.
+     * An exception are composite "not" triggers: it is usually of no use to collect negated triggers.
+     */
+    <T extends EvaluatedPolicyRuleTrigger<?>> Collection<T> getAllTriggers(Class<T> type);
+
     String getName();
 
     PolicyRuleType getPolicyRule();
