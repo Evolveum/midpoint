@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2020 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.helpers;
 
 import java.lang.reflect.Method;
@@ -13,12 +12,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.persistence.PersistenceException;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-
-import com.evolveum.midpoint.repo.sql.helpers.delta.ObjectDeltaUpdater;
-
-import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
@@ -46,6 +39,7 @@ import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.repo.sql.data.RepositoryContext;
 import com.evolveum.midpoint.repo.sql.data.common.RObject;
 import com.evolveum.midpoint.repo.sql.data.common.dictionary.ExtItemDictionary;
+import com.evolveum.midpoint.repo.sql.helpers.delta.ObjectDeltaUpdater;
 import com.evolveum.midpoint.repo.sql.util.*;
 import com.evolveum.midpoint.schema.GetOperationOptionsBuilder;
 import com.evolveum.midpoint.schema.RelationRegistry;
@@ -54,6 +48,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ExceptionUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -311,20 +306,26 @@ public class ObjectUpdater {
         try {
             session = baseHelper.beginTransaction();
 
-            Class<?> clazz = ClassMapper.getHQLTypeClass(type);
+            Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(type);
 
-            CriteriaBuilder cb = session.getCriteriaBuilder();
-            CriteriaQuery<?> cq = cb.createQuery(clazz);
-            cq.where(cb.equal(cq.from(clazz).get("oid"), oid));
-
-            Query query = session.createQuery(cq);
-            RObject object = (RObject) query.uniqueResult();
+            // TODO: This is replaced by session.get lower, if no issue appears (I don't expect it) remove in 2021
+//            CriteriaBuilder cb = session.getCriteriaBuilder();
+//            CriteriaQuery<?> cq = cb.createQuery(clazz);
+//            cq.where(cb.equal(cq.from(clazz).get("oid"), oid));
+//
+//            Query query = session.createQuery(cq);
+//            RObject object = (RObject) query.uniqueResult();
+            RObject object = session.get(clazz, oid);
             if (object == null) {
                 throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
                         + "' was not found.", null, oid);
             }
             Class<? extends ObjectType> actualType = ClassMapper.getObjectTypeForHQLType(object.getClass()).getClassDefinition();
 
+            // TODO: This better be one call, first may return null which is still sent to the other
+            //  where the actualType is checked again just like in the first call.
+            //  Alternatively, extract the check of type here - it burdens the call site, but still may be cleaner and explicit.
+            //  After all this is the only place calling onBeginTransactionDelete.
             closureContext = closureManager.onBeginTransactionDelete(session, actualType, oid);
             closureManager.updateOrgClosure(null, null, session, oid, actualType, OrgClosureManager.Operation.DELETE, closureContext);
 
