@@ -4088,7 +4088,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                         + "    select distinct\n"
                         + "      u.oid\n"
                         + "    from\n"
-                        + "      RUser u left join u.employeeType e where e like :e)\n"
+                        + "      RUser u left join u.employeeType e where e like :e escape '!')\n"
                         + "order by u.nameCopy.orig asc";
             } else {
                 expected = "select distinct\n"
