@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.prism.ItemDefinition;
 
-import jdk.internal.platform.Container;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
