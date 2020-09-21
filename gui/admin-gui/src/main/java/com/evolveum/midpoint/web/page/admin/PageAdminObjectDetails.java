@@ -436,17 +436,18 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     }
 
     protected void initOperationalButtons(RepeatingView repeatingView) {
-        if (getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())) {
-            AjaxButton changeArchetype = new AjaxButton(repeatingView.newChildId(), createStringResource("PageAdminObjectDetails.button.changeArchetype")) {
-                @Override
-                public void onClick(AjaxRequestTarget target) {
-                    changeArchetypeButtonClicked(target);
-                }
-            };
-            changeArchetype.add(new VisibleBehaviour(() -> getObjectArchetypeRef() != null));
-            changeArchetype.add(AttributeAppender.append("class", "btn-default"));
-            repeatingView.add(changeArchetype);
-        }
+        AjaxButton changeArchetype = new AjaxButton(repeatingView.newChildId(), createStringResource("PageAdminObjectDetails.button.changeArchetype")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                changeArchetypeButtonClicked(target);
+            }
+        };
+        changeArchetype.add(new VisibleBehaviour(() -> getObjectArchetypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())));
+        changeArchetype.add(AttributeAppender.append("class", "btn-default"));
+        repeatingView.add(changeArchetype);
+//        if (getObjectArchextypeRef() != null && CollectionUtils.isNotEmpty(getArchetypeOidsListToAssign())) {
+//
+//        }
     }
 
     protected OperationalButtonsPanel getOperationalButtonsPanel() {
