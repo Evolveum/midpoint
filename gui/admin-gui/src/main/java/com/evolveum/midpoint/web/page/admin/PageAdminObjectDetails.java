@@ -656,7 +656,27 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
     protected PrismObjectWrapper<O> loadObjectWrapper(PrismObject<O> objectToEdit, boolean isReadonly) {
         Task task = createSimpleTask(OPERATION_LOAD_OBJECT);
         OperationResult result = task.getResult();
-        PrismObject<O> object = null;
+        PrismObject<O> object = loadPrismObject(objectToEdit, task, result);
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Loaded object:\n{}", object.debugDump());
+        }
+
+        validateObjectNotNull(object);
+
+        PrismObjectWrapper<O> wrapper = createObjectWrapper(object, isReadonly, task, result);
+
+        showResult(result, false);
+
+        if (LOGGER.isTraceEnabled()) {
+            LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDump());
+        }
+
+        return wrapper;
+    }
+
+    protected PrismObject<O> loadPrismObject(PrismObject<O> objectToEdit, Task task, OperationResult result) {
+        PrismObject<O> object;
         try {
             if (!isOidParameterExists()) {
                 if (objectToEdit == null) {
@@ -684,14 +704,15 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         } catch (Exception ex) {
             result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
+            object = null;
         }
 
         showResult(result, false);
+        return object;
 
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Loaded object:\n{}", object.debugDump());
-        }
+    }
 
+    private void validateObjectNotNull(PrismObject<O> object) {
         if (object == null) {
             if (isOidParameterExists()) {
                 getSession().error(getString("pageAdminFocus.message.cantEditFocus"));
@@ -700,9 +721,10 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             }
             throw new RestartResponseException(getRestartResponsePage());
         }
+    }
 
-        ItemStatus itemStatus = isOidParameterExists() || editingFocus ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED;
-        PrismObjectWrapper<O> wrapper;
+    private PrismObjectWrapper<O> createObjectWrapper(PrismObject<O> object, boolean isReadonly, Task task, OperationResult result) {
+        ItemStatus itemStatus = computeWrapperStatus();
 
         PrismObjectWrapperFactory<O> factory = getRegistry().getObjectWrapperFactory(object.getDefinition());
         WrapperContext context = new WrapperContext(task, result);
@@ -714,21 +736,17 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         }
 
         try {
-            wrapper = factory.createObjectWrapper(object, itemStatus, context);
+            return factory.createObjectWrapper(object, itemStatus, context);
         } catch (Exception ex) {
             result.recordFatalError(getString("PageAdminObjectDetails.message.loadObjectWrapper.fatalError"), ex);
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't load object", ex);
             showResult(result, false);
             throw new RestartResponseException(getRestartResponsePage());
         }
+    }
 
-        showResult(result, false);
-
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Loaded focus wrapper:\n{}", wrapper.debugDump());
-        }
-
-        return wrapper;
+    protected ItemStatus computeWrapperStatus() {
+        return isOidParameterExists() || editingFocus ? ItemStatus.NOT_CHANGED : ItemStatus.ADDED;
     }
 
     protected Collection<SelectorOptions<GetOperationOptions>> buildGetOptions() {
