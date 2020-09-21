@@ -92,7 +92,7 @@ public class CaseSummaryPanel extends ObjectSummaryPanel<CaseType> {
     }
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return GuiStyleConstants.EVO_CASE_OBJECT_ICON;
     }
 

@@ -36,7 +36,7 @@ public class ArchetypeSummaryPanel extends FocusSummaryPanel<ArchetypeType>{
     }
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return GuiStyleConstants.EVO_ARCHETYPE_TYPE_ICON;
     }
 

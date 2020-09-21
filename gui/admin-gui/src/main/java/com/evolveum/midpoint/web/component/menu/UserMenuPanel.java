@@ -85,7 +85,7 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
     public UserMenuPanel(String id, PageBase pageBase) {
         super(id);
         this.pageBase = pageBase;
-        initLayout();
+
         if (!isPasswordModelLoaded) {
             passwordQuestionsDtoIModel = new LoadableModel<PasswordQuestionsDto>(false) {
 
@@ -107,6 +107,12 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
                 return loadSecurityPolicyQuestionsModel();
             }
         };
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
+        initLayout();
     }
 
     @Override

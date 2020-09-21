@@ -45,7 +45,7 @@ public class ShadowSummaryPanel extends ObjectSummaryPanel<ShadowType> {
     }
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return WebComponentUtil.createShadowIcon(getModelObject().asPrismContainer());    //todo fix
     }
 
