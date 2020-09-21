@@ -110,6 +110,12 @@ public final class PrismContextImpl implements PrismContext {
 
     private QName objectsElementName;
 
+    /**
+     * Name of the generic type for object/container extension (e.g. c:ExtensionType).
+     */
+    @Experimental
+    private QName extensionContainerTypeName;
+
     // ugly hack
     private QName defaultReferenceTypeName;
 
@@ -340,6 +346,16 @@ public final class PrismContextImpl implements PrismContext {
 
     public void setDefaultReferenceTypeName(QName defaultReferenceTypeName) {
         this.defaultReferenceTypeName = defaultReferenceTypeName;
+    }
+
+    @Override
+    public QName getExtensionContainerTypeName() {
+        return extensionContainerTypeName;
+    }
+
+    @Override
+    public void setExtensionContainerTypeName(QName typeName) {
+        this.extensionContainerTypeName = typeName;
     }
 
     //endregion
