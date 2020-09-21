@@ -276,7 +276,11 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
     }
 
     protected boolean isRemoveButtonVisible() {
-        return !getModelObject().getParent().isReadOnly() && !getModelObject().getParent().isMetadata();
+        boolean editability = true;
+        if (getEditabilityHandler() != null) {
+            editability = getEditabilityHandler().isEditable(getModelObject().getParent());
+        }
+        return editability && !getModelObject().getParent().isReadOnly() && !getModelObject().getParent().isMetadata();
 
     }
 
