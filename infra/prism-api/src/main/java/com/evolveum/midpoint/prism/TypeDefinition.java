@@ -8,6 +8,8 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.annotation.Experimental;
 
 import org.jetbrains.annotations.NotNull;
@@ -47,5 +49,19 @@ public interface TypeDefinition extends Definition {
      * this type is equal or supertype of the other type.
      */
     @Experimental
-    boolean isAssignableFrom(TypeDefinition other, SchemaRegistry registry);
+    default boolean isAssignableFrom(TypeDefinition other, SchemaRegistry registry) {
+        if (QNameUtil.match(this.getTypeName(), DOMUtil.XSD_ANYTYPE)) {
+            return true;
+        }
+        while (other != null) {
+            if (QNameUtil.match(this.getTypeName(), other.getTypeName())) {
+                return true;
+            }
+            if (other.getSuperType() == null) {
+                return false;
+            }
+            other = getPrismContext().getSchemaRegistry().findTypeDefinitionByType(other.getSuperType());
+        }
+        return false;
+    }
 }
