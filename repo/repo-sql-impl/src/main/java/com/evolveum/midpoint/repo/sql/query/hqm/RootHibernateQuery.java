@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.repo.sql.query.hqm;
 
 import java.util.Collection;
@@ -12,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Session;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.query.Query;
@@ -72,6 +72,7 @@ public class RootHibernateQuery extends HibernateQuery {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     public Query getAsHqlQuery(Session session) {
         String text = getAsHqlText(0, distinct);
         LOGGER.trace("HQL text generated:\n{}", text);
@@ -102,6 +103,7 @@ public class RootHibernateQuery extends HibernateQuery {
             query.setFirstResult(firstResult);
         }
         if (resultTransformer != null) {
+            //noinspection deprecation
             query.setResultTransformer(resultTransformer);
         }
         return query;
@@ -166,7 +168,13 @@ public class RootHibernateQuery extends HibernateQuery {
         return new SimpleComparisonCondition(this, propertyPath, value, comparatorSymbol, ignoreCase);
     }
 
+    public static final char LIKE_ESCAPE_CHAR = '!';
+    private static final String LIKE_ESCAPED_CHARS = "_%" + LIKE_ESCAPE_CHAR;
+
     public Condition createLike(String propertyPath, String value, MatchMode matchMode, boolean ignoreCase) {
+        if (StringUtils.containsAny(value, LIKE_ESCAPED_CHARS)) {
+            value = escapeLikeValue(value);
+        }
         switch (matchMode) {
             case ANYWHERE:
                 value = "%" + value + "%";
@@ -181,6 +189,19 @@ public class RootHibernateQuery extends HibernateQuery {
                 throw new IllegalStateException("Unsupported match mode: " + matchMode);
         }
         return new SimpleComparisonCondition(this, propertyPath, value, "like", ignoreCase);
+    }
+
+    private String escapeLikeValue(String value) {
+        StringBuilder sb = new StringBuilder(value);
+        for (int i = 0; i < sb.length(); i++) {
+            if (LIKE_ESCAPED_CHARS.indexOf(sb.charAt(i)) == -1) {
+                continue;
+            }
+
+            sb.insert(i, LIKE_ESCAPE_CHAR);
+            i += 1;
+        }
+        return sb.toString();
     }
 
     public AndCondition createAnd(Condition... conditions) {

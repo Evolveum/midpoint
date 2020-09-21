@@ -94,8 +94,12 @@ public abstract class MidPointAbstractAuthenticationProvider<T extends AbstractA
             if (actualAuthentication instanceof MidpointAuthentication) {
                 MidpointAuthentication mpAuthentication = (MidpointAuthentication) actualAuthentication;
                 ModuleAuthentication moduleAuthentication = getProcessingModule(mpAuthentication);
-                MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
-                token = createNewAuthenticationToken(token, mpAuthentication.getAuthenticationChannel().resolveAuthorities(principal.getAuthorities()));
+                if (token.getPrincipal() instanceof MidPointPrincipal) {
+                    MidPointPrincipal principal = (MidPointPrincipal) token.getPrincipal();
+                    token = createNewAuthenticationToken(token, mpAuthentication.getAuthenticationChannel().resolveAuthorities(principal.getAuthorities()));
+                } else {
+                    token = createNewAuthenticationToken(token, token.getAuthorities());
+                }
                 writeAutentication(processingAuthentication, mpAuthentication, moduleAuthentication, token);
 
                 return mpAuthentication;

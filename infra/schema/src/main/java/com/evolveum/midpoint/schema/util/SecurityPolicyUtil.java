@@ -142,7 +142,6 @@ public class SecurityPolicyUtil {
         Validate.notNull(sequence);
         ArrayList<AuthenticationSequenceModuleType> modules = new ArrayList<>(sequence.getModule());
         Validate.notNull(modules);
-        Validate.notEmpty(modules);
         Comparator<AuthenticationSequenceModuleType> comparator =
                 (f1, f2) -> {
                     Integer f1Order = f1.getOrder();

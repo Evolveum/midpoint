@@ -178,7 +178,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
     }
 
     @Test
-    public void test100SeachAccount0ByLdapUid() throws Exception {
+    public void test100SearchAccount0ByLdapUid() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -212,7 +212,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
      * No paging. It should return all accounts.
      */
     @Test
-    public void test150SeachAllAccounts() throws Exception {
+    public void test150SearchAllAccounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -258,7 +258,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
      * Blocksize is 100, so this is in one block.
      */
     @Test
-    public void test152SeachFirst50Accounts() throws Exception {
+    public void test152SearchFirst50Accounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -289,7 +289,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
      * Blocksize is 100, so this gets more than two blocks.
      */
     @Test
-    public void test154SeachFirst222Accounts() throws Exception {
+    public void test154SearchFirst222Accounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -320,7 +320,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
      * Make a search that starts in the list of all accounts but goes beyond the end.
      */
     @Test
-    public void test156SeachThroughEnd() throws Exception {
+    public void test156SearchThroughEnd() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -349,7 +349,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
      * Make a search that goes beyond the end of the list of all accounts.
      */
     @Test
-    public void test158SeachBeyondEnd() throws Exception {
+    public void test158SearchBeyondEnd() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -381,7 +381,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
     }
 
     @Test
-    public void test162SeachFirst50AccountsOffset0() throws Exception {
+    public void test162SearchFirst50AccountsOffset0() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -444,7 +444,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
      * No explicit sorting.
      */
     @Test
-    public void test174SeachFirst222AccountsOffset20() throws Exception {
+    public void test174SearchFirst222AccountsOffset20() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -538,7 +538,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
      * be returned anyway.
      */
     @Test
-    public void test190SeachAllAccountsSizelimit() throws Exception {
+    public void test190SearchAllAccountsSizelimit() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1117,7 +1117,7 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
     }
 
     @Test
-    public void test310SeachGroupEvilByCn() throws Exception {
+    public void test310SearchGroupEvilByCn() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

@@ -120,6 +120,13 @@ public class Clockwork {
         OperationResultBuilder builder = parentResult.subresult(Clockwork.class.getName() + ".run");
         boolean tracingRequested = startTracingIfRequested(context, task, builder, parentResult);
         OperationResult result = builder.build();
+
+        // There are some parts of processing (e.g. notifications deep in provisioning module) that have no access
+        // to context.channel value, only to task.channel. So we have to get the two into sync. To return to the original
+        // state, we restore task.channel afterwards.
+        String originalTaskChannel = task.getChannel();
+        task.setChannel(context.getChannel());
+
         ClockworkRunTraceType trace = null;
         try {
             if (result.isTraced()) {
@@ -184,6 +191,8 @@ public class Clockwork {
             result.recordFatalError(t.getMessage(), t);
             throw t;
         } finally {
+            task.setChannel(originalTaskChannel);
+
             recordTraceAtEnd(context, trace, result);
             if (tracingRequested) {
                 tracer.storeTrace(task, result, parentResult);
@@ -680,7 +689,6 @@ public class Clockwork {
         if (channel != null) {
             sb.append("Channel: ").append(channel).append("\n");
         }
-
 
         if (hasSyncDelta) {
             sb.append("Triggered by synchronization delta\n");

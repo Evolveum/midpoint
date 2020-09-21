@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -37,7 +37,6 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.impl.AbstractProvisioningIntegrationTest;
 import com.evolveum.midpoint.provisioning.impl.ProvisioningTestUtil;
-import com.evolveum.midpoint.provisioning.impl.opendj.TestOpenDj;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -138,8 +137,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         assertNotNull("Resource is null", resourceSchemaless);
         assertNotNull("ResourceType is null", resourceTypeSchemaless);
 
-        OperationResult result = new OperationResult(TestDummySchemaless.class.getName()
-                + ".test000Integrity");
+        OperationResult result = createOperationResult();
 
         ResourceType resource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_NO_SCHEMA_OID, null, result)
                 .asObjectable();
@@ -370,7 +368,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         // Check resource schema caching
         ResourceSchema resourceSchemaAgain = RefinedResourceSchemaImpl.getResourceSchema(resourceAgain, prismContext);
         assertNotNull("No resource schema (again)", resourceSchemaAgain);
-        assertTrue("Resource schema was not cached", resourceSchemaBefore == resourceSchemaAgain);
+        assertSame("Resource schema was not cached", resourceSchemaBefore, resourceSchemaAgain);
 
         // Check capabilities caching
 
@@ -397,11 +395,10 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         ConnectorInstance configuredConnectorInstanceAgain = resourceManager.getConfiguredConnectorInstance(
                 resourceAgain, ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAgain);
-        assertTrue("Connector instance was not cached", configuredConnectorInstance == configuredConnectorInstanceAgain);
+        assertSame("Connector instance was not cached", configuredConnectorInstance, configuredConnectorInstanceAgain);
 
         // Check if the connector still works.
-        OperationResult testResult = new OperationResult(TestOpenDj.class.getName()
-                + ".test010ResourceAndConnectorCaching.test");
+        OperationResult testResult = createOperationResult("test");
         configuredConnectorInstanceAgain.test(testResult);
         testResult.computeStatus();
         TestUtil.assertSuccess("Connector test failed", testResult);
@@ -411,7 +408,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         ConnectorInstance configuredConnectorInstanceAfterTest = resourceManager.getConfiguredConnectorInstance(
                 resourceAgain, ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance (again)", configuredConnectorInstanceAfterTest);
-        assertTrue("Connector instance was not cached", configuredConnectorInstanceAgain == configuredConnectorInstanceAfterTest);
+        assertSame("Connector instance was not cached", configuredConnectorInstanceAgain, configuredConnectorInstanceAfterTest);
 
         assertSteadyResource();
     }
@@ -500,8 +497,6 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
                 RESOURCE_DUMMY_NO_SCHEMA_OID, null, result);
         ResourceType resourceTypeRepoAfter = resourceRepoAfter.asObjectable();
         display("Resource after test", resourceTypeRepoAfter);
-
-        // TODO
     }
 
     /**
@@ -550,7 +545,7 @@ public class TestDummySchemaless extends AbstractProvisioningIntegrationTest {
         ObjectClassComplexTypeDefinition accountDefinition = resorceSchema.findObjectClassDefinition(objectClassQname);
         assertNotNull("No object class definition for " + objectClassQname + " in resource schema", accountDefinition);
         ObjectClassComplexTypeDefinition accountDef1 = resorceSchema.findDefaultObjectClassDefinition(ShadowKindType.ACCOUNT);
-        assertTrue("Mismatched account definition: " + accountDefinition + " <-> " + accountDef1, accountDefinition == accountDef1);
+        assertSame("Mismatched account definition: " + accountDefinition + " <-> " + accountDef1, accountDefinition, accountDef1);
 
         assertNotNull("No object class definition " + objectClassQname, accountDefinition);
         assertEquals("Object class " + objectClassQname + " is not account", ShadowKindType.ACCOUNT, accountDefinition.getKind());

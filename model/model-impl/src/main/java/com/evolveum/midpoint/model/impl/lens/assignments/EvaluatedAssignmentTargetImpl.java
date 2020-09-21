@@ -26,7 +26,7 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
 
     @NotNull private final PrismObject<? extends AssignmentHolderType> target;
     private final boolean evaluateConstructions;
-    @NotNull private final AssignmentPathImpl assignmentPath;     // TODO reconsider (maybe we should store only some lightweight information here)
+    @NotNull private final AssignmentPathImpl assignmentPath; // TODO reconsider (maybe we should store only some lightweight information here)
     private final AssignmentType assignment;
     private Collection<ExclusionPolicyConstraintType> exclusions = null;
     private final boolean isValid;
@@ -130,4 +130,11 @@ public class EvaluatedAssignmentTargetImpl implements EvaluatedAssignmentTarget 
         return sb.toString();
     }
 
+    @Override
+    public String toString() {
+        return "EvaluatedAssignmentTargetImpl{" +
+                "target=" + target +
+                ", isValid=" + isValid +
+                '}';
+    }
 }

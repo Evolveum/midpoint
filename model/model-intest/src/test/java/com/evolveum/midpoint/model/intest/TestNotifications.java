@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.DummyTestResource;
 import com.evolveum.midpoint.test.TestResource;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
@@ -61,8 +62,15 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
     public static final File TEST_DIR = new File("src/test/resources/notifications");
     private static final File SYSTEM_CONFIGURATION_FILE = new File(TEST_DIR, "system-configuration.xml");
 
-    private static final TestResource ARCHETYPE_DUMMY = new TestResource(TEST_DIR, "archetype-dummy.xml", "c97780b7-6b07-4a25-be95-60125af6f650");
-    private static final TestResource ROLE_DUMMY = new TestResource(TEST_DIR, "role-dummy.xml", "8bc6d827-6ea6-4671-a506-a8388f117880");
+    private static final TestResource<ArchetypeType> ARCHETYPE_DUMMY = new TestResource<>(TEST_DIR, "archetype-dummy.xml", "c97780b7-6b07-4a25-be95-60125af6f650");
+    private static final TestResource<RoleType> ROLE_DUMMY = new TestResource<>(TEST_DIR, "role-dummy.xml", "8bc6d827-6ea6-4671-a506-a8388f117880");
+    private static final TestResource<RoleType> ROLE_WEBMAIL = new TestResource<>(TEST_DIR, "role-webmail.xml", "ba0d281a-b0e0-4d3a-ade0-513f53454c27");
+
+    private static final TestResource<TaskType> TASK_HR_IMPORT = new TestResource<>(TEST_DIR, "task-hr-import.xml", "b5ee6532-b779-4bee-b713-d394346170f7");
+
+    private static final DummyTestResource RESOURCE_HR = new DummyTestResource(TEST_DIR, "resource-hr.xml", "bb9b9bca-5d47-446a-83ed-6c5411ac219f", "hr");
+    private static final DummyTestResource RESOURCE_WEBMAIL = new DummyTestResource(TEST_DIR, "resource-webmail.xml", "657fce5e-9d7a-4bab-b475-157ca586f73a", "webmail");
+    private static final String USERNAME_GREGOR = "gregor";
 
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
 
@@ -75,6 +83,12 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         super.initSystem(initTask, initResult);
         repoAdd(ARCHETYPE_DUMMY, initResult);
         repoAdd(ROLE_DUMMY, initResult);
+        repoAdd(ROLE_WEBMAIL, initResult);
+        repoAdd(TASK_HR_IMPORT, initResult);
+
+        initDummyResource(RESOURCE_HR, initTask, initResult);
+        initDummyResource(RESOURCE_WEBMAIL, initTask, initResult);
+
         InternalMonitor.reset();
     }
 
@@ -525,6 +539,44 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
         assertEquals("Wrong message body", expected, dummyTransport.getMessages("dummy:simpleUserNotifier").get(0).getBody());
     }
 
+    /**
+     * Tests MID-6289 - correct resource object notification during import process
+     */
+    @Test
+    public void test170ImportUserGregor() throws Exception {
+        given();
+        Task task = createPlainTask();
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
+
+        RESOURCE_HR.controller.addAccount(USERNAME_GREGOR);
+
+        when();
+        rerunTask(TASK_HR_IMPORT.oid, result);
+
+        then();
+        assertUserAfterByUsername(USERNAME_GREGOR)
+                .assertAssignments(1)
+                .assertLinks(2);
+
+        displayDumpable("Notifications", dummyTransport);
+
+        notificationManager.setDisabled(true);
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
+        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 1);
+
+        assertChannel(dummyTransport.getMessages("dummy:simpleUserNotifier").get(0), SchemaConstants.CHANNEL_IMPORT_URI);
+        assertChannel(dummyTransport.getMessages("dummy:simpleUserNotifier-ADD").get(0), SchemaConstants.CHANNEL_IMPORT_URI);
+        assertChannel(dummyTransport.getMessages("dummy:simpleAccountNotifier-SUCCESS").get(0), SchemaConstants.CHANNEL_IMPORT_URI);
+        assertChannel(dummyTransport.getMessages("dummy:simpleAccountNotifier-ADD-SUCCESS").get(0), SchemaConstants.CHANNEL_IMPORT_URI);
+    }
+
     @Test
     public void test200SendSmsUsingGet() {
         // GIVEN
@@ -883,6 +935,12 @@ public class TestNotifications extends AbstractInitializedModelIntegrationTest {
             OutputStream os = httpExchange.getResponseBody();
             os.write(response.getBytes());
             os.close();
+        }
+    }
+
+    private void assertChannel(Message message, String expectedChannelUri) {
+        if (!message.getBody().contains("Channel: " + expectedChannelUri)) {
+            fail("Channel " + expectedChannelUri + " not present in the message body:\n" + message.getBody());
         }
     }
 }

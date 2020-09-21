@@ -1,0 +1,14 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        oid="7e468bbf-a1c3-4c6c-a327-39b720c27930">
+    <name>application2</name>
+    <assignment>
+        <targetRef oid="420e5734-3c9b-4a13-8c29-00e745701225" type="RoleType"/> <!-- metarole exclusion application -->
+    </assignment>
+</role>

@@ -143,7 +143,8 @@ public class Search implements Serializable, DebugDumpable {
             return null;
         }
 
-        PropertySearchItem item = new PropertySearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues());
+        PropertySearchItem item = new PropertySearchItem(this, itemToRemove.getPath(), def, itemToRemove.getAllowedValues(),
+                itemToRemove.getDisplayName());
         if (def instanceof PrismReferenceDefinition) {
             ObjectReferenceType ref = new ObjectReferenceType();
             List<QName> supportedTargets = WebComponentUtil.createSupportedTargetTypeList(((PrismReferenceDefinition) def).getTargetTypeName());

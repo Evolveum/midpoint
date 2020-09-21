@@ -839,8 +839,7 @@ public class AbstractBasicDummyTest extends AbstractDummyTest {
     @Test
     public void test034ResourceAndConnectorCachingForceFresh() throws Exception {
         // GIVEN
-        OperationResult result = new OperationResult(AbstractBasicDummyTest.class.getName()
-                + ".test011ResourceAndConnectorCachingForceFresh");
+        OperationResult result = createOperationResult();
         ConnectorInstance configuredConnectorInstance = resourceManager.getConfiguredConnectorInstance(
                 resource, ReadCapabilityType.class, false, result);
         assertNotNull("No configuredConnectorInstance", configuredConnectorInstance);

@@ -645,6 +645,16 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
         return oid;
     }
 
+    @Override
+    public void continueEditing(AjaxRequestTarget target) {
+        getMainPanel().setVisible(true);
+        getProgressPanel().hide();
+        getProgressPanel().hideAbortButton(target);
+        getProgressPanel().hideBackButton(target);
+        getProgressPanel().hideContinueEditingButton(target);
+        target.add(this);
+    }
+
     protected ObjectSummaryPanel<O> getSummaryPanel() {
         return (ObjectSummaryPanel<O>) get(ID_SUMMARY_PANEL);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -620,8 +620,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
     }
 
     private PrismObject<ShadowType> getAccount(String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-        OperationResult result = new OperationResult(TestDummyResourceAndSchemaCaching.class.getName()
-                + ".getAccount");
+        OperationResult result = createOperationResult("getAccount");
         PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, oid, null, null, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);

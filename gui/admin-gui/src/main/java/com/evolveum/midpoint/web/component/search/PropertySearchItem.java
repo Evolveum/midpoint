@@ -11,6 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.model.StringResourceModel;
@@ -36,8 +39,9 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
     private final List<QName> allowedRelations;
 
     private DisplayableValue<T> value;
+    private PolyStringType displayName;
 
-    public PropertySearchItem(Search search, ItemPath path, ItemDefinition definition, List<QName> allowedRelations) {
+    public PropertySearchItem(Search search, ItemPath path, ItemDefinition definition, List<QName> allowedRelations, PolyStringType displayName) {
         super(search);
         Validate.notNull(path, "Item path must not be null.");
         Validate.notNull(definition, "Item definition must not be null.");
@@ -50,6 +54,7 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
         this.path = path;
         this.definition = definition;
         this.allowedRelations = allowedRelations;
+        this.displayName = displayName;
     }
 
     public ItemDefinition getDefinition() {
@@ -86,6 +91,9 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
 
     @Override
     public String getName() {
+        if (displayName != null){
+            return WebComponentUtil.getTranslatedPolyString(displayName);
+        }
         String key = definition.getDisplayName();
         if (StringUtils.isEmpty(key)) {
             key = getSearch().getType().getSimpleName() + '.' + definition.getItemName().getLocalPart();
@@ -121,6 +129,14 @@ public class PropertySearchItem<T extends Serializable> extends SearchItem {
         }
 
         return Type.TEXT;
+    }
+
+    public PolyStringType getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(PolyStringType displayName) {
+        this.displayName = displayName;
     }
 
     @Override

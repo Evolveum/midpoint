@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.testing.conntest.ad;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS;
@@ -242,7 +243,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
     // test050 in subclasses
 
     @Test
-    public void test100SeachJackBySamAccountName() throws Exception {
+    public void test100SearchJackBySamAccountName() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -278,7 +279,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
     }
 
     @Test
-    public void test105SeachPiratesByCn() throws Exception {
+    public void test105SearchPiratesByCn() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -352,7 +353,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
      * No paging. It should return all accounts.
      */
     @Test
-    public void test150SeachAllAccounts() throws Exception {
+    public void test150SearchAllAccounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -382,7 +383,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
      * Blocksize is 5, so this is in one block.
      */
     @Test
-    public void test152SeachFirst2Accounts() throws Exception {
+    public void test152SearchFirst2Accounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -410,7 +411,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
      * Blocksize is 5, so this gets more than two blocks.
      */
     @Test
-    public void test154SeachFirst11Accounts() throws Exception {
+    public void test154SearchFirst11Accounts() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -435,7 +436,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
     }
 
     @Test
-    public void test162SeachFirst2AccountsOffset0() throws Exception {
+    public void test162SearchFirst2AccountsOffset0() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -495,7 +496,7 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
      * No explicit sorting.
      */
     @Test
-    public void test174SeachFirst11AccountsOffset2() throws Exception {
+    public void test174SearchFirst11AccountsOffset2() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();
@@ -1237,16 +1238,20 @@ public abstract class AbstractAdLdapTest extends AbstractLdapSynchronizationTest
         PrismProperty<String> syncTokenProperty = task.getExtensionPropertyOrClone(SchemaConstants.SYNC_TOKEN);
         assertNotNull("No sync token", syncTokenProperty);
         assertNotNull("No sync token value", syncTokenProperty.getRealValue());
-        assertNotNull("Empty sync token value", StringUtils.isBlank(syncTokenProperty.getRealValue()));
+        assertThat(StringUtils.isBlank(syncTokenProperty.getRealValue()))
+                .as("Empty sync token value")
+                .isTrue();
         result.computeStatus();
         TestUtil.assertSuccess(result);
     }
 
-    public <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
+    @SafeVarargs
+    public final <T> void assertAttribute(PrismObject<ShadowType> shadow, String attrName, T... expectedValues) {
         assertAttribute(shadow, new QName(getResourceNamespace(), attrName), expectedValues);
     }
 
-    public <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
+    @SafeVarargs
+    public final <T> void assertAttribute(PrismObject<ShadowType> shadow, QName attrQname, T... expectedValues) {
         List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
         PrismAsserts.assertSets("attribute " + attrQname + " in " + shadow, actualValues, expectedValues);
     }
