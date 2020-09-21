@@ -78,7 +78,7 @@ public class CaseWorkItemSummaryPanel extends AbstractSummaryPanel<CaseWorkItemT
     }
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return GuiStyleConstants.CLASS_OBJECT_WORK_ITEM_ICON;
     }
 

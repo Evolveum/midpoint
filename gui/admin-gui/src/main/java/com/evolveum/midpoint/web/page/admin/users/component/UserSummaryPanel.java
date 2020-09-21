@@ -128,7 +128,7 @@ public class UserSummaryPanel extends FocusSummaryPanel<UserType> {
     }
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return GuiStyleConstants.CLASS_OBJECT_USER_ICON;
     }
 

@@ -10,7 +10,7 @@ import java.sql.SQLException;
 import java.util.regex.Pattern;
 
 import org.hibernate.PessimisticLockException;
-import org.hibernate.StaleObjectStateException;
+import org.hibernate.StaleStateException;
 import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.exception.LockAcquisitionException;
 import org.springframework.orm.hibernate5.HibernateOptimisticLockingFailureException;
@@ -46,7 +46,9 @@ public class TransactionSerializationProblemDetector {
                 || ExceptionUtil.findCause(ex, PessimisticLockException.class) != null
                 || ExceptionUtil.findCause(ex, LockAcquisitionException.class) != null
                 || ExceptionUtil.findCause(ex, HibernateOptimisticLockingFailureException.class) != null
-                || ExceptionUtil.findCause(ex, StaleObjectStateException.class) != null) {  // todo the last one is questionable
+                // TODO: previously just StaleObjectStateException marked as "questionable".
+                //  Generalized to StaleStateException to cause retry in cases like MID-6471.
+                || ExceptionUtil.findCause(ex, StaleStateException.class) != null) {
             return true;
         }
 

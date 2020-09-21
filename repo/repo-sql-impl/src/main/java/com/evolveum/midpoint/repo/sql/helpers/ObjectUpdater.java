@@ -127,7 +127,8 @@ public class ObjectUpdater {
                 baseHelper.handleGeneralException(ex, session, result);
                 throw new AssertionError("shouldn't be here");
             }
-            AttemptContext attemptContext = new AttemptContext();       // TODO use this throughout overwriteAddObjectAttempt to collect information about no-fetch insertion attempts
+            // TODO use this throughout overwriteAddObjectAttempt to collect information about no-fetch insertion attempts
+            AttemptContext attemptContext = new AttemptContext();
             handleConstraintViolationExceptionSpecialCases(constEx, session, attemptContext, result);
             baseHelper.rollbackTransaction(session, constEx, result, true);
 
@@ -259,12 +260,12 @@ public class ObjectUpdater {
 
     private <T extends ObjectType> String nonOverwriteAddObjectAttempt(PrismObject<T> object, RObject rObject,
             String originalOid, Session session, OrgClosureManager.Context closureContext)
-            throws ObjectAlreadyExistsException, SchemaException, DtoTranslationException {
+            throws ObjectAlreadyExistsException, SchemaException {
 
         // check name uniqueness (by type)
         if (StringUtils.isNotEmpty(originalOid)) {
             LOGGER.trace("Checking oid uniqueness.");
-            //todo improve this table name bullshit
+            // TODO improve this table name nonsense
             Class hqlType = ClassMapper.getHQLTypeClass(object.getCompileTimeClass());
             NativeQuery query = session.createNativeQuery("select count(*) from "
                     + RUtil.getTableName(hqlType, session) + " where oid=:oid");
@@ -307,14 +308,6 @@ public class ObjectUpdater {
             session = baseHelper.beginTransaction();
 
             Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(type);
-
-            // TODO: This is replaced by session.get lower, if no issue appears (I don't expect it) remove in 2021
-//            CriteriaBuilder cb = session.getCriteriaBuilder();
-//            CriteriaQuery<?> cq = cb.createQuery(clazz);
-//            cq.where(cb.equal(cq.from(clazz).get("oid"), oid));
-//
-//            Query query = session.createQuery(cq);
-//            RObject object = (RObject) query.uniqueResult();
             RObject object = session.get(clazz, oid);
             if (object == null) {
                 throw new ObjectNotFoundException("Object of type '" + type.getSimpleName() + "' with oid '" + oid
@@ -586,7 +579,7 @@ public class ObjectUpdater {
         RObject rObject;
         Class<? extends RObject> clazz = ClassMapper.getHQLTypeClass(object.getClass());
         try {
-            rObject = clazz.newInstance();
+            rObject = clazz.getConstructor().newInstance();
             // Note that methods named "copyFromJAXB" that were _not_ called from this point were renamed e.g. to "fromJaxb",
             // in order to avoid confusion with dynamically called "copyFromJAXB" method.
             Method method = clazz.getMethod("copyFromJAXB", object.getClass(), clazz,

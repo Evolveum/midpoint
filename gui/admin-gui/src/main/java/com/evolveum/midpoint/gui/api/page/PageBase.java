@@ -801,7 +801,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
         menuToggle.add(createUserStatusBehaviour(true));
         container.add(menuToggle);
 
-        UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU, this);
+        UserMenuPanel rightMenu = new UserMenuPanel(ID_RIGHT_MENU);
         rightMenu.add(createUserStatusBehaviour(true));
         container.add(rightMenu);
 

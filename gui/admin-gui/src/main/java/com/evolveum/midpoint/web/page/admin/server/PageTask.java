@@ -739,8 +739,8 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         applyOldPageContainersState(newVal.getItems());
     }
 
-    private <C extends Containerable> void applyOldVirtualContainerState(PrismObjectWrapper<TaskType> objectWrapperAfterReload) {
-        List<PrismContainerWrapper<C>> containers = objectWrapperAfterReload.getValue().getContainers();
+    private void applyOldVirtualContainerState(PrismObjectWrapper<TaskType> objectWrapperAfterReload) {
+        List<PrismContainerWrapper<? extends Containerable>> containers = objectWrapperAfterReload.getValue().getContainers();
         for (PrismContainerWrapper pcw : containers) {
             if (!pcw.isVirtual()) {
                 continue;

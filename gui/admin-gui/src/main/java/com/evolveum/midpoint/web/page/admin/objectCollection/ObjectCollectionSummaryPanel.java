@@ -24,7 +24,7 @@ public class ObjectCollectionSummaryPanel extends ObjectSummaryPanel<ObjectColle
     }
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return GuiStyleConstants.CLASS_OBJECT_COLLECTION_ICON;
     }
 

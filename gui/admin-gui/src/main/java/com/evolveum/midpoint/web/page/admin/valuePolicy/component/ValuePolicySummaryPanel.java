@@ -23,7 +23,7 @@ public class ValuePolicySummaryPanel extends ObjectSummaryPanel<ValuePolicyType>
     }
 
     @Override
-    protected String getIconCssClass() { return GuiStyleConstants.CLASS_VALUE_POLICY_ICON; }
+    protected String getDefaultIconCssClass() { return GuiStyleConstants.CLASS_VALUE_POLICY_ICON; }
 
     @Override
     protected String getIconBoxAdditionalCssClass() { return "summary-panel-value-policy"; }

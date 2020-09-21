@@ -9,13 +9,17 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <a data-toggle="dropdown" class="dropdown-toggle" href="#">
-        <div wicket:id="menuIconBox" class="user-image"><span class="userpanel-icon-helper"/><img wicket:id="menuIcon" class="userpanel-icon"/><img wicket:id="menuPhoto" class="userpanel-icon"/></div>
+        <div wicket:id="menuIconBox" class="user-image">
+            <span class="userpanel-icon-helper"/>
+            <img wicket:id="menuPhoto" class="userpanel-icon"/></div>
         <span class="hidden-xs" wicket:id="usernameLink"/>
     </a>
     <ul class="dropdown-menu">
         <!-- User image -->
         <li class="user-header">
-            <div wicket:id="menuPanelIconBox" class="img-circle"><span class="userpanel-icon-helper"/><img wicket:id="menuPanelIcon" class="userpanel-photo"/><img wicket:id="menuPanelPhoto" class="userpanel-photo" /></div>
+            <div wicket:id="menuPanelIconBox" class="img-circle">
+                <span class="userpanel-icon-helper"/>
+                <img wicket:id="menuPanelPhoto" class="userpanel-photo" /></div>
             <p>
                 <span wicket:id="username"/>
                  <!-- todo improve this label (user/admin/whatever description you like) -->
