@@ -521,14 +521,14 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
 
     private void detectExtensionSchema(PrismSchema schema) {
         for (ComplexTypeDefinition def : schema.getDefinitions(ComplexTypeDefinition.class)) {
-            QName extType = def.getExtensionForType();
-            if (extType != null) {
-                LOGGER.trace("Processing {} as an extension for {}", def, extType);
-                if (extensionSchemas.containsKey(extType)) {
-                    ComplexTypeDefinition existingExtension = extensionSchemas.get(extType);
+            QName typeBeingExtended = def.getExtensionForType(); // e.g. c:UserType
+            if (typeBeingExtended != null) {
+                LOGGER.trace("Processing {} as an extension for {}", def, typeBeingExtended);
+                if (extensionSchemas.containsKey(typeBeingExtended)) {
+                    ComplexTypeDefinition existingExtension = extensionSchemas.get(typeBeingExtended);
                     existingExtension.merge(def);
                 } else {
-                    extensionSchemas.put(extType, def.clone());
+                    extensionSchemas.put(typeBeingExtended, def.clone());
                 }
             }
         }

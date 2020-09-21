@@ -216,7 +216,7 @@ public class TestSchemaSanity extends AbstractSchemaTest {
         System.out.println("Focus definition:");
         System.out.println(focusDefinition.debugDump());
 
-        SchemaTestUtil.assertFocusDefinition(focusDefinition, "focus");
+        SchemaTestUtil.assertFocusDefinition(focusDefinition, "focus", ExtensionType.COMPLEX_TYPE, 0);
     }
 
     @Test

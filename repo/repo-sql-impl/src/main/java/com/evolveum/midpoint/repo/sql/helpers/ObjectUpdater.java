@@ -322,10 +322,6 @@ public class ObjectUpdater {
             }
             Class<? extends ObjectType> actualType = ClassMapper.getObjectTypeForHQLType(object.getClass()).getClassDefinition();
 
-            // TODO: This better be one call, first may return null which is still sent to the other
-            //  where the actualType is checked again just like in the first call.
-            //  Alternatively, extract the check of type here - it burdens the call site, but still may be cleaner and explicit.
-            //  After all this is the only place calling onBeginTransactionDelete.
             closureContext = closureManager.onBeginTransactionDelete(session, actualType, oid);
             closureManager.updateOrgClosure(null, null, session, oid, actualType, OrgClosureManager.Operation.DELETE, closureContext);
 
