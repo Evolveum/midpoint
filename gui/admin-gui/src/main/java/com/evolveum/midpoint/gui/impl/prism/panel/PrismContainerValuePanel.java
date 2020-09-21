@@ -248,8 +248,13 @@ public class PrismContainerValuePanel<C extends Containerable, CVW extends Prism
     private void onSortClicked(AjaxRequestTarget target) {
         CVW wrapper = getModelObject();
         wrapper.setSorted(!wrapper.isSorted());
+        target.add(getValuePanel());
+        target.add(getSortButton());
+        target.add(getPageBase().getFeedbackPanel());
+    }
 
-        refreshPanel(target);
+    private ToggleIconButton<Void> getSortButton() {
+        return (ToggleIconButton) get(createComponentPath(ID_VALUE_FORM, ID_HEADER_CONTAINER, ID_SORT_PROPERTIES));
     }
 
     private void refreshPanel(AjaxRequestTarget target) {

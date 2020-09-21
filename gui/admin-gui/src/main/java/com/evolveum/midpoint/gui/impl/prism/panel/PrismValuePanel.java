@@ -40,13 +40,13 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     private static final transient Trace LOGGER = TraceManager.getTrace(PrismValuePanel.class);
 
-    private static final String ID_VALUE_FORM = "valueForm";
+    protected static final String ID_VALUE_FORM = "valueForm";
     private static final String ID_REMOVE_BUTTON = "removeButton";
 
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_VALUE_CONTAINER = "valueContainer";
 
-    private static final String ID_HEADER_CONTAINER = "header";
+    protected static final String ID_HEADER_CONTAINER = "header";
 
     private static final String ID_INPUT = "input";
     private static final String ID_SHOW_METADATA = "showMetadata";
@@ -290,6 +290,10 @@ public abstract class PrismValuePanel<T, IW extends ItemWrapper, VW extends Pris
 
     protected FeedbackAlerts getFeedback() {
         return (FeedbackAlerts) get(createComponentPath(ID_VALUE_FORM, ID_VALUE_CONTAINER, ID_FEEDBACK));
+    }
+
+    protected Component getValuePanel() {
+        return (Component) get(createComponentPath(ID_VALUE_FORM, ID_VALUE_CONTAINER, ID_INPUT));
     }
 
     private ValueMetadataWrapperImpl getValueMetadata() {
