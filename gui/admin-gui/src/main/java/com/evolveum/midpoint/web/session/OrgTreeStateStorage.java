@@ -28,11 +28,7 @@ public interface OrgTreeStateStorage {
 
     void setSelectedTabId(int selectedTabId);
 
-    TreeSelectableBean<OrgType> getCollapsedItem();
+    Set<TreeSelectableBean<OrgType>> getCollapsedItems();
 
-    void setCollapsedItem(TreeSelectableBean<OrgType> collapsedItem);
-
-    boolean isInverse();
-
-    void setInverse(boolean inverse);
+    void setCollapsedItems(TreeStateSet<TreeSelectableBean<OrgType>> collapsedItems);
 }
