@@ -951,15 +951,16 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         }
     }
 
-    protected void assertLdapConnectorInstances(int expectedConnectorInstancesShortcut, int expectedConnectorInstancesNoShortcut) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertLdapConnectorReasonableInstances() throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (isUsingGroupShortcutAttribute()) {
-            assertLdapConnectorInstances(expectedConnectorInstancesShortcut);
+            assertLdapConnectorInstancesRange(1,2);
         } else {
-            assertLdapConnectorInstances(expectedConnectorInstancesNoShortcut);
+            // Maybe two, maybe higher, adjust as needed
+            assertLdapConnectorInstancesRange(1,2);
         }
     }
 
-    protected void assertLdapConnectorInstances(int expectedConnectorInstances) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
+    protected void assertLdapConnectorInstancesRange(int expectedConnectorInstancesLow, int expectedConnectorInstancesHigh) throws NumberFormatException, IOException, InterruptedException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         if (runsInIdea()) {
             // IntelliJ IDEA affects management of connector instances in some way.
             // This makes the number of connector instances different when compared to a test executed from command-line.
@@ -975,16 +976,22 @@ public abstract class AbstractLdapTest extends AbstractModelIntegrationTest {
         ConnectorOperationalStatus stat = findLdapConnectorStat(stats);
         assertNotNull("No stat for LDAP connector", stat);
 
-        assertEquals("Unexpected number of LDAP connector instances", expectedConnectorInstances,
-                stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive());
+        int actualConnectorInstances = stat.getPoolStatusNumIdle() + stat.getPoolStatusNumActive();
+
+        if (actualConnectorInstances < expectedConnectorInstancesLow) {
+            fail("Number of LDAP connector instances too low, expected at least "+expectedConnectorInstancesLow+" instances, but was "+actualConnectorInstances);
+        }
+        if (actualConnectorInstances > expectedConnectorInstancesHigh) {
+            fail("Number of LDAP connector instances too high, expected at most "+expectedConnectorInstancesHigh+" instances, but was "+actualConnectorInstances);
+        }
 
         if (!isAssertOpenFiles()) {
             return;
         }
-        if (expectedConnectorInstances == 1) {
+        if (actualConnectorInstances == 1) {
             assertStableSystem();
         } else {
-            lsof.assertFdIncrease((expectedConnectorInstances - 1) * getNumberOfFdsPerLdapConnectorInstance());
+            lsof.assertFdIncrease((actualConnectorInstances - 1) * getNumberOfFdsPerLdapConnectorInstance());
         }
     }
 

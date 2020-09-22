@@ -158,11 +158,11 @@ public class MultiplicityConstraintEvaluator implements PolicyConstraintEvaluato
         if (!ctx.isDirect) {
             return null;
         }
-        if (ctx.inPlus) {
+        if (ctx.isAdded) {
             if (!ctx.evaluatedAssignment.isPresentInCurrentObject()) {
                 return checkAssigneeConstraints(constraint, ctx.lensContext, ctx.evaluatedAssignment, PLUS, ctx, result);        // only really new assignments
             }
-        } else if (ctx.inMinus) {
+        } else if (ctx.isDeleted) {
             if (ctx.evaluatedAssignment.isPresentInCurrentObject()) {
                 return checkAssigneeConstraints(constraint, ctx.lensContext, ctx.evaluatedAssignment, PlusMinusZero.MINUS, ctx, result);        // only assignments that are really deleted
             }

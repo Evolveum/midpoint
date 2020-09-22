@@ -67,8 +67,8 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
     }
 
     // task OID -> handlerUri -> OID+TriggerID; cleared on task start
-    // we use plain map, as it is much easier to synchronize explicitly than to play with ConcurrentMap methods
-    private Map<String,Map<String,Set<String>>> processedTriggersMap = new HashMap<>();
+    // we use plain map with explicit synchronization
+    private final Map<String,Map<String,Set<String>>> processedTriggersMap = new HashMap<>();
 
     private synchronized void initProcessedTriggers(Task coordinatorTask) {
         Validate.notNull(coordinatorTask.getOid(), "Task OID is null");

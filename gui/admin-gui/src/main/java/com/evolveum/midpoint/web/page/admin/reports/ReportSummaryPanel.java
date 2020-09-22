@@ -25,7 +25,7 @@ public class ReportSummaryPanel extends ObjectSummaryPanel<ReportType> {
     }
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return GuiStyleConstants.CLASS_REPORT_ICON;
     }
 

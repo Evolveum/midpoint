@@ -443,7 +443,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
     }
 
     @Override
-    public PrismContainerWrapper<Containerable> getSelectedChild() {
+    public PrismContainerWrapper<? extends Containerable> getSelectedChild() {
         return metadataValueWrapper.getSelectedChild();
     }
 
@@ -477,15 +477,15 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
         return metadataValueWrapper.getValue();
     }
 
-    @Override
-    public boolean isStripe() {
-        return metadataValueWrapper.isStripe();
-    }
-
-    @Override
-    public void setStripe(boolean stripe) {
-        metadataValueWrapper.setShowMetadataDetails(stripe);
-    }
+//    @Override
+//    public boolean isStripe() {
+//        return metadataValueWrapper.isStripe();
+//    }
+//
+//    @Override
+//    public void setStripe(boolean stripe) {
+//        metadataValueWrapper.setShowMetadataDetails(stripe);
+//    }
 
     @Override
     public PrismContainer<ValueMetadataType> getItem() {
@@ -627,15 +627,15 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
         metadataValueWrapper.accept(visitor);
     }
 
-    public List<PrismContainerDefinition<Containerable>> getChildContainers() throws SchemaException {
+    public List<PrismContainerDefinition<? extends Containerable>> getChildContainers() throws SchemaException {
         List<PrismContainerValueWrapper<ValueMetadataType>> metadataValues = getValues();
         if (CollectionUtils.isEmpty(metadataValues)) {
             return Collections.EMPTY_LIST;
         }
 
-        List<PrismContainerDefinition<Containerable>> childContainers = new ArrayList<>();
+        List<PrismContainerDefinition<? extends Containerable>> childContainers = new ArrayList<>();
         for (PrismContainerValueWrapper<ValueMetadataType> metadataValue : metadataValues) {
-            for (PrismContainerWrapper<Containerable> child : metadataValue.getContainers()) {
+            for (PrismContainerWrapper<? extends Containerable> child : metadataValue.getContainers()) {
                 if (child.isEmpty()) {
                     continue;
                 }
@@ -675,7 +675,7 @@ public class ValueMetadataWrapperImpl implements PrismContainerWrapper<ValueMeta
 
     public void unselect() {
         for (PrismContainerValueWrapper<ValueMetadataType> value : getValues()) {
-            for (PrismContainerWrapper<Containerable> container : value.getContainers()) {
+            for (PrismContainerWrapper<? extends Containerable> container : value.getContainers()) {
                 container.setShowMetadataDetails(false);
             }
         }

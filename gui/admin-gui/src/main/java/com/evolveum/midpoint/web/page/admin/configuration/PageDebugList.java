@@ -241,7 +241,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private void create(RepositoryObjectDataProvider provider) {
         Form mainForm = (Form) get(ID_MAIN_FORM);
 
-        BoxedTablePanel<DebugObjectItem> table = new BoxedTablePanel<DebugObjectItem>(ID_TABLE, provider, initColumns(),
+        BoxedTablePanel<DebugObjectItem> table = new BoxedTablePanel<DebugObjectItem>(ID_TABLE, provider, createColumns(),
                 UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL,
                 (int) getItemsPerPage(UserProfileStorage.TableId.CONF_DEBUG_LIST_PANEL)) {
             private static final long serialVersionUID = 1L;
@@ -250,6 +250,9 @@ public class PageDebugList extends PageAdminConfiguration {
             protected WebMarkupContainer createHeader(String headerId) {
                 return new DebugSearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel,
                         resourcesModel, objectClassListModel, showAllItemsModel) {
+
+                    private static final long serialVersionUID = 1L;
+
                     @Override
                     protected void searchPerformed(AjaxRequestTarget target, boolean oidFilter) {
                         listObjectsPerformed(target, oidFilter);
@@ -266,7 +269,7 @@ public class PageDebugList extends PageAdminConfiguration {
         mainForm.addOrReplace(table);
     }
 
-    private List<IColumn<DebugObjectItem, String>> initColumns() {
+    private List<IColumn<DebugObjectItem, String>> createColumns() {
         List<IColumn<DebugObjectItem, String>> columns = new ArrayList<>();
 
         IColumn<DebugObjectItem, String> column = new CheckBoxHeaderColumn<>();
@@ -588,6 +591,8 @@ public class PageDebugList extends PageAdminConfiguration {
         storage.setDebugSearchDto(dto);
 
         Table table = getListTable();
+        table.getDataTable().getColumns().clear();
+        table.getDataTable().getColumns().addAll(createColumns());
         target.add((Component) table);
         target.add(getFeedbackPanel());
     }

@@ -36,8 +36,8 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
     }
 
     @Override
-    public <T extends Containerable> List<PrismContainerWrapper<T>> getContainers() {
-        List<PrismContainerWrapper<T>> containers = new ArrayList<>();
+    public List<PrismContainerWrapper<? extends Containerable>> getContainers() {
+        List<PrismContainerWrapper<? extends Containerable>> containers = new ArrayList<>();
         for (ItemWrapper<?, ?> container : getItems()) {
 
             collectExtensionItems(container, true, containers);
@@ -46,9 +46,9 @@ public class PrismObjectValueWrapperImpl<O extends ObjectType> extends PrismCont
                 ((List)containers).add(container);
             }
 
-            if (ObjectType.F_METADATA.equals(container.getItemName())) {
-                ((List)containers).add(container);
-            }
+//            if (ObjectType.F_METADATA.equals(container.getItemName())) {
+//                ((List)containers).add(container);
+//            }
 
         }
         return containers;

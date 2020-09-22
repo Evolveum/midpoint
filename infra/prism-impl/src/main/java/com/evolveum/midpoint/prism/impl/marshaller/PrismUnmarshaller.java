@@ -18,7 +18,6 @@ import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.impl.metadata.ValueMetadataAdapter;
 import com.evolveum.midpoint.prism.xnode.*;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -280,7 +279,7 @@ public class PrismUnmarshaller {
             @NotNull PrismContainerDefinition<C> containerDef, @NotNull ParsingContext pc) throws SchemaException {
         Long id = getContainerId(map);
 
-        ComplexTypeDefinition complexTypeDefinition = containerDef.getComplexTypeDefinition();
+        ComplexTypeDefinition containerTypeDef = containerDef.getComplexTypeDefinition();
 
         PrismContainerValue<C> cval;
         if (containerDef instanceof PrismObjectDefinition) {
@@ -289,16 +288,26 @@ public class PrismUnmarshaller {
         } else {
             // override container definition, if explicit type is specified
             if (map.getTypeQName() != null) {
-                ComplexTypeDefinition specificDef = schemaRegistry.findComplexTypeDefinitionByType(map.getTypeQName());
-                if (specificDef != null) {
-                    complexTypeDefinition = specificDef;
+                ComplexTypeDefinition explicitTypeDef = schemaRegistry.findComplexTypeDefinitionByType(map.getTypeQName());
+                if (explicitTypeDef != null) {
+                    if (containerTypeDef != null && explicitTypeDef.isAssignableFrom(containerTypeDef, schemaRegistry)) {
+                        // Existing definition (CTD for PCD) is equal or more specific than the explicitly provided one.
+                        // Let's then keep using the existing definition. It is not quite clean solution
+                        // but there seem to exist serialized objects with generic xsi:type="c:ExtensionType" (MID-6474)
+                        // or xsi:type="c:ShadowAttributesType" (MID-6394). Such abstract definitions could lead to
+                        // parsing failures because of undefined items.
+                        LOGGER.trace("Ignoring explicit type definition {} because equal or even more specific one is present: {}",
+                                explicitTypeDef, containerTypeDef);
+                    } else {
+                        containerTypeDef = explicitTypeDef;
+                    }
                 } else {
                     pc.warnOrThrow(LOGGER, "Unknown type " + map.getTypeQName() + " in " + map);
                 }
             }
-            cval = new PrismContainerValueImpl<>(null, null, null, id, complexTypeDefinition, prismContext);
+            cval = new PrismContainerValueImpl<>(null, null, null, id, containerTypeDef, prismContext);
         }
-        parseContainerChildren(cval, map, containerDef, complexTypeDefinition, pc);
+        parseContainerChildren(cval, map, containerDef, containerTypeDef, pc);
         return cval;
     }
 
@@ -315,7 +324,7 @@ public class PrismUnmarshaller {
             }
 
             ItemDefinition<?> itemDef = locateItemDefinition(itemName, complexTypeDefinition, entry.getValue());
-            if(itemDef == null) {
+            if (itemDef == null) {
                 boolean shouldContinue = handleMissingDefinition(itemName, containerDef, complexTypeDefinition, pc, map);
                 if(shouldContinue) {
                     continue;

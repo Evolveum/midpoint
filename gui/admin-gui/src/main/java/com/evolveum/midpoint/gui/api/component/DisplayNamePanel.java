@@ -85,6 +85,7 @@ public class DisplayNamePanel<C extends Containerable> extends BasePanel<C> {
             }
         };
         navigateToObject.add(new VisibleBehaviour(() -> DisplayNamePanel.this.getModelObject() instanceof ObjectType &&
+                StringUtils.isNotEmpty(((ObjectType) DisplayNamePanel.this.getModelObject()).getOid()) &&
                 WebComponentUtil.getObjectDetailsPage(((ObjectType) DisplayNamePanel.this.getModelObject()).getClass()) != null));
         navigateToObject.setOutputMarkupId(true);
         add(navigateToObject);

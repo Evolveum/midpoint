@@ -91,7 +91,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
     }
 
     private IModel<PrismContainerWrapper<Containerable>> createMetadataNoProvenanceModel() {
-        return new ReadOnlyModel<>(() -> getModelObject() != null ? getModelObject().getSelectedChild() : null);
+        return new ReadOnlyModel<>(() -> getModelObject() != null ? (PrismContainerWrapper<Containerable>) getModelObject().getSelectedChild() : null);
     }
 
     private void createMetadataNavigationPanel() {
@@ -137,7 +137,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
             return true;
         }
         for (PrismContainerValueWrapper<ValueMetadataType> value : getValueMetadata().getValues()) {
-            for (PrismContainerWrapper<Containerable> metadataContainer : value.getContainers()) {
+            for (PrismContainerWrapper<? extends Containerable> metadataContainer : value.getContainers()) {
                 if (metadataContainer.isShowMetadataDetails()) {
                     return true;
                 }
@@ -180,7 +180,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         }
 
         for (PrismContainerValueWrapper<ValueMetadataType> value : valueMetadata.getValues()) {
-            for (PrismContainerWrapper<Containerable> container : value.getContainers()) {
+            for (PrismContainerWrapper<? extends Containerable> container : value.getContainers()) {
                 if (!QNameUtil.match(containersPopupDto.getTypeName(), container.getTypeName())) {
                     continue;
                 }
@@ -202,7 +202,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         }
 
         for (PrismContainerValueWrapper<ValueMetadataType> values : getValueMetadata().getValues()) {
-            for (PrismContainerWrapper<Containerable> container : values.getContainers()) {
+            for (PrismContainerWrapper<? extends Containerable> container : values.getContainers()) {
                 if (QNameUtil.match(container.getTypeName(), containersToShow.getDef().getTypeName())) {
                     container.setShowMetadataDetails(true);
                 } else {
@@ -219,7 +219,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         return new ReadOnlyModel<>(() -> {
             ValueMetadataWrapperImpl metadataWrapper = getValueMetadata();
 
-            List<PrismContainerDefinition<Containerable>> childContainers;
+            List<PrismContainerDefinition<? extends Containerable>> childContainers;
             try {
                 childContainers = metadataWrapper.getChildContainers();
             } catch (SchemaException e) {
