@@ -12,7 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Builder for resource object constructions.
  */
-public class ResourceObjectConstructionBuilder<AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH>, RT extends ResourceObjectConstructionBuilder<AH, EC, RT>>
+public abstract class ResourceObjectConstructionBuilder<AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH>, RT extends ResourceObjectConstructionBuilder<AH, EC, RT>>
         extends AbstractConstructionBuilder<AH, ConstructionType, EC, RT> {
 
     ResolvedConstructionResource resolvedResource;
@@ -25,9 +25,7 @@ public class ResourceObjectConstructionBuilder<AH extends AssignmentHolderType, 
         return typedThis();
     }
 
-    public ResourceObjectConstruction<AH, EC> build() {
-        return new ResourceObjectConstruction<>(this);
-    }
+    public abstract ResourceObjectConstruction<AH, EC> build();
 
     private RT typedThis() {
         //noinspection unchecked

@@ -19,6 +19,7 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.prism.*;
@@ -181,7 +182,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *
      * Note that relativity is taken to focus OLD state, not to the current state.
      */
-    private transient DeltaSetTriple<EvaluatedResourceObjectConstructionImpl<?>> evaluatedConstructionDeltaSetTriple;
+    private transient DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<?>> evaluatedConstructionDeltaSetTriple;
 
     /**
      * Triples for outbound mappings; similar to the above.
@@ -575,7 +576,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return (DeltaSetTriple) evaluatedConstructionDeltaSetTriple;
     }
 
-    public <AH extends AssignmentHolderType> void setEvaluatedConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedResourceObjectConstructionImpl<AH>> evaluatedConstructionDeltaSetTriple) {
+    public <AH extends AssignmentHolderType> void setEvaluatedConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> evaluatedConstructionDeltaSetTriple) {
         this.evaluatedConstructionDeltaSetTriple = (DeltaSetTriple)evaluatedConstructionDeltaSetTriple;
     }
 

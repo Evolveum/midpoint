@@ -7,18 +7,17 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
-/**
- * TEMPORARY
- */
-public class AssignedConstructionBuilder<AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH>>
-        extends ResourceObjectConstructionBuilder<AH, EC, AssignedConstructionBuilder<AH, EC>> {
+@Experimental
+public class AssignedConstructionBuilder<AH extends AssignmentHolderType>
+        extends ResourceObjectConstructionBuilder<AH, EvaluatedAssignedResourceObjectConstructionImpl<AH>, AssignedConstructionBuilder<AH>> {
 
     public AssignedConstructionBuilder() {
     }
 
-    public ResourceObjectConstruction<AH, EC> build() {
-        return new ResourceObjectConstruction<>(this);
+    public AssignedResourceObjectConstruction<AH> build() {
+        return new AssignedResourceObjectConstruction<>(this);
     }
 }

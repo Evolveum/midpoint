@@ -43,14 +43,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author Radovan Semancik
  */
-public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> extends EvaluatedResourceObjectConstructionImpl<AH> {
+public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentHolderType> extends EvaluatedResourceObjectConstructionImpl<AH> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedOutboundConstructionImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedPlainResourceObjectConstructionImpl.class);
 
     /**
      * @pre construction is already evaluated and not ignored (has resource)
      */
-    EvaluatedOutboundConstructionImpl(@NotNull final OutboundConstruction<AH> construction, @NotNull LensProjectionContext projectionContext) {
+    EvaluatedPlainResourceObjectConstructionImpl(@NotNull final PlainResourceObjectConstruction<AH> construction, @NotNull LensProjectionContext projectionContext) {
         super(construction, projectionContext.getResourceShadowDiscriminator());
         setProjectionContext(projectionContext);
     }
@@ -279,12 +279,6 @@ public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> 
 
         return mapping;
     }
-
-
-    private String getHumanReadableConstructionDescription() {
-        return "outbound construction for (" + getResource() + "/" + getKind() + "/" + getIntent() + "/" + getTag() + ")";
-    }
-
 
     @Override
     public String toString() {

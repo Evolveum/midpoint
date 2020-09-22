@@ -15,6 +15,7 @@ import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.assignments.*;
 import com.evolveum.midpoint.model.impl.lens.construction.AbstractConstruction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
@@ -1307,10 +1308,10 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     @SuppressWarnings("unused")     // why?
     private void showEvaluations(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String name, int expectedConstructions, Task task, OperationResult result)
             throws Exception {
-        List<ResourceObjectConstruction<UserType, EvaluatedResourceObjectConstructionImpl<UserType>>> constructions = getConstructions(evaluatedAssignment, name);
+        List<ResourceObjectConstruction<UserType, ? extends EvaluatedResourceObjectConstructionImpl<UserType>>> constructions = getConstructions(evaluatedAssignment, name);
         assertEquals("Wrong # of constructions: " + name, expectedConstructions, constructions.size());
         for (int i = 0; i < constructions.size(); i++) {
-            ResourceObjectConstruction<UserType, EvaluatedResourceObjectConstructionImpl<UserType>> construction = constructions.get(i);
+            ResourceObjectConstruction<UserType, ? extends EvaluatedResourceObjectConstructionImpl<UserType>> construction = constructions.get(i);
             System.out.println("Evaluating " + name + " #" + (i+1));
             construction.evaluate(task, result);
             System.out.println("Done");
@@ -2438,13 +2439,13 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertConstructions("minus", evaluatedAssignment.getConstructionSet(PlusMinusZero.MINUS), minusValid, minusInvalid);
     }
 
-    private <F extends FocusType> void assertConstructions(String type, Collection<? extends ResourceObjectConstruction<F, EvaluatedResourceObjectConstructionImpl<F>>> constructions, List<String> valid0,
+    private <F extends FocusType> void assertConstructions(String type, Collection<? extends ResourceObjectConstruction<F, EvaluatedAssignedResourceObjectConstructionImpl<F>>> constructions, List<String> valid0,
             List<String> invalid0) {
         constructions = CollectionUtils.emptyIfNull(constructions);
         Collection<String> expectedValid = CollectionUtils.emptyIfNull(valid0);
         Collection<String> expectedInvalid = CollectionUtils.emptyIfNull(invalid0);
-        Collection<ResourceObjectConstruction<F, EvaluatedResourceObjectConstructionImpl<F>>> realValid = constructions.stream().filter(AbstractConstruction::isValid).collect(Collectors.toList());
-        Collection<ResourceObjectConstruction<F, EvaluatedResourceObjectConstructionImpl<F>>> realInvalid = constructions.stream().filter(c -> !c.isValid()).collect(Collectors.toList());
+        Collection<ResourceObjectConstruction<F, ? extends EvaluatedResourceObjectConstructionImpl<F>>> realValid = constructions.stream().filter(AbstractConstruction::isValid).collect(Collectors.toList());
+        Collection<ResourceObjectConstruction<F, ? extends EvaluatedResourceObjectConstructionImpl<F>>> realInvalid = constructions.stream().filter(c -> !c.isValid()).collect(Collectors.toList());
         assertUnsortedListsEquals("Wrong valid constructions in " + type + " set", expectedValid,
                 realValid, this::getDescription);
         assertUnsortedListsEquals("Wrong invalid constructions in " + type + " set", expectedInvalid,
@@ -2462,7 +2463,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     //endregion
     //region ============================================================= helper methods (misc)
 
-    private <F extends FocusType> List<ResourceObjectConstruction<F, EvaluatedResourceObjectConstructionImpl<F>>> getConstructions(EvaluatedAssignmentImpl<F> evaluatedAssignment, String name) {
+    private <F extends FocusType> List<ResourceObjectConstruction<F, ? extends EvaluatedResourceObjectConstructionImpl<F>>> getConstructions(EvaluatedAssignmentImpl<F> evaluatedAssignment, String name) {
         return evaluatedAssignment.getConstructionTriple().getAllValues().stream()
                 .filter(c -> name.equals(getDescription(c)))
                 .collect(Collectors.toList());

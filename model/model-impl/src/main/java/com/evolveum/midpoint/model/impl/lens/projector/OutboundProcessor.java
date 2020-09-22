@@ -6,8 +6,6 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector;
 
-import com.evolveum.midpoint.model.impl.lens.construction.ResolvedConstructionResource;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -15,8 +13,8 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.construction.OutboundConstruction;
-import com.evolveum.midpoint.model.impl.lens.construction.OutboundConstructionBuilder;
+import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstructionBuilder;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
@@ -58,9 +56,8 @@ public class OutboundProcessor {
         // Each projection is evaluated in a single wave only. So we take into account all changes of focus from wave 0 to this one.
         ObjectDeltaObject<AH> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();
 
-        OutboundConstructionBuilder<AH> builder = new OutboundConstructionBuilder<AH>()
+        PlainResourceObjectConstructionBuilder<AH> builder = new PlainResourceObjectConstructionBuilder<AH>()
                 .projectionContext(projCtx)
-                .resolvedResource(new ResolvedConstructionResource(projCtx.getResource()))
                 .source(projCtx.getResource())
                 .lensContext(context)
                 .now(clock.currentTimeXMLGregorianCalendar()) // todo
@@ -68,7 +65,7 @@ public class OutboundProcessor {
                 .originType(OriginType.ASSIGNMENTS) // fixme
                 .valid(true);
 
-        OutboundConstruction<AH> outboundConstruction = builder.build();
+        PlainResourceObjectConstruction<AH> outboundConstruction = builder.build();
 
         outboundConstruction.setFocusOdoAbsolute(focusOdoAbsolute);
         NextRecompute nextRecompute = outboundConstruction.evaluate(task, result);

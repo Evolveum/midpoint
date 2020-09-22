@@ -6,10 +6,9 @@
  */
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -46,7 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
  *
  * @author Radovan Semancik
  */
-public class ResourceObjectConstruction<AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH>>
+public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH>>
         extends AbstractConstruction<AH, ConstructionType, EC> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConstruction.class);
@@ -172,52 +171,9 @@ public class ResourceObjectConstruction<AH extends AssignmentHolderType, EC exte
         return getResource() != null;
     }
 
-    protected void resolveResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        if (resolvedResource != null) {
-            throw new IllegalStateException("Resolving the resource twice? In: " + source);
-        } else {
-            ConstructionResourceResolver resourceResolver = new ConstructionResourceResolver(this, task, result);
-            resolvedResource = resourceResolver.resolveResource();
-        }
-    }
+    protected abstract void resolveResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException;
 
-    protected void initializeDefinitions() throws SchemaException {
-        assert resolvedResource.resource != null;
-        assert constructionBean != null;
-
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resolvedResource.resource,
-                LayerType.MODEL, beans.prismContext);
-        if (refinedSchema == null) {
-            // Refined schema may be null in some error-related border cases
-            throw new SchemaException("No (refined) schema for " + resolvedResource.resource);
-        }
-
-        ShadowKindType kind = defaultIfNull(constructionBean.getKind(), ShadowKindType.ACCOUNT);
-        String intent = constructionBean.getIntent();
-
-        refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
-        if (refinedObjectClassDefinition == null) {
-            if (intent != null) {
-                throw new SchemaException(
-                        "No " + kind + " type '" + intent + "' found in "
-                                + resolvedResource.resource + " as specified in construction in " + getSource());
-            } else {
-                throw new SchemaException("No default " + kind + " type found in " + resolvedResource.resource
-                        + " as specified in construction in " + getSource());
-            }
-        }
-
-        auxiliaryObjectClassDefinitions.clear();
-        for (QName auxiliaryObjectClassName : constructionBean.getAuxiliaryObjectClass()) {
-            RefinedObjectClassDefinition auxOcDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassName);
-            if (auxOcDef == null) {
-                throw new SchemaException(
-                        "No auxiliary object class " + auxiliaryObjectClassName + " found in "
-                                + resolvedResource.resource + " as specified in construction in " + source);
-            }
-            auxiliaryObjectClassDefinitions.add(auxOcDef);
-        }
-    }
+    protected abstract void initializeDefinitions() throws SchemaException;
 
     protected void createEvaluatedConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         evaluatedConstructionTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
@@ -227,13 +183,10 @@ public class ResourceObjectConstruction<AH extends AssignmentHolderType, EC exte
             // Single-account case (not multi-account). We just create a simple EvaluatedConstruction
             EC evaluatedConstruction = createEvaluatedConstruction((String)null);
             evaluatedConstructionTriple.addToZeroSet(evaluatedConstruction);
-
         } else {
-
             tagTriple.transform(evaluatedConstructionTriple, tag -> createEvaluatedConstruction(tag.getRealValue()));
         }
     }
-
 
     private PrismValueDeltaSetTriple<PrismPropertyValue<String>> evaluateTagTriple(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         ResourceObjectMultiplicityType multiplicity = refinedObjectClassDefinition.getMultiplicity();
@@ -274,10 +227,7 @@ public class ResourceObjectConstruction<AH extends AssignmentHolderType, EC exte
         return createEvaluatedConstruction(rsd);
     }
 
-    protected EC createEvaluatedConstruction(ResourceShadowDiscriminator rsd) {
-        //noinspection unchecked
-        return (EC) new EvaluatedResourceObjectConstructionImpl<>(this, rsd);
-    }
+    protected abstract EC createEvaluatedConstruction(ResourceShadowDiscriminator rsd);
 
     protected NextRecompute evaluateConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         NextRecompute nextRecompute = null;
@@ -410,50 +360,17 @@ public class ResourceObjectConstruction<AH extends AssignmentHolderType, EC exte
         return super.hashCode();
     }
 
-    @SuppressWarnings("RedundantIfStatement")
     @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
+    public boolean equals(Object o) {
+        if (this == o)
             return true;
-        }
-        if (!super.equals(obj)) {
+        if (!(o instanceof ResourceObjectConstruction))
             return false;
-        }
-        if (getClass() != obj.getClass()) {
+        if (!super.equals(o))
             return false;
-        }
-        ResourceObjectConstruction<?,?> other = (ResourceObjectConstruction<?,?>) obj;
-        if (associationContainerDefinition == null) {
-            if (other.associationContainerDefinition != null) {
-                return false;
-            }
-        } else if (!associationContainerDefinition.equals(other.associationContainerDefinition)) {
-            return false;
-        }
-        if (auxiliaryObjectClassDefinitions == null) {
-            if (other.auxiliaryObjectClassDefinitions != null) {
-                return false;
-            }
-        } else if (!auxiliaryObjectClassDefinitions.equals(other.auxiliaryObjectClassDefinitions)) {
-            return false;
-        }
-        if (refinedObjectClassDefinition == null) {
-            if (other.refinedObjectClassDefinition != null) {
-                return false;
-            }
-        } else if (!refinedObjectClassDefinition.equals(other.refinedObjectClassDefinition)) {
-            return false;
-        }
-        if (resolvedResource == null) {
-            if (other.resolvedResource != null) {
-                return false;
-            }
-        } else if (!resolvedResource.equals(other.resolvedResource)) {
-            return false;
-        }
-        return true;
+        ResourceObjectConstruction<?, ?> that = (ResourceObjectConstruction<?, ?>) o;
+        return Objects.equals(resolvedResource, that.resolvedResource);
     }
-
 
     /**
      * Should this construction be ignored e.g. because the resource couldn't be resolved?
@@ -489,9 +406,7 @@ public class ResourceObjectConstruction<AH extends AssignmentHolderType, EC exte
         DebugUtil.debugDumpWithLabelLn(sb, "valid", isValid(), indent + 1);
         DebugUtil.debugDumpWithLabelLn(sb, "wasValid", getWasValid(), indent + 1);
         DebugUtil.debugDumpLabel(sb, "auxiliary object classes", indent + 1);
-        if (auxiliaryObjectClassDefinitions == null) {
-            sb.append(" (null)");
-        } else if (auxiliaryObjectClassDefinitions.isEmpty()) {
+        if (auxiliaryObjectClassDefinitions.isEmpty()) {
             sb.append(" (empty)");
         } else {
             for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
@@ -563,4 +478,7 @@ public class ResourceObjectConstruction<AH extends AssignmentHolderType, EC exte
         return resolvedResource;
     }
 
+    public void setResolvedResource(ResolvedConstructionResource resolvedResource) {
+        this.resolvedResource = resolvedResource;
+    }
 }

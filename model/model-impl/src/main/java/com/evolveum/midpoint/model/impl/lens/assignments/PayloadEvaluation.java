@@ -71,9 +71,9 @@ class PayloadEvaluation<AH extends AssignmentHolderType> extends AbstractEvaluat
         if (constructionBean != null) {
             LOGGER.trace("Preparing construction '{}' in {}", constructionBean.getDescription(), segment.source);
 
-            AssignedConstructionBuilder<AH, EvaluatedResourceObjectConstructionImpl<AH>> builder = new AssignedConstructionBuilder<>();
+            AssignedConstructionBuilder<AH> builder = new AssignedConstructionBuilder<>();
             populateConstructionBuilder(builder, constructionBean);
-            ResourceObjectConstruction<AH, EvaluatedResourceObjectConstructionImpl<AH>> construction = builder.build();
+            AssignedResourceObjectConstruction<AH> construction = builder.build();
 
             // Do not evaluate the construction here. We will do it in the second pass. Just prepare everything to be evaluated.
             ctx.evalAssignment.addConstruction(construction, segment.getAbsoluteAssignmentRelativityMode()); // TODO

@@ -13,9 +13,7 @@ import java.util.stream.Stream;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
-import com.evolveum.midpoint.model.impl.lens.construction.PersonaConstruction;
+import com.evolveum.midpoint.model.impl.lens.construction.*;
 import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.AssignedFocusMappingEvaluationRequest;
@@ -65,7 +63,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
      * Constructions collected from this assignment. They are categorized to plus/minus/zero sets
      * according to holding assignment relativity mode (absolute w.r.t. focus, relative w.r.t. primary assignment).
      */
-    @NotNull private final DeltaSetTriple<ResourceObjectConstruction<AH, EvaluatedResourceObjectConstructionImpl<AH>>> constructionTriple;
+    @NotNull private final DeltaSetTriple<AssignedResourceObjectConstruction<AH>> constructionTriple;
 
     @NotNull private final DeltaSetTriple<PersonaConstruction<AH>> personaConstructionTriple;
     @NotNull private final DeltaSetTriple<EvaluatedAssignmentTargetImpl> roles;
@@ -186,7 +184,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     @NotNull
-    public DeltaSetTriple<ResourceObjectConstruction<AH, EvaluatedResourceObjectConstructionImpl<AH>>> getConstructionTriple() {
+    public DeltaSetTriple<AssignedResourceObjectConstruction<AH>> getConstructionTriple() {
         return constructionTriple;
     }
 
@@ -198,17 +196,17 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     @Override
     @NotNull
     public DeltaSetTriple<EvaluatedResourceObjectConstruction> getEvaluatedConstructions(@NotNull Task task, @NotNull OperationResult result) {
-        DeltaSetTriple<EvaluatedResourceObjectConstructionImpl<AH>> rv = prismContext.deltaFactory().createDeltaSetTriple();
-        for (ResourceObjectConstruction<AH, EvaluatedResourceObjectConstructionImpl<AH>> construction : constructionTriple.getPlusSet()) {
-            for (EvaluatedResourceObjectConstructionImpl<AH> evaluatedConstruction : construction.getEvaluatedConstructionTriple().getNonNegativeValues()) {
+        DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> rv = prismContext.deltaFactory().createDeltaSetTriple();
+        for (AssignedResourceObjectConstruction<AH> construction : constructionTriple.getPlusSet()) {
+            for (EvaluatedAssignedResourceObjectConstructionImpl<AH> evaluatedConstruction : construction.getEvaluatedConstructionTriple().getNonNegativeValues()) {
                 rv.addToPlusSet(evaluatedConstruction);
             }
         }
-        for (ResourceObjectConstruction<AH, EvaluatedResourceObjectConstructionImpl<AH>> construction : constructionTriple.getZeroSet()) {
+        for (AssignedResourceObjectConstruction<AH> construction : constructionTriple.getZeroSet()) {
             rv.merge(construction.getEvaluatedConstructionTriple());
         }
-        for (ResourceObjectConstruction<AH, EvaluatedResourceObjectConstructionImpl<AH>> construction : constructionTriple.getMinusSet()) {
-            for (EvaluatedResourceObjectConstructionImpl<AH> evaluatedConstruction : construction.getEvaluatedConstructionTriple().getNonPositiveValues()) {
+        for (AssignedResourceObjectConstruction<AH> construction : constructionTriple.getMinusSet()) {
+            for (EvaluatedAssignedResourceObjectConstructionImpl<AH> evaluatedConstruction : construction.getEvaluatedConstructionTriple().getNonPositiveValues()) {
                 rv.addToPlusSet(evaluatedConstruction);
             }
         }
@@ -217,7 +215,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     }
 
     @VisibleForTesting
-    public Collection<ResourceObjectConstruction<AH, EvaluatedResourceObjectConstructionImpl<AH>>> getConstructionSet(PlusMinusZero whichSet) {
+    public Collection<AssignedResourceObjectConstruction<AH>> getConstructionSet(PlusMinusZero whichSet) {
         switch (whichSet) {
             case ZERO: return getConstructionTriple().getZeroSet();
             case PLUS: return getConstructionTriple().getPlusSet();
@@ -226,7 +224,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
         }
     }
 
-    void addConstruction(ResourceObjectConstruction<AH, EvaluatedResourceObjectConstructionImpl<AH>> construction, PlusMinusZero whichSet) {
+    void addConstruction(AssignedResourceObjectConstruction<AH> construction, PlusMinusZero whichSet) {
         addToTriple(construction, constructionTriple, whichSet);
     }
 
@@ -374,7 +372,7 @@ public class EvaluatedAssignmentImpl<AH extends AssignmentHolderType> implements
     public void evaluateConstructions(ObjectDeltaObject<AH> focusOdoAbsolute, Consumer<ResourceType> resourceConsumer,
             Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             SecurityViolationException, ConfigurationException, CommunicationException {
-        for (ResourceObjectConstruction<AH, EvaluatedResourceObjectConstructionImpl<AH>> construction : constructionTriple.getAllValues()) {
+        for (AssignedResourceObjectConstruction<AH> construction : constructionTriple.getAllValues()) {
             construction.setFocusOdoAbsolute(focusOdoAbsolute);
             construction.setWasValid(wasValid);
             construction.evaluate(task, result);

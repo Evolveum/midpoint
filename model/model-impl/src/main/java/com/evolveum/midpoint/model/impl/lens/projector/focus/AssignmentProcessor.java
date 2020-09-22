@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
@@ -408,8 +408,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        ComplexConstructionConsumer<ResourceShadowDiscriminator, EvaluatedResourceObjectConstructionImpl<AH>> consumer =
-                new ComplexConstructionConsumer<ResourceShadowDiscriminator, EvaluatedResourceObjectConstructionImpl<AH>>() {
+        ComplexConstructionConsumer<ResourceShadowDiscriminator, EvaluatedAssignedResourceObjectConstructionImpl<AH>> consumer =
+                new ComplexConstructionConsumer<ResourceShadowDiscriminator, EvaluatedAssignedResourceObjectConstructionImpl<AH>>() {
 
             private boolean processOnlyExistingProjContexts;
 
@@ -549,8 +549,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
             @Override
             public void after(ResourceShadowDiscriminator rsd, String desc,
-                    DeltaMapTriple<ResourceShadowDiscriminator, EvaluatedConstructionPack<EvaluatedResourceObjectConstructionImpl<AH>>> constructionMapTriple) {
-                DeltaSetTriple<EvaluatedResourceObjectConstructionImpl<AH>> projectionEvaluatedConstructionDeltaSetTriple =
+                    DeltaMapTriple<ResourceShadowDiscriminator, EvaluatedConstructionPack<EvaluatedAssignedResourceObjectConstructionImpl<AH>>> constructionMapTriple) {
+                DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> projectionEvaluatedConstructionDeltaSetTriple =
                         prismContext.deltaFactory().createDeltaSetTriple(
                                 getConstructions(constructionMapTriple.getZeroMap().get(rsd), true),
                                 getConstructions(constructionMapTriple.getPlusMap().get(rsd), true),
@@ -587,7 +587,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
     // @pre: construction was already evaluated and is not ignored (i.e. has resource)
     private <AH extends AssignmentHolderType> ResourceShadowDiscriminator getConstructionMapKey(LensContext<AH> context,
-            EvaluatedResourceObjectConstructionImpl<AH> evaluatedConstruction, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+            EvaluatedAssignedResourceObjectConstructionImpl<AH> evaluatedConstruction, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         String resourceOid = evaluatedConstruction.getConstruction().getResourceOid();
         String intent = evaluatedConstruction.getIntent();
@@ -704,8 +704,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private <AH extends AssignmentHolderType> Collection<EvaluatedResourceObjectConstructionImpl<AH>> getConstructions(
-            EvaluatedConstructionPack<EvaluatedResourceObjectConstructionImpl<AH>> accountEvaluatedConstructionPack, boolean validOnly) {
+    private <AH extends AssignmentHolderType> Collection<EvaluatedAssignedResourceObjectConstructionImpl<AH>> getConstructions(
+            EvaluatedConstructionPack<EvaluatedAssignedResourceObjectConstructionImpl<AH>> accountEvaluatedConstructionPack, boolean validOnly) {
         if (accountEvaluatedConstructionPack == null) {
             return Collections.emptySet();
         }

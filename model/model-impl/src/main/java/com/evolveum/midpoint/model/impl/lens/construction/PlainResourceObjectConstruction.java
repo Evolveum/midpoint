@@ -9,7 +9,6 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -30,24 +29,24 @@ import org.jetbrains.annotations.NotNull;
  *
  * @author Radovan Semancik
  */
-public class OutboundConstruction<AH extends AssignmentHolderType>
-        extends ResourceObjectConstruction<AH, EvaluatedOutboundConstructionImpl<AH>> {
+public class PlainResourceObjectConstruction<AH extends AssignmentHolderType>
+        extends ResourceObjectConstruction<AH, EvaluatedPlainResourceObjectConstructionImpl<AH>> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(OutboundConstruction.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PlainResourceObjectConstruction.class);
 
     @NotNull private final LensProjectionContext projectionContext;
 
-    public OutboundConstruction(OutboundConstructionBuilder<AH> builder) {
+    PlainResourceObjectConstruction(PlainResourceObjectConstructionBuilder<AH> builder) {
         super(builder);
         this.projectionContext = builder.projectionContext;
     }
 
     @Override
-    protected void resolveResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        // already done on initialization
-        if (getResource() == null) {
+    protected void resolveResource(Task task, OperationResult result) {
+        if (projectionContext.getResource() == null) {
             throw new IllegalStateException("No resource in construction in " + source);
         }
+        setResolvedResource(new ResolvedConstructionResource(projectionContext.getResource()));
     }
 
     protected void initializeDefinitions() throws SchemaException {
@@ -64,7 +63,7 @@ public class OutboundConstruction<AH extends AssignmentHolderType>
     }
 
     @Override
-    protected EvaluatedOutboundConstructionImpl<AH> createEvaluatedConstruction(ResourceShadowDiscriminator rsd) {
-        return new EvaluatedOutboundConstructionImpl<>(this, projectionContext);
+    protected EvaluatedPlainResourceObjectConstructionImpl<AH> createEvaluatedConstruction(ResourceShadowDiscriminator rsd) {
+        return new EvaluatedPlainResourceObjectConstructionImpl<>(this, projectionContext);
     }
 }

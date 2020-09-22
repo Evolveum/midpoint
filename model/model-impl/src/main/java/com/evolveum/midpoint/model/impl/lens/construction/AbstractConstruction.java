@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import java.util.Objects;
 
 /**
  * A superclass for both resource object constructions (ResourceObjectConstruction)
@@ -42,7 +43,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
  *
  * @param <AH> focus type to which this construction applies
  * @param <ACT> type of the construction bean (e.g. ConstructionType, PersonaConstructionType)
- * @param <EC> "EvaluatedXXX" class paired with the construction (e.g. {@link EvaluatedOutboundConstructionImpl}, {@link EvaluatedPersonaConstructionImpl})
+ * @param <EC> "EvaluatedXXX" class paired with the construction (e.g. {@link EvaluatedPlainResourceObjectConstructionImpl}, {@link EvaluatedPersonaConstructionImpl})
  *
  * @author Radovan Semancik
  */
@@ -199,5 +200,23 @@ public abstract class AbstractConstruction<AH extends AssignmentHolderType, ACT 
             assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
         }
         return assignmentPathVariables;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o)
+            return true;
+        if (!(o instanceof AbstractConstruction))
+            return false;
+        AbstractConstruction<?, ?, ?> that = (AbstractConstruction<?, ?, ?>) o;
+        return valid == that.valid &&
+                wasValid == that.wasValid &&
+                Objects.equals(constructionBean, that.constructionBean) &&
+                Objects.equals(assignmentPath, that.assignmentPath);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(constructionBean);
     }
 }
