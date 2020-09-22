@@ -6,10 +6,14 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.gui.api.GuiFeature;
+
+import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
+
+import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
@@ -131,7 +135,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             @Override
             protected List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org) {
-                return TreeTablePanel.this.createTreeChildrenMenu(org);
+                return TreeTablePanel.this.createTreeChildrenMenu(org, serviceLocator.getCompiledGuiProfile());
             }
 
         };
@@ -215,12 +219,13 @@ public class TreeTablePanel extends BasePanel<String> {
         return items;
     }
 
-    private List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org) {
+    private List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org, CompiledGuiProfile adminGuiConfig) {
         List<InlineMenuItem> items = new ArrayList<>();
 
         boolean isAllowModify = isAllowModify(org.getValue());
         boolean isAllowRead = isAllowRead(org.getValue());
         InlineMenuItem item;
+
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ADMIN_ORG_MOVE_ACTION_URI)) {
             item = new InlineMenuItem(createStringResource("TreeTablePanel.move")) {
                 private static final long serialVersionUID = 1L;

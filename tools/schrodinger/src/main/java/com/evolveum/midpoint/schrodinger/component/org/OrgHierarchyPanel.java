@@ -34,7 +34,7 @@ public class OrgHierarchyPanel<T> extends Component<T> {
     public OrgHierarchyPanel<T> selectOrgInTree(String orgName) {
         boolean exist = getParentElement().$(Schrodinger.byElementValue("span", "class", "tree-label", orgName)).exists();
         if (!exist) {
-            expandAllIfNeeded();
+            expandAllIfNeeded(orgName);
         }
         getParentElement().$(Schrodinger.byElementValue("span", "class", "tree-label", orgName))
                 .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
@@ -42,35 +42,35 @@ public class OrgHierarchyPanel<T> extends Component<T> {
         return this;
     }
 
-    private void expandAllIfNeeded() {
+    private void expandAllIfNeeded(String orgName) {
         boolean existExpandButton = getParentElement().$(By.cssSelector(".tree-junction-collapsed")).exists();
-        if (existExpandButton) {
-            expandAllOrgs();
-        }
+        showTreeNodeDropDownMenu(orgName).expandAll();
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
-    }
-
-    public OrgHierarchyPanel<T> expandAllOrgs() {
-        clickOnTreeMenu();
-        getParentElement().$(Schrodinger.byDataResourceKey("schrodinger", "TreeTablePanel.expandAll")).parent()
-                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-        return this;
     }
 
     private void clickOnTreeMenu() {
         getParentElement().$(Schrodinger.byDataId("div", "treeMenu")).click();
     }
 
-    public boolean containsChildOrg(String parentOrg, String... expectedChild){
-        expandAllIfNeeded();
+    public boolean containsChildOrg(String parentOrg, Boolean expandParent, String... expectedChild){
+        if (expandParent) {
+            expandAllIfNeeded(parentOrg);
+        }
         SelenideElement parentNode = getParentOrgNode(parentOrg);
         SelenideElement subtree = parentNode.$x(".//div[@"+Schrodinger.DATA_S_ID+"='subtree']");
-        ElementsCollection childsLabels = subtree.$$x(".//span[@"+Schrodinger.DATA_S_ID+"='label']");
-        List<String> childs = new ArrayList<String>();
-        for (SelenideElement childLabel : childsLabels) {
-            childs.add(childLabel.getText());
+        ElementsCollection childLabels = subtree.$$x(".//span[@"+Schrodinger.DATA_S_ID+"='label']");
+        List<String> child = new ArrayList<String>();
+        if (!subtree.exists()) {
+            return false;
         }
-        return childs.containsAll(Arrays.asList(expectedChild));
+        for (SelenideElement childLabel : childLabels) {
+            child.add(childLabel.getText());
+        }
+        return child.containsAll(Arrays.asList(expectedChild));
+    }
+
+    public boolean containsChildOrg(String parentOrg, String... expectedChild){
+        return containsChildOrg(parentOrg, true, expectedChild);
     }
 
     private SelenideElement getParentOrgNode (String parentOrg) {
@@ -89,13 +89,13 @@ public class OrgHierarchyPanel<T> extends Component<T> {
         return this;
     }
 
-    public OrgTreeNodeDropDown showTreeNodeDropDownMenu(String orgName) {
+    public OrgTreeNodeDropDown<OrgHierarchyPanel> showTreeNodeDropDownMenu(String orgName) {
         SelenideElement parentNode = getParentOrgNode(orgName);
         SelenideElement node = parentNode.$x(".//div[@"+Schrodinger.DATA_S_ID+"='node']");
         SelenideElement menuButton = node.$x(".//span[@" + Schrodinger.DATA_S_ID + "='menu']");
         menuButton.waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
         SelenideElement menu = menuButton.$x(".//ul[@" + Schrodinger.DATA_S_ID + "='dropDownMenu']").waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S);
 
-        return new OrgTreeNodeDropDown(this, menu);
+        return new OrgTreeNodeDropDown<OrgHierarchyPanel>(this, menu);
     }
 }

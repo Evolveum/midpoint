@@ -31,4 +31,18 @@ public class OrgTreeNodeDropDown<T> extends DropDown<T> {
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new OrgPage();
     }
+
+    public T expandAll(){
+        getParentElement().$x(".//schrodinger[@"+ Schrodinger.DATA_S_RESOURCE_KEY +"='TreeTablePanel.expandAll']").parent()
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
+        return getParent();
+    }
+
+    public T collapseAll(){
+        getParentElement().$x(".//schrodinger[@"+ Schrodinger.DATA_S_RESOURCE_KEY +"='TreeTablePanel.collapseAll']").parent()
+                .waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_SHORT_4_S);
+        return getParent();
+    }
 }

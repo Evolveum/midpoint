@@ -21,29 +21,9 @@ public class TreeStateSet<T extends Serializable> implements Set<T>, Serializabl
 
     private final Set<T> set = new HashSet<>();
 
-    private boolean inverse;
-
-    public void expandAll() {
-        set.clear();
-        inverse = true;
-    }
-
-    public void collapseAll() {
-        set.clear();
-        inverse = false;
-    }
-
-    public boolean isInverse() {
-        return inverse;
-    }
-
-    public void setInverse(boolean inverse) {
-        this.inverse = inverse;
-    }
-
     @Override
     public boolean add(T t) {
-        return inverse ? set.remove(t) : set.add(t);
+        return set.add(t);
     }
 
     @Override
@@ -59,7 +39,7 @@ public class TreeStateSet<T extends Serializable> implements Set<T>, Serializabl
     @Override
     public boolean contains(Object o) {
         T t = (T) o;
-        return inverse ? !set.contains(t) : set.contains(t);
+        return set.contains(t);
     }
 
     @Override
@@ -80,17 +60,17 @@ public class TreeStateSet<T extends Serializable> implements Set<T>, Serializabl
     @Override
     public boolean remove(Object o) {
         T t = (T) o;
-        return inverse ? set.add(t) : set.remove(t);
+        return set.remove(t);
     }
 
     @Override
     public boolean containsAll(Collection<?> c) {
-        return inverse ? !set.containsAll(c) : set.containsAll(c);
+        return set.containsAll(c);
     }
 
     @Override
     public boolean addAll(Collection<? extends T> c) {
-        return inverse ? set.removeAll(c) : set.addAll(c);
+        return set.addAll(c);
     }
 
     @Override
@@ -100,7 +80,7 @@ public class TreeStateSet<T extends Serializable> implements Set<T>, Serializabl
 
     @Override
     public boolean removeAll(Collection<?> c) {
-        return inverse ? set.addAll((Collection<? extends T>) c) : set.removeAll(c);
+        return set.removeAll(c);
     }
 
     @Override
@@ -111,7 +91,6 @@ public class TreeStateSet<T extends Serializable> implements Set<T>, Serializabl
     @Override
     public TreeStateSet clone() {
         TreeStateSet set = new TreeStateSet();
-        set.inverse = this.inverse;
         set.set.addAll(this.set);
 
         return set;

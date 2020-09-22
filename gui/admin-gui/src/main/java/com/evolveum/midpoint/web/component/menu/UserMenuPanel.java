@@ -275,9 +275,15 @@ public class UserMenuPanel extends BasePanel<UserMenuPanel> {
         }
 
         FocusType focus = principal.getFocus();
+        if (focus == null) {
+            return null;
+        }
+        CredentialsType credentialsType = focus.getCredentials();
+        if (credentialsType == null) {
+            return null;
+        }
 
-        SecurityQuestionsCredentialsType credentialsPolicyType = focus.getCredentials()
-                .getSecurityQuestions();
+        SecurityQuestionsCredentialsType credentialsPolicyType = credentialsType.getSecurityQuestions();
         if (credentialsPolicyType == null) {
             return null;
         }
