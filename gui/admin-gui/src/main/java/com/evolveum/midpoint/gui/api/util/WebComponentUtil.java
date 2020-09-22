@@ -1395,6 +1395,9 @@ public final class WebComponentUtil {
                 return nameModel.getString();
             }
         }
+        if (def instanceof RefinedAttributeDefinition && StringUtils.isNotEmpty(def.getDisplayName())) {
+            return def.getDisplayName();
+        }
         return def.getItemName().getLocalPart();
     }
 
