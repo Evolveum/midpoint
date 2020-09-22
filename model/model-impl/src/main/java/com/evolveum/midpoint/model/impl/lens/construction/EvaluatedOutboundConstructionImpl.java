@@ -43,7 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * @author Radovan Semancik
  */
-public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> extends EvaluatedConstructionImpl<AH> {
+public class EvaluatedOutboundConstructionImpl<AH extends AssignmentHolderType> extends EvaluatedResourceObjectConstructionImpl<AH> {
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedOutboundConstructionImpl.class);
 

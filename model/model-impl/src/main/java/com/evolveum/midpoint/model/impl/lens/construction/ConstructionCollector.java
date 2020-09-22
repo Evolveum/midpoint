@@ -30,19 +30,17 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  *
  * @author Radovan Semancik
  */
-public class ConstructionCollector<AH extends AssignmentHolderType, K extends HumanReadableDescribable, ACT extends AbstractConstructionType, AC extends AbstractConstruction<AH,ACT,EC>, EC extends EvaluatedConstructible<AH>> {
+public class ConstructionCollector<AH extends AssignmentHolderType, K extends HumanReadableDescribable, ACT extends AbstractConstructionType, AC extends AbstractConstruction<AH,ACT,EC>, EC extends EvaluatedAbstractConstruction<AH>> {
 
     private DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple;
 
-    private final LensContext<AH> context;
     private final Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor;
     private final FailableLensFunction<EC, K> keyGenerator;
     private final PrismContext prismContext;
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionCollector.class);
 
-    public ConstructionCollector(LensContext<AH> context, Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor, FailableLensFunction<EC, K> keyGenerator, PrismContext prismContext) {
-        this.context = context;
+    public ConstructionCollector(Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor, FailableLensFunction<EC, K> keyGenerator, PrismContext prismContext) {
         this.constructionTripleExtractor = constructionTripleExtractor;
         this.keyGenerator = keyGenerator;
         this.prismContext = prismContext;

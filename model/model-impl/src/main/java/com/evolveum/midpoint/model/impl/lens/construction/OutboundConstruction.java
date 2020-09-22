@@ -23,50 +23,34 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Special construction subclass that represents outbound constructions.
+ * Special construction subclass that represents resource object constructions in the phase
+ * of resource-defined outbound mappings.
+ *
+ * TODO decide what to do with this class
  *
  * @author Radovan Semancik
- * <p>
- * This class is Serializable but it is not in fact serializable. It
- * implements Serializable interface only to be storable in the
- * PrismPropertyValue.
  */
-public class OutboundConstruction<AH extends AssignmentHolderType> extends Construction<AH, EvaluatedOutboundConstructionImpl<AH>> {
+public class OutboundConstruction<AH extends AssignmentHolderType>
+        extends ResourceObjectConstruction<AH, EvaluatedOutboundConstructionImpl<AH>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(OutboundConstruction.class);
 
     @NotNull private final LensProjectionContext projectionContext;
 
-    public OutboundConstruction(@NotNull LensProjectionContext projectionContext) {
-        super(null, projectionContext.getResource());
-        this.projectionContext = projectionContext;
-        setResolvedResource(new Construction.ResolvedResource(projectionContext.getResource()));
+    public OutboundConstruction(OutboundConstructionBuilder<AH> builder) {
+        super(builder);
+        this.projectionContext = builder.projectionContext;
     }
 
     @Override
-    public ResourceType getResource() {
-        return (ResourceType)getSource();
-    }
-
-    @Override
-    public NextRecompute evaluate(Task task, OperationResult parentResult)
-            throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
-        // Subresult is needed here. If something fails here, this needs to be recorded as a subresult of
-        // AssignmentProcessor.processAssignments. Otherwise partial error won't be propagated properly.
-        OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
-        try {
-            initializeDefinitions();
-            createEvaluatedConstructions(task, result);
-            NextRecompute nextRecompute = evaluateConstructions(task, result);
-            result.recordSuccess();
-            return nextRecompute;
-        } catch (Throwable e) {
-            result.recordFatalError(e);
-            throw e;
+    protected void resolveResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        // already done on initialization
+        if (getResource() == null) {
+            throw new IllegalStateException("No resource in construction in " + source);
         }
     }
 
-    private void initializeDefinitions() throws SchemaException {
+    protected void initializeDefinitions() throws SchemaException {
         RefinedObjectClassDefinition rOcDef = projectionContext.getStructuralObjectClassDefinition();
         if (rOcDef == null) {
             LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}", projectionContext.getResourceShadowDiscriminator(), getLensContext().debugDump(1));
@@ -83,5 +67,4 @@ public class OutboundConstruction<AH extends AssignmentHolderType> extends Const
     protected EvaluatedOutboundConstructionImpl<AH> createEvaluatedConstruction(ResourceShadowDiscriminator rsd) {
         return new EvaluatedOutboundConstructionImpl<>(this, projectionContext);
     }
-
 }

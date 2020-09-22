@@ -15,7 +15,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Facade interface that provides insight about construction that was evaluted by projector code.
+ * Facade interface that provides insight about construction that was evaluated by projector code.
  * It is used for several purposes, e.g. to display all evaluated assignments, both direct and indirect.
  *
  * WARNING: Implementation of this interface are NOT required to be Serializable.
@@ -25,21 +25,47 @@ import org.jetbrains.annotations.Nullable;
  * @author mederly
  * @author Radovan Semancik
  */
-public interface EvaluatedConstruction extends DebugDumpable {
+public interface EvaluatedResourceObjectConstruction extends DebugDumpable {
 
+    /**
+     * Resource on which the object is to be constructed.
+     */
+    @NotNull
     PrismObject<ResourceType> getResource();
 
+    /**
+     * Kind of the resource object.
+     */
     @NotNull
     ShadowKindType getKind();
 
+    /**
+     * Intent of the resource object.
+     */
     String getIntent();
 
+    /**
+     * Tag of the resource object (for multiaccounts).
+     */
     @Nullable
     String getTag();
 
+    /**
+     * Is the resource object directly assigned to the focus object?
+     * (False means there is an inducement in the assignment path.)
+     *
+     * TODO What about delegations?
+     */
     boolean isDirectlyAssigned();
 
+    /**
+     * Full path from the focus object to the respective construction.
+     */
     AssignmentPath getAssignmentPath();
 
+    /**
+     * Is the construction weak (i.e. conditional)?
+     * https://wiki.evolveum.com/display/midPoint/Assignment+Configuration#AssignmentConfiguration-StrongandWeakConstructions
+     */
     boolean isWeak();
 }

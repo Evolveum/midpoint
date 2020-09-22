@@ -8,7 +8,6 @@ package com.evolveum.midpoint.model.impl.lens.projector;
 
 import java.util.function.Function;
 
-import com.evolveum.midpoint.model.impl.lens.*;
 import com.evolveum.midpoint.model.impl.lens.construction.*;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractConstructionType;
@@ -19,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
 import com.evolveum.midpoint.model.impl.lens.FailableLensFunction;
-import com.evolveum.midpoint.model.impl.lens.LensContext;
 import com.evolveum.midpoint.prism.delta.DeltaMapTriple;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.util.HumanReadableDescribable;
@@ -42,9 +40,8 @@ public class ConstructionProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionProcessor.class);
 
-    public <AH extends AssignmentHolderType, K extends HumanReadableDescribable, ACT extends AbstractConstructionType, AC extends AbstractConstruction<AH,ACT,EC>, EC extends EvaluatedConstructible<AH>>
-    DeltaMapTriple<K, EvaluatedConstructionPack<EC>> processConstructions(LensContext<AH> context,
-            DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
+    public <AH extends AssignmentHolderType, K extends HumanReadableDescribable, ACT extends AbstractConstructionType, AC extends AbstractConstruction<AH,ACT,EC>, EC extends EvaluatedAbstractConstruction<AH>>
+    DeltaMapTriple<K, EvaluatedConstructionPack<EC>> processConstructions(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
             Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor,
             FailableLensFunction<EC, K> keyGenerator, ComplexConstructionConsumer<K, EC> consumer)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
@@ -53,7 +50,7 @@ public class ConstructionProcessor {
         // We will be collecting the evaluated account constructions into these three maps.
         // It forms a kind of delta set triple for the account constructions.
         ConstructionCollector<AH, K, ACT, AC, EC> constructionCollector =
-                new ConstructionCollector<>(context, constructionTripleExtractor, keyGenerator, prismContext);
+                new ConstructionCollector<>(constructionTripleExtractor, keyGenerator, prismContext);
         constructionCollector.collect(evaluatedAssignmentTriple);
         DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple = constructionCollector.getEvaluatedConstructionMapTriple();
 

@@ -152,10 +152,10 @@ public class PersonaProcessor {
         };
 
         DeltaMapTriple<PersonaKey, EvaluatedConstructionPack<EvaluatedPersonaConstructionImpl<F>>> constructionMapTriple =
-            constructionProcessor.processConstructions(context, evaluatedAssignmentTriple,
-                evaluatedAssignment -> evaluatedAssignment.getPersonaConstructionTriple(),
-                evaluatedConstruction -> new PersonaKey(evaluatedConstruction.getConstruction().getConstructionBean()),
-                consumer);
+            constructionProcessor.processConstructions(evaluatedAssignmentTriple,
+                    EvaluatedAssignmentImpl::getPersonaConstructionTriple,
+                    evaluatedConstruction -> new PersonaKey(evaluatedConstruction.getConstruction().getConstructionBean()),
+                    consumer);
 
         LOGGER.trace("activePersonaKeyTriple:\n{}", activePersonaKeyTriple.debugDumpLazily(1));
 
@@ -245,15 +245,15 @@ public class PersonaProcessor {
                     CommunicationException, ConfigurationException, SecurityViolationException, PreconditionViolationException {
         PrismObject<F> focus = context.getFocusContext().getObjectNew();
         LOGGER.debug("Adding persona {} for {} using construction {}", key, focus, construction);
-        PersonaConstructionType constructionType = construction.getConstructionBean();
-        ObjectReferenceType objectMappingRef = constructionType.getObjectMappingRef();
-        ObjectTemplateType template = objectResolver.resolve(objectMappingRef, ObjectTemplateType.class, null, "object mapping in persona construction in "+focus, task, result);
+        PersonaConstructionType constructionBean = construction.getConstructionBean();
+        ObjectReferenceType templateRef = constructionBean.getObjectMappingRef();
+        ObjectTemplateType template = objectResolver.resolve(templateRef, ObjectTemplateType.class, null, "object template in persona construction in "+focus, task, result);
 
-        QName targetType = constructionType.getTargetType();
+        QName targetType = constructionBean.getTargetType();
         PrismObjectDefinition<T> objectDef = prismContext.getSchemaRegistry().findObjectDefinitionByType(targetType);
         PrismObject<T> target = objectDef.instantiate();
 
-        FocusTypeUtil.setSubtype(target, constructionType.getTargetSubtype());
+        FocusTypeUtil.setSubtype(target, constructionBean.getTargetSubtype());
 
         // pretend ADD focusOdo. We need to push all the items through the object template
         ObjectDeltaObject<F> focusOdoAbsolute = new ObjectDeltaObject<>(null, focus.createAddDelta(), focus, context.getFocusContext().getObjectDefinition());
@@ -286,8 +286,8 @@ public class PersonaProcessor {
         PrismObject<F> focus = context.getFocusContext().getObjectNew();
         LOGGER.debug("Modifying persona {} for {} using construction {}", key, focus, construction);
         PersonaConstructionType constructionType = construction.getConstructionBean();
-        ObjectReferenceType objectMappingRef = constructionType.getObjectMappingRef();
-        ObjectTemplateType template = objectResolver.resolve(objectMappingRef, ObjectTemplateType.class, null, "object mapping in persona construction in "+focus, task, result);
+        ObjectReferenceType templateRef = constructionType.getObjectMappingRef();
+        ObjectTemplateType template = objectResolver.resolve(templateRef, ObjectTemplateType.class, null, "object template in persona construction in "+focus, task, result);
 
         ObjectDeltaObject<F> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();
         String contextDesc = "persona construction for "+focus;

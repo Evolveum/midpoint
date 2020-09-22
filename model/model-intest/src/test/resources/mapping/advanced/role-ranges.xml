@@ -1,0 +1,76 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<role xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        oid="d97c804b-28ea-404d-b075-ebb2bdd76c57">
+    <name>ranges</name>
+    <inducement>
+        <construction>
+            <resourceRef oid="96b44c65-011f-489c-bcdb-c5f9a2502942"/>
+            <attribute>
+                <ref>ri:organization</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <source>
+                        <path>organization</path>
+                    </source>
+                    <expression>
+                        <script>
+                            <includeNullInputs>false</includeNullInputs>
+                            <code>'mp_' + organization</code>
+                        </script>
+                    </expression>
+                    <target>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>
+                                        log.info('checking mapping range for {}', input)
+                                        println('checking mapping range for ' + input)
+                                        input?.startsWith('mp_')
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
+                    </target>
+                </outbound>
+            </attribute>
+            <association>
+                <ref>ri:group</ref>
+                <outbound>
+                    <strength>strong</strength>
+                    <expression>
+                        <associationTargetSearch>
+                            <filter>
+                                <q:equal>
+                                    <q:path>attributes/name</q:path>
+                                    <q:value>users</q:value>
+                                </q:equal>
+                            </filter>
+                            <searchStrategy>onResourceIfNeeded</searchStrategy>
+                        </associationTargetSearch>
+                    </expression>
+                    <target>
+                        <set>
+                            <condition>
+                                <script>
+                                    <code>
+                                        log.info('checking mapping range for {}', input)
+                                        println('checking mapping range for ' + input)
+                                        true
+                                    </code>
+                                </script>
+                            </condition>
+                        </set>
+                    </target>
+                </outbound>
+            </association>
+        </construction>
+    </inducement>
+</role>

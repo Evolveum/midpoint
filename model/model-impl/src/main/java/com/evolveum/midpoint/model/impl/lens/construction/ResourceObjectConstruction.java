@@ -6,42 +6,29 @@
  */
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
+
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
-import com.evolveum.midpoint.model.impl.lens.AssignmentPathVariables;
-import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.impl.lens.LensUtil;
-import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
-import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
-import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
-
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
 import com.evolveum.midpoint.common.refinery.*;
+import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
+import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.MappingEvaluator;
-import com.evolveum.midpoint.model.impl.util.ModelImplUtils;
+import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
-import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.expression.ExpressionProfile;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -49,45 +36,43 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.ReferentialIntegrityType;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
- * Live class that contains "construction" - a definition how to construct a
- * resource object. It in fact reflects the definition of ConstructionType but
- * it also contains "live" objects and can evaluate the construction. It also
- * contains intermediary and side results of the evaluation.
+ * Contains "construction bean" (ConstructionType) - a definition how to construct a resource object.
+ * Besides this definition it also contains auxiliary objects that are needed to evaluate the construction.
  *
- * This class represents the definition of a construction.
- * Single definition may produce many "evaluated" constructions,
- * e.g. in case that multiaccounts (tags) are used.
- * Evaluated constructions are represented by evaluatedConstructionTriple.
+ * An instance of this class may produce many "evaluated" constructions, e.g. in case that
+ * multiaccounts (tags) are used. Evaluated constructions are represented by evaluatedConstructionTriple.
  *
  * @author Radovan Semancik
- * <p>
- * This class is Serializable but it is not in fact serializable. It
- * implements Serializable interface only to be storable in the
- * PrismPropertyValue.
  */
-public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedConstructionImpl<AH>> extends AbstractConstruction<AH, ConstructionType, EC> {
+public class ResourceObjectConstruction<AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH>>
+        extends AbstractConstruction<AH, ConstructionType, EC> {
 
-    private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConstruction.class);
 
-    protected static final String OP_EVALUATE = Construction.class.getName() + ".evaluate";
+    /**
+     * Information on the resource and its resolution status.
+     * Can be provided by the builder or by this class.
+     */
+    private ResolvedConstructionResource resolvedResource;
 
-    private ObjectType orderOneObject;
-    private ResolvedResource resolvedResource;
-    private final ExpressionProfile expressionProfile;
-    private MappingFactory mappingFactory;
-    private MappingEvaluator mappingEvaluator;
-    private ContextLoader contextLoader;
-    private XMLGregorianCalendar now;
+    // Useful definitions.
+
+    /**
+     * The rOCD for the resource object.
+     */
     private RefinedObjectClassDefinition refinedObjectClassDefinition;
-    private List<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions;
-    private AssignmentPathVariables assignmentPathVariables = null;
+
+    /**
+     * Auxiliary OCDs mentioned in the construction bean OR all auxiliary OCDs from rOCD.
+     */
+    private final List<RefinedObjectClassDefinition> auxiliaryObjectClassDefinitions = new ArrayList<>();
+
+    /**
+     * Definition for associations.
+     */
     private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
-    private PrismObject<SystemConfigurationType> systemConfiguration; // only to provide $configuration variable (MID-2372)
 
     /**
      * Delta set triple for evaluated constructions. These correspond to tags triple:
@@ -96,70 +81,9 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
      */
     private DeltaSetTriple<EC> evaluatedConstructionTriple;
 
-    public Construction(ConstructionType constructionBean, ObjectType source) {
-        super(constructionBean, source);
-        // TODO: this is wrong. It should be set up during the evaluation process.
-        this.expressionProfile = MiscSchemaUtil.getExpressionProfile();
-    }
-
-    public void setOrderOneObject(ObjectType orderOneObject) {
-        this.orderOneObject = orderOneObject;
-    }
-
-    public MappingFactory getMappingFactory() {
-        return mappingFactory;
-    }
-
-    public void setMappingFactory(MappingFactory mappingFactory) {
-        this.mappingFactory = mappingFactory;
-    }
-
-    public MappingEvaluator getMappingEvaluator() {
-        return mappingEvaluator;
-    }
-
-    public void setMappingEvaluator(MappingEvaluator mappingEvaluator) {
-        this.mappingEvaluator = mappingEvaluator;
-    }
-
-    public ContextLoader getContextLoader() {
-        return contextLoader;
-    }
-
-    public void setContextLoader(ContextLoader contextLoader) {
-        this.contextLoader = contextLoader;
-    }
-
-    public XMLGregorianCalendar getNow() {
-        return now;
-    }
-
-    public void setNow(XMLGregorianCalendar now) {
-        this.now = now;
-    }
-
-    public PrismObject<SystemConfigurationType> getSystemConfiguration() {
-        return systemConfiguration;
-    }
-
-    public ResolvedResource getResolvedResource() {
-        return resolvedResource;
-    }
-
-    protected void setResolvedResource(ResolvedResource resolvedResource) {
-        this.resolvedResource = resolvedResource;
-    }
-
-    public ObjectType getOrderOneObject() {
-        return orderOneObject;
-    }
-
-    public AssignmentPathVariables getAssignmentPathVariables() {
-        return assignmentPathVariables;
-    }
-
-    public void setSystemConfiguration(PrismObject<SystemConfigurationType> systemConfiguration) {
-        this.systemConfiguration = systemConfiguration;
+    ResourceObjectConstruction(ResourceObjectConstructionBuilder<AH, EC, ?> builder) {
+        super(builder);
+        this.resolvedResource = builder.resolvedResource;
     }
 
     public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
@@ -174,11 +98,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         return auxiliaryObjectClassDefinitions;
     }
 
-    public void addAuxiliaryObjectClassDefinition(
-            RefinedObjectClassDefinition auxiliaryObjectClassDefinition) {
-        if (auxiliaryObjectClassDefinitions == null) {
-            auxiliaryObjectClassDefinitions = new ArrayList<>();
-        }
+    public void addAuxiliaryObjectClassDefinition(RefinedObjectClassDefinition auxiliaryObjectClassDefinition) {
         auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
     }
 
@@ -200,60 +120,12 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         return evaluatedConstructionTriple;
     }
 
-    @SuppressWarnings("SameParameterValue")
-    @NotNull
-    private ResourceType resolveTarget(String sourceDescription, Task task, OperationResult result)
-            throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException, SecurityViolationException {
-        ExpressionVariables variables = ModelImplUtils
-                .getDefaultExpressionVariables(getFocusOdoAbsolute().getNewObject().asObjectable(), null, null, null, mappingEvaluator.getPrismContext());
-        if (assignmentPathVariables == null) {
-            assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
-        }
-        ModelImplUtils.addAssignmentPathVariables(assignmentPathVariables, variables, getPrismContext());
-        LOGGER.debug("Expression variables for filter evaluation: {}", variables);
-
-        ObjectFilter origFilter = getPrismContext().getQueryConverter().parseFilter(constructionBean.getResourceRef().getFilter(),
-                ResourceType.class);
-        LOGGER.debug("Orig filter {}", origFilter);
-        ObjectFilter evaluatedFilter = ExpressionUtil.evaluateFilterExpressions(origFilter, variables,
-                expressionProfile, getMappingFactory().getExpressionFactory(), getPrismContext(),
-                " evaluating resource filter expression ", task, result);
-        LOGGER.debug("evaluatedFilter filter {}", evaluatedFilter);
-
-        if (evaluatedFilter == null) {
-            throw new SchemaException(
-                    "The OID is null and filter could not be evaluated in assignment targetRef in " + getSource());
-        }
-
-        final Collection<PrismObject<ResourceType>> results = new ArrayList<>();
-        ResultHandler<ResourceType> handler = (object, parentResult) -> {
-            LOGGER.info("Found object {}", object);
-            return results.add(object);
-        };
-        getObjectResolver().searchIterative(ResourceType.class, getPrismContext().queryFactory().createQuery(evaluatedFilter),
-                null, handler, task, result);
-
-        if (org.apache.commons.collections.CollectionUtils.isEmpty(results)) {
-            throw new ObjectNotFoundException("Got no target from repository, filter:" + evaluatedFilter
-                    + ", class:" + ResourceType.class + " in " + sourceDescription);
-        }
-
-        if (results.size() > 1) {
-            throw new IllegalArgumentException("Got more than one target from repository, filter:"
-                    + evaluatedFilter + ", class:" + ResourceType.class + " in " + sourceDescription);
-        }
-
-        PrismObject<ResourceType> target = results.iterator().next();
-        return target.asObjectable();
-    }
-
     public ResourceType getResource() {
         if (resolvedResource != null) {
             return resolvedResource.resource;
         } else {
-            throw new IllegalStateException("Couldn't access resolved resource reference as construction was not evaluated yet; in "
-                    + getSource());
+            throw new IllegalStateException("Couldn't access resolved resource reference as construction "
+                    + "was not evaluated/initialized yet; in " + source);
         }
     }
 
@@ -266,85 +138,21 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         }
     }
 
-    private ResourceType resolveResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        if (resolvedResource != null) {
-            throw new IllegalStateException("Resolving the resource twice? In: " + getSource());
-        } else {
-            ObjectReferenceType resourceRef = constructionBean.getResourceRef();
-            if (resourceRef != null) {
-                @NotNull ResourceType resource;
-                //noinspection unchecked
-                PrismObject<ResourceType> resourceFromRef = resourceRef.asReferenceValue().getObject();
-                if (resourceFromRef != null) {
-                    resource = resourceFromRef.asObjectable();
-                } else {
-                    ReferentialIntegrityType refIntegrity = getReferentialIntegrity(resourceRef);
-                    try {
-                        if (resourceRef.getOid() == null) {
-                            resource = resolveTarget(" resolving resource ", task, result);
-                        } else {
-                            resource = LensUtil.getResourceReadOnly(getLensContext(), resourceRef.getOid(), getObjectResolver(),
-                                    task, result);
-                        }
-                    } catch (ObjectNotFoundException e) {
-                        if (refIntegrity == ReferentialIntegrityType.STRICT) {
-                            throw new ObjectNotFoundException("Resource reference seems to be invalid in account construction in "
-                                    + getSource() + ": " + e.getMessage(), e);
-                        } else if (refIntegrity == ReferentialIntegrityType.RELAXED) {
-                            LOGGER.warn("Resource reference couldn't be resolved in {}: {}", getSource(), e.getMessage(), e);
-                            resolvedResource = new ResolvedResource(true);
-                            return null;
-                        } else if (refIntegrity == ReferentialIntegrityType.LAX) {
-                            LOGGER.debug("Resource reference couldn't be resolved in {}: {}", getSource(), e.getMessage(), e);
-                            resolvedResource = new ResolvedResource(false);
-                            return null;
-                        } else {
-                            throw new IllegalStateException("Unsupported referential integrity: "
-                                    + resourceRef.getReferentialIntegrity());
-                        }
-                    } catch (SecurityViolationException | CommunicationException | ConfigurationException e) {
-                        throw new SystemException("Couldn't fetch the resource in account construction in "
-                                + getSource() + ": " + e.getMessage(), e);
-                    } catch (ExpressionEvaluationException e) {
-                        throw new SystemException(
-                                "Couldn't evaluate filter expression for the resource in account construction in "
-                                        + getSource() + ": " + e.getMessage(),
-                                e);
-                    }
-                }
-                constructionBean.getResourceRef().setOid(resource.getOid());
-                resolvedResource = new ResolvedResource(resource);
-                return resource;
-            } else {
-                throw new IllegalStateException("No resourceRef in account construction in " + getSource());
-            }
-        }
-    }
-
-    private ReferentialIntegrityType getReferentialIntegrity(ObjectReferenceType resourceRef) {
-        ReferentialIntegrityType value = resourceRef.getReferentialIntegrity();
-        if (value == null || value == ReferentialIntegrityType.DEFAULT) {
-            return ReferentialIntegrityType.STRICT;
-        } else {
-            return value;
-        }
-    }
-
     public NextRecompute evaluate(Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         // Subresult is needed here. If something fails here, this needs to be recorded as a subresult of
         // AssignmentProcessor.processAssignments. Otherwise partial error won't be propagated properly.
-        OperationResult result = parentResult.createMinorSubresult(OP_EVALUATE);
+        OperationResult result = parentResult.createMinorSubresult(getClass().getName() + ".evaluate"); // different for each subclass
         try {
             LOGGER.trace("Evaluating construction '{}' in {}", this, this.getSource());
 
-            assignmentPathVariables = LensUtil.computeAssignmentPathVariables(assignmentPath);
-            ResourceType resource = resolveResource(task, result);
-            if (resource != null) {
-                evaluateObjectClassDefinition(resource, task, result);
+            resolveResource(task, result);
+            if (hasResource()) {
+                initializeDefinitions();
                 createEvaluatedConstructions(task, result);
-                evaluateConstructions(task, result);
+                NextRecompute nextRecompute = evaluateConstructions(task, result);
                 result.recordSuccess();
+                return nextRecompute;
             } else {
                 // If we are here (and not encountered an exception) it means that the resourceRef integrity was relaxed or lax.
                 if (resolvedResource.warning) {
@@ -352,62 +160,67 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
                 } else {
                     result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "The resource could not be found");
                 }
+                return null;
             }
         } catch (Throwable e) {
             result.recordFatalError(e);
             throw e;
         }
-
-        return null;
     }
 
-    private void evaluateObjectClassDefinition(ResourceType resource, Task task, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, ExpressionEvaluationException {
-        if (constructionBean.getResourceRef() != null) {
-            String resourceOid = constructionBean.getResourceRef().getOid();
-            if (resourceOid != null && !resource.getOid().equals(resourceOid)) {
-                throw new IllegalStateException(
-                        "The specified resource and the resource in construction does not match");
-            }
-        }
+    private boolean hasResource() {
+        return getResource() != null;
+    }
 
-        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resource,
-                LayerType.MODEL, getPrismContext());
+    protected void resolveResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+        if (resolvedResource != null) {
+            throw new IllegalStateException("Resolving the resource twice? In: " + source);
+        } else {
+            ConstructionResourceResolver resourceResolver = new ConstructionResourceResolver(this, task, result);
+            resolvedResource = resourceResolver.resolveResource();
+        }
+    }
+
+    protected void initializeDefinitions() throws SchemaException {
+        assert resolvedResource.resource != null;
+        assert constructionBean != null;
+
+        RefinedResourceSchema refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resolvedResource.resource,
+                LayerType.MODEL, beans.prismContext);
         if (refinedSchema == null) {
             // Refined schema may be null in some error-related border cases
-            throw new SchemaException("No (refined) schema for " + resource);
+            throw new SchemaException("No (refined) schema for " + resolvedResource.resource);
         }
 
         ShadowKindType kind = defaultIfNull(constructionBean.getKind(), ShadowKindType.ACCOUNT);
+        String intent = constructionBean.getIntent();
 
-        refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, constructionBean.getIntent());
-
+        refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
         if (refinedObjectClassDefinition == null) {
-            if (constructionBean.getIntent() != null) {
+            if (intent != null) {
                 throw new SchemaException(
-                        "No " + kind + " type '" + constructionBean.getIntent() + "' found in "
-                                + resource + " as specified in construction in " + getSource());
+                        "No " + kind + " type '" + intent + "' found in "
+                                + resolvedResource.resource + " as specified in construction in " + getSource());
             } else {
-                throw new SchemaException("No default " + kind + " type found in " + resource
+                throw new SchemaException("No default " + kind + " type found in " + resolvedResource.resource
                         + " as specified in construction in " + getSource());
             }
         }
 
-        auxiliaryObjectClassDefinitions = new ArrayList<>(constructionBean.getAuxiliaryObjectClass().size());
+        auxiliaryObjectClassDefinitions.clear();
         for (QName auxiliaryObjectClassName : constructionBean.getAuxiliaryObjectClass()) {
-            RefinedObjectClassDefinition auxOcDef = refinedSchema
-                    .getRefinedDefinition(auxiliaryObjectClassName);
+            RefinedObjectClassDefinition auxOcDef = refinedSchema.getRefinedDefinition(auxiliaryObjectClassName);
             if (auxOcDef == null) {
                 throw new SchemaException(
                         "No auxiliary object class " + auxiliaryObjectClassName + " found in "
-                                + resource + " as specified in construction in " + getSource());
+                                + resolvedResource.resource + " as specified in construction in " + source);
             }
             auxiliaryObjectClassDefinitions.add(auxOcDef);
         }
-
     }
 
     protected void createEvaluatedConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        evaluatedConstructionTriple = getPrismContext().deltaFactory().createDeltaSetTriple();
+        evaluatedConstructionTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
 
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTriple(task, result);
         if (tagTriple == null) {
@@ -438,18 +251,22 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
             return null;
         }
 
-        MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder = mappingFactory.createMappingBuilder(
+        MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder = beans.mappingFactory.createMappingBuilder(
                 outboundMappingSpec,
                 "for outbound tag mapping in " + getSource());
 
-        MutablePrismPropertyDefinition<String> outputDefinition = mappingFactory.getExpressionFactory().getPrismContext().definitionFactory().createPropertyDefinition(
+        MutablePrismPropertyDefinition<String> outputDefinition = beans.mappingFactory.getExpressionFactory().getPrismContext().definitionFactory().createPropertyDefinition(
                 ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
         outputDefinition.setMaxOccurs(-1);
 
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> evaluatedMapping = evaluateMapping(builder, ShadowType.F_TAG,
                 ShadowType.F_TAG, outputDefinition, null, task, result);
 
-        return evaluatedMapping.getOutputTriple();
+        if (evaluatedMapping != null) {
+            return evaluatedMapping.getOutputTriple();
+        } else {
+            return null;
+        }
     }
 
     private EC createEvaluatedConstruction(String tag) {
@@ -458,7 +275,8 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
     }
 
     protected EC createEvaluatedConstruction(ResourceShadowDiscriminator rsd) {
-        return (EC) new EvaluatedConstructionImpl<AH>(this, rsd);
+        //noinspection unchecked
+        return (EC) new EvaluatedResourceObjectConstructionImpl<>(this, rsd);
     }
 
     protected NextRecompute evaluateConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
@@ -466,15 +284,15 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
 
         // This code may seem primitive and old-fashioned.
         // But equivalent functional code (using foreach()) is just insane due to nextRecompute and exception handling.
-        for (EvaluatedConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getZeroSet()) {
+        for (EvaluatedResourceObjectConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getZeroSet()) {
             NextRecompute constructionNextRecompute = evaluatedConstruction.evaluate(task, result);
             nextRecompute = NextRecompute.update(constructionNextRecompute, nextRecompute);
         }
-        for (EvaluatedConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getPlusSet()) {
+        for (EvaluatedResourceObjectConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getPlusSet()) {
             NextRecompute constructionNextRecompute = evaluatedConstruction.evaluate(task, result);
             nextRecompute = NextRecompute.update(constructionNextRecompute, nextRecompute);
         }
-        for (EvaluatedConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getMinusSet()) {
+        for (EvaluatedResourceObjectConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getMinusSet()) {
             NextRecompute constructionNextRecompute = evaluatedConstruction.evaluate(task, result);
             nextRecompute = NextRecompute.update(constructionNextRecompute, nextRecompute);
         }
@@ -503,7 +321,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
 
     public PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
         if (associationContainerDefinition == null) {
-            PrismObjectDefinition<ShadowType> shadowDefinition = getPrismContext().getSchemaRegistry()
+            PrismObjectDefinition<ShadowType> shadowDefinition = beans.prismContext.getSchemaRegistry()
                     .findObjectDefinitionByCompileTimeClass(ShadowType.class);
             associationContainerDefinition = shadowDefinition
                     .findContainerDefinition(ShadowType.F_ASSOCIATION);
@@ -511,12 +329,14 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         return associationContainerDefinition;
     }
 
+    /**
+     * @return null if mapping is not applicable
+     */
     <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> initializeMappingBuilder(
             MappingBuilder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
-            RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result) {
+            RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result) throws SchemaException {
 
-        // TODO Wow. We are not prepared for this. This will bring some NPEs.
-        if (!builder.isApplicableToChannel(getChannel())) {
+        if (!builder.isApplicableToChannel(lensContext.getChannel())) {
             return null;
         }
 
@@ -536,17 +356,16 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
                 .addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
                 .addVariableDefinition(ExpressionConstants.VAR_SOURCE, getSource(), ObjectType.class)
                 .addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, getSource(), ObjectType.class)
-                .addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, getOrderOneObject(), ObjectType.class);
+                .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT,
+                        assignmentPath != null ? assignmentPath.getConstructionThisObject() : null, ObjectType.class);
 
         if (assocTargetObjectClassDefinition != null) {
             builder = builder.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION,
                     assocTargetObjectClassDefinition, RefinedObjectClassDefinition.class);
         }
         builder = builder.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, getResource(), ResourceType.class);
-        builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables(), getPrismContext());
-        if (getSystemConfiguration() != null) {
-            builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, getSystemConfiguration(), SystemConfigurationType.class);
-        }
+        builder = LensUtil.addAssignmentPathVariables(builder, getAssignmentPathVariables(), beans.prismContext);
+        builder = builder.addVariableDefinition(ExpressionConstants.VAR_CONFIGURATION, lensContext.getSystemConfiguration(), SystemConfigurationType.class);
         // TODO: other variables ?
 
         // Set condition masks. There are used as a brakes to avoid evaluating
@@ -563,21 +382,27 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         return builder;
     }
 
+    /**
+     * @return null if mapping is not applicable
+     */
     private <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl<V, D> evaluateMapping(
             MappingBuilder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
             RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
         builder = initializeMappingBuilder(builder, implicitTargetPath, mappingQName, outputDefinition, assocTargetObjectClassDefinition, task, result);
+        if (builder == null) {
+            return null;
+        }
 
         MappingImpl<V, D> mapping = builder.build();
-        getMappingEvaluator().evaluateMapping(mapping, getLensContext(), null, task, result);
+        beans.mappingEvaluator.evaluateMapping(mapping, getLensContext(), null, task, result);
 
         return mapping;
     }
 
     protected void loadFullShadow(LensProjectionContext projectionContext, String desc, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        contextLoader.loadFullShadow(getLensContext(), projectionContext, desc, task, result);
+        beans.contextLoader.loadFullShadow(getLensContext(), projectionContext, desc, task, result);
     }
 
     @Override
@@ -597,14 +422,7 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         if (getClass() != obj.getClass()) {
             return false;
         }
-        Construction<?,?> other = (Construction<?,?>) obj;
-        if (assignmentPathVariables == null) {
-            if (other.assignmentPathVariables != null) {
-                return false;
-            }
-        } else if (!assignmentPathVariables.equals(other.assignmentPathVariables)) {
-            return false;
-        }
+        ResourceObjectConstruction<?,?> other = (ResourceObjectConstruction<?,?>) obj;
         if (associationContainerDefinition == null) {
             if (other.associationContainerDefinition != null) {
                 return false;
@@ -617,27 +435,6 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
                 return false;
             }
         } else if (!auxiliaryObjectClassDefinitions.equals(other.auxiliaryObjectClassDefinitions)) {
-            return false;
-        }
-        if (mappingEvaluator == null) {
-            if (other.mappingEvaluator != null) {
-                return false;
-            }
-        } else if (!mappingEvaluator.equals(other.mappingEvaluator)) {
-            return false;
-        }
-        if (mappingFactory == null) {
-            if (other.mappingFactory != null) {
-                return false;
-            }
-        } else if (!mappingFactory.equals(other.mappingFactory)) {
-            return false;
-        }
-        if (orderOneObject == null) {
-            if (other.orderOneObject != null) {
-                return false;
-            }
-        } else if (!orderOneObject.equals(other.orderOneObject)) {
             return false;
         }
         if (refinedObjectClassDefinition == null) {
@@ -664,35 +461,6 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
      */
     public boolean isIgnored() {
         return getResource() == null;
-    }
-
-    public static class ResolvedResource {
-        @Nullable public final ResourceType resource;
-        public boolean warning;
-
-        ResolvedResource(@NotNull ResourceType resource) {
-            this.resource = resource;
-            this.warning = false;
-        }
-
-        private ResolvedResource(boolean warning) {
-            this.resource = null;
-            this.warning = warning;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) { return true; }
-            if (!(o instanceof ResolvedResource)) { return false; }
-            ResolvedResource that = (ResolvedResource) o;
-            return warning == that.warning &&
-                    Objects.equals(resource, that.resource);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(resource, warning);
-        }
     }
 
     @Override
@@ -777,6 +545,22 @@ public class Construction<AH extends AssignmentHolderType, EC extends EvaluatedC
         }
         sb.append(")");
         return sb.toString();
+    }
+
+    public MappingFactory getMappingFactory() {
+        return beans.mappingFactory;
+    }
+
+    public MappingEvaluator getMappingEvaluator() {
+        return beans.mappingEvaluator;
+    }
+
+    public XMLGregorianCalendar getNow() {
+        return now;
+    }
+
+    public ResolvedConstructionResource getResolvedResource() {
+        return resolvedResource;
     }
 
 }

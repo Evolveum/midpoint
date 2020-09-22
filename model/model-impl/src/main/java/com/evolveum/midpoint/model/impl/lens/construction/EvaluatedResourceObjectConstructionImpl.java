@@ -11,18 +11,18 @@ import java.util.ArrayList;
 import java.util.Collection;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
-import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
+import com.evolveum.midpoint.model.api.context.EvaluatedResourceObjectConstruction;
 import com.evolveum.midpoint.model.common.mapping.MappingBuilder;
 import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.impl.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.impl.lens.projector.mappings.NextRecompute;
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.ItemPathTypeUtil;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
@@ -37,29 +37,30 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
- * @author mederly
- * @author Radovan Semancik
+ * Evaluated construction of a resource object.
+ *
+ * More such objects can stem from single {@link ResourceObjectConstruction} in the presence of multiaccounts.
  */
-public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implements EvaluatedConstructible<AH>, EvaluatedConstruction {
+public class EvaluatedResourceObjectConstructionImpl<AH extends AssignmentHolderType> implements EvaluatedAbstractConstruction<AH>, EvaluatedResourceObjectConstruction {
 
-    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedConstructionImpl.class);
+    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedResourceObjectConstructionImpl.class);
 
-    @NotNull private final Construction<AH, ?> construction;
+    @NotNull private final ResourceObjectConstruction<AH, ?> construction;
     @NotNull private final ResourceShadowDiscriminator rsd;
     @NotNull private final Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings = new ArrayList<>();
     @NotNull private final Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings = new ArrayList<>();
     private LensProjectionContext projectionContext;
 
     /**
-     * Precondition: {@link Construction} is already evaluated and not ignored (has resource).
+     * Precondition: {@link ResourceObjectConstruction} is already evaluated and not ignored (has resource).
      */
-    EvaluatedConstructionImpl(@NotNull final Construction<AH, ?> construction, @NotNull final ResourceShadowDiscriminator rsd) {
+    EvaluatedResourceObjectConstructionImpl(@NotNull final ResourceObjectConstruction<AH, ?> construction, @NotNull final ResourceShadowDiscriminator rsd) {
         this.construction = construction;
         this.rsd = rsd;
     }
 
     @Override
-    public @NotNull Construction<AH, ?> getConstruction() {
+    public @NotNull ResourceObjectConstruction<AH, ?> getConstruction() {
         return construction;
     }
 
@@ -68,7 +69,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
     }
 
     @Override
-    public PrismObject<ResourceType> getResource() {
+    public @NotNull PrismObject<ResourceType> getResource() {
         return construction.getResource().asPrismObject();
     }
 
@@ -106,7 +107,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
         return projectionContext;
     }
 
-    public Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> getAttributeMappings() {
+    public @NotNull Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> getAttributeMappings() {
         return attributeMappings;
     }
 
@@ -124,7 +125,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
         getAttributeMappings().add(mapping);
     }
 
-    public Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
+    public @NotNull Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
         return associationMappings;
     }
 
@@ -177,6 +178,9 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
         }
     }
 
+    /**
+     * @return null if mapping is not applicable
+     */
     private <T> MappingImpl<PrismPropertyValue<T>, ResourceAttributeDefinition<T>> evaluateAttribute(
             QName attrName, MappingType mappingBean, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -222,18 +226,18 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
         return "Error evaluating mapping for attribute " + PrettyPrinter.prettyPrint(attrName) + " in " + getHumanReadableConstructionDescription() + ": " + e.getMessage();
     }
 
-    boolean hasValueForAttribute(QName attributeName) {
-        for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeConstruction : attributeMappings) {
-            if (attributeName.equals(attributeConstruction.getItemName())) {
-                PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = attributeConstruction
-                        .getOutputTriple();
-                if (outputTriple != null && !outputTriple.isEmpty()) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+//    boolean hasValueForAttribute(QName attributeName) {
+//        for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeConstruction : attributeMappings) {
+//            if (attributeName.equals(attributeConstruction.getItemName())) {
+//                PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = attributeConstruction
+//                        .getOutputTriple();
+//                if (outputTriple != null && !outputTriple.isEmpty()) {
+//                    return true;
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
     private void evaluateAssociations(Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -248,10 +252,13 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
                 throw new SchemaException("No outbound section in definition of association " + assocName
                         + " in construction in " + construction.getSource());
             }
-            associationMappings.add(evaluateAssociation(associationDefinitionType, task, result));
+            CollectionUtils.addIgnoreNull(associationMappings, evaluateAssociation(associationDefinitionType, task, result));
         }
     }
 
+    /**
+     * @return null if mapping is not applicable
+     */
     private MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> evaluateAssociation(
             ResourceObjectAssociationType associationDefinitionType, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
@@ -290,12 +297,18 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
         return evaluatedMapping;
     }
 
+    /**
+     * @return null if mapping is not applicable
+     */
     private <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl<V, D> evaluateMapping(
             MappingBuilder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
             RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
 
         builder = construction.initializeMappingBuilder(builder, implicitTargetPath, mappingQName, outputDefinition, assocTargetObjectClassDefinition, task, result);
+        if (builder == null) {
+            return null;
+        }
 
         // TODO
         // builder.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, TODO);
@@ -320,7 +333,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
         // We do not want to dump construction here. This can lead to cycles.
         // We usually dump EvaluatedConstruction is a Construction dump anyway, therefore the context should be quite clear.
         DebugUtil.debugDumpWithLabelToString(sb, "projectionContext", projectionContext, indent + 1);
-        if (attributeMappings != null && !attributeMappings.isEmpty()) {
+        if (!attributeMappings.isEmpty()) {
             sb.append("\n");
             DebugUtil.debugDumpLabel(sb, "attribute mappings", indent + 1);
             for (MappingImpl<?, ?> mapping : attributeMappings) {
@@ -328,7 +341,7 @@ public class EvaluatedConstructionImpl<AH extends AssignmentHolderType> implemen
                 sb.append(mapping.debugDump(indent + 2));
             }
         }
-        if (associationMappings != null && !associationMappings.isEmpty()) {
+        if (!associationMappings.isEmpty()) {
             sb.append("\n");
             DebugUtil.debugDumpLabel(sb, "association mappings", indent + 1);
             for (MappingImpl<?, ?> mapping : associationMappings) {

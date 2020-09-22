@@ -17,7 +17,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.util.ReferenceResolver;
 import com.evolveum.midpoint.model.common.mapping.MappingEvaluationEnvironment;
 import com.evolveum.midpoint.model.impl.ModelBeans;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionPack;
 import com.evolveum.midpoint.model.impl.lens.projector.ComplexConstructionConsumer;
 import com.evolveum.midpoint.model.impl.lens.projector.ConstructionProcessor;
@@ -39,7 +39,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.apache.commons.lang.BooleanUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -167,7 +166,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private <AH extends AssignmentHolderType, F extends FocusType> void processAssignmentsInternal(LensContext<AH> context, XMLGregorianCalendar now,
+    private <AH extends AssignmentHolderType> void processAssignmentsInternal(LensContext<AH> context, XMLGregorianCalendar now,
             Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
 
@@ -251,7 +250,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
             LOGGER.trace("Projection processing start, evaluatedAssignmentTriple:\n{}",
                     evaluatedAssignmentTriple.debugDumpLazily(1));
 
-            ObjectDeltaObject<AH> focusOdoAbsolute = getFocusOdoAbsolute(context);
+            ObjectDeltaObject<AH> focusOdoAbsolute = context.getFocusOdoAbsolute();
 
             // Evaluate the constructions in assignments now. These were not evaluated in the first pass of AssignmentEvaluator
             // because there may be interaction from focusMappings of some roles to outbound mappings of other roles.
@@ -271,16 +270,6 @@ public class AssignmentProcessor implements ProjectorProcessor {
             throw t;
         } finally {
             result.computeStatusIfUnknown();
-        }
-    }
-
-    @Nullable
-    private <AH extends AssignmentHolderType> ObjectDeltaObject<AH> getFocusOdoAbsolute(LensContext<AH> context) {
-        LensFocusContext<AH> focusContext = context.getFocusContext();
-        if (focusContext != null) {
-            return focusContext.getObjectDeltaObjectAbsolute();
-        } else {
-            return null;
         }
     }
 
@@ -419,8 +408,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
 
-        ComplexConstructionConsumer<ResourceShadowDiscriminator, EvaluatedConstructionImpl<AH>> consumer =
-                new ComplexConstructionConsumer<ResourceShadowDiscriminator, EvaluatedConstructionImpl<AH>>() {
+        ComplexConstructionConsumer<ResourceShadowDiscriminator, EvaluatedResourceObjectConstructionImpl<AH>> consumer =
+                new ComplexConstructionConsumer<ResourceShadowDiscriminator, EvaluatedResourceObjectConstructionImpl<AH>>() {
 
             private boolean processOnlyExistingProjContexts;
 
@@ -560,8 +549,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
             @Override
             public void after(ResourceShadowDiscriminator rsd, String desc,
-                    DeltaMapTriple<ResourceShadowDiscriminator, EvaluatedConstructionPack<EvaluatedConstructionImpl<AH>>> constructionMapTriple) {
-                DeltaSetTriple<EvaluatedConstructionImpl<AH>> projectionEvaluatedConstructionDeltaSetTriple =
+                    DeltaMapTriple<ResourceShadowDiscriminator, EvaluatedConstructionPack<EvaluatedResourceObjectConstructionImpl<AH>>> constructionMapTriple) {
+                DeltaSetTriple<EvaluatedResourceObjectConstructionImpl<AH>> projectionEvaluatedConstructionDeltaSetTriple =
                         prismContext.deltaFactory().createDeltaSetTriple(
                                 getConstructions(constructionMapTriple.getZeroMap().get(rsd), true),
                                 getConstructions(constructionMapTriple.getPlusMap().get(rsd), true),
@@ -584,7 +573,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
         OperationResult result = parentResult.createMinorSubresult(OP_DISTRIBUTE_PROJECTIONS);
         try {
-            constructionProcessor.processConstructions(context, evaluatedAssignmentTriple,
+            constructionProcessor.processConstructions(evaluatedAssignmentTriple,
                     EvaluatedAssignmentImpl::getConstructionTriple,
                     construction -> getConstructionMapKey(context, construction, task, result),
                     consumer);
@@ -598,7 +587,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
     // @pre: construction was already evaluated and is not ignored (i.e. has resource)
     private <AH extends AssignmentHolderType> ResourceShadowDiscriminator getConstructionMapKey(LensContext<AH> context,
-            EvaluatedConstructionImpl<AH> evaluatedConstruction, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
+            EvaluatedResourceObjectConstructionImpl<AH> evaluatedConstruction, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException,
             CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         String resourceOid = evaluatedConstruction.getConstruction().getResourceOid();
         String intent = evaluatedConstruction.getIntent();
@@ -652,7 +641,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
     private <AH extends AssignmentHolderType> void evaluateConstructions(LensContext<AH> context,
             DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
-            ObjectDeltaObject<AH> focusOdoAbsolute, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
+            ObjectDeltaObject<AH> focusOdoAbsolute, Task task, OperationResult result) throws SchemaException,
+            ExpressionEvaluationException, SecurityViolationException, ConfigurationException, CommunicationException {
         evaluateConstructions(context, evaluatedAssignmentTriple.getZeroSet(), focusOdoAbsolute, task, result);
         evaluateConstructions(context, evaluatedAssignmentTriple.getPlusSet(), focusOdoAbsolute, task, result);
         evaluateConstructions(context, evaluatedAssignmentTriple.getMinusSet(), focusOdoAbsolute, task, result);
@@ -670,8 +660,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         while (iterator.hasNext()) {
             EvaluatedAssignmentImpl<F> evaluatedAssignment = iterator.next();
             try {
-                evaluatedAssignment.evaluateConstructions(focusOdoAbsolute, context.getSystemConfiguration(),
-                        context::rememberResource, task, result);
+                evaluatedAssignment.evaluateConstructions(focusOdoAbsolute, context::rememberResource, task, result);
             } catch (ObjectNotFoundException ex) {
                 LOGGER.trace("Processing of assignment resulted in error {}: {}", ex,
                         SchemaDebugUtil.prettyPrint(evaluatedAssignment.getAssignmentType()));
@@ -715,7 +704,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
     }
 
-    private <AH extends AssignmentHolderType> Collection<EvaluatedConstructionImpl<AH>> getConstructions(EvaluatedConstructionPack<EvaluatedConstructionImpl<AH>> accountEvaluatedConstructionPack, boolean validOnly) {
+    private <AH extends AssignmentHolderType> Collection<EvaluatedResourceObjectConstructionImpl<AH>> getConstructions(
+            EvaluatedConstructionPack<EvaluatedResourceObjectConstructionImpl<AH>> accountEvaluatedConstructionPack, boolean validOnly) {
         if (accountEvaluatedConstructionPack == null) {
             return Collections.emptySet();
         }
@@ -726,10 +716,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     private boolean isForceRecon(EvaluatedConstructionPack accountEvaluatedConstructionPack) {
-        if (accountEvaluatedConstructionPack == null) {
-            return false;
-        }
-        return accountEvaluatedConstructionPack.isForceRecon();
+        return accountEvaluatedConstructionPack != null && accountEvaluatedConstructionPack.isForceRecon();
     }
 
     /**
@@ -837,6 +824,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         ConstructionType constructionType = new ConstructionType();
         constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource(), prismContext));
         assignment.setConstruction(constructionType);
+        //noinspection unchecked
         assignmentDelta.addValueToAdd(assignment.asPrismContainerValue());
         PrismContainerDefinition<AssignmentType> containerDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass).findContainerDefinition(AssignmentHolderType.F_ASSIGNMENT);
         assignmentDelta.applyDefinition(containerDefinition);
@@ -846,9 +834,8 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
     @ProcessorMethod
     <F extends ObjectType> void processOrgAssignments(LensContext<F> context,
-            @SuppressWarnings("unused") XMLGregorianCalendar now, Task task,
-            OperationResult result) throws SchemaException, PolicyViolationException, ObjectNotFoundException,
-            CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            XMLGregorianCalendar now, Task task,
+            OperationResult result) throws SchemaException, PolicyViolationException {
         LensFocusContext<F> focusContext = context.getFocusContext();
 
         Collection<PrismReferenceValue> shouldBeParentOrgRefs = new ArrayList<>();
@@ -901,10 +888,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
             }
         }
 
-        computeTenantRef(context, task, result);
+        computeTenantRef(context);
     }
 
-    private <F extends ObjectType> void computeTenantRef(LensContext<F> context, Task task, OperationResult result) throws PolicyViolationException, SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private <F extends ObjectType> void computeTenantRef(LensContext<F> context) throws PolicyViolationException, SchemaException {
         String tenantOid = null;
         LensFocusContext<F> focusContext = context.getFocusContext();
         PrismObject<F> objectNew = focusContext.getObjectNew();
@@ -945,7 +932,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         ObjectReferenceType currentTenantRef = objectNew.asObjectable().getTenantRef();
         if (currentTenantRef == null) {
             if (tenantOid == null) {
-                return;
+                // nothing to do here
             } else {
                 LOGGER.trace("Setting tenantRef to {}", tenantOid);
                 ReferenceDelta tenantRefDelta = prismContext.deltaFactory().reference()
@@ -969,9 +956,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
     @ProcessorMethod
     <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context,
-            @SuppressWarnings("unused") XMLGregorianCalendar now,
-            @SuppressWarnings("unused") Task task,
-            @SuppressWarnings("unused") OperationResult result) throws PolicyViolationException, SchemaException {
+            XMLGregorianCalendar now, Task task, OperationResult result) throws PolicyViolationException, SchemaException {
         for(LensProjectionContext projectionContext: context.getProjectionContexts()) {
             if (AssignmentPolicyEnforcementType.NONE == projectionContext.getAssignmentPolicyEnforcementType()) {
                 continue;
@@ -1029,9 +1014,9 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
     @ProcessorMethod
     <F extends ObjectType> void processMembershipAndDelegatedRefs(LensContext<F> context,
-            @SuppressWarnings("unused") XMLGregorianCalendar now,
-            @SuppressWarnings("unused") Task task,
-            @SuppressWarnings("unused") OperationResult result)
+            XMLGregorianCalendar now,
+            Task task,
+            OperationResult result)
             throws SchemaException, ConfigurationException {
         assert context.hasFocusOfType(AssignmentHolderType.class);
         LensFocusContext<F> focusContext = context.getFocusContext();
@@ -1054,7 +1039,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
         }
 
         if (shouldBeArchetypeRefs.size() > 1) {
-            throw new ConfigurationException("Only single archetype supported. Attemting to add " + shouldBeArchetypeRefs.size() + ": " + shouldBeArchetypeRefs);
+            throw new ConfigurationException("Only single archetype supported. Attempting to add " + shouldBeArchetypeRefs.size() + ": " + shouldBeArchetypeRefs);
         }
 
         setReferences(focusContext, AssignmentHolderType.F_ROLE_MEMBERSHIP_REF, shouldBeRoleRefs);
@@ -1133,13 +1118,14 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     private <F extends AssignmentHolderType> AssignmentEvaluator<F> createAssignmentEvaluator(LensContext<F> context,
-            XMLGregorianCalendar now) throws SchemaException {
+            XMLGregorianCalendar now) {
         return new AssignmentEvaluator.Builder<F>()
                 .referenceResolver(referenceResolver)
                 .focusOdoAbsolute(context.getFocusContext().getObjectDeltaObjectAbsolute())
                 .focusOdoRelative(context.getFocusContext().getObjectDeltaObjectRelative())
                 .lensContext(context)
                 .channel(context.getChannel())
+                .modelBeans(beans)
                 .objectResolver(objectResolver)
                 .systemObjectCache(systemObjectCache)
                 .relationRegistry(relationRegistry)

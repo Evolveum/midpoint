@@ -24,7 +24,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignment;
 import com.evolveum.midpoint.model.api.context.EvaluatedAssignmentTarget;
-import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
+import com.evolveum.midpoint.model.api.context.EvaluatedResourceObjectConstruction;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -2794,12 +2794,12 @@ public class TestRbac extends AbstractRbacTest {
         EvaluatedAssignment<?> evaluatedAssignment = assignmentZeroSet.iterator().next();
         displayDumpable("Evaluated weak assignment", evaluatedAssignment);
 
-        DeltaSetTriple<EvaluatedConstruction> evaluatedConstructions = evaluatedAssignment.getEvaluatedConstructions(task, result);
+        DeltaSetTriple<EvaluatedResourceObjectConstruction> evaluatedConstructions = evaluatedAssignment.getEvaluatedConstructions(task, result);
         assertTrue("Unexpected plus set in evaluatedConstructions", evaluatedConstructions.getPlusSet().isEmpty());
         assertTrue("Unexpected minus set in evaluatedConstructions", evaluatedConstructions.getMinusSet().isEmpty());
-        Collection<EvaluatedConstruction> constructionsZeroSet = evaluatedConstructions.getZeroSet();
+        Collection<EvaluatedResourceObjectConstruction> constructionsZeroSet = evaluatedConstructions.getZeroSet();
         assertEquals("Wrong size of zero set in evaluatedConstructions", 1, constructionsZeroSet.size());
-        EvaluatedConstruction evaluatedConstruction = constructionsZeroSet.iterator().next();
+        EvaluatedResourceObjectConstruction evaluatedConstruction = constructionsZeroSet.iterator().next();
         displayDumpable("Evaluated weak evaluatedConstruction", evaluatedConstruction);
         assertTrue("Construction not weak", evaluatedConstruction.isWeak());
 

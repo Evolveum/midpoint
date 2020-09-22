@@ -19,8 +19,8 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
-import com.evolveum.midpoint.model.impl.lens.construction.Construction;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -181,14 +181,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *
      * Note that relativity is taken to focus OLD state, not to the current state.
      */
-    private transient DeltaSetTriple<EvaluatedConstructionImpl<?>> evaluatedConstructionDeltaSetTriple;
+    private transient DeltaSetTriple<EvaluatedResourceObjectConstructionImpl<?>> evaluatedConstructionDeltaSetTriple;
 
     /**
      * Triples for outbound mappings; similar to the above.
      * Source: OutboundProcessor
      * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
      */
-    private transient Construction outboundConstruction;
+    private transient ResourceObjectConstruction outboundConstruction;
 
     /**
      * Postprocessed triples from the above two properties.
@@ -570,20 +570,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ShadowKindType.ACCOUNT;
     }
 
-    public <AH extends AssignmentHolderType> DeltaSetTriple<EvaluatedConstructionImpl<AH>> getEvaluatedConstructionDeltaSetTriple() {
+    public <AH extends AssignmentHolderType> DeltaSetTriple<EvaluatedResourceObjectConstructionImpl<AH>> getEvaluatedConstructionDeltaSetTriple() {
         //noinspection unchecked
         return (DeltaSetTriple) evaluatedConstructionDeltaSetTriple;
     }
 
-    public <AH extends AssignmentHolderType> void setEvaluatedConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedConstructionImpl<AH>> evaluatedConstructionDeltaSetTriple) {
+    public <AH extends AssignmentHolderType> void setEvaluatedConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedResourceObjectConstructionImpl<AH>> evaluatedConstructionDeltaSetTriple) {
         this.evaluatedConstructionDeltaSetTriple = (DeltaSetTriple)evaluatedConstructionDeltaSetTriple;
     }
 
-    public Construction getOutboundConstruction() {
+    public ResourceObjectConstruction getOutboundConstruction() {
         return outboundConstruction;
     }
 
-    public void setOutboundConstruction(Construction outboundConstruction) {
+    public void setOutboundConstruction(ResourceObjectConstruction outboundConstruction) {
         this.outboundConstruction = outboundConstruction;
     }
 

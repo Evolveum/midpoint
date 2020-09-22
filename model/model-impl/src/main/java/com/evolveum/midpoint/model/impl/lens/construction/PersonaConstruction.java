@@ -9,24 +9,23 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
 
 import java.util.Collections;
 
 /**
  * @author semancik
- *
  */
-public class PersonaConstruction<AH extends AssignmentHolderType> extends AbstractConstruction<AH, PersonaConstructionType, EvaluatedPersonaConstructionImpl<AH>> {
+public class PersonaConstruction<AH extends AssignmentHolderType>
+        extends AbstractConstruction<AH, PersonaConstructionType, EvaluatedPersonaConstructionImpl<AH>> {
 
-    public PersonaConstruction(PersonaConstructionType constructionType, ObjectType source) {
-        super(constructionType, source);
+    PersonaConstruction(PersonaConstructionBuilder<AH> builder) {
+        super(builder);
     }
 
     public DeltaSetTriple<EvaluatedPersonaConstructionImpl<AH>> getEvaluatedConstructionTriple() {
         EvaluatedPersonaConstructionImpl<AH> evaluatedConstruction = new EvaluatedPersonaConstructionImpl<>(this);
-        return getPrismContext().deltaFactory().createDeltaSetTriple(Collections.singleton(evaluatedConstruction), Collections.emptyList(), Collections.emptyList());
+        return beans.prismContext.deltaFactory().createDeltaSetTriple(Collections.singleton(evaluatedConstruction), Collections.emptyList(), Collections.emptyList());
     }
 
     @Override

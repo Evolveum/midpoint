@@ -251,7 +251,7 @@ public class TestOrgStructMeta extends TestOrgStruct {
                 .createModifyDelta(USER_JACK_OID, modifications, UserType.class);
 
         // WHEN
-        modelService.executeChanges(MiscSchemaUtil.createCollection(userDelta), null, task, result);
+        traced(() -> executeChanges(userDelta, null, task, result));
 
         // THEN
         result.computeStatus();

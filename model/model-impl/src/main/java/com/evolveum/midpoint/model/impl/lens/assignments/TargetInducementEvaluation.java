@@ -15,7 +15,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OrderConstraintsType;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -26,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator.getOrderOneObject;
 import static com.evolveum.midpoint.model.impl.lens.assignments.Util.isAllowedByLimitations;
 
 /**
@@ -63,9 +61,6 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
 
         checkIfAlreadyEvaluated();
 
-        // TODO reconsider this
-        ObjectType orderOneObject = getOrderOneObject(segment);
-
         if (!isInducementApplicableToFocusType(inducement.getFocusType())) {
             LOGGER.trace("Skipping application of inducement {} because the focusType does not match (specified: {}, actual: {})",
                     FocusTypeUtil.dumpAssignmentLazily(inducement), inducement.getFocusType(), ctx.ae.lensContext.getFocusClass());
@@ -91,7 +86,6 @@ class TargetInducementEvaluation<AH extends AssignmentHolderType> extends Abstra
                 .isHierarchy(archetypeHierarchy)
                 .relationRegistry(ctx.ae.relationRegistry)
                 .prismContext(ctx.ae.prismContext)
-                .varThisObject(orderOneObject)
                 .pathToSourceValid(targetActivation.pathAndTargetActive)
                 .pathToSourceConditionState(targetOverallConditionState)
                 .evaluationOrder(adjustment.evaluationOrder)

@@ -12,10 +12,11 @@ import com.evolveum.midpoint.model.api.context.EvaluatedPolicyRule;
 import com.evolveum.midpoint.model.api.context.EvaluationOrder;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.impl.ModelBeans;
 import com.evolveum.midpoint.model.impl.lens.assignments.*;
 import com.evolveum.midpoint.model.impl.lens.construction.AbstractConstruction;
-import com.evolveum.midpoint.model.impl.lens.construction.Construction;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.focus.AssignmentProcessor;
@@ -49,6 +50,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import javax.xml.namespace.QName;
@@ -120,6 +122,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private ActivationComputer activationComputer;
     @Autowired private ContextLoader contextLoader;
+    @Autowired private ModelBeans modelBeans;
 
     // first part
     private RoleType role1, role2, role4, role5, role6;
@@ -520,6 +523,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                 .focusOdo(new ObjectDeltaObject<>(jack, null, jack, jack.getDefinition()))
                 .lensContext(context)
                 .channel(context.getChannel())
+                .modelBeans(modelBeans)
                 .objectResolver(objectResolver)
                 .systemObjectCache(systemObjectCache)
                 .relationRegistry(relationRegistry)
@@ -1303,10 +1307,10 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     @SuppressWarnings("unused")     // why?
     private void showEvaluations(EvaluatedAssignmentImpl<UserType> evaluatedAssignment, String name, int expectedConstructions, Task task, OperationResult result)
             throws Exception {
-        List<Construction<UserType,EvaluatedConstructionImpl<UserType>>> constructions = getConstructions(evaluatedAssignment, name);
+        List<ResourceObjectConstruction<UserType, EvaluatedResourceObjectConstructionImpl<UserType>>> constructions = getConstructions(evaluatedAssignment, name);
         assertEquals("Wrong # of constructions: " + name, expectedConstructions, constructions.size());
         for (int i = 0; i < constructions.size(); i++) {
-            Construction<UserType,EvaluatedConstructionImpl<UserType>> construction = constructions.get(i);
+            ResourceObjectConstruction<UserType, EvaluatedResourceObjectConstructionImpl<UserType>> construction = constructions.get(i);
             System.out.println("Evaluating " + name + " #" + (i+1));
             construction.evaluate(task, result);
             System.out.println("Done");
@@ -1406,7 +1410,11 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
             if (name == null) {
                 assertNull("Object is not null", object);
             } else {
-                assertEquals("Wrong object", name, object.getName().getOrig());
+                if (object == null) {
+                    AssertJUnit.fail("Missing object variable");
+                } else {
+                    assertEquals("Wrong object", name, object.getName().getOrig());
+                }
             }
             return this;
         }
@@ -1423,7 +1431,6 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
 
     private static RunInfo currentRun;
 
-    @SuppressWarnings("unused")     // called from the script
     public static void startCallback(String desc) {
         if (recording()) {
             System.out.println("Starting execution: " + desc);
@@ -1439,7 +1446,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
             ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT,
             ExpressionConstants.VAR_THIS_ASSIGNMENT,
             ExpressionConstants.VAR_FOCUS,
-            ExpressionConstants.VAR_ORDER_ONE_OBJECT,
+            ExpressionConstants.VAR_THIS_OBJECT,
             ExpressionConstants.VAR_IMMEDIATE_ROLE,
             ExpressionConstants.VAR_SOURCE,
             ExpressionConstants.VAR_ASSIGNMENT_PATH);
@@ -1459,7 +1466,7 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
                     currentRun.thisAssignment = (AssignmentType) value;
                 } else if (ExpressionConstants.VAR_FOCUS.equals(name)) {
                     currentRun.focus = (FocusType) value;
-                } else if (ExpressionConstants.VAR_ORDER_ONE_OBJECT.equals(name)) {
+                } else if (ExpressionConstants.VAR_THIS_OBJECT.equals(name)) {
                     currentRun.thisObject = (FocusType) value;
                 } else if (ExpressionConstants.VAR_IMMEDIATE_ROLE.equals(name)) {
                     currentRun.immediateRole = (FocusType) value;
@@ -2431,17 +2438,17 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
         assertConstructions("minus", evaluatedAssignment.getConstructionSet(PlusMinusZero.MINUS), minusValid, minusInvalid);
     }
 
-    private <F extends FocusType> void assertConstructions(String type, Collection<? extends Construction<F,EvaluatedConstructionImpl<F>>> constructions, List<String> valid0,
+    private <F extends FocusType> void assertConstructions(String type, Collection<? extends ResourceObjectConstruction<F, EvaluatedResourceObjectConstructionImpl<F>>> constructions, List<String> valid0,
             List<String> invalid0) {
         constructions = CollectionUtils.emptyIfNull(constructions);
         Collection<String> expectedValid = CollectionUtils.emptyIfNull(valid0);
         Collection<String> expectedInvalid = CollectionUtils.emptyIfNull(invalid0);
-        Collection<Construction<F,EvaluatedConstructionImpl<F>>> realValid = constructions.stream().filter(AbstractConstruction::isValid).collect(Collectors.toList());
-        Collection<Construction<F,EvaluatedConstructionImpl<F>>> realInvalid = constructions.stream().filter(c -> !c.isValid()).collect(Collectors.toList());
+        Collection<ResourceObjectConstruction<F, EvaluatedResourceObjectConstructionImpl<F>>> realValid = constructions.stream().filter(AbstractConstruction::isValid).collect(Collectors.toList());
+        Collection<ResourceObjectConstruction<F, EvaluatedResourceObjectConstructionImpl<F>>> realInvalid = constructions.stream().filter(c -> !c.isValid()).collect(Collectors.toList());
         assertUnsortedListsEquals("Wrong valid constructions in " + type + " set", expectedValid,
-                realValid, AbstractConstruction::getDescription);
+                realValid, this::getDescription);
         assertUnsortedListsEquals("Wrong invalid constructions in " + type + " set", expectedInvalid,
-                realInvalid, AbstractConstruction::getDescription);
+                realInvalid, this::getDescription);
     }
 
     @SuppressWarnings("unchecked")
@@ -2455,9 +2462,9 @@ public class TestAssignmentProcessor2 extends AbstractLensTest {
     //endregion
     //region ============================================================= helper methods (misc)
 
-    private <F extends FocusType> List<Construction<F, EvaluatedConstructionImpl<F>>> getConstructions(EvaluatedAssignmentImpl<F> evaluatedAssignment, String name) {
+    private <F extends FocusType> List<ResourceObjectConstruction<F, EvaluatedResourceObjectConstructionImpl<F>>> getConstructions(EvaluatedAssignmentImpl<F> evaluatedAssignment, String name) {
         return evaluatedAssignment.getConstructionTriple().getAllValues().stream()
-                .filter(c -> name.equals(c.getDescription()))
+                .filter(c -> name.equals(getDescription(c)))
                 .collect(Collectors.toList());
     }
 
