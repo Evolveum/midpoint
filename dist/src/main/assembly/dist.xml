@@ -61,7 +61,18 @@
         <fileSet>
             <directory>${project.basedir}/src/main/bin</directory>
             <outputDirectory>bin</outputDirectory>
+            <!-- Needed only for build on Windows, on Linux *.sh has already executable flag. -->
             <fileMode>0755</fileMode>
+            <includes>
+                <include>*.sh</include>
+            </includes>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/src/main/bin</directory>
+            <outputDirectory>bin</outputDirectory>
+            <excludes>
+                <exclude>*.sh</exclude>
+            </excludes>
         </fileSet>
         <fileSet>
             <directory>${project.basedir}/src/main/var</directory>
