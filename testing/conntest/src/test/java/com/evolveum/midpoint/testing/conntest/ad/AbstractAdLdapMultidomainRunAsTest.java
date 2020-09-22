@@ -104,7 +104,7 @@ public abstract class AbstractAdLdapMultidomainRunAsTest extends AbstractAdLdapM
 
         assertLdapPassword(USER_BARBOSSA_USERNAME, USER_BARBOSSA_FULL_NAME, USER_BARBOSSA_PASSWORD_AD_2);
 
-        assertLdapConnectorInstances(2);
+        assertLdapConnectorReasonableInstances();
     }
 
 }

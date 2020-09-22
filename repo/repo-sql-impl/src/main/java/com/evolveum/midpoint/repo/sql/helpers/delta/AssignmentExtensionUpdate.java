@@ -58,14 +58,16 @@ class AssignmentExtensionUpdate extends ExtensionUpdate<RAssignmentExtension, RA
             RepositoryUpdater repositoryUpdater) {
 
         pairsFromDelta.forEach(item -> {
-            RAExtValue val = (RAExtValue) item.getRepository();
+            RAExtValue<?> val = (RAExtValue<?>) item.getRepository();
             val.setAnyContainer(extension);
             val.setExtensionType(extensionType);
         });
 
-        //noinspection Duplicates
         switch (valueType) {
             case BOOLEAN:
+                repositoryUpdater.update(extension.getBooleans(), pairsFromDelta);
+                break;
+            case DATE:
                 repositoryUpdater.update(extension.getDates(), pairsFromDelta);
                 break;
             case LONG:

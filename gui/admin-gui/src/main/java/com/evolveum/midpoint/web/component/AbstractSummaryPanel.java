@@ -306,7 +306,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
                 }
 
             };
-            archetypeSummaryTag.add(new VisibleBehaviour(() -> getArchetypeLabel() != null));
+            archetypeSummaryTag.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getArchetypeLabel())));
             return archetypeSummaryTag;
 //        }
 //        return null;
