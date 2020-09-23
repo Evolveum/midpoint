@@ -47,13 +47,13 @@ public abstract class MultivalueContainerDetailsPanel<C extends Containerable>
 
     private void initLayout() {
 
+        addBasicContainerValuePanel(ID_BASIC_PANEL);
+        add(getSpecificContainers(ID_SPECIFIC_CONTAINERS_PANEL));
+
         DisplayNamePanel<C> displayNamePanel = createDisplayNamePanel(ID_DISPLAY_NAME);
 
         displayNamePanel.setOutputMarkupId(true);
         add(displayNamePanel);
-
-        addBasicContainerValuePanel(ID_BASIC_PANEL);
-        add(getSpecificContainers(ID_SPECIFIC_CONTAINERS_PANEL));
     }
 
     protected WebMarkupContainer getSpecificContainers(String contentAreaId) {

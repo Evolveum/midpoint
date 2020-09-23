@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.impl.component;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.evolveum.midpoint.gui.impl.component.data.column.CompositedIconPanel;
+
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
@@ -72,10 +74,10 @@ public class ProjectionDisplayNamePanel extends DisplayNamePanel<ShadowType> {
     }
 
     @Override
-    protected String createImageModel() {
+    protected WebMarkupContainer createTypeImagePanel(String idTypeImage) {
         if (getModelObject() == null) {
-            return "";
+            return super.createTypeImagePanel(idTypeImage);
         }
-        return WebComponentUtil.createShadowIcon(getModelObject().asPrismObject());
+        return new CompositedIconPanel(idTypeImage, WebComponentUtil.createAccountIcon(getModelObject(), getPageBase(), false));
     }
 }
