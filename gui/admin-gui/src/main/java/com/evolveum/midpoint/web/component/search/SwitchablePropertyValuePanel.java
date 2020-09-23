@@ -120,6 +120,10 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
 
         };
         switchButton.setOutputMarkupId(true);
+        switchButton.add(new VisibleBehaviour(() -> {
+            ItemDefinition propertyDef = getPropertyItemDefinition();
+            return propertyDef == null || !propertyDef.getTypeClass().equals(boolean.class) && !Boolean.class.isAssignableFrom(propertyDef.getTypeClass());
+        }));
         switchButton.add(AttributeAppender.append("title", new LoadableModel<String>() {
             @Override
             protected String load() {
@@ -132,8 +136,7 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
 
     private <T> Component getValueField(String id) {
         Component searchItemField = null;
-        ValueSearchFilterItem valueSearchFilter = getModelObject().getValue();
-        ItemDefinition propertyDef = valueSearchFilter.getPropertyDef();
+        ItemDefinition propertyDef = getPropertyItemDefinition();
         if (propertyDef != null) {
             PrismObject<LookupTableType> lookupTable = WebComponentUtil.findLookupTable(propertyDef, getPageBase());
             if (propertyDef instanceof PrismReferenceDefinition) {
@@ -150,6 +153,9 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
                 List<DisplayableValue> allowedValues = new ArrayList<>();
                 if (((PrismPropertyDefinition) propertyDef).getAllowedValues() != null) {
                     allowedValues.addAll(((PrismPropertyDefinition) propertyDef).getAllowedValues());
+                } else if (propertyDef.getTypeClass().equals(boolean.class) || Boolean.class.isAssignableFrom(propertyDef.getTypeClass())) {
+                    allowedValues.add(new SearchValue<>(Boolean.TRUE, getString("Boolean.TRUE")));
+                    allowedValues.add(new SearchValue<>(Boolean.FALSE, getString("Boolean.FALSE")));
                 }
                 if (lookupTable != null) {
                     searchItemField = new AutoCompleteTextPanel<String>(id,
@@ -200,6 +206,12 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
             ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
         }
         return searchItemField != null ? searchItemField : new WebMarkupContainer(id);
+    }
+
+    private ItemDefinition getPropertyItemDefinition() {
+        ValueSearchFilterItem value = getModelObject().getValue();
+        return value != null ? value.getPropertyDef() : null;
+
     }
 
     private boolean isReferenceFilterValue() {
