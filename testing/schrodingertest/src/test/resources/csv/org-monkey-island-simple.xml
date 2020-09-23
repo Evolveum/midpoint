@@ -91,6 +91,17 @@
         <locality>Mêlée Island</locality>
     </org>
 
+    <org oid="00000000-8888-6666-0000-100000000007">
+        <name>F0007</name>
+        <parentOrgRef oid="00000000-8888-6666-0000-100000000005" type="c:OrgType"/>
+        <assignment id="1">
+            <targetRef oid="00000000-8888-6666-0000-100000000005" type="c:OrgType"/>
+        </assignment>
+        <displayName>Ministry of Health</displayName>
+        <identifier>0007</identifier>
+        <orgType>functional</orgType>
+    </org>
+
     <!-- Project organizational structure -->
 
     <org oid="00000000-8888-6666-0000-200000000000">

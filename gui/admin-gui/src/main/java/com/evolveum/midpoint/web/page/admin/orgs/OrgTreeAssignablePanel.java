@@ -75,6 +75,8 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
                 OrgTreePanel panel = new OrgTreePanel(id, model, selectable, pageBase, "", allTabsSelectedOrgs) {
                     private static final long serialVersionUID = 1L;
 
+                    private OrgStructurePanelStorage storage = new OrgStructurePanelStorage();
+
                     @Override
                     protected IModel<Boolean> getCheckBoxValueModel(IModel<TreeSelectableBean<OrgType>> rowModel){
                         return new LoadableModel<Boolean>(true) {
@@ -118,7 +120,7 @@ public class OrgTreeAssignablePanel  extends BasePanel<OrgType> implements Popup
 
                     @Override
                     public OrgTreeStateStorage getOrgTreeStateStorage(){
-                        return null;
+                        return storage;
                     }
 
                     @Override

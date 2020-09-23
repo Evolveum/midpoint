@@ -25,8 +25,7 @@ public class OrgTabPanelStorage implements PageStorage, DebugDumpable, OrgTreeSt
 
     private TreeSelectableBean<OrgType> selectedItem;                //selected tree item on the Org. structure page
     private TreeStateSet<TreeSelectableBean<OrgType>> expandedItems; //expanded tree items on the Org. structure page
-    private TreeSelectableBean<OrgType> collapsedItem = null;                 //selected tab id on the Org. structure page
-    private boolean inverse = false;
+    private TreeStateSet<TreeSelectableBean<OrgType>> collapsedItems;                 //selected tab id on the Org. structure page
     private int selectedTabId = 0;                 //selected tab id on the Org. structure page
 
     private Search membersPanelSearch;
@@ -62,7 +61,6 @@ public class OrgTabPanelStorage implements PageStorage, DebugDumpable, OrgTreeSt
         this.expandedItems = expandedItems != null ? expandedItems.clone() : null;
     }
 
-
     @Override
     public TreeSelectableBean<OrgType> getSelectedItem() {
         return selectedItem;
@@ -74,23 +72,13 @@ public class OrgTabPanelStorage implements PageStorage, DebugDumpable, OrgTreeSt
     }
 
     @Override
-    public TreeSelectableBean<OrgType> getCollapsedItem() {
-        return collapsedItem;
+    public TreeStateSet<TreeSelectableBean<OrgType>> getCollapsedItems() {
+        return collapsedItems;
     }
 
     @Override
-    public void setCollapsedItem(TreeSelectableBean<OrgType> collapsedItem) {
-        this.collapsedItem = collapsedItem;
-    }
-
-    @Override
-    public boolean isInverse(){
-        return inverse;
-    }
-
-    @Override
-    public void setInverse(boolean inverse){
-        this.inverse = inverse;
+    public void setCollapsedItems(TreeStateSet<TreeSelectableBean<OrgType>> collapsedItems) {
+        this.collapsedItems = collapsedItems;
     }
 
     @Override
@@ -115,8 +103,7 @@ public class OrgTabPanelStorage implements PageStorage, DebugDumpable, OrgTreeSt
         sb.append("OrgTabPanelStorage\n");
         DebugUtil.debugDumpWithLabelLn(sb, "selectedItem", selectedItem, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "expandedItems", expandedItems, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "collapsedItem", collapsedItem, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "inverse", inverse, indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "collapsedItems", collapsedItems, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "selectedTabId", selectedTabId, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "membersPanelSearch", membersPanelSearch, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "membersPanelPaging", membersPanelPaging, indent+1);
