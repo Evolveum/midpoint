@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<shadow oid="500ddd61-f4a1-4419-9de8-94db65f30f7d"
+        xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-3"
+        xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-3"
+        xmlns:t="http://prism.evolveum.com/xml/ns/public/types-3">
+    <name>uid=bilbo,ou=people,dc=example,dc=com</name>
+    <resourceRef oid="371ffc38-c424-11e4-8467-001e8c717e5b" relation="org:default" type="c:ResourceType"/>
+    <objectClass>ri:inetOrgPerson</objectClass>
+    <primaryIdentifierValue>e6b6d20d-60b5-43b4-83af-05c410811ab9</primaryIdentifierValue>
+    <kind>account</kind>
+    <intent>default</intent>
+    <attributes>
+        <ri:dn>uid=bilbo,ou=people,dc=example,dc=com</ri:dn>
+        <ri:entryUUID>e6b6d20d-60b5-43b4-83af-05c410811ab9</ri:entryUUID>
+    </attributes>
+</shadow>
