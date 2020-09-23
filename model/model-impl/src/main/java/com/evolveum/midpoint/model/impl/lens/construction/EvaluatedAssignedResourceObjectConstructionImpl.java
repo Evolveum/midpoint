@@ -42,7 +42,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
     }
 
     @Override
-    protected List<AttributeEvaluation<AH>> collectAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException {
+    protected List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException {
         List<AttributeEvaluation<AH>> attributesToEvaluate = new ArrayList<>();
 
         for (ResourceAttributeDefinitionType attributeDefinitionBean : construction.getConstructionBean().getAttribute()) {
@@ -76,7 +76,7 @@ public class EvaluatedAssignedResourceObjectConstructionImpl<AH extends Assignme
     }
 
     @Override
-    protected List<AssociationEvaluation<AH>> collectAssociationsToEvaluate(
+    protected List<AssociationEvaluation<AH>> getAssociationsToEvaluate(
             ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException {
         List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
         for (ResourceObjectAssociationType associationDefinitionBean : construction.getConstructionBean().getAssociation()) {

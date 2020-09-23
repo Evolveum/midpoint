@@ -232,12 +232,12 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
     /**
      * Collects attributes that are to be evaluated. Again, the exact mechanism is implementation-specific.
      */
-    protected abstract List<AttributeEvaluation<AH>> collectAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException;
+    protected abstract List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException;
 
     /**
      * Collects associations that are to be evaluated.
      */
-    protected abstract List<AssociationEvaluation<AH>> collectAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException;
+    protected abstract List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException;
     //endregion
 
     //region Resource object loading
@@ -246,7 +246,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
      * Checks whether we are obliged to load the full shadow.
      * @return non-null if we have to
      */
-    String getFullShadowLoadReason(LensProjectionContext projectionContext, MappingType outboundMappingBean) {
+    String getFullShadowLoadReason(MappingType outboundMappingBean) {
         if (projectionContext == null) {
             return null;
         }
@@ -271,8 +271,8 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
     /**
      * Executes the loading itself.
      */
-    ObjectDeltaObject<ShadowType> loadFullShadow(LensProjectionContext projectionContext, String reason, Task task,
-            OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
+    ObjectDeltaObject<ShadowType> loadFullShadow(String reason, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         construction.loadFullShadow(projectionContext, reason, task, result);
         return projectionContext.getObjectDeltaObject();

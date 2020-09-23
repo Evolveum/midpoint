@@ -55,7 +55,7 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
     }
 
     @Override
-    protected List<AttributeEvaluation<AH>> collectAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
+    protected List<AttributeEvaluation<AH>> getAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
         List<AttributeEvaluation<AH>> attributesToEvaluate = new ArrayList<>();
 
         RefinedObjectClassDefinition refinedObjectClassDefinition = construction.getRefinedObjectClassDefinition();
@@ -79,7 +79,7 @@ public class EvaluatedPlainResourceObjectConstructionImpl<AH extends AssignmentH
     }
 
     @Override
-    protected List<AssociationEvaluation<AH>> collectAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
+    protected List<AssociationEvaluation<AH>> getAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) {
         List<AssociationEvaluation<AH>> associationsToEvaluate = new ArrayList<>();
 
         RefinedObjectClassDefinition refinedObjectClassDefinition = construction.getRefinedObjectClassDefinition();

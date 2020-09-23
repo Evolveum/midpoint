@@ -7,9 +7,6 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -46,16 +43,6 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
     @Nullable final LensProjectionContext projectionContext;
 
     /**
-     * Attributes (to be) evaluated.
-     */
-    @NotNull private final List<AttributeEvaluation<AH>> attributeEvaluations = new ArrayList<>();
-
-    /**
-     * Associations (to be) evaluated.
-     */
-    @NotNull private final List<AssociationEvaluation<AH>> associationEvaluations = new ArrayList<>();
-
-    /**
      * The task.
      */
     @NotNull final Task task;
@@ -71,7 +58,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
     @Nullable final String operation;
 
     /**
-     * Loaded resource object, if needed and if possible.
+     * Loaded resource object, if/when needed and if possible.
      */
     @Nullable private ObjectDeltaObject<ShadowType> projectionOdo;
 
@@ -99,8 +86,6 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
     public void evaluate() throws SchemaException, CommunicationException, ObjectNotFoundException, ConfigurationException,
             SecurityViolationException, ExpressionEvaluationException {
         checkNotEvaluatedTwice();
-        attributeEvaluations.addAll(evaluatedConstruction.collectAttributesToEvaluate(this));
-        associationEvaluations.addAll(evaluatedConstruction.collectAssociationsToEvaluate(this));
 
         projectionOdo = projectionContext != null ? projectionContext.getObjectDeltaObject() : null;
 
@@ -118,7 +103,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
     protected void evaluateAttributes() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
 
-        for (AttributeEvaluation<AH> attributeEvaluation : attributeEvaluations) {
+        for (AttributeEvaluation<AH> attributeEvaluation : evaluatedConstruction.getAttributesToEvaluate(this)) {
             loadFullShadowIfNeeded(attributeEvaluation);
 
             attributeEvaluation.evaluate();
@@ -132,7 +117,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
     protected void evaluateAssociations() throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, CommunicationException {
 
-        for (AssociationEvaluation<AH> associationEvaluation : associationEvaluations) {
+        for (AssociationEvaluation<AH> associationEvaluation : evaluatedConstruction.getAssociationsToEvaluate(this)) {
             loadFullShadowIfNeeded(associationEvaluation);
 
             associationEvaluation.evaluate();
@@ -145,9 +130,9 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
 
     private void loadFullShadowIfNeeded(ItemEvaluation itemEvaluation) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        String loadReason = evaluatedConstruction.getFullShadowLoadReason(projectionContext, itemEvaluation.getMappingBean());
+        String loadReason = evaluatedConstruction.getFullShadowLoadReason(itemEvaluation.getMappingBean());
         if (loadReason != null) {
-            projectionOdo = evaluatedConstruction.loadFullShadow(projectionContext, loadReason, task, result);
+            projectionOdo = evaluatedConstruction.loadFullShadow(loadReason, task, result);
         }
     }
 
