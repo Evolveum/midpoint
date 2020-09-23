@@ -1331,7 +1331,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, TaskType.class,
                     true, result); // returns null if noFetch is set
 
-            PrismObject<TaskType> taskPrism = getTaskInCluster(oid, options, clusterStatusInformation, result);
+            PrismObject<TaskType> taskPrism = getTaskFromRemoteNode(oid, options, clusterStatusInformation, result);
             if (taskPrism == null) {
                 taskPrism = repositoryService.getObject(TaskType.class, oid, options, result);
             }
@@ -1358,8 +1358,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         }
     }
 
-    private PrismObject<TaskType> getTaskInCluster(String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+    private PrismObject<TaskType> getTaskFromRemoteNode(String oid, Collection<SelectorOptions<GetOperationOptions>> options,
             ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
+
+        if (clusterStatusInformation == null) { // in case no fetch was used...
+            return null;
+        }
 
         NodeType runsAt = clusterStatusInformation.findNodeInfoForTask(oid);
         if (runsAt == null || isCurrentNode(runsAt.asPrismObject())) {
