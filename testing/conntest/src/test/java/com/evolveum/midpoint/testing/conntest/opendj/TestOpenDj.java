@@ -4,10 +4,16 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-package com.evolveum.midpoint.testing.conntest;
+package com.evolveum.midpoint.testing.conntest.opendj;
 
 import java.io.File;
+import java.io.IOException;
 
+import com.evolveum.midpoint.testing.conntest.AbstractLdapConnTest;
+
+import org.apache.directory.api.ldap.model.entry.Entry;
+import org.apache.directory.api.ldap.model.exception.LdapException;
+import org.opends.server.util.LDIFException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.Listeners;
 
@@ -134,4 +140,5 @@ public class TestOpenDj extends AbstractLdapConnTest {
             throws ObjectNotFoundException, SchemaException {
         assertSyncToken(syncTaskOid, step + getInitialSyncToken());
     }
+
 }
