@@ -135,6 +135,6 @@ public class M8ExtendingMidPointXMLSchema extends  AbstractLabTest {
         showShadow(CSV_2_RESOURCE_NAME, "Login", "jsmith");
         Assert.assertTrue(accountForm.compareInputAttributeValue("department", "Human Resources"));
 
-        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "dn", "cn=John Smith,ou=0300,ou=ExAmPLE,dc=example,dc=com"));
+        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=John Smith,ou=0300,ou=ExAmPLE,dc=example,dc=com"));
     }
 }
