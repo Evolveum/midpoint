@@ -9,7 +9,14 @@ package com.evolveum.midpoint.rest.impl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Paths;
+import java.util.Collection;
 import java.util.List;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.DefinitionProcessingOption;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -61,6 +68,8 @@ public class ClusterRestController extends AbstractRestController {
 
     private static final String OPERATION_GET_REPORT_FILE = CLASS_DOT + "getReportFile";
     private static final String OPERATION_DELETE_REPORT_FILE = CLASS_DOT + "deleteReportFile";
+
+    private static final String OPERATION_GET_TASK = CLASS_DOT + "getTask";
 
     private static final String EXPORT_DIR = "export/";
 
@@ -268,6 +277,25 @@ public class ClusterRestController extends AbstractRestController {
             } else {
                 response = ResponseEntity.status(resolution.status).build();
             }
+            result.computeStatus();
+        } catch (Throwable t) {
+            response = handleException(null, t); // we don't return the operation result
+        }
+        finishRequest();
+        return response;
+    }
+
+    @GetMapping(value = TaskConstants.GET_TASK_REST_PATH + "{oid}")
+    public ResponseEntity<?> getTask(@PathVariable("oid") String oid, @RequestParam(value = "include", required = false) List<String> include) {
+        Task task = initRequest();
+        OperationResult result = createSubresult(task, OPERATION_GET_REPORT_FILE);
+
+        ResponseEntity<?> response;
+        try {
+            checkNodeAuthentication();
+            Collection<SelectorOptions<GetOperationOptions>> options = GetOperationOptions.fromRestOptions(null, include, null, null, DefinitionProcessingOption.ONLY_IF_EXISTS, prismContext);
+            PrismObject<TaskType> taskType = taskManager.getObject(TaskType.class, oid, options, result);
+            response = ResponseEntity.ok(taskType);
             result.computeStatus();
         } catch (Throwable t) {
             response = handleException(null, t); // we don't return the operation result
