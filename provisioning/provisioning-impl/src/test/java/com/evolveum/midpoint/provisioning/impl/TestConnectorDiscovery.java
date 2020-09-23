@@ -79,7 +79,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
             IntegrationTestTools.assertConnectorSchemaSanity(conn, prismContext);
         }
 
-        assertEquals("Unexpected number of connectors found", 9, connectors.size());
+        assertEquals("Unexpected number of connectors found", 8, connectors.size());
     }
 
     @Test
@@ -99,7 +99,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
             System.out.println("-----\n");
         }
 
-        assertEquals("Unexpected number of connectors found", 9, connectors.size());
+        assertEquals("Unexpected number of connectors found", 8, connectors.size());
     }
 
     @Test

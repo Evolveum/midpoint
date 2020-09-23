@@ -175,7 +175,7 @@ public class TestUcfDummy extends AbstractUcfDummyTest {
 
         System.out.println("---------------------------------------------------------------------");
 
-        assertEquals("Unexpected number of connectors discovered", 7, connectors.size());
+        assertEquals("Unexpected number of connectors discovered", 6, connectors.size());
     }
 
     @Test
