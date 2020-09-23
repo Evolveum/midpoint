@@ -26,24 +26,37 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
  * Collects evaluated constructions from evaluatedAssignmentTriple into a single-level triple.
- * The collected evaluated constructions are neatly sorted by "key", which is usually ResourceShadowDiscriminator.
+ * The collected evaluated constructions are neatly sorted by "key", which is usually ResourceShadowDiscriminator or PersonaKey.
+ *
+ * @param <K> Key type
  *
  * @author Radovan Semancik
  */
 public class ConstructionCollector<AH extends AssignmentHolderType, K extends HumanReadableDescribable, ACT extends AbstractConstructionType, AC extends AbstractConstruction<AH,ACT,EC>, EC extends EvaluatedAbstractConstruction<AH>> {
 
-    private DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple;
+    /**
+     * Result of the computation: keyed delta triples of "packs". A pack is basically a set of evaluated constructions with
+     * some additional information about the pack as such (hasValidAssignment, forceRecon).
+     */
+    private final DeltaMapTriple<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMapTriple;
 
+    /**
+     * Method that extracts constructions of given type - resource objects or personas -
+     * (in the form of triple i.e. added/deleted/kept) from evaluated assignment.
+     */
     private final Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor;
+
+    /**
+     * Method that generates indexing key for constructions, under which they are collected.
+     */
     private final FailableLensFunction<EC, K> keyGenerator;
-    private final PrismContext prismContext;
 
     private static final Trace LOGGER = TraceManager.getTrace(ConstructionCollector.class);
 
     public ConstructionCollector(Function<EvaluatedAssignmentImpl<AH>, DeltaSetTriple<AC>> constructionTripleExtractor, FailableLensFunction<EC, K> keyGenerator, PrismContext prismContext) {
         this.constructionTripleExtractor = constructionTripleExtractor;
         this.keyGenerator = keyGenerator;
-        this.prismContext = prismContext;
+        this.evaluatedConstructionMapTriple = prismContext.deltaFactory().createDeltaMapTriple();
     }
 
     public DeltaMapTriple<K, EvaluatedConstructionPack<EC>> getEvaluatedConstructionMapTriple() {
@@ -51,9 +64,9 @@ public class ConstructionCollector<AH extends AssignmentHolderType, K extends Hu
     }
 
     public void collect(DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple)
-                    throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
-        evaluatedConstructionMapTriple = prismContext.deltaFactory().createDeltaMapTriple();
+        evaluatedConstructionMapTriple.clear();
 
         // We cannot decide on zero/plus/minus sets here. What we need is absolute classification of the evaluated assignments
         // with regard to focus old state.
@@ -62,7 +75,9 @@ public class ConstructionCollector<AH extends AssignmentHolderType, K extends Hu
         }
     }
 
-    private void collectToConstructionMapFromEvaluatedAssignments(EvaluatedAssignmentImpl<AH> evaluatedAssignment, PlusMinusZero mode) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+    private void collectToConstructionMapFromEvaluatedAssignments(EvaluatedAssignmentImpl<AH> evaluatedAssignment, PlusMinusZero mode)
+            throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException,
+            ExpressionEvaluationException {
         LOGGER.trace("Collecting constructions from evaluated assignment:\n{}", evaluatedAssignment.debugDumpLazily(1));
         DeltaSetTriple<AC> constructionTriple = constructionTripleExtractor.apply(evaluatedAssignment);
         collectToConstructionMapFromConstructions(evaluatedAssignment, constructionTriple.getZeroSet(), mode, PlusMinusZero.ZERO);
@@ -74,7 +89,8 @@ public class ConstructionCollector<AH extends AssignmentHolderType, K extends Hu
             EvaluatedAssignmentImpl<AH> evaluatedAssignment, Collection<AC> constructions, PlusMinusZero mode1, PlusMinusZero mode2)
             throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         for (AC construction : constructions) {
-            LOGGER.trace("Collecting evaluated constructions from construction:\n{}", construction.debugDumpLazily(1));
+            LOGGER.trace("Collecting evaluated constructions from construction (mode1={}, mode2={}):\n{}",
+                    mode1, mode2, construction.debugDumpLazily(1));
             DeltaSetTriple<EC> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
             if (evaluatedConstructionTriple != null) {
                 collectToConstructionMapFromEvaluatedConstructions(evaluatedAssignment, evaluatedConstructionTriple.getZeroSet(), mode1, mode2, PlusMinusZero.ZERO);
@@ -97,6 +113,9 @@ public class ConstructionCollector<AH extends AssignmentHolderType, K extends Hu
             }
 
             PlusMinusZero mode = PlusMinusZero.compute(PlusMinusZero.compute(mode1, mode2), mode3);
+            if (mode == null) {
+                continue;
+            }
 
             // Ugly and temporary hack - some constructions going to plus/minus sets based on validity change
             // FIXME MID-6404
@@ -109,7 +128,7 @@ public class ConstructionCollector<AH extends AssignmentHolderType, K extends Hu
             }
 
             Map<K, EvaluatedConstructionPack<EC>> evaluatedConstructionMap = evaluatedConstructionMapTriple.getMap(mode);
-            if (evaluatedConstructionMap == null) {
+            if (evaluatedConstructionMap == null) { // should not occur
                 continue;
             }
 
@@ -130,8 +149,6 @@ public class ConstructionCollector<AH extends AssignmentHolderType, K extends Hu
             if (evaluatedAssignment.isForceRecon()) {
                 evaluatedConstructionPack.setForceRecon(true);
             }
-
         }
     }
-
 }

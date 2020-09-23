@@ -9,8 +9,13 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.model.api.context.AssignmentPath;
@@ -24,34 +29,66 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Evaluated construction of a resource object.
  *
  * More such objects can stem from single {@link ResourceObjectConstruction} in the presence of multiaccounts.
+ *
+ * The evaluation itself is delegated to {@link ConstructionEvaluation} class that, in turn, delegates
+ * to {@link AttributeEvaluation} and {@link AssociationEvaluation}. However, these classes shouldn't be
+ * publicly visible.
  */
-public abstract class EvaluatedResourceObjectConstructionImpl<AH extends AssignmentHolderType> implements EvaluatedAbstractConstruction<AH>, EvaluatedResourceObjectConstruction {
+public abstract class EvaluatedResourceObjectConstructionImpl<AH extends AssignmentHolderType, ROC extends ResourceObjectConstruction<AH, ?>>
+        implements EvaluatedAbstractConstruction<AH>, EvaluatedResourceObjectConstruction {
 
-    @NotNull protected final ResourceObjectConstruction<AH, ?> construction;
+    /**
+     * Parent construction to which this EvaluatedConstruction belongs.
+     */
+    @NotNull protected final ROC construction;
+
+    /**
+     * Specification of the resource object.
+     */
     @NotNull protected final ResourceShadowDiscriminator rsd;
+
+    /**
+     * Mappings for the resource object attributes.
+     */
     @NotNull protected final Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> attributeMappings = new ArrayList<>();
+
+    /**
+     * Mappings for the resource object associations.
+     */
     @NotNull protected final Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> associationMappings = new ArrayList<>();
-    protected LensProjectionContext projectionContext;
+
+    /**
+     * Projection context for the resource object.
+     * For assigned constructions it is filled-in on evaluation start (and it might not exist).
+     * For plain constructions it is filled-in on creation; and it always exists.
+     */
+    private LensProjectionContext projectionContext;
+
+    /**
+     * Construction evaluation state. It is factored out into separate class to allow many of its fields to be final.
+     * (It would not be possible if it was part of this class.)
+     */
+    protected ConstructionEvaluation<AH, ROC> evaluation;
 
     /**
      * Precondition: {@link ResourceObjectConstruction} is already evaluated and not ignored (has resource).
      */
-    EvaluatedResourceObjectConstructionImpl(@NotNull final ResourceObjectConstruction<AH, ?> construction, @NotNull final ResourceShadowDiscriminator rsd) {
+    EvaluatedResourceObjectConstructionImpl(@NotNull final ROC construction,
+            @NotNull final ResourceShadowDiscriminator rsd) {
         this.construction = construction;
         this.rsd = rsd;
     }
 
+    //region Trivia
     @Override
-    public @NotNull ResourceObjectConstruction<AH, ?> getConstruction() {
+    public @NotNull ROC getConstruction() {
         return construction;
     }
 
@@ -61,6 +98,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
 
     @Override
     public @NotNull PrismObject<ResourceType> getResource() {
+        // We assume that for assigned constructions with missing resource we never come here.
         return construction.getResource().asPrismObject();
     }
 
@@ -81,7 +119,8 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
 
     @Override
     public boolean isDirectlyAssigned() {
-        return construction.getAssignmentPath() == null || construction.getAssignmentPath().size() == 1;
+        AssignmentPath assignmentPath = getAssignmentPath();
+        return assignmentPath == null || assignmentPath.size() == 1;
     }
 
     @Override
@@ -94,63 +133,13 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
         return construction.isWeak();
     }
 
-    public LensProjectionContext getProjectionContext() {
+    protected @Nullable LensProjectionContext getProjectionContext() {
         return projectionContext;
     }
-
-    public @NotNull Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> getAttributeMappings() {
-        return attributeMappings;
-    }
-
-    public MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeMapping(QName attrName) {
-        for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> myVc : getAttributeMappings()) {
-            if (myVc.getItemName().equals(attrName)) {
-                return myVc;
-            }
-        }
-        return null;
-    }
-
-    protected void addAttributeMapping(
-            MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping) {
-        getAttributeMappings().add(mapping);
-    }
-
-    public @NotNull Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
-        return associationMappings;
-    }
-
-    protected void addAssociationMapping(
-            MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mapping) {
-        getAssociationMappings().add(mapping);
-    }
-
-    public abstract NextRecompute evaluate(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException;
 
     protected void setProjectionContext(LensProjectionContext projectionContext) {
         this.projectionContext = projectionContext;
     }
-
-    protected void initializeProjectionContext() {
-        if (projectionContext == null) {
-            projectionContext = construction.getLensContext().findProjectionContext(rsd);
-            // projection context may not exist yet (existence might not be yet decided)
-        }
-    }
-
-
-//    boolean hasValueForAttribute(QName attributeName) {
-//        for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> attributeConstruction : attributeMappings) {
-//            if (attributeName.equals(attributeConstruction.getItemName())) {
-//                PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = attributeConstruction
-//                        .getOutputTriple();
-//                if (outputTriple != null && !outputTriple.isEmpty()) {
-//                    return true;
-//                }
-//            }
-//        }
-//        return false;
-//    }
 
     protected String getHumanReadableConstructionDescription() {
         return "construction for (" + (construction.getResolvedResource() != null ? construction.getResolvedResource().resource : null)
@@ -163,7 +152,7 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
         DebugUtil.debugDumpLabelLn(sb, this.getClass().getSimpleName(), indent);
         DebugUtil.debugDumpWithLabelShortDumpLn(sb, "discriminator", rsd, indent + 1);
         // We do not want to dump construction here. This can lead to cycles.
-        // We usually dump EvaluatedConstruction is a Construction dump anyway, therefore the context should be quite clear.
+        // We usually dump EvaluatedConstruction in a Construction dump anyway, therefore the context should be quite clear.
         DebugUtil.debugDumpWithLabelToString(sb, "projectionContext", projectionContext, indent + 1);
         if (!attributeMappings.isEmpty()) {
             sb.append("\n");
@@ -186,10 +175,108 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
 
     @Override
     public String toString() {
-        return "EvaluatedConstructionImpl(" +
+        return getClass().getSimpleName() + "(" +
                 "discriminator=" + rsd +
                 ", construction=" + construction +
                 ", projectionContext='" + projectionContext +
                 ')';
     }
+    //endregion
+
+    //region Mappings management
+    public @NotNull Collection<MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>>> getAttributeMappings() {
+        return attributeMappings;
+    }
+
+    @VisibleForTesting
+    public MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> getAttributeMapping(QName attrName) {
+        for (MappingImpl<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> myVc : getAttributeMappings()) {
+            if (myVc.getItemName().equals(attrName)) {
+                return myVc;
+            }
+        }
+        return null;
+    }
+
+    protected void addAttributeMapping(MappingImpl<PrismPropertyValue<?>, PrismPropertyDefinition<?>> mapping) {
+        attributeMappings.add(mapping);
+    }
+
+    public @NotNull Collection<MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>>> getAssociationMappings() {
+        return associationMappings;
+    }
+
+    protected void addAssociationMapping(
+            MappingImpl<PrismContainerValue<ShadowAssociationType>, PrismContainerDefinition<ShadowAssociationType>> mapping) {
+        associationMappings.add(mapping);
+    }
+    //endregion
+
+    //region Mappings evaluation
+    public NextRecompute evaluate(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        if (evaluation != null) {
+            throw new IllegalStateException("Attempting to evaluate an EvaluatedConstruction twice: " + this);
+        }
+        initializeProjectionContext();
+        evaluation = new ConstructionEvaluation<>(this, task, result);
+        evaluation.evaluate();
+        return evaluation.getNextRecompute();
+    }
+
+    /**
+     * Sets up the projection context. The implementation differs for assigned and plain constructions.
+     */
+    protected abstract void initializeProjectionContext();
+
+    /**
+     * Collects attributes that are to be evaluated. Again, the exact mechanism is implementation-specific.
+     */
+    protected abstract List<AttributeEvaluation<AH>> collectAttributesToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException;
+
+    /**
+     * Collects associations that are to be evaluated.
+     */
+    protected abstract List<AssociationEvaluation<AH>> collectAssociationsToEvaluate(ConstructionEvaluation<AH, ?> constructionEvaluation) throws SchemaException;
+    //endregion
+
+    //region Resource object loading
+
+    /**
+     * Checks whether we are obliged to load the full shadow.
+     * @return non-null if we have to
+     */
+    String getFullShadowLoadReason(LensProjectionContext projectionContext, MappingType outboundMappingBean) {
+        if (projectionContext == null) {
+            return null;
+        }
+        if (projectionContext.isFullShadow()) {
+            return null;
+        }
+        if (projectionContext.isDelete()) {
+            return null;
+        }
+        MappingStrengthType strength = outboundMappingBean.getStrength();
+        if (strength == MappingStrengthType.STRONG) {
+            return "strong outbound mapping";
+        } else if (strength == MappingStrengthType.WEAK) {
+            return "weak outbound mapping";
+        } else if (outboundMappingBean.getTarget() != null && outboundMappingBean.getTarget().getSet() != null) {
+            return "outbound mapping target set specified";
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Executes the loading itself.
+     */
+    ObjectDeltaObject<ShadowType> loadFullShadow(LensProjectionContext projectionContext, String reason, Task task,
+            OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
+            SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        construction.loadFullShadow(projectionContext, reason, task, result);
+        return projectionContext.getObjectDeltaObject();
+    }
+    //endregion
+
 }

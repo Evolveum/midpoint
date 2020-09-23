@@ -20,7 +20,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
-import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -168,7 +168,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private SynchronizationSituationType synchronizationSituationResolved = null;
 
     /**
-     * Delta set triple for constructions. Specifies which constructions (projections e.g. accounts)
+     * Delta set triple for constructions obtained via assignments. Specifies which constructions (projections e.g. accounts)
      * should be added, removed or stay as they are.
      *
      * It tells almost nothing about attributes directly although the information about attributes are inside
@@ -182,17 +182,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *
      * Note that relativity is taken to focus OLD state, not to the current state.
      */
-    private transient DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<?>> evaluatedConstructionDeltaSetTriple;
+    private transient DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<?>> evaluatedAssignedConstructionDeltaSetTriple;
 
     /**
-     * Triples for outbound mappings; similar to the above.
+     * Evaluated "plain" resource object construction obtained from the schema handling configuration for given resource.
+     * TODO better name
+     *
      * Source: OutboundProcessor
      * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
      */
-    private transient ResourceObjectConstruction outboundConstruction;
+    private transient PlainResourceObjectConstruction<?> evaluatedPlainConstruction;
 
     /**
-     * Postprocessed triples from the above two properties.
+     * Post-processed triples from the above two properties.
      * Source: ConsolidationProcessor
      * Target: ReconciliationProcessor
      */
@@ -571,21 +573,22 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ShadowKindType.ACCOUNT;
     }
 
-    public <AH extends AssignmentHolderType> DeltaSetTriple<EvaluatedResourceObjectConstructionImpl<AH>> getEvaluatedConstructionDeltaSetTriple() {
+    public <AH extends AssignmentHolderType> DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> getEvaluatedAssignedConstructionDeltaSetTriple() {
         //noinspection unchecked
-        return (DeltaSetTriple) evaluatedConstructionDeltaSetTriple;
+        return (DeltaSetTriple) evaluatedAssignedConstructionDeltaSetTriple;
     }
 
-    public <AH extends AssignmentHolderType> void setEvaluatedConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> evaluatedConstructionDeltaSetTriple) {
-        this.evaluatedConstructionDeltaSetTriple = (DeltaSetTriple)evaluatedConstructionDeltaSetTriple;
+    public <AH extends AssignmentHolderType> void setEvaluatedAssignedConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> evaluatedAssignedConstructionDeltaSetTriple) {
+        this.evaluatedAssignedConstructionDeltaSetTriple = (DeltaSetTriple) evaluatedAssignedConstructionDeltaSetTriple;
     }
 
-    public ResourceObjectConstruction getOutboundConstruction() {
-        return outboundConstruction;
+    public <AH extends AssignmentHolderType> PlainResourceObjectConstruction<AH> getEvaluatedPlainConstruction() {
+        //noinspection unchecked
+        return (PlainResourceObjectConstruction<AH>) evaluatedPlainConstruction;
     }
 
-    public void setOutboundConstruction(ResourceObjectConstruction outboundConstruction) {
-        this.outboundConstruction = outboundConstruction;
+    public void setEvaluatedPlainConstruction(PlainResourceObjectConstruction<?> evaluatedPlainConstruction) {
+        this.evaluatedPlainConstruction = evaluatedPlainConstruction;
     }
 
     public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> getSqueezedAttributes() {
@@ -835,7 +838,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void clearIntermediateResults() {
         //constructionDeltaSetTriple = null;
-        outboundConstruction = null;
+        evaluatedPlainConstruction = null;
         squeezedAttributes = null;
     }
 
@@ -1077,7 +1080,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         clone.fullShadow = this.fullShadow;
         clone.isAssigned = this.isAssigned;
         clone.isAssignedOld = this.isAssignedOld;
-        clone.outboundConstruction = this.outboundConstruction;
+        clone.evaluatedPlainConstruction = this.evaluatedPlainConstruction;
         clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
         clone.resource = this.resource;
         clone.resourceShadowDiscriminator = this.resourceShadowDiscriminator;
@@ -1262,10 +1265,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (showTriples) {
 
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("constructionDeltaSetTriple"), evaluatedConstructionDeltaSetTriple, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("evaluatedAssignedConstructionDeltaSetTriple"), evaluatedAssignedConstructionDeltaSetTriple, indent + 1);
 
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("outbound account construction"), outboundConstruction, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("plain (schemaHandling) construction"), evaluatedPlainConstruction, indent + 1);
 
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed attributes"), squeezedAttributes, indent + 1);

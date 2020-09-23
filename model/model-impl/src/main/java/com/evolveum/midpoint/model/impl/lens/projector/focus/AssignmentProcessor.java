@@ -119,7 +119,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
     private static final String OP_EVALUATE_FOCUS_MAPPINGS = AssignmentProcessor.class.getName() + ".evaluateFocusMappings";
     private static final String OP_PROCESS_PROJECTIONS = AssignmentProcessor.class.getName() + ".processProjections";
-    private static final String OP_DISTRIBUTE_PROJECTIONS = AssignmentProcessor.class.getName() + ".distributeProjections";
+    private static final String OP_DISTRIBUTE_CONSTRUCTIONS = AssignmentProcessor.class.getName() + ".distributeConstructions";
 
     /**
      * Processing all the assignments.
@@ -250,12 +250,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
             LOGGER.trace("Projection processing start, evaluatedAssignmentTriple:\n{}",
                     evaluatedAssignmentTriple.debugDumpLazily(1));
 
-            ObjectDeltaObject<AH> focusOdoAbsolute = context.getFocusOdoAbsolute();
-
             // Evaluate the constructions in assignments now. These were not evaluated in the first pass of AssignmentEvaluator
             // because there may be interaction from focusMappings of some roles to outbound mappings of other roles.
-            // Now we have complete focus with all the focusMappings so we can evaluate the constructions
-            evaluateConstructions(context, evaluatedAssignmentTriple, focusOdoAbsolute, task, result);
+            // Now we have all the focusMappings evaluated so we can evaluate the constructions.
+            evaluateConstructions(context, evaluatedAssignmentTriple, task, result);
 
             // Distributes constructions into appropriate projection contexts,
             // setting relevant properties in these contexts.
@@ -416,11 +414,11 @@ public class AssignmentProcessor implements ProjectorProcessor {
             @Override
             public boolean before(ResourceShadowDiscriminator rsd) {
                 if (rsd.getResourceOid() == null) {
-                    throw new IllegalStateException("Resource OID null in ResourceAccountType during assignment processing");
+                    throw new IllegalStateException("Resource OID null in ResourceShadowDiscriminator during assignment processing");
                 }
                 if (rsd.getIntent() == null) {
                     throw new IllegalStateException(
-                            "Account type is null in ResourceAccountType during assignment processing");
+                            "Resource object intent is null in ResourceShadowDiscriminator during assignment processing");
                 }
 
                 processOnlyExistingProjContexts = false;
@@ -499,8 +497,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
                 projectionContext.setAssigned(false);
                 projectionContext.setAssignedOldIfUnknown(false);
                 if (projectionContext.getAssignmentPolicyEnforcementType() == AssignmentPolicyEnforcementType.NONE
-                        || projectionContext.getAssignmentPolicyEnforcementType()
-                        == AssignmentPolicyEnforcementType.POSITIVE) {
+                        || projectionContext.getAssignmentPolicyEnforcementType() == AssignmentPolicyEnforcementType.POSITIVE) {
                     projectionContext.setLegalOld(null);
                     projectionContext.setLegal(null);
                 } else {
@@ -526,7 +523,7 @@ public class AssignmentProcessor implements ProjectorProcessor {
 
                     AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext
                             .getAssignmentPolicyEnforcementType();
-                    // TODO: check for MARK and LEGALIZE enforcement policies ....add delete laso for relative enforcemenet
+                    // TODO: check for MARK and LEGALIZE enforcement policies ....add delete also for relative enforcement
                     if (assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.FULL
                             || assignmentPolicyEnforcement == AssignmentPolicyEnforcementType.RELATIVE) {
                         LOGGER.trace("Projection {} illegal: unassigned", desc);
@@ -560,20 +557,19 @@ public class AssignmentProcessor implements ProjectorProcessor {
                     // This can be null in a exotic case if we delete already deleted account
                     LOGGER.trace("Construction delta set triple for {}:\n{}", rsd,
                             projectionEvaluatedConstructionDeltaSetTriple.debugDumpLazily(1));
-                    projectionContext.setEvaluatedConstructionDeltaSetTriple(projectionEvaluatedConstructionDeltaSetTriple);
-                    if (isForceRecon(constructionMapTriple.getZeroMap().get(rsd)) || isForceRecon(
-                            constructionMapTriple.getPlusMap().get(rsd)) || isForceRecon(
-                            constructionMapTriple.getMinusMap().get(rsd))) {
+                    projectionContext.setEvaluatedAssignedConstructionDeltaSetTriple(projectionEvaluatedConstructionDeltaSetTriple);
+                    if (isForceRecon(constructionMapTriple.getZeroMap().get(rsd)) ||
+                            isForceRecon(constructionMapTriple.getPlusMap().get(rsd)) ||
+                            isForceRecon(constructionMapTriple.getMinusMap().get(rsd))) {
                         projectionContext.setDoReconciliation(true);
                     }
                 }
             }
-
         };
 
-        OperationResult result = parentResult.createMinorSubresult(OP_DISTRIBUTE_PROJECTIONS);
+        OperationResult result = parentResult.createMinorSubresult(OP_DISTRIBUTE_CONSTRUCTIONS);
         try {
-            constructionProcessor.processConstructions(evaluatedAssignmentTriple,
+            constructionProcessor.distributeConstructions(evaluatedAssignmentTriple,
                     EvaluatedAssignmentImpl::getConstructionTriple,
                     construction -> getConstructionMapKey(context, construction, task, result),
                     consumer);
@@ -640,9 +636,10 @@ public class AssignmentProcessor implements ProjectorProcessor {
     }
 
     private <AH extends AssignmentHolderType> void evaluateConstructions(LensContext<AH> context,
-            DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple,
-            ObjectDeltaObject<AH> focusOdoAbsolute, Task task, OperationResult result) throws SchemaException,
-            ExpressionEvaluationException, SecurityViolationException, ConfigurationException, CommunicationException {
+            DeltaSetTriple<EvaluatedAssignmentImpl<AH>> evaluatedAssignmentTriple, Task task, OperationResult result)
+            throws SchemaException, ExpressionEvaluationException, SecurityViolationException, ConfigurationException,
+            CommunicationException {
+        ObjectDeltaObject<AH> focusOdoAbsolute = context.getFocusOdoAbsolute();
         evaluateConstructions(context, evaluatedAssignmentTriple.getZeroSet(), focusOdoAbsolute, task, result);
         evaluateConstructions(context, evaluatedAssignmentTriple.getPlusSet(), focusOdoAbsolute, task, result);
         evaluateConstructions(context, evaluatedAssignmentTriple.getMinusSet(), focusOdoAbsolute, task, result);

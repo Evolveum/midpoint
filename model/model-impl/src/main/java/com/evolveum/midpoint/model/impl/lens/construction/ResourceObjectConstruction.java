@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -36,16 +37,18 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Contains "construction bean" (ConstructionType) - a definition how to construct a resource object.
  * Besides this definition it also contains auxiliary objects that are needed to evaluate the construction.
  *
- * An instance of this class may produce many "evaluated" constructions, e.g. in case that
+ * An instance of this class produces one or more "evaluated" constructions: more of them in case that
  * multiaccounts (tags) are used. Evaluated constructions are represented by evaluatedConstructionTriple.
  *
  * @author Radovan Semancik
  */
-public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH>>
+public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH, ?>>
         extends AbstractConstruction<AH, ConstructionType, EC> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceObjectConstruction.class);
@@ -85,58 +88,15 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         this.resolvedResource = builder.resolvedResource;
     }
 
-    public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
-        return refinedObjectClassDefinition;
-    }
-
-    public void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
-        this.refinedObjectClassDefinition = refinedObjectClassDefinition;
-    }
-
-    public List<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
-        return auxiliaryObjectClassDefinitions;
-    }
-
-    public void addAuxiliaryObjectClassDefinition(RefinedObjectClassDefinition auxiliaryObjectClassDefinition) {
-        auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
-    }
-
-    public ShadowKindType getKind() {
-        if (refinedObjectClassDefinition == null) {
-            throw new IllegalStateException("Kind can only be fetched from evaluated Construction");
-        }
-        return refinedObjectClassDefinition.getKind();
-    }
-
-    public String getIntent() {
-        if (refinedObjectClassDefinition == null) {
-            throw new IllegalStateException("Intent can only be fetched from evaluated Construction");
-        }
-        return refinedObjectClassDefinition.getIntent();
-    }
-
     public DeltaSetTriple<EC> getEvaluatedConstructionTriple() {
         return evaluatedConstructionTriple;
     }
 
-    public ResourceType getResource() {
-        if (resolvedResource != null) {
-            return resolvedResource.resource;
-        } else {
-            throw new IllegalStateException("Couldn't access resolved resource reference as construction "
-                    + "was not evaluated/initialized yet; in " + source);
-        }
-    }
-
-    public String getResourceOid() {
-        ResourceType resource = getResource();
-        if (resource != null) {
-            return resource.getOid();
-        } else {
-            throw new IllegalStateException("Couldn't obtain resource OID because the resource does not exist in " + getSource());
-        }
-    }
-
+    //region Construction evaluation
+    /**
+     * Evaluates this construction. Note that evaluation is delegated to EvaluatedConstruction objects,
+     * which are created here (based on tag mapping evaluation).
+     */
     public NextRecompute evaluate(Task task, OperationResult parentResult)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException {
         // Subresult is needed here. If something fails here, this needs to be recorded as a subresult of
@@ -167,20 +127,12 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         }
     }
 
-    private boolean hasResource() {
-        return getResource() != null;
-    }
-
-    protected abstract void resolveResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException;
-
-    protected abstract void initializeDefinitions() throws SchemaException;
-
     protected void createEvaluatedConstructions(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         evaluatedConstructionTriple = beans.prismContext.deltaFactory().createDeltaSetTriple();
 
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> tagTriple = evaluateTagTriple(task, result);
         if (tagTriple == null) {
-            // Single-account case (not multi-account). We just create a simple EvaluatedConstruction
+            // Single-account case (not multi-account). We just create a single EvaluatedConstruction
             EC evaluatedConstruction = createEvaluatedConstruction((String)null);
             evaluatedConstructionTriple.addToZeroSet(evaluatedConstruction);
         } else {
@@ -188,7 +140,9 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         }
     }
 
-    private PrismValueDeltaSetTriple<PrismPropertyValue<String>> evaluateTagTriple(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+    private PrismValueDeltaSetTriple<PrismPropertyValue<String>> evaluateTagTriple(Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException,
+            ExpressionEvaluationException {
         ResourceObjectMultiplicityType multiplicity = refinedObjectClassDefinition.getMultiplicity();
         if (!RefinedDefinitionUtil.isMultiaccount(multiplicity)) {
             return null;
@@ -198,28 +152,33 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
             // TODO: do something better
             return null;
         }
-        MappingType outboundMappingSpec = tagSpec.getOutbound();
-        if (outboundMappingSpec == null) {
+        MappingType tagMappingBean = tagSpec.getOutbound();
+        if (tagMappingBean == null) {
             // TODO: do something better
             return null;
         }
 
-        MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder = beans.mappingFactory.createMappingBuilder(
-                outboundMappingSpec,
-                "for outbound tag mapping in " + getSource());
+        MappingBuilder<PrismPropertyValue<String>, PrismPropertyDefinition<String>> builder =
+                beans.mappingFactory.createMappingBuilder(tagMappingBean, "for outbound tag mapping in " + getSource());
 
-        MutablePrismPropertyDefinition<String> outputDefinition = beans.mappingFactory.getExpressionFactory().getPrismContext().definitionFactory().createPropertyDefinition(
-                ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
-        outputDefinition.setMaxOccurs(-1);
-
-        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> evaluatedMapping = evaluateMapping(builder, ShadowType.F_TAG,
-                ShadowType.F_TAG, outputDefinition, null, task, result);
-
-        if (evaluatedMapping != null) {
-            return evaluatedMapping.getOutputTriple();
-        } else {
+        builder = initializeMappingBuilder(builder, ShadowType.F_TAG, ShadowType.F_TAG, createTagDefinition(), null);
+        if (builder == null) {
             return null;
         }
+        MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> mapping = builder.build();
+
+        beans.mappingEvaluator.evaluateMapping(mapping, getLensContext(), null, task, result);
+
+        return mapping.getOutputTriple();
+    }
+
+    @NotNull
+    private MutablePrismPropertyDefinition<String> createTagDefinition() {
+        MutablePrismPropertyDefinition<String> outputDefinition =
+                beans.mappingFactory.getExpressionFactory().getPrismContext().definitionFactory()
+                        .createPropertyDefinition(ExpressionConstants.OUTPUT_ELEMENT_NAME, PrimitiveType.STRING.getQname());
+        outputDefinition.setMaxOccurs(-1);
+        return outputDefinition;
     }
 
     private EC createEvaluatedConstruction(String tag) {
@@ -234,15 +193,15 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
 
         // This code may seem primitive and old-fashioned.
         // But equivalent functional code (using foreach()) is just insane due to nextRecompute and exception handling.
-        for (EvaluatedResourceObjectConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getZeroSet()) {
+        for (EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction : evaluatedConstructionTriple.getZeroSet()) {
             NextRecompute constructionNextRecompute = evaluatedConstruction.evaluate(task, result);
             nextRecompute = NextRecompute.update(constructionNextRecompute, nextRecompute);
         }
-        for (EvaluatedResourceObjectConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getPlusSet()) {
+        for (EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction : evaluatedConstructionTriple.getPlusSet()) {
             NextRecompute constructionNextRecompute = evaluatedConstruction.evaluate(task, result);
             nextRecompute = NextRecompute.update(constructionNextRecompute, nextRecompute);
         }
-        for (EvaluatedResourceObjectConstructionImpl<AH> evaluatedConstruction : evaluatedConstructionTriple.getMinusSet()) {
+        for (EvaluatedResourceObjectConstructionImpl<AH, ?> evaluatedConstruction : evaluatedConstructionTriple.getMinusSet()) {
             NextRecompute constructionNextRecompute = evaluatedConstruction.evaluate(task, result);
             nextRecompute = NextRecompute.update(constructionNextRecompute, nextRecompute);
         }
@@ -250,62 +209,36 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         return nextRecompute;
     }
 
-    public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attributeName) {
-        if (refinedObjectClassDefinition == null) {
-            throw new IllegalStateException(
-                    "Construction " + this + " was not evaluated:\n" + this.debugDump());
-        }
-        RefinedAttributeDefinition<T> attrDef = refinedObjectClassDefinition
-                .findAttributeDefinition(attributeName);
-        if (attrDef != null) {
-            return attrDef;
-        }
-        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
-            attrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(attributeName);
-            if (attrDef != null) {
-                return attrDef;
-            }
-        }
-        return null;
-    }
-
-    public PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
-        if (associationContainerDefinition == null) {
-            PrismObjectDefinition<ShadowType> shadowDefinition = beans.prismContext.getSchemaRegistry()
-                    .findObjectDefinitionByCompileTimeClass(ShadowType.class);
-            associationContainerDefinition = shadowDefinition
-                    .findContainerDefinition(ShadowType.F_ASSOCIATION);
-        }
-        return associationContainerDefinition;
-    }
-
     /**
      * @return null if mapping is not applicable
      */
     <V extends PrismValue, D extends ItemDefinition<?>> MappingBuilder<V, D> initializeMappingBuilder(
             MappingBuilder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
-            RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result) throws SchemaException {
+            RefinedObjectClassDefinition assocTargetObjectClassDefinition) throws SchemaException {
 
         if (!builder.isApplicableToChannel(lensContext.getChannel())) {
+            LOGGER.trace("Skipping outbound mapping for {} because the channel does not match", implicitTargetPath);
             return null;
         }
+
+        ObjectDeltaObject<AH> focusOdoAbsolute = getFocusOdoAbsolute();
 
         builder = builder.mappingQName(mappingQName)
                 .mappingKind(MappingKindType.CONSTRUCTION)
                 .implicitTargetPath(implicitTargetPath)
-                .sourceContext(getFocusOdoAbsolute())
+                .sourceContext(focusOdoAbsolute)
                 .defaultTargetDefinition(outputDefinition)
                 .defaultTargetPath(implicitTargetPath)
-                .originType(getOriginType())
-                .originObject(getSource())
+                .originType(originType)
+                .originObject(source)
                 .refinedObjectClassDefinition(getRefinedObjectClassDefinition())
-                .rootNode(getFocusOdoAbsolute())
-                .addVariableDefinition(ExpressionConstants.VAR_USER, getFocusOdoAbsolute())
-                .addVariableDefinition(ExpressionConstants.VAR_FOCUS, getFocusOdoAbsolute())
+                .rootNode(focusOdoAbsolute)
+                .addVariableDefinition(ExpressionConstants.VAR_USER, focusOdoAbsolute)
+                .addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdoAbsolute)
                 .addAliasRegistration(ExpressionConstants.VAR_USER, null)
                 .addAliasRegistration(ExpressionConstants.VAR_FOCUS, null)
-                .addVariableDefinition(ExpressionConstants.VAR_SOURCE, getSource(), ObjectType.class)
-                .addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, getSource(), ObjectType.class)
+                .addVariableDefinition(ExpressionConstants.VAR_SOURCE, source, ObjectType.class)
+                .addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, source, ObjectType.class)
                 .addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT,
                         assignmentPath != null ? assignmentPath.getConstructionThisObject() : null, ObjectType.class);
 
@@ -322,39 +255,20 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
         // to nonsense values in case user is not present
         // (e.g. in old values in ADD situations and new values in DELETE
         // situations).
-        if (getFocusOdoAbsolute().getOldObject() == null) {
+        if (focusOdoAbsolute.getOldObject() == null) {
             builder = builder.conditionMaskOld(false);
         }
-        if (getFocusOdoAbsolute().getNewObject() == null) {
+        if (focusOdoAbsolute.getNewObject() == null) {
             builder = builder.conditionMaskNew(false);
         }
 
+        builder.now(now);
+
         return builder;
     }
+    //endregion
 
-    /**
-     * @return null if mapping is not applicable
-     */
-    private <V extends PrismValue, D extends ItemDefinition<?>> MappingImpl<V, D> evaluateMapping(
-            MappingBuilder<V, D> builder, ItemPath implicitTargetPath, QName mappingQName, D outputDefinition,
-            RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result)
-            throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, CommunicationException {
-
-        builder = initializeMappingBuilder(builder, implicitTargetPath, mappingQName, outputDefinition, assocTargetObjectClassDefinition, task, result);
-        if (builder == null) {
-            return null;
-        }
-
-        MappingImpl<V, D> mapping = builder.build();
-        beans.mappingEvaluator.evaluateMapping(mapping, getLensContext(), null, task, result);
-
-        return mapping;
-    }
-
-    protected void loadFullShadow(LensProjectionContext projectionContext, String desc, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        beans.contextLoader.loadFullShadow(getLensContext(), projectionContext, desc, task, result);
-    }
-
+    //region Trivia
     @Override
     public int hashCode() {
         return super.hashCode();
@@ -370,14 +284,6 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
             return false;
         ResourceObjectConstruction<?, ?> that = (ResourceObjectConstruction<?, ?>) o;
         return Objects.equals(resolvedResource, that.resolvedResource);
-    }
-
-    /**
-     * Should this construction be ignored e.g. because the resource couldn't be resolved?
-     * The construction was already evaluated.
-     */
-    public boolean isIgnored() {
-        return getResource() == null;
     }
 
     @Override
@@ -473,12 +379,134 @@ public abstract class ResourceObjectConstruction<AH extends AssignmentHolderType
     public XMLGregorianCalendar getNow() {
         return now;
     }
+    //endregion
+
+    //region Resource management
 
     public ResolvedConstructionResource getResolvedResource() {
         return resolvedResource;
     }
 
-    public void setResolvedResource(ResolvedConstructionResource resolvedResource) {
+    protected void setResolvedResource(ResolvedConstructionResource resolvedResource) {
         this.resolvedResource = resolvedResource;
     }
+
+    protected abstract void resolveResource(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException;
+
+    /**
+     * Should this construction be ignored e.g. because the resource couldn't be resolved?
+     * The construction was already evaluated.
+     */
+    public boolean isIgnored() {
+        return !hasResource();
+    }
+
+    private boolean hasResource() {
+        return getResource() != null;
+    }
+
+    public ResourceType getResource() {
+        if (resolvedResource != null) {
+            return resolvedResource.resource;
+        } else {
+            throw new IllegalStateException("Couldn't access resolved resource reference as construction "
+                    + "was not evaluated/initialized yet; in " + source);
+        }
+    }
+
+    public String getResourceOid() {
+        ResourceType resource = getResource();
+        if (resource != null) {
+            return resource.getOid();
+        } else {
+            throw new IllegalStateException("Couldn't obtain resource OID because the resource does not exist in " + getSource());
+        }
+    }
+    //endregion
+
+    //region Definitions management
+
+    protected abstract void initializeDefinitions() throws SchemaException;
+
+    public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
+        return refinedObjectClassDefinition;
+    }
+
+    protected void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
+        this.refinedObjectClassDefinition = refinedObjectClassDefinition;
+    }
+
+    public List<RefinedObjectClassDefinition> getAuxiliaryObjectClassDefinitions() {
+        return auxiliaryObjectClassDefinitions;
+    }
+
+    protected void addAuxiliaryObjectClassDefinition(RefinedObjectClassDefinition auxiliaryObjectClassDefinition) {
+        auxiliaryObjectClassDefinitions.add(auxiliaryObjectClassDefinition);
+    }
+
+    public ShadowKindType getKind() {
+        if (refinedObjectClassDefinition == null) {
+            throw new IllegalStateException("Kind can only be fetched from evaluated Construction");
+        }
+        return refinedObjectClassDefinition.getKind();
+    }
+
+    public String getIntent() {
+        if (refinedObjectClassDefinition == null) {
+            throw new IllegalStateException("Intent can only be fetched from evaluated Construction");
+        }
+        return refinedObjectClassDefinition.getIntent();
+    }
+
+    public <T> RefinedAttributeDefinition<T> findAttributeDefinition(QName attributeName) {
+        if (refinedObjectClassDefinition == null) {
+            throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
+        }
+        RefinedAttributeDefinition<T> attrDef = refinedObjectClassDefinition.findAttributeDefinition(attributeName);
+        if (attrDef != null) {
+            return attrDef;
+        }
+        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+            RefinedAttributeDefinition<T> auxAttrDef = auxiliaryObjectClassDefinition.findAttributeDefinition(attributeName);
+            if (auxAttrDef != null) {
+                return auxAttrDef;
+            }
+        }
+        return null;
+    }
+
+    public RefinedAssociationDefinition findAssociationDefinition(QName associationName) {
+        if (refinedObjectClassDefinition == null) {
+            throw new IllegalStateException("Construction " + this + " was not evaluated:\n" + this.debugDump());
+        }
+        RefinedAssociationDefinition assocDef = refinedObjectClassDefinition.findAssociationDefinition(associationName);
+        if (assocDef != null) {
+            return assocDef;
+        }
+        for (RefinedObjectClassDefinition auxiliaryObjectClassDefinition : auxiliaryObjectClassDefinitions) {
+            RefinedAssociationDefinition auxAssocDef = auxiliaryObjectClassDefinition.findAssociationDefinition(associationName);
+            if (auxAssocDef != null) {
+                return auxAssocDef;
+            }
+        }
+        return null;
+    }
+
+    public PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
+        if (associationContainerDefinition == null) {
+            PrismObjectDefinition<ShadowType> shadowDefinition = beans.prismContext.getSchemaRegistry()
+                    .findObjectDefinitionByCompileTimeClass(ShadowType.class);
+            associationContainerDefinition = shadowDefinition.findContainerDefinition(ShadowType.F_ASSOCIATION);
+        }
+        return associationContainerDefinition;
+    }
+    //endregion
+
+    //region Other
+    protected void loadFullShadow(LensProjectionContext projectionContext, String desc, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException,
+            ConfigurationException, ExpressionEvaluationException {
+        beans.contextLoader.loadFullShadow(getLensContext(), projectionContext, desc, task, result);
+    }
+    //endregion
 }

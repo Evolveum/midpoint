@@ -22,10 +22,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Special construction subclass that represents resource object constructions in the phase
- * of resource-defined outbound mappings.
+ * Special construction subclass that represents resource object constructions as defined in the schemaHandling
+ * section of the resource definition.
  *
- * TODO decide what to do with this class
+ * The main difference from {@link AssignedResourceObjectConstruction} is that here we have the projection context,
+ * so resource and definitions resolution is much easier.
+ *
+ * TODO consider better name
  *
  * @author Radovan Semancik
  */
@@ -52,7 +55,7 @@ public class PlainResourceObjectConstruction<AH extends AssignmentHolderType>
     protected void initializeDefinitions() throws SchemaException {
         RefinedObjectClassDefinition rOcDef = projectionContext.getStructuralObjectClassDefinition();
         if (rOcDef == null) {
-            LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}", projectionContext.getResourceShadowDiscriminator(), getLensContext().debugDump(1));
+            LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}", projectionContext.getResourceShadowDiscriminator(), lensContext.debugDump(1));
             throw new IllegalStateException("Definition for " + projectionContext.getResourceShadowDiscriminator() + " not found in the context, but it should be there");
         }
         setRefinedObjectClassDefinition(rOcDef);

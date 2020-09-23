@@ -70,7 +70,7 @@ public class OutboundProcessor {
         outboundConstruction.setFocusOdoAbsolute(focusOdoAbsolute);
         NextRecompute nextRecompute = outboundConstruction.evaluate(task, result);
 
-        projCtx.setOutboundConstruction(outboundConstruction);
+        projCtx.setEvaluatedPlainConstruction(outboundConstruction);
         if (nextRecompute != null) {
             nextRecompute.createTrigger(context.getFocusContext());
         }

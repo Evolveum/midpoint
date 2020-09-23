@@ -209,7 +209,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
         DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
         assertEquals(1, evaluatedConstructionTriple.size());
-        EvaluatedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
+        EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
         assertEquals(1, evaluatedConstruction.getAttributeMappings().size());
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping =
                 (MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) evaluatedConstruction.getAttributeMappings().iterator().next();
@@ -273,7 +273,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
         DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
         assertEquals(1, evaluatedConstructionTriple.size());
-        EvaluatedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
+        EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
         assertEquals(1, evaluatedConstruction.getAttributeMappings().size());
         PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping =
                 (PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>>)

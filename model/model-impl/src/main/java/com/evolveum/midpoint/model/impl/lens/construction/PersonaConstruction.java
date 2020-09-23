@@ -6,12 +6,16 @@
  */
 package com.evolveum.midpoint.model.impl.lens.construction;
 
+import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentPathImpl;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.PersonaConstructionType;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Collections;
+import java.util.Objects;
 
 /**
  * @author semancik
@@ -21,6 +25,16 @@ public class PersonaConstruction<AH extends AssignmentHolderType>
 
     PersonaConstruction(PersonaConstructionBuilder<AH> builder) {
         super(builder);
+    }
+
+    @Override
+    public @NotNull PersonaConstructionType getConstructionBean() {
+        return Objects.requireNonNull(constructionBean);
+    }
+
+    @Override
+    public @NotNull AssignmentPathImpl getAssignmentPath() {
+        return Objects.requireNonNull(assignmentPath);
     }
 
     public DeltaSetTriple<EvaluatedPersonaConstructionImpl<AH>> getEvaluatedConstructionTriple() {

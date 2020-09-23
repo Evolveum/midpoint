@@ -12,7 +12,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 /**
  * Builder for resource object constructions.
  */
-public abstract class ResourceObjectConstructionBuilder<AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH>, RT extends ResourceObjectConstructionBuilder<AH, EC, RT>>
+public abstract class ResourceObjectConstructionBuilder<AH extends AssignmentHolderType, EC extends EvaluatedResourceObjectConstructionImpl<AH, ?>, RT extends ResourceObjectConstructionBuilder<AH, EC, RT>>
         extends AbstractConstructionBuilder<AH, ConstructionType, EC, RT> {
 
     ResolvedConstructionResource resolvedResource;

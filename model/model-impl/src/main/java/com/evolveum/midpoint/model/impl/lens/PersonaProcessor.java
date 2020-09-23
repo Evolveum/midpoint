@@ -152,7 +152,7 @@ public class PersonaProcessor {
         };
 
         DeltaMapTriple<PersonaKey, EvaluatedConstructionPack<EvaluatedPersonaConstructionImpl<F>>> constructionMapTriple =
-            constructionProcessor.processConstructions(evaluatedAssignmentTriple,
+            constructionProcessor.distributeConstructions(evaluatedAssignmentTriple,
                     EvaluatedAssignmentImpl::getPersonaConstructionTriple,
                     evaluatedConstruction -> new PersonaKey(evaluatedConstruction.getConstruction().getConstructionBean()),
                     consumer);
