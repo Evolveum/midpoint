@@ -36,4 +36,6 @@ public class TaskConstants {
     public static final String START_LOCAL_SCHEDULER_REST_PATH = "/scheduler/start";
     public static final String STOP_LOCAL_TASK_REST_PATH_PREFIX = "/tasks/";
     public static final String STOP_LOCAL_TASK_REST_PATH_SUFFIX = "/stop";
+
+    public static final String GET_TASK_REST_PATH = "/tasks/";
 }

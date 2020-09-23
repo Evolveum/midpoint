@@ -163,7 +163,7 @@ public class DOMUtil {
                 documentBuilderFactory.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
                 documentBuilderFactory.setXIncludeAware(false);
                 documentBuilderFactory.setExpandEntityReferences(false);
-                LOGGER.info("Document builder factory for thread {} initialized in {} ms",
+                LOGGER.debug("Document builder factory for thread {} initialized in {} ms",
                         Thread.currentThread().getName(), System.currentTimeMillis() - ms);
                 return documentBuilderFactory.newDocumentBuilder();
             } catch (ParserConfigurationException e) {
