@@ -515,7 +515,7 @@ public abstract class AbstractLdapSynchronizationTest extends AbstractLdapTest {
     }
 
     @Test
-    public void test839DeleteSyncTask() throws Exception {
+    public void test849DeleteSyncTask() throws Exception {
         // GIVEN
         Task task = getTestTask();
         OperationResult result = task.getResult();

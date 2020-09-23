@@ -175,6 +175,12 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
             addLdapGroup(GROUP_UNDEAD_CN, GROUP_UNDEAD_DESCRIPTION);
             addLdapGroup(GROUP_EVIL_CN, GROUP_EVIL_DESCRIPTION);
         }
+
+        addAdditionalLdapEntries();
+    }
+
+    protected void addAdditionalLdapEntries() throws Exception {
+        // For use in subclasses.
     }
 
     @Test
@@ -1306,16 +1312,22 @@ public abstract class AbstractLdapConnTest extends AbstractLdapSynchronizationTe
         assertEquals("Unexpected search result: " + shadows, 1, shadows.size());
 
         PrismObject<ShadowType> shadow = shadows.get(0);
+        IntegrationTestTools.displayXml("Bilbo", shadow);
         assertAccountShadow(shadow, toAccountDn(ACCOUNT_BILBO_UID));
     }
 
     protected Entry createBilboEntry() throws LdapException, IOException {
         Entry entry = createAccountEntry(
                 ACCOUNT_BILBO_UID, ACCOUNT_BILBO_CN, ACCOUNT_BILBO_GIVENNAME, ACCOUNT_BILBO_SN);
-        entry.add(LDAP_ATTRIBUTE_ROOM_NUMBER, ROOM_NUMBER_INVISIBLE);
+        markInvisible(entry);
         addLdapEntry(entry);
         return entry;
     }
+
+    protected void markInvisible(Entry entry) throws LdapException {
+        entry.add(LDAP_ATTRIBUTE_ROOM_NUMBER, ROOM_NUMBER_INVISIBLE);
+    }
+
 
     protected SearchResultList<PrismObject<ShadowType>> searchBilbo() throws Exception {
         Task task = getTestTask();
