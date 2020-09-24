@@ -934,12 +934,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-            QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers) throws SchemaException {
-        assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentfiers, false);
+            QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers) throws SchemaException {
+        assertShadowCommon(shadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentifiers, false);
     }
 
     protected void assertShadowCommon(PrismObject<ShadowType> shadow, String oid, String username, ResourceType resourceType,
-            QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentfiers, boolean useMatchingRuleForShadowName) throws SchemaException {
+            QName objectClass, final MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers, boolean useMatchingRuleForShadowName) throws SchemaException {
         new PrismObjectAsserter<>((PrismObject<? extends ObjectType>) shadow)
                 .assertSanity();
         if (oid != null) {
@@ -998,7 +998,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
             if (nameMatchingRule == null) {
                 assertEquals("Unexpected primary identifier in shadow for " + username, username, idProp.getRealValue());
             } else {
-                if (requireNormalizedIdentfiers) {
+                if (requireNormalizedIdentifiers) {
                     assertEquals("Unexpected primary identifier in shadow for " + username, nameMatchingRule.normalize(username), idProp.getRealValue());
                 } else {
                     PrismAsserts.assertEquals("Unexpected primary identifier in shadow for " + username, nameMatchingRule, username, idProp.getRealValue());
@@ -1007,7 +1007,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         } else {
             boolean found = false;
             String expected = username;
-            if (requireNormalizedIdentfiers && nameMatchingRule != null) {
+            if (requireNormalizedIdentifiers && nameMatchingRule != null) {
                 expected = nameMatchingRule.normalize(username);
             }
             List<String> wasValues = new ArrayList<>();
@@ -1021,7 +1021,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
                         break;
                     }
                 } else {
-                    if (requireNormalizedIdentfiers) {
+                    if (requireNormalizedIdentifiers) {
                         if (expected.equals(idProp.getRealValue())) {
                             found = true;
                             break;
@@ -1088,10 +1088,15 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
     protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
             QName objectClass, MatchingRule<String> nameMatchingRule) throws SchemaException {
-        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, true);
+        assertShadowRepo(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, true, false);
+    }
+
+    protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
+            QName objectClass, MatchingRule<String> nameMatchingRule, boolean requireNormalizedIdentifiers,
+            boolean useMatchingRuleForShadowName) throws SchemaException {
+        assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule, requireNormalizedIdentifiers, useMatchingRuleForShadowName);
         PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
         Collection<Item<?, ?>> attributes = attributesContainer.getValue().getItems();
-//        Collection secIdentifiers = ShadowUtil.getSecondaryIdentifiers(accountShadow);
         RefinedResourceSchema refinedSchema = null;
         try {
             refinedSchema = RefinedResourceSchemaImpl.getRefinedSchema(resourceType);
@@ -1100,9 +1105,6 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         }
         ObjectClassComplexTypeDefinition objClassDef = refinedSchema.getRefinedDefinition(objectClass);
         Collection secIdentifiers = objClassDef.getSecondaryIdentifiers();
-        if (secIdentifiers == null) {
-            AssertJUnit.fail("No secondary identifiers in repo shadow");
-        }
         // repo shadow should contains all secondary identifiers + ICF_UID
         assertRepoShadowAttributes(attributes, secIdentifiers.size() + 1);
     }

@@ -1426,6 +1426,7 @@ public class ContextLoader implements ProjectorProcessor {
         }
         OperationResult result = parentResult.subresult(CLASS_DOT + "loadFullShadow")
                 .setMinor()
+                .addParam("reason", reason)
                 .build();
         FullShadowLoadedTraceType trace;
         if (result.isTraced()) {
@@ -1437,6 +1438,7 @@ public class ContextLoader implements ProjectorProcessor {
                 trace.setResourceName(name != null ? name : PolyStringType.fromOrig(projCtx.getResourceOid()));
             }
             trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+            trace.setReason(reason);
             result.addTrace(trace);
         } else {
             trace = null;
