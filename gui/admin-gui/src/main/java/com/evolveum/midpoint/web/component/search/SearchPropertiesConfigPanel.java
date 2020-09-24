@@ -67,6 +67,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     private static final String ID_ADD_BUTTON = "addButton";
 
     private SelectableListDataProvider<SelectableBean<ValueSearchFilterItem>, ValueSearchFilterItem> provider;
+    private Property selectedPropertyChoice = null;
 
     public SearchPropertiesConfigPanel(String id, IModel<BasicSearchFilter<O>> searchModel, Class<O> type) {
         super(id, searchModel, type);
@@ -81,7 +82,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         configPanel.add(propertyConfigContainer);
 
         DropDownChoicePanel<Property> propertyChoicePanel = new DropDownChoicePanel<Property>(ID_PROPERTY_CHOICE,
-                Model.of(getDefaultPropertyChoice()), getAvailablePropertiesListModel(), new IChoiceRenderer<Property>() {
+                getDefaultPropertyChoiceModel(), getAvailablePropertiesListModel(), new IChoiceRenderer<Property>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -125,12 +126,25 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         initTable(configPanel);
     }
 
-    private Property getDefaultPropertyChoice() {
-        List<Property> availablePropertiesList = getAvailablePropertiesListModel().getObject();
-        if (CollectionUtils.isNotEmpty(availablePropertiesList)) {
-            return availablePropertiesList.get(0);
-        }
-        return null;
+    private IModel<Property> getDefaultPropertyChoiceModel() {
+        return new IModel<Property>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Property getObject() {
+                if (selectedPropertyChoice == null) {
+                    List<Property> availablePropertiesList = getAvailablePropertiesListModel().getObject();
+                    if (CollectionUtils.isNotEmpty(availablePropertiesList)) {
+                        selectedPropertyChoice = availablePropertiesList.get(0);
+                    }
+                }
+                return selectedPropertyChoice;
+            }
+
+            public void setObject(Property property){
+                selectedPropertyChoice = property;
+            }
+        };
     }
 
     private void initTable(WebMarkupContainer configPanel) {
@@ -388,7 +402,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     }
 
     private void resetPropertyChoicePanelModel() {
-        getPropertyChoicePanel().getModel().setObject(getDefaultPropertyChoice());
+        getPropertyChoicePanel().getModel().setObject(null);
     }
 
     private ValueSearchFilterItem createDefaultValueFilter(Property property) {
