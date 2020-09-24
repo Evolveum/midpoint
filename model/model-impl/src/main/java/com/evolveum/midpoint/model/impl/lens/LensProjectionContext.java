@@ -21,7 +21,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.*;
 import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -114,6 +113,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     /**
      * True if the account should be part of the synchronization. E.g. outbound expression should be applied to it.
+     * TODO It looks like this is currently not used. Consider removing.
      */
     private boolean isActive;
 
@@ -1014,13 +1014,22 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Override
     public void cleanup() {
+        checkIfShouldArchive();
+
+        // We will clean up this projection context fully only if there's a chance we will touch it again.
+        if (!completed) {
+            synchronizationPolicyDecision = null;
+            isAssigned = null;
+            isActive = false;
+        }
+
+        // However, selected items are still cleaned up, in order to preserve existing behavior.
+        // This might be important e.g. for inbound mappings that take previous deltas into account.
         secondaryDelta = null;
-        resetSynchronizationPolicyDecision();
-//        isLegal = null;
-//        isLegalOld = null;
-        isAssigned = null;
-//        isAssignedOld = false;  // ??? [med]
-        isActive = false;
+
+//      isLegal = null;
+//      isLegalOld = null;
+//      isAssignedOld = false;  // ??? [med]
     }
 
     @Override
@@ -1047,13 +1056,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 //        accountPasswordPolicy = null;
 //    }
 
-    protected void resetSynchronizationPolicyDecision() {
+    protected void checkIfShouldArchive() {
         if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE || synchronizationPolicyDecision == SynchronizationPolicyDecision.UNLINK) {
             toBeArchived = true;
         } else if (synchronizationPolicyDecision != null) {
             toBeArchived = false;
         }
-        synchronizationPolicyDecision = null;
     }
 
     @Override
@@ -1342,6 +1350,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         LensProjectionContextType lensProjectionContextType = lensProjectionContextTypeContainer.createNewValue().asContainerable();
         super.storeIntoLensElementContextType(lensProjectionContextType, exportType);
         lensProjectionContextType.setWave(wave);
+        lensProjectionContextType.setCompleted(completed);
         lensProjectionContextType.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
                 resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
         lensProjectionContextType.setFullShadow(fullShadow);
@@ -1390,6 +1399,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         projectionContext.fixProvisioningTypeInDelta(projectionContext.secondaryDelta, object, task, result);
 
         projectionContext.wave = projectionContextType.getWave() != null ? projectionContextType.getWave() : 0;
+        projectionContext.completed = BooleanUtils.isTrue(projectionContextType.isCompleted());
         projectionContext.fullShadow = projectionContextType.isFullShadow() != null ? projectionContextType.isFullShadow() : false;
         projectionContext.isAssigned = projectionContextType.isIsAssigned() != null ? projectionContextType.isIsAssigned() : false;
         projectionContext.isAssignedOld = projectionContextType.isIsAssignedOld() != null ? projectionContextType.isIsAssignedOld() : false;
@@ -1524,6 +1534,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     boolean doesPrimaryDeltaApply() {
         return true; // TODO is this OK?
+    }
+
+    /**
+     * @return True if the projection is "current" i.e. it was not completed and its wave is
+     * either not yet determined or equal to the current projection wave.
+     */
+    @Experimental
+    public boolean isCurrentForProjection() {
+        if (completed) {
+            return false;
+        }
+        if (wave != -1 && wave != getLensContext().getProjectionWave()) {
+            return false;
+        }
+        return true;
     }
 
     public boolean isCompleted() {

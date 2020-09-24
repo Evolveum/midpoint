@@ -27,6 +27,8 @@ import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.api.PreconditionViolationException;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.mutable.MutableInt;
 import org.jetbrains.annotations.NotNull;
@@ -6646,18 +6648,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 
     public interface TracedFunctionCall<X> {
-        X execute() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
+        X execute() throws CommonException, PreconditionViolationException;
     }
 
     public interface TracedProcedureCall {
-        void execute() throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException,
-                ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException;
+        void execute() throws CommonException, PreconditionViolationException;
     }
 
-    protected <X> X traced(TracedFunctionCall<X> tracedCall) throws CommunicationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, PolicyViolationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+    protected <X> X traced(TracedFunctionCall<X> tracedCall) throws CommonException, PreconditionViolationException {
         setGlobalTracingOverride(createModelLoggingTracingProfile());
         try {
             return tracedCall.execute();
@@ -6666,9 +6664,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         }
     }
 
-    protected void traced(TracedProcedureCall tracedCall) throws CommunicationException, ObjectNotFoundException,
-            ObjectAlreadyExistsException, PolicyViolationException, SchemaException, SecurityViolationException,
-            ConfigurationException, ExpressionEvaluationException {
+    protected void traced(TracedProcedureCall tracedCall) throws CommonException, PreconditionViolationException {
         setGlobalTracingOverride(createModelLoggingTracingProfile());
         try {
             tracedCall.execute();

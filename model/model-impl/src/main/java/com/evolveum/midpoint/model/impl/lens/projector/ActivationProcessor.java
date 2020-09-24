@@ -123,6 +123,13 @@ public class ActivationProcessor implements ProjectorProcessor {
                 .addParam("projection", projectionContext.getHumanReadableName())
                 .build();
         try {
+
+            if (!projectionContext.isCurrentForProjection()) {
+                LOGGER.trace("Projection {} is not current, skipping activation processing", projectionContext.getHumanReadableName());
+                result.recordNotApplicable();
+                return;
+            }
+
             LensFocusContext<O> focusContext = context.getFocusContext();
             if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 

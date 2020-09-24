@@ -347,6 +347,17 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="completed" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Was the processing of this projection (in its execution wave) complete?
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="resourceShadowDiscriminator" type="c:ShadowDiscriminatorType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>

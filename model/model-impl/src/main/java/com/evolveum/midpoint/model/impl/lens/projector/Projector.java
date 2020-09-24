@@ -261,6 +261,13 @@ public class Projector {
         if (projectionContext.getWave() != context.getProjectionWave()) {
             LOGGER.trace("Skipping projection of {} because its wave ({}) is different from current projection wave ({})",
                     projectionContext, projectionContext.getWave(), context.getProjectionWave());
+            parentResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Wave of the projection context differs from current projector wave");
+            return;
+        }
+
+        if (projectionContext.isCompleted()) {
+            LOGGER.trace("Skipping projection of {} because it's already completed", projectionContext);
+            parentResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Projection context is already completed");
             return;
         }
 
@@ -286,7 +293,6 @@ public class Projector {
                 result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a tombstone");
                 return;
             }
-
 
             LOGGER.trace("WAVE {} PROJECTION {}", context.getProjectionWave(), projectionDesc);
 

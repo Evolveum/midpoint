@@ -13,6 +13,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -43,6 +45,8 @@ import org.jetbrains.annotations.Nullable;
  */
 public abstract class EvaluatedResourceObjectConstructionImpl<AH extends AssignmentHolderType, ROC extends ResourceObjectConstruction<AH, ?>>
         implements EvaluatedAbstractConstruction<AH>, EvaluatedResourceObjectConstruction {
+
+    private static final Trace LOGGER = TraceManager.getTrace(EvaluatedResourceObjectConstructionImpl.class);
 
     /**
      * Parent construction to which this EvaluatedConstruction belongs.
@@ -219,9 +223,15 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
             throw new IllegalStateException("Attempting to evaluate an EvaluatedConstruction twice: " + this);
         }
         initializeProjectionContext();
-        evaluation = new ConstructionEvaluation<>(this, task, result);
-        evaluation.evaluate();
-        return evaluation.getNextRecompute();
+        if (projectionContext != null && !projectionContext.isCurrentForProjection()) {
+            LOGGER.trace("Skipping evaluation of construction for {} because this projection context is not current"
+                            + " (already completed or wrong wave)", projectionContext.getHumanReadableName());
+            return null;
+        } else {
+            evaluation = new ConstructionEvaluation<>(this, task, result);
+            evaluation.evaluate();
+            return evaluation.getNextRecompute();
+        }
     }
 
     /**

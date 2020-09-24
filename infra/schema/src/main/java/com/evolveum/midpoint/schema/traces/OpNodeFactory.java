@@ -71,6 +71,8 @@ public class OpNodeFactory {
                     return new FocusRepositoryLoadOpNode(prismContext, result, info, parent, traceInfo);
                 case FULL_PROJECTION_LOAD:
                     return new FullProjectionLoadOpNode(prismContext, result, info, parent, traceInfo);
+                case REPOSITORY_CACHE:
+                    return new RepositoryCacheOpNode(prismContext, result, info, parent, traceInfo);
             }
         }
         return new OpNode(prismContext, result, info, parent, traceInfo);

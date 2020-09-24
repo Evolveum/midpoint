@@ -1557,6 +1557,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             if (!projectionContext.isCanProject()) {
                 continue;
             }
+            if (projectionContext.isCompleted()) {
+                continue;
+            }
             if (projectionContext.isTombstone()) {
                 continue;
             }

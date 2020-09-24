@@ -19,7 +19,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
 /**
  * Evaluation of an attribute mapping in resource object construction (assigned/plain).
  */
-class AttributeEvaluation<AH extends AssignmentHolderType> extends ItemEvaluation<AH, PrismPropertyValue<?>, PrismPropertyDefinition<?>, RefinedAttributeDefinition<?>> {
+class AttributeEvaluation<AH extends AssignmentHolderType>
+        extends ItemEvaluation<AH, PrismPropertyValue<?>, PrismPropertyDefinition<?>, RefinedAttributeDefinition<?>> {
 
     AttributeEvaluation(ConstructionEvaluation<AH, ?> constructionEvaluation,
             RefinedAttributeDefinition<?> refinedAttributeDefinition, MappingType mappingBean,
