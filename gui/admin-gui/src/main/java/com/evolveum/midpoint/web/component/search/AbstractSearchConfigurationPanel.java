@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.component.search;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
@@ -32,11 +34,11 @@ public abstract class AbstractSearchConfigurationPanel<F extends SearchFilter, O
 //    private static final String ID_SAVE_FILTER_BUTTON = "saveFilterButton";
     private static final String ID_CANCEL_BUTTON = "cancelButton";
 
-    private Class<O> type;
+    private LoadableModel<Class<O>> typeModel;
 
-    public AbstractSearchConfigurationPanel(String id, IModel<F> searchModel, Class<O> type) {
+    public AbstractSearchConfigurationPanel(String id, IModel<F> searchModel, LoadableModel<Class<O>> typeModel) {
         super(id, searchModel);
-        this.type = type;
+        this.typeModel = typeModel;
     }
 
     @Override
@@ -114,6 +116,6 @@ public abstract class AbstractSearchConfigurationPanel<F extends SearchFilter, O
     }
 
     public Class<O> getType() {
-        return type;
+        return typeModel.getObject();
     }
 }
