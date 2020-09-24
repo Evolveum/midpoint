@@ -122,7 +122,7 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
         switchButton.setOutputMarkupId(true);
         switchButton.add(new VisibleBehaviour(() -> {
             ItemDefinition propertyDef = getPropertyItemDefinition();
-            return propertyDef == null || !propertyDef.getTypeClass().equals(boolean.class) && !Boolean.class.isAssignableFrom(propertyDef.getTypeClass());
+            return propertyDef == null || propertyDef.getTypeClass() != null && !boolean.class.equals(propertyDef.getTypeClass()) && !Boolean.class.isAssignableFrom(propertyDef.getTypeClass());
         }));
         switchButton.add(AttributeAppender.append("title", new LoadableModel<String>() {
             @Override
