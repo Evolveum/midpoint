@@ -79,12 +79,13 @@ public class OrgHierarchyPanel<T> extends Component<T> {
     }
 
     public OrgHierarchyPanel<T> expandOrg(String orgName) {
-        SelenideElement parentNode = getParentOrgNode(orgName);
-        SelenideElement node = parentNode.$x(".//div[@"+Schrodinger.DATA_S_ID+"='node']");
+        selectOrgInTree(orgName);
+        selectOrgInTree(orgName);
+        SelenideElement node = getParentElement().$(By.cssSelector(".tree-node.success"));
         SelenideElement expandButton = node.$x(".//a[@" + Schrodinger.DATA_S_ID + "='junction']");
         if (expandButton.has(Condition.cssClass("tree-junction-collapsed"))) {
-            expandButton.waitUntil(Condition.appear, MidPoint.TIMEOUT_DEFAULT_2_S).click();
-            expandButton.waitWhile(Condition.cssClass("tree-junction-collapsed"), MidPoint.TIMEOUT_DEFAULT_2_S);
+            expandButton.waitUntil(Condition.appear, MidPoint.TIMEOUT_MEDIUM_6_S).click();
+            expandButton.waitWhile(Condition.cssClass("tree-junction-collapsed"), MidPoint.TIMEOUT_MEDIUM_6_S);
         }
         return this;
     }
