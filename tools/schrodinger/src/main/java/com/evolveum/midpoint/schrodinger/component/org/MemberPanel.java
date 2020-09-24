@@ -54,6 +54,7 @@ public class MemberPanel<T> extends Component<T> {
         }
         $(Schrodinger.byElementAttributeValue("div", "title", title))
                 .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return new AssignmentHolderDetailsPage(){};
     }
 
