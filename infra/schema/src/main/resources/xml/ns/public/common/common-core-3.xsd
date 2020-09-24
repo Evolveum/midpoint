@@ -22215,6 +22215,13 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="closedCases" type="tns:CleanupPolicyType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <a:displayName>CleanupPoliciesType.closedCases</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="closedCertificationCampaigns" type="tns:CleanupPolicyType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:appinfo>
