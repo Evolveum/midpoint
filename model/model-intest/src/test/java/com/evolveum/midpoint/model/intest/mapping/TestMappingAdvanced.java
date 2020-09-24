@@ -80,8 +80,9 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
 
     private static final TestResource<RoleType> ROLE_RANGES = new TestResource<>(TEST_DIR, "role-ranges.xml", "d97c804b-28ea-404d-b075-ebb2bdd76c57");
 
-    private static final String USERS = "users";
-    private static final String TESTERS = "testers";
+    private static final String MP_USERS = "mp_users";
+    private static final String MP_TESTERS = "mp_testers";
+    private static final String VALID_GROUP = "validGroup";
 
     private static final String MAGNUS = "magnus";
     private static final String VLADIMIR = "vladimir";
@@ -102,11 +103,13 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         initDummyResource(RESOURCE_DUMMY_RANGES_DIRECT, initTask, initResult);
         initDummyResource(RESOURCE_DUMMY_RANGES_ROLE, initTask, initResult);
 
-        RESOURCE_DUMMY_RANGES_DIRECT.controller.addGroup(USERS);
-        RESOURCE_DUMMY_RANGES_DIRECT.controller.addGroup(TESTERS);
+        RESOURCE_DUMMY_RANGES_DIRECT.controller.addGroup(MP_USERS);
+        RESOURCE_DUMMY_RANGES_DIRECT.controller.addGroup(MP_TESTERS);
+        RESOURCE_DUMMY_RANGES_DIRECT.controller.addGroup(VALID_GROUP);
 
-        RESOURCE_DUMMY_RANGES_ROLE.controller.addGroup(USERS);
-        RESOURCE_DUMMY_RANGES_ROLE.controller.addGroup(TESTERS);
+        RESOURCE_DUMMY_RANGES_ROLE.controller.addGroup(MP_USERS);
+        RESOURCE_DUMMY_RANGES_ROLE.controller.addGroup(MP_TESTERS);
+        RESOURCE_DUMMY_RANGES_ROLE.controller.addGroup(VALID_GROUP);
 
         repoAdd(USER_MAGNUS, initResult);
         repoAdd(USER_VLADIMIR, initResult);
@@ -187,7 +190,6 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         executeChanges(delta, null, task, result);
 
         then();
-//        assertSuccess(task);
         assertDummyAccountByUsername(RESOURCE_DUMMY_ALPHA.name, "johann")
                 .display()
                 .assertFullName("J. S. Bach");
@@ -212,16 +214,22 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         assertDummyAccountByUsername(RESOURCE_DUMMY_RANGES_DIRECT.name, MAGNUS)
                 .display()
                 .assertAttribute(ATTR_ORGANIZATION, "mp_FIDE");
-        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_DIRECT.name, USERS)
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_DIRECT.name, MP_USERS)
                 .display()
                 .assertMembers(MAGNUS);
-//        assertDummyGroupByName(RESOURCE_DUMMY_RANGES.name, GROUP_TESTERS)
-//                .display()
-//                .assertMembers();
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_DIRECT.name, MP_TESTERS)
+                .display()
+                .assertMembers();
     }
 
     /**
      * Add some extra values to the account and use recompute. Ranges should throw (some of) them out.
+     *
+     * Extra values:
+     * - attribute/organization: mp_garbage (should be thrown out)
+     * - attribute/organization: valid (should be kept as it does not belong to mapping range)
+     * - association/group: mp_testers (should be thrown out)
+     * - association/group: validGroup (should be kept)
      */
     @Test
     public void test310GiveMagnusExtraValuesAndRecompute() throws Exception {
@@ -233,8 +241,11 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         magnus.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
         magnus.addAttributeValue(ATTR_ORGANIZATION, "valid");
 
-        DummyGroup testers = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getGroupByName(TESTERS);
+        DummyGroup testers = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getGroupByName(MP_TESTERS);
         testers.addMember(MAGNUS);
+
+        DummyGroup validGroup = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getGroupByName(VALID_GROUP);
+        validGroup.addMember(MAGNUS);
 
         when();
         traced(() -> recomputeUser(USER_MAGNUS.oid, task, result));
@@ -244,16 +255,25 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         assertDummyAccountByUsername(RESOURCE_DUMMY_RANGES_DIRECT.name, MAGNUS)
                 .display()
                 .assertAttribute(ATTR_ORGANIZATION, "mp_FIDE", "valid");
-        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_DIRECT.name, USERS)
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_DIRECT.name, MP_USERS)
                 .display()
                 .assertMembers(MAGNUS);
-//        assertDummyGroupByName(RESOURCE_DUMMY_RANGES.name, GROUP_TESTERS)
-//                .display()
-//                .assertMembers();
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_DIRECT.name, VALID_GROUP)
+                .display()
+                .assertMembers(MAGNUS);
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_DIRECT.name, MP_TESTERS)
+                .display()
+                .assertMembers();
     }
 
     /**
      * Add some extra values to the account and simply modify magnus. Ranges should throw (some of) them out.
+     *
+     * Extra values:
+     * - attribute/organization: mp_garbage (should be thrown out)
+     * - attribute/organization: valid (should be kept as it does not belong to mapping range)
+     * - association/group: mp_testers (should be thrown out)
+     * - association/group: validGroup (should be kept)
      */
     @Test
     public void test320GiveMagnusExtraValuesAndModifyUser() throws Exception {
@@ -264,7 +284,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         DummyAccount magnus = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getAccountByUsername(MAGNUS);
         magnus.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
 
-        DummyGroup testers = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getGroupByName(TESTERS);
+        DummyGroup testers = RESOURCE_DUMMY_RANGES_DIRECT.controller.getDummyResource().getGroupByName(MP_TESTERS);
         testers.addMember(MAGNUS);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
@@ -280,12 +300,15 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         assertDummyAccountByUsername(RESOURCE_DUMMY_RANGES_DIRECT.name, MAGNUS)
                 .display()
                 .assertAttribute(ATTR_ORGANIZATION, "mp_FIDE", "valid");
-        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_DIRECT.name, USERS)
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_DIRECT.name, MP_USERS)
                 .display()
                 .assertMembers(MAGNUS);
-//        assertDummyGroupByName(RESOURCE_DUMMY_RANGES.name, GROUP_TESTERS)
-//                .display()
-//                .assertMembers();
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_DIRECT.name, VALID_GROUP)
+                .display()
+                .assertMembers(MAGNUS);
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_DIRECT.name, MP_TESTERS)
+                .display()
+                .assertMembers();
     }
 
     /**
@@ -307,16 +330,22 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         assertDummyAccountByUsername(RESOURCE_DUMMY_RANGES_ROLE.name, VLADIMIR)
                 .display()
                 .assertAttribute(ATTR_ORGANIZATION, "mp_FIDE");
-        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, USERS)
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, MP_USERS)
                 .display()
                 .assertMembers(VLADIMIR);
-//        assertDummyGroupByName(RESOURCE_DUMMY_RANGES.name, GROUP_TESTERS)
-//                .display()
-//                .assertMembers();
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, MP_TESTERS)
+                .display()
+                .assertMembers();
     }
 
     /**
      * Add some extra values to the account and use recompute. Ranges should throw (some of) them out.
+     *
+     * Extra values:
+     * - attribute/organization: mp_garbage (should be thrown out)
+     * - attribute/organization: valid (should be kept as it does not belong to mapping range)
+     * - association/group: mp_testers (should be thrown out)
+     * - association/group: validGroup (should be kept)
      */
     @Test
     public void test360GiveVladimirExtraValuesAndRecompute() throws Exception {
@@ -328,8 +357,11 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "valid");
 
-        DummyGroup testers = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getGroupByName(TESTERS);
+        DummyGroup testers = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getGroupByName(MP_TESTERS);
         testers.addMember(VLADIMIR);
+
+        DummyGroup validGroup = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getGroupByName(VALID_GROUP);
+        validGroup.addMember(VLADIMIR);
 
         when();
         traced(() -> recomputeUser(USER_VLADIMIR.oid, task, result));
@@ -339,16 +371,24 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         assertDummyAccountByUsername(RESOURCE_DUMMY_RANGES_ROLE.name, VLADIMIR)
                 .display()
                 .assertAttribute(ATTR_ORGANIZATION, "mp_FIDE", "valid");
-        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, USERS)
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, MP_USERS)
                 .display()
                 .assertMembers(VLADIMIR);
-//        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, GROUP_TESTERS)
-//                .display()
-//                .assertMembers();
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, VALID_GROUP)
+                .display()
+                .assertMembers(VLADIMIR);
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, MP_TESTERS)
+                .display()
+                .assertMembers();
     }
 
     /**
      * Add some extra values to the account and simply modify magnus. Ranges should throw (some of) them out.
+     *
+     * - attribute/organization: mp_garbage (should be thrown out)
+     * - attribute/organization: valid (should be kept as it does not belong to mapping range)
+     * - association/group: mp_testers (should be thrown out)
+     * - association/group: validGroup (should be kept)
      */
     @Test
     public void test370GiveVladimirExtraValuesAndModifyUser() throws Exception {
@@ -359,7 +399,7 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         DummyAccount vladimir = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getAccountByUsername(VLADIMIR);
         vladimir.addAttributeValue(ATTR_ORGANIZATION, "mp_garbage");
 
-        DummyGroup testers = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getGroupByName(TESTERS);
+        DummyGroup testers = RESOURCE_DUMMY_RANGES_ROLE.controller.getDummyResource().getGroupByName(MP_TESTERS);
         testers.addMember(VLADIMIR);
 
         ObjectDelta<UserType> delta = deltaFor(UserType.class)
@@ -375,12 +415,15 @@ public class TestMappingAdvanced extends AbstractEmptyModelIntegrationTest {
         assertDummyAccountByUsername(RESOURCE_DUMMY_RANGES_ROLE.name, VLADIMIR)
                 .display()
                 .assertAttribute(ATTR_ORGANIZATION, "mp_FIDE", "valid");
-        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, USERS)
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, MP_USERS)
                 .display()
                 .assertMembers(VLADIMIR);
-//        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, GROUP_TESTERS)
-//                .display()
-//                .assertMembers();
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, VALID_GROUP)
+                .display()
+                .assertMembers(VLADIMIR);
+        assertDummyGroupByName(RESOURCE_DUMMY_RANGES_ROLE.name, MP_TESTERS)
+                .display()
+                .assertMembers();
     }
 
     private AssignmentType getAssignment(File file) throws IOException, SchemaException {

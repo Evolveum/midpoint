@@ -50,7 +50,7 @@
                             <filter>
                                 <q:equal>
                                     <q:path>attributes/name</q:path>
-                                    <q:value>users</q:value>
+                                    <q:value>mp_users</q:value>
                                 </q:equal>
                             </filter>
                             <searchStrategy>onResourceIfNeeded</searchStrategy>
@@ -61,9 +61,10 @@
                             <condition>
                                 <script>
                                     <code>
-                                        log.info('checking mapping range for {}', input)
-                                        println('checking mapping range for ' + input)
-                                        true
+                                        name = input?.shadowRef?.targetName
+                                        log.info('checking mapping range for {}: {}', name, input)
+                                        println("checking mapping range for $name: $input")
+                                        basic.stringify(name)?.startsWith('mp_')
                                     </code>
                                 </script>
                             </condition>

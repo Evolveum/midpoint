@@ -56,7 +56,14 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
     /**
      * Name of the attribute or association.
      */
-    @NotNull private final ItemName itemName;
+    @NotNull final ItemName itemName;
+
+    /**
+     * Path to the attribute or association.
+     * We know that for the association the path is imprecise: association/name.
+     * But the mapping will need to live with it.
+     */
+    @NotNull final ItemPath itemPath;
 
     /**
      * Refined definition of attribute/association.
@@ -88,12 +95,15 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
      */
     private MappingImpl<V, D> evaluatedMapping;
 
-    ItemEvaluation(ConstructionEvaluation<AH, ?> constructionEvaluation, @NotNull ItemName itemName, @NotNull RD itemRefinedDefinition,
+    ItemEvaluation(ConstructionEvaluation<AH, ?> constructionEvaluation, @NotNull ItemName itemName,
+            @NotNull ItemPath itemPath,
+            @NotNull RD itemRefinedDefinition,
             @NotNull D itemPrismDefinition, @NotNull MappingType mappingBean, @NotNull OriginType originType,
             @NotNull MappingKindType mappingKind) {
         this.constructionEvaluation = constructionEvaluation;
         this.construction = constructionEvaluation.construction;
         this.itemName = itemName;
+        this.itemPath = itemPath;
         this.itemRefinedDefinition = itemRefinedDefinition;
         this.itemPrismDefinition = itemPrismDefinition;
         this.mappingBean = mappingBean;
@@ -153,9 +163,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
 
         LensContext<AH> context = construction.lensContext;
 
-        ItemPath targetPath = ItemPath.create(ShadowType.F_ATTRIBUTES, itemName); // TODO associations!
-
-        if (construction.initializeMappingBuilder(mappingBuilder, targetPath, itemName, itemPrismDefinition,
+        if (construction.initializeMappingBuilder(mappingBuilder, itemPath, itemName, itemPrismDefinition,
                 getAssociationTargetObjectClassDefinition()) == null) {
             return null;
         }
@@ -177,7 +185,7 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_LEGAL, getLegal());
         mappingBuilder.addVariableDefinition(ExpressionConstants.VAR_ASSIGNED, getAssigned());
 
-        mappingBuilder.originalTargetValues(getOriginalTargetValues(projCtx, projectionOdo, targetPath));
+        mappingBuilder.originalTargetValues(getOriginalTargetValues());
         mappingBuilder.valuePolicySupplier(createValuePolicySupplier());
 
         // TODO: other variables?
@@ -227,33 +235,23 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
         };
     }
 
-    private Collection<V> getOriginalTargetValues(LensProjectionContext projCtx, ObjectDeltaObject<ShadowType> projectionOdo, ItemPath targetPath) {
-        // TODO what if target is required?
+    private Collection<V> getOriginalTargetValues() {
+        LensProjectionContext projCtx = constructionEvaluation.projectionContext;
+        ObjectDeltaObject<ShadowType> projectionOdo = constructionEvaluation.getProjectionOdo();
+
         if (projCtx == null || projCtx.isDelete() || projCtx.isAdd() || projectionOdo == null) {
             return Collections.emptyList();
         } else {
             PrismObject<ShadowType> oldObject = projectionOdo.getOldObject();
             if (oldObject != null) {
-                PrismProperty<Object> attributeOld = oldObject.findProperty(targetPath);
-                if (attributeOld == null) {
-                    if (projCtx.hasFullShadow()) {
-                        // We know that the attribute has no values
-                        return Collections.emptyList();
-                    } else {
-                        // We do not have full shadow. Therefore we know nothing about attribute values.
-                        // We cannot set originalTargetValues here.
-                        // TODO log a warning?
-                        return Collections.emptyList(); // this is a hack
-                    }
-                } else {
-                    //noinspection unchecked
-                    return (Collection<V>) attributeOld.getValues();
-                }
+                return getOriginalTargetValuesFromShadow(oldObject);
             } else {
                 return Collections.emptyList();
             }
         }
     }
+
+    protected abstract Collection<V> getOriginalTargetValuesFromShadow(@NotNull PrismObject<ShadowType> shadow);
 
     private Object getIteration() {
         return constructionEvaluation.projectionContext != null ?

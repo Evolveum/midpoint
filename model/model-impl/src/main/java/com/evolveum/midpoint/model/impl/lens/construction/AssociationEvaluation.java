@@ -9,13 +9,15 @@ package com.evolveum.midpoint.model.impl.lens.construction;
 
 import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowAssociationType;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Evaluation of an association mapping in resource object construction (assigned/plain).
@@ -26,7 +28,9 @@ class AssociationEvaluation<AH extends AssignmentHolderType>
     AssociationEvaluation(ConstructionEvaluation<AH, ?> constructionEvaluation,
             RefinedAssociationDefinition associationDefinition, MappingType mappingBean,
             OriginType originType, MappingKindType mappingKind) {
-        super(constructionEvaluation, associationDefinition.getName(), associationDefinition,
+        super(constructionEvaluation, associationDefinition.getName(),
+                ShadowType.F_ASSOCIATION.append(associationDefinition.getName()),
+                associationDefinition,
                 constructionEvaluation.construction.getAssociationContainerDefinition(),
                 mappingBean, originType, mappingKind);
     }
@@ -39,5 +43,19 @@ class AssociationEvaluation<AH extends AssignmentHolderType>
     @Override
     RefinedObjectClassDefinition getAssociationTargetObjectClassDefinition() {
         return itemRefinedDefinition.getAssociationTarget();
+    }
+
+    @Override
+    protected Collection<PrismContainerValue<ShadowAssociationType>> getOriginalTargetValuesFromShadow(
+            @NotNull PrismObject<ShadowType> shadow) {
+        // Note that it's possible that association values are simply not known. However, returning
+        // an empty list is the best we can do in such situations.
+        List<ShadowAssociationType> allValues = shadow.asObjectable().getAssociation();
+
+        //noinspection unchecked
+        return allValues.stream()
+                .filter(value -> QNameUtil.match(value.getName(), itemName))
+                .map(value -> (PrismContainerValue<ShadowAssociationType>) value.asPrismContainerValue())
+                .collect(Collectors.toList());
     }
 }
