@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.prism.ItemStatus;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.page.admin.PageAdminObjectDetails;
@@ -124,11 +125,21 @@ public class PageSystemConfiguration extends PageAdminObjectDetails<SystemConfig
     }
 
     @Override
-    protected void initializeModel(final PrismObject<SystemConfigurationType> configToEdit, boolean isNewObject, boolean isReadonly) {
-        Task task = createSimpleTask(OPERATION_LOAD_SYSTEM_CONFIG);
-        OperationResult result = new OperationResult(OPERATION_LOAD_SYSTEM_CONFIG);
-        super.initializeModel(WebModelServiceUtils.loadSystemConfigurationAsPrismObject(this, task, result), false, isReadonly);
+    protected PrismObject<SystemConfigurationType> loadPrismObject(PrismObject<SystemConfigurationType> objectToEdit, Task task, OperationResult result) {
+        return WebModelServiceUtils.loadSystemConfigurationAsPrismObject(this, task, result);
     }
+
+    @Override
+    protected ItemStatus computeWrapperStatus() {
+        return ItemStatus.NOT_CHANGED;
+    }
+
+    //    @Override
+//    protected void initializeModel(final PrismObject<SystemConfigurationType> configToEdit, boolean isNewObject, boolean isReadonly) {
+//        Task task = createSimpleTask(OPERATION_LOAD_SYSTEM_CONFIG);
+//        OperationResult result = new OperationResult(OPERATION_LOAD_SYSTEM_CONFIG);
+////        super.initializeModel(WebModelServiceUtils.loadSystemConfigurationAsPrismObject(this, task, result), false, isReadonly);
+//    }
 
     private List<ITab> getTabs(){
         List<ITab> tabs = new ArrayList<>();

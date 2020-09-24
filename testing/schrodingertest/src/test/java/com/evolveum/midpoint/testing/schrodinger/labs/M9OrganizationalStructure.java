@@ -46,6 +46,9 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         OrgTreePage orgTree = basicPage.orgStructure();
         Assert.assertTrue(orgTree.selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                 .getOrgHierarchyPanel()
+                    .showTreeNodeDropDownMenu("ExAmPLE, Inc. - Functional Structure")
+                        .expandAll()
+                    .expandOrg("Software Department")
                     .containsChildOrg("ExAmPLE, Inc. - Functional Structure", "Executive Division", "Sales Department",
                                 "Human Resources", "Technology Division", "IT Administration Department", "Software Department", "Java Development"));
         Assert.assertTrue(orgTree.selectTabWithRootOrg("Groups")
@@ -65,7 +68,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .selectOrgInTree("Transportation and Logistics Department")
                         .and()
                     .getMemberPanel()
@@ -84,8 +88,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         Assert.assertTrue(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
-                        .expandOrg("Transportation and Logistics Department")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .showTreeNodeDropDownMenu("Warp Speed Research")
                             .edit()
                                 .selectTabBasic()
@@ -111,8 +115,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         Assert.assertTrue(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
-                        .expandOrg("Transportation and Logistics Department")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .selectOrgInTree("Warp Speed Research")
                         .and()
                     .getMemberPanel()
@@ -136,8 +140,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         Assert.assertFalse(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
-                        .expandOrg("Transportation and Logistics Department")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .selectOrgInTree("Warp Speed Research")
                         .and()
                     .getMemberPanel()
@@ -194,8 +198,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         Assert.assertTrue(basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
-                        .expandOrg("Transportation and Logistics Department")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .selectOrgInTree("Warp Speed Research")
                         .and()
                     .getMemberPanel()
@@ -204,7 +208,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                             .containsText("kirk"));
 
         Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk")
+                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
                         .compareInputAttributeValues("groups", "Internal Employees",
                                 "Essential Documents", "Teleportation", "Time Travel"));
@@ -212,8 +216,8 @@ public class M9OrganizationalStructure extends AbstractLabTest{
         basicPage.orgStructure()
                 .selectTabWithRootOrg("ExAmPLE, Inc. - Functional Structure")
                     .getOrgHierarchyPanel()
-                        .expandOrg("Secret Operations")
-                        .expandOrg("Transportation and Logistics Department")
+                        .showTreeNodeDropDownMenu("Secret Operations")
+                            .expandAll()
                         .showTreeNodeDropDownMenu("Warp Speed Research")
                             .edit()
                                 .selectTabInducements()
@@ -234,7 +238,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                                         .isSuccess();
 
         Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk")
+                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
                         .compareInputAttributeValues("groups", "Internal Employees",
                                 "Essential Documents", "Teleportation", "Time Travel"));
@@ -256,7 +260,7 @@ public class M9OrganizationalStructure extends AbstractLabTest{
                     .isInfo();
 
         Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk")
+                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                         .form()
                         .compareInputAttributeValues("groups", "Internal Employees",
                                 "Essential Documents", "Teleportation", "Time Travel", "Lucky Numbers",

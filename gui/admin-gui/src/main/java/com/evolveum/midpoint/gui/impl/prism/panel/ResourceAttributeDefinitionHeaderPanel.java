@@ -38,7 +38,7 @@ public class ResourceAttributeDefinitionHeaderPanel<T> extends PrismPropertyHead
     private void initLayout() {
         WebMarkupContainer hasOutbound = new WebMarkupContainer(ID_OUTBOUND);
         hasOutbound.add(new VisibleBehaviour(() -> hasOutboundMapping()));
-        getLabelContainer().add(hasOutbound);
+        add(hasOutbound);
     }
 
     private IModel<ResourceAttributeWrapper<T>> getResourceAttributeDefinitionModel(){

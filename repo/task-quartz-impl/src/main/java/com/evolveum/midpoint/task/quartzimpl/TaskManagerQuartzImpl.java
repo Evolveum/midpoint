@@ -18,8 +18,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import javax.ws.rs.core.Response;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.util.Holder;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -1328,7 +1331,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
             ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, TaskType.class,
                     true, result); // returns null if noFetch is set
 
-            PrismObject<TaskType> taskPrism = repositoryService.getObject(TaskType.class, oid, options, result);
+            PrismObject<TaskType> taskPrism = getTaskFromRemoteNode(oid, options, clusterStatusInformation, result);
+            if (taskPrism == null) {
+                taskPrism = repositoryService.getObject(TaskType.class, oid, options, result);
+            }
+
             TaskQuartzImpl task = createTaskInstance(taskPrism, result);
 
             addTransientTaskInformation(task,
@@ -1349,6 +1356,35 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    private PrismObject<TaskType> getTaskFromRemoteNode(String oid, Collection<SelectorOptions<GetOperationOptions>> options,
+            ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
+
+        if (clusterStatusInformation == null) { // in case no fetch was used...
+            return null;
+        }
+
+        NodeType runsAt = clusterStatusInformation.findNodeInfoForTask(oid);
+        if (runsAt == null || isCurrentNode(runsAt.asPrismObject())) {
+            return null;
+        }
+
+        final Holder<PrismObject<TaskType>> taskPrism = new Holder<>();
+        clusterExecutionHelper.execute((client, node, opResult) -> {
+                    Response response = client.path(TaskConstants.GET_TASK_REST_PATH + oid)
+                            .query("include", GetOperationOptions.toRestIncludeOption(options))
+                            .get();
+                    Response.StatusType statusType = response.getStatusInfo();
+                    if (statusType.getFamily() == Response.Status.Family.SUCCESSFUL) {
+                        TaskType taskType = response.readEntity(TaskType.class);
+                        taskPrism.setValue(taskType.asPrismObject());
+                    } else {
+                        LOGGER.warn("Cannot get task from {}", node);
+                    }
+            }, new ClusterExecutionOptions().tryAllNodes(), "load task (cluster)", parentResult);
+
+        return taskPrism.getValue();
     }
 
     private void fillOperationExecutionState(Task task0) {

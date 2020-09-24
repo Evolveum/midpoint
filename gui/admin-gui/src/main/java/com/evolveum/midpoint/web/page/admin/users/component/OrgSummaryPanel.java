@@ -37,7 +37,7 @@ public class OrgSummaryPanel extends FocusSummaryPanel<OrgType> {
     }
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return GuiStyleConstants.CLASS_OBJECT_ORG_ICON;
     }
 

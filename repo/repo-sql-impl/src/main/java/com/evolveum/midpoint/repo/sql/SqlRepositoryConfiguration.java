@@ -688,7 +688,9 @@ public class SqlRepositoryConfiguration {
             defaultTransactionIsolation = TransactionIsolation.READ_COMMITTED;
             defaultLockForUpdateViaHibernate = false;
             defaultLockForUpdateViaSql = true;
-            defaultReadOnlyTransactionStatement = "SET TRANSACTION READ ONLY";
+            // Technically supported but causes rather random ORA-01466 errors
+            defaultReadOnlyTransactionStatement = null;
+//            defaultReadOnlyTransactionStatement = "SET TRANSACTION READ ONLY";
         } else if (isUsingPostgreSQL()) {
             defaultTransactionIsolation = TransactionIsolation.SERIALIZABLE;
             defaultLockForUpdateViaHibernate = false;

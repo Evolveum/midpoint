@@ -1395,6 +1395,9 @@ public final class WebComponentUtil {
                 return nameModel.getString();
             }
         }
+        if (def instanceof RefinedAttributeDefinition && StringUtils.isNotEmpty(def.getDisplayName())) {
+            return def.getDisplayName();
+        }
         return def.getItemName().getLocalPart();
     }
 
@@ -3492,7 +3495,7 @@ public final class WebComponentUtil {
     //TODO unify createAccountIcon with createCompositeIconForObject
     public static <O extends ObjectType> CompositedIcon createCompositeIconForObject(O obj, OperationResult result, PageBase pageBase) {
         if (obj instanceof ShadowType) {
-            return createAccountIcon((ShadowType) obj, pageBase);
+            return createAccountIcon((ShadowType) obj, pageBase, true);
         }
 
         DisplayType basicIconDisplayType = getDisplayTypeForObject(obj, result, pageBase);
@@ -3522,7 +3525,7 @@ public final class WebComponentUtil {
         return builder.build();
     }
 
-    public static CompositedIcon createAccountIcon(ShadowType shadow, PageBase pageBase) {
+    public static CompositedIcon createAccountIcon(ShadowType shadow, PageBase pageBase, boolean isColumn) {
         List<TriggerType> triggerType = shadow.getTrigger();
         String iconCssClass = WebComponentUtil.createShadowIcon(shadow.asPrismObject());
         CompositedIconBuilder builder = new CompositedIconBuilder();
@@ -3530,14 +3533,23 @@ public final class WebComponentUtil {
         if (StringUtils.isNotBlank(title)) {
             IconType icon = new IconType();
             icon.setCssClass("fa fa-clock-o " + GuiStyleConstants.BLUE_COLOR);
-            builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
+            if (isColumn) {
+                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_FOR_COLUMN_STYLE);
+            } else {
+                builder.appendLayerIcon(icon, IconCssStyle.TOP_RIGHT_STYLE);
+            }
+
         }
         builder.setBasicIcon(iconCssClass, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
 
         if (BooleanUtils.isTrue(shadow.isDead())) {
             IconType icon = new IconType();
             icon.setCssClass("fa fa-times-circle " + GuiStyleConstants.RED_COLOR);
-            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+            if (isColumn) {
+                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+            } else {
+                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+            }
             builder.setTitle(pageBase.createStringResource("FocusProjectionsTabPanel.deadShadow").getString()
                     + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
             return builder.build();
@@ -3556,7 +3568,11 @@ public final class WebComponentUtil {
                 || (lockoutExpirationTimestamp != null && pageBase.getClock().isPast((lockoutExpirationTimestamp)))) {
             IconType icon = new IconType();
             icon.setCssClass("fa fa-lock " + GuiStyleConstants.RED_COLOR);
-            builder.appendLayerIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+            if (isColumn) {
+                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+            } else {
+                builder.setBasicIcon(icon, IconCssStyle.BOTTOM_RIGHT_STYLE);
+            }
             builder.setTitle(pageBase.createStringResource("LockoutStatusType.LOCKED").getString()
                     + (StringUtils.isNotBlank(title) ? ("\n" + title) : ""));
             return builder.build();
@@ -3572,10 +3588,18 @@ public final class WebComponentUtil {
 
         switch (value) {
             case DISABLED:
-                appendIcon(builder, "fe fe-slash " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_FOR_COLUMN_STYLE);
+                if (isColumn) {
+                    appendIcon(builder, "fe fe-slash " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_FOR_COLUMN_STYLE);
+                } else {
+                    appendIcon(builder, "fe fe-slash " + GuiStyleConstants.RED_COLOR, IconCssStyle.CENTER_STYLE);
+                }
                 return builder.build();
             case ARCHIVED:
-                appendIcon(builder, "fa fa-archive " + GuiStyleConstants.RED_COLOR, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+                if (isColumn) {
+                    appendIcon(builder, "fa fa-archive " + GuiStyleConstants.RED_COLOR, IconCssStyle.BOTTOM_RIGHT_FOR_COLUMN_STYLE);
+                } else {
+                    appendIcon(builder, "fa fa-archive " + GuiStyleConstants.RED_COLOR, IconCssStyle.BOTTOM_RIGHT_STYLE);
+                }
                 return builder.build();
         }
 

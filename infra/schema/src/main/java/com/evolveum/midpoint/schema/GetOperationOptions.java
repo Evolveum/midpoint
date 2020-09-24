@@ -1002,6 +1002,17 @@ public class GetOperationOptions extends AbstractOptions implements Serializable
         return rv;
     }
 
+    public static List<String> toRestIncludeOption(Collection<SelectorOptions<GetOperationOptions>> options) {
+        List<SelectorOptions<GetOperationOptions>> includeOptions = SelectorOptions.filterRetrieveOptions(options);
+
+        List<String> includePaths = new ArrayList<>();
+        for (SelectorOptions<GetOperationOptions> includeOption : includeOptions) {
+            UniformItemPath path = includeOption.getSelector().getPath();
+            includePaths.add(path.namedSegmentsOnly().toString());
+        }
+        return includePaths;
+    }
+
     public static GetOperationOptions fromRestOptions(List<String> options, DefinitionProcessingOption definitionProcessing) {
         if (options == null || options.isEmpty()) {
             if (definitionProcessing != null) {

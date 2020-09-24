@@ -22,7 +22,7 @@ public class SystemConfigurationSummaryPanel extends ObjectSummaryPanel<SystemCo
     }
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return GuiStyleConstants.CLASS_SYSTEM_CONFIGURATION_ICON;
     }
 

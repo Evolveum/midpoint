@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2015 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -60,17 +60,17 @@ public class RAnyConverter {
 
         POLY_STRING(PolyString.class, ROExtPolyString.class, RAExtPolyString.class);
 
-        private final Class valueType;
+        private final Class<?> valueType;
         private final Class<? extends ROExtValue<?>> oExtType;
         private final Class<? extends RAExtValue<?>> aExtType;
 
-        ValueType(Class valueType, Class oExtType, Class aExtType) {
+        ValueType(Class<?> valueType, Class<? extends ROExtValue<?>> oExtType, Class<? extends RAExtValue<?>> aExtType) {
             this.valueType = valueType;
             this.oExtType = oExtType;
             this.aExtType = aExtType;
         }
 
-        public Class getValueType() {
+        public Class<?> getValueType() {
             return valueType;
         }
 
@@ -306,6 +306,7 @@ public class RAnyConverter {
         }
 
         if (returnType.isAssignableFrom(object.getClass())) {
+            //noinspection unchecked
             return (T) object;
         }
 

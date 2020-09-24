@@ -141,6 +141,11 @@ public class SearchPanel extends BasePanel<Search> {
                     protected boolean canRemoveSearchItem() {
                         return SearchPanel.this.getModelObject().isCanConfigure();
                     }
+
+                    @Override
+                    protected void searchPerformed(AjaxRequestTarget target){
+                        SearchPanel.this.searchPerformed(target);
+                    }
                 };
                 item.add(searchItem);
             }

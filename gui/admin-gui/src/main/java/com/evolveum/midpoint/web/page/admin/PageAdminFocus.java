@@ -126,16 +126,6 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         WebComponentUtil.revive(projectionModel, getPrismContext());
     }
 
-    @Override
-    public void continueEditing(AjaxRequestTarget target) {
-        getMainPanel().setVisible(true);
-        getProgressPanel().hide();
-        getProgressPanel().hideAbortButton(target);
-        getProgressPanel().hideBackButton(target);
-        getProgressPanel().hideContinueEditingButton(target);
-        target.add(this);
-    }
-
     private List<ShadowWrapper> loadShadowWrappers(boolean noFetch) {
         LOGGER.trace("Loading shadow wrapper");
         long start = System.currentTimeMillis();

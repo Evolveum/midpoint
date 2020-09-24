@@ -18,8 +18,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -55,6 +58,19 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
     @Override
     public Class<SimpleReportNotifierType> getEventHandlerConfigurationType() {
         return SimpleReportNotifierType.class;
+    }
+
+    @Override
+    protected boolean checkApplicability(TaskEvent event, SimpleReportNotifierType generalNotifierType, OperationResult result) {
+        if (!event.isSuccess()) {
+            LOGGER.trace("Operation was not successful, exiting.");
+            return false;
+        } else if (!event.isFinished()){
+            LOGGER.trace("No report output oid present in task. Skip sending notifications.");
+            return false;
+        }
+
+        return true;
     }
 
     @Override
@@ -96,14 +112,23 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
             reportOutput = modelService.getObject(ReportDataType.class, outputOid, null, task, result);
         } catch (ObjectNotFoundException | SecurityViolationException | CommunicationException | ConfigurationException
                 | ExpressionEvaluationException | SchemaException e) {
-            getLogger().error("Could't get Report output with oid " + outputOid, e);
+            getLogger().error("Couldn't get Report output with oid " + outputOid, e);
             throw new SystemException("Couldn't get report output " + outputOid, e);
         }
 
         NotificationMessageAttachmentType attachment = new NotificationMessageAttachmentType();
-        String type = reportOutput.asObjectable().getFileFormat().value().toLowerCase();
+        String type;
+        String filePath = reportOutput.asObjectable().getFilePath();
+        if (reportOutput.asObjectable().getFileFormat() != null) {
+            type = reportOutput.asObjectable().getFileFormat().value().toLowerCase();
+        } else {
+            type = FilenameUtils.getExtension(filePath);
+        }
+        if (StringUtils.isBlank(type)) {
+            type = "plain";
+        }
         attachment.setContentType("text/" + type);
-        attachment.setContentFromFile(reportOutput.asObjectable().getFilePath());
+        attachment.setContentFromFile(filePath);
         List attachments = new ArrayList();
         attachments.add(attachment);
         return attachments;
@@ -132,11 +157,11 @@ public class SimpleReportNotifier extends AbstractGeneralNotifier<TaskEvent, Sim
     private String getReportDataOid(Task task) {
         PrismReference reportData = task.getExtensionReferenceOrClone(ReportConstants.REPORT_DATA_PROPERTY_NAME);
         if (reportData == null || reportData.getRealValue() == null) {
-            PrismProperty<String> reportOutputOid = task.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME);
+            String reportOutputOid = task.getExtensionPropertyRealValue(ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME);
             if (reportOutputOid == null){
                 return null;
             }
-            return reportOutputOid.getRealValue();
+            return reportOutputOid;
         }
 
         return reportData.getRealValue().getOid();

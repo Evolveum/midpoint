@@ -331,9 +331,9 @@ public class PrismContainerWrapperImpl<C extends Containerable>
     }
 
     @Override
-    public PrismContainerWrapper<Containerable> getSelectedChild() {
+    public PrismContainerWrapper<? extends Containerable> getSelectedChild() {
         if (isShowMetadataDetails()) {
-            return (PrismContainerWrapper<Containerable>) this;
+            return this;
         }
         List<PrismContainerValueWrapper<C>> values = getValues();
         if (CollectionUtils.isEmpty(values)) {
@@ -341,7 +341,7 @@ public class PrismContainerWrapperImpl<C extends Containerable>
         }
 
         for (PrismContainerValueWrapper<C> metadataValue : values) {
-            PrismContainerWrapper<Containerable> selected = metadataValue.getSelectedChild();
+            PrismContainerWrapper<? extends Containerable> selected = metadataValue.getSelectedChild();
             if (selected != null) {
                 return selected;
             }
