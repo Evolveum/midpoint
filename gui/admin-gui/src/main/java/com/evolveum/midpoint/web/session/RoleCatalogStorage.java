@@ -19,10 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Created by honchar.
@@ -41,7 +38,7 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private String selectedOid;
     private TreeStateSet<TreeSelectableBean<OrgType>> expandedItems; //expanded tree items on the Org. structure page
     private int selectedTabId = 0;                 //selected tab id on the Org. structure page
-    private TreeSelectableBean<OrgType> collapsedItem = null;                 //collapsed tree item
+    private TreeStateSet<TreeSelectableBean<OrgType>> collapsedItems = null;                 //collapsed tree item
     private List<AssignmentEditorDto> assignmentShoppingCart;   //  a list of assignments in the shopping cart
     private AssignmentViewType viewType = null;      //the current view type
     private int defaultTabIndex = -1;
@@ -51,7 +48,6 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     private String requestDescription = "";
     private ObjectPaging roleCatalogPaging;
     private int assignmentRequestLimit = -1;
-    private boolean inverse = false;
     private QName selectedRelation = null;
 
     public Search getSearch() {
@@ -131,13 +127,13 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
     }
 
     @Override
-    public TreeSelectableBean<OrgType> getCollapsedItem() {
-        return collapsedItem;
+    public Set<TreeSelectableBean<OrgType>> getCollapsedItems() {
+        return collapsedItems;
     }
 
     @Override
-    public void setCollapsedItem(TreeSelectableBean<OrgType> collapsedItem) {
-        this.collapsedItem = collapsedItem;
+    public void setCollapsedItems(TreeStateSet<TreeSelectableBean<OrgType>> collapsedItems) {
+        this.collapsedItems = collapsedItems;
     }
 
     public List<ConflictDto> getConflictsList() {
@@ -221,15 +217,5 @@ public class RoleCatalogStorage implements PageStorage, OrgTreeStateStorage {
 
     public void setSelectedRelation(QName selectedRelation) {
         this.selectedRelation = selectedRelation;
-    }
-
-    @Override
-    public boolean isInverse(){
-        return inverse;
-    }
-
-    @Override
-    public void setInverse(boolean inverse){
-        this.inverse = inverse;
     }
 }

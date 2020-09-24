@@ -10,6 +10,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -194,7 +196,7 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
                     }
                 });
 
-        if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ItemStatus.ADDED) {
+//        if (WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) && getObjectWrapper().getStatus() != ItemStatus.ADDED) {
             tabs.add(
                     new PanelTab(parentPage.createStringResource("pageAdminFocus.objectHistory"),
                             getTabVisibility(ComponentConstants.UI_FOCUS_TAB_OBJECT_HISTORY_URL, false, parentPage)) {
@@ -205,8 +207,16 @@ public class FocusMainPanel<F extends FocusType> extends AssignmentHolderTypeMai
                         public WebMarkupContainer createPanel(String panelId) {
                             return createObjectHistoryTabPanel(panelId);
                         }
+
+                        @Override
+                        public boolean isVisible() {
+                            if (!WebComponentUtil.isAuthorized(ModelAuthorizationAction.AUDIT_READ.getUrl()) || ItemStatus.ADDED == getObjectWrapper().getStatus()) {
+                                return false;
+                            }
+                            return super.isVisible();
+                        }
                     });
-        }
+//        }
 
         tabs.add(
                 new CountablePanelTab(parentPage.createStringResource("pageAdminFocus.cases"),

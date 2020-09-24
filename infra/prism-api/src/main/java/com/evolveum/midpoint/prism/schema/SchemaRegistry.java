@@ -24,9 +24,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 
-/**
- * @author mederly
- */
 public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, GlobalDefinitionsStore {
 
     DynamicNamespacePrefixMapper getNamespacePrefixMapper();
@@ -196,8 +193,14 @@ public interface SchemaRegistry extends PrismContextSensitive, DebugDumpable, Gl
     <ID extends ItemDefinition> ComparisonResult compareDefinitions(@NotNull ID def1, @NotNull ID def2)
             throws SchemaException;
 
+    /**
+     * BEWARE: works only with statically-defined types!
+     */
     boolean isAssignableFrom(@NotNull Class<?> superType, @NotNull QName subType);
 
+    /**
+     * BEWARE: works only with statically-defined types!
+     */
     boolean isAssignableFrom(@NotNull QName superType, @NotNull QName subType);
 
     /**

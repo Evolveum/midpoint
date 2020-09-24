@@ -23,15 +23,8 @@ public class OrgStructurePanelStorage implements PageStorage, DebugDumpable, Org
 
     private static final long serialVersionUID = 1L;
 
-    private TreeSelectableBean<OrgType> selectedItem;                //selected tree item on the Org. structure page
-    private TreeStateSet<TreeSelectableBean<OrgType>> expandedItems; //expanded tree items on the Org. structure page
-    private TreeSelectableBean<OrgType> collapsedItem = null;                 //selected tab id on the Org. structure page
-    private boolean inverse = false;
     private int selectedTabId = 0;                 //selected tab id on the Org. structure page
     private Map<Integer, OrgTabPanelStorage> orgTabStorageMap = new HashMap<>();
-
-    private Search membersPanelSearch;
-    private ObjectPaging membersPanelPaging;
 
     @Override
     public ObjectPaging getPaging() {
@@ -75,23 +68,13 @@ public class OrgStructurePanelStorage implements PageStorage, DebugDumpable, Org
     }
 
     @Override
-    public TreeSelectableBean<OrgType> getCollapsedItem() {
-        return getSelectedTabStorage().getCollapsedItem();
+    public Set<TreeSelectableBean<OrgType>> getCollapsedItems() {
+        return getSelectedTabStorage().getCollapsedItems();
     }
 
     @Override
-    public void setCollapsedItem(TreeSelectableBean<OrgType> collapsedItem) {
-        getSelectedTabStorage().setCollapsedItem(collapsedItem);
-    }
-
-    @Override
-    public boolean isInverse(){
-        return getSelectedTabStorage().isInverse();
-    }
-
-    @Override
-    public void setInverse(boolean inverse){
-        getSelectedTabStorage().setInverse(inverse);
+    public void setCollapsedItems(TreeStateSet<TreeSelectableBean<OrgType>> collapsedItem) {
+        getSelectedTabStorage().setCollapsedItems(collapsedItem);
     }
 
     @Override
@@ -121,9 +104,9 @@ public class OrgStructurePanelStorage implements PageStorage, DebugDumpable, Org
         StringBuilder sb = new StringBuilder();
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("OrgStructurePanelStorage\n");
-        DebugUtil.debugDumpWithLabelLn(sb, "selectedItem", selectedItem, indent+1);
-        DebugUtil.debugDumpWithLabelLn(sb, "expandedItems", expandedItems, indent+1);
-        DebugUtil.debugDumpWithLabel(sb, "collapsedItem", collapsedItem, indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "selectedItem", getSelectedTabStorage().getSelectedItem(), indent+1);
+        DebugUtil.debugDumpWithLabelLn(sb, "expandedItems", getSelectedTabStorage().getExpandedItems(), indent+1);
+        DebugUtil.debugDumpWithLabel(sb, "collapsedItems", getSelectedTabStorage().getCollapsedItems(), indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "selectedTabId", selectedTabId, indent+1);
         DebugUtil.debugDumpWithLabelLn(sb, "orgTabStorageMap", orgTabStorageMap, indent+1);
         return sb.toString();

@@ -8,7 +8,6 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -54,7 +53,6 @@ public class PrismContainerHeaderPanel<C extends Containerable, PCW extends Pris
             }
         };
         labelComponent.setOutputMarkupId(true);
-        labelComponent.add(AttributeAppender.append("style", "cursor: pointer;"));
         return labelComponent;
     }
 
@@ -100,5 +98,10 @@ public class PrismContainerHeaderPanel<C extends Containerable, PCW extends Pris
     @Override
     protected boolean isAddButtonVisible() {
         return super.isAddButtonVisible() && getModelObject().isExpanded();
+    }
+
+    @Override
+    protected boolean isHelpTextVisible() {
+        return super.isHelpTextVisible() && getModelObject().isExpanded();
     }
 }

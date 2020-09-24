@@ -27,7 +27,7 @@ public class CertDefinitionSummaryPanel extends ObjectSummaryPanel<AccessCertifi
     }
 
     @Override
-    protected String getIconCssClass() {
+    protected String getDefaultIconCssClass() {
         return GuiStyleConstants.CLASS_OBJECT_CERT_DEF_ICON;
     }
 

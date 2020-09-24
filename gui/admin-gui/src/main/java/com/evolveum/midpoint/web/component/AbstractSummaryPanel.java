@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -184,13 +186,15 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
 
         Label icon = new Label(ID_ICON, "");
 
-        String archetypeIconCssClass = getArchetypeIconCssClass();
-        if (StringUtils.isNotEmpty(archetypeIconCssClass)) {
-            icon.add(AttributeModifier.append("class", archetypeIconCssClass));
-            icon.add(AttributeModifier.append("style", ARCHETYPE_ICON_FONT_SIZE));
-        } else {
-            icon.add(AttributeModifier.append("class", getIconCssClass()));
-        }
+        icon.add(AttributeModifier.append("class", getIconCssClass()));
+
+//        String archetypeIconCssClass = getArchetypeIconCssClass();
+//        if (StringUtils.isNotEmpty(archetypeIconCssClass)) {
+//            icon.add(AttributeModifier.append("class", archetypeIconCssClass));
+//            icon.add(AttributeModifier.append("style", ARCHETYPE_ICON_FONT_SIZE));
+//        } else {
+//            icon.add(AttributeModifier.append("class", getDefaultIconCssClass()));
+//        }
         icon.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
@@ -212,9 +216,9 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         tagBox = new RepeatingView(ID_TAG_BOX);
         List<SummaryTag<C>> summaryTags = getSummaryTagComponentList();
 
-        if (getArchetypeSummaryTag() != null) {
+//        if (getArchetypeSummaryTag() != null) {
             summaryTags.add(getArchetypeSummaryTag());
-        }
+//        }
         summaryTags.forEach(summaryTag -> {
             WebMarkupContainer summaryTagPanel = new WebMarkupContainer(tagBox.newChildId());
             summaryTagPanel.setOutputMarkupId(true);
@@ -227,6 +231,19 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         }
         tagBox.add(new VisibleBehaviour(() -> CollectionUtils.isNotEmpty(summaryTags)));
         box.add(tagBox);
+    }
+
+    private IModel<String> getIconCssClass() {
+        return new ReadOnlyModel<>(() -> {
+
+            String archetypeIcon = getArchetypeIconCssClass();
+            if (StringUtils.isNotBlank(archetypeIcon)) {
+                return archetypeIcon;
+            }
+
+            return getDefaultIconCssClass();
+
+        });
     }
 
     private IModel<String> createArchetypeBackgroundModel() {
@@ -274,38 +291,25 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
     }
 
     private SummaryTag<C> getArchetypeSummaryTag() {
-        String archetypeIconCssClass = getArchetypeIconCssClass();
-        String archetypeIconColor = getArchetypePolicyAdditionalCssClass();
-        String archetypeLabel = getArchetypeLabel();
-        if (StringUtils.isNotEmpty(archetypeLabel)) {
+//        String archetypeIconCssClass = getArchetypeIconCssClass();
+//        String archetypeIconColor = getArchetypePolicyAdditionalCssClass();
+//        String archetypeLabel = getArchetypeLabel();
+//        if (StringUtils.isNotEmpty(archetypeLabel)) {
             SummaryTag<C> archetypeSummaryTag = new SummaryTag<C>(ID_SUMMARY_TAG, getModel()) {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void initialize(C object) {
-                    setIconCssClass(archetypeIconCssClass);
-                    setLabel(createStringResource(archetypeLabel).getString());
-                    setColor(archetypeIconColor);
+                    setIconCssClass(getArchetypeIconCssClass());
+                    setLabel(createStringResource(getArchetypeLabel()).getString());
+                    setColor(getArchetypePolicyAdditionalCssClass());
                 }
 
-                @Override
-                public String getIconCssClass() {
-                    return getArchetypeIconCssClass();
-                }
-
-                @Override
-                public String getColor() {
-                    return getArchetypePolicyAdditionalCssClass();
-                }
-
-                @Override
-                public String getLabel() {
-                    return getArchetypeLabel();
-                }
             };
+            archetypeSummaryTag.add(new VisibleBehaviour(() -> StringUtils.isNotEmpty(getArchetypeLabel())));
             return archetypeSummaryTag;
-        }
-        return null;
+//        }
+//        return null;
     }
 
     protected void addAdditionalExpressionVariables(ExpressionVariables variables) {
@@ -356,7 +360,7 @@ public abstract class AbstractSummaryPanel<C extends Containerable> extends Base
         return "";
     }
 
-    protected abstract String getIconCssClass();
+    protected abstract String getDefaultIconCssClass();
 
     protected abstract String getIconBoxAdditionalCssClass();
 

@@ -34,7 +34,7 @@ public interface PrismContainerWrapper<C extends Containerable> extends ItemWrap
     <T extends Containerable> PrismContainerValueWrapper<T> findContainerValue(ItemPath path) throws SchemaException;
     <IW extends ItemWrapper> IW findItem(ItemPath path, Class<IW> type) throws SchemaException;
 
-    PrismContainerWrapper<Containerable> getSelectedChild();
+    PrismContainerWrapper<? extends Containerable> getSelectedChild();
 }
 
 

@@ -93,11 +93,6 @@ public class TestAdLdapChimera extends AbstractAdLdapMultidomainTest {
     }
 
     @Override
-    protected int getNormalNumberOfLdapConnectorInstances() {
-        return 2;
-    }
-
-    @Override
     protected String getExpected182FirstShadow() {
         return "CN=Adolf Supperior,"+getPeopleLdapSuffix();
     }

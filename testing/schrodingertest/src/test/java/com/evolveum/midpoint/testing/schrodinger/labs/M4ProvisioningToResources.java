@@ -69,7 +69,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                         .feedback()
                             .isSuccess();
 
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "login", "jkirk"));
+        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
 
         showUser("kirk")
                 .selectTabBasic()
@@ -81,7 +81,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
 
-        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk");
+        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
@@ -97,7 +97,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                 .feedback()
                     .isSuccess();
 
-        showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk");
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Disabled"));
         showUserInTable("kirk")
                 .selectAll()
@@ -107,7 +107,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                         .clickEnable()
                             .clickYes();
 
-        showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk");
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Enabled"));
 
         changeAdministrativeStatusViaProjectionTab("kirk", "jkirk", "Disabled", CSV_1_RESOURCE_NAME);
@@ -140,7 +140,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
 
-        Assert.assertTrue(existShadow(CSV_2_RESOURCE_NAME, "login", "kirk"));
+        Assert.assertTrue(existShadow(CSV_2_RESOURCE_NAME, "Login", "kirk"));
 
         Assert.assertTrue(basicPage.listResources()
                 .table()
@@ -154,7 +154,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                             .clickSearchInResource()
                                 .table()
                                     .search()
-                                        .byItemName("dn")
+                                        .byItemName("Distinguished Name")
                                             .inputValue("cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com")
                                         .updateSearch()
                                         .and()
@@ -179,7 +179,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
 
-        Assert.assertFalse(existShadow(CSV_2_RESOURCE_NAME, "login", "kirk"));
+        Assert.assertFalse(existShadow(CSV_2_RESOURCE_NAME, "Login", "kirk"));
     }
 
     @Test(dependsOnMethods = {"mod04test01BasicProvisioningToMultipleResources"}, groups={"M4"}, dependsOnGroups={"M3"})
@@ -203,13 +203,13 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
 
-        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk");
+        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
         Assert.assertTrue(accountForm.compareInputAttributeValue("phone", "123555-1010"));
 
-        showShadow(CSV_3_RESOURCE_NAME, "dn", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
+        showShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
 
         Assert.assertTrue(accountForm.compareInputAttributeValue("telephoneNumber", "123 / 555 - 1010"));
@@ -254,7 +254,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
 
-        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "login", "jpicard");
+        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jpicard");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Selenide.sleep(1000);
@@ -266,7 +266,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                     .feedback()
                         .isSuccess();
 
-        showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk");
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         Assert.assertTrue(accountForm.compareInputAttributeValue("lname", "KIRK"));
 
@@ -292,7 +292,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                 .clickSave()
                     .feedback()
                         .isSuccess();
-        AccountPage shadow = showShadow(CSV_3_RESOURCE_NAME, "dn", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
+        AccountPage shadow = showShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
         Assert.assertTrue(shadow.form().compareInputAttributeValue("manager", "xxx"));
 
         importObject(CSV_3_RESOURCE_FILE_4_4,true);
@@ -318,7 +318,7 @@ public class M4ProvisioningToResources extends AbstractLabTest {
                 .clickSave()
                     .feedback()
                     .isSuccess();
-        AccountPage shadow = showShadow(resourceName, "login", accountName);
+        AccountPage shadow = showShadow(resourceName, "Login", accountName);
         Assert.assertTrue(shadow.form().compareSelectAttributeValue("administrativeStatus", status));
     }
 }

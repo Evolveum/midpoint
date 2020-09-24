@@ -14,7 +14,9 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -113,6 +115,14 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
         Component searchItemField;
         if (getModelObject() instanceof FilterSearchItem) {
             searchItemField = new CheckPanel(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), FilterSearchItem.F_APPLY_FILTER));
+            ((CheckPanel) searchItemField).getBaseFormComponent().add(new OnChangeAjaxBehavior() {
+                private static final long serialVersionUID = 1L;
+
+                @Override
+                protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {
+                    searchPerformed(ajaxRequestTarget);
+                }
+            });
             searchItemField.add(AttributeModifier.append("class", "pull-right"));
             searchItemField.add(AttributeAppender.append("style", "margin-top: 3px;"));
             ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -227,6 +237,9 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
             return Model.of();
         }
         return Model.of(item.getTitle(getPageBase()));
+    }
+
+    protected void searchPerformed(AjaxRequestTarget target){
     }
 
     private void deletePerformed(AjaxRequestTarget target) {

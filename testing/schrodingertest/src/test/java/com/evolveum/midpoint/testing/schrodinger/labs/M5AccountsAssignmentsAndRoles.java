@@ -70,7 +70,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Secret Projects I", "Secret Projects II");
         Assert.assertTrue(
-            showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk")
+            showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                 .form()
                     .compareInputAttributeValues("groups", "Lucky Numbers",
                             "Teleportation", "Time Travel", "Presidential Candidates Motivation"));
@@ -78,20 +78,20 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Secret Projects I");
 
         Assert.assertTrue(
-                showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk")
+                showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk")
                     .form()
                         .compareInputAttributeValues("groups", "Lucky Numbers",
                                 "Presidential Candidates Motivation"));
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Secret Projects II");
 
-        Assert.assertFalse(existShadow(CSV_1_RESOURCE_NAME, "login", "jkirk"));
+        Assert.assertFalse(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
 
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "login", "jkirk"));
-        Assert.assertTrue(existShadow(CSV_2_RESOURCE_NAME, "login", "jkirk"));
-        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "dn",
+        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
+        Assert.assertTrue(existShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk"));
+        Assert.assertTrue(existShadow(CSV_3_RESOURCE_NAME, "Distinguished Name",
                 "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com"));
 
     }
@@ -128,7 +128,7 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
         Utils.addAsignments(tab, "Secret Projects I", "Secret Projects II", "Top Secret Projects I");
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
-        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "login", "jkirk"));
+        Assert.assertTrue(existShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk"));
 
         DirectIndirectAssignmentTable<AssignmentsTab<UserPage>> table = showUser("kirk").selectTabAssignments()
                 .selectTypeAllDirectIndirect();
@@ -153,37 +153,37 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
         Utils.removeAssignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
 
-        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk");
+        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.sleep(2000);
         PrismForm<AccountPage> accountForm = shadow.form();
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Disabled"));
         Assert.assertTrue(accountForm.showEmptyAttributes("Attributes")
                 .compareInputAttributeValues("groups", new ArrayList<String>()));
 
-        showShadow(CSV_2_RESOURCE_NAME, "login", "jkirk");
+        showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Disabled"));
 
-        showShadow(CSV_3_RESOURCE_NAME, "dn", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
+        showShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Disabled"));
 
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Internal Employee");
-        showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk");
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Enabled"));
         Assert.assertTrue(
                 accountForm.compareInputAttributeValues("groups", "Internal Employees",
                         "Essential Documents"));
 
-        showShadow(CSV_2_RESOURCE_NAME, "login", "jkirk");
+        showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Enabled"));
 
-        showShadow(CSV_3_RESOURCE_NAME, "dn", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
+        showShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Enabled"));
     }
 
     @Test(dependsOnMethods = {"mod05test05DisableOnUnassign"}, groups={"M5"}, dependsOnGroups={"M4"})
     public void mod05test06InactiveAssignment() {
         Utils.addAsignments(showUser("kirk").selectTabAssignments(), "Too Many Secrets");
-        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk");
+        AccountPage shadow = showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         PrismForm<AccountPage> accountForm = shadow.form();
         Assert.assertTrue(
@@ -198,28 +198,28 @@ public class M5AccountsAssignmentsAndRoles extends AbstractLabTest {
 
         Utils.setStatusForAssignment(showUser("kirk").selectTabAssignments(), "Too Many Secrets", "Disabled");
 
-        showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk");
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Enabled"));
         Assert.assertTrue(
                 accountForm.compareInputAttributeValues("groups", "Internal Employees", "Essential Documents"));
 
-        showShadow(CSV_2_RESOURCE_NAME, "login", "jkirk");
+        showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Enabled"));
 
-        showShadow(CSV_3_RESOURCE_NAME, "dn", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
+        showShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Enabled"));
 
         Utils.setStatusForAssignment(showUser("kirk").selectTabAssignments(), "Internal Employee", "Disabled");
 
-        showShadow(CSV_1_RESOURCE_NAME, "login", "jkirk");
+        showShadow(CSV_1_RESOURCE_NAME, "Login", "jkirk");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Disabled"));
         Assert.assertTrue(accountForm.showEmptyAttributes("Attributes")
                 .compareInputAttributeValues("groups", new ArrayList<String>()));
 
-        showShadow(CSV_2_RESOURCE_NAME, "login", "jkirk");
+        showShadow(CSV_2_RESOURCE_NAME, "Login", "jkirk");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Disabled"));
 
-        showShadow(CSV_3_RESOURCE_NAME, "dn", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
+        showShadow(CSV_3_RESOURCE_NAME, "Distinguished Name", "cn=Jim Tiberius Kirk,ou=ExAmPLE,dc=example,dc=com");
         Assert.assertTrue(accountForm.compareSelectAttributeValue("administrativeStatus", "Disabled"));
 
         Utils.setStatusForAssignment(showUser("kirk").selectTabAssignments(), "Internal Employee", "Undefined");

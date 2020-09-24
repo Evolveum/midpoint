@@ -229,7 +229,7 @@ public class ProvenanceMetadataPanel extends PrismContainerPanel<ValueMetadataTy
                 return getString(ValueMetadataType.COMPLEX_TYPE.getLocalPart() + ".displayType");
             }
 
-            PrismContainerWrapper<Containerable> child = getModelObject().getSelectedChild();
+            PrismContainerWrapper<? extends Containerable> child = getModelObject().getSelectedChild();
             //TODO only for provenance?
             if (!child.isRuntimeSchema()) {
                 return getString(child.getTypeName().getLocalPart() + ".displayType");

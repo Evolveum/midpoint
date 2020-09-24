@@ -83,8 +83,6 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
     private static final long serialVersionUID = 1L;
 
     private static final String ID_SHADOW_TABLE = "shadowTable";
-    private static final String ID_SHADOW_PANEL = "shadowPanel";
-    protected static final String ID_SPECIFIC_CONTAINERS_FRAGMENT = "specificContainersFragment";
 
     private static final String DOT_CLASS = FocusProjectionsTabPanel.class.getName() + ".";
     private static final String OPERATION_ADD_ACCOUNT = DOT_CLASS + "addShadow";
@@ -244,9 +242,13 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
 
             @Override
             protected DisplayNamePanel<ShadowType> createDisplayNamePanel(String displayNamePanelId) {
-                ItemRealValueModel<ShadowType> displayNameModel =
-                        new ItemRealValueModel<>(item.getModel());
-                return new ProjectionDisplayNamePanel(displayNamePanelId, displayNameModel);
+                IModel<ShadowType> shadowModel = new IModel<ShadowType>() {
+                    @Override
+                    public ShadowType getObject() {
+                        return createShadowType(item.getModel());
+                    }
+                };
+                return new ProjectionDisplayNamePanel(displayNamePanelId, shadowModel);
             }
 
             @Override
@@ -287,34 +289,8 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
                 if (rowModel == null || rowModel.getObject() == null || rowModel.getObject().getRealValue() == null) {
                     return new CompositedIconBuilder().build();
                 }
-                ShadowType shadow = rowModel.getObject().getRealValue();
-                try {
-                    PrismPropertyWrapper<Boolean> dead = rowModel.getObject().findProperty(ShadowType.F_DEAD);
-                    if (dead != null && !dead.isEmpty()) {
-                        shadow.setDead(dead.getValue().getRealValue());
-                    }
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't find property " + ShadowType.F_DEAD);
-                }
-                try {
-                    PrismContainerWrapper<ActivationType> activation = rowModel.getObject().findContainer(ShadowType.F_ACTIVATION);
-                    if (activation != null && !activation.isEmpty()) {
-                        shadow.setActivation(activation.getValue().getRealValue());
-                    }
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't find container " + ShadowType.F_ACTIVATION);
-                }
-                try {
-                    PrismContainerWrapper<TriggerType> triggers = rowModel.getObject().findContainer(ShadowType.F_TRIGGER);
-                    if (triggers != null && !triggers.isEmpty()) {
-                        for (PrismContainerValueWrapper<TriggerType> trigger : triggers.getValues()) {
-                            shadow.getTrigger().add(trigger.getRealValue());
-                        }
-                    }
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't find container " + ShadowType.F_TRIGGER);
-                }
-                return WebComponentUtil.createAccountIcon(shadow, getPageBase());
+                ShadowType shadow = createShadowType(rowModel);
+                return WebComponentUtil.createAccountIcon(shadow, getPageBase(), true);
             }
 
         });
@@ -370,6 +346,37 @@ public class FocusProjectionsTabPanel<F extends FocusType> extends AbstractObjec
         });
 
         return columns;
+    }
+
+    private ShadowType createShadowType(IModel<PrismContainerValueWrapper<ShadowType>> rowModel) {
+        ShadowType shadow = rowModel.getObject().getRealValue();
+        try {
+            PrismPropertyWrapper<Boolean> dead = rowModel.getObject().findProperty(ShadowType.F_DEAD);
+            if (dead != null && !dead.isEmpty()) {
+                shadow.setDead(dead.getValue().getRealValue());
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find property " + ShadowType.F_DEAD);
+        }
+        try {
+            PrismContainerWrapper<ActivationType> activation = rowModel.getObject().findContainer(ShadowType.F_ACTIVATION);
+            if (activation != null && !activation.isEmpty()) {
+                shadow.setActivation(activation.getValue().getRealValue());
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find container " + ShadowType.F_ACTIVATION);
+        }
+        try {
+            PrismContainerWrapper<TriggerType> triggers = rowModel.getObject().findContainer(ShadowType.F_TRIGGER);
+            if (triggers != null && !triggers.isEmpty()) {
+                for (PrismContainerValueWrapper<TriggerType> trigger : triggers.getValues()) {
+                    shadow.getTrigger().add(trigger.getRealValue());
+                }
+            }
+        } catch (SchemaException e) {
+            LOGGER.error("Couldn't find container " + ShadowType.F_TRIGGER);
+        }
+        return shadow;
     }
 
     private MultivalueContainerListPanelWithDetailsPanel<ShadowType, F> getMultivalueContainerListPanel() {

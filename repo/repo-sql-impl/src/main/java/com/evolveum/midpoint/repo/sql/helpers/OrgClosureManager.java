@@ -910,17 +910,16 @@ public class OrgClosureManager {
         long start = System.currentTimeMillis();
         LOGGER.trace("Locking closure table");
         if (isH2()) {
-            NativeQuery q = session.createNativeQuery("SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
+            NativeQuery<?> q = session.createNativeQuery(
+                    "SELECT * FROM " + CLOSURE_TABLE_NAME + " WHERE 1=0 FOR UPDATE");
             q.list();
         } else if (isOracle()) {
-            NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
+            NativeQuery<?> q = session.createNativeQuery(
+                    "LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
             q.executeUpdate();
-//        } else if (isPostgreSQL()) {
-//            // currently not used
-//            NativeQuery q = session.createNativeQuery("LOCK TABLE " + CLOSURE_TABLE_NAME + " IN EXCLUSIVE MODE");
-//            q.executeUpdate();
         } else if (isSQLServer()) {
-            NativeQuery q = session.createNativeQuery("SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
+            NativeQuery<?> q = session.createNativeQuery(
+                    "SELECT count(*) FROM " + CLOSURE_TABLE_NAME + " WITH (TABLOCK, XLOCK)");
             q.list();
         } else {
             throw new AssertionError("Neither H2 nor Oracle nor SQL Server");
@@ -1058,7 +1057,8 @@ public class OrgClosureManager {
     }
 
     private void dumpOrgClosureTypeTable(Session session, String tableName) {
-        NativeQuery q = session.createNativeQuery("select descendant_oid, ancestor_oid, val from " + tableName)
+        NativeQuery<Object[]> q = session.createNativeQuery(
+                "select descendant_oid, ancestor_oid, val from " + tableName, Object[].class)
                 .addScalar("descendant_oid", StringType.INSTANCE)
                 .addScalar("ancestor_oid", StringType.INSTANCE)
                 .addScalar("val", IntegerType.INSTANCE);
@@ -1071,16 +1071,19 @@ public class OrgClosureManager {
 
     private void initializeOracleTemporaryTable() {
         Session session = baseHelper.getSessionFactory().openSession();
-        NativeQuery qCheck = session.createNativeQuery("select table_name from user_tables where table_name = upper('" + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + "')");
+        NativeQuery<?> qCheck = session.createNativeQuery(
+                "select table_name from user_tables"
+                        + " where table_name = upper('" + TEMP_DELTA_TABLE_NAME_FOR_ORACLE + "')");
         if (qCheck.list().isEmpty()) {
             LOGGER.info("Creating temporary table {}", TEMP_DELTA_TABLE_NAME_FOR_ORACLE);
             session.beginTransaction();
-            NativeQuery qCreate = session.createNativeQuery("CREATE GLOBAL TEMPORARY TABLE " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE +
-                    "    (descendant_oid VARCHAR2(36 CHAR), " +
-                    "     ancestor_oid VARCHAR2(36 CHAR), " +
-                    "     val NUMBER (10, 0), " +
-                    "     PRIMARY KEY (descendant_oid, ancestor_oid)) " +
-                    "  ON COMMIT DELETE ROWS");
+            NativeQuery<?> qCreate = session.createNativeQuery(
+                    "CREATE GLOBAL TEMPORARY TABLE " + TEMP_DELTA_TABLE_NAME_FOR_ORACLE
+                            + "    (descendant_oid VARCHAR2(36 CHAR), "
+                            + "     ancestor_oid VARCHAR2(36 CHAR), "
+                            + "     val NUMBER (10, 0), "
+                            + "     PRIMARY KEY (descendant_oid, ancestor_oid)) "
+                            + "  ON COMMIT DELETE ROWS");
             try {
                 qCreate.executeUpdate();
                 session.getTransaction().commit();

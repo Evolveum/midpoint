@@ -12,7 +12,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.model.IModel;
 
 import com.evolveum.midpoint.gui.api.GuiStyleConstants;
@@ -54,7 +53,7 @@ public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismProperty
                 addExpressionValuePerformed(target);
             }
         };
-        addButton.add(new VisibleBehaviour(() -> isExpressionValueEmpty()));
+        addButton.add(new VisibleBehaviour(this::isExpressionValueEmpty));
         add(addButton);
 
         AjaxLink<Void> removeButton = new AjaxLink<Void>(ID_REMOVE_BUTTON) {
@@ -98,7 +97,6 @@ public class ExpressionPropertyHeaderPanel extends ItemHeaderPanel<PrismProperty
             }
         };
         labelComponent.setOutputMarkupId(true);
-        labelComponent.add(AttributeAppender.append("style", "cursor: pointer;"));
         return labelComponent;
     }
 

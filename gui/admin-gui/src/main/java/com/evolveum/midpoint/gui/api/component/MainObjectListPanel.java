@@ -207,6 +207,11 @@ public abstract class MainObjectListPanel<O extends ObjectType> extends ObjectLi
                 if (!isCollectionViewPanelForCompiledView()) {
                     return null;
                 }
+                DisplayType mainButtonDisplayType = getMainButtonDisplayType();
+                if (mainButtonDisplayType.getIcon() != null && mainButtonDisplayType.getIcon().getCssClass() != null &&
+                        getMainButtonDisplayType().getIcon().getCssClass().contains(GuiStyleConstants.CLASS_ADD_NEW_OBJECT)) {
+                    return null;
+                }
                 Map<IconCssStyle, IconType> layerIconMap = new HashMap<>();
                 layerIconMap.put(IconCssStyle.BOTTOM_RIGHT_STYLE, WebComponentUtil.createIconType(GuiStyleConstants.CLASS_PLUS_CIRCLE, "green"));
                 return layerIconMap;
