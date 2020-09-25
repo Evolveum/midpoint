@@ -17,7 +17,6 @@ import com.evolveum.midpoint.web.component.search.filter.BasicSearchFilter;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -62,7 +61,7 @@ public class BasicSearchFilterModel<O extends ObjectType> implements IModel<Basi
 //            }
 
             ObjectFilter objectFilter = pageBase.getPrismContext().getQueryConverter().createObjectFilter(type, baseModel.getObject());
-            return new BasicSearchFilter<O>(pageBase.getPrismContext(), objectFilter, type);
+            return new BasicSearchFilter<O>(pageBase, objectFilter, type);
         } catch (SchemaException e) {
             // TODO handle
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
