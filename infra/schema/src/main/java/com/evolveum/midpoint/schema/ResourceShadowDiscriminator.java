@@ -183,7 +183,9 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
                 kind, intent, bean.getTag(),
                 BooleanUtils.isTrue(bean.isTombstone()));
         rsd.setObjectClass(bean.getObjectClassName());
-        rsd.setOrder(bean.getDiscriminatorOrder());
+        if (bean.getDiscriminatorOrder() != null) {
+            rsd.setOrder(bean.getDiscriminatorOrder());
+        }
         return rsd;
     }
 
