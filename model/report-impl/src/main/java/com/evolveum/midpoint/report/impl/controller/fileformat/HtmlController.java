@@ -244,7 +244,7 @@ public class HtmlController extends FileFormatController {
 
     private ContainerTag createTable(CompiledObjectCollectionView compiledCollection, List<PrismObject<ObjectType>> values,
             PrismObjectDefinition<ObjectType> def, Class<? extends ObjectType> type,
-            boolean recordProgress, Task task, OperationResult result) {
+            boolean recordProgress, ExpressionType condition, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         ContainerTag table = createTable();
         ContainerTag tHead = TagCreator.thead();
         ContainerTag tBody = TagCreator.tbody();
@@ -274,21 +274,26 @@ public class HtmlController extends FileFormatController {
         int i = 0;
         if (recordProgress) {
             task.setExpectedTotal((long) values.size());
-            recordProgress(task, i, result, LOGGER);
         }
         for (PrismObject<ObjectType> value : values) {
-            ContainerTag tr = TagCreator.tr();
-            columns.forEach(column -> {
-                ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
-                ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
-                tr.with(TagCreator
-                        .th(TagCreator.div(getRealValueAsString(column, value, path, expression, task, result))
-                                .withStyle("white-space: pre-wrap")));
-            });
-            tBody.with(tr);
             if (recordProgress) {
-                i++;
                 recordProgress(task, i, result, LOGGER);
+                i++;
+            }
+            boolean writeRecord = true;
+            if (condition != null) {
+                writeRecord = evaluateCondition(condition, value, task, result);
+            }
+            if (writeRecord) {
+                ContainerTag tr = TagCreator.tr();
+                columns.forEach(column -> {
+                    ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
+                    ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
+                    tr.with(TagCreator
+                            .th(TagCreator.div(getRealValueAsString(column, value, path, expression, task, result))
+                                    .withStyle("white-space: pre-wrap")));
+                });
+                tBody.with(tr);
             }
         }
         table.with(tBody);
@@ -296,7 +301,7 @@ public class HtmlController extends FileFormatController {
     }
 
     private ContainerTag createTable(CompiledObjectCollectionView compiledCollection, List<AuditEventRecordType> records, boolean recordProgress,
-            Task task, OperationResult result) {
+            ExpressionType condition, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         ContainerTag table = createTable();
         ContainerTag tHead = TagCreator.thead();
         ContainerTag tBody = TagCreator.tbody();
@@ -326,26 +331,32 @@ public class HtmlController extends FileFormatController {
         int i = 0;
         if (recordProgress) {
             task.setExpectedTotal((long) records.size());
-            recordProgress(task, i, result, LOGGER);
         }
         for (AuditEventRecordType record : records) {
-            ContainerTag tr = TagCreator.tr();
-            columns.forEach(column -> {
-                ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
-                ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
-                try {
-                    tr.with(TagCreator
-                            .th(TagCreator.div(getRealValueAsString(column, getAuditRecordAsContainer(record),
-                                    path, expression, task, result))
-                                    .withStyle("white-space: pre-wrap")));
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't create singleValueContainer for audit record " + record);
-                }
-            });
-            tBody.with(tr);
             if (recordProgress) {
-                i++;
                 recordProgress(task, i, result, LOGGER);
+                i++;
+            }
+            boolean writeRecord = true;
+            if (condition != null) {
+                writeRecord = evaluateCondition(condition, record, task, result);
+            }
+
+            if (writeRecord) {
+                ContainerTag tr = TagCreator.tr();
+                columns.forEach(column -> {
+                    ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
+                    ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
+                    try {
+                        tr.with(TagCreator
+                                .th(TagCreator.div(getRealValueAsString(column, getAuditRecordAsContainer(record),
+                                        path, expression, task, result))
+                                        .withStyle("white-space: pre-wrap")));
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't create singleValueContainer for audit record " + record);
+                    }
+                });
+                tBody.with(tr);
             }
         }
         table.with(tBody);
@@ -377,7 +388,7 @@ public class HtmlController extends FileFormatController {
         Class<ObjectType> type = resolveType(collection, compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaHelper());
         List<PrismObject<ObjectType>> values = getReportService().getDashboardService()
-                .searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, condition, task, result);
+                .searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, task, result);
         if (values == null || values.isEmpty()) {
             if (recordProgress) {
                 values = new ArrayList<>();
@@ -391,7 +402,7 @@ public class HtmlController extends FileFormatController {
             getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultView(type));
         }
 
-        ContainerTag table = createTable(compiledCollection, values, def, type, recordProgress, task, result);
+        ContainerTag table = createTable(compiledCollection, values, def, type, recordProgress, condition, task, result);
         DisplayType display = compiledCollection.getDisplay();
         return createTableBox(table, label, values.size(),
                 convertMillisToString(startMillis), display);
@@ -402,12 +413,12 @@ public class HtmlController extends FileFormatController {
             ExpressionType condition, Task task, OperationResult result, boolean recordProgress) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         long startMillis = getReportService().getClock().currentTimeMillis();
-        List<AuditEventRecordType> records = getReportService().getDashboardService().searchObjectFromCollection(collection, condition, task, result);
+        List<AuditEventRecordType> records = getReportService().getDashboardService().searchObjectFromCollection(collection, task, result);
 
         if (compiledCollection.getColumns().isEmpty()) {
             getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultAuditEventsView());
         }
-        ContainerTag table = createTable(compiledCollection, records, recordProgress, task, result);
+        ContainerTag table = createTable(compiledCollection, records, recordProgress, condition, task, result);
         DisplayType display = compiledCollection.getDisplay();
         return createTableBox(table, label, records.size(),
                 convertMillisToString(startMillis), display);

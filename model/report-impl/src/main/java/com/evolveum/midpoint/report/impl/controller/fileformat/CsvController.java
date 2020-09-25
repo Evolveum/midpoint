@@ -193,7 +193,7 @@ public class CsvController extends FileFormatController {
     private byte[] createTableForAuditView(CollectionRefSpecificationType collectionRef, CompiledObjectCollectionView compiledCollection,
             ExpressionType condition, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException,
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-        List<AuditEventRecordType> auditRecords = getReportService().getDashboardService().searchObjectFromCollection(collectionRef, condition, task, result);
+        List<AuditEventRecordType> auditRecords = getReportService().getDashboardService().searchObjectFromCollection(collectionRef, task, result);
 
         if (compiledCollection.getColumns().isEmpty()) {
             getReportService().getModelInteractionService().applyView(compiledCollection, DefaultColumnUtils.getDefaultAuditEventsView());
@@ -213,23 +213,29 @@ public class CsvController extends FileFormatController {
 
         int i = 0;
         task.setExpectedTotal((long) auditRecords.size());
-        recordProgress(task, i, result, LOGGER);
 
         for (AuditEventRecordType auditRecord : auditRecords) {
-            List<String> items = new ArrayList<>();
-            columns.forEach(column -> {
-                ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
-                ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
-                try {
-                    items.add(getRealValueAsString(column, getAuditRecordAsContainer(auditRecord), path, expression, task, result)
-                    );
-                } catch (SchemaException e) {
-                    LOGGER.error("Couldn't create singleValueContainer for audit record " + auditRecord);
-                }
-            });
-            records.add(items);
-            i++;
             recordProgress(task, i, result, LOGGER);
+            i++;
+            boolean writeRecord = true;
+            if (condition != null) {
+                writeRecord = evaluateCondition(condition, auditRecord, task, result);
+            }
+
+            if (writeRecord) {
+                List<String> items = new ArrayList<>();
+                columns.forEach(column -> {
+                    ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
+                    ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
+                    try {
+                        items.add(getRealValueAsString(column, getAuditRecordAsContainer(auditRecord), path, expression, task, result)
+                        );
+                    } catch (SchemaException e) {
+                        LOGGER.error("Couldn't create singleValueContainer for audit record " + auditRecord);
+                    }
+                });
+                records.add(items);
+            }
         }
 
         CSVFormat csvFormat = createCsvFormat();
@@ -261,7 +267,7 @@ public class CsvController extends FileFormatController {
 
         Class<ObjectType> type = resolveType(collection, compiledCollection);
         Collection<SelectorOptions<GetOperationOptions>> options = DefaultColumnUtils.createOption(type, getReportService().getSchemaHelper());
-        List<PrismObject<ObjectType>> values = getReportService().getDashboardService().searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, condition, task, result);
+        List<PrismObject<ObjectType>> values = getReportService().getDashboardService().searchObjectFromCollection(collection, compiledCollection.getObjectType(), options, task, result);
         if (values.isEmpty()) {
             values = new ArrayList<>();
         }
@@ -285,19 +291,25 @@ public class CsvController extends FileFormatController {
 
         int i = 0;
         task.setExpectedTotal((long) values.size());
-        recordProgress(task, i, result, LOGGER);
 
         for (PrismObject<ObjectType> value : values) {
-
-            List<String> items = new ArrayList<>();
-            columns.forEach(column -> {
-                ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
-                ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
-                items.add(getRealValueAsString(column, value, path, expression, task, result));
-            });
-            records.add(items);
-            i++;
             recordProgress(task, i, result, LOGGER);
+            i++;
+            boolean writeRecord = true;
+            if (condition != null) {
+                writeRecord = evaluateCondition(condition, value, task, result);
+            }
+
+            if (writeRecord) {
+                List<String> items = new ArrayList<>();
+                columns.forEach(column -> {
+                    ItemPath path = column.getPath() == null ? null : column.getPath().getItemPath();
+                    ExpressionType expression = column.getExport() != null ? column.getExport().getExpression() : null;
+                    items.add(getRealValueAsString(column, value, path, expression, task, result));
+                });
+                records.add(items);
+            }
+
         }
 
         CSVFormat csvFormat = createCsvFormat();

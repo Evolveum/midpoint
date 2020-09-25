@@ -553,7 +553,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Cause schema violation on the account during a provisioning operation. This should fail
-     * the operation, but other operations should proceed and the account should definitelly NOT
+     * the operation, but other operations should proceed and the account should definitely NOT
      * be unlinked.
      * MID-2134
      */
@@ -595,7 +595,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Cause schema violation on the account during a provisioning operation. This should fail
-     * the operation, but other operations should proceed and the account should definitelly NOT
+     * the operation, but other operations should proceed and the account should definitely NOT
      * be unlinked.
      * MID-2134
      */
@@ -637,7 +637,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
     /**
      * Cause modification that will be mapped to the account and that will cause
-     * conflict (AlreadyExistsException). Make sure that midpoint does not end up
+     * conflict (AlreadyExistsException). Make sure that midPoint does not end up
      * in endless loop.
      * MID-3451
      */
@@ -719,7 +719,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
     }
 
-    // Lets test various extension magic and border cases now. This is maybe quite hight in the architecture for
+    // Lets test various extension magic and border cases now. This is maybe quite high in the architecture for
     // this test, but we want to make sure that none of the underlying components will screw the things up.
 
     @Test
@@ -1544,6 +1544,39 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountShadowModel(shadow, accountGuybrushOid, USER_GUYBRUSH_USERNAME, USER_GUYBRUSH_FULL_NAME);
 
         assertDummyAccountAttribute(null, USER_GUYBRUSH_USERNAME, "rogue", "habakuk");
+    }
+
+    /**
+     * Adds existing assignment (phantom change) and looks how audit and notifications look like.
+     * MID-6370
+     */
+    @Test
+    public void test700AddExistingAssignment() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(prismContext)
+                .name("user700")
+                .beginAssignment()
+                    .targetRef(ROLE_SUPERUSER_OID, RoleType.COMPLEX_TYPE)
+                .end();
+
+        addObject(user.asPrismObject(), task, result);
+
+        dummyTransport.clearMessages();
+        notificationManager.setDisabled(false);
+        dummyAuditService.clear();
+
+        when();
+        assignRole(user.getOid(), ROLE_SUPERUSER_OID, task, result);
+
+        then();
+        displayDumpable("dummy transport", dummyTransport);
+        displayDumpable("dummy audit", dummyAuditService);
+
+        // TODO some asserts here - currently there is an ADD audit record and ADD notification
+        //  In the future we can think of indicating that these adds are - in fact - phantom ones.
     }
 
     private <O extends ObjectType, T> void assertExtension(

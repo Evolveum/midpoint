@@ -81,7 +81,7 @@ public class TestPageOrg extends AbstractInitializedGuiIntegrationTest {
     @Test
     public void test004testCreateChild() throws Exception {
         renderPage(PageOrgTree.class);
-        tester.clickLink("orgPanel:tabs:panel:treePanel:treeContainer:tree:subtree:branches:1:node:content:menu:inlineMenuPanel:dropDownMenu:menuItem:6:menuItemBody:menuItemLink");
+        tester.clickLink("orgPanel:tabs:panel:treePanel:treeContainer:tree:subtree:branches:1:node:content:menu:inlineMenuPanel:dropDownMenu:menuItem:8:menuItemBody:menuItemLink");
         tester.assertRenderedPage(PageOrgUnit.class);
 
         FormTester formTester = tester.newFormTester(MAIN_FORM, false);

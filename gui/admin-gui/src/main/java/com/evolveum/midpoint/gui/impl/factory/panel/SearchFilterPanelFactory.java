@@ -14,6 +14,7 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
@@ -41,12 +42,18 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
     protected Panel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
         PrismPropertyWrapper<SearchFilterType> searchFilterItemWrapper = panelCtx.unwrapWrapperModel();
         PrismContainerValueWrapper containerWrapper = searchFilterItemWrapper.getParent();
-        //todo do we want to use search filter configuration component all over the gui?
         if (containerWrapper != null && containerWrapper.getRealValue() instanceof ObjectCollectionType) {
-            ObjectCollectionType collectionObj = (ObjectCollectionType) containerWrapper.getRealValue();
-            QName filterType = collectionObj.getType() != null ? collectionObj.getType() : ObjectType.COMPLEX_TYPE;
             return new SearchFilterConfigurationPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-                    WebComponentUtil.qnameToClass(panelCtx.getPageBase().getPrismContext(), filterType == null ? ObjectType.COMPLEX_TYPE : filterType));
+                    new LoadableModel<Class<? extends ObjectType>>() {
+                        private static final long serialVersionUID = 1L;
+
+                        @Override
+                        public Class<? extends ObjectType> load() {
+                            ObjectCollectionType collectionObj = (ObjectCollectionType) containerWrapper.getRealValue();
+                            QName filterType = collectionObj.getType() != null ? collectionObj.getType() : ObjectType.COMPLEX_TYPE;
+                            return (Class<? extends ObjectType>) WebComponentUtil.qnameToClass(panelCtx.getPageBase().getPrismContext(), filterType == null ? ObjectType.COMPLEX_TYPE : filterType);
+                        }
+                    });
         }
         return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 10);
     }

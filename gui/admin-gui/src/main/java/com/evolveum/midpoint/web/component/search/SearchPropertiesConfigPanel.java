@@ -11,9 +11,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathComparatorUtil;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.Component;
@@ -36,6 +33,8 @@ import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathComparatorUtil;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
@@ -68,9 +67,10 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     private static final String ID_ADD_BUTTON = "addButton";
 
     private SelectableListDataProvider<SelectableBean<ValueSearchFilterItem>, ValueSearchFilterItem> provider;
+    private Property selectedPropertyChoice = null;
 
-    public SearchPropertiesConfigPanel(String id, IModel<BasicSearchFilter<O>> searchModel, Class<O> type) {
-        super(id, searchModel, type);
+    public SearchPropertiesConfigPanel(String id, IModel<BasicSearchFilter<O>> searchModel, LoadableModel<Class<O>> typeModel) {
+        super(id, searchModel, typeModel);
     }
 
     @Override
@@ -82,7 +82,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         configPanel.add(propertyConfigContainer);
 
         DropDownChoicePanel<Property> propertyChoicePanel = new DropDownChoicePanel<Property>(ID_PROPERTY_CHOICE,
-                Model.of(getDefaultPropertyChoice()), getAvailablePropertiesListModel(), new IChoiceRenderer<Property>() {
+                getDefaultPropertyChoiceModel(), getAvailablePropertiesListModel(), new IChoiceRenderer<Property>() {
 
             private static final long serialVersionUID = 1L;
 
@@ -126,12 +126,25 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         initTable(configPanel);
     }
 
-    private Property getDefaultPropertyChoice() {
-        List<Property> availablePropertiesList = getAvailablePropertiesListModel().getObject();
-        if (CollectionUtils.isNotEmpty(availablePropertiesList)) {
-            return availablePropertiesList.get(0);
-        }
-        return null;
+    private IModel<Property> getDefaultPropertyChoiceModel() {
+        return new IModel<Property>() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            public Property getObject() {
+                if (selectedPropertyChoice == null) {
+                    List<Property> availablePropertiesList = getAvailablePropertiesListModel().getObject();
+                    if (CollectionUtils.isNotEmpty(availablePropertiesList)) {
+                        selectedPropertyChoice = availablePropertiesList.get(0);
+                    }
+                }
+                return selectedPropertyChoice;
+            }
+
+            public void setObject(Property property){
+                selectedPropertyChoice = property;
+            }
+        };
     }
 
     private void initTable(WebMarkupContainer configPanel) {
@@ -371,6 +384,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
         Property newPropertyValue = getPropertyChoicePanel().getBaseFormComponent().getModelObject();
         if (newPropertyValue != null) {
             getModelObject().addSearchFilterItem(createDefaultValueFilter(newPropertyValue));
+            resetPropertyChoicePanelModel();
         }
         target.add(SearchPropertiesConfigPanel.this);
     }
@@ -385,6 +399,10 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
 
     private DropDownChoicePanel<Property> getPropertyChoicePanel() {
         return (DropDownChoicePanel<Property>) get(createComponentPath(ID_CONFIGURATION_PANEL, ID_PROPERTY_CONFIG_CONTAINER, ID_PROPERTY_CHOICE));
+    }
+
+    private void resetPropertyChoicePanelModel() {
+        getPropertyChoicePanel().getModel().setObject(null);
     }
 
     private ValueSearchFilterItem createDefaultValueFilter(Property property) {

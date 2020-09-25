@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
+
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.model.IModel;
@@ -33,11 +35,11 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
     private static final String ID_ACE_EDITOR_FIELD = "aceEditorField";
     private static final String ID_CONFIGURE_BUTTON = "configureButton";
 
-    Class<O> filterType;
+    LoadableModel<Class<O>> filterTypeModel;
 
-    public SearchFilterConfigurationPanel(String id, IModel<SearchFilterType> model, Class<O> filterType){
+    public SearchFilterConfigurationPanel(String id, IModel<SearchFilterType> model, LoadableModel<Class<O>> filterTypeModel){
         super(id, model);
-        this.filterType = filterType;
+        this.filterTypeModel = filterTypeModel;
     }
 
     @Override
@@ -64,9 +66,10 @@ public class SearchFilterConfigurationPanel<O extends ObjectType> extends BasePa
 
     }
 
-    private void searchConfigurationPerformed(AjaxRequestTarget target){
+    private void searchConfigurationPerformed(AjaxRequestTarget target) {
+        filterTypeModel.reset();
         SearchPropertiesConfigPanel<O> configPanel = new SearchPropertiesConfigPanel<O>(getPageBase().getMainPopupBodyId(),
-                new BasicSearchFilterModel<O>(getModel(), filterType, getPageBase()), filterType){
+                new BasicSearchFilterModel<O>(getModel(), filterTypeModel.getObject(), getPageBase()), filterTypeModel){
             private static final long serialVersionUID = 1L;
 
             @Override
