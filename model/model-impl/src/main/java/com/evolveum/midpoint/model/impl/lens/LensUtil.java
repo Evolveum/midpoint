@@ -1201,4 +1201,35 @@ public class LensUtil {
         booleanDefinition.freeze();
         return booleanDefinition;
     }
+
+    public static ShadowDiscriminatorType createDiscriminatorBean(ResourceShadowDiscriminator rsd, LensContext<?> lensContext) {
+        if (rsd == null) {
+            return null;
+        }
+        ShadowDiscriminatorType bean = rsd.toResourceShadowDiscriminatorType();
+        provideResourceName(bean.getResourceRef(), lensContext);
+        return bean;
+    }
+
+    private static void provideResourceName(ObjectReferenceType resourceRef, LensContext<?> lensContext) {
+        if (resourceRef != null) {
+            if (resourceRef.getTargetName() == null) {
+                ResourceType resource = lensContext.getResource(resourceRef.getOid());
+                if (resource != null) {
+                    resourceRef.setTargetName(resource.getName());
+                }
+            }
+        }
+    }
+
+    public static AssignmentType cloneResolveResource(AssignmentType assignmentBean, LensContext<?> lensContext) {
+        if (assignmentBean == null) {
+            return null;
+        }
+        AssignmentType clone = assignmentBean.clone();
+        if (clone.getConstruction() != null) {
+            provideResourceName(clone.getConstruction().getResourceRef(), lensContext);
+        }
+        return clone;
+    }
 }

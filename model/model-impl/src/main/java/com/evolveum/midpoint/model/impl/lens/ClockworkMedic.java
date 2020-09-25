@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.impl.lens.projector.ProjectorProcessor;
 import com.evolveum.midpoint.model.impl.lens.projector.util.*;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.PartialProcessingOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorComponentTraceType;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -206,12 +207,13 @@ public class ClockworkMedic {
         }
     }
 
-    private boolean shouldExecute(String componentName, ProjectorProcessor processor, LensContext<?> context, LensProjectionContext projectionContext) throws SchemaException {
+    private boolean shouldExecute(String componentName, ProjectorProcessor processor, LensContext<?> context, LensProjectionContext projectionContext) {
         ProcessorExecution processorExecution = processor.getClass().getAnnotation(ProcessorExecution.class);
         return processorExecution == null ||
                 focusPresenceAndTypeCheckPasses(componentName, context, processorExecution)
                         && focusDeletionCheckPasses(componentName, context.getFocusContext(), processorExecution)
-                        && projectionDeletionCheckPasses(componentName, projectionContext, processorExecution);
+                        && projectionDeletionCheckPasses(componentName, projectionContext, processorExecution)
+                        && projectionCurrentCheckPasses(componentName, projectionContext);
     }
 
     private boolean focusPresenceAndTypeCheckPasses(String componentName, LensContext<?> context,
@@ -235,7 +237,7 @@ public class ClockworkMedic {
     }
 
     private boolean focusDeletionCheckPasses(String componentName, LensFocusContext<?> focusContext,
-            ProcessorExecution processorExecution) throws SchemaException {
+            ProcessorExecution processorExecution) {
         if (focusContext == null) {
             // If we are OK with no focus context, then the deletion is irrelevant
             return true;
@@ -256,6 +258,22 @@ public class ClockworkMedic {
     private boolean projectionDeletionCheckPasses(String componentName, LensProjectionContext projectionContext, ProcessorExecution processorExecution) {
         if (processorExecution.skipWhenProjectionDeleted() && projectionContext != null && projectionContext.isDelete()) {
             LOGGER.trace("Skipping '{}' because projection is being deleted", componentName);
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * Actually, in the current code (4.2) all methods that check this status are within
+     * {@link com.evolveum.midpoint.model.impl.lens.projector.Projector#projectProjection(LensContext, LensProjectionContext, PartialProcessingOptionsType, XMLGregorianCalendar, String, Task, OperationResult)}
+     * method - and it checks for both projection completed flag and its execution wave. Nevertheless, let us keep the check
+     * here for future use.
+     */
+    @SuppressWarnings("JavadocReference")
+    private boolean projectionCurrentCheckPasses(String componentName, LensProjectionContext projectionContext) {
+        if (projectionContext != null && !projectionContext.isCurrentForProjection()) {
+            LOGGER.trace("Skipping '{}' because projection is not current (already completed or wrong wave)", componentName);
             return false;
         } else {
             return true;
@@ -309,6 +327,10 @@ public class ClockworkMedic {
                     trace.setInputLensContextText(context.debugDump());
                 }
                 trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+                if (projectionContext != null) {
+                    trace.setResourceShadowDiscriminator(
+                            LensUtil.createDiscriminatorBean(projectionContext.getResourceShadowDiscriminator(), context));
+                }
                 result.addTrace(trace);
             } else {
                 trace = null;
@@ -341,7 +363,7 @@ public class ClockworkMedic {
     }
 
     public <F extends ObjectType> void traceContext(Trace logger, String activity, String phase,
-            boolean important,  LensContext<F> context, boolean showTriples) throws SchemaException {
+            boolean important,  LensContext<F> context, boolean showTriples) {
         if (logger.isTraceEnabled()) {
             logger.trace("Lens context:\n"+
                     "---[ {} context {} ]--------------------------------\n"+

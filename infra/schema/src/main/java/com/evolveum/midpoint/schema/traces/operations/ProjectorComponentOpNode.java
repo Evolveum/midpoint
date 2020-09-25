@@ -19,7 +19,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ProjectorComponentTr
  */
 public class ProjectorComponentOpNode extends OpNode {
 
-    private final ProjectorComponentTraceType trace;
+    final ProjectorComponentTraceType trace;
 
     public ProjectorComponentOpNode(PrismContext prismContext, OperationResultType result, OpResultInfo info, OpNode parent,
             TraceInfo traceInfo) {

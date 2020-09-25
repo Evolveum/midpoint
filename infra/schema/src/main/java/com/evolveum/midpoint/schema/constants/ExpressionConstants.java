@@ -39,7 +39,7 @@ public class ExpressionConstants {
     public static final String VAR_FOCUS_ASSIGNMENT = "focusAssignment";
     public static final String VAR_IMMEDIATE_ROLE = "immediateRole";
     public static final String VAR_CONTAINING_OBJECT = "containingObject";
-    public static final String VAR_ORDER_ONE_OBJECT = "thisObject";
+    public static final String VAR_THIS_OBJECT = "thisObject";
     public static final String VAR_OPERATION = "operation";
     public static final String VAR_RESOURCE = "resource";
     public static final String VAR_DELTA = "delta";

@@ -36,7 +36,7 @@ public interface EvaluatedAssignment<AH extends AssignmentHolderType> extends De
 
     DeltaSetTriple<? extends EvaluatedAssignmentTarget> getRoles();
 
-    @NotNull DeltaSetTriple<EvaluatedConstruction> getEvaluatedConstructions(@NotNull Task task, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
+    @NotNull DeltaSetTriple<EvaluatedResourceObjectConstruction> getEvaluatedConstructions(@NotNull Task task, @NotNull OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     PrismObject<?> getTarget();
 

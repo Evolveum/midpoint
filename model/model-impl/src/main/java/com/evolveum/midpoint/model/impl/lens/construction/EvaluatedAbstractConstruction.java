@@ -7,15 +7,14 @@
 
 package com.evolveum.midpoint.model.impl.lens.construction;
 
-import com.evolveum.midpoint.model.api.context.EvaluatedConstruction;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
 
 /**
+ * Facade interface for evaluated resource object and persona constructions.
+ *
  * @author Radovan Semancik
  */
-public interface EvaluatedConstructible<AH extends AssignmentHolderType> {
+public interface EvaluatedAbstractConstruction<AH extends AssignmentHolderType> {
 
     AbstractConstruction<AH,?,?> getConstruction();
 

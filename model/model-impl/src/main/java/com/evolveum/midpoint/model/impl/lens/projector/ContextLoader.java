@@ -177,8 +177,9 @@ public class ContextLoader implements ProjectorProcessor {
                 } catch (Throwable e) {
                     projectionResult.recordFatalError(e);
                     throw e;
+                } finally {
+                    projectionResult.computeStatusIfUnknown();
                 }
-                projectionResult.computeStatus();
             }
 
             context.checkConsistenceIfNeeded();
@@ -236,9 +237,7 @@ public class ContextLoader implements ProjectorProcessor {
                 continue;
             }
             if (!projectionContext.isFresh()) {
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Removing rotten context {}", projectionContext.getHumanReadableName());
-                }
+                LOGGER.trace("Removing rotten context {}", projectionContext.getHumanReadableName());
 
                 if (projectionContext.isToBeArchived()) {
                     context.getHistoricResourceObjects().add(projectionContext.getResourceShadowDiscriminator());
@@ -1173,8 +1172,14 @@ public class ContextLoader implements ProjectorProcessor {
             SecurityViolationException, ExpressionEvaluationException {
 
         if (projContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+            LOGGER.trace("Skipping loading of broken context {}", projContext.getHumanReadableName());
+            result.recordNotApplicable();
             return;
         }
+
+        // We could skip loading if the projection is completed, but it would cause problems e.g. in wasProvisioned
+        // method in dependency processor (it checks objectCurrent, among other things). So let's be conservative
+        // and load also completed projections.
 
         // MID-2436 (volatile objects) - as a quick but effective hack, we set reconciliation:=TRUE for volatile accounts
         ResourceObjectTypeDefinitionType objectDefinition = projContext.getResourceObjectTypeDefinitionType();
@@ -1194,7 +1199,7 @@ public class ContextLoader implements ProjectorProcessor {
         boolean tombstone = false;
         PrismObject<ShadowType> projectionObject = projContext.getObjectCurrent();
         if (projContext.getObjectCurrent() == null || needToReload(context, projContext)) {
-            if (projContext.isAdd()) {
+            if (projContext.isAdd() && !projContext.isCompleted()) {
                 // No need to load old object, there is none
                 projContext.setExists(false);
                 projContext.recompute();
@@ -1219,17 +1224,13 @@ public class ContextLoader implements ProjectorProcessor {
                     }
                     rootOptions.setAllowNotFound(true);
                     Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
-                    if (LOGGER.isTraceEnabled()) {
-                        LOGGER.trace("Loading shadow {} for projection {}, options={}", projectionObjectOid, projContext.getHumanReadableName(), options);
-                    }
+                    LOGGER.trace("Loading shadow {} for projection {}, options={}", projectionObjectOid, projContext.getHumanReadableName(), options);
 
                     try {
                         PrismObject<ShadowType> objectOld = provisioningService.getObject(
                                 projContext.getObjectTypeClass(), projectionObjectOid, options, task, result);
-                        if (LOGGER.isTraceEnabled()) {
-                            if (!GetOperationOptions.isNoFetch(rootOptions) && !GetOperationOptions.isRaw(rootOptions)) {
-                                LOGGER.trace("Full shadow loaded for {}:\n{}", projContext.getHumanReadableName(), objectOld.debugDump(1));
-                            }
+                        if (!GetOperationOptions.isNoFetch(rootOptions) && !GetOperationOptions.isRaw(rootOptions)) {
+                            LOGGER.trace("Full shadow loaded for {}:\n{}", projContext.getHumanReadableName(), objectOld.debugDumpLazily(1));
                         }
                         Validate.notNull(objectOld.getOid());
                         if (InternalsConfig.consistencyChecks) {
@@ -1416,16 +1417,28 @@ public class ContextLoader implements ProjectorProcessor {
             // already loaded
             return;
         }
-        if (projCtx.isAdd() && projCtx.getOid() == null) {
-            // nothing to load yet
-            return;
-        }
         if (projCtx.isTombstone()) {
             // loading is futile
             return;
         }
+        String oid = projCtx.getOid();
+        if (oid == null) {
+            if (projCtx.isAdd()) {
+                // nothing to load yet
+                return;
+            }
+            if (projCtx.getWave() > context.getExecutionWave()) {
+                // will be dealt with later
+                return;
+            }
+            if (projCtx.getWave() == context.getExecutionWave() && projCtx.getSynchronizationPolicyDecision() == null) {
+                // probably will be created (activation was not run yet)
+                return;
+            }
+        }
         OperationResult result = parentResult.subresult(CLASS_DOT + "loadFullShadow")
                 .setMinor()
+                .addParam("reason", reason)
                 .build();
         FullShadowLoadedTraceType trace;
         if (result.isTraced()) {
@@ -1437,6 +1450,7 @@ public class ContextLoader implements ProjectorProcessor {
                 trace.setResourceName(name != null ? name : PolyStringType.fromOrig(projCtx.getResourceOid()));
             }
             trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+            trace.setReason(reason);
             result.addTrace(trace);
         } else {
             trace = null;
@@ -1469,8 +1483,12 @@ public class ContextLoader implements ProjectorProcessor {
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
             applyAttributesToGet(projCtx, options);
             try {
+                if (oid == null) {
+                    throw new IllegalStateException("Trying to load shadow with null OID (reason for load: " + reason + ") for "
+                            + projCtx.getHumanReadableName());
+                }
                 PrismObject<ShadowType> objectCurrent = provisioningService
-                        .getObject(ShadowType.class, projCtx.getOid(), options, task, result);
+                        .getObject(ShadowType.class, oid, options, task, result);
                 Validate.notNull(objectCurrent.getOid());
                 if (trace != null) {
                     trace.setShadowLoadedRef(ObjectTypeUtil.createObjectRefWithFullObject(objectCurrent, prismContext));

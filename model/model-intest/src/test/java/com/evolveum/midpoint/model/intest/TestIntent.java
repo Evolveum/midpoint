@@ -35,7 +35,6 @@ import com.evolveum.midpoint.task.api.Task;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestIntent extends AbstractInitializedModelIntegrationTest {
 
-    public static final File TEST_DIR = new File("src/test/resources/xxxxxxxxxx");
     private static final String ACCOUNT_INTENT_TEST = "test";
     private String accountOid;
 
@@ -46,6 +45,8 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
 
         rememberSteadyResources();
+
+        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     @Test

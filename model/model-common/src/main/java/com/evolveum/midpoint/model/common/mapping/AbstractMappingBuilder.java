@@ -290,11 +290,15 @@ public abstract class AbstractMappingBuilder<V extends PrismValue, D extends Ite
     }
 
     public RT addVariableDefinition(String name, ObjectDeltaObject<?> value) {
-        PrismObjectDefinition<?> definition = value.getDefinition();
-        if (definition == null) {
-            throw new IllegalArgumentException("Attempt to set variable '" + name + "' as ODO without a definition: " + value);
+        if (value != null) {
+            PrismObjectDefinition<?> definition = value.getDefinition();
+            if (definition == null) {
+                throw new IllegalArgumentException("Attempt to set variable '" + name + "' as ODO without a definition: " + value);
+            }
+            return addVariableDefinition(name, value, definition);
+        } else {
+            return addVariableDefinition(name, null, ObjectDeltaObject.class); // todo ok?
         }
-        return addVariableDefinition(name, value, definition);
     }
 
     // mainVariable of "null" means the default source

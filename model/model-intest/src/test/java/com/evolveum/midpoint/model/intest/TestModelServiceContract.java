@@ -3097,15 +3097,16 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         // WHEN
         when();
-        modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
+        executeChanges(delta, null, task, result);
 
         // THEN
         then();
         assertSuccess(result);
 
         XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-        // Weak activation mapping means account load
-        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 1);
+        // Weak activation mapping means account load. But if the account does not previously exist,
+        // no loading is required. And now we skip activation processing for completed projections.
+        assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
 
         PrismObject<UserType> userJackAfter = getUser(USER_JACK_OID);
         display("User after change execution", userJackAfter);

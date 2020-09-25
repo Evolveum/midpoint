@@ -1127,6 +1127,16 @@ public class PrismAsserts {
             "; was "+actualCollection;
     }
 
+    public static <T> void assertEqualsCollectionUnorderedNullable(String message, Collection<T> actualCollection, T... expectedValues) {
+        if (CollectionUtils.isEmpty(actualCollection) && expectedValues.length == 0) {
+            // ok
+        } else {
+            List<T> expectedCollection = Arrays.asList(expectedValues);
+            assert MiscUtil.unorderedCollectionEquals(actualCollection, expectedCollection) : message + ": expected " + expectedCollection +
+                    "; was " + actualCollection;
+        }
+    }
+
     public static <T> void assertEqualsCollectionUnordered(String message, Collection<T> expected, Collection<T> real) {
         assertEquals(message, new HashSet<>(expected), new HashSet<>(real));
     }

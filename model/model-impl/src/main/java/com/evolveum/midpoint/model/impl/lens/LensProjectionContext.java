@@ -19,8 +19,8 @@ import java.util.function.Consumer;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.refinery.*;
-import com.evolveum.midpoint.model.impl.lens.construction.Construction;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.PlainResourceObjectConstruction;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -113,6 +113,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     /**
      * True if the account should be part of the synchronization. E.g. outbound expression should be applied to it.
+     * TODO It looks like this is currently not used. Consider removing.
      */
     private boolean isActive;
 
@@ -167,7 +168,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     private SynchronizationSituationType synchronizationSituationResolved = null;
 
     /**
-     * Delta set triple for constructions. Specifies which constructions (projections e.g. accounts)
+     * Delta set triple for constructions obtained via assignments. Specifies which constructions (projections e.g. accounts)
      * should be added, removed or stay as they are.
      *
      * It tells almost nothing about attributes directly although the information about attributes are inside
@@ -181,17 +182,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      *
      * Note that relativity is taken to focus OLD state, not to the current state.
      */
-    private transient DeltaSetTriple<EvaluatedConstructionImpl<?>> evaluatedConstructionDeltaSetTriple;
+    private transient DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<?>> evaluatedAssignedConstructionDeltaSetTriple;
 
     /**
-     * Triples for outbound mappings; similar to the above.
+     * Evaluated "plain" resource object construction obtained from the schema handling configuration for given resource.
+     * TODO better name
+     *
      * Source: OutboundProcessor
      * Target: ConsolidationProcessor / ReconciliationProcessor (via squeezed structures)
      */
-    private transient Construction outboundConstruction;
+    private transient PlainResourceObjectConstruction<?> evaluatedPlainConstruction;
 
     /**
-     * Postprocessed triples from the above two properties.
+     * Post-processed triples from the above two properties.
      * Source: ConsolidationProcessor
      * Target: ReconciliationProcessor
      */
@@ -570,21 +573,22 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return ShadowKindType.ACCOUNT;
     }
 
-    public <AH extends AssignmentHolderType> DeltaSetTriple<EvaluatedConstructionImpl<AH>> getEvaluatedConstructionDeltaSetTriple() {
+    public <AH extends AssignmentHolderType> DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> getEvaluatedAssignedConstructionDeltaSetTriple() {
         //noinspection unchecked
-        return (DeltaSetTriple) evaluatedConstructionDeltaSetTriple;
+        return (DeltaSetTriple) evaluatedAssignedConstructionDeltaSetTriple;
     }
 
-    public <AH extends AssignmentHolderType> void setEvaluatedConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedConstructionImpl<AH>> evaluatedConstructionDeltaSetTriple) {
-        this.evaluatedConstructionDeltaSetTriple = (DeltaSetTriple)evaluatedConstructionDeltaSetTriple;
+    public <AH extends AssignmentHolderType> void setEvaluatedAssignedConstructionDeltaSetTriple(DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<AH>> evaluatedAssignedConstructionDeltaSetTriple) {
+        this.evaluatedAssignedConstructionDeltaSetTriple = (DeltaSetTriple) evaluatedAssignedConstructionDeltaSetTriple;
     }
 
-    public Construction getOutboundConstruction() {
-        return outboundConstruction;
+    public <AH extends AssignmentHolderType> PlainResourceObjectConstruction<AH> getEvaluatedPlainConstruction() {
+        //noinspection unchecked
+        return (PlainResourceObjectConstruction<AH>) evaluatedPlainConstruction;
     }
 
-    public void setOutboundConstruction(Construction outboundConstruction) {
-        this.outboundConstruction = outboundConstruction;
+    public void setEvaluatedPlainConstruction(PlainResourceObjectConstruction<?> evaluatedPlainConstruction) {
+        this.evaluatedPlainConstruction = evaluatedPlainConstruction;
     }
 
     public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>,PrismPropertyDefinition<?>>>> getSqueezedAttributes() {
@@ -834,7 +838,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     public void clearIntermediateResults() {
         //constructionDeltaSetTriple = null;
-        outboundConstruction = null;
+        evaluatedPlainConstruction = null;
         squeezedAttributes = null;
     }
 
@@ -1010,13 +1014,22 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
     @Override
     public void cleanup() {
+        checkIfShouldArchive();
+
+        // We will clean up this projection context fully only if there's a chance we will touch it again.
+        if (!completed) {
+            synchronizationPolicyDecision = null;
+            isAssigned = null;
+            isActive = false;
+        }
+
+        // However, selected items are still cleaned up, in order to preserve existing behavior.
+        // This might be important e.g. for inbound mappings that take previous deltas into account.
         secondaryDelta = null;
-        resetSynchronizationPolicyDecision();
-//        isLegal = null;
-//        isLegalOld = null;
-        isAssigned = null;
-//        isAssignedOld = false;  // ??? [med]
-        isActive = false;
+
+//      isLegal = null;
+//      isLegalOld = null;
+//      isAssignedOld = false;  // ??? [med]
     }
 
     @Override
@@ -1043,13 +1056,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 //        accountPasswordPolicy = null;
 //    }
 
-    protected void resetSynchronizationPolicyDecision() {
+    protected void checkIfShouldArchive() {
         if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE || synchronizationPolicyDecision == SynchronizationPolicyDecision.UNLINK) {
             toBeArchived = true;
         } else if (synchronizationPolicyDecision != null) {
             toBeArchived = false;
         }
-        synchronizationPolicyDecision = null;
     }
 
     @Override
@@ -1076,7 +1088,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         clone.fullShadow = this.fullShadow;
         clone.isAssigned = this.isAssigned;
         clone.isAssignedOld = this.isAssignedOld;
-        clone.outboundConstruction = this.outboundConstruction;
+        clone.evaluatedPlainConstruction = this.evaluatedPlainConstruction;
         clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
         clone.resource = this.resource;
         clone.resourceShadowDiscriminator = this.resourceShadowDiscriminator;
@@ -1261,10 +1273,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (showTriples) {
 
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("constructionDeltaSetTriple"), evaluatedConstructionDeltaSetTriple, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("evaluatedAssignedConstructionDeltaSetTriple"), evaluatedAssignedConstructionDeltaSetTriple, indent + 1);
 
             sb.append("\n");
-            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("outbound account construction"), outboundConstruction, indent + 1);
+            DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("plain (schemaHandling) construction"), evaluatedPlainConstruction, indent + 1);
 
             sb.append("\n");
             DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed attributes"), squeezedAttributes, indent + 1);
@@ -1338,6 +1350,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         LensProjectionContextType lensProjectionContextType = lensProjectionContextTypeContainer.createNewValue().asContainerable();
         super.storeIntoLensElementContextType(lensProjectionContextType, exportType);
         lensProjectionContextType.setWave(wave);
+        lensProjectionContextType.setCompleted(completed);
         lensProjectionContextType.setResourceShadowDiscriminator(resourceShadowDiscriminator != null ?
                 resourceShadowDiscriminator.toResourceShadowDiscriminatorType() : null);
         lensProjectionContextType.setFullShadow(fullShadow);
@@ -1386,6 +1399,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         projectionContext.fixProvisioningTypeInDelta(projectionContext.secondaryDelta, object, task, result);
 
         projectionContext.wave = projectionContextType.getWave() != null ? projectionContextType.getWave() : 0;
+        projectionContext.completed = BooleanUtils.isTrue(projectionContextType.isCompleted());
         projectionContext.fullShadow = projectionContextType.isFullShadow() != null ? projectionContextType.isFullShadow() : false;
         projectionContext.isAssigned = projectionContextType.isIsAssigned() != null ? projectionContextType.isIsAssigned() : false;
         projectionContext.isAssignedOld = projectionContextType.isIsAssignedOld() != null ? projectionContextType.isIsAssignedOld() : false;
@@ -1520,6 +1534,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     @Override
     boolean doesPrimaryDeltaApply() {
         return true; // TODO is this OK?
+    }
+
+    /**
+     * @return True if the projection is "current" i.e. it was not completed and its wave is
+     * either not yet determined or equal to the current projection wave.
+     */
+    @Experimental
+    public boolean isCurrentForProjection() {
+        if (completed) {
+            return false;
+        }
+        if (wave != -1 && wave != getLensContext().getProjectionWave()) {
+            return false;
+        }
+        return true;
     }
 
     public boolean isCompleted() {

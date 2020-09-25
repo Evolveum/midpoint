@@ -556,7 +556,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow", accountShadow);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
-        assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
+
+        // We have to use matching rule for shadow name, because the shadow is re-fetched due to strong assigned mapping.
+        // (Then the shadow name is updated to uppercase.)
+        assertShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyUpcaseType,
+                getAccountObjectClass(resourceDummyUpcaseType), caseIgnoreMatchingRule, true, true);
 
         // Check account
         rememberCounter(InternalCounters.SHADOW_FETCH_OPERATION_COUNT);
@@ -656,7 +660,11 @@ public class TestCaseIgnore extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
         display("Repo shadow", accountShadow);
         assertCounterIncrement(InternalCounters.SHADOW_FETCH_OPERATION_COUNT, 0);
-        assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyUpcaseType, caseIgnoreMatchingRule);
+
+        // We have to use matching rule for shadow name, because the shadow is re-fetched due to strong assigned mapping.
+        // (Then the shadow name is updated to uppercase.)
+        assertShadowRepo(accountShadow, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, resourceDummyUpcaseType,
+                getAccountObjectClass(resourceDummyUpcaseType), caseIgnoreMatchingRule, true, true);
 
         assertShadows(6);
 

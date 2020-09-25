@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1556,6 +1557,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
             if (!projectionContext.isCanProject()) {
                 continue;
             }
+            if (projectionContext.isCompleted()) {
+                continue;
+            }
             if (projectionContext.isTombstone()) {
                 continue;
             }
@@ -1724,5 +1728,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     public boolean isExperimentalCodeEnabled() {
         return systemConfiguration != null && systemConfiguration.asObjectable().getInternals() != null &&
                 Boolean.TRUE.equals(systemConfiguration.asObjectable().getInternals().isEnableExperimentalCode());
+    }
+
+    public ObjectDeltaObject<F> getFocusOdoAbsolute() {
+        return focusContext != null ? focusContext.getObjectDeltaObjectAbsolute() : null;
     }
 }

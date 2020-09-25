@@ -18,6 +18,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+
 import org.apache.commons.lang.BooleanUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang3.StringUtils;
@@ -119,6 +121,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
     @Autowired private SecurityContextManager securityContextManager;
     @Autowired private SchemaTransformer schemaTransformer;
     @Autowired private ProvisioningService provisioning;
+    @Autowired private ModelBeans modelBeans;
     @Autowired private ModelObjectResolver objectResolver;
     @Autowired private ObjectMerger objectMerger;
     @Autowired
@@ -1398,6 +1401,7 @@ public class ModelInteractionServiceImpl implements ModelInteractionService {
                         .referenceResolver(referenceResolver)
                         .focusOdo(new ObjectDeltaObject<>(potentialDeputy, null, potentialDeputy, potentialDeputy.getDefinition()))
                         .channel(null)
+                        .modelBeans(modelBeans)
                         .objectResolver(objectResolver)
                         .systemObjectCache(systemObjectCache)
                         .relationRegistry(relationRegistry)

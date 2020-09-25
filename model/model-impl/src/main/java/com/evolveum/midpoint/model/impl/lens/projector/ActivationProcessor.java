@@ -86,7 +86,7 @@ public class ActivationProcessor implements ProjectorProcessor {
     private PrismContainerDefinition<ActivationType> activationDefinition;
 
     // not a "medic-managed" entry point
-    <F extends ObjectType> void processActivationForAllResources(LensContext<F> context, String activityDescription,
+    <F extends ObjectType> void processProjectionsActivation(LensContext<F> context, String activityDescription,
             XMLGregorianCalendar now, Task task, OperationResult result) throws ExpressionEvaluationException,
             ObjectNotFoundException, SchemaException, PolicyViolationException, CommunicationException, ConfigurationException,
             SecurityViolationException {
@@ -123,6 +123,13 @@ public class ActivationProcessor implements ProjectorProcessor {
                 .addParam("projection", projectionContext.getHumanReadableName())
                 .build();
         try {
+
+            if (!projectionContext.isCurrentForProjection()) {
+                LOGGER.trace("Projection {} is not current, skipping activation processing", projectionContext.getHumanReadableName());
+                result.recordNotApplicable();
+                return;
+            }
+
             LensFocusContext<O> focusContext = context.getFocusContext();
             if (focusContext == null || !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 
@@ -176,9 +183,13 @@ public class ActivationProcessor implements ProjectorProcessor {
             return;
         }
 
-        if (existingDecision != null) {
-            throw new IllegalStateException("Decision "+existingDecision+" already present for projection "+projCtxDesc);
-        }
+        // Activation is computed on projector start but can be recomputed in the respective wave again.
+        // So let us skip this safety check. An alternative would be to skip all activation processing
+        // in such a case. But the current approach is closer to the previous implementation and safer.
+
+//        if (existingDecision != null) {
+//            throw new IllegalStateException("Decision "+existingDecision+" already present for projection "+projCtxDesc);
+//        }
 
         if (synchronizationIntent == SynchronizationIntent.UNLINK) {
             setSynchronizationPolicyDecision(projCtx, SynchronizationPolicyDecision.UNLINK, result);

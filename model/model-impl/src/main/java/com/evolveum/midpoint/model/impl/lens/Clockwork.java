@@ -649,7 +649,6 @@ public class Clockwork {
         }
     }
 
-
     private <F extends ObjectType> void processClockworkException(LensContext<F> context, Throwable e, Task task, OperationResult result, OperationResult overallResult)
             throws SchemaException {
         LOGGER.trace("Processing clockwork exception {}", e.toString());

@@ -720,11 +720,11 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
                 }
 
                 // all resources
-                DeltaSetTriple<EvaluatedConstruction> evaluatedConstructionsTriple = evaluatedAssignment
+                DeltaSetTriple<EvaluatedResourceObjectConstruction> evaluatedConstructionsTriple = evaluatedAssignment
                         .getEvaluatedConstructions(task, result);
-                Collection<EvaluatedConstruction> evaluatedConstructions = evaluatedConstructionsTriple
+                Collection<EvaluatedResourceObjectConstruction> evaluatedConstructions = evaluatedConstructionsTriple
                         .getNonNegativeValues();
-                for (EvaluatedConstruction construction : evaluatedConstructions) {
+                for (EvaluatedResourceObjectConstruction construction : evaluatedConstructions) {
                     if (!construction.isWeak()) {
                         assignmentInfoDtoSet.add(createAssignmentsPreviewDto(construction));
                     }
@@ -802,7 +802,7 @@ public abstract class PageAdminFocus<F extends FocusType> extends PageAdminObjec
         return PolyString.getOrig(target.asObjectable().getName());
     }
 
-    private AssignmentInfoDto createAssignmentsPreviewDto(EvaluatedConstruction evaluatedConstruction) {
+    private AssignmentInfoDto createAssignmentsPreviewDto(EvaluatedResourceObjectConstruction evaluatedConstruction) {
         AssignmentInfoDto dto = new AssignmentInfoDto();
         PrismObject<ResourceType> resource = evaluatedConstruction.getResource();
         dto.setTargetOid(resource.getOid());
