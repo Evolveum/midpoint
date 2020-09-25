@@ -6,10 +6,10 @@
  */
 package com.evolveum.midpoint.web.component.search.filter;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ public abstract class SearchFilter<C extends Containerable> implements Serializa
     private static final long serialVersionUID = 1L;
     private List<ValueSearchFilterItem> valueSearchFilterItems = new ArrayList<>();
 //    private LogicalSearchFilterItem logicalSearchFilterItem;
-    private PrismContext prismContext;
+    PageBase pageBase;
     private ObjectFilter baseFilter;
     Class<C> type;
 
@@ -32,8 +32,9 @@ public abstract class SearchFilter<C extends Containerable> implements Serializa
         OR;
     }
 
-    public SearchFilter(PrismContext prismContext, ObjectFilter baseFilter, Class<C> type){
-        this.prismContext = prismContext;
+    public SearchFilter(PageBase pageBase, ObjectFilter baseFilter, Class<C> type){
+//        this.prismContext = prismContext;
+        this.pageBase = pageBase;
         this.baseFilter = baseFilter;
         this.type = type;
 
@@ -46,7 +47,7 @@ public abstract class SearchFilter<C extends Containerable> implements Serializa
 
     public List<ObjectFilter> getObjectFilterList() {
         List<ObjectFilter> objectFilters = new ArrayList<>();
-        valueSearchFilterItems.forEach(filterItem -> objectFilters.add(filterItem.buildFilter(prismContext, type)));
+        valueSearchFilterItems.forEach(filterItem -> objectFilters.add(filterItem.buildFilter(pageBase.getPrismContext(), type)));
         return objectFilters;
     }
 
@@ -61,6 +62,6 @@ public abstract class SearchFilter<C extends Containerable> implements Serializa
     }
 
     public PrismContext getPrismContext() {
-        return prismContext;
+        return pageBase.getPrismContext();
     }
 }
