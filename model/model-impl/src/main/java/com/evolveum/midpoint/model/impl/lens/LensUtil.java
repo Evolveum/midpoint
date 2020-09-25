@@ -1207,14 +1207,29 @@ public class LensUtil {
             return null;
         }
         ShadowDiscriminatorType bean = rsd.toResourceShadowDiscriminatorType();
-        if (bean.getResourceRef() != null) {
-            if (bean.getResourceRef().getTargetName() == null) {
-                ResourceType resource = lensContext.getResource(rsd);
+        provideResourceName(bean.getResourceRef(), lensContext);
+        return bean;
+    }
+
+    private static void provideResourceName(ObjectReferenceType resourceRef, LensContext<?> lensContext) {
+        if (resourceRef != null) {
+            if (resourceRef.getTargetName() == null) {
+                ResourceType resource = lensContext.getResource(resourceRef.getOid());
                 if (resource != null) {
-                    bean.getResourceRef().setTargetName(resource.getName());
+                    resourceRef.setTargetName(resource.getName());
                 }
             }
         }
-        return bean;
+    }
+
+    public static AssignmentType cloneResolveResource(AssignmentType assignmentBean, LensContext<?> lensContext) {
+        if (assignmentBean == null) {
+            return null;
+        }
+        AssignmentType clone = assignmentBean.clone();
+        if (clone.getConstruction() != null) {
+            provideResourceName(clone.getConstruction().getResourceRef(), lensContext);
+        }
+        return clone;
     }
 }

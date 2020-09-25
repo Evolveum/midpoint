@@ -29,7 +29,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.ItemDeltaItem;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.repo.common.ObjectResolver;
@@ -155,8 +154,8 @@ public class AssignmentEvaluator<AH extends AssignmentHolderType> {
         AssignmentEvaluationTraceType trace;
         if (result.isTracingNormal(AssignmentEvaluationTraceType.class)) {
             trace = new AssignmentEvaluationTraceType(prismContext)
-                    .assignmentOld(CloneUtil.clone(getAssignmentBean(assignmentIdi, true)))
-                    .assignmentNew(CloneUtil.clone(getAssignmentBean(assignmentIdi, false)))
+                    .assignmentOld(LensUtil.cloneResolveResource(getAssignmentBean(assignmentIdi, true), lensContext))
+                    .assignmentNew(LensUtil.cloneResolveResource(getAssignmentBean(assignmentIdi, false), lensContext))
                     .primaryAssignmentMode(PlusMinusZeroType.fromValue(primaryAssignmentMode))
                     .evaluateOld(evaluateOld)
                     .textSource(source != null ? source.asPrismObject().debugDump() : "null")
