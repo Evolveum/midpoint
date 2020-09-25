@@ -379,4 +379,16 @@ public abstract class FileFormatController {
     public abstract void importCollectionReport(ReportType report, VariablesMap listOfVariables, RunningTask task, OperationResult result);
 
     public abstract List<VariablesMap> createVariablesFromFile(ReportType report, ReportDataType reportData, boolean useImportScript, Task task, OperationResult result) throws IOException;
+
+    protected  <T extends Object> boolean evaluateCondition(ExpressionType condition, T value, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
+        PrismPropertyValue<Boolean> conditionValue = ExpressionUtil.evaluateCondition(variables, condition, null, getReportService().getExpressionFactory(),
+                "Evaluate condition", task, result);
+        if (conditionValue == null || Boolean.FALSE.equals(conditionValue.getRealValue())) {
+            return false;
+        }
+        return true;
+    }
 }
