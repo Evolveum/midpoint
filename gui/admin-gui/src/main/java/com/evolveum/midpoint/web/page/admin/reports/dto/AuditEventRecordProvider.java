@@ -214,7 +214,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
         ObjectCollectionType collection = getCollectionForQuery();
         if (collection != null && (collection.getFilter() != null || collectionRef.getFilter() != null)) {
             try {
-                auditRecordList = getPage().getDashboardService().searchObjectFromCollection(collectionRef, null, task, task.getResult());
+                auditRecordList = getPage().getDashboardService().searchObjectFromCollection(collectionRef, task, task.getResult());
             } catch (Exception e) {
                 result.recordFatalError(
                         getPage().createStringResource("AuditEventRecordProvider.message.listRecords.fatalError", e.getMessage()).getString(), e);

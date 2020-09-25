@@ -17562,7 +17562,6 @@
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.2</a:since>
-                                <a:experimental>true</a:experimental>
                                 <a:displayName>ObjectCollectionType.getOptions</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>
@@ -17639,16 +17638,9 @@
                                 <p>
                                     Specifies a default view of an object collection.
                                 </p>
-                                <p>
-                                    This part of collection definition is EXPERIMENTAL. It works only for some case,
-                                    some parts are hardcoded, untested or do not even work at all.
-                                    Use at your own risk. But it is perhaps best not to use this at all
-                                    until the code stabilizes.
-                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                                 <a:since>4.0</a:since>
-                                <a:experimental>true</a:experimental>
                                 <a:displayName>ObjectCollectionType.defaultView</a:displayName>
                             </xsd:appinfo>
                         </xsd:annotation>

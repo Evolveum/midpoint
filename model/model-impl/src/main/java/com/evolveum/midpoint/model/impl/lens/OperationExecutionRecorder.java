@@ -10,6 +10,8 @@ package com.evolveum.midpoint.model.impl.lens;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -176,7 +178,7 @@ public class OperationExecutionRecorder {
         }
         summaryResult.computeStatus();
         OperationResultStatusType overallStatus = summaryResult.getStatus().createStatusType();
-        setOperationContext(operation, overallStatus, now, channel, task);
+        setOperationContext(operation, overallStatus, now, channel, task, result);
         storeOperationExecution(object, oid, operation, deletedOk, skipWhenSuccess, result);
         return true;
     }
@@ -281,12 +283,12 @@ public class OperationExecutionRecorder {
     }
 
     private void setOperationContext(OperationExecutionType operation,
-            OperationResultStatusType overallStatus, XMLGregorianCalendar now, String channel, Task task) {
+            OperationResultStatusType overallStatus, XMLGregorianCalendar now, String channel, Task task, OperationResult result) throws SchemaException {
         if (task instanceof RunningTask && ((RunningTask) task).getParentForLightweightAsynchronousTask() != null) {
             task = ((RunningTask) task).getParentForLightweightAsynchronousTask();
         }
         if (task.isPersistent()) {
-            operation.setTaskRef(task.getSelfReference());
+            operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getTaskTreeId(result), ObjectTypes.TASK));
         }
         operation.setStatus(overallStatus);
         operation.setInitiatorRef(ObjectTypeUtil.createObjectRef(task.getOwner(), prismContext));        // TODO what if the real initiator is different? (e.g. when executing approved changes)

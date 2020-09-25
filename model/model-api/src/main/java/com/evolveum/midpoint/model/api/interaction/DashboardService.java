@@ -38,10 +38,10 @@ public interface DashboardService {
             ExpressionEvaluationException, ObjectNotFoundException;
 
     List<PrismObject<ObjectType>> searchObjectFromCollection(CollectionRefSpecificationType collection, QName typeForFilter,
-            Collection<SelectorOptions<GetOperationOptions>> options, ExpressionType condition, Task task, OperationResult result) throws SchemaException,
+            Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, ExpressionEvaluationException;
 
-    List<AuditEventRecordType> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, ExpressionType condition, Task task, OperationResult result)
+    List<AuditEventRecordType> searchObjectFromCollection(CollectionRefSpecificationType collectionConfig, Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException,
             ExpressionEvaluationException;
 
