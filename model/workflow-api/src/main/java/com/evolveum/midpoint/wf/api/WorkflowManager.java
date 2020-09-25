@@ -12,6 +12,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.WorkItemId;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.wf.util.PerformerCommentsFormatter;
@@ -63,6 +64,17 @@ public interface WorkflowManager {
     void deleteCase(String caseOid, Task task, OperationResult parentResult)
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException;
+
+    /**
+     * Deletes obsolete cases, as specified in the policy.
+     *
+     * This method removes parent case object with all its children cases.
+     *
+     *
+     * @param closedCasesPolicy specifies which tasks are to be deleted, e.g. how old they have to be
+     * @param task task, within which context the cleanup executes (used to test for interruptions)
+     */
+    void cleanupCases(CleanupPolicyType closedCasesPolicy, RunningTask task, OperationResult opResult) throws SchemaException;
 
     //endregion
 

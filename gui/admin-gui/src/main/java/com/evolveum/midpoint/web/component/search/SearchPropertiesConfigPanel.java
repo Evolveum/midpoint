@@ -69,8 +69,8 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
     private SelectableListDataProvider<SelectableBean<ValueSearchFilterItem>, ValueSearchFilterItem> provider;
     private Property selectedPropertyChoice = null;
 
-    public SearchPropertiesConfigPanel(String id, IModel<BasicSearchFilter<O>> searchModel, Class<O> type) {
-        super(id, searchModel, type);
+    public SearchPropertiesConfigPanel(String id, IModel<BasicSearchFilter<O>> searchModel, LoadableModel<Class<O>> typeModel) {
+        super(id, searchModel, typeModel);
     }
 
     @Override

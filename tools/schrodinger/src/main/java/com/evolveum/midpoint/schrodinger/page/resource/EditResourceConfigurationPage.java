@@ -59,11 +59,11 @@ public class EditResourceConfigurationPage extends BasicPage {
     }
 
     public TestConnectionModal<EditResourceConfigurationPage> clickSaveAndTestConnection() {
-        $(Schrodinger.byDataId("testConnection")).waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        $(Schrodinger.byDataId("testConnection")).waitUntil(Condition.visible, MidPoint.TIMEOUT_EXTRA_LONG_1_M).click();
         SelenideElement testModalBox = $(Schrodinger
                 .byElementAttributeValue("div", "aria-labelledby", "Test connection result(s)"))
-                .waitUntil(Condition.exist, MidPoint.TIMEOUT_LONG_1_M)
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S);
+                .waitUntil(Condition.exist, MidPoint.TIMEOUT_EXTRA_LONG_1_M)
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_EXTRA_LONG_1_M);
 
         return new TestConnectionModal<>(this, testModalBox);
     }

@@ -6,13 +6,21 @@
  */
 package com.evolveum.midpoint.wf.impl;
 
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.RunningTask;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.schema.util.WorkItemId;
@@ -34,7 +42,11 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.List;
+
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
 
 /**
  * @author mederly
@@ -60,6 +72,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
     @Autowired private ExpressionEvaluationHelper expressionEvaluationHelper;
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
+    private static final String CLEANUP_CASES = DOT_INTERFACE + "cleanupCases";
 
     @PostConstruct
     public void initialize() {
@@ -113,6 +126,105 @@ public class WorkflowManagerImpl implements WorkflowManager {
             throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException, SecurityViolationException,
             CommunicationException, ConfigurationException, ExpressionEvaluationException {
         caseManager.deleteCase(caseOid, task, parentResult);
+    }
+
+    public void cleanupCases(CleanupPolicyType policy, RunningTask executionTask, OperationResult parentResult) throws SchemaException {
+        if (policy.getMaxAge() == null) {
+            return;
+        }
+
+        OperationResult result = parentResult.createSubresult(CLEANUP_CASES);
+        try {
+            TimeBoundary timeBoundary = TimeBoundary.compute(policy.getMaxAge());
+            XMLGregorianCalendar deleteCasesClosedUpTo = timeBoundary.boundary;
+
+            LOGGER.info("Starting cleanup for closed cases deleting up to {} (duration '{}').", deleteCasesClosedUpTo,
+                    timeBoundary.positiveDuration);
+
+            ObjectQuery obsoleteCasesQuery = prismContext.queryFor(CaseType.class)
+                    .item(CaseType.F_STATE).eq(SchemaConstants.CASE_STATE_CLOSED)
+                    .and().item(CaseType.F_CLOSE_TIMESTAMP).le(deleteCasesClosedUpTo)
+                    .and().item(CaseType.F_PARENT_REF).isNull()
+                    .build();
+            List<PrismObject<CaseType>> obsoleteCases = repositoryService.searchObjects(CaseType.class, obsoleteCasesQuery, null, result);
+
+            LOGGER.debug("Found {} case tree(s) to be cleaned up", obsoleteCases.size());
+
+            boolean interrupted = false;
+            int deleted = 0;
+            int problems = 0;
+            int bigProblems = 0;
+            for (PrismObject<CaseType> parentCasePrism : obsoleteCases) {
+
+                if (!executionTask.canRun()) {
+                    result.recordWarning("Interrupted");
+                    LOGGER.warn("Task cleanup was interrupted.");
+                    interrupted = true;
+                    break;
+                }
+
+                final String caseName = PolyString.getOrig(parentCasePrism.getName());
+                final String caseOid = parentCasePrism.getOid();
+                final long started = System.currentTimeMillis();
+                executionTask.recordIterativeOperationStart(caseName, null, CaseType.COMPLEX_TYPE, caseOid);
+                try {
+                    // get all children cases
+                    ObjectQuery childrenCasesQuery = prismContext.queryFor(CaseType.class)
+                            .item(CaseType.F_PARENT_REF)
+                            .ref(caseOid)
+                            .build();
+                    List<PrismObject<CaseType>> childrenCases = repositoryService.searchObjects(CaseType.class, childrenCasesQuery, null, result);
+                    LOGGER.trace("Removing case {} along with its {} children.", parentCasePrism, childrenCases.size());
+                    childrenCases.add(parentCasePrism);
+
+                    Throwable lastProblem = null;
+                    for (PrismObject<CaseType> caseToDelete : childrenCases) {
+                        try {
+                            repositoryService.deleteObject(CaseType.class, caseToDelete.getOid(), result);
+                            deleted++;
+                        } catch (ObjectNotFoundException | RuntimeException e) {
+                            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete case {}", e, caseToDelete);
+                            lastProblem = e;
+                            problems++;
+                            if (!caseToDelete.getOid().equals(parentCasePrism.getOid())) {
+                                bigProblems++;
+                            }
+                        }
+                    }
+                    executionTask
+                            .recordIterativeOperationEnd(caseName, null, CaseType.COMPLEX_TYPE, caseOid, started, lastProblem);
+                } catch (Throwable t) {
+                    executionTask.recordIterativeOperationEnd(caseName, null, CaseType.COMPLEX_TYPE, caseOid, started, t);
+                    throw t;
+                }
+                executionTask.incrementProgressAndStoreStatsIfNeeded();
+            }
+
+            LOGGER.info("Case cleanup procedure " + (interrupted ? "was interrupted" : "finished")
+                    + ". Successfully deleted {} cases; there were problems with deleting {} cases.", deleted, problems);
+            if (bigProblems > 0) {
+                LOGGER.error(
+                        "{} children case(s) couldn't be deleted. Inspect that manually, otherwise they might reside in repo forever.",
+                        bigProblems);
+            }
+            String suffix = interrupted ? " Interrupted." : "";
+            if (problems == 0) {
+                parentResult.createSubresult(CLEANUP_CASES + ".statistics")
+                        .recordStatus(SUCCESS, "Successfully deleted " + deleted + " case(s)." + suffix);
+            } else {
+                parentResult.createSubresult(CLEANUP_CASES + ".statistics")
+                        .recordPartialError("Successfully deleted " + deleted + " case(s), "
+                                + "there was problems with deleting " + problems + " cases." + suffix
+                                + (bigProblems > 0 ?
+                                (" " + bigProblems + " children case(s) couldn't be deleted, please see the log.") :
+                                ""));
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
+        }
     }
 
     //endregion
@@ -204,4 +316,23 @@ public class WorkflowManagerImpl implements WorkflowManager {
     public PerformerCommentsFormatter createPerformerCommentsFormatter(PerformerCommentsFormattingType formatting) {
         return new PerformerCommentsFormatterImpl(formatting, repositoryService, expressionEvaluationHelper);
     }
+
+    //todo move to one place from TaskManagerQuartzImpl
+    private static class TimeBoundary {
+        private final Duration positiveDuration;
+        private final XMLGregorianCalendar boundary;
+
+        private TimeBoundary(Duration positiveDuration, XMLGregorianCalendar boundary) {
+            this.positiveDuration = positiveDuration;
+            this.boundary = boundary;
+        }
+
+        private static TimeBoundary compute(Duration rawDuration) {
+            Duration positiveDuration = rawDuration.getSign() > 0 ? rawDuration : rawDuration.negate();
+            XMLGregorianCalendar boundary = XmlTypeConverter.createXMLGregorianCalendar();
+            boundary.add(positiveDuration.negate());
+            return new TimeBoundary(positiveDuration, boundary);
+        }
+    }
+
 }

@@ -8,9 +8,13 @@
 package com.evolveum.midpoint.model.impl.cleanup;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.model.api.AccessCertificationService;
 import com.evolveum.midpoint.model.api.ModelPublicConstants;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -20,17 +24,22 @@ import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
 
 @Component
 public class CleanUpTaskHandler implements TaskHandler {
@@ -40,6 +49,8 @@ public class CleanUpTaskHandler implements TaskHandler {
     @Autowired private TaskManager taskManager;
     @Autowired private RepositoryService repositoryService;
     @Autowired private AuditService auditService;
+    @Autowired(required = false)
+    private WorkflowManager workflowManager;
     @Autowired private AccessCertificationService certificationService;
 
     @Autowired(required = false)
@@ -127,6 +138,21 @@ public class CleanUpTaskHandler implements TaskHandler {
                 }
             } else {
                 LOGGER.trace("Cleanup: No clean up policy for closed tasks specified. Finishing clean up task.");
+            }
+        }
+
+        if (task.canRun()) {
+            CleanupPolicyType closedCasesPolicy = cleanupPolicies.getClosedCases();
+            if (closedCasesPolicy != null) {
+                try {
+                    workflowManager.cleanupCases(closedCasesPolicy, task, opResult);
+                } catch (Exception ex) {
+                    LOGGER.error("Cases cleanup: {}", ex.getMessage(), ex);
+                    opResult.recordFatalError(ex.getMessage(), ex);
+                    runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+                }
+            } else {
+                LOGGER.trace("Cleanup: No clean up policy for closed cases specified. Finishing clean up task.");
             }
         }
 
