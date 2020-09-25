@@ -49,7 +49,8 @@ public class CleanUpTaskHandler implements TaskHandler {
     @Autowired private TaskManager taskManager;
     @Autowired private RepositoryService repositoryService;
     @Autowired private AuditService auditService;
-    @Autowired private WorkflowManager workflowManager;
+    @Autowired(required = false)
+    private WorkflowManager workflowManager;
     @Autowired private AccessCertificationService certificationService;
 
     @Autowired(required = false)
