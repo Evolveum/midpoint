@@ -1201,4 +1201,20 @@ public class LensUtil {
         booleanDefinition.freeze();
         return booleanDefinition;
     }
+
+    public static ShadowDiscriminatorType createDiscriminatorBean(ResourceShadowDiscriminator rsd, LensContext<?> lensContext) {
+        if (rsd == null) {
+            return null;
+        }
+        ShadowDiscriminatorType bean = rsd.toResourceShadowDiscriminatorType();
+        if (bean.getResourceRef() != null) {
+            if (bean.getResourceRef().getTargetName() == null) {
+                ResourceType resource = lensContext.getResource(rsd);
+                if (resource != null) {
+                    bean.getResourceRef().setTargetName(resource.getName());
+                }
+            }
+        }
+        return bean;
+    }
 }

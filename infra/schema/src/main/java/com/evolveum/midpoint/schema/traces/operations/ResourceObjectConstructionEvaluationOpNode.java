@@ -13,22 +13,27 @@ import com.evolveum.midpoint.schema.traces.OpNode;
 import com.evolveum.midpoint.schema.traces.OpResultInfo;
 import com.evolveum.midpoint.schema.traces.TraceInfo;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceObjectConstructionEvaluationTraceType;
 
-/**
- *
- */
-public class ProjectorProjectionOpNode extends ProjectorComponentOpNode {
+public class ResourceObjectConstructionEvaluationOpNode extends OpNode {
 
-    public ProjectorProjectionOpNode(PrismContext prismContext, OperationResultType result, OpResultInfo info, OpNode parent,
+    private final ResourceObjectConstructionEvaluationTraceType trace;
+
+    public ResourceObjectConstructionEvaluationOpNode(PrismContext prismContext, OperationResultType result, OpResultInfo info, OpNode parent,
             TraceInfo traceInfo) {
         super(prismContext, result, info, parent, traceInfo);
+        trace = getTrace(ResourceObjectConstructionEvaluationTraceType.class);
+    }
+
+    public ResourceObjectConstructionEvaluationTraceType getTrace() {
+        return trace;
     }
 
     public String getInfo() {
-        if (trace != null && trace.getResourceShadowDiscriminator() != null) {
+        if (trace != null) {
             return FormattingUtil.getDiscriminatorDescription(trace.getResourceShadowDiscriminator());
         } else {
-            return getParameter("resourceName");
+            return getParameter("resourceShadowDiscriminator");
         }
     }
 }

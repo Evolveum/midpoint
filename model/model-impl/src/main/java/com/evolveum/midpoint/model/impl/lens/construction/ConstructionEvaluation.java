@@ -104,8 +104,6 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
             SecurityViolationException, ConfigurationException, CommunicationException {
 
         for (AttributeEvaluation<AH> attributeEvaluation : evaluatedConstruction.getAttributesToEvaluate(this)) {
-            loadFullShadowIfNeeded(attributeEvaluation);
-
             attributeEvaluation.evaluate();
             if (attributeEvaluation.hasEvaluatedMapping()) {
                 evaluatedConstruction.addAttributeMapping(attributeEvaluation.getEvaluatedMapping());
@@ -118,8 +116,6 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
             SecurityViolationException, ConfigurationException, CommunicationException {
 
         for (AssociationEvaluation<AH> associationEvaluation : evaluatedConstruction.getAssociationsToEvaluate(this)) {
-            loadFullShadowIfNeeded(associationEvaluation);
-
             associationEvaluation.evaluate();
             if (associationEvaluation.hasEvaluatedMapping()) {
                 evaluatedConstruction.addAssociationMapping(associationEvaluation.getEvaluatedMapping());
@@ -128,7 +124,7 @@ class ConstructionEvaluation<AH extends AssignmentHolderType, ROC extends Resour
         }
     }
 
-    private void loadFullShadowIfNeeded(ItemEvaluation itemEvaluation) throws CommunicationException, ObjectNotFoundException,
+    void loadFullShadowIfNeeded(ItemEvaluation itemEvaluation) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         String loadReason = evaluatedConstruction.getFullShadowLoadReason(itemEvaluation.getMappingBean());
         if (loadReason != null) {

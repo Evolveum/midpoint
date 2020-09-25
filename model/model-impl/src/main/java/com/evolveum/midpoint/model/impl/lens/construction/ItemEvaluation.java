@@ -119,6 +119,8 @@ abstract class ItemEvaluation<AH extends AssignmentHolderType, V extends PrismVa
             SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         checkNotYetEvaluated();
 
+        constructionEvaluation.loadFullShadowIfNeeded(this);
+
         try {
             evaluatedMapping = evaluateMapping();
         } catch (SchemaException e) {

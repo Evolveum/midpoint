@@ -188,12 +188,11 @@ public class Projector {
                     Projector.class, context, activityDescription, now, task, result);
 
             if (partialProcessingOptions.getProjection() != PartialProcessingTypeType.SKIP) {
-                // Process activation of all resources, regardless of the waves. This is needed to properly
-                // sort projections to waves as deprovisioning will reverse the dependencies. And we know whether
-                // a projection is provisioned or deprovisioned only after the activation is processed.
-                if (fromStart) {
-                    activationProcessor.processActivationForAllResources(context, activityDescription, now, task, result);
-                }
+                // Process activation for all eligible projections: such that their wave is either not determined
+                // or such that their wave is current. The first case is needed to properly sort projections to waves
+                // as deprovisioning will reverse the dependencies. And we know whether a projection is provisioned or
+                // deprovisioned only after the activation is processed.
+                activationProcessor.processProjectionsActivation(context, activityDescription, now, task, result);
 
                 dependencyProcessor.sortProjectionsToWaves(context, result);
 

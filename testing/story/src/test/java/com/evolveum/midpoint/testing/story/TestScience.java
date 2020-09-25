@@ -238,10 +238,10 @@ public class TestScience  extends AbstractStoryTest {
         PrismObject<ShadowType> shadowOpenDj = provisioningService.getObject(ShadowType.class, accountOpenDjOid, null, task, result);
         display("AD account: ", shadowOpenDj);
 
-        ObjectDelta<UserType> delteStatsAccountDelta= prismContext.deltaFactory().object()
+        ObjectDelta<UserType> deleteStatsAccountDelta = prismContext.deltaFactory().object()
                 .createModificationDeleteReference(UserType.class, USER_JACK_OID, UserType.F_LINK_REF,
                         accountStatsOid);
-        modelService.executeChanges((Collection) MiscUtil.createCollection(delteStatsAccountDelta), null, task, result);
+        executeChanges(deleteStatsAccountDelta, null, task, result);
 
         AssertJUnit.assertTrue("Expected empty assignment", jackType.getAssignment().isEmpty());
 
@@ -296,13 +296,10 @@ public class TestScience  extends AbstractStoryTest {
         display("AD account: ", shadowOpenDj);
 
         openDJController.start();
-
-
     }
 
-
     @Test
-    public void test200DelteUserJack() throws Exception {
+    public void test200DeleteUserJack() throws Exception {
         Task task = getTestTask();
 
         OperationResult result = task.getResult();
@@ -322,7 +319,5 @@ public class TestScience  extends AbstractStoryTest {
         }
 
         assertNoObject(UserType.class, USER_JACK_OID, task, result);
-
     }
-
 }

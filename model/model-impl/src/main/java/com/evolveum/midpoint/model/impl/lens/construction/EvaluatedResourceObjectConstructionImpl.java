@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.lens.LensUtil;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -47,6 +48,8 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
         implements EvaluatedAbstractConstruction<AH>, EvaluatedResourceObjectConstruction {
 
     private static final Trace LOGGER = TraceManager.getTrace(EvaluatedResourceObjectConstructionImpl.class);
+
+    private static final String OP_EVALUATE = EvaluatedResourceObjectConstructionImpl.class.getName() + ".evaluate";
 
     /**
      * Parent construction to which this EvaluatedConstruction belongs.
@@ -217,20 +220,41 @@ public abstract class EvaluatedResourceObjectConstructionImpl<AH extends Assignm
     //endregion
 
     //region Mappings evaluation
-    public NextRecompute evaluate(Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException,
+    public NextRecompute evaluate(Task task, OperationResult parentResult) throws CommunicationException, ObjectNotFoundException,
             SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         if (evaluation != null) {
             throw new IllegalStateException("Attempting to evaluate an EvaluatedConstruction twice: " + this);
         }
-        initializeProjectionContext();
-        if (projectionContext != null && !projectionContext.isCurrentForProjection()) {
-            LOGGER.trace("Skipping evaluation of construction for {} because this projection context is not current"
-                            + " (already completed or wrong wave)", projectionContext.getHumanReadableName());
-            return null;
-        } else {
-            evaluation = new ConstructionEvaluation<>(this, task, result);
-            evaluation.evaluate();
-            return evaluation.getNextRecompute();
+        OperationResult result = parentResult.subresult(OP_EVALUATE)
+                .addParam("resourceShadowDiscriminator", rsd.toHumanReadableDescription())
+                .setMinor()
+                .build();
+        if (result.isTraced()) {
+            ResourceObjectConstructionEvaluationTraceType trace = new ResourceObjectConstructionEvaluationTraceType(construction.beans.prismContext);
+            trace.setConstruction(construction.constructionBean);
+            trace.setResourceShadowDiscriminator(LensUtil.createDiscriminatorBean(rsd, construction.lensContext));
+            if (construction.assignmentPath != null) {
+                trace.setAssignmentPath(construction.assignmentPath.toAssignmentPathType(false));
+            }
+            result.addTrace(trace);
+        }
+        try {
+            initializeProjectionContext();
+            if (projectionContext != null && !projectionContext.isCurrentForProjection()) {
+                LOGGER.trace("Skipping evaluation of construction for {} because this projection context is not current"
+                        + " (already completed or wrong wave)", projectionContext.getHumanReadableName());
+                result.recordNotApplicable();
+                return null;
+            } else {
+                evaluation = new ConstructionEvaluation<>(this, task, result);
+                evaluation.evaluate();
+                return evaluation.getNextRecompute();
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 

@@ -207,7 +207,7 @@ public class ClockworkMedic {
         }
     }
 
-    private boolean shouldExecute(String componentName, ProjectorProcessor processor, LensContext<?> context, LensProjectionContext projectionContext) throws SchemaException {
+    private boolean shouldExecute(String componentName, ProjectorProcessor processor, LensContext<?> context, LensProjectionContext projectionContext) {
         ProcessorExecution processorExecution = processor.getClass().getAnnotation(ProcessorExecution.class);
         return processorExecution == null ||
                 focusPresenceAndTypeCheckPasses(componentName, context, processorExecution)
@@ -327,6 +327,10 @@ public class ClockworkMedic {
                     trace.setInputLensContextText(context.debugDump());
                 }
                 trace.setInputLensContext(context.toLensContextType(getExportType(trace, result)));
+                if (projectionContext != null) {
+                    trace.setResourceShadowDiscriminator(
+                            LensUtil.createDiscriminatorBean(projectionContext.getResourceShadowDiscriminator(), context));
+                }
                 result.addTrace(trace);
             } else {
                 trace = null;

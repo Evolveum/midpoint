@@ -25,6 +25,8 @@ public class OpNodeFactory {
                     return new ClockworkRunOpNode(prismContext, result, info, parent, traceInfo);
                 case CLOCKWORK_CLICK:
                     return new ClockworkClickOpNode(prismContext, result, info, parent, traceInfo);
+                case RESOURCE_OBJECT_CONSTRUCTION_EVALUATION:
+                    return new ResourceObjectConstructionEvaluationOpNode(prismContext, result, info, parent, traceInfo);
                 case MAPPING_EVALUATION:
                     return new MappingEvaluationOpNode(prismContext, result, info, parent, traceInfo);
                 case MAPPING_TIME_VALIDITY_EVALUATION:

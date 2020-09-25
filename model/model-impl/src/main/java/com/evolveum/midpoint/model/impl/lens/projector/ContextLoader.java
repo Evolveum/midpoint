@@ -1417,13 +1417,24 @@ public class ContextLoader implements ProjectorProcessor {
             // already loaded
             return;
         }
-        if (projCtx.isAdd() && projCtx.getOid() == null) {
-            // nothing to load yet
-            return;
-        }
         if (projCtx.isTombstone()) {
             // loading is futile
             return;
+        }
+        String oid = projCtx.getOid();
+        if (oid == null) {
+            if (projCtx.isAdd()) {
+                // nothing to load yet
+                return;
+            }
+            if (projCtx.getWave() > context.getExecutionWave()) {
+                // will be dealt with later
+                return;
+            }
+            if (projCtx.getWave() == context.getExecutionWave() && projCtx.getSynchronizationPolicyDecision() == null) {
+                // probably will be created (activation was not run yet)
+                return;
+            }
         }
         OperationResult result = parentResult.subresult(CLASS_DOT + "loadFullShadow")
                 .setMinor()
@@ -1472,8 +1483,12 @@ public class ContextLoader implements ProjectorProcessor {
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(getOptions);
             applyAttributesToGet(projCtx, options);
             try {
+                if (oid == null) {
+                    throw new IllegalStateException("Trying to load shadow with null OID (reason for load: " + reason + ") for "
+                            + projCtx.getHumanReadableName());
+                }
                 PrismObject<ShadowType> objectCurrent = provisioningService
-                        .getObject(ShadowType.class, projCtx.getOid(), options, task, result);
+                        .getObject(ShadowType.class, oid, options, task, result);
                 Validate.notNull(objectCurrent.getOid());
                 if (trace != null) {
                     trace.setShadowLoadedRef(ObjectTypeUtil.createObjectRefWithFullObject(objectCurrent, prismContext));
