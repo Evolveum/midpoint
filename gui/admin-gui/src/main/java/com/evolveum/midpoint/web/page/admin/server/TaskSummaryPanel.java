@@ -49,48 +49,6 @@ public class TaskSummaryPanel extends ObjectSummaryPanel<TaskType> {
     }
 
     @Override
-    protected void onInitialize() {
-        super.onInitialize();
-
-
-//        AutoRefreshPanel refreshTag = new AutoRefreshPanel(ID_TAG_REFRESH, createRefreshModel()) {
-//
-//            @Override
-//            protected void refreshPerformed(AjaxRequestTarget target) {
-//                refreshable.refresh(target);
-//            }
-//
-//        };
-//        AbstractAjaxTimerBehavior refreshingBehavior = new AbstractAjaxTimerBehavior(Duration.milliseconds(refreshable.getRefreshInterval())) {
-//            @Override
-//            protected void onTimer(AjaxRequestTarget ajaxRequestTarget) {
-//                LOGGER.trace("onTimer called for {}; enabled = {}", this, refreshTag.getModelObject().isEnabled());
-//                refreshable.refresh(ajaxRequestTarget);
-//
-//            }
-//
-//            @Override
-//            protected boolean shouldTrigger() {
-//                return refreshTag.getModelObject().isEnabled();
-//            }
-//        };
-//
-//        refreshTag.add(new AttributeModifier("class", "summary-tag"));
-//
-//        refreshTag.add(refreshingBehavior);
-//        refreshTag.setOutputMarkupId(true);
-//
-//        getSummaryBoxPanel().add(refreshTag);
-    }
-
-    private IModel<AutoRefreshDto> createRefreshModel() {
-        AutoRefreshDto dto = new AutoRefreshDto();
-        dto.setEnabled(true);
-        dto.setInterval(refreshable.getRefreshInterval());
-        return Model.of(dto);
-    }
-
-    @Override
     protected List<SummaryTag<TaskType>> getSummaryTagComponentList(){
         List<SummaryTag<TaskType>> summaryTagList = new ArrayList<>();
         SummaryTag<TaskType> tagExecutionStatus = new SummaryTag<TaskType>(ID_SUMMARY_TAG, getModel()) {

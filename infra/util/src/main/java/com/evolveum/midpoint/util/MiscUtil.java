@@ -280,13 +280,7 @@ public class MiscUtil {
      * this method will simply return null.
      */
     public static @Nullable XMLGregorianCalendar asXMLGregorianCalendar(@Nullable Date date) {
-        if (date == null) {
-            return null;
-        } else {
-            GregorianCalendar gc = new GregorianCalendar();
-            gc.setTimeInMillis(date.getTime());
-            return DATATYPE_FACTORY.newXMLGregorianCalendar(gc);
-        }
+        return date == null ? null : asXMLGregorianCalendar(date.getTime());
     }
 
     public static @Nullable XMLGregorianCalendar asXMLGregorianCalendar(

@@ -113,7 +113,7 @@ public class ClusterRestController extends AbstractRestController {
         } catch (Throwable t) {
             response = handleException(result, t);
         }
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -134,7 +134,7 @@ public class ClusterRestController extends AbstractRestController {
         } catch (Throwable t) {
             response = handleException(result, t);
         }
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -156,7 +156,7 @@ public class ClusterRestController extends AbstractRestController {
             response = handleException(result, t);
         }
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -174,7 +174,7 @@ public class ClusterRestController extends AbstractRestController {
             response = handleException(result, t);
         }
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -192,7 +192,7 @@ public class ClusterRestController extends AbstractRestController {
             response = handleException(result, t);
         }
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -210,7 +210,7 @@ public class ClusterRestController extends AbstractRestController {
             response = handleException(result, t);
         }
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -228,7 +228,7 @@ public class ClusterRestController extends AbstractRestController {
             response = handleException(result, t);
         }
         result.computeStatus();
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -255,7 +255,7 @@ public class ClusterRestController extends AbstractRestController {
         } catch (Throwable t) {
             response = handleException(null, t); // we don't return the operation result
         }
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -281,7 +281,7 @@ public class ClusterRestController extends AbstractRestController {
         } catch (Throwable t) {
             response = handleException(null, t); // we don't return the operation result
         }
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 
@@ -300,7 +300,7 @@ public class ClusterRestController extends AbstractRestController {
         } catch (Throwable t) {
             response = handleException(null, t); // we don't return the operation result
         }
-        finishRequest();
+        finishRequest(task, result);
         return response;
     }
 

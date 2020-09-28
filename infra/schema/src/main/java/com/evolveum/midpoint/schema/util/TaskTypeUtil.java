@@ -109,7 +109,7 @@ public class TaskTypeUtil {
         subTasks.forEach(subTask -> {
             OperationStatsType operationStatsType = subTask.getOperationStats();
             if (operationStatsType != null) {
-                IterativeTaskInformation.addTo(iterativeTaskInformation, operationStatsType.getIterativeTaskInformation(), true);
+                IterativeTaskInformation.addTo(iterativeTaskInformation, operationStatsType.getIterativeTaskInformation(), false);
                 SynchronizationInformation.addTo(synchronizationInformation, operationStatsType.getSynchronizationInformation());
                 ActionsExecutedInformation.addTo(actionsExecutedInformation, operationStatsType.getActionsExecutedInformation());
             }

@@ -1244,6 +1244,11 @@ public class TestMappingMetadata extends AbstractModelCommonTest {
             public String debugDump(int indent) {
                 return null;
             }
+
+            @Override
+            public String getTaskTreeOid(Task task, OperationResult result) throws SchemaException {
+                return null;
+            }
         };
     }
 

@@ -39,10 +39,7 @@ import com.evolveum.midpoint.schema.result.AsynchronousOperationResult;
 import com.evolveum.midpoint.schema.result.AsynchronousOperationReturnValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.schema.util.*;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -1447,6 +1444,7 @@ public class ShadowCache {
         List<ObjectDelta<ShadowType>> notificationDeltas = new ArrayList<>();
 
         boolean shadowInception = false;
+        OperationResultStatusType shadowInceptionOutcome = null;
         ObjectDelta<ShadowType> shadowDelta = repoShadow.createModifyDelta();
         for (PendingOperationType pendingOperation: sortedOperations) {
 
@@ -1491,6 +1489,7 @@ public class ShadowCache {
 
                 if (pendingDelta.isAdd()) {
                     shadowInception = true;
+                    shadowInceptionOutcome = pendingOperation.getResultStatus();
                 }
 
                 if (pendingDelta.isDelete()) {
@@ -1579,7 +1578,11 @@ public class ShadowCache {
             // attributes. We need this to "allocate" the identifiers, so iteration mechanism in the
             // model can find unique values while taking pending create operations into consideration.
             PropertyDelta<Boolean> existsDelta = shadowDelta.createPropertyModification(ShadowType.F_EXISTS);
-            existsDelta.setRealValuesToReplace(true);
+            if (OperationResultUtil.isSuccessful(shadowInceptionOutcome)) {
+                existsDelta.setRealValuesToReplace(true);
+            } else {
+                existsDelta.setRealValuesToReplace(false);
+            }
             shadowDelta.addModification(existsDelta);
         }
 

@@ -43,7 +43,7 @@ public class PolicyRuleSuspendTaskExecutor {
             return;
         }
 
-        String id = task.getTaskTreeId(result);
+        String id = context.getTaskTreeOid(task, result);
         if (id == null) {
             LOGGER.trace("No persistent task context, no counting!");
             return;
