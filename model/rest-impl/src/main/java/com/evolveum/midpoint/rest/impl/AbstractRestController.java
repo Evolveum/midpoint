@@ -199,13 +199,15 @@ class AbstractRestController {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
-        String name = null;
+        String name;
+        PrismObject<? extends FocusType> user;
         if (principal instanceof MidPointPrincipal) {
             name = ((MidPointPrincipal) principal).getUsername();
-        } else if (principal != null) {
-            return; // TODO Why exit if principal non-null and continue if principal is null?
+            user = ((MidPointPrincipal) principal).getFocus().asPrismObject();
+        } else {
+            name = null;
+            user = null;
         }
-        PrismObject<? extends FocusType> user = principal != null ? ((MidPointPrincipal) principal).getFocus().asPrismObject() : null;
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
         record.setInitiator(user, prismContext);
