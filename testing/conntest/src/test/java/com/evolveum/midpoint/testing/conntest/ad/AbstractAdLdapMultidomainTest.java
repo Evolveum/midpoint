@@ -162,6 +162,9 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     private static final String VERY_STRANGE_PARAMETER = "This iš a véry stándže p§räméteř!";
 
+    private static final String SHADOW_GHOST_OID = "0c244f74-0169-11eb-a13f-77a028a1ab97";
+    protected static final File SHADOW_GHOST_FILE = new File(TEST_DIR, "shadow-ghost.xml");
+
     private boolean allowDuplicateSearchResults = false;
 
     protected String jackAccountOid;
@@ -806,6 +809,40 @@ public abstract class AbstractAdLdapMultidomainTest extends AbstractLdapTest
 
     protected String getExpected182FirstShadow() {
         return "CN=Administrator," + getPeopleLdapSuffix();
+    }
+
+    /**
+     * Try to get account that does not exist.
+     * The goal is to check that our error handling is at least a bit sane.
+     * We need to create a fake shadow for this, otherwise midPoint won't try the AD operation at all.
+     */
+    @Test
+    public void test190GetGhost() throws Exception {
+        // GIVEN
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        importObjectFromFile(SHADOW_GHOST_FILE);
+
+        rememberCounter(InternalCounters.CONNECTOR_OPERATION_COUNT);
+        rememberCounter(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT);
+        long startOfTestMsTimestamp = getWin32Filetime(System.currentTimeMillis());
+
+        // WHEN
+        when();
+        PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, SHADOW_GHOST_OID, null, task, result);
+
+        // THEN
+        then();
+        assertHadnledError(result);
+
+        assertRepoShadow(SHADOW_GHOST_OID)
+                .assertDead();
+
+        assertCounterIncrement(InternalCounters.CONNECTOR_OPERATION_COUNT, 1);
+        assertCounterIncrement(InternalCounters.CONNECTOR_SIMULATED_PAGING_SEARCH_COUNT, 0);
+
+        assertLdapConnectorReasonableInstances();
     }
 
     @Test

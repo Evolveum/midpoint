@@ -8,9 +8,7 @@ package com.evolveum.midpoint.wf.impl;
 
 import static com.evolveum.midpoint.schema.result.OperationResultStatus.SUCCESS;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -75,8 +73,6 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
     private static final String CLEANUP_CASES = DOT_INTERFACE + "cleanupCases";
-    private static final String DELETED_COUNT = "deleted";
-    private static final String PROBLEMS_COUNT = "problems";
 
     @PostConstruct
     public void initialize() {
@@ -132,15 +128,18 @@ public class WorkflowManagerImpl implements WorkflowManager {
         caseManager.deleteCase(caseOid, task, parentResult);
     }
 
+    private static class DeletionCounters {
+        private int deleted;
+        private int problems;
+    }
+
     @Override
     public void cleanupCases(CleanupPolicyType policy, RunningTask executionTask, OperationResult parentResult) throws SchemaException {
         if (policy.getMaxAge() == null) {
             return;
         }
 
-        Map<String, Integer> countersMap = new HashMap<>();
-        countersMap.put(DELETED_COUNT, 0);
-        countersMap.put(PROBLEMS_COUNT, 0);
+        DeletionCounters counters = new DeletionCounters();
         OperationResult result = parentResult.createSubresult(CLEANUP_CASES);
         try {
             TimeBoundary timeBoundary = TimeBoundary.compute(policy.getMaxAge());
@@ -171,9 +170,10 @@ public class WorkflowManagerImpl implements WorkflowManager {
                 final String caseOid = parentCasePrism.getOid();
                 final long started = System.currentTimeMillis();
 
+                executionTask.recordIterativeOperationStart(caseName, null, CaseType.COMPLEX_TYPE, caseOid);
                 Throwable lastProblem = null;
                 try {
-                    deleteChildrenCases(executionTask, parentCasePrism, countersMap, result);
+                    deleteChildrenCases(parentCasePrism, counters, result);
                } catch (Throwable t) {
                     lastProblem = t;
                 } finally {
@@ -185,15 +185,15 @@ public class WorkflowManagerImpl implements WorkflowManager {
             }
 
             LOGGER.info("Case cleanup procedure " + (interrupted ? "was interrupted" : "finished")
-                    + ". Successfully deleted {} cases; there were problems with deleting {} cases.", countersMap.get(DELETED_COUNT), countersMap.get(PROBLEMS_COUNT));
+                    + ". Successfully deleted {} cases; there were problems with deleting {} cases.", counters.deleted, counters.problems);
             String suffix = interrupted ? " Interrupted." : "";
-            if (countersMap.get(PROBLEMS_COUNT) == 0) {
+            if (counters.problems == 0) {
                 parentResult.createSubresult(CLEANUP_CASES + ".statistics")
-                        .recordStatus(SUCCESS, "Successfully deleted " + countersMap.get(DELETED_COUNT) + " case(s)." + suffix);
+                        .recordStatus(SUCCESS, "Successfully deleted " + counters.deleted + " case(s)." + suffix);
             } else {
                 parentResult.createSubresult(CLEANUP_CASES + ".statistics")
-                        .recordPartialError("Successfully deleted " + countersMap.get(DELETED_COUNT) + " case(s), "
-                                + "there was problems with deleting " + countersMap.get(PROBLEMS_COUNT) + " cases." + suffix);
+                        .recordPartialError("Successfully deleted " + counters.deleted + " case(s), "
+                                + "there was problems with deleting " + counters.problems + " cases." + suffix);
             }
         } catch (Throwable t) {
             result.recordFatalError(t);
@@ -203,35 +203,31 @@ public class WorkflowManagerImpl implements WorkflowManager {
         }
     }
 
-    private void deleteChildrenCases(RunningTask executionTask, PrismObject<CaseType> parentCase, Map<String, Integer> countersMap,
+    private void deleteChildrenCases(PrismObject<CaseType> parentCase, DeletionCounters counters,
             OperationResult result) throws Throwable {
 
-        final String caseName = PolyString.getOrig(parentCase.getName());
-        final String caseOid = parentCase.getOid();
-        executionTask.recordIterativeOperationStart(caseName, null, CaseType.COMPLEX_TYPE, caseOid);
         // get all children cases
         ObjectQuery childrenCasesQuery = prismContext.queryFor(CaseType.class)
                 .item(CaseType.F_PARENT_REF)
-                .ref(caseOid)
+                .ref(parentCase.getOid())
                 .build();
         List<PrismObject<CaseType>> childrenCases = repositoryService.searchObjects(CaseType.class, childrenCasesQuery, null, result);
         LOGGER.trace("Removing case {} along with its {} children.", parentCase, childrenCases.size());
 
         for (PrismObject<CaseType> caseToDelete : childrenCases) {
-            deleteChildrenCases(executionTask, caseToDelete, countersMap, result);
+            deleteChildrenCases(caseToDelete, counters, result);
         }
-        deleteCase(parentCase, countersMap, result);
-
+        deleteCase(parentCase, counters, result);
     }
 
-    private void deleteCase(PrismObject<CaseType> caseToDelete, Map<String, Integer> countersMap, OperationResult result)
+    private void deleteCase(PrismObject<CaseType> caseToDelete, DeletionCounters counters, OperationResult result)
             throws Throwable {
         try {
             repositoryService.deleteObject(CaseType.class, caseToDelete.getOid(), result);
-            countersMap.replace(DELETED_COUNT, countersMap.get(DELETED_COUNT) + 1);
+            counters.deleted++;
         } catch (ObjectNotFoundException | RuntimeException e) {
             LoggingUtils.logUnexpectedException(LOGGER, "Couldn't delete case {}", e, caseToDelete);
-            countersMap.replace(PROBLEMS_COUNT, countersMap.get(PROBLEMS_COUNT) + 1);
+            counters.problems++;
             throw e;
         }
     }
