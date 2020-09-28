@@ -218,6 +218,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     @NotNull private transient final List<ObjectReferenceType> operationApprovedBy = new ArrayList<>();
     @NotNull private transient final List<String> operationApproverComments = new ArrayList<>();
 
+    private String taskTreeOid;
+
     public LensContext(Class<F> focusClass, PrismContext prismContext,
             ProvisioningService provisioningService) {
         Validate.notNull(prismContext, "No prismContext");
@@ -1724,5 +1726,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
     public boolean isExperimentalCodeEnabled() {
         return systemConfiguration != null && systemConfiguration.asObjectable().getInternals() != null &&
                 Boolean.TRUE.equals(systemConfiguration.asObjectable().getInternals().isEnableExperimentalCode());
+    }
+
+    public String getTaskTreeOid(Task task, OperationResult result) throws SchemaException {
+        if (taskTreeOid == null) {
+            taskTreeOid = task.getTaskTreeId(result);
+        }
+        return taskTreeOid;
     }
 }
