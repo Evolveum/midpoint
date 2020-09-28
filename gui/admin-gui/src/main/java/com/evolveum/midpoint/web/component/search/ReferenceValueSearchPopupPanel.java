@@ -92,6 +92,9 @@ public class ReferenceValueSearchPopupPanel<O extends ObjectType> extends BasePa
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
                 ObjectReferenceType ort = nameField.getBaseFormComponent().getModelObject();
+                if (ort == null) {
+                    return;
+                }
                 ReferenceValueSearchPopupPanel.this.getModel().setObject(ort);
                 target.add(ReferenceValueSearchPopupPanel.this.get(ID_OID));
             }
