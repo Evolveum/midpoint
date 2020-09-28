@@ -534,6 +534,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         params.setFixTarget(true);
         params.setContext(context);
 
+        ObjectDeltaObject<F> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();
         params.setInitializer(builder -> {
             builder.mappingKind(MappingKindType.OUTBOUND)
                     .implicitSourcePath(LEGAL_PROPERTY_NAME)
@@ -542,8 +543,6 @@ public class ActivationProcessor implements ProjectorProcessor {
             builder.defaultSource(new Source<>(getLegalIdi(projCtx), ExpressionConstants.VAR_LEGAL_QNAME));
             builder.additionalSource(new Source<>(getAssignedIdi(projCtx), ExpressionConstants.VAR_ASSIGNED_QNAME));
             builder.additionalSource(new Source<>(getFocusExistsIdi(context.getFocusContext()), ExpressionConstants.VAR_FOCUS_EXISTS_QNAME));
-
-            ObjectDeltaObject<F> focusOdoAbsolute = context.getFocusContext().getObjectDeltaObjectAbsolute();
 
             // Variable: focus
             builder.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdoAbsolute, context.getFocusContext().getObjectDefinition());
@@ -587,6 +586,7 @@ public class ActivationProcessor implements ProjectorProcessor {
         shadowExistenceTargetDef.setMaxOccurs(1);
         shadowExistenceTargetDef.freeze();
         params.setTargetItemDefinition(shadowExistenceTargetDef);
+        params.setSourceContext(focusOdoAbsolute);
         mappingEvaluator.evaluateMappingSetProjection(params, task, result);
 
         boolean output;
