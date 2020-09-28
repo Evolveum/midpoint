@@ -95,6 +95,9 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
     protected static final String ACCOUNT_WILL_PASSWORD_OLD = "3lizab3th";
     protected static final String ACCOUNT_WILL_PASSWORD_NEW = "ELIZAbeth";
 
+    protected static final File ACCOUNT_FIASCO_FILE = new File(TEST_DIR, "account-fiasco.xml");
+    protected static final String ACCOUNT_FIASCO_OID = "414dd45c-017f-11eb-acac-1760a547c740";
+
     protected static final String ATTR_USERNAME = "username";
     protected static final QName ATTR_USERNAME_QNAME = new QName(MidPointConstants.NS_RI, ATTR_USERNAME);
 
@@ -2361,6 +2364,74 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
 
         assertCaseState(willLastCaseOid, SchemaConstants.CASE_STATE_CLOSED);
     }
+
+    @Test
+    public void test500AddAccountFiasco() throws Exception {
+        // GIVEN
+
+        Task givenTask = createTask(getTestName());
+        OperationResult givenResult = givenTask.getResult();
+
+                PrismObject<ShadowType> account = parseObject(ACCOUNT_FIASCO_FILE);
+        account.checkConsistence();
+
+        display("Adding shadow", account);
+        String addedObjectOid = provisioningService.addObject(account, null, null, givenTask, givenResult);
+        assertEquals(ACCOUNT_FIASCO_OID, addedObjectOid);
+        String fiascoCaseOid = assertInProgress(givenResult);
+        assertNotNull("No async reference in result", fiascoCaseOid);
+
+        PrismObject<ShadowType> repoShadow = assertRepoShadow(ACCOUNT_FIASCO_OID)
+                .assertConception()
+                .pendingOperations()
+                    .singleOperation()
+                        .assertId()
+                        .assertType(PendingOperationTypeType.MANUAL)
+                    .end()
+                .end()
+                .getObject();
+
+        assertCaseState(fiascoCaseOid, SchemaConstants.CASE_STATE_OPEN);
+
+        XMLGregorianCalendar operationTimestampStart = clock.currentTimeXMLGregorianCalendar();
+
+        closeCase(fiascoCaseOid, OperationResultStatusType.FATAL_ERROR);
+
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+        syncServiceMock.reset();
+
+        // WHEN
+        when();
+        provisioningService.refreshShadow(repoShadow, null, task, result);
+
+        // THEN
+        then();
+        display(result);
+        assertSuccess(result);
+
+        XMLGregorianCalendar operationTimestampEnd = clock.currentTimeXMLGregorianCalendar();
+
+        ShadowAsserter<Void> shadowRepoAsserter = assertRepoShadow(ACCOUNT_FIASCO_OID)
+            .assertIsNotExists()
+            .pendingOperations()
+                .singleOperation()
+                    .assertId()
+                    .assertType(PendingOperationTypeType.MANUAL)
+                    .assertCompletionTimestamp(operationTimestampStart, operationTimestampEnd)
+                    .assertExecutionStatus(PendingOperationExecutionStatusType.COMPLETED)
+                    .assertResultStatus(OperationResultStatusType.FATAL_ERROR)
+                .end()
+            .end()
+            .assertNoPassword();
+
+        syncServiceMock.assertNoNotifyChange();
+        syncServiceMock.assertSingleNotifySuccessOnly();
+
+        assertCaseState(fiascoCaseOid, SchemaConstants.CASE_STATE_CLOSED);
+
+    }
+
 
     // TODO: create, close case, then update backing store.
 

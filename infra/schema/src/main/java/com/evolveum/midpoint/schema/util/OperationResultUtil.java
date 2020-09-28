@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.util;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
 
 public class OperationResultUtil {
@@ -46,5 +47,11 @@ public class OperationResultUtil {
             clone.getPartialResults().addAll(result.getPartialResults());
         }
         return clone;
+    }
+
+    public static boolean isSuccessful(OperationResultStatusType result) {
+        return OperationResultStatusType.SUCCESS.equals(result) ||
+                OperationResultStatusType.HANDLED_ERROR.equals(result) ||
+                OperationResultStatusType.WARNING.equals(result);
     }
 }
