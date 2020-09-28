@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
-import com.evolveum.midpoint.model.impl.lens.construction.Construction;
+import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -30,10 +30,10 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
 
     private V itemValue;
     private PrismValueDeltaSetTripleProducer<V, D> mapping;
-    private Construction construction;
+    private ResourceObjectConstruction construction;
 
     public ItemValueWithOrigin(V itemValue,
-            PrismValueDeltaSetTripleProducer<V, D> mapping, Construction accountConstruction) {
+            PrismValueDeltaSetTripleProducer<V, D> mapping, ResourceObjectConstruction accountConstruction) {
         super();
         this.itemValue = itemValue;
         this.mapping = mapping;
@@ -54,7 +54,7 @@ public class ItemValueWithOrigin<V extends PrismValue, D extends ItemDefinition>
         return mapping;
     }
 
-    public Construction getConstruction() {
+    public ResourceObjectConstruction getConstruction() {
         return construction;
     }
 

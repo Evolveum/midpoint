@@ -347,6 +347,17 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="completed" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Was the processing of this projection (in its execution wave) complete?
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
+                                <a:experimental>true</a:experimental>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="resourceShadowDiscriminator" type="c:ShadowDiscriminatorType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -924,6 +935,17 @@
         <xsd:complexContent>
             <xsd:extension base="tns:ClockworkTraceType">
                 <xsd:sequence>
+                    <xsd:element name="resourceShadowDiscriminator" type="tns:ShadowDiscriminatorType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Which projection context is being processed? (Present only if applicable.)
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:experimental>true</a:experimental>
+                                <a:since>4.2</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -984,6 +1006,13 @@
                         <xsd:annotation>
                             <xsd:appinfo>
                                 <a:since>4.1</a:since>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="reason" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:since>4.2</a:since>
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
@@ -1402,6 +1431,29 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="repositorySearchObjectsTrace" type="tns:RepositorySearchObjectsTraceType" />
+
+    <xsd:complexType name="ResourceObjectConstructionEvaluationTraceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Trace for evaluation resource object construction.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:experimental>true</a:experimental>
+                <a:container>true</a:container>
+                <a:since>4.2</a:since>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:TraceType">
+                <xsd:sequence>
+                    <xsd:element name="construction" type="tns:ConstructionType" minOccurs="0"/>
+                    <xsd:element name="resourceShadowDiscriminator" type="c:ShadowDiscriminatorType" minOccurs="0"/>
+                    <xsd:element name="assignmentPath" type="c:AssignmentPathType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="resourceObjectConstructionEvaluationTrace" type="tns:ResourceObjectConstructionEvaluationTraceType" />
 
     <xsd:complexType name="MappingEvaluationTraceType">
         <xsd:annotation>
@@ -2879,6 +2931,16 @@
                     </xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="PROJECTOR_EXECUTION"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="resourceObjectConstructionEvaluation">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Evaluation of a resource object construction.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RESOURCE_OBJECT_CONSTRUCTION_EVALUATION"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>

@@ -178,47 +178,53 @@ public class ValuePolicyProcessor {
 
         OperationResult result = parentResult.createSubresult(OPERATION_STRING_POLICY_VALIDATION);
         result.addArbitraryObjectAsParam("policyName", pp.getName());
-        normalize(pp);
+        try {
+            normalize(pp);
 
-        if (newValue == null) {
-            newValue = "";
-        }
-
-        LimitationsType lims = pp.getStringPolicy().getLimitations();
-
-        testMinimalLength(newValue, lims, result, messages);
-        testMaximalLength(newValue, lims, result, messages);
-
-        testMinimalUniqueCharacters(newValue, lims, result, messages);
-
-        testProhibitedValues(newValue, pp.getProhibitedValues(), originResolver, shortDesc, task, result, messages);
-
-        // TODO: this needs to be determined from ValuePolicyType archetype
-        ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
-        testCheckExpression(newValue, lims, expressionProfile, originResolver, shortDesc, task, result, messages);
-
-        if (!lims.getLimit().isEmpty()) {
-            // check limitation
-            HashSet<String> validChars;
-            HashSet<String> allValidChars = new HashSet<>();
-            List<String> characters = StringPolicyUtils.stringTokenizer(newValue);
-            for (StringLimitType stringLimitationType : lims.getLimit()) {
-                OperationResult limitResult = new OperationResult("Tested limitation: " + stringLimitationType.getDescription());
-
-                validChars = getValidCharacters(stringLimitationType.getCharacterClass(), pp);
-                int count = countValidCharacters(validChars, characters);
-                allValidChars.addAll(validChars);
-                testMinimalOccurrence(stringLimitationType, count, limitResult, messages);
-                testMaximalOccurrence(stringLimitationType, count, limitResult, messages);
-                testMustBeFirst(stringLimitationType, limitResult, messages, newValue, validChars);
-
-                limitResult.computeStatus();
-                result.addSubresult(limitResult);
+            if (newValue == null) {
+                newValue = "";
             }
-            testInvalidCharacters(characters, allValidChars, result, messages);
+
+            LimitationsType lims = pp.getStringPolicy().getLimitations();
+
+            testMinimalLength(newValue, lims, result, messages);
+            testMaximalLength(newValue, lims, result, messages);
+
+            testMinimalUniqueCharacters(newValue, lims, result, messages);
+
+            testProhibitedValues(newValue, pp.getProhibitedValues(), originResolver, shortDesc, task, result, messages);
+
+            // TODO: this needs to be determined from ValuePolicyType archetype
+            ExpressionProfile expressionProfile = MiscSchemaUtil.getExpressionProfile();
+            testCheckExpression(newValue, lims, expressionProfile, originResolver, shortDesc, task, result, messages);
+
+            if (!lims.getLimit().isEmpty()) {
+                // check limitation
+                HashSet<String> validChars;
+                HashSet<String> allValidChars = new HashSet<>();
+                List<String> characters = StringPolicyUtils.stringTokenizer(newValue);
+                for (StringLimitType stringLimitationType : lims.getLimit()) {
+                    OperationResult limitResult = new OperationResult("Tested limitation: " + stringLimitationType.getDescription());
+
+                    validChars = getValidCharacters(stringLimitationType.getCharacterClass(), pp);
+                    int count = countValidCharacters(validChars, characters);
+                    allValidChars.addAll(validChars);
+                    testMinimalOccurrence(stringLimitationType, count, limitResult, messages);
+                    testMaximalOccurrence(stringLimitationType, count, limitResult, messages);
+                    testMustBeFirst(stringLimitationType, limitResult, messages, newValue, validChars);
+
+                    limitResult.computeStatus();
+                    result.addSubresult(limitResult);
+                }
+                testInvalidCharacters(characters, allValidChars, result, messages);
+            }
+        } catch (Throwable t) {
+            result.recordFatalError(t);
+            throw t;
+        } finally {
+            result.computeStatusIfUnknown();
         }
 
-        result.computeStatus();
         if (!result.isSuccess() && !messages.isEmpty()) {
             result.setUserFriendlyMessage(
                     new LocalizableMessageListBuilder()

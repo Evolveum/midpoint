@@ -137,6 +137,8 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
 
         rememberSteadyResources();
+//
+//        setGlobalTracingOverride(createModelLoggingTracingProfile());
     }
 
     /**

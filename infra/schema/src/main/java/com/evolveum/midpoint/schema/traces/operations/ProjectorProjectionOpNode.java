@@ -8,6 +8,7 @@
 package com.evolveum.midpoint.schema.traces.operations;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.schema.traces.FormattingUtil;
 import com.evolveum.midpoint.schema.traces.OpNode;
 import com.evolveum.midpoint.schema.traces.OpResultInfo;
 import com.evolveum.midpoint.schema.traces.TraceInfo;
@@ -21,5 +22,13 @@ public class ProjectorProjectionOpNode extends ProjectorComponentOpNode {
     public ProjectorProjectionOpNode(PrismContext prismContext, OperationResultType result, OpResultInfo info, OpNode parent,
             TraceInfo traceInfo) {
         super(prismContext, result, info, parent, traceInfo);
+    }
+
+    public String getInfo() {
+        if (trace != null && trace.getResourceShadowDiscriminator() != null) {
+            return FormattingUtil.getDiscriminatorDescription(trace.getResourceShadowDiscriminator());
+        } else {
+            return getParameter("resourceName");
+        }
     }
 }

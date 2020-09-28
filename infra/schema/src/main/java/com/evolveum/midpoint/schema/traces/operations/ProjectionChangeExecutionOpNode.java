@@ -21,6 +21,8 @@ public class ProjectionChangeExecutionOpNode extends AbstractChangeExecutionOpNo
 
     private final String resourceName;
 
+    // todo discriminator
+
     public ProjectionChangeExecutionOpNode(PrismContext prismContext, OperationResultType result, OpResultInfo info, OpNode parent,
             TraceInfo traceInfo) {
         super(prismContext, result, info, parent, traceInfo);

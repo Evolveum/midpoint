@@ -799,6 +799,8 @@ CREATE INDEX iAuditDeltaRecordId
   ON m_audit_delta (record_id) INITRANS 30;
 CREATE INDEX iTimestampValue
   ON m_audit_event (timestampValue) INITRANS 30;
+CREATE INDEX iAuditEventRecordEStageTOid
+  ON m_audit_event (eventStage, targetOid) INITRANS 30;
 CREATE INDEX iChangedItemPath
   ON m_audit_item (changedItemPath) INITRANS 30;
 CREATE INDEX iAuditItemRecordId

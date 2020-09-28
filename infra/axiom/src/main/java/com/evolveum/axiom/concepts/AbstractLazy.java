@@ -15,10 +15,17 @@ public abstract class AbstractLazy<T> {
     }
 
     T unwrap() {
-        if(value instanceof Lazy.Supplier<?>) {
+        if (value instanceof Lazy.Supplier<?>) {
+            //noinspection unchecked
             value = ((Lazy.Supplier<T>) value).get();
             return unwrap();
         }
+        //noinspection unchecked
         return (T) value;
+    }
+
+    @Override
+    public String toString() {
+        return String.valueOf(value);
     }
 }

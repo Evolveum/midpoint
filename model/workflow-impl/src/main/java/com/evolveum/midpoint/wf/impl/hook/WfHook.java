@@ -152,11 +152,7 @@ public class WfHook implements ChangeHook {
     private void logOperationInformation(ModelContext<?> context) {
         if (LOGGER.isTraceEnabled()) {
             LensContext<?> lensContext = (LensContext<?>) context;
-            try {
-                medic.traceContext(LOGGER, "WORKFLOW (" + context.getState() + ")", "workflow processing", true, lensContext, false);
-            } catch (SchemaException e) {
-                throw new IllegalStateException("SchemaException when tracing model context: " + e.getMessage(), e);
-            }
+            medic.traceContext(LOGGER, "WORKFLOW (" + context.getState() + ")", "workflow processing", true, lensContext, false);
         }
     }
 
