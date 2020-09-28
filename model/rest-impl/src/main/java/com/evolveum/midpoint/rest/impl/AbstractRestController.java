@@ -68,7 +68,17 @@ class AbstractRestController {
         // No need to audit login. it was already audited during authentication
         Task task = taskManager.createTaskInstance(opNamePrefix + "restService");
         task.setChannel(SchemaConstants.CHANNEL_REST_URI);
+        PrismObject<? extends FocusType> principalObject = getPrincipalObject();
+        if (principalObject != null) {
+            task.setOwner(principalObject);
+        }
         return task;
+    }
+
+    private PrismObject<? extends FocusType> getPrincipalObject() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        Object principal = authentication.getPrincipal();
+        return principal instanceof MidPointPrincipal ? ((MidPointPrincipal) principal).getFocus().asPrismObject() : null;
     }
 
     protected OperationResult createSubresult(Task task, String operation) {
@@ -174,35 +184,28 @@ class AbstractRestController {
         return status(status).body(resultBean);
     }
 
-    protected void finishRequest() {
-        auditEvent();
-        SecurityContextHolder.getContext().setAuthentication(null);
+    protected void finishRequest(Task task, OperationResult result) {
+        try {
+            auditLogout(task, result);
+        } finally {
+            SecurityContextHolder.getContext().setAuthentication(null);
+        }
     }
 
-    private void auditEvent() {
-        String channel = SchemaConstants.CHANNEL_REST_URI;
-        SystemConfigurationType system = null;
-        try {
-            system = systemObjectCache.getSystemConfiguration(new OperationResult("LOAD SYSTEM CONFIGURATION")).asObjectable();
-        } catch (SchemaException e) {
-            logger.error("Couldn't get system configuration from cache", e);
-        }
-        if (!SecurityUtil.isAuditedLoginAndLogout(system, channel)) {
+    private void auditLogout(Task task, OperationResult result) {
+        if (isAuditingSkipped(result)) {
             return;
         }
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         Object principal = authentication.getPrincipal();
         String name = null;
         if (principal instanceof MidPointPrincipal) {
             name = ((MidPointPrincipal) principal).getUsername();
         } else if (principal != null) {
-            return;
+            return; // TODO Why exit if principal non-null and continue if principal is null?
         }
         PrismObject<? extends FocusType> user = principal != null ? ((MidPointPrincipal) principal).getFocus().asPrismObject() : null;
-
-        Task task = taskManager.createTaskInstance();
-        task.setOwner(user);
-        task.setChannel(channel);
 
         AuditEventRecord record = new AuditEventRecord(AuditEventType.TERMINATE_SESSION, AuditEventStage.REQUEST);
         record.setInitiator(user, prismContext);
@@ -216,6 +219,16 @@ class AbstractRestController {
         }
 
         auditService.audit(record, task);
+    }
+
+    private boolean isAuditingSkipped(OperationResult result) {
+        try {
+            SystemConfigurationType systemConfiguration = systemObjectCache.getSystemConfiguration(result).asObjectable();
+            return !SecurityUtil.isAuditedLoginAndLogout(systemConfiguration, SchemaConstants.CHANNEL_REST_URI);
+        } catch (SchemaException e) {
+            logger.error("Couldn't get system configuration from cache, skipping REST logout auditing", e);
+            return true;
+        }
     }
 
     private final String[] requestMappingPaths =
