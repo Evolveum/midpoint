@@ -67,7 +67,7 @@ public class DummyGroupAsserter<R> extends DummyObjectAsserter<DummyGroup,R> {
 
     public DummyGroupAsserter<R> assertMembers(String... expectedMembers) {
         Collection<String> groupMembers = getDummyObjectAssertExists().getMembers();
-        PrismAsserts.assertEqualsCollectionUnordered("Wrong members of "+desc(), groupMembers, expectedMembers);
+        PrismAsserts.assertEqualsCollectionUnorderedNullable("Wrong members of " + desc(), groupMembers, expectedMembers);
         return this;
     }
 

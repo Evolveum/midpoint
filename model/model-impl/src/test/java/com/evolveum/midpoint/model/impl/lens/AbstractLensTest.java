@@ -12,6 +12,8 @@ import java.io.File;
 import java.util.*;
 import java.util.function.Consumer;
 
+import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -357,4 +359,10 @@ public abstract class AbstractLensTest extends AbstractInternalModelIntegrationT
             }
         }
     }
+
+    protected String getDescription(ResourceObjectConstruction<?, ?> construction) {
+        return construction.getConstructionBean() != null ?
+                construction.getConstructionBean().getDescription() : null;
+    }
+
 }

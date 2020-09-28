@@ -38,7 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * Hierarchical LDAP structure. All accounts are in ou=people. The organizational structure is
- * reflected to hierachical OUs (OUs inside OUs). Each OU contains groups. Users are members of
+ * reflected to hierarchical OUs (OUs inside OUs). Each OU contains groups. Users are members of
  * the groups to reflect their direct membership in orgstruct. Groups are members of parent OU
  * groups.
  *

@@ -87,13 +87,17 @@ public enum OpType {
 
     PROJECTOR_PROJECTION(OperationKindType.OTHER,"Projector projection",
             "com.evolveum.midpoint.model.impl.lens.projector.Projector.projection",
-            "Projector projection: ${p:resourceName}"),
+            "Projector projection: ${m:getInfo}"),
 
     PROJECTOR_COMPONENT_OTHER(OperationKindType.OTHER,"Projector component",
             "com.evolveum.midpoint.model.impl.lens.projector.Projector.*"),
 
     CLOCKWORK_METHOD(OperationKindType.OTHER,"Clockwork method",
             "com.evolveum.midpoint.model.impl.lens.Clockwork.*"),
+
+    RESOURCE_OBJECT_CONSTRUCTION_EVALUATION(OperationKindType.RESOURCE_OBJECT_CONSTRUCTION_EVALUATION,"Resource object construction evaluation",
+            "com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl.evaluate",
+            "Construction: ${m:getInfo}"),
 
     MAPPING_EVALUATION(OperationKindType.MAPPING_EVALUATION,"Mapping evaluation",
             "com.evolveum.midpoint.model.common.mapping.MappingImpl.evaluate",

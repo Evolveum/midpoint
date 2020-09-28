@@ -112,5 +112,5 @@ public interface ModelContext<F extends ObjectType> extends Serializable, DebugD
 
     void setSequenceCounter(String sequenceOid, long counter);
 
-    String getTaskTreeOid(Task task, OperationResult result);
+    String getTaskTreeOid(Task task, OperationResult result) throws SchemaException;
 }

@@ -17,6 +17,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowKindType;
+
+import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.ObjectUtils;
 
 /**
@@ -151,32 +153,40 @@ public class ResourceShadowDiscriminator implements Serializable, DebugDumpable,
     }
 
     public ShadowDiscriminatorType toResourceShadowDiscriminatorType() {
-        ShadowDiscriminatorType rsdt = new ShadowDiscriminatorType();
-        rsdt.setIntent(intent);
-        rsdt.setKind(kind);
+        ShadowDiscriminatorType bean = new ShadowDiscriminatorType();
+        bean.setIntent(intent);
+        bean.setKind(kind);
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resourceOid);
         resourceRef.setType(ResourceType.COMPLEX_TYPE);
-        rsdt.setResourceRef(resourceRef);
-        return rsdt;
+        bean.setResourceRef(resourceRef);
+
+        bean.setObjectClassName(objectClass);
+        bean.setTombstone(tombstone);
+        bean.setDiscriminatorOrder(order);
+        return bean;
     }
 
     public static ResourceShadowDiscriminator fromResourceShadowDiscriminatorType(
-            ShadowDiscriminatorType resourceShadowDiscriminatorType, boolean provideDefaultIntent) {
-        if (resourceShadowDiscriminatorType == null) {
+            ShadowDiscriminatorType bean, boolean provideDefaultIntent) {
+        if (bean == null) {
             return null;
         }
 
         // For compatibility. Otherwise the kind should be explicitly serialized.
-        ShadowKindType kind = ObjectUtils.defaultIfNull(resourceShadowDiscriminatorType.getKind(), ShadowKindType.ACCOUNT);
-        String intent = resourceShadowDiscriminatorType.getIntent() != null || !provideDefaultIntent ?
-                resourceShadowDiscriminatorType.getIntent() : SchemaConstants.INTENT_DEFAULT;
+        ShadowKindType kind = ObjectUtils.defaultIfNull(bean.getKind(), ShadowKindType.ACCOUNT);
+        String intent = bean.getIntent() != null || !provideDefaultIntent ?
+                bean.getIntent() : SchemaConstants.INTENT_DEFAULT;
 
-        return new ResourceShadowDiscriminator(
-                resourceShadowDiscriminatorType.getResourceRef() != null ? resourceShadowDiscriminatorType.getResourceRef().getOid() : null,
-                kind, intent,
-                resourceShadowDiscriminatorType.getTag(),
-                false);
+        ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(
+                bean.getResourceRef() != null ? bean.getResourceRef().getOid() : null,
+                kind, intent, bean.getTag(),
+                BooleanUtils.isTrue(bean.isTombstone()));
+        rsd.setObjectClass(bean.getObjectClassName());
+        if (bean.getDiscriminatorOrder() != null) {
+            rsd.setOrder(bean.getDiscriminatorOrder());
+        }
+        return rsd;
     }
 
     @Override

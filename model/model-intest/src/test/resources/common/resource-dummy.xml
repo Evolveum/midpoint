@@ -469,8 +469,6 @@
 
         </objectType>
 
-
-
         <objectType>
             <kind>entitlement</kind>
             <intent>group</intent>

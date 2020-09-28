@@ -188,12 +188,11 @@ public class Projector {
                     Projector.class, context, activityDescription, now, task, result);
 
             if (partialProcessingOptions.getProjection() != PartialProcessingTypeType.SKIP) {
-                // Process activation of all resources, regardless of the waves. This is needed to properly
-                // sort projections to waves as deprovisioning will reverse the dependencies. And we know whether
-                // a projection is provisioned or deprovisioned only after the activation is processed.
-                if (fromStart) {
-                    activationProcessor.processActivationForAllResources(context, activityDescription, now, task, result);
-                }
+                // Process activation for all eligible projections: such that their wave is either not determined
+                // or such that their wave is current. The first case is needed to properly sort projections to waves
+                // as deprovisioning will reverse the dependencies. And we know whether a projection is provisioned or
+                // deprovisioned only after the activation is processed.
+                activationProcessor.processProjectionsActivation(context, activityDescription, now, task, result);
 
                 dependencyProcessor.sortProjectionsToWaves(context, result);
 
@@ -261,6 +260,13 @@ public class Projector {
         if (projectionContext.getWave() != context.getProjectionWave()) {
             LOGGER.trace("Skipping projection of {} because its wave ({}) is different from current projection wave ({})",
                     projectionContext, projectionContext.getWave(), context.getProjectionWave());
+            parentResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Wave of the projection context differs from current projector wave");
+            return;
+        }
+
+        if (projectionContext.isCompleted()) {
+            LOGGER.trace("Skipping projection of {} because it's already completed", projectionContext);
+            parentResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Projection context is already completed");
             return;
         }
 
@@ -286,7 +292,6 @@ public class Projector {
                 result.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipping projection because it is a tombstone");
                 return;
             }
-
 
             LOGGER.trace("WAVE {} PROJECTION {}", context.getProjectionWave(), projectionDesc);
 

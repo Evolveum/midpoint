@@ -48,4 +48,8 @@ ALTER TABLE m_focus ADD passwordModifyTimestamp TIMESTAMP;
 -- MID-6037
 ALTER TABLE m_service ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
 
+-- MID-6232
+CREATE INDEX iAuditEventRecordEStageTOid
+  ON m_audit_event (eventStage, targetOid) INITRANS 30;
+
 COMMIT;

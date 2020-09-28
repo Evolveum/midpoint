@@ -53,7 +53,7 @@ public class AssignmentUtil {
             sb.append("c:")
                     .append(getReferenceInfo(construction.getResourceRef()));
             if (construction.getKind() != null) {
-                sb.append(", ").append(construction.getKind());
+                sb.append(", ").append(String.valueOf(construction.getKind()).toLowerCase());
             }
             if (construction.getIntent() != null) {
                 sb.append(", ").append(construction.getIntent());

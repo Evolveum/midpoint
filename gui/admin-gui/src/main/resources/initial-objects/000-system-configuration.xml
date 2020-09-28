@@ -23,6 +23,12 @@
             <package>ro.isdc.wro.extensions.processor.css.Less4jProcessor</package>
         </classLogger>
         <classLogger>
+            <!-- disabled because INFO log during of creating
+            new authentication filter chain -->
+            <level>OFF</level>
+            <package>org.springframework.security.web.DefaultSecurityFilterChain</package>
+        </classLogger>
+        <classLogger>
             <!-- disabled because of MID-744, helper insert messages on ERROR
             level which should not be there (probably should be on TRACE) -->
             <level>OFF</level>
@@ -43,7 +49,7 @@
             <level>WARN</level>
             <package>org.hibernate.engine.jdbc.batch.internal.AbstractBatchImpl</package>
         </classLogger>
-        <!-- Diesabled because of MID-4636 -->
+        <!-- Disabled because of MID-4636 -->
         <classLogger>
             <level>OFF</level>
             <package>org.hibernate.internal.ExceptionMapperStandardImpl</package>

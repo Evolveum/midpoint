@@ -607,6 +607,12 @@ public class BasicExpressionFunctions {
         }
     }
 
+    @Experimental
+    @NotNull
+    public Collection<?> getMetadataValues(PrismValue value, String path) {
+        return getMetadataValues(value, (Object[]) path.split("/")); // temporary TODO rework this!
+    }
+
     /**
      * Simplified version of getMetadataValue aimed at fetching single-segment extension paths.
      */

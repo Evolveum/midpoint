@@ -546,9 +546,6 @@ public class DashboardServiceImpl implements DashboardService {
 
         List<PrismObject<ObjectType>> values;
         values = modelService.searchObjects(type, query, options, task, result);
-//        if(condition != null) {
-//            return evaluateCondition(condition, values, task, result);
-//        }
         return values;
     }
 
@@ -578,9 +575,6 @@ public class DashboardServiceImpl implements DashboardService {
                 if (auditRecords == null) {
                     auditRecords = new ArrayList<>();
                 }
-//                if (condition != null) {
-//                    return evaluateCondition(condition, auditRecords, task, result);
-//                }
             } else if (collection != null && collection.getAuditSearch() != null) {
                 Map<String, Object> parameters = new HashMap<>();
                 String query = DashboardUtils.getQueryForListRecords(DashboardUtils.createQuery(collection, parameters, false, clock));
@@ -591,29 +585,10 @@ public class DashboardServiceImpl implements DashboardService {
                 for (AuditEventRecord auditRecord : oldAuditRecords) {
                     auditRecords.add(auditRecord.createAuditEventRecordType(true));
                 }
-//                if (condition != null) {
-//                    return evaluateCondition(condition, auditRecords, task, result);
-//                }
             }
         }
         return auditRecords;
     }
-
-//    private <T extends Object> List<T> evaluateCondition(ExpressionType condition, List<T> values, Task task, OperationResult result)
-//            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
-//        Iterator<T> iterator = values.iterator();
-//        while (iterator.hasNext()) {
-//            T value = iterator.next();
-//            ExpressionVariables variables = new ExpressionVariables();
-//            variables.put(ExpressionConstants.VAR_OBJECT, value, value.getClass());
-//            PrismPropertyValue<Boolean> conditionValue = ExpressionUtil.evaluateCondition(variables, condition, null, expressionFactory,
-//                    "Evaluate condition", task, result);
-//            if (conditionValue == null || Boolean.FALSE.equals(conditionValue.getRealValue())) {
-//                iterator.remove();
-//            }
-//        }
-//        return values;
-//    }
 
     @Override
     public ObjectCollectionType getObjectCollectionType(DashboardWidgetType widget, Task task, OperationResult result)

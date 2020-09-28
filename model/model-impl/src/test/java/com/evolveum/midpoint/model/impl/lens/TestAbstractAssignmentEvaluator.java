@@ -17,6 +17,11 @@ import java.io.File;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.model.impl.ModelBeans;
+
+import com.evolveum.midpoint.model.impl.lens.construction.AssignedResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedAssignedResourceObjectConstructionImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
@@ -34,8 +39,8 @@ import com.evolveum.midpoint.model.common.mapping.MappingImpl;
 import com.evolveum.midpoint.model.common.mapping.PrismValueDeltaSetTripleProducer;
 import com.evolveum.midpoint.model.impl.lens.assignments.AssignmentEvaluator;
 import com.evolveum.midpoint.model.impl.lens.assignments.EvaluatedAssignmentImpl;
-import com.evolveum.midpoint.model.impl.lens.construction.Construction;
-import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedConstructionImpl;
+import com.evolveum.midpoint.model.impl.lens.construction.ResourceObjectConstruction;
+import com.evolveum.midpoint.model.impl.lens.construction.EvaluatedResourceObjectConstructionImpl;
 import com.evolveum.midpoint.model.impl.lens.projector.AssignmentOrigin;
 import com.evolveum.midpoint.model.impl.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.impl.lens.projector.Projector;
@@ -74,6 +79,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     @Autowired private MappingEvaluator mappingEvaluator;
     @Autowired private Projector projector;
     @Autowired private ContextLoader contextLoader;
+    @Autowired private ModelBeans modelBeans;
 
     public abstract File[] getRoleCorpFiles();
 
@@ -116,7 +122,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        Construction<UserType, EvaluatedConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
+        ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
         displayDumpable("Evaluated construction", construction);
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 
@@ -154,7 +160,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        Construction<UserType, EvaluatedConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
+        ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
 
         assertEquals("Wrong number of admin GUI configs", 0, evaluatedAssignment.getAdminGuiConfigurations().size());
@@ -199,11 +205,11 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(user);
 
-        Construction<UserType, EvaluatedConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
+        ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
-        DeltaSetTriple<EvaluatedConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
+        DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
         assertEquals(1, evaluatedConstructionTriple.size());
-        EvaluatedConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
+        EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
         assertEquals(1, evaluatedConstruction.getAttributeMappings().size());
         MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping =
                 (MappingImpl<PrismPropertyValue<String>, PrismPropertyDefinition<String>>) evaluatedConstruction.getAttributeMappings().iterator().next();
@@ -263,11 +269,11 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertEquals(1, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(user);
 
-        Construction<UserType, EvaluatedConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
+        ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction = evaluatedAssignment.getConstructionTriple().getZeroSet().iterator().next();
         assertNotNull("No object class definition in construction", construction.getRefinedObjectClassDefinition());
-        DeltaSetTriple<EvaluatedConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
+        DeltaSetTriple<EvaluatedAssignedResourceObjectConstructionImpl<UserType>> evaluatedConstructionTriple = construction.getEvaluatedConstructionTriple();
         assertEquals(1, evaluatedConstructionTriple.size());
-        EvaluatedConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
+        EvaluatedAssignedResourceObjectConstructionImpl<UserType> evaluatedConstruction = evaluatedConstructionTriple.getZeroSet().iterator().next();
         assertEquals(1, evaluatedConstruction.getAttributeMappings().size());
         PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>> attributeMapping =
                 (PrismValueDeltaSetTripleProducer<PrismPropertyValue<String>, PrismPropertyDefinition<String>>)
@@ -790,7 +796,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         assertEquals(2, evaluatedAssignment.getConstructionTriple().size());
         PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 
-        for (Construction<UserType, EvaluatedConstructionImpl<UserType>> construction : evaluatedAssignment.getConstructionSet(ZERO)) {
+        for (ResourceObjectConstruction<UserType, EvaluatedAssignedResourceObjectConstructionImpl<UserType>> construction : evaluatedAssignment.getConstructionSet(ZERO)) {
             assertEquals("Wrong validity for " + construction, false, construction.isValid());
         }
 
@@ -851,9 +857,9 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
 
     protected void assertNoConstruction(EvaluatedAssignmentImpl<UserType> evaluatedAssignment,
             PlusMinusZero constructionSet, String attributeName) {
-        Collection<Construction<UserType, EvaluatedConstructionImpl<UserType>>> constructions =
+        Collection<AssignedResourceObjectConstruction<UserType>> constructions =
                 evaluatedAssignment.getConstructionSet(constructionSet);
-        for (Construction<UserType, EvaluatedConstructionImpl<UserType>> construction : constructions) {
+        for (AssignedResourceObjectConstruction<UserType> construction : constructions) {
             construction.getEvaluatedConstructionTriple().foreach(evaluatedConstruction -> {
                 PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping =
                         evaluatedConstruction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
@@ -865,10 +871,10 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
     protected void assertConstruction(
             EvaluatedAssignmentImpl<UserType> evaluatedAssignment, PlusMinusZero constructionSet,
             String attributeName, PlusMinusZero attributeSet, String... expectedValues) {
-        Collection<Construction<UserType, EvaluatedConstructionImpl<UserType>>> constructions =
+        Collection<AssignedResourceObjectConstruction<UserType>> constructions =
                 evaluatedAssignment.getConstructionSet(constructionSet);
         Set<String> realValues = new HashSet<>();
-        for (Construction<UserType, EvaluatedConstructionImpl<UserType>> construction : constructions) {
+        for (AssignedResourceObjectConstruction<UserType> construction : constructions) {
             construction.getEvaluatedConstructionTriple().foreach(evaluatedConstruction -> {
                 PrismValueDeltaSetTripleProducer<? extends PrismPropertyValue<?>, ? extends PrismPropertyDefinition<?>> mapping =
                         evaluatedConstruction.getAttributeMapping(new QName(MidPointConstants.NS_RI, attributeName));
@@ -903,6 +909,7 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
         return new AssignmentEvaluator.Builder<UserType>()
                 .referenceResolver(referenceResolver)
                 .focusOdo(focusOdo)
+                .modelBeans(modelBeans)
                 .objectResolver(objectResolver)
                 .systemObjectCache(systemObjectCache)
                 .relationRegistry(relationRegistry)
@@ -938,6 +945,6 @@ public abstract class TestAbstractAssignmentEvaluator extends AbstractLensTest {
             ObjectDeltaObject<AH> focusOdo, Task task, OperationResult result)
             throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException,
             SecurityViolationException, ConfigurationException, CommunicationException {
-        evaluatedAssignment.evaluateConstructions(focusOdo, null, null, task, result);
+        evaluatedAssignment.evaluateConstructions(focusOdo, null, task, result);
     }
 }

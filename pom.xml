@@ -186,9 +186,10 @@
         This bug was introduced in 1.4.198, which was major version that also changed queries in OrgClosureManager.
         Between 1.4.197 and 198 changes of OrgClosureManager and around MVCC must be made (see commit history).
         With 1.4.200 TestObjectLifecycleApprovalGlobal fails consistently.
-        197 seems to be last version that works OK with midPoint before very disruptive changes.
+        197 is the last version that does not require code changes, but self-corrupts DB sometimes (MID-6510).
+        193 was used for 4 years with few problems, so it's still here to stay.
         -->
-        <h2.version>1.4.197</h2.version>
+        <h2.version>1.4.193</h2.version>
         <!-- Spring Boot parent declares most fresh versions for JDBC drivers for all our servers -->
         <wicket.version>8.6.0</wicket.version>
         <groovy.version>2.5.12</groovy.version>
