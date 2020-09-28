@@ -6,8 +6,19 @@
  */
 package com.evolveum.midpoint.web.page.admin;
 
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+
 import com.evolveum.midpoint.gui.api.component.MainObjectListPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectOrdering;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -20,15 +31,6 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * Created by honchar
@@ -132,6 +134,11 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             protected boolean getNewObjectGenericButtonVisibility() {
                 return PageAdminObjectList.this.getNewObjectGenericButtonVisibility();
             }
+
+            @Override
+            protected List<ItemPath> getFixedSearchItems() {
+                return PageAdminObjectList.this.getFixedSearchItems();
+            }
         };
 
         userListPanel.setAdditionalBoxCssClasses(WebComponentUtil.getBoxCssClasses(WebComponentUtil.classToQName(getPrismContext(), getType())));
@@ -159,6 +166,9 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
         return true;
     }
 
+    protected List<ItemPath> getFixedSearchItems() {
+        return null;
+    }
 
     protected ObjectQuery addCustomFilterToContentQuery(ObjectQuery query){
         return query;

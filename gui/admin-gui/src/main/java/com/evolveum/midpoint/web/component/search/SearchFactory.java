@@ -10,7 +10,7 @@ package com.evolveum.midpoint.web.component.search;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import org.apache.cxf.common.util.CollectionUtils;
+import org.apache.commons.collections.CollectionUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -72,6 +72,7 @@ public class SearchFactory {
                 ItemPath.create(RoleType.F_ROLE_TYPE)));
         SEARCHABLE_OBJECTS.put(ServiceType.class, Arrays.asList(
                 ItemPath.create(ServiceType.F_NAME),
+                ItemPath.create(RoleType.F_DISPLAY_NAME),
                 ItemPath.create(ServiceType.F_SERVICE_TYPE),
                 ItemPath.create(ServiceType.F_URL)));
         SEARCHABLE_OBJECTS.put(ConnectorHostType.class, Arrays.asList(
@@ -180,11 +181,11 @@ public class SearchFactory {
     public static <T extends ObjectType> Search createSearch(
             Class<T> type, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, boolean useDefsFromSuperclass) {
-        return createSearch(type, null, discriminator,  modelServiceLocator, useDefsFromSuperclass);
+        return createSearch(type, null, null, discriminator,  modelServiceLocator, useDefsFromSuperclass);
     }
 
     public static <T extends ObjectType> Search createSearch(
-            Class<T> type, String collectionViewName, ResourceShadowDiscriminator discriminator,
+            Class<T> type, String collectionViewName, List<ItemPath> fixedSearchItems, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, boolean useDefsFromSuperclass) {
 
         PrismObjectDefinition objectDef = findObjectDefinition(type, discriminator, modelServiceLocator);
@@ -214,11 +215,17 @@ public class SearchFactory {
                 }
             });
         } else {
-            PrismPropertyDefinition def = objDef.findPropertyDefinition(ObjectType.F_NAME);
-            SearchItem item = search.addItem(def);
-            if (item != null) {
-                item.setFixed(true);
+            if (CollectionUtils.isEmpty(fixedSearchItems)) {
+                fixedSearchItems = new ArrayList<>();
+                fixedSearchItems.add(ObjectType.F_NAME);
             }
+            fixedSearchItems.forEach(searchItemPath -> {
+                PrismPropertyDefinition def = objDef.findPropertyDefinition(searchItemPath);
+                SearchItem item = search.addItem(def);
+                if (item != null) {
+                    item.setFixed(true);
+                }
+            });
         }
         search.setCanConfigure(isAllowToConfigureSearchItems(modelServiceLocator, type, collectionViewName));
         return search;
