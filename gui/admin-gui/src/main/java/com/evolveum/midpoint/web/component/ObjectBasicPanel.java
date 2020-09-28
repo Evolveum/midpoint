@@ -50,6 +50,7 @@ public class ObjectBasicPanel<O extends ObjectType> extends BasePanel<PrismObjec
 
     protected void initLayout() {
         try {
+            getModelObject();
             ItemPanelSettingsBuilder builder = new ItemPanelSettingsBuilder().visibilityHandler(this::getBasicTabVisibility);
             Panel panel = getPageBase().initItemPanel(ID_BASIC_CONTAINER, getType(), getModel(), builder.build());
             add(panel);
