@@ -304,7 +304,7 @@ public class PageAuditLogDetails extends PageBase {
                     getPrismContext().queryFor(TaskType.class).id(recordModel.getObject().getTaskOID())
                             .build(),
                     new OperationResult("search task by oid"), this);
-            if (tasks != null || !tasks.isEmpty()) {
+            if (tasks != null && !tasks.isEmpty()) {
                 task = tasks.get(0);
             }
         }

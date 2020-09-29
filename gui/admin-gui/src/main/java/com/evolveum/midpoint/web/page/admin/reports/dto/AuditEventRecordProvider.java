@@ -60,6 +60,7 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
     public static final String PARAMETER_OUTCOME = "outcome";
     public static final String PARAMETER_INITIATOR_OID = "initiatorName";
     public static final String PARAMETER_CHANNEL = "channel";
+    public static final String PARAMETER_COMPATIBILITY_OLD_CHANNEL = "compatibilityOldChannel";
     public static final String PARAMETER_HOST_IDENTIFIER = "hostIdentifier";
     public static final String PARAMETER_REQUEST_IDENTIFIER = "requestIdentifier";
     public static final String PARAMETER_TARGET_OWNER_OID = "targetOwnerName";
@@ -319,8 +320,14 @@ public class AuditEventRecordProvider extends BaseSortableDataProvider<AuditEven
             parameters.remove(PARAMETER_INITIATOR_OID);
         }
         if (parameters.get(PARAMETER_CHANNEL) != null) {
-            conditions.add("aer.channel = :channel");
+
+            if (parameters.get(PARAMETER_COMPATIBILITY_OLD_CHANNEL) != null) {
+                conditions.add("(aer.channel = :" + PARAMETER_CHANNEL + " or aer.channel = :" + PARAMETER_COMPATIBILITY_OLD_CHANNEL + ")");
+            } else {
+                conditions.add("aer.channel = :" + PARAMETER_CHANNEL);
+            }
         } else {
+            parameters.remove(PARAMETER_COMPATIBILITY_OLD_CHANNEL);
             parameters.remove(PARAMETER_CHANNEL);
         }
         if (parameters.get(PARAMETER_HOST_IDENTIFIER) != null) {
