@@ -40,7 +40,7 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public class InitialDataImport extends DataImport{
+public class InitialDataImport extends DataImport {
 
     private static final Trace LOGGER = TraceManager.getTrace(InitialDataImport.class);
 

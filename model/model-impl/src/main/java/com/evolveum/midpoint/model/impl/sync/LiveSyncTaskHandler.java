@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 
 import org.jetbrains.annotations.NotNull;
@@ -70,10 +71,6 @@ public class LiveSyncTaskHandler implements TaskHandler {
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
 
-        if (task.getChannel() == null) {
-            task.setChannel(SchemaConstants.CHANNEL_LIVE_SYNC_URI);
-        }
-
         final String ctx = "Live Sync";
 
         TargetInfo targetInfo = helper.getTargetInfo(LOGGER, task, opResult, runResult, ctx);
@@ -111,5 +108,10 @@ public class LiveSyncTaskHandler implements TaskHandler {
     @Override
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_LIVE_SYNC_TASK.value();
+    }
+
+    @Override
+    public String getDefaultChannel() {
+        return Channel.LIVE_SYNC.getUri();
     }
 }

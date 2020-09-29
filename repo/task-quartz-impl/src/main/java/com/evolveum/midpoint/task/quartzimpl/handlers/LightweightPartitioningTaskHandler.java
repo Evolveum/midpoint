@@ -107,6 +107,11 @@ public class LightweightPartitioningTaskHandler implements TaskHandler {
             TaskPartitionDefinitionType partition = partitionsIterator.next();
             TaskHandler handler = taskManager.getHandler(partition.getHandlerUri());
             LOGGER.trace("Starting to execute handler {} defined in partition {}", handler, partition);
+
+            if (task.getChannel() == null) {
+                task.setChannel(handler.getDefaultChannel());
+            }
+
             TaskRunResult subHandlerResult = handlerExecutor.executeHandler((RunningTaskQuartzImpl) task, partition, handler, opResult);
             OperationResult subHandlerOpResult = subHandlerResult.getOperationResult();
             opResult.addSubresult(subHandlerOpResult);

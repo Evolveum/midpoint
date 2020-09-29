@@ -2103,6 +2103,11 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         return h != null ? h.getCategoryName(this) : null;
     }
 
+    public String getChannelFromHandler() {
+        TaskHandler h = getHandler();
+        return h != null ? h.getDefaultChannel() : null;
+    }
+
     /*
      *  Other methods
      */

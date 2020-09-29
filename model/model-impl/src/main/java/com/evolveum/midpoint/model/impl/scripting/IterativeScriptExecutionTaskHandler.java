@@ -111,4 +111,9 @@ public class IterativeScriptExecutionTaskHandler extends AbstractSearchIterative
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value();
     }
+
+    @Override
+    public String getDefaultChannel() {
+        return null; // The channel URI should be provided by the task creator.
+    }
 }

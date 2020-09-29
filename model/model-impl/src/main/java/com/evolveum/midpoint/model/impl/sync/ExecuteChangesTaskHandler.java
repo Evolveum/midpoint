@@ -122,4 +122,9 @@ public class ExecuteChangesTaskHandler extends AbstractSearchIterativeModelTaskH
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_UTILITY_TASK.value();
     }
+
+    @Override
+    public String getDefaultChannel() {
+        return null; // The channel URI should be provided by the task creator.
+    }
 }

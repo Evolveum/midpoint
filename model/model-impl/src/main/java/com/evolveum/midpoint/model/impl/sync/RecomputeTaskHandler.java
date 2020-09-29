@@ -8,7 +8,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.annotation.PostConstruct;
 
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -128,8 +128,8 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandle
     }
 
     @Override
-    protected String getDefaultChannel() {
-        return SchemaConstants.CHANNEL_RECOMPUTE_URI;
+    public String getDefaultChannel() {
+        return Channel.RECOMPUTATION.getUri();
     }
 
     @Override

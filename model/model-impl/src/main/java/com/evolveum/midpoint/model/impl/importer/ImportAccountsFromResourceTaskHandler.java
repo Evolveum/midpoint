@@ -15,6 +15,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
@@ -339,5 +340,10 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     @Override
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_IMPORT_TASK.value();
+    }
+
+    @Override
+    public String getDefaultChannel() {
+        return Channel.IMPORT.getUri();
     }
 }

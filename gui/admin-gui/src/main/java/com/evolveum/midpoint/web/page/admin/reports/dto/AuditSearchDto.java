@@ -15,7 +15,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.gui.api.component.path.ItemPathDto;
 import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
-import com.evolveum.midpoint.gui.impl.Channel;
+import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -47,7 +47,7 @@ public class AuditSearchDto implements Serializable {
     private XMLGregorianCalendar from;
     private XMLGregorianCalendar to;
     private ObjectReferenceType initiatorName;
-    private Channel channel;
+    private GuiChannel channel;
     private String hostIdentifier;
     private String requestIdentifier;
     private List<ObjectReferenceType> targetNames = new ArrayList<>();
@@ -90,11 +90,11 @@ public class AuditSearchDto implements Serializable {
         this.initiatorName = initiatorName;
     }
 
-    public Channel getChannel() {
+    public GuiChannel getChannel() {
         return channel;
     }
 
-    public void setChannel(Channel channel) {
+    public void setChannel(GuiChannel channel) {
         this.channel = channel;
     }
 
