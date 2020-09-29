@@ -1,8 +1,10 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Portions Copyright (C) 2017-2020 Evolveum and contributors
 #
 # This work is dual-licensed under the Apache License 2.0
 # and European Union Public License. See LICENSE file for details.
+#
+# Script should run on bash 3.2 to allow OS X usage.
 
 set -eu
 
@@ -60,7 +62,8 @@ fi
 : "${UMASK:="0027"}"
 umask ${UMASK}
 
-if [[ ! -v JAVA_HOME ]]; then
+# can't use -v here because of bash 3.2 support
+if [[ -z "${JAVA_HOME:-}" ]]; then
   _RUNJAVA=java
 else
   _RUNJAVA="${JAVA_HOME}/bin/java"
@@ -122,13 +125,13 @@ if [[ "$1" == "start" ]]; then
   echo "Starting midPoint..."
   echo "MIDPOINT_HOME=${MIDPOINT_HOME}"
 
-  echo -e "\nStarting at $(date)\nMIDPOINT_HOME=${MIDPOINT_HOME}\nJava binary: ${_RUNJAVA}\nJava version:" &>> "${BOOT_OUT}"
-  "${_RUNJAVA}" -version &>> "${BOOT_OUT}"
-  echo &>> "${BOOT_OUT}"
+  echo -e "\nStarting at $(date)\nMIDPOINT_HOME=${MIDPOINT_HOME}\nJava binary: ${_RUNJAVA}\nJava version:" >>"${BOOT_OUT}"
+  # can't use &>> here because of bash 3.2 support
+  "${_RUNJAVA}" -version >>"${BOOT_OUT}" 2>&1
 
   # shellcheck disable=SC2086
   eval "${_NOHUP}" "\"${_RUNJAVA}\"" \
-    ${LOGGING_MANAGER} ${JAVA_OPTS} -Dmidpoint.home=${MIDPOINT_HOME}\
+    ${LOGGING_MANAGER} ${JAVA_OPTS} -Dmidpoint.home=${MIDPOINT_HOME} \
     -cp "${BASE_DIR}/lib/midpoint.war" \
     -Dloader.path=WEB-INF/classes,WEB-INF/lib,WEB-INF/lib-provided,${MIDPOINT_HOME}/lib/ \
     org.springframework.boot.loader.PropertiesLauncher \
