@@ -1,16 +1,15 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.search;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.ModelServiceLocator;
@@ -25,14 +24,9 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.FullTextSearchConfigurationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
-/**
- * @author Viliam Repan (lazyman)
- */
 public class SearchFactory {
 
     private static final String DOT_CLASS = SearchFactory.class.getName() + ".";
@@ -40,9 +34,7 @@ public class SearchFactory {
     private static final String LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadSystemConfiguration";
     private static final String LOAD_ADMIN_GUI_CONFIGURATION = DOT_CLASS + "loadAdminGuiConfiguration";
 
-    private static final Trace LOGGER = TraceManager.getTrace(SearchFactory.class);
-
-    private static final Map<Class, List<ItemPath>> SEARCHABLE_OBJECTS = new HashMap<>();
+    private static final Map<Class<?>, List<ItemPath>> SEARCHABLE_OBJECTS = new HashMap<>();
 
     static {
         SEARCHABLE_OBJECTS.put(ObjectType.class, Arrays.asList(
@@ -151,7 +143,7 @@ public class SearchFactory {
         ));
     }
 
-    public static <T extends ObjectType> Search createSearchForShadow(
+    public static Search createSearchForShadow(
             ResourceShadowDiscriminator discriminator, ModelServiceLocator modelServiceLocator) {
         return createSearch(ShadowType.class, discriminator, modelServiceLocator, true);
     }
@@ -181,7 +173,7 @@ public class SearchFactory {
     public static <T extends ObjectType> Search createSearch(
             Class<T> type, ResourceShadowDiscriminator discriminator,
             ModelServiceLocator modelServiceLocator, boolean useDefsFromSuperclass) {
-        return createSearch(type, null, null, discriminator,  modelServiceLocator, useDefsFromSuperclass);
+        return createSearch(type, null, null, discriminator, modelServiceLocator, useDefsFromSuperclass);
     }
 
     public static <T extends ObjectType> Search createSearch(
@@ -189,7 +181,7 @@ public class SearchFactory {
             ModelServiceLocator modelServiceLocator, boolean useDefsFromSuperclass) {
 
         PrismObjectDefinition objectDef = findObjectDefinition(type, discriminator, modelServiceLocator);
-        List<SearchItemDefinition> availableDefs =  getAvailableDefinitions(objectDef, useDefsFromSuperclass);
+        List<SearchItemDefinition> availableDefs = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
         boolean isFullTextSearchEnabled = isFullTextSearchEnabled(modelServiceLocator, type);
 
         Search search = new Search(type, availableDefs, isFullTextSearchEnabled,
@@ -200,7 +192,7 @@ public class SearchFactory {
         PrismObjectDefinition objDef = registry.findObjectDefinitionByCompileTimeClass(type);
         SearchItemsType searchItemsConfig = getConfiguredSearchItems(modelServiceLocator, type, collectionViewName);
         List<SearchItemDefinition> configuredSearchItemDefs = getConfiguredSearchItemDefinitions(objectDef, useDefsFromSuperclass, searchItemsConfig);
-        if (!CollectionUtils.isEmpty(configuredSearchItemDefs)){
+        if (!CollectionUtils.isEmpty(configuredSearchItemDefs)) {
             configuredSearchItemDefs.forEach(searchItemDef -> {
                 SearchItem item = null;
                 if (searchItemDef.getPath() != null) {
@@ -258,9 +250,9 @@ public class SearchFactory {
     }
 
     private static <C extends Containerable> List<SearchItemDefinition> getConfiguredSearchItemDefinitions(PrismContainerDefinition<C> objectDef,
-            boolean useDefsFromSuperclass, SearchItemsType configuredSearchItems){
+            boolean useDefsFromSuperclass, SearchItemsType configuredSearchItems) {
         List<SearchItemDefinition> availableDefinitions = getAvailableDefinitions(objectDef, useDefsFromSuperclass);
-        if (configuredSearchItems == null || CollectionUtils.isEmpty(configuredSearchItems.getSearchItem())){
+        if (configuredSearchItems == null || CollectionUtils.isEmpty(configuredSearchItems.getSearchItem())) {
             return null;
         }
         List<SearchItemDefinition> configuredSearchItemList = new ArrayList<>();
@@ -329,23 +321,23 @@ public class SearchFactory {
 
     private static <T extends ObjectType> SearchBoxModeType getDefaultSearchType(ModelServiceLocator modelServiceLocator, Class<T> type, String collectionViewName) {
         SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName);
-        if (searchConfig == null){
+        if (searchConfig == null) {
             return null;
         }
         return searchConfig.getDefaultMode();
     }
 
-    private static <T extends ObjectType> SearchItemsType getConfiguredSearchItems(ModelServiceLocator modelServiceLocator, Class<T> type, String collectionViewName){
+    private static <T extends ObjectType> SearchItemsType getConfiguredSearchItems(ModelServiceLocator modelServiceLocator, Class<T> type, String collectionViewName) {
         SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName);
-        if (searchConfig == null){
+        if (searchConfig == null) {
             return null;
         }
         return searchConfig.getSearchItems();
     }
 
-    private static <T extends ObjectType> boolean isAllowToConfigureSearchItems(ModelServiceLocator modelServiceLocator, Class<T> type, String collectionViewName){
+    private static <T extends ObjectType> boolean isAllowToConfigureSearchItems(ModelServiceLocator modelServiceLocator, Class<T> type, String collectionViewName) {
         SearchBoxConfigurationType searchConfig = getSearchBoxConfiguration(modelServiceLocator, type, collectionViewName);
-        if (searchConfig == null || searchConfig.isAllowToConfigureSearchItems() == null){
+        if (searchConfig == null || searchConfig.isAllowToConfigureSearchItems() == null) {
             return true; //todo should be set to false
         }
         return searchConfig.isAllowToConfigureSearchItems();
