@@ -232,7 +232,7 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
     protected Search createSearch() {
         return SearchFactory.createSearch(type.getClassDefinition(), isCollectionViewPanelForCompiledView() ? getCollectionNameParameterValue().toString() : null,
-                null, getPageBase(), true);
+                getFixedSearchItems(), null, getPageBase(), true);
     }
 
     private BoxedTablePanel<SelectableBean<O>> createTable() {
@@ -782,6 +782,12 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
             return widget != null && widget.toString() != null && dashboardOid != null && dashboardOid.toString() != null;
         }
         return false;
+    }
+
+    protected List<ItemPath> getFixedSearchItems() {
+        List<ItemPath> fixedSearchItems = new ArrayList<>();
+        fixedSearchItems.add(ObjectType.F_NAME);
+        return fixedSearchItems;
     }
 
     protected boolean isCollectionViewPanelForCompiledView() {

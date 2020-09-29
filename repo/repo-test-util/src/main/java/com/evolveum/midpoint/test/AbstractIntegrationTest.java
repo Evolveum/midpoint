@@ -2218,6 +2218,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     }
 
     protected void closeCase(String caseOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+        closeCase(caseOid, OperationResultStatusType.SUCCESS);
+    }
+
+    protected void closeCase(String caseOid, OperationResultStatusType outcome) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
         OperationResult result = new OperationResult("closeCase");
         Collection modifications = new ArrayList<>(1);
 
@@ -2228,7 +2232,7 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
 
         PrismPropertyDefinition<String> outcomePropertyDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(CaseType.class).findPropertyDefinition(CaseType.F_OUTCOME);
         PropertyDelta<String> outcomeDelta = outcomePropertyDef.createEmptyDelta(CaseType.F_OUTCOME);
-        outcomeDelta.setRealValuesToReplace(OperationResultStatusType.SUCCESS.value());
+        outcomeDelta.setRealValuesToReplace(outcome.value());
         modifications.add(outcomeDelta);
 
         repositoryService.modifyObject(CaseType.class, caseOid, modifications, null, result);

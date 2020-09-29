@@ -108,8 +108,7 @@ public class OperationExecutionRecorder {
         List<LensObjectDeltaOperation<F>> executedDeltas = getExecutedDeltas(focusContext,
                 (Class<F>) objectNew.asObjectable().getClass(), clockworkException, result);
         LOGGER.trace("recordFocusOperationExecution: executedDeltas: {}", executedDeltas.size());
-        return recordOperationExecution(objectNew, false, executedDeltas, now, context.getChannel(),
-                getSkipWhenSuccess(context), task, result);
+        return recordOperationExecution(context, objectNew, false, executedDeltas, now, task, result);
     }
 
     @NotNull
@@ -149,16 +148,14 @@ public class OperationExecutionRecorder {
         }
         List<LensObjectDeltaOperation<ShadowType>> executedDeltas = getExecutedDeltas(projectionContext, ShadowType.class,
                 clockworkException, result);
-        recordOperationExecution(object, true, executedDeltas, now,
-                context.getChannel(), getSkipWhenSuccess(context), task, result);
+        recordOperationExecution(context, object, true, executedDeltas, now, task, result);
     }
 
     /**
      * @return true if the operation execution was recorded (or would be recorded, but skipped because of the configuration)
      */
-    private <F extends ObjectType> boolean recordOperationExecution(PrismObject<F> object, boolean deletedOk,
-            List<LensObjectDeltaOperation<F>> executedDeltas, XMLGregorianCalendar now,
-            String channel, boolean skipWhenSuccess, Task task, OperationResult result)
+    private <O extends ObjectType, F extends ObjectType> boolean recordOperationExecution(LensContext<O> context, PrismObject<F> object, boolean deletedOk,
+            List<LensObjectDeltaOperation<F>> executedDeltas, XMLGregorianCalendar now, Task task, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationExecutionType operation = new OperationExecutionType(prismContext);
         OperationResult summaryResult = new OperationResult("recordOperationExecution");
@@ -176,10 +173,11 @@ public class OperationExecutionRecorder {
             LOGGER.trace("recordOperationExecution: skipping because oid is null for object = {}", object);
             return false;
         }
+        createTaskRef(context, operation, task, result);
         summaryResult.computeStatus();
         OperationResultStatusType overallStatus = summaryResult.getStatus().createStatusType();
-        setOperationContext(operation, overallStatus, now, channel, task, result);
-        storeOperationExecution(object, oid, operation, deletedOk, skipWhenSuccess, result);
+        setOperationContext(operation, overallStatus, now, context.getChannel(), task);
+        storeOperationExecution(object, oid, operation, deletedOk, getSkipWhenSuccess(context), result);
         return true;
     }
 
@@ -283,17 +281,31 @@ public class OperationExecutionRecorder {
     }
 
     private void setOperationContext(OperationExecutionType operation,
-            OperationResultStatusType overallStatus, XMLGregorianCalendar now, String channel, Task task, OperationResult result) throws SchemaException {
-        if (task instanceof RunningTask && ((RunningTask) task).getParentForLightweightAsynchronousTask() != null) {
-            task = ((RunningTask) task).getParentForLightweightAsynchronousTask();
-        }
-        if (task.isPersistent()) {
-            operation.setTaskRef(ObjectTypeUtil.createObjectRef(task.getTaskTreeId(result), ObjectTypes.TASK));
-        }
+            OperationResultStatusType overallStatus, XMLGregorianCalendar now, String channel, Task task) {
+
         operation.setStatus(overallStatus);
         operation.setInitiatorRef(ObjectTypeUtil.createObjectRef(task.getOwner(), prismContext));        // TODO what if the real initiator is different? (e.g. when executing approved changes)
         operation.setChannel(channel);
         operation.setTimestamp(now);
+    }
+
+    private <O extends ObjectType> void createTaskRef(LensContext<O> context, OperationExecutionType operation, Task task, OperationResult result) {
+        if (task instanceof RunningTask && ((RunningTask) task).getParentForLightweightAsynchronousTask() != null) {
+            task = ((RunningTask) task).getParentForLightweightAsynchronousTask();
+        }
+        if (task.isPersistent()) {
+            String taskOid;
+            try {
+                taskOid = context.getTaskTreeOid(task, result);
+            } catch (SchemaException e) {
+                //if something unexpeced happened, let's try current task oid
+                LOGGER.warn("Cannot get task tree oid, current task oid will be used, task: {}, \nreason: {}", task, e.getMessage(), e);
+                result.recordWarning("Cannot get task tree oid, current task oid will be used, task: " + task + "\nreason: " + e.getMessage(), e);
+                taskOid = task.getOid();
+            }
+
+            operation.setTaskRef(ObjectTypeUtil.createObjectRef(taskOid, ObjectTypes.TASK));
+        }
     }
 
     private <F extends ObjectType> ObjectDeltaOperationType createObjectDeltaOperation(LensObjectDeltaOperation<F> deltaOperation) {
