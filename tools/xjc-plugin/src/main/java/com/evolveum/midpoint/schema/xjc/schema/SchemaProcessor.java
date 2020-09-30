@@ -29,6 +29,7 @@ import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIDeclaration;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIXPluginCustomization;
+import com.sun.tools.xjc.reader.xmlschema.bindinfo.BindInfo;
 import com.sun.xml.xsom.*;
 import org.apache.commons.lang3.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -957,7 +958,7 @@ public class SchemaProcessor implements Processor {
     }
 
     private void addContainerName(Outline outline, Map<String, JFieldVar> namespaceFields) {
-        Map<QName, List<QName>> complexTypeToElementName = null;
+        Map<QName, List<Entry<QName, Boolean>>> complexTypeToElementName = null;
 
         Set<Map.Entry<NClass, CClassInfo>> set = outline.getModel().beans().entrySet();
         for (Map.Entry<NClass, CClassInfo> entry : set) {
@@ -973,13 +974,30 @@ public class SchemaProcessor implements Processor {
             }
 
             //element name
-            List<QName> qnames = complexTypeToElementName.get(qname);
-            if (qnames == null || qnames.size() != 1) {
-                printWarning("Found zero or more than one element names for type '"
-                        + qname + "', " + qnames + ".");
+            List<Entry<QName, Boolean>> qnames = complexTypeToElementName.get(qname);
+            if (qnames == null) {
+                printWarning("Found zero element names for type '" + qname + ".");
                 continue;
             }
-            qname = qnames.get(0);
+            if (qnames.size() != 1) {
+                Iterator<Entry<QName, Boolean>> iterator = qnames.iterator();
+                while (iterator.hasNext()) {
+                    Entry<QName, Boolean> qNameEntry = iterator.next();
+                    if (Boolean.TRUE.equals(qNameEntry.getValue())) {
+                        iterator.remove();
+                    }
+                }
+                if (qnames.size() != 1) {
+                    List<QName> onlyQnames = new ArrayList<>();
+                    qnames.forEach(entryQName -> {
+                        onlyQnames.add(entryQName.getKey());
+                    });
+                    printWarning("Found more than one element names for type '"
+                            + qname + "', " + onlyQnames + ".");
+                    continue;
+                }
+            }
+            qname = qnames.get(0).getKey();
 
             JDefinedClass definedClass = classOutline.implClass;
             JMethod getContainerName = definedClass.method(JMod.NONE, QName.class, METHOD_GET_CONTAINER_NAME);
@@ -1028,8 +1046,8 @@ public class SchemaProcessor implements Processor {
         }
     }
 
-    private Map<QName, List<QName>> getComplexTypeToElementName(ClassOutline classOutline) {
-        Map<QName, List<QName>> complexTypeToElementName = new HashMap<>();
+    private Map<QName, List<Entry<QName, Boolean>>> getComplexTypeToElementName(ClassOutline classOutline) {
+        Map<QName, List<Entry<QName, Boolean>>> complexTypeToElementName = new HashMap<>();
 
         XSSchemaSet schemaSet = classOutline.target.getSchemaComponent().getRoot();
         for (XSSchema schema : schemaSet.getSchemas()) {
@@ -1042,13 +1060,27 @@ public class SchemaProcessor implements Processor {
                     continue;
                 }
                 QName type = new QName(xsType.getTargetNamespace(), xsType.getName());
-                List<QName> qnames = complexTypeToElementName.get(type);
+                List<Entry<QName, Boolean>> qnames = complexTypeToElementName.get(type);
 
                 if (qnames == null) {
                     qnames = new ArrayList<>();
                     complexTypeToElementName.put(type, qnames);
                 }
-                qnames.add(new QName(decl.getTargetNamespace(), decl.getName()));
+                Boolean deprecated = false;
+                if (decl.getAnnotation() != null && decl.getAnnotation().getAnnotation() != null) {
+                    BIDeclaration[] declars = ((BindInfo) decl.getAnnotation().getAnnotation()).getDecls();
+                    int i = 0;
+                    while (declars.length > i) {
+                        BIDeclaration biDeclaration = declars[i];
+                        if (biDeclaration.getName().getLocalPart().equals("deprecated") && biDeclaration instanceof BIXPluginCustomization
+                                && ((BIXPluginCustomization)biDeclaration).element != null){
+                            deprecated = Boolean.parseBoolean(((BIXPluginCustomization)biDeclaration).element.getTextContent());
+                            break;
+                        }
+                        i++;
+                    }
+                }
+                qnames.add(new AbstractMap.SimpleEntry(new QName(decl.getTargetNamespace(), decl.getName()), deprecated));
             }
         }
 
