@@ -8,11 +8,9 @@ package com.evolveum.midpoint.gui.impl.prism.panel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
 import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.gui.impl.Channel;
+import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
-import com.evolveum.midpoint.web.component.data.column.LinkIconPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ProvenanceAcquisitionType;
@@ -64,7 +62,7 @@ public class ProvenanceAcquisitionHeaderPanel extends BasePanel<ProvenanceAcquis
         add(source);
         source.add(new VisibleBehaviour(() -> isNotEmpty(getModelObject().getResourceRef()) || isNotEmpty(getModelObject().getOriginRef())));
 
-        ReadOnlyModel<Channel> channelModel = new ReadOnlyModel<>(() -> Channel.findChannel(getModelObject().getChannel()));
+        ReadOnlyModel<GuiChannel> channelModel = new ReadOnlyModel<>(() -> GuiChannel.findChannel(getModelObject().getChannel()));
         WebMarkupContainer channelIcon = new WebMarkupContainer(ID_CHANNEL_ICON);
         add(channelIcon);
         channelIcon.add(AttributeAppender.replace("class", new PropertyModel<>(channelModel, "iconCssClass")));

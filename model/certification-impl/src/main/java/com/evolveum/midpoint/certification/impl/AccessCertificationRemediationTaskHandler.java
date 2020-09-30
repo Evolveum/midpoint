@@ -10,7 +10,7 @@ import com.evolveum.midpoint.certification.api.OutcomeUtils;
 import com.evolveum.midpoint.certification.impl.handlers.CertificationHandler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.CertCampaignTypeUtil;
@@ -82,10 +82,6 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         opResult.setSummarizeSuccesses(true);
         TaskRunResult runResult = new TaskRunResult();
         runResult.setOperationResult(opResult);
-
-        if (task.getChannel() == null) {
-            task.setChannel(SchemaConstants.CHANNEL_REMEDIATION_URI);
-        }
 
         String campaignOid = task.getObjectOid();
         if (campaignOid == null) {
@@ -200,4 +196,8 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
         LOGGER.trace("Remediation for {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(campaign), task);
     }
 
+    @Override
+    public String getDefaultChannel() {
+        return Channel.REMEDIATION.getUri();
+    }
 }

@@ -6,17 +6,24 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.waitFor;
 import static com.evolveum.midpoint.util.MiscUtil.extractSingleton;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.PostConstruct;
+
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+
+import com.evolveum.midpoint.schema.constants.Channel;
 
 import org.quartz.JobExecutionContext;
 import org.quartz.JobKey;
@@ -28,10 +35,6 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -195,6 +198,9 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
         // reset 'has run' flag on the handler
         singleHandler1.resetHasRun();
 
+        PrismObject<TaskType> taskBeforeImport = PrismTestUtil.parseObject(new File(taskFilename()));
+        assertThat(taskBeforeImport.asObjectable().getChannel()).isEqualTo(Channel.USER.getLegacyUri());
+
         // Add single task. This will get picked by task scanner and executed
         addObjectFromFile(taskFilename());
 
@@ -258,6 +264,8 @@ public class TestTaskManagerContract extends AbstractTaskManagerTest {
 
         // Test whether handler has really run
         AssertJUnit.assertTrue("Handler1 has not run", singleHandler1.hasRun());
+
+        assertThat(task1.getChannel()).isEqualTo(Channel.USER.getUri());
     }
 
     /*

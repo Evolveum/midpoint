@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.impl.lens.projector.credentials;
 
+import static com.evolveum.midpoint.prism.PrismContainerValue.asContainerable;
 import static com.evolveum.midpoint.prism.delta.ChangeType.MODIFY;
 
 import java.util.Collection;
@@ -406,14 +407,27 @@ public class ProjectionCredentialsProcessor implements ProjectorProcessor {
         } else if (projectionContext.isModify()) {
             ContainerDelta<MetadataType> metadataDelta = accountDelta.findContainerDelta(SchemaConstants.PATH_PASSWORD_METADATA);
             if (metadataDelta == null) {
-                Collection<? extends ItemDelta<?,?>> modifyMetadataDeltas = operationalDataManager.createModifyMetadataDeltas(context, SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectTypeClass(), now, task);
+                MetadataType currentMetadata = getCurrentPasswordMetadata(projectionContext);
+                Collection<? extends ItemDelta<?,?>> modifyMetadataDeltas = operationalDataManager.createModifyMetadataDeltas(
+                        context, currentMetadata, SchemaConstants.PATH_PASSWORD_METADATA, projectionContext.getObjectTypeClass(),
+                        now, task);
                 for (ItemDelta itemDelta: modifyMetadataDeltas) {
                     itemDelta.setOriginTypeRecursive(OriginType.OUTBOUND);
                     projectionContext.swallowToSecondaryDelta(itemDelta);
                 }
             }
         }
+    }
 
+    private MetadataType getCurrentPasswordMetadata(LensProjectionContext projectionContext) {
+        PrismObject<ShadowType> objectCurrent = projectionContext.getObjectCurrent();
+        if (objectCurrent != null) {
+            PrismContainer<MetadataType> metadataContainer = objectCurrent.findContainer(SchemaConstants.PATH_PASSWORD_METADATA);
+            return metadataContainer != null && metadataContainer.hasAnyValue() ?
+                    asContainerable(metadataContainer.getValue()) : null;
+        } else {
+            return null;
+        }
     }
 
     private <F extends FocusType> SecurityPolicyType determineSecurityPolicy(LensContext<F> context,

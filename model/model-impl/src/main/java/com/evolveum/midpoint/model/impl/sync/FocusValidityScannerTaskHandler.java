@@ -330,4 +330,9 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_SYSTEM_TASK.value();
     }
+
+    @Override
+    public String getDefaultChannel() {
+        return null; // TODO decide
+    }
 }

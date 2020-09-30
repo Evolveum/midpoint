@@ -16,7 +16,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import com.evolveum.midpoint.gui.api.factory.wrapper.WrapperContext;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.prism.wrapper.*;
-import com.evolveum.midpoint.gui.impl.Channel;
+import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.model.api.authentication.GuiProfiledPrincipal;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -251,7 +251,7 @@ public class WebPrismUtil {
                 acquisitionType.setActorRef(ObjectTypeUtil.createObjectRef(focus, app.getPrismContext()));
             }
         }
-        acquisitionType.setChannel(Channel.USER.getChannel());
+        acquisitionType.setChannel(GuiChannel.USER.getUri());
         acquisitionType.setTimestamp(app.getClock().currentTimeXMLGregorianCalendar());
         return acquisitionType;
     }

@@ -237,6 +237,21 @@ public abstract class SchemaConstants {
     public static final String NS_CHANNEL = NS_MIDPOINT_PUBLIC_COMMON + "/channels-3";
     public static final String NS_CHANNEL_PLUS_HASH = NS_CHANNEL + "#";
 
+    public static final String CHANNEL_LIVE_SYNC_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#liveSync";
+    public static final String CHANNEL_RECON_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#reconciliation";
+    public static final String CHANNEL_RECOMPUTE_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#recompute";
+    public static final String CHANNEL_DISCOVERY_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#discovery";
+    public static final String CHANNEL_WEB_SERVICE_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#webService";
+    public static final String CHANNEL_OBJECT_IMPORT_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#objectImport";
+    public static final String CHANNEL_REST_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#rest";
+    public static final String CHANNEL_INIT_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#init";
+    public static final String CHANNEL_USER_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#user";
+    public static final String CHANNEL_SELF_REGISTRATION_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#selfRegistration";
+    public static final String CHANNEL_RESET_PASSWORD_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/gui/channels-3#resetPassword";
+    public static final String CHANNEL_IMPORT_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#import";
+    public static final String CHANNEL_ASYNC_UPDATE_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-3#asyncUpdate";
+    public static final String CHANNEL_REMEDIATION_LEGACY_URI = "http://midpoint.evolveum.com/xml/ns/public/model/channels-3#remediation";
+
     // Synchronization constants
     public static final QName CHANNEL_LIVE_SYNC = new QName(NS_CHANNEL, "liveSync");
     public static final String CHANNEL_LIVE_SYNC_URI = QNameUtil.qNameToUri(CHANNEL_LIVE_SYNC);
@@ -251,7 +266,9 @@ public abstract class SchemaConstants {
     public static final QName CHANNEL_IMPORT = new QName(NS_CHANNEL, "import");
     public static final String CHANNEL_IMPORT_URI = QNameUtil.qNameToUri(CHANNEL_IMPORT);
     public static final QName CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS = new QName(NS_CHANNEL, "delNotUpdatedShadows");
-    public static final String CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS);
+    public static final String CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_LEGACY_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS);
+    public static final QName CHANNEL_CLEANUP = new QName(NS_CHANNEL, "cleanup");
+    public static final String CHANNEL_CLEANUP_URI = QNameUtil.qNameToUri(CHANNEL_CLEANUP);
 
     public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
     public static final String NS_MODEL_WS = NS_MODEL + "/model-3";

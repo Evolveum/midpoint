@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
@@ -13,6 +14,8 @@ import java.util.*;
 import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.constants.Channel;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -2299,6 +2302,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
     /**
      * We try to modify an assignment of the account and see whether changes will be recorded in the account itself.
+     *
+     * We also check the metadata.channel migration for both the object and the assignment (MID-6547).
      */
     @Test
     public void test191ModifyUserJackModifyAssignment() throws Exception {
@@ -2354,6 +2359,17 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 createReplaceAccountConstructionUserDelta(USER_JACK_OID, assignmentId, accountConstruction);
         deltas.add(accountAssignmentUserDelta);
 
+        // Set user and assignment create channel to legacy value.
+        repositoryService.modifyObject(
+                UserType.class, jackBefore.getOid(),
+                deltaFor(UserType.class)
+                    .item(UserType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                        .replace(Channel.USER.getLegacyUri())
+                    .item(UserType.F_ASSIGNMENT, assignmentId, AssignmentType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                        .replace(Channel.USER.getLegacyUri())
+                    .asItemDeltas(),
+                result);
+
         preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
 
         PrismObject<UserType> userJackOld = getUser(USER_JACK_OID);
@@ -2377,6 +2393,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         display("User after change execution", userJack);
         assertUserJack(userJack, "Jack Sparrow");
         accountJackOid = getSingleLinkOid(userJack);
+
+        // MID-6547 (channel URI migration)
+        assertThat(userJack.asObjectable().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
+        assertThat(userJack.asObjectable().getAssignment().get(0).getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
 
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountJackOid,

@@ -353,11 +353,11 @@ public class ManualConnectorInstance extends AbstractManualConnectorInstance imp
                 return OperationResultStatus.parseStatusType(statusType);
             }
         }
-        if (SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE.equals(outcome)) {
+        if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_APPROVE)) {
             return OperationResultStatus.SUCCESS;
-        } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT.equals(outcome)) {
+        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_REJECT)) {
             return OperationResultStatus.FATAL_ERROR;
-        } else if (SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP.equals(outcome)) {
+        } else if (QNameUtil.matchUri(outcome, SchemaConstants.MODEL_APPROVAL_OUTCOME_SKIP)) {
             // Better make this "unknown" than non-applicable. Non-applicable can be misinterpreted.
             return OperationResultStatus.UNKNOWN;
         }

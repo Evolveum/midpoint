@@ -247,7 +247,6 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
     }
 
     private void transformStorageMetadata(PrismContainerValue<ValueMetadataType> metadataValue, PrismContainer<MetadataType> oldMetadata) throws SchemaException {
-        PrismContainer<StorageMetadataType> storagetMetadata = metadataValue.findOrCreateContainer(ValueMetadataType.F_STORAGE);
 
         MetadataType oldMetadataType = oldMetadata.getRealValue();
         StorageMetadataType storageMetadataType = new StorageMetadataType(prismContext);
@@ -260,13 +259,16 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         storageMetadataType.setModifyTaskRef(oldMetadataType.getModifyTaskRef());
         storageMetadataType.setModifyTimestamp(oldMetadataType.getModifyTimestamp());
 
-        storagetMetadata.setRealValue(storageMetadataType);
+        if (!storageMetadataType.asPrismContainerValue().isEmpty()) {
+            PrismContainer<StorageMetadataType> storagetMetadata = metadataValue.findOrCreateContainer(ValueMetadataType.F_STORAGE);
+            storagetMetadata.setRealValue(storageMetadataType);
+        }
+
+
 
     }
 
     private void transformProcessMetadata(PrismContainerValue<ValueMetadataType> metadataValue, PrismContainer<MetadataType> oldContainer) throws SchemaException {
-        PrismContainer<ProcessMetadataType> processMetadata = metadataValue.findOrCreateContainer(ValueMetadataType.F_PROCESS);
-
         MetadataType oldMetadata = oldContainer.getRealValue();
         ProcessMetadataType processMetadataType = new ProcessMetadataType(prismContext);
         processMetadataType.setCertificationFinishedTimestamp(oldMetadata.getCertificationFinishedTimestamp());
@@ -277,7 +279,10 @@ public abstract class ItemWrapperFactoryImpl<IW extends ItemWrapper, PV extends 
         processMetadataType.setRequestorRef(oldMetadata.getRequestorRef());
         processMetadataType.setRequestTimestamp(oldMetadata.getRequestTimestamp());
 
-        processMetadata.setRealValue(processMetadataType);
+        if (!processMetadataType.asPrismContainerValue().isEmpty()) {
+            PrismContainer<ProcessMetadataType> processMetadata = metadataValue.findOrCreateContainer(ValueMetadataType.F_PROCESS);
+            processMetadata.setRealValue(processMetadataType);
+        }
     }
 
     protected List<PV> getValues(I item) {

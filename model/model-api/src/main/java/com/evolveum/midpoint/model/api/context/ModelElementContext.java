@@ -26,30 +26,52 @@ import java.util.List;
  */
 public interface ModelElementContext<O extends ObjectType> extends Serializable, DebugDumpable {
 
+    /**
+     * @return Type of object represented by this context. It is declared when context is created,
+     * so the actual type of the object can be its subtype. (Although this is quite unusual.)
+     */
     Class<O> getObjectTypeClass();
 
+    /**
+     * @return True if the declared or actual object type is a subtype of aClass.
+     */
+    boolean isOfType(Class<?> aClass);
+
+    /**
+     * "Old" state of the object i.e. the one that was present when the clockwork started.
+     * It can be present on the beginning or filled-in during projector execution by the context loaded.
+     *
+     * This value is used as an "old state" for resource object mappings (in constructions or resources),
+     * persona mappings, notifications, policy rules, and so on.
+     */
     PrismObject<O> getObjectOld();
 
-    void setObjectOld(PrismObject<O> objectOld);
-
-    PrismObject<O> getObjectNew();
-
+    /**
+     * "Current" state of the object i.e. the one that was present when the current clockwork click
+     * started. It is typically filled-in by the context loader. For projections, it is usually the same
+     * as the "old" state, as they are not updated iteratively but only once per clockwork run.
+     *
+     * This value used as an "old state" for focus mappings (in object template or assigned ones).
+     */
     PrismObject<O> getObjectCurrent();
 
+    /**
+     * Expected state of the object after application of currentDelta i.e. item deltas computed
+     * during current projection: objectCurrent + currentDelta = objectNew.
+     */
+    PrismObject<O> getObjectNew();
+
+    /**
+     * @return "Any" value of the object in this order: new, current, old; taking the first non-null one.
+     * It is used when we are not interested in the details but we want just "any" value, e.g. for reporting
+     * purposes.
+     */
     PrismObject<O> getObjectAny();
 
-    ObjectDelta<O> getPrimaryDelta();
-
-    void setPrimaryDelta(ObjectDelta<O> primaryDelta);
-
-    void addPrimaryDelta(ObjectDelta<O> value) throws SchemaException;
-
-    ObjectDelta<O> getSecondaryDelta();
-
-    void setSecondaryDelta(ObjectDelta<O> secondaryDelta);
-
-    List<? extends ObjectDeltaOperation> getExecutedDeltas();
-
+    /**
+     * @return OID of the object. If not determined yet, it is obtained from available sources, like
+     * object old, current, new, or primary delta.
+     */
     String getOid();
 
     /**
@@ -59,8 +81,6 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     @NotNull
     Collection<? extends EvaluatedPolicyRule> getPolicyRules();
 
-    boolean isOfType(Class<?> aClass);
-
     /**
      * Initial intent regarding the account. It indicated what the initiator of the operation WANTS TO DO with the
      * context.
@@ -69,13 +89,59 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
      */
     SynchronizationIntent getSynchronizationIntent();
 
+    /**
+     * @return true if the object (focus or projection) is to be added
+     */
     boolean isAdd();
 
+    /**
+     * @return true if the object (focus or projection) is to be deleted
+     */
     boolean isDelete();
 
+    /**
+     * @return Primary delta i.e. one that the caller specified that has to be executed.
+     */
+    ObjectDelta<O> getPrimaryDelta();
+
+    /**
+     * Sets the primary delta. Not to be publicly used. TODO reconsider this method here.
+     */
+    void setPrimaryDelta(ObjectDelta<O> primaryDelta);
+
+    /**
+     * Add a delta to the primary delta. Not to be publicly used. TODO reconsider this method here.
+     */
+    void addPrimaryDelta(ObjectDelta<O> value) throws SchemaException;
+
+    /**
+     * Returns secondary delta for the current clockwork click.
+     *
+     * The caller MUST NOT modify returned object in any way.
+     */
+    ObjectDelta<O> getSecondaryDelta();
+
+    /**
+     * Returns object delta valid for the current clockwork click. It is either primary delta merged with the current
+     * secondary delta (if primary delta was not applied yet), or simply current secondary delta.
+     *
+     * The returned object is (kind of) immutable. Changing it may do strange things, but most likely the changes will be lost.
+     */
+    ObjectDelta<?> getCurrentDelta();
+
+    /**
+     * Returns object delta comprising both primary delta and (all) secondary deltas, merged together.
+     * The returned object is (kind of) immutable. Changing it may do strange things, but most likely the changes will be lost.
+     */
     ObjectDelta<O> getSummaryDelta();
 
-    ArchetypeType getArchetype();
+    /**
+     * @return List of all executed deltas (in fact, {@link ObjectDeltaOperation} objects).
+     */
+    List<? extends ObjectDeltaOperation> getExecutedDeltas();
 
-    ObjectDelta<?> getCurrentDelta();
+    /**
+     * @return Determined archetype of the object. Currently not supported for projections.
+     */
+    ArchetypeType getArchetype();
 }

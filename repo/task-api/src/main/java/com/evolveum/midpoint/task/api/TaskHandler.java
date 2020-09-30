@@ -41,15 +41,22 @@ public interface TaskHandler {
      *             to all tasks
      * @return a user-understandable name, like "LiveSync" or "Workflow"
      */
-    @Deprecated // Remove in 4.2
+    @Deprecated // Remove in 4.3
     String getCategoryName(Task task);
 
     /**
      * Returns names of task categories provided by this handler. Usually it will be one-item list.
      * @return a list of category names; may be null - in that case the category info is given by getCategoryName(null)
      */
-    @Deprecated // Remove in 4.2
+    @Deprecated // Remove in 4.3
     default List<String> getCategoryNames() {
+        return null;
+    }
+
+    /**
+     * @return Channel URI for tasks managed by this handler, if applicable.
+     */
+    default String getDefaultChannel() {
         return null;
     }
 

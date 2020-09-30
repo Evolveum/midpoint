@@ -1435,7 +1435,7 @@ public class ShadowCache {
 
     /**
      * Refresh status of asynchronous operation, e.g. status of manual connector ticket.
-     * This method will get new status from resouceObjectConverter and it will process the
+     * This method will get new status from resourceObjectConverter and it will process the
      * status in case that it has changed.
      */
     private PrismObject<ShadowType> refreshShadowAsyncStatus(ProvisioningContext ctx, PrismObject<ShadowType> repoShadow, List<PendingOperationType> sortedOperations, Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, ExpressionEvaluationException, EncryptionException {
@@ -1489,7 +1489,7 @@ public class ShadowCache {
 
                 if (pendingDelta.isAdd()) {
                     shadowInception = true;
-                    shadowInceptionOutcome = pendingOperation.getResultStatus();
+                    shadowInceptionOutcome = newStatusType;
                 }
 
                 if (pendingDelta.isDelete()) {
@@ -1520,6 +1520,7 @@ public class ShadowCache {
 
                 if (pendingDelta.isAdd()) {
                     shadowInception = true;
+                    shadowInceptionOutcome = newStatusType;
                 }
 
                 if (pendingDelta.isModify()) {

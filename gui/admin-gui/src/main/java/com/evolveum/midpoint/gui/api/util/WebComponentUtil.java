@@ -81,7 +81,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
-import com.evolveum.midpoint.gui.impl.Channel;
+import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIcon;
 import com.evolveum.midpoint.gui.impl.component.icon.CompositedIconBuilder;
 import com.evolveum.midpoint.gui.impl.component.icon.IconCssStyle;
@@ -1435,7 +1435,7 @@ public final class WebComponentUtil {
             return getName(acquisitionType.getOriginRef());
         }
 
-        return Channel.findChannel(acquisitionType.getChannel()).getResourceKey(); //TODO NPE
+        return GuiChannel.findChannel(acquisitionType.getChannel()).getLocalizationKey(); //TODO NPE
     }
 
     public static QName normalizeRelation(QName relation) {
@@ -2275,8 +2275,8 @@ public final class WebComponentUtil {
     public static List<String> getChannelList() {
         List<String> channels = new ArrayList<>();
 
-        for (Channel channel : Channel.values()) {
-            channels.add(channel.getChannel());
+        for (GuiChannel channel : GuiChannel.values()) {
+            channels.add(channel.getUri());
         }
 
         return channels;

@@ -131,6 +131,14 @@ public class RestApiIndex extends AbstractRestController {
     }
 
     // Fallback for all unmapped resources under /ws
+    // TODO this currently causes 404 instead of 406 when the path is right but Accept is not.
+    // Currently I don't know how to make it right. Without this method 404 show Wicket error.
+    // Not sure what is worse, really.
+    // 404 does not produce any exception, regardless of spring.mvc.throw-exception-if-no-handler-found setting,
+    // so it's not possible to handle it with RestExceptionHandler either.
+    // The reason is that ResourceHandlerRegistry takes over / and 404 comes from there.
+    // It is not much "handler not found" because the resource handler is found,
+    // even for paths under /api (/ws, /rest) that are not otherwise mapped.
     @RequestMapping(value = "/**")
     public void notFoundFallback() {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND);

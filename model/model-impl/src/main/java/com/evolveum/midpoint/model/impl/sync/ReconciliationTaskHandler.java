@@ -21,6 +21,7 @@ import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.repo.common.util.RepoCommonUtils;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.*;
@@ -192,10 +193,6 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
 
         String resourceOid = localCoordinatorTask.getObjectOid();
         opResult.addContext("resourceOid", resourceOid);
-
-        if (localCoordinatorTask.getChannel() == null) {
-            localCoordinatorTask.setChannel(SchemaConstants.CHANNEL_RECON_URI);
-        }
 
         if (resourceOid == null) {
             throw new IllegalArgumentException("Resource OID is missing in task extension");
@@ -842,5 +839,10 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
     @Override
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value();
+    }
+
+    @Override
+    public String getDefaultChannel() {
+        return Channel.RECONCILIATION.getUri();
     }
 }

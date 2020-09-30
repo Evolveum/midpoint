@@ -2372,7 +2372,7 @@ public abstract class AbstractManualResourceTest extends AbstractProvisioningInt
         Task givenTask = createTask(getTestName());
         OperationResult givenResult = givenTask.getResult();
 
-                PrismObject<ShadowType> account = parseObject(ACCOUNT_FIASCO_FILE);
+        PrismObject<ShadowType> account = parseObject(ACCOUNT_FIASCO_FILE);
         account.checkConsistence();
 
         display("Adding shadow", account);

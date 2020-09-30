@@ -28,7 +28,7 @@ import com.evolveum.midpoint.common.LocalizationService;
 import com.evolveum.midpoint.prism.PrismContext;
 
 /**
- * Spring configuration for MVC-based REST service. TODO: experimental as of early 2020
+ * Spring configuration for MVC-based REST service.
  * This prepares needed XML/JSON/YAML message converters.
  * It also drives the package scan for REST controllers under this package.
  */

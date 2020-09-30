@@ -92,4 +92,9 @@ public class ScriptExecutionTaskHandler implements TaskHandler {
     public String getArchetypeOid() {
         return SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value();
     }
+
+    @Override
+    public String getDefaultChannel() {
+        return null; // The channel URI should be provided by the task creator.
+    }
 }

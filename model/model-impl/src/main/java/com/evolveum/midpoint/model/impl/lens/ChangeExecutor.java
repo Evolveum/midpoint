@@ -1317,7 +1317,7 @@ public class ChangeExecutor {
             securityEnforcer.authorize(ModelAuthorizationAction.ADD.getUrl(),
                     AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectAdd(objectToAdd), ownerResolver, task, result);
 
-            metadataManager.applyMetadataAdd(context, objectToAdd, clock.currentTimeXMLGregorianCalendar(), task, result);
+            metadataManager.applyMetadataAdd(context, objectToAdd, clock.currentTimeXMLGregorianCalendar(), task);
 
             if (options == null) {
                 options = context.getOptions();
@@ -1457,6 +1457,8 @@ public class ChangeExecutor {
             ConflictResolutionType conflictResolution, ResourceType resource, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException,
             ConfigurationException, SecurityViolationException, PolicyViolationException, ExpressionEvaluationException, PreconditionViolationException {
+        assert delta.isModify();
+
         Class<T> objectTypeClass = delta.getObjectTypeClass();
 
         // We need current object here. The current object is used to get data for id-only container delete deltas,
@@ -1471,8 +1473,8 @@ public class ChangeExecutor {
                     AuthorizationPhaseType.EXECUTION, AuthorizationParameters.Builder.buildObjectDelta(baseObject, delta), ownerResolver, task, result);
 
             if (shouldApplyModifyMetadata(objectTypeClass, context.getSystemConfigurationType())) {
-                metadataManager.applyMetadataModify(delta, objectContext, objectTypeClass,
-                        clock.currentTimeXMLGregorianCalendar(), task, context, result);
+                metadataManager.applyMetadataModify(delta, objectTypeClass, objectContext,
+                        clock.currentTimeXMLGregorianCalendar(), task, context);
             }
 
             if (delta.isEmpty()) {

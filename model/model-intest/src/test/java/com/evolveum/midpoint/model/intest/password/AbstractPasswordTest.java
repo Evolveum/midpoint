@@ -6,12 +6,15 @@
  */
 package com.evolveum.midpoint.model.intest.password;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import java.io.File;
 import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
+
+import com.evolveum.midpoint.schema.constants.Channel;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -234,6 +237,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         OperationResult result = task.getResult();
         prepareTest();
 
+        // Set password create channel to legacy value (MID-6547).
+        repositoryService.modifyObject(
+                UserType.class, USER_JACK_OID,
+                deltaFor(UserType.class)
+                        .item(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                            .replace(Channel.USER.getLegacyUri())
+                        .asItemDeltas(),
+                result);
+
         XMLGregorianCalendar startCal = clock.currentTimeXMLGregorianCalendar();
 
         // WHEN
@@ -254,6 +266,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         assertPasswordMetadata(userJack, false, startCal, endCal);
         // Password policy is not active yet. No history should be kept.
         assertPasswordHistoryEntries(userJack);
+
+        // Check channel migration (MID-6547).
+        assertThat(userJack.asObjectable().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
 
         assertSingleUserPasswordNotification(USER_JACK_USERNAME, USER_PASSWORD_1_CLEAR);
     }
@@ -381,6 +396,15 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
 
         lastPasswordChangeStart = clock.currentTimeXMLGregorianCalendar();
 
+        // Set account password create channel to legacy value (MID-6547).
+        repositoryService.modifyObject(
+                ShadowType.class, accountJackOid,
+                deltaFor(ShadowType.class)
+                        .item(ShadowType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_METADATA, MetadataType.F_CREATE_CHANNEL)
+                            .replace(Channel.USER.getLegacyUri())
+                        .asItemDeltas(),
+                result);
+
         // WHEN
         modifyUserChangePassword(USER_JACK_OID, USER_PASSWORD_2_CLEAR, task, result);
 
@@ -404,6 +428,9 @@ public abstract class AbstractPasswordTest extends AbstractInitializedModelInteg
         // MID-3860
         assertShadowPasswordMetadata(accountShadowRepo, lastPasswordChangeStart, lastPasswordChangeEnd, true, false);
         assertShadowLifecycle(accountShadowRepo, false);
+
+        // Check channel migration (MID-6547).
+        assertThat(accountShadowRepo.asObjectable().getCredentials().getPassword().getMetadata().getCreateChannel()).isEqualTo(Channel.USER.getUri());
 
         // Check account
         PrismObject<ShadowType> accountShadowModel = modelService.getObject(ShadowType.class, accountJackOid, null, task, result);
