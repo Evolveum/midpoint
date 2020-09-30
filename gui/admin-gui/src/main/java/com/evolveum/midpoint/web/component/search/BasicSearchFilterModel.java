@@ -62,7 +62,7 @@ public class BasicSearchFilterModel<O extends ObjectType> implements IModel<Basi
 
             ObjectFilter objectFilter = pageBase.getPrismContext().getQueryConverter().createObjectFilter(type, baseModel.getObject());
             return new BasicSearchFilter<O>(pageBase, objectFilter, type);
-        } catch (SchemaException e) {
+        } catch (SchemaException | IllegalStateException e) {
             // TODO handle
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);
         }
