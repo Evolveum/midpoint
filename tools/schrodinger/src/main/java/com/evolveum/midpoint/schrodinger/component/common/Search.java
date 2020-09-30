@@ -155,6 +155,17 @@ public class Search<T> extends Component<T> {
 //        }
 
         ElementsCollection deleteButtons = getParentElement().$$(Schrodinger.byDataId("removeButton"));
+        int i = 0;
+        int size = deleteButtons.size();
+        while (i < size) {
+            SelenideElement deleteButton = deleteButtons.get(0);
+            if (deleteButton.isDisplayed()) {
+                deleteButton.click();
+            }
+            i++;
+            Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
+            deleteButtons = getParentElement().$$(Schrodinger.byDataId("removeButton"));
+        }
         for (SelenideElement deleteButton : deleteButtons) {
             if (deleteButton.isDisplayed()) {
                 deleteButton.click();
