@@ -463,14 +463,12 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         executedDeltas.add(executedDelta.clone()); // must be cloned because e.g. for ADD deltas the object gets modified afterwards
     }
 
-    /**
-     * Returns user delta, both primary and secondary (merged together).
-     * The returned object is (kind of) immutable. Changing it may do strange things (but most likely the changes will be lost).
-     */
+    @Override
     public ObjectDelta<O> getSummaryDelta() {
         return getCurrentDelta();
     }
 
+    @Override
     public ObjectDelta<O> getCurrentDelta() {
         if (doesPrimaryDeltaApply()) {
             try {
@@ -486,16 +484,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     abstract boolean doesPrimaryDeltaApply();
 
-    /**
-     * Returns aggregated secondary deltas (from the beginning of the clockwork execution).
-     * TODO is this true also for projection deltas? These are sometimes manipulated.
-     */
     @Override
     public ObjectDelta<O> getSecondaryDelta() {
         return secondaryDelta;
     }
 
-    @Override
     public void setSecondaryDelta(ObjectDelta<O> secondaryDelta) {
         this.secondaryDelta = secondaryDelta;
     }
