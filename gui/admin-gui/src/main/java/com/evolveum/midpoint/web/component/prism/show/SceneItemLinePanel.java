@@ -113,12 +113,17 @@ public class SceneItemLinePanel extends BasePanel<SceneItemLineDto> {
                 newValueTitleModel = Model.of("");
             }
         } else {
-            newValueIconModel = !getModelObject().isDelta() && getModelObject().isDeltaScene() ?
-                    Model.of(GuiStyleConstants.CLASS_CIRCLE_FULL) :
-                    Model.of(GuiStyleConstants.CLASS_PLUS_CIRCLE_SUCCESS);
-            newValueTitleModel = !getModelObject().isDelta() && getModelObject().isDeltaScene() ?
-                    createStringResource("SceneItemLinePanel.unchangedValue")
-                    : createStringResource("SceneItemLinePanel.addedValue");
+            if (getModelObject().isDescriptive()) {
+                newValueIconModel = Model.of("");
+                newValueTitleModel = Model.of("");
+            } else {
+                newValueIconModel = !getModelObject().isDelta() && getModelObject().isDeltaScene() ?
+                        Model.of(GuiStyleConstants.CLASS_CIRCLE_FULL) :
+                        Model.of(GuiStyleConstants.CLASS_PLUS_CIRCLE_SUCCESS);
+                newValueTitleModel = !getModelObject().isDelta() && getModelObject().isDeltaScene() ?
+                        createStringResource("SceneItemLinePanel.unchangedValue")
+                        : createStringResource("SceneItemLinePanel.addedValue");
+            }
         }
 
         WebMarkupContainer newValueCell = new WebMarkupContainer(ID_NEW_VALUE_CONTAINER);
