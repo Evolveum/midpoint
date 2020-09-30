@@ -780,9 +780,9 @@ public class ShadowManager {
 
         if (repoShadow == null) {
             parentResult
-                    .recordFatalError("Error while creating account shadow object to save in the reposiotory. Shadow is null.");
+                    .recordFatalError("Error while creating account shadow object to save in the repository. Shadow is null.");
             throw new IllegalStateException(
-                    "Error while creating account shadow object to save in the reposiotory. Shadow is null.");
+                    "Error while creating account shadow object to save in the repository. Shadow is null.");
         }
 
         if (!opState.isCompleted()) {
