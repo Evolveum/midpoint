@@ -41,12 +41,11 @@ import com.evolveum.midpoint.gui.api.component.path.ItemPathPanel;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.gui.impl.Channel;
+import com.evolveum.midpoint.gui.impl.GuiChannel;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -338,10 +337,10 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 channelQnameList.add(channelQName);
             }
         }
-        PropertyModel<Channel> channelModel =
+        PropertyModel<GuiChannel> channelModel =
                 new PropertyModel<>(getModel(), AuditSearchDto.F_CHANNEL);
-        DropDownChoicePanel<Channel> channel = new DropDownChoicePanel<>(ID_CHANNEL, channelModel,
-                Model.ofList(Arrays.asList(Channel.values())),
+        DropDownChoicePanel<GuiChannel> channel = new DropDownChoicePanel<>(ID_CHANNEL, channelModel,
+                Model.ofList(Arrays.asList(GuiChannel.values())),
                 new EnumChoiceRenderer<>(), true);
         channel.getBaseFormComponent().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         channel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
@@ -508,9 +507,9 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         parameters.put(AuditEventRecordProvider.PARAMETER_TO, search.getTo());
 
         if (search.getChannel() != null) {
-            Channel channel = search.getChannel();
-            parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, channel.getChannel());
-            parameters.put(AuditEventRecordProvider.PARAMETER_COMPATIBILITY_OLD_CHANNEL, channel.getCompatibilityOldChannel());
+            GuiChannel channel = search.getChannel();
+            parameters.put(AuditEventRecordProvider.PARAMETER_CHANNEL, channel.getUri());
+            parameters.put(AuditEventRecordProvider.PARAMETER_COMPATIBILITY_OLD_CHANNEL, channel.getLegacyUri());
         }
         parameters.put(AuditEventRecordProvider.PARAMETER_HOST_IDENTIFIER, search.getHostIdentifier());
         parameters.put(AuditEventRecordProvider.PARAMETER_REQUEST_IDENTIFIER, search.getRequestIdentifier());
@@ -754,9 +753,9 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                     IModel<AuditEventRecordType> rowModel) {
                 AuditEventRecordType auditEventRecordType = rowModel.getObject();
                 String channel = auditEventRecordType.getChannel();
-                Channel channelValue = null;
-                for (Channel chan : Channel.values()) {
-                    if (chan.getChannel().equals(channel) || chan.getCompatibilityOldChannel().equals(channel)) {
+                GuiChannel channelValue = null;
+                for (GuiChannel chan : GuiChannel.values()) {
+                    if (chan.getUri().equals(channel) || chan.getLegacyUri().equals(channel)) {
                         channelValue = chan;
                         break;
                     }

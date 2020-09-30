@@ -11,6 +11,7 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
 
+import com.evolveum.midpoint.schema.SearchResultMetadata;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 /**
  * OpenDJ, but without permissive modify, shortcut attributes, with manual matching rules, etc.
+ * Uses SPR instead of VLV for paging.
  * Also has additional search filter.
  *
  * @author semancik
@@ -56,6 +58,11 @@ public class TestOpenDjDumber extends AbstractOpenDjNoiseTest {
     @Override
     protected void assertStepSyncToken(String syncTaskOid, int step, long tsStart, long tsEnd) throws ObjectNotFoundException, SchemaException {
         // TODO: assert timistamp
+    }
+
+    @Override
+    protected void assertApproxNumberOfAllResults(SearchResultMetadata searchMetadata, Integer expectedNumber) {
+        // We are using SPR, it never returns this. Nothing to assert.
     }
 
     @Test

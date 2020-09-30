@@ -14,7 +14,7 @@ import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.task.api.*;
 
@@ -230,8 +230,8 @@ public class DeleteNotUpdatedShadowTaskHandler extends AbstractSearchIterativeMo
     }
 
     @Override
-    protected String getDefaultChannel() {
-        return SchemaConstants.CHANGE_CHANNEL_DEL_NOT_UPDATED_SHADOWS_URI;
+    public String getDefaultChannel() {
+        return Channel.CLEANUP.getUri();
     }
 
     @Override

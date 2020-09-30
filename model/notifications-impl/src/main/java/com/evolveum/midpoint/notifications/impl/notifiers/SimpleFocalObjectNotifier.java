@@ -53,7 +53,6 @@ public class SimpleFocalObjectNotifier extends AbstractGeneralNotifier<ModelEven
 
     @Override
     protected boolean quickCheckApplicability(ModelEvent event, SimpleFocalObjectNotifierType configuration, OperationResult result) {
-        event.getFocusContext();
         if (!event.hasFocusOfType(getFocusClass())) {
             LOGGER.trace("{} is not applicable to non-{} related model operations, continuing in the handler chain",
                     getClass().getSimpleName(), getFocusClass());

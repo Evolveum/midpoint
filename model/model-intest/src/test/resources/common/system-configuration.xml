@@ -30,15 +30,6 @@
         </appender>
     </logging>
     <notificationConfiguration>
-<!--        <handler>-->
-<!--            <simpleCaseManagementNotifier>-->
-<!--                <recipientExpression>-->
-<!--                    <value>recipient@evolveum.com</value>-->
-<!--                </recipientExpression>-->
-<!--                <showTechnicalInformation>true</showTechnicalInformation>-->
-<!--                <transport>dummy:caseNotifier</transport>-->
-<!--            </simpleCaseManagementNotifier>-->
-<!--        </handler>-->
         <handler>
             <simplePolicyRuleNotifier>
                 <recipientExpression>

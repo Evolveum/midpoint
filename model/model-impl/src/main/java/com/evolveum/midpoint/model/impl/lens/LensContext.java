@@ -13,6 +13,8 @@ import java.util.stream.Stream;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
+import com.evolveum.midpoint.schema.constants.Channel;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1351,7 +1353,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
         lensContext.setRequestIdentifier(lensContextType.getRequestIdentifier());
         lensContext.setState(ModelState.fromModelStateType(lensContextType.getState()));
-        lensContext.setChannel(lensContextType.getChannel());
+        lensContext.setChannel(Channel.migrateUri(lensContextType.getChannel()));
         lensContext.setFocusContext(LensFocusContext
                 .fromLensFocusContextType(lensContextType.getFocusContext(), lensContext, task, result));
         for (LensProjectionContextType lensProjectionContextType : lensContextType.getProjectionContext()) {

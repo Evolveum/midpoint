@@ -61,13 +61,13 @@ public class NotificationManagerImpl implements NotificationManager {
                 processEvent(event, event.getAdHocHandler(), task, result);
             }
 
-            SystemConfigurationType systemConfigurationType = getSystemConfiguration(task, result);
-            if (systemConfigurationType == null) {
+            SystemConfigurationType systemConfiguration = getSystemConfiguration(task, result);
+            if (systemConfiguration == null) {
                 LOGGER.trace("No system configuration in repository, are we doing initial import?");
-            } else if (systemConfigurationType.getNotificationConfiguration() == null) {
+            } else if (systemConfiguration.getNotificationConfiguration() == null) {
                 LOGGER.trace("No notification configuration in repository, finished event processing.");
             } else {
-                NotificationConfigurationType notificationConfiguration = systemConfigurationType.getNotificationConfiguration();
+                NotificationConfigurationType notificationConfiguration = systemConfiguration.getNotificationConfiguration();
                 for (EventHandlerType eventHandlerBean : notificationConfiguration.getHandler()) {
                     processEvent(event, eventHandlerBean, task, result);
                 }
