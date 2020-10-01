@@ -1325,6 +1325,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         parentResult.computeStatus();
         assertInProgress(parentResult);
+        assertNoMessage(parentResult); // TODO here should be some specific message
 
         //THEN
         assertUser(USER_ELAINE_OID, "User after")
@@ -1394,6 +1395,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         parentResult.computeStatus();
         assertInProgress(parentResult);
+        assertNoMessage(parentResult); // TODO here should be some specific message
 
         assertUser(USER_JACKIE_OID, "User after first modify")
                 .assertLinks(1)
@@ -1476,6 +1478,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         parentResult.computeStatus();
         assertInProgress(parentResult);
+        assertThat(parentResult.getMessage()).startsWith("Error communicating with connector");
 
         assertUser(USER_JACKIE_OID, "User after first modify")
                 .assertLinks(1)
@@ -1573,6 +1576,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
         then();
         parentResult.computeStatus();
         assertInProgress(parentResult);
+        assertNoMessage(parentResult); // TODO here should be some specific message
 
         assertUser(USER_ANGELIKA_OID, "User after")
                 .assertLinks(1);
@@ -1879,6 +1883,7 @@ public class TestConsistencyMechanism extends AbstractModelIntegrationTest {
 
         parentResult.computeStatus();
         assertInProgress(parentResult);
+        assertNoMessage(parentResult); // TODO here should be some specific message
 
         assertUser(USER_BOB_NO_GIVEN_NAME_OID, "User after")
                 .assertLinks(1);
