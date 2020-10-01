@@ -55,6 +55,8 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
     private static final String ID_SWITCH_BUTTON = "switchButton";
 
     private boolean isExpressionMode;
+    private ExpressionWrapper tempExpressionWrapper;
+    private Object tempValue;
 
     public SwitchablePropertyValuePanel(String id, IModel<SelectableBean<ValueSearchFilterItem>> model) {
         super(id, model);
@@ -96,7 +98,17 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
                 return false;
             }
         };
-        expressionField.getEditor().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+        expressionField.getEditor().add(new EmptyOnBlurAjaxFormUpdatingBehaviour() {
+            private static final long serialVersionUID = 1L;
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                getModelObject().getValue().setExpression(
+                        new ExpressionWrapper(getPropertyItemDefinition().getItemName(),
+                                ((ExpressionModel)expressionField.getModel()).getBaseModel().getObject()));
+
+            }
+        });
         expressionField.getEditor().add(new EmptyOnChangeAjaxFormUpdatingBehavior());
         expressionField.add(new VisibleBehaviour(() -> isExpressionMode));
         valueContainer.add(expressionField);
@@ -107,11 +119,15 @@ public class SwitchablePropertyValuePanel extends BasePanel<SelectableBean<Value
             @Override
             public void onClick(AjaxRequestTarget target) {
                 if (isExpressionMode) {
+                    tempExpressionWrapper = SwitchablePropertyValuePanel.this.getModelObject().getValue().getExpression();
                     SwitchablePropertyValuePanel.this.getModelObject().getValue().setExpression(null);
-                    if (isReferenceFilterValue()) {
-                        SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(new ObjectReferenceType());
-                    }
+                    SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(tempValue);
+//                    if (isReferenceFilterValue()) {
+//                        SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(new ObjectReferenceType());
+//                    }
                 } else {
+                    tempValue = SwitchablePropertyValuePanel.this.getModelObject().getValue().getValue();
+                    SwitchablePropertyValuePanel.this.getModelObject().getValue().setExpression(tempExpressionWrapper);
                     SwitchablePropertyValuePanel.this.getModelObject().getValue().setValue(null);
                 }
                 isExpressionMode = !isExpressionMode;

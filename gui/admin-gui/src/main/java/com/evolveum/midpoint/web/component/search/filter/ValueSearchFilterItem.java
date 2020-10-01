@@ -17,6 +17,9 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
 import org.apache.commons.collections4.CollectionUtils;
 
 import com.evolveum.midpoint.prism.*;
@@ -294,11 +297,23 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     }
 
     public List<MatchingRule> getAvailableMatchingRuleList() {
-        List<MatchingRule> matchingRules = Arrays.asList(MatchingRule.values());
-        if (propertyDef == null) {
+        List<MatchingRule> matchingRules = new ArrayList<>();
+        if (propertyDef == null || propertyDef instanceof PrismReferenceDefinition) {
+            matchingRules.addAll(Arrays.asList(MatchingRule.values()));
             return matchingRules;
         }
-        //todo
+        if (PolyStringType.class.equals(propertyDef.getTypeClass()) || PolyString.class.equals(propertyDef.getTypeClass())) {
+            matchingRules.add(MatchingRule.POLY_STRING_NORM);
+            matchingRules.add(MatchingRule.POLY_STRING_ORIG);
+            matchingRules.add(MatchingRule.POLY_STRING_STRICT);
+        } else {
+            matchingRules.add(MatchingRule.STRING_IGNORE_CASE);
+            matchingRules.add(MatchingRule.EXCHANGE_EMAIL_ADDRESSES);
+            matchingRules.add(MatchingRule.DISTINGUISHED_NAME);
+            matchingRules.add(MatchingRule.XML);
+            matchingRules.add(MatchingRule.UUID);
+            matchingRules.add(MatchingRule.DEFAULT);
+        }
         return matchingRules;
     }
 }

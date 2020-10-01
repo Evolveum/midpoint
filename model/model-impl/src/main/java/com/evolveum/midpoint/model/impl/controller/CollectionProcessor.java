@@ -13,7 +13,6 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.impl.lens.assignments.ConditionState;
-import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.repo.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
@@ -290,17 +289,21 @@ public class CollectionProcessor {
             }
 
             // TODO
-            throw new UnsupportedOperationException("Unsupported collection type: " + collectionRefType);
+            throw new IllegalArgumentException("Unsupported collection type: " + collectionRefType);
 
         } else if (collectionSpec.getFilter() != null) {
+
             SearchFilterType filter = collectionSpec.getFilter();
-            ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
 
             CollectionRefSpecificationType baseCollectionSpec = collectionSpec.getBaseCollectionRef();
             if (baseCollectionSpec == null) {
+                if (targetTypeClass == null) {
+                    throw new IllegalArgumentException("UndefinedTypeForCollection type: " + collectionSpec);
+                }
+                ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
                 existingView.setFilter(objectFilter);
             } else {
-                compileBaseCollectionSpec(objectFilter, existingView, null, baseCollectionSpec, targetTypeClass, task, result);
+                compileBaseCollectionSpec(filter, existingView, null, baseCollectionSpec, targetTypeClass, task, result);
             }
         } else {
             // E.g. the case of empty domain specification. Nothing to do. Just return what we have.
@@ -385,6 +388,27 @@ public class CollectionProcessor {
             CollectionRefSpecificationType baseCollectionRef, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
             throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
         compileObjectCollectionView(existingView, baseCollectionRef, targetTypeClass, task, result);
+        mergeCollectionFilterAndOptions(objectFilter, existingView, options);
+    }
+
+    private void compileBaseCollectionSpec(SearchFilterType filter, CompiledObjectCollectionView existingView, Collection<SelectorOptions<GetOperationOptions>> options,
+            CollectionRefSpecificationType baseCollectionRef, Class<? extends ObjectType> targetTypeClass, Task task, OperationResult result)
+            throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        if (targetTypeClass != null) {
+            ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
+            compileBaseCollectionSpec(objectFilter,existingView, options, baseCollectionRef, targetTypeClass, task, result);
+            return;
+        }
+        compileObjectCollectionView(existingView, baseCollectionRef, targetTypeClass, task, result);
+        targetTypeClass = existingView.getTargetClass();
+        if (targetTypeClass == null) {
+            throw new IllegalArgumentException("UndefinedTypeForCollection type: " + baseCollectionRef);
+        }
+        ObjectFilter objectFilter = prismContext.getQueryConverter().parseFilter(filter, targetTypeClass);
+        mergeCollectionFilterAndOptions(objectFilter, existingView, options);
+    }
+
+    private void mergeCollectionFilterAndOptions(ObjectFilter objectFilter, CompiledObjectCollectionView existingView, Collection<SelectorOptions<GetOperationOptions>> options) {
         ObjectFilter baseFilter = existingView.getFilter();
         ObjectFilter combinedFilter = ObjectQueryUtil.filterAnd(baseFilter, objectFilter, prismContext);
         existingView.setFilter(combinedFilter);
