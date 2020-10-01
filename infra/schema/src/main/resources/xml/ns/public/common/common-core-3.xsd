@@ -18229,9 +18229,59 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="memoryDiagnostics" type="tns:MemoryDiagnosticsConfigurationType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Configuration of memory diagnostics features.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:since>4.2</a:since>
+                        <a:experimental>true</a:experimental>
+                        <a:displayName>InternalsConfigurationType.memoryDiagnostics</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="internalsConfiguration" type="tns:InternalsConfigurationType"/>
+
+    <xsd:complexType name="MemoryDiagnosticsConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of memory diagnostics features.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+                <a:since>4.2</a:since>
+                <a:experimental>true</a:experimental>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="heapInfoCommand" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Command that provides heap information. Can use $jhsdb, $jmap, and $pid variables.
+                        Default value is "${jhsdb} jmap --heap --pid ${pid}".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MemoryDiagnosticsConfigurationType.heapInfoCommand</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="heapObjectsHistogramCommand" type="xsd:string" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Command that provides heap objects' histogram. Can use $jhsdb, $jmap, and $pid variables.
+                        Default value is "${jmap} -histo:live ${pid}".
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <a:displayName>MemoryDiagnosticsConfigurationType.heapObjectsHistogramCommand</a:displayName>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="memoryDiagnosticsConfiguration" type="tns:MemoryDiagnosticsConfigurationType"/>
 
     <xsd:complexType name="OperationResultHandlingStrategyType">
         <xsd:annotation>

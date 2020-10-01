@@ -10,14 +10,13 @@ package com.evolveum.midpoint.init;
 import com.evolveum.midpoint.common.configuration.api.SystemConfigurationSection;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import org.apache.commons.configuration2.Configuration;
+import org.jetbrains.annotations.NotNull;
 
-/**
- *
- */
 public class SystemConfigurationSectionImpl implements SystemConfigurationSection {
 
     private static final String LOG_FILE_CONFIG_KEY = "logFile";
     private static final String JMAP_CONFIG_KEY = "jmap";
+    private static final String JHSDB_CONFIG_KEY = "jhsdb";
 
     private final Configuration configuration;
 
@@ -27,15 +26,25 @@ public class SystemConfigurationSectionImpl implements SystemConfigurationSectio
 
     @Override
     public String getJmap() {
-        String configured = getStringKey(JMAP_CONFIG_KEY);
+        return getJavaExecutable(JMAP_CONFIG_KEY, "jmap");
+    }
+
+    @Override
+    public String getJhsdb() {
+        return getJavaExecutable(JHSDB_CONFIG_KEY, "jhsdb");
+    }
+
+    @NotNull
+    private String getJavaExecutable(String configKey, final String executableName) {
+        String configured = getStringKey(configKey);
         if (configured != null) {
             return configured;
         }
         String javaHome = System.getenv(MidPointConstants.JAVA_HOME_ENVIRONMENT_VARIABLE);
         if (javaHome != null) {
-            return javaHome + "/bin/jmap";
+            return javaHome + "/bin/" + executableName;
         }
-        return "jmap";          // Let's give it a chance. Maybe it's on the path.
+        return executableName; // Let's give it a chance. Maybe it's on the path.
     }
 
     @Override

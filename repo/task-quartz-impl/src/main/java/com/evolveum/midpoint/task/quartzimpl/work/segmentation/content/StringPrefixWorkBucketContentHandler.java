@@ -53,7 +53,7 @@ public class StringPrefixWorkBucketContentHandler extends BaseWorkBucketContentH
         if (configuration.getDiscriminator() == null) {
             throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
         }
-        ItemPath discriminator = configuration.getDiscriminator().getItemPath();
+        ItemPath discriminator = getDiscriminator(configuration, content);
         ItemDefinition<?> discriminatorDefinition = itemDefinitionProvider != null ? itemDefinitionProvider.apply(discriminator) : null;
 
         QName matchingRuleName = configuration.getMatchingRule() != null
