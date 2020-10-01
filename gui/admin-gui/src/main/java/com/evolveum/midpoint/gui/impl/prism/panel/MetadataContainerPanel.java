@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.prism.panel;
 
+import com.evolveum.midpoint.web.component.prism.ItemVisibility;
+
 import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.model.IModel;
@@ -38,6 +40,7 @@ public class MetadataContainerPanel<C extends Containerable> extends PrismContai
     @Override
     protected Component createValuePanel(ListItem<PrismContainerValueWrapper<C>> item) {
         ItemPanelSettings settings = getSettings() != null ? getSettings().copy() : null;
+        settings.setVisibilityHandler(w -> ItemVisibility.AUTO);
         ValueMetadataPanel<C, PrismContainerValueWrapper<C>> panel = new ValueMetadataPanel<>(ID_VALUE, item.getModel(), settings);
         panel.setOutputMarkupId(true);
         item.add(panel);

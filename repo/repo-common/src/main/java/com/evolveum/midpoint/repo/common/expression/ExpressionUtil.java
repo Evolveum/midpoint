@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.function.Function;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+
+import com.evolveum.midpoint.util.QNameUtil;
+
 import groovy.lang.GString;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -331,7 +336,11 @@ public class ExpressionUtil {
         ObjectReferenceType reference = ((ObjectReferenceType) referenceTypedValue.getValue()).clone();
         OperationResult subResult = new OperationResult("Resolve reference"); // TODO proper op result handling (for tracing)
         try {
-            resolvedTypedValue = resolveReference(referenceTypedValue, objectResolver, variableName,
+            Collection<SelectorOptions<GetOperationOptions>> options = null;
+            if (reference != null && QNameUtil.match(reference.getType(), ResourceType.COMPLEX_TYPE)) {
+                options = GetOperationOptions.createNoFetchCollection();
+            }
+            resolvedTypedValue = resolveReference(referenceTypedValue, objectResolver, options, variableName,
                     contextDescription, task, subResult);
         } catch (SchemaException e) {
             result.addSubresult(subResult);
@@ -362,7 +371,8 @@ public class ExpressionUtil {
     }
 
     static TypedValue<PrismObject<?>> resolveReference(TypedValue<?> refAndDef, ObjectResolver objectResolver,
-            String varDesc, String contextDescription, Task task, OperationResult result)
+            Collection<SelectorOptions<GetOperationOptions>> options, String varDesc, String contextDescription,
+            Task task, OperationResult result)
             throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
         ObjectReferenceType ref = (ObjectReferenceType) refAndDef.getValue();
         if (ref.getOid() == null) {
@@ -370,8 +380,7 @@ public class ExpressionUtil {
                     "Null OID in reference in variable " + varDesc + " in " + contextDescription);
         } else {
             try {
-
-                ObjectType objectType = objectResolver.resolve(ref, ObjectType.class, null,
+                ObjectType objectType = objectResolver.resolve(ref, ObjectType.class, options,
                         contextDescription, task, result);
                 if (objectType == null) {
                     throw new IllegalArgumentException(

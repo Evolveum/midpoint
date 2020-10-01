@@ -7,7 +7,7 @@
   -->
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="00000000-0000-0000-0000-000000000150">
-   <name>Certification cases report</name>
+   <name>Certification cases report (Jasper)</name>
    <description>Cases within a given certification campaign.</description>
    <jasper>
        <parent>true</parent>

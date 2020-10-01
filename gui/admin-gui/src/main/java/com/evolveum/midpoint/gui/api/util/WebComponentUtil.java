@@ -839,10 +839,31 @@ public final class WebComponentUtil {
     }
 
     public static List<QName> createContainerableTypesQnameList() {
-        List<QName> objectTypeList = createObjectTypesList().stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
+        List<ObjectTypes> types = Arrays.asList(ObjectTypes.values());
+        List<QName> qnameList = types.stream().map(type -> type.getTypeQName()).collect(Collectors.toList());
         //todo create enum for containerable types?
-        objectTypeList.add(AuditEventRecordType.COMPLEX_TYPE);
-        return objectTypeList;
+        qnameList.add(AuditEventRecordType.COMPLEX_TYPE);
+        return qnameList.stream().sorted((type1, type2) -> {
+            Validate.notNull(type1);
+            Validate.notNull(type2);
+
+            String key1 = "ObjectType." + type1.getLocalPart();
+            String localizedType1 = createStringResourceStatic(null, key1).getString();
+            if (StringUtils.isEmpty(localizedType1) || localizedType1.equals(key1)) {
+                localizedType1 = type1.getLocalPart();
+            }
+            String key2 = "ObjectType." + type2.getLocalPart();
+            String localizedType2 = createStringResourceStatic(null, key2).getString();
+            if (StringUtils.isEmpty(localizedType2) || localizedType1.equals(key2)) {
+                localizedType2 = type2.getLocalPart();
+            }
+
+            Collator collator = Collator.getInstance(getCurrentLocale());
+            collator.setStrength(Collator.PRIMARY);
+
+            return collator.compare(localizedType1, localizedType2);
+
+        }).collect(Collectors.toList());
     }
 
     public static List<QName> createAssignmentHolderTypeQnamesList() {
