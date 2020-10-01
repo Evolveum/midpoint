@@ -8,14 +8,19 @@
 
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
                   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
-                  oid="00000000-0000-0000-0001-000000000285">
-    <name>Audit records</name>
+                  xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  oid="00000000-0000-0000-0001-000000000004">
+    <name>Error audit records in 24h</name>
     <type>AuditEventRecordType</type>
     <filter>
         <q:and>
             <q:equal>
                 <q:path>eventStage</q:path>
                 <q:value>execution</q:value>
+            </q:equal>
+            <q:equal>
+                <q:path>outcome</q:path>
+                <q:value>fatal_error</q:value>
             </q:equal>
             <q:greater>
                 <q:path>timestamp</q:path>
@@ -30,4 +35,7 @@
             </q:greater>
         </q:and>
     </filter>
+    <domain>
+        <collectionRef oid="00000000-0000-0000-0001-000000000285" type="c:ObjectCollectionType"/>
+    </domain>
 </objectCollection>
