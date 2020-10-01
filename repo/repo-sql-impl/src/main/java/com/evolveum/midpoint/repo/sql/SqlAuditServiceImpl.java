@@ -58,6 +58,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.repo.sql.util.TemporaryTableDialect;
 import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.internals.InternalsConfig;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -280,10 +281,10 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
                     }
                 }
             } catch (SchemaException | SystemException e) {
-                // TODO MID-6446 - if we want to throw in new tests, but first we need to fix existing ones
-//                if (InternalsConfig.isConsistencyChecks()) {
-//                    throw new SystemException("Problem during audit delta parse", e);
-//                }
+                // See MID-6446 - we want to throw in tests, old ones should be fixed by now
+                if (InternalsConfig.isConsistencyChecks()) {
+                    throw new SystemException("Problem during audit delta parse", e);
+                }
                 LOGGER.warn("Serialized audit delta for recordId={} cannot be parsed."
                         + " No changed items were created. This may cause problem later, but is not"
                         + " critical for storing the audit record.", recordId, e);
