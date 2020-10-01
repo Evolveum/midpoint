@@ -27,7 +27,7 @@ public class ConfirmationModal<T> extends ModalBox<T> {
                 .waitUntil(Condition.appears, MidPoint.TIMEOUT_DEFAULT_2_S).click();
 
         $(Schrodinger.byDataResourceKey("a", "confirmationDialog.yes"))
-                .waitUntil(Condition.disappears, MidPoint.TIMEOUT_EXTRA_LONG_1_M);
+                .waitUntil(Condition.disappears, MidPoint.TIMEOUT_MEDIUM_LONG_3_M);
 
         return this.getParent();
     }
