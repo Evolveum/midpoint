@@ -77,6 +77,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     public static final File REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-double-view.xml");
     public static final File REPORT_OBJECT_COLLECTION_WITH_FILTER_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-filter.xml");
     public static final File REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-filter-and-basic-collection.xml");
+    public static final File REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-filter-and-basic-collection-without-view.xml");
     public static final File REPORT_OBJECT_COLLECTION_WITH_CONDITION_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-with-condition.xml");
     public static final File REPORT_OBJECT_COLLECTION_EMPTY_FILE = new File(TEST_REPORTS_DIR, "report-object-collection-empty.xml");
     public static final File REPORT_WITH_IMPORT_SCRIPT = new File(TEST_REPORTS_DIR, "report-with-import-script.xml");
@@ -97,6 +98,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     public static final String REPORT_OBJECT_COLLECTION_WITH_DOUBLE_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85ef";
     public static final String REPORT_OBJECT_COLLECTION_WITH_FILTER_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85gh";
     public static final String REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85hi";
+    public static final String REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85r7";
     public static final String REPORT_OBJECT_COLLECTION_WITH_CONDITION_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a851a";
     public static final String REPORT_OBJECT_COLLECTION_EMPTY_LIST_OID = "2b44aa2e-dd86-4842-bcf5-762c8a9a85sq";
     public static final String REPORT_WITH_IMPORT_SCRIPT_OID = "2b44aa2e-dd86-4842-bcf5-762c8c4a851a";
@@ -153,6 +155,7 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
         importObjectFromFile(REPORT_AUDIT_COLLECTION_EMPTY_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_FILTER_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_FILTER_AND_BASIC_COLLECTION_FILE, initResult);
+        importObjectFromFile(REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_WITH_CONDITION_FILE, initResult);
         importObjectFromFile(REPORT_OBJECT_COLLECTION_EMPTY_FILE, initResult);
         importObjectFromFile(REPORT_WITH_IMPORT_SCRIPT, initResult);
@@ -266,6 +269,13 @@ public abstract class BasicNewReportTest extends AbstractReportIntegrationTest {
     @Test
     public void test116CreateObjectCollectionEmptyReport() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_EMPTY_LIST_OID);
+        runReport(report, false);
+        basicCheckOutputFile(report);
+    }
+
+    @Test
+    public void test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView() throws Exception {
+        PrismObject<ReportType> report = getObject(ReportType.class, REPORT_OBJECT_COLLECTION_FILTER_BASIC_COLLECTION_WITHOUT_VIEW_OID);
         runReport(report, false);
         basicCheckOutputFile(report);
     }

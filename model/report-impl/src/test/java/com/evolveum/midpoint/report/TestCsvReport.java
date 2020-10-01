@@ -162,6 +162,13 @@ public class TestCsvReport extends BasicNewReportTest {
     }
 
     @Test
+    public void test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView() throws Exception {
+        expectedColumns = 1;
+        expectedRow = 2;
+        super.test117CreateObjectCollectionReportWithFilterAndBasicCollectionWithoutView();
+    }
+
+    @Test
     public void test200ImportReportForUser() throws Exception {
         PrismObject<ReportType> report = getObject(ReportType.class, REPORT_IMPORT_OBJECT_COLLECTION_WITH_CONDITION_OID);
         importReport(report, IMPORT_USERS_FILE_PATH, false);
