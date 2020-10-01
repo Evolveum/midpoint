@@ -126,7 +126,7 @@ class PathExpressionResolver {
         }
 
         if (root.getValue() instanceof ObjectReferenceType) {
-            root = resolveReference(root, objectResolver, topVarDesc, shortDesc, task, result);
+            root = resolveReference(root, objectResolver, null, topVarDesc, shortDesc, task, result);
         }
 
         String lastPathSegmentName = relativePath.lastName().getLocalPart();

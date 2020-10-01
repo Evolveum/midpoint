@@ -25,9 +25,6 @@ import java.util.function.Function;
 
 import static java.util.Collections.emptyList;
 
-/**
- *
- */
 @Component
 public class StringValueWorkBucketContentHandler extends BaseWorkBucketContentHandler {
 
@@ -53,7 +50,7 @@ public class StringValueWorkBucketContentHandler extends BaseWorkBucketContentHa
         if (configuration.getDiscriminator() == null) {
             throw new IllegalStateException("No buckets discriminator defined; bucket content = " + content);
         }
-        ItemPath discriminator = configuration.getDiscriminator().getItemPath();
+        ItemPath discriminator = getDiscriminator(configuration, content);
         ItemDefinition<?> discriminatorDefinition = itemDefinitionProvider != null ? itemDefinitionProvider.apply(discriminator) : null;
 
         QName matchingRuleName = configuration.getMatchingRule() != null

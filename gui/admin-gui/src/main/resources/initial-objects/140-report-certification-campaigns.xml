@@ -8,7 +8,7 @@
 
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="00000000-0000-0000-0000-000000000140">
-   <name>Certification campaigns report</name>
+   <name>Certification campaigns report (Jasper)</name>
    <description>All certification campaigns along with their state.</description>
    <jasper>
        <parent>true</parent>

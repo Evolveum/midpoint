@@ -136,6 +136,13 @@ public interface ModelElementContext<O extends ObjectType> extends Serializable,
     ObjectDelta<O> getSummaryDelta();
 
     /**
+     * Returns all secondary deltas, merged together.
+     *
+     * The returned object is (kind of) immutable. Changing it may do strange things, but most likely the changes will be lost.
+     */
+    ObjectDelta<O> getSummarySecondaryDelta();
+
+    /**
      * @return List of all executed deltas (in fact, {@link ObjectDeltaOperation} objects).
      */
     List<? extends ObjectDeltaOperation> getExecutedDeltas();

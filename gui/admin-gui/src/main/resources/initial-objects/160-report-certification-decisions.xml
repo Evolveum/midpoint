@@ -7,7 +7,7 @@
   -->
 <report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
         oid="00000000-0000-0000-0000-000000000160">
-   <name>Certification decisions report</name>
+   <name>Certification decisions report (Jasper)</name>
    <description>Decisions of individual reviewers for a certification campaign as a whole or for a given campaign stage.</description>
     <jasper>
        <parent>true</parent>
