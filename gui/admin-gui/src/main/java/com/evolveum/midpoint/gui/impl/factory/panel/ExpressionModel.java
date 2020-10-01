@@ -93,4 +93,8 @@ public class ExpressionModel implements IModel<String> {
             }
 
         }
+
+    public IModel<ExpressionType> getBaseModel() {
+        return baseModel;
+    }
 }

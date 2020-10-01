@@ -266,7 +266,7 @@ public class SearchPropertiesConfigPanel<O extends ObjectType> extends AbstractS
             @Override
             public void populateItem(Item<ICellPopulator<SelectableBean<ValueSearchFilterItem>>> item, String id, IModel<SelectableBean<ValueSearchFilterItem>> rowModel) {
                 DropDownChoicePanel<ValueSearchFilterItem.MatchingRule> matchingRulePanel = WebComponentUtil.createEnumPanel(id,
-                        Model.ofList(Arrays.asList(ValueSearchFilterItem.MatchingRule.values())),
+                        Model.ofList(rowModel.getObject().getValue().getAvailableMatchingRuleList()),
                         new PropertyModel<>(rowModel, "value." + ValueSearchFilterItem.F_MATCHING_RULE),
                         SearchPropertiesConfigPanel.this, true,
                         getPageBase().createStringResource("SearchPropertiesConfigPanel.selectMatchingRule").getString());
