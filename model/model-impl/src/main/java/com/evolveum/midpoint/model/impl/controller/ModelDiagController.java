@@ -10,7 +10,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.text.StringSubstitutor;
@@ -70,7 +72,10 @@ public class ModelDiagController implements ModelDiagnosticService {
     private static final String INSANE_NATIONAL_STRING = "Pørúga ném nå väšȍm apârátula";
 
     private static final Trace LOGGER = TraceManager.getTrace(ModelDiagController.class);
-    private static final long JMAP_TIMEOUT = 120000;
+
+    private static final long HEAP_DIAG_TIMEOUT = 120000;
+    private static final String DEFAULT_HEAP_INFO_COMMAND = "${jhsdb} jmap --heap --pid ${pid}";
+    private static final String DEFAULT_HEAP_OBJECTS_HISTOGRAM_COMMAND = "${jmap} -histo:live ${pid}";
 
     @Autowired private DataModelVisualizer dataModelVisualizer;
     @Autowired private PrismContext prismContext;
@@ -92,17 +97,11 @@ public class ModelDiagController implements ModelDiagnosticService {
         randomString = new RandomString(NAME_RANDOM_LENGTH, true);
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.api.ModelDiagnosticService#getRepositoryDiag(com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
-     */
     @Override
     public RepositoryDiag getRepositoryDiag(Task task, OperationResult parentResult) {
         return repositoryService.getRepositoryDiag();
     }
 
-    /* (non-Javadoc)
-     * @see com.evolveum.midpoint.model.api.ModelDiagnosticService#repositorySelfTest(com.evolveum.midpoint.task.api.Task)
-     */
     @Override
     public OperationResult repositorySelfTest(Task task) {
         OperationResult testResult = new OperationResult(REPOSITORY_SELF_TEST);
@@ -678,18 +677,20 @@ public class ModelDiagController implements ModelDiagnosticService {
                 result.recordPartialError("Cannot determine current process ID");
                 return "Cannot determine current process ID";
             }
+            StringSubstitutor substitutor = createCommandStringSubstitutor(pid);
+            PrismObject<SystemConfigurationType> configuration = systemObjectCache.getSystemConfiguration(result);
+
             StringBuilder sb = new StringBuilder();
-            String jmap = midpointConfiguration.getSystemSection().getJmap();
-            String heapCommand = jmap + " -heap " + pid;
-            sb.append("Executing: ").append(heapCommand).append("\n\n");
-            boolean finished1 = SystemUtil.executeCommand(heapCommand, "", sb, JMAP_TIMEOUT);
+            String heapInfoCommand = getHeapInfoCommand(configuration, substitutor);
+            sb.append("Getting heap information via: ").append(heapInfoCommand).append("\n\n");
+            boolean finished1 = SystemUtil.executeCommand(heapInfoCommand, "", sb, HEAP_DIAG_TIMEOUT);
             if (!finished1) {
                 sb.append("\nBeware: the command execution has not finished in given time limit.\n\n");
             } else {
-                String histogramCommand = jmap + " -histo:live " + pid;
+                String histogramCommand = getHeapObjectsHistogramCommand(configuration, substitutor);
                 sb.append("\n------------------------------------------------------------------------------------------------------------\n\n");
-                sb.append("Executing: ").append(histogramCommand).append("\n\n");
-                boolean finished2 = SystemUtil.executeCommand(histogramCommand, "", sb, JMAP_TIMEOUT);
+                sb.append("Getting heap object histogram via: ").append(histogramCommand).append("\n\n");
+                boolean finished2 = SystemUtil.executeCommand(histogramCommand, "", sb, HEAP_DIAG_TIMEOUT);
                 if (!finished2) {
                     sb.append("\nBeware: the command execution has not finished in given time limit.\n\n");
                 }
@@ -702,5 +703,41 @@ public class ModelDiagController implements ModelDiagnosticService {
         } finally {
             result.computeStatusIfUnknown();
         }
+    }
+
+    private StringSubstitutor createCommandStringSubstitutor(String pid) {
+        Map<String, String> variableMap = new HashMap<>();
+        variableMap.put("pid", pid);
+        variableMap.put("jmap", midpointConfiguration.getSystemSection().getJmap());
+        variableMap.put("jhsdb", midpointConfiguration.getSystemSection().getJhsdb());
+
+        return new StringSubstitutor(variableMap, "${", "}");
+    }
+
+    private String getHeapObjectsHistogramCommand(PrismObject<SystemConfigurationType> configuration, StringSubstitutor substitutor) {
+        MemoryDiagnosticsConfigurationType memoryDiagConfiguration = getMemoryDiagConfiguration(configuration);
+        String template;
+        if (memoryDiagConfiguration != null && memoryDiagConfiguration.getHeapObjectsHistogramCommand() != null) {
+            template = memoryDiagConfiguration.getHeapObjectsHistogramCommand();
+        } else {
+            template = DEFAULT_HEAP_OBJECTS_HISTOGRAM_COMMAND;
+        }
+        return substitutor.replace(template);
+    }
+
+    private String getHeapInfoCommand(PrismObject<SystemConfigurationType> configuration, StringSubstitutor substitutor) {
+        MemoryDiagnosticsConfigurationType memoryDiagConfiguration = getMemoryDiagConfiguration(configuration);
+        String template;
+        if (memoryDiagConfiguration != null && memoryDiagConfiguration.getHeapInfoCommand() != null) {
+            template = memoryDiagConfiguration.getHeapInfoCommand();
+        } else {
+            template = DEFAULT_HEAP_INFO_COMMAND;
+        }
+        return substitutor.replace(template);
+    }
+
+    private MemoryDiagnosticsConfigurationType getMemoryDiagConfiguration(PrismObject<SystemConfigurationType> configuration) {
+        return configuration != null && configuration.asObjectable().getInternals() != null ?
+                configuration.asObjectable().getInternals().getMemoryDiagnostics() : null;
     }
 }
