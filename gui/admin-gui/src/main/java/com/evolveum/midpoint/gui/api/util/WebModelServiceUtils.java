@@ -150,7 +150,9 @@ public class WebModelServiceUtils {
 
             for (PrismObject<O> object : objects) {
                 referenceMap.put(object.getOid(), WebComponentUtil.getName(object));
-                references.add(ObjectTypeUtil.createObjectRef(object, page.getPrismContext()));
+                ObjectReferenceType ref = ObjectTypeUtil.createObjectRef(object, page.getPrismContext());
+                ref.setTargetName(null);  // this fixes MID-5878. the problem is, that ORT(type, targetName, oid) is not equal to ORT(type, oid)
+                references.add(ref);
 
             }
             return references;

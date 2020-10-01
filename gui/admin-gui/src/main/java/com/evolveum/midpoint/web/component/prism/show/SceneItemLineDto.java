@@ -59,6 +59,10 @@ public class SceneItemLineDto implements Serializable {
         return isDelta;
     }
 
+    public boolean isDescriptive() {
+        return sceneItemDto.isDescriptive();
+    }
+
     public boolean isDeltaScene() {
         return sceneItemDto.isDeltaScene();
     }

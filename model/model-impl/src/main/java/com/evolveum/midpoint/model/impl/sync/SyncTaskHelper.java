@@ -51,6 +51,16 @@ public class SyncTaskHelper {
             this.refinedResourceSchema = refinedResourceSchema;
             this.objectClassDefinition = objectClassDefinition;
         }
+
+        @Override
+        public String toString() {
+            return "TargetInfo{" +
+                    "coords=" + coords +
+                    ", resource=" + resource +
+                    ", refinedResourceSchema=" + refinedResourceSchema +
+                    ", objectClassDefinition=" + objectClassDefinition +
+                    '}';
+        }
     }
 
     TargetInfo getTargetInfo(Trace LOGGER, Task task, OperationResult opResult, TaskRunResult runResult, String ctx) {
