@@ -262,6 +262,16 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         return new ObjectDeltaObject<>(base, currentDelta, objectNew, getObjectDefinition());
     }
 
+    @Override
+    public ObjectDelta<ShadowType> getSummaryDelta() {
+        return getCurrentDelta();
+    }
+
+    @Override
+    public ObjectDelta<ShadowType> getSummarySecondaryDelta() {
+        return secondaryDelta;
+    }
+
     public boolean hasSecondaryDelta() {
         return secondaryDelta != null && !secondaryDelta.isEmpty();
     }

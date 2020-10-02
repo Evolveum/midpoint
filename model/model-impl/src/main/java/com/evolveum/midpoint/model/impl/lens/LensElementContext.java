@@ -464,11 +464,6 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
     }
 
     @Override
-    public ObjectDelta<O> getSummaryDelta() {
-        return getCurrentDelta();
-    }
-
-    @Override
     public ObjectDelta<O> getCurrentDelta() {
         if (doesPrimaryDeltaApply()) {
             try {
