@@ -1305,8 +1305,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
         String resourceKey = null;
         if (polystringKey != null) {
-            // TODO later: try polystringKey.getKey()
-            resourceKey = polystringKey.getOrig();
+            resourceKey = localizationService.translate(polystringKey, WebComponentUtil.getCurrentLocale(), true);
         }
         return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
@@ -1315,8 +1314,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public StringResourceModel createStringResource(PolyStringType polystringKey, Object... objects) {
         String resourceKey = null;
         if (polystringKey != null) {
-            // TODO later: try polystringKey.getKey()
-            resourceKey = polystringKey.getOrig();
+            resourceKey = localizationService.translate(PolyString.toPolyString(polystringKey), WebComponentUtil.getCurrentLocale(), true);
         }
         return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
