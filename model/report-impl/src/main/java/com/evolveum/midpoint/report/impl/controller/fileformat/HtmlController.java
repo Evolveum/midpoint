@@ -89,10 +89,11 @@ public class HtmlController extends FileFormatController {
         ContainerTag widgetTBody = TagCreator.tbody();
         List<ContainerTag> tableboxesFromWidgets = new ArrayList<>();
         long startMillis = getReportService().getClock().currentTimeMillis();
-        long i = 0;
+        long i = 1;
         task.setExpectedTotal((long) dashboard.getWidget().size());
-        recordProgress(task, i, result, LOGGER);
         for (DashboardWidgetType widget : dashboard.getWidget()) {
+            recordProgress(task, i, result, LOGGER);
+            i++;
             if (widget == null) {
                 throw new IllegalArgumentException("Widget in DashboardWidget is null");
             }
@@ -145,8 +146,6 @@ public class HtmlController extends FileFormatController {
                     }
                 }
             }
-            i++;
-            recordProgress(task, i, result, LOGGER);
         }
         widgetTable.with(widgetTBody);
 
@@ -271,7 +270,7 @@ public class HtmlController extends FileFormatController {
         tHead.with(trForHead);
         table.with(tHead);
 
-        int i = 0;
+        int i = 1;
         if (recordProgress) {
             task.setExpectedTotal((long) values.size());
         }
@@ -328,7 +327,7 @@ public class HtmlController extends FileFormatController {
         tHead.with(trForHead);
         table.with(tHead);
 
-        int i = 0;
+        int i = 1;
         if (recordProgress) {
             task.setExpectedTotal((long) records.size());
         }
