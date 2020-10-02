@@ -95,16 +95,9 @@ public class PreviewChangesTabPanel<O extends ObjectType> extends BasePanel<Mode
             if (modelContext != null) {
                 if (modelContext.getFocusContext() != null) {
                     addIgnoreNull(primaryDeltas, CloneUtil.clone(modelContext.getFocusContext().getPrimaryDelta()));
-
-                    ObjectDelta<O> summaryDelta = CloneUtil.clone(modelContext.getFocusContext().getSummaryDelta());
-                    ObjectDelta<O> primaryDelta = CloneUtil.clone(modelContext.getFocusContext().getPrimaryDelta());
-                    if (primaryDelta != null) {
-                        for (ItemDelta primaryModification : primaryDelta.getModifications()){
-                            summaryDelta.removeModification(primaryModification);
-                        }
-                    }
-                    if (summaryDelta != null && !summaryDelta.getModifications().isEmpty()) {
-                        addIgnoreNull(secondaryDeltas, summaryDelta);
+                    ObjectDelta<O> summarySecondaryDelta = CloneUtil.clone(modelContext.getFocusContext().getSummarySecondaryDelta());
+                    if (summarySecondaryDelta != null && !summarySecondaryDelta.getModifications().isEmpty()) {
+                        secondaryDeltas.add(summarySecondaryDelta);
                     }
                 }
 

@@ -104,14 +104,29 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         try {
             List<ObjectDelta<O>> allDeltas = new ArrayList<>();
             CollectionUtils.addIgnoreNull(allDeltas, primaryDelta);
-            for (ObjectDelta<O> secondaryDelta : secondaryDeltas) {
-                CollectionUtils.addIgnoreNull(allDeltas, secondaryDelta);
-            }
-            CollectionUtils.addIgnoreNull(allDeltas, secondaryDelta);
+            addSecondaryDeltas(allDeltas);
             return ObjectDeltaCollectionsUtil.summarize(allDeltas);
         } catch (SchemaException e) {
             throw new SystemException("Unexpected schema exception while merging deltas: " + e.getMessage(), e);
         }
+    }
+
+    @Override
+    public ObjectDelta<O> getSummarySecondaryDelta() {
+        try {
+            List<ObjectDelta<O>> allSecondaryDeltas = new ArrayList<>();
+            addSecondaryDeltas(allSecondaryDeltas);
+            return ObjectDeltaCollectionsUtil.summarize(allSecondaryDeltas);
+        } catch (SchemaException e) {
+            throw new SystemException("Unexpected schema exception while merging secondary deltas: " + e.getMessage(), e);
+        }
+    }
+
+    private void addSecondaryDeltas(List<ObjectDelta<O>> allDeltas) {
+        for (ObjectDelta<O> archivedSecondaryDelta : secondaryDeltas) {
+            CollectionUtils.addIgnoreNull(allDeltas, archivedSecondaryDelta);
+        }
+        CollectionUtils.addIgnoreNull(allDeltas, secondaryDelta);
     }
 
     /**

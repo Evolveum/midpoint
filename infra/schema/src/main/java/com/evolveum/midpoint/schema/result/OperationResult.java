@@ -830,26 +830,36 @@ public class OperationResult
             }
             if (sub.getStatus() == OperationResultStatus.FATAL_ERROR) {
                 hasError = true;
-                operationMessageJoiner.add(sub.getMessage());
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
+                }
             }
             if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
                 hasError = true;
-                operationMessageJoiner.add(sub.getMessage());
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
+                }
             }
             if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
                 hasHandledError = true;
-                operationMessageJoiner.add(sub.getMessage());
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
+                }
             }
             if (sub.getStatus() == OperationResultStatus.IN_PROGRESS) {
                 hasInProgress = true;
-                operationMessageJoiner.add(sub.getMessage());
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
+                }
                 if (asynchronousOperationReference == null) {
                     asynchronousOperationReference = sub.getAsynchronousOperationReference();
                 }
             }
             if (sub.getStatus() == OperationResultStatus.WARNING) {
                 hasWarning = true;
-                operationMessageJoiner.add(sub.getMessage());
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
+                }
             }
         }
         if (operationMessageJoiner.length() > 0) {
