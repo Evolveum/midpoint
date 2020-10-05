@@ -10,6 +10,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -254,12 +257,19 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
 
     }
 
-    private EnumPropertyColumn<SelectableBean<TaskType>> createTaskExecutionStatusColumn() {
-        return new EnumPropertyColumn<SelectableBean<TaskType>>(createStringResource("pageTasks.task.execution"), TaskType.F_EXECUTION_STATUS.getLocalPart(), SelectableBeanImpl.F_VALUE + ".executionStatus") {
+    private AbstractExportableColumn<SelectableBean<TaskType>, String> createTaskExecutionStatusColumn() {
+        return new AbstractExportableColumn<SelectableBean<TaskType>, String>(createStringResource("pageTasks.task.execution")) {
 
             @Override
-            protected String translate(Enum en) {
-                return TaskTablePanel.this.createStringResource(en).getString();
+            public IModel<String> getDataModel(IModel<SelectableBean<TaskType>> rowModel) {
+                if (rowModel != null && rowModel.getObject() != null && rowModel.getObject().getValue() != null) {
+                    TaskType task = rowModel.getObject().getValue();
+                    TaskDtoExecutionStatus status = TaskDtoExecutionStatus.fromTaskExecutionStatus(task.getExecutionStatus(), task.getNodeAsObserved() != null);
+                    if (status != null) {
+                        return getPageBase().createStringResource(status);
+                    }
+                }
+                return Model.of("");
             }
         };
     }

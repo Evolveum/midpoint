@@ -1,31 +1,25 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.registry;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-
+import java.util.*;
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
-import com.evolveum.midpoint.prism.*;
 
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
 import com.evolveum.midpoint.gui.api.factory.wrapper.ItemWrapperFactory;
+import com.evolveum.midpoint.gui.api.factory.wrapper.PrismContainerWrapperFactory;
 import com.evolveum.midpoint.gui.api.factory.wrapper.PrismObjectWrapperFactory;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismValueWrapper;
+import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
+import com.evolveum.midpoint.gui.impl.factory.panel.ItemPanelContext;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
@@ -35,18 +29,18 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
 
     private static final Trace LOGGER = TraceManager.getTrace(GuiComponentRegistryImpl.class);
 
-    List<GuiComponentFactory> guiComponentFactories = new ArrayList<>();
+    List<GuiComponentFactory<?>> guiComponentFactories = new ArrayList<>();
 
     Map<QName, Class<?>> wrapperPanels = new HashMap<>();
 
-    List<ItemWrapperFactory<?,?,?>> wrapperFactories = new ArrayList<>();
+    List<ItemWrapperFactory<?, ?, ?>> wrapperFactories = new ArrayList<>();
 
     @Override
-    public void addToRegistry(GuiComponentFactory factory) {
+    public void addToRegistry(GuiComponentFactory<?> factory) {
         guiComponentFactories.add(factory);
 
-        Comparator<? super GuiComponentFactory> comparator =
-                (f1,f2) -> {
+        Comparator<? super GuiComponentFactory<?>> comparator =
+                (f1, f2) -> {
 
                     Integer f1Order = f1.getOrder();
                     Integer f2Order = f2.getOrder();
@@ -65,7 +59,6 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
                     }
 
                     return Integer.compare(f1Order, f2Order);
-
                 };
 
         guiComponentFactories.sort(comparator);
@@ -87,20 +80,19 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
         return wrapperPanels.get(typeName);
     }
 
-
-
     @Override
-    public <T> GuiComponentFactory findValuePanelFactory(ItemWrapper itemWrapper) {
-
-
-        Optional<GuiComponentFactory> opt = guiComponentFactories.stream().filter(f -> f.match(itemWrapper)).findFirst();
+    public <T extends ItemPanelContext<?, ?>> GuiComponentFactory<T> findValuePanelFactory(ItemWrapper<?, ?> itemWrapper) {
+        Optional<GuiComponentFactory<?>> opt = guiComponentFactories.stream()
+                .filter(f -> f.match(itemWrapper))
+                .findFirst();
         if (!opt.isPresent()) {
             LOGGER.trace("No factory found for {}", itemWrapper.debugDump());
             return null;
         }
-        GuiComponentFactory factory = opt.get();
+        GuiComponentFactory<?> factory = opt.get();
         LOGGER.trace("Found component factory {} for {}", factory, itemWrapper.debugDump());
-        return factory;
+        //noinspection unchecked
+        return (GuiComponentFactory<T>) factory;
     }
 
     public <IW extends ItemWrapper, VW extends PrismValueWrapper, PV extends PrismValue, C extends Containerable> ItemWrapperFactory<IW, VW, PV> findWrapperFactory(ItemDefinition<?> def, PrismContainerValue<C> parent) {
@@ -163,9 +155,5 @@ public class GuiComponentRegistryImpl implements GuiComponentRegistry {
         };
 
         wrapperFactories.sort(comparator);
-
     }
-
-
-
 }
