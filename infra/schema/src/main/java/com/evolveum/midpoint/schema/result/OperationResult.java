@@ -830,26 +830,36 @@ public class OperationResult
             }
             if (sub.getStatus() == OperationResultStatus.FATAL_ERROR) {
                 hasError = true;
-                operationMessageJoiner.add(sub.getMessage());
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
+                }
             }
             if (sub.getStatus() == OperationResultStatus.PARTIAL_ERROR) {
                 hasError = true;
-                operationMessageJoiner.add(sub.getMessage());
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
+                }
             }
             if (sub.getStatus() == OperationResultStatus.HANDLED_ERROR) {
                 hasHandledError = true;
-                operationMessageJoiner.add(sub.getMessage());
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
+                }
             }
             if (sub.getStatus() == OperationResultStatus.IN_PROGRESS) {
                 hasInProgress = true;
-                operationMessageJoiner.add(sub.getMessage());
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
+                }
                 if (asynchronousOperationReference == null) {
                     asynchronousOperationReference = sub.getAsynchronousOperationReference();
                 }
             }
             if (sub.getStatus() == OperationResultStatus.WARNING) {
                 hasWarning = true;
-                operationMessageJoiner.add(sub.getMessage());
+                if (sub.getMessage() != null) {
+                    operationMessageJoiner.add(sub.getMessage());
+                }
             }
         }
         if (operationMessageJoiner.length() > 0) {
@@ -982,26 +992,23 @@ public class OperationResult
 
     public void recomputeStatus() {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
             computeStatus();
         }
     }
 
-    public void recomputeStatus(String message) {
+    public void recomputeStatus(String errorMessage) {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
-            computeStatus(message);
+            computeStatus(errorMessage);
         }
     }
 
     public void recomputeStatus(String errorMessage, String warningMessage) {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
             computeStatus(errorMessage, warningMessage);
         }

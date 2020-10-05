@@ -2112,6 +2112,10 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
         assertEquals("Unexpected operation " + result.getOperation() + " result status", expectedStatus, result.getStatus());
     }
 
+    protected void assertNoMessage(OperationResult result) {
+        assertThat(result.getMessage()).as("message in operation result").isNull();
+    }
+
     protected String assertInProgress(OperationResult result) {
         if (result.isUnknown()) {
             result.computeStatus();

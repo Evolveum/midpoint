@@ -7,7 +7,7 @@
   -->
 <report oid="00000000-0000-0000-0000-000000000100"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-   <name>Reconciliation report</name>
+   <name>Reconciliation report (Jasper)</name>
    <description>Reconciliation report for selected resource.</description>
    <jasper>
        <parent>true</parent>
