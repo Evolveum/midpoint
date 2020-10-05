@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import javax.annotation.PostConstruct;
@@ -35,7 +34,7 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPrope
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return ActivationType.F_LOCKOUT_STATUS.equals(wrapper.getItemName());
     }
 
@@ -44,5 +43,4 @@ public class LockoutStatusPanelFactory implements GuiComponentFactory<PrismPrope
         LockoutStatusPanel panel = new LockoutStatusPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
         return panel;
     }
-
 }

@@ -186,6 +186,18 @@ public class TestDummy extends AbstractBasicDummyTest {
         displayValue("Repository shadow", shadowFromRepo.debugDump());
 
         checkRepoAccountShadow(shadowFromRepo);
+
+
+
+        PrismSerializer<String> serializer = prismContext.xmlSerializer().options(SerializationOptions.createSerializeForExport());
+
+        String fromProvisioning = serializer.serialize(provisioningAccount);
+        String fromRepo = serializer.serialize(shadowFromRepo);
+
+
+
+        //prismContext.xnodeSerializer().serialize(item)
+
         // MID-4397
         assertRepoShadowCredentials(shadowFromRepo, ACCOUNT_MORGAN_PASSWORD);
 

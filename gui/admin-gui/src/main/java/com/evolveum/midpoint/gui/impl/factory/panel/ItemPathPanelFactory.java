@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import java.io.Serializable;
-
 import javax.annotation.PostConstruct;
 
 import org.apache.wicket.markup.html.panel.Panel;
@@ -23,7 +22,6 @@ import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 /**
  * @author katka
- *
  */
 @Component
 public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathType> implements Serializable {
@@ -38,7 +36,7 @@ public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathTy
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return ItemPathType.COMPLEX_TYPE.equals(wrapper.getTypeName());
     }
 
@@ -55,5 +53,4 @@ public class ItemPathPanelFactory extends AbstractGuiComponentFactory<ItemPathTy
             }
         };
     }
-
 }

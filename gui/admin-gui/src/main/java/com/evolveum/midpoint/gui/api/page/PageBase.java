@@ -1386,8 +1386,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public StringResourceModel createStringResource(PolyString polystringKey, Object... objects) {
         String resourceKey = null;
         if (polystringKey != null) {
-            // TODO later: try polystringKey.getKey()
-            resourceKey = polystringKey.getOrig();
+            resourceKey = localizationService.translate(polystringKey, WebComponentUtil.getCurrentLocale(), true);
         }
         return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
@@ -1396,8 +1395,7 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
     public StringResourceModel createStringResource(PolyStringType polystringKey, Object... objects) {
         String resourceKey = null;
         if (polystringKey != null) {
-            // TODO later: try polystringKey.getKey()
-            resourceKey = polystringKey.getOrig();
+            resourceKey = localizationService.translate(PolyString.toPolyString(polystringKey), WebComponentUtil.getCurrentLocale(), true);
         }
         return new StringResourceModel(resourceKey, this).setModel(new Model<String>()).setDefaultValue(resourceKey)
                 .setParameters(objects);
@@ -2102,12 +2100,13 @@ public abstract class PageBase extends WebPage implements ModelServiceLocator {
             DashboardType dashboard = prismObject.getRealValue();
             Validate.notNull(dashboard, "Dashboard object is null");
 
-            StringResourceModel label;
-            if (dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
-                label = createStringResource(dashboard.getDisplay().getLabel().getOrig());
-            } else {
-                label = createStringResource(dashboard.getName());
-            }
+            StringResourceModel label = createStringResourceDefault(WebComponentUtil.getTranslatedPolyString(dashboard.getName()),
+                    WebComponentUtil.getCollectionLabel(dashboard.getDisplay(), null, dashboard));
+//            if (dashboard.getDisplay() != null && dashboard.getDisplay().getLabel() != null) {
+//                label = createStringResource(dashboard.getDisplay().getLabel().getOrig());
+//            } else {
+//                label = createStringResource(dashboard.getName());
+//            }
             PageParameters pageParameters = new PageParameters();
             pageParameters.add(OnePageParameterEncoder.PARAMETER, dashboard.getOid());
             MenuItem menu = new MenuItem(label, "", PageDashboardConfigurable.class, pageParameters, null, null) {
