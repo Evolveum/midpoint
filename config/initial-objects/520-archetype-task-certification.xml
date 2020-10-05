@@ -11,7 +11,12 @@
     <archetypePolicy>
         <display>
             <label>Certification-related task</label>
-            <pluralLabel>Certification-related tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Certification-related tasks</orig>
+                <translation>
+                    <key>CertificationRelatedTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-certificate</cssClass>
                 <color>green</color>

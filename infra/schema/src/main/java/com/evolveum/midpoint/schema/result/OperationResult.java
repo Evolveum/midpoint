@@ -992,26 +992,23 @@ public class OperationResult
 
     public void recomputeStatus() {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
             computeStatus();
         }
     }
 
-    public void recomputeStatus(String message) {
+    public void recomputeStatus(String errorMessage) {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
-            computeStatus(message);
+            computeStatus(errorMessage);
         }
     }
 
     public void recomputeStatus(String errorMessage, String warningMessage) {
         recordEnd();
-        // Only recompute if there are subresults, otherwise keep original
-        // status
+        // Only recompute if there are subresults, otherwise keep original status
         if (subresults != null && !subresults.isEmpty()) {
             computeStatus(errorMessage, warningMessage);
         }

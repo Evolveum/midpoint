@@ -1,10 +1,16 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.wicket.behavior.AttributeAppender;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.gui.api.factory.GuiComponentFactory;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
@@ -19,17 +25,12 @@ import com.evolveum.midpoint.web.component.data.LinkedReferencePanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
-import org.apache.wicket.behavior.AttributeAppender;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-
 /**
  * Created by Kate Honchar.
  */
 @Component
-public class LinkedReferencePanelFactory implements GuiComponentFactory<PrismReferencePanelContext<ObjectReferenceType>> {
+public class LinkedReferencePanelFactory
+        implements GuiComponentFactory<PrismReferencePanelContext<ObjectReferenceType>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(LinkedReferencePanelFactory.class);
 
@@ -46,17 +47,17 @@ public class LinkedReferencePanelFactory implements GuiComponentFactory<PrismRef
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         boolean match = QNameUtil.match(ObjectReferenceType.COMPLEX_TYPE, wrapper.getTypeName()) &&
                 QNameUtil.match(CaseType.F_PARENT_REF, wrapper.getPath().asSingleName());
 
         //TODO match method must not change the state of the wrapper
-        if (match){
+        if (match) {
             try {
-                PrismReferenceValueWrapperImpl valueWrapper = (PrismReferenceValueWrapperImpl)
-                        wrapper.getValue();
+                PrismReferenceValueWrapperImpl<?> valueWrapper =
+                        (PrismReferenceValueWrapperImpl<?>) wrapper.getValue();
                 valueWrapper.setLink(true);
-            } catch (SchemaException e){
+            } catch (SchemaException e) {
                 LOGGER.warn("Unable to set isLink status for PrismReferenceValueWrapper: {}", e.getLocalizedMessage());
             }
         }
@@ -65,10 +66,9 @@ public class LinkedReferencePanelFactory implements GuiComponentFactory<PrismRef
 
     @Override
     public org.apache.wicket.Component createPanel(PrismReferencePanelContext<ObjectReferenceType> panelCtx) {
-        LinkedReferencePanel panel = new LinkedReferencePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel());
+        LinkedReferencePanel<?> panel = new LinkedReferencePanel<>(panelCtx.getComponentId(), panelCtx.getRealValueModel());
         panel.setOutputMarkupId(true);
         panel.add(AttributeAppender.append("style", "padding-top:5px")); //ugly hack to be aligned with prism-property-label
         return panel;
     }
-
 }

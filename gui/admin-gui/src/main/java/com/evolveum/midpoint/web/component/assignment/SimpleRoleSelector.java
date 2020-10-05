@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016-2018 Evolveum and contributors
+ * Copyright (C) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -9,9 +9,6 @@ package com.evolveum.midpoint.web.component.assignment;
 import java.util.Iterator;
 import java.util.List;
 
-import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -22,21 +19,25 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
+import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerWrapper;
+import com.evolveum.midpoint.gui.api.util.WebPrismUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 
 /**
  * @author semancik
  */
-public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType> extends BasePanel<PrismContainerWrapper<AssignmentType>> {
+public class SimpleRoleSelector<R extends AbstractRoleType>
+        extends BasePanel<PrismContainerWrapper<AssignmentType>> {
+
     private static final long serialVersionUID = 1L;
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleRoleSelector.class);
@@ -47,7 +48,9 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
 
     List<PrismObject<R>> availableRoles;
 
-    public SimpleRoleSelector(String id, IModel<PrismContainerWrapper<AssignmentType>> assignmentModel, List<PrismObject<R>> availableRoles) {
+    public SimpleRoleSelector(String id,
+            IModel<PrismContainerWrapper<AssignmentType>> assignmentModel,
+            List<PrismObject<R>> availableRoles) {
         super(id, assignmentModel);
         this.availableRoles = availableRoles;
         initLayout();
@@ -83,7 +86,6 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
         add(buttonReset);
     }
 
-
     private Component createRoleLink(String id, IModel<PrismObject<R>> model) {
         AjaxLink<PrismObject<R>> button = new AjaxLink<PrismObject<R>>(id, model) {
 
@@ -118,9 +120,8 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
         return button;
     }
 
-
     private boolean isSelected(PrismObject<R> role) {
-        for (PrismContainerValueWrapper<AssignmentType> assignmentContainer: getModel().getObject().getValues()) {
+        for (PrismContainerValueWrapper<? extends AssignmentType> assignmentContainer : getModel().getObject().getValues()) {
             AssignmentType assignment = assignmentContainer.getRealValue();
             if (willProcessAssignment(assignment)) {
                 ObjectReferenceType targetRef = assignment.getTargetRef();
@@ -135,9 +136,10 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
     }
 
     private void toggleRole(PrismObject<R> role, AjaxRequestTarget target) {
-        Iterator<PrismContainerValueWrapper<AssignmentType>> iterator = getModel().getObject().getValues().iterator();
+        Iterator<? extends PrismContainerValueWrapper<? extends AssignmentType>> iterator =
+                getModel().getObject().getValues().iterator();
         while (iterator.hasNext()) {
-            PrismContainerValueWrapper<AssignmentType> assignmentContainer = iterator.next();
+            PrismContainerValueWrapper<? extends AssignmentType> assignmentContainer = iterator.next();
             AssignmentType assignment = assignmentContainer.getRealValue();
             if (willProcessAssignment(assignment)) {
                 ObjectReferenceType targetRef = assignment.getTargetRef();
@@ -161,15 +163,16 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
     }
 
     private void reset() {
-        Iterator<PrismContainerValueWrapper<AssignmentType>> iterator = getModel().getObject().getValues().iterator();
+        Iterator<? extends PrismContainerValueWrapper<? extends AssignmentType>> iterator =
+                getModel().getObject().getValues().iterator();
         while (iterator.hasNext()) {
-            PrismContainerValueWrapper<AssignmentType> assignmentContainer = iterator.next();
+            PrismContainerValueWrapper<? extends AssignmentType> assignmentContainer = iterator.next();
             AssignmentType assignment = assignmentContainer.getRealValue();
             if (isManagedRole(assignment) && willProcessAssignment(assignment)) {
                 if (assignmentContainer.getStatus() == ValueStatus.ADDED) {
                     iterator.remove();
                 } else if (assignmentContainer.getStatus() == ValueStatus.DELETED) {
-                    //what status to use for container?
+                    // TODO: what status to use for container?
 //                    assignmentContainer.setStatus(UserDtoStatus.MODIFY);
                 }
             }
@@ -185,12 +188,11 @@ public class SimpleRoleSelector<F extends FocusType, R extends AbstractRoleType>
         if (targetRef == null || targetRef.getOid() == null) {
             return false;
         }
-        for (PrismObject<R> availableRole: availableRoles) {
+        for (PrismObject<R> availableRole : availableRoles) {
             if (availableRole.getOid().equals(targetRef.getOid())) {
                 return true;
             }
         }
         return false;
     }
-
 }

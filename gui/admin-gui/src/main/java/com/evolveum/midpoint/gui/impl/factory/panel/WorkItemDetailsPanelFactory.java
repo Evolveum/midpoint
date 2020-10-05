@@ -1,22 +1,20 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
-import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
-import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
-import com.evolveum.midpoint.gui.api.registry.GuiComponentRegistry;
-import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
+import javax.annotation.PostConstruct;
 
 import org.apache.wicket.markup.html.panel.Panel;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
+import com.evolveum.midpoint.gui.api.factory.AbstractGuiComponentFactory;
+import com.evolveum.midpoint.gui.api.prism.wrapper.ItemWrapper;
+import com.evolveum.midpoint.web.page.admin.workflow.WorkItemDetailsPanel;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.CaseWorkItemType;
 
 /**
  * Created by honchar
@@ -30,7 +28,7 @@ public class WorkItemDetailsPanelFactory extends AbstractGuiComponentFactory<Cas
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return CaseWorkItemType.COMPLEX_TYPE.equals(wrapper.getTypeName());
     }
 
@@ -40,5 +38,4 @@ public class WorkItemDetailsPanelFactory extends AbstractGuiComponentFactory<Cas
         panel.setOutputMarkupId(true);
         return panel;
     }
-
 }
