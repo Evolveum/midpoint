@@ -96,7 +96,7 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
             }
 
             @Override
-            protected SelectableBean<ObjectType> getNewSelecteableBean() {
+            protected SelectableBean<ObjectType> getNewSelectableBean() {
                 return new TaskErrorSelectableBeanImpl<>();
             }
         };
