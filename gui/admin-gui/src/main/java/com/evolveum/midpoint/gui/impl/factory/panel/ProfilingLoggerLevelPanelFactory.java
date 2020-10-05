@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -7,8 +7,6 @@
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import javax.annotation.PostConstruct;
-
-import com.evolveum.midpoint.web.component.prism.InputPanel;
 
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.model.Model;
@@ -19,19 +17,19 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.impl.page.admin.configuration.component.ProfilingLevel;
 import com.evolveum.midpoint.gui.impl.prism.wrapper.ProfilingClassLoggerContainerValueWrapperImpl;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ClassLoggerConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.LoggingLevelType;
 
 /**
  * @author skublik
- *
  */
 @Component
 public class ProfilingLoggerLevelPanelFactory extends AbstractInputGuiComponentFactory<LoggingLevelType> {
 
     @Override
     public Integer getOrder() {
-        return Integer.MAX_VALUE-1;
+        return Integer.MAX_VALUE - 1;
     }
 
     @PostConstruct
@@ -40,7 +38,7 @@ public class ProfilingLoggerLevelPanelFactory extends AbstractInputGuiComponentF
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return wrapper.getParent() instanceof ProfilingClassLoggerContainerValueWrapperImpl && wrapper.getItemName().equals(ClassLoggerConfigurationType.F_LEVEL);
     }
 
@@ -51,10 +49,9 @@ public class ProfilingLoggerLevelPanelFactory extends AbstractInputGuiComponentF
 
             private static final long serialVersionUID = 1L;
 
-
             @Override
             public ProfilingLevel getObject() {
-            return ProfilingLevel.fromLoggerLevelType(panelCtx.getRealValueModel().getObject());
+                return ProfilingLevel.fromLoggerLevelType(panelCtx.getRealValueModel().getObject());
             }
 
             @Override
@@ -64,7 +61,6 @@ public class ProfilingLoggerLevelPanelFactory extends AbstractInputGuiComponentF
             }
 
         }, WebComponentUtil.createReadonlyModelFromEnum(ProfilingLevel.class), new EnumChoiceRenderer<>(), true);
-
 
         return dropDownProfilingLevel;
     }

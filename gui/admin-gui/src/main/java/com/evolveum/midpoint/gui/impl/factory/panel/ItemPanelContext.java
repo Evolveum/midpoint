@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -24,7 +24,7 @@ import com.evolveum.midpoint.web.component.message.FeedbackAlerts;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.util.ExpressionValidator;
 
-public abstract class ItemPanelContext<T, IW extends ItemWrapper> implements Serializable {
+public abstract class ItemPanelContext<T, IW extends ItemWrapper<?, ?>> implements Serializable {
 
     private String componentId;
 

@@ -9,7 +9,6 @@ package com.evolveum.midpoint.web.component.sample;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 
@@ -18,23 +17,15 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismObjectWrapper;
 import com.evolveum.midpoint.gui.api.prism.wrapper.ShadowWrapper;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.assignment.SimpleRoleSelector;
 import com.evolveum.midpoint.web.component.form.MidpointForm;
+import com.evolveum.midpoint.web.component.objectdetails.AbstractFocusTabPanel;
 import com.evolveum.midpoint.web.model.PrismContainerWrapperModel;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentHolderType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 
 /**
@@ -58,8 +49,8 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
     private static final Trace LOGGER = TraceManager.getTrace(SampleFormFocusTabPanel.class);
 
     public SampleFormFocusTabPanel(String id, MidpointForm<PrismObjectWrapper<F>> mainForm,
-                                   LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
-                                   LoadableModel<List<ShadowWrapper>> projectionModel) {
+            LoadableModel<PrismObjectWrapper<F>> focusWrapperModel,
+            LoadableModel<List<ShadowWrapper>> projectionModel) {
         super(id, mainForm, focusWrapperModel, projectionModel);
 
     }
@@ -91,8 +82,8 @@ public class SampleFormFocusTabPanel<F extends FocusType> extends AbstractFocusT
             // TODO: better error reporting
         }
 
-        PrismContainerWrapperModel<F, AssignmentType> assignmentsModel = PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), AssignmentHolderType.F_ASSIGNMENT);
-        add(new SimpleRoleSelector<F,RoleType>(ID_ROLES, assignmentsModel, availableRoles));
+        PrismContainerWrapperModel<F, AssignmentType> assignmentsModel =
+                PrismContainerWrapperModel.fromContainerWrapper(getObjectWrapperModel(), AssignmentHolderType.F_ASSIGNMENT);
+        add(new SimpleRoleSelector<>(ID_ROLES, assignmentsModel, availableRoles));
     }
-
 }

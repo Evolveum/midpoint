@@ -4,7 +4,6 @@
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.gui.impl.factory.panel;
 
 import javax.annotation.PostConstruct;
@@ -30,19 +29,22 @@ public class SearchFilterPanelFactory extends AbstractGuiComponentFactory<Search
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return SearchFilterType.COMPLEX_TYPE.equals(wrapper.getTypeName());
     }
 
     @Override
     protected Panel getPanel(PrismPropertyPanelContext<SearchFilterType> panelCtx) {
         PrismPropertyWrapper<SearchFilterType> searchFilterItemWrapper = panelCtx.unwrapWrapperModel();
-        PrismContainerValueWrapper containerWrapper = searchFilterItemWrapper.getParent();
+        PrismContainerValueWrapper<?> containerWrapper = searchFilterItemWrapper.getParent();
         if (containerWrapper != null && containerWrapper.getRealValue() instanceof ObjectCollectionType) {
-            return new SearchFilterConfigurationPanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(),
-                    (PrismContainerValueWrapper<ObjectCollectionType>) containerWrapper);
+            return new SearchFilterConfigurationPanel(
+                    panelCtx.getComponentId(), panelCtx.getRealValueModel(), containerWrapper);
         }
-        return new AceEditorPanel(panelCtx.getComponentId(), null, new SearchFilterTypeModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()), 10);
+        return new AceEditorPanel(
+                panelCtx.getComponentId(),
+                null,
+                new SearchFilterTypeModel(panelCtx.getRealValueModel(), panelCtx.getPageBase()),
+                10);
     }
-
 }

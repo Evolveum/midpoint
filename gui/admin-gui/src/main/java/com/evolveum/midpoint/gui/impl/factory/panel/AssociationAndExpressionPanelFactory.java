@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -35,11 +35,10 @@ public class AssociationAndExpressionPanelFactory extends AbstractGuiComponentFa
         }
 
         return new AssociationExpressionValuePanel(panelCtx.getComponentId(), panelCtx.getRealValueModel(), expressionWrapper.getConstruction());
-
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         if (wrapper == null) {
             return false;
         }
@@ -50,6 +49,4 @@ public class AssociationAndExpressionPanelFactory extends AbstractGuiComponentFa
         ExpressionWrapper expressionWrapper = (ExpressionWrapper) wrapper;
         return expressionWrapper.isAssociationExpression() || expressionWrapper.isAttributeExpression();
     }
-
-
 }
