@@ -12,7 +12,12 @@
     <archetypePolicy>
         <display>
             <label>Asynchronous update task</label>
-            <pluralLabel>Asynchronous update tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Asynchronous update tasks</orig>
+                <translation>
+                    <key>AsynchronousUpdateTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-bolt</cssClass>
                 <color>green</color>
