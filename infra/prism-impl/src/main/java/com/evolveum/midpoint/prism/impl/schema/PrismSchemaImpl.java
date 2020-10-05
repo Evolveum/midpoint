@@ -89,6 +89,7 @@ public class PrismSchemaImpl extends AbstractFreezable implements MutablePrismSc
         return list;
     }
 
+    @Override
     public void addDelayedItemDefinition(DefinitionSupplier supplier) {
         checkMutable();
         delayedItemDefinitions.add(supplier);
@@ -330,6 +331,7 @@ public class PrismSchemaImpl extends AbstractFreezable implements MutablePrismSc
 
     // items
 
+    @Override
     @NotNull
     public <ID extends ItemDefinition> List<ID> findItemDefinitionsByCompileTimeClass(
             @NotNull Class<?> compileTimeClass, @NotNull Class<ID> definitionClass) {

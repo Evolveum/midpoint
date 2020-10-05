@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+<xsd:schema elementFormDefault="qualified"
+            targetNamespace="http://midpoint.evolveum.com/xml/ns/samples/piracy"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+            xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-3"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+
+    <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-3"/>
+
+    <!-- user extension -->
+
+    <xsd:complexType name="UserTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:UserType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="ship" type="xsd:string"/>
+            <xsd:element name="tales" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+
+            <!-- TestAssignedMappings -->
+            <xsd:element name="p111a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p111b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p111c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p112a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p112b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p112c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p113a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p113b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p113c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p121a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p121b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p121c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p122a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p122b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p122c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p123a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p123b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p123c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p131a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p131b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p131c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p132a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p132b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p132c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p133a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p133b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p133c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p211a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p211b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p211c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p212a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p212b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p212c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p213a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p213b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p213c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p221a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p221b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p221c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p222a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p222b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p222c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p223a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p223b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p223c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p231a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p231b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p231c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p232a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p232b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p232c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p233a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p233b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p233c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p241" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p311a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p311b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p311c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p312a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p312b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p312c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p313a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p313b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p313c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p321a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p321b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p321c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p322a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p322b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p322c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p323a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p323b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p323c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p331a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p331b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p331c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p332a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p332b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p332c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p333a" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p333b" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p333c" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p41" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p51" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="p61" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+     <!-- role extension -->
+
+    <xsd:complexType name="RoleTypeExtensionType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:extension ref="c:RoleType"/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="resourceName" type="xsd:string"/>
+            <xsd:element name="resourceRef" type="c:ObjectReferenceType" />
+        </xsd:sequence>
+    </xsd:complexType>
+
+
+</xsd:schema>
