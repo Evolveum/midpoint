@@ -1371,7 +1371,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         }
 
         final Holder<PrismObject<TaskType>> taskPrism = new Holder<>();
-        clusterExecutionHelper.execute((client, node, opResult) -> {
+        clusterExecutionHelper.execute(runsAt, (client, node, opResult) -> {
                     Response response = client.path(TaskConstants.GET_TASK_REST_PATH + oid)
                             .query("include", GetOperationOptions.toRestIncludeOption(options))
                             .get();

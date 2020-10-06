@@ -389,7 +389,6 @@ public class PageUsers extends PageAdminObjectList<UserType> {
         fixedSearchItems.add(UserType.F_NAME);
         fixedSearchItems.add(UserType.F_GIVEN_NAME);
         fixedSearchItems.add(UserType.F_FAMILY_NAME);
-        fixedSearchItems.add(UserType.F_EMAIL_ADDRESS);
         return fixedSearchItems;
     }
 

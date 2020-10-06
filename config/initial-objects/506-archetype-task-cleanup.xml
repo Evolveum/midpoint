@@ -12,7 +12,12 @@
     <archetypePolicy>
         <display>
             <label>Cleanup task</label>
-            <pluralLabel>Cleanup tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Cleanup tasks</orig>
+                <translation>
+                    <key>CleanupTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-trash</cssClass>
                 <color>green</color>

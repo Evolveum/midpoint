@@ -12,7 +12,12 @@
     <archetypePolicy>
         <display>
             <label>Recomputation task</label>
-            <pluralLabel>Recomputation tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Recomputation tasks</orig>
+                <translation>
+                    <key>RecomputationTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-cogs</cssClass>
                 <color>green</color>

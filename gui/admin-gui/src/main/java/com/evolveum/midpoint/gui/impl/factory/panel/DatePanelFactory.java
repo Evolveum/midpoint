@@ -9,10 +9,6 @@ package com.evolveum.midpoint.gui.impl.factory.panel;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
-
-import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
-
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.form.Form;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +23,8 @@ import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 
 /**
  * @author katka
@@ -42,7 +40,7 @@ public class DatePanelFactory extends AbstractInputGuiComponentFactory<XMLGregor
     }
 
     @Override
-    public <IW extends ItemWrapper> boolean match(IW wrapper) {
+    public <IW extends ItemWrapper<?, ?>> boolean match(IW wrapper) {
         return DOMUtil.XSD_DATETIME.equals(wrapper.getTypeName());
     }
 

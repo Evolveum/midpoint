@@ -11,7 +11,12 @@
     <archetypePolicy>
         <display>
             <label>Utility task</label>
-            <pluralLabel>Utility tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Utility tasks</orig>
+                <translation>
+                    <key>UtilityTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-wrench</cssClass>
                 <color>green</color>
