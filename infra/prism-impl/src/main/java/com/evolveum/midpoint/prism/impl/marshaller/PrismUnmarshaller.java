@@ -136,22 +136,27 @@ public class PrismUnmarshaller {
                 typeClass, ItemDefinition.class, pc, schemaRegistry);
         ItemDefinition<?> realDefinition;
         if (itemInfo.getItemDefinition() == null && itemInfo.getComplexTypeDefinition() != null) {
-            // let's create container definition dynamically
-            QName actualTypeName = itemInfo.getComplexTypeDefinition().getTypeName();
-            if (((SchemaRegistry) schemaRegistry).isContainer(actualTypeName)) {      // TODO what about objects?
-                PrismContainerDefinitionImpl<?> def = new PrismContainerDefinitionImpl<>(itemInfo.getItemName(),
-                        itemInfo.getComplexTypeDefinition(), prismContext);
-                def.setDynamic(true);
-                realDefinition = def;
-            } else {
-                PrismPropertyDefinitionImpl<?> def = new PrismPropertyDefinitionImpl<>(itemInfo.getItemName(), actualTypeName, prismContext);
-                def.setDynamic(true);
-                realDefinition = def;
-            }
+            // Why we do not try to create dynamic definition from other (non-complex) type definitions?
+            // (Most probably because we simply don't need it. Null is acceptable in that cases.)
+            realDefinition = createDynamicDefinitionFromCtd(itemInfo.getItemName(), itemInfo.getComplexTypeDefinition());
         } else {
             realDefinition = itemInfo.getItemDefinition();
         }
         return parseItemInternal(root.getSubnode(), itemInfo.getItemName(), realDefinition, pc);
+    }
+
+    @NotNull
+    private ItemDefinition<?> createDynamicDefinitionFromCtd(QName itemName, ComplexTypeDefinition typeDefinition) {
+        QName typeName = typeDefinition.getTypeName();
+        MutableItemDefinition<?> def;
+        if (typeDefinition.isContainerMarker()) {
+            // TODO what about objects?
+            def = new PrismContainerDefinitionImpl<>(itemName, typeDefinition, prismContext);
+        } else {
+            def = new PrismPropertyDefinitionImpl<>(itemName, typeName, prismContext);
+        }
+        def.setDynamic(true);
+        return def;
     }
 
     Object parseItemOrRealValue(@NotNull RootXNodeImpl root, ParsingContext pc) throws SchemaException {

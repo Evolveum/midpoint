@@ -1541,7 +1541,7 @@ public class SchemaRegistryImpl implements DebugDumpable, SchemaRegistry {
     }
 
     @Override
-    public boolean isContainer(QName typeName) {
+    public boolean isContainerable(QName typeName) {
         Class<?> clazz = determineClassForType(typeName);
         return clazz != null && Containerable.class.isAssignableFrom(clazz);
     }
