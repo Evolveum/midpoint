@@ -53,6 +53,14 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
      */
     private boolean isAttribute = false;
 
+    /**
+     *
+     * If set to true, then this primitive value is considered infra item.
+     * Useful for container ids and other infra items.
+     *
+     */
+    private boolean infra = false;
+
     public PrimitiveXNodeImpl() {
         super();
     }
@@ -403,5 +411,13 @@ public class PrimitiveXNodeImpl<T> extends XNodeImpl implements Serializable, Pr
     @Override
     public void setMetadataNodes(@NotNull List<MapXNode> metadataNodes) {
         this.metadata = metadataNodes;
+    }
+
+    public void setInfra(boolean value) {
+        this.infra  = value;
+    }
+
+    public boolean isInfra() {
+        return infra;
     }
 }
