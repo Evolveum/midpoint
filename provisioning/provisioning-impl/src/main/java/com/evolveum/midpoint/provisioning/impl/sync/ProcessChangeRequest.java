@@ -18,8 +18,11 @@ import org.jetbrains.annotations.Nullable;
 
 /**
  * Wrapper for "process change" request and its execution.
+ *
+ * These requests are ordered according to local sequence number in embedded Change.
+ * See {@link RequestsBuffer}.
  */
-public class ProcessChangeRequest {
+public class ProcessChangeRequest implements Comparable<ProcessChangeRequest> {
 
     @NotNull private final Change change;
     private final ProvisioningContext globalContext;
@@ -100,5 +103,10 @@ public class ProcessChangeRequest {
                 ", done=" + done +
                 ", success=" + success +
                 '}';
+    }
+
+    @Override
+    public int compareTo(@NotNull ProcessChangeRequest o) {
+        return Integer.compare(change.getLocalSequenceNumber(), o.getChange().getLocalSequenceNumber());
     }
 }
