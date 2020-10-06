@@ -26,6 +26,8 @@ import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import static com.evolveum.midpoint.prism.PrismConstants.*;
@@ -116,6 +118,8 @@ public abstract class ComparativeFilterImpl<T> extends PropertyValueFilterImpl<T
             return matchNumbers((Number) objectRealValue, (Number) filterRealValue);
         } else if (isStringLike(filterRealValue) && isStringLike(objectRealValue)) {
             return matchStringLike(objectRealValue, filterRealValue, matchingRule);
+        } else if (filterRealValue instanceof XMLGregorianCalendar && objectRealValue instanceof XMLGregorianCalendar) {
+            return matchForDateTime((XMLGregorianCalendar) objectRealValue, (XMLGregorianCalendar) filterRealValue);
         } else {
             throw new SchemaException("Couldn't compare incompatible/unsupported types: filter: " + filterRealValue.getClass() +
                     ", object: " + objectRealValue.getClass());
@@ -217,6 +221,22 @@ public abstract class ComparativeFilterImpl<T> extends PropertyValueFilterImpl<T
 
     private boolean matchForBigDecimal(BigDecimal object, BigDecimal filter) {
         return processComparisonResult(object.compareTo(filter));
+    }
+
+    private boolean matchForDateTime(XMLGregorianCalendar object, XMLGregorianCalendar filter) {
+        int comparison = object.compare(filter);
+        if (comparison == DatatypeConstants.LESSER) {
+            return processComparisonResult(-1);
+        } else if (comparison == DatatypeConstants.EQUAL) {
+            return processComparisonResult(0);
+        } else if (comparison == DatatypeConstants.GREATER) {
+            return processComparisonResult(1);
+        } else if (comparison == DatatypeConstants.INDETERMINATE) {
+            return false; // This is questionable. But 'false' is formally correct answer here.
+        } else {
+            throw new IllegalStateException("Unexpected XMLGregorianCalendar comparison result for " + object + " vs " +
+                    filter + ": " + comparison);
+        }
     }
 
     abstract boolean processComparisonResult(int result);
