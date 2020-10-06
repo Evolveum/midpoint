@@ -78,11 +78,11 @@ public class CsvController extends FileFormatController {
             ByteArrayOutputStream output = new ByteArrayOutputStream();
             CSVPrinter printer = new CSVPrinter(new OutputStreamWriter(output, getEncoding()), csvFormat);
 
-            long i = 0;
+            long i = 1;
             task.setExpectedTotal((long) dashboard.getWidget().size());
-            recordProgress(task, i, result, LOGGER);
 
             for (DashboardWidgetType widget : dashboard.getWidget()) {
+                recordProgress(task, i, result, LOGGER);
                 DashboardWidget widgetData = getReportService().getDashboardService().createWidgetData(widget, task, result);
                 printer.printRecord(createTableRow(widgetData));
             }
@@ -211,7 +211,7 @@ public class CsvController extends FileFormatController {
 
         });
 
-        int i = 0;
+        int i = 1;
         task.setExpectedTotal((long) auditRecords.size());
 
         for (AuditEventRecordType auditRecord : auditRecords) {
@@ -289,7 +289,7 @@ public class CsvController extends FileFormatController {
             headers.add(label);
         });
 
-        int i = 0;
+        int i = 1;
         task.setExpectedTotal((long) values.size());
 
         for (PrismObject<ObjectType> value : values) {

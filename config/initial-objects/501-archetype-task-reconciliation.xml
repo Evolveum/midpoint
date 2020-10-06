@@ -12,7 +12,12 @@
     <archetypePolicy>
         <display>
             <label>Reconciliation task</label>
-            <pluralLabel>Reconciliation tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Reconciliation tasks</orig>
+                <translation>
+                    <key>ReconciliationTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-exchange</cssClass>
                 <color>green</color>

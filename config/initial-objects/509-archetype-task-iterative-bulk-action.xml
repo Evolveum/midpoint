@@ -13,7 +13,12 @@
     <archetypePolicy>
         <display>
             <label>Iterative bulk action task</label>
-            <pluralLabel>Iterative bulk action tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Iterative bulk action tasks</orig>
+                <translation>
+                    <key>IterativeBulkActionTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-bullseye</cssClass>
                 <color>green</color>

@@ -12,7 +12,12 @@
     <archetypePolicy>
         <display>
             <label>Collection report</label>
-            <pluralLabel>Collection reports</pluralLabel>
+            <pluralLabel>
+                <orig>Collection reports</orig>
+                <translation>
+                    <key>CollectionReports.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-filter</cssClass>
                 <color>#001F3F</color>

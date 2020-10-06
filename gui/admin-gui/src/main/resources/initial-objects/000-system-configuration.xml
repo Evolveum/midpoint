@@ -224,7 +224,12 @@
                 <display>
                     <label>My cases</label>
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
-                    <pluralLabel>My cases</pluralLabel>
+                    <pluralLabel>
+                        <orig>My cases</orig>
+                        <translation>
+                            <key>MyCases.title</key>
+                        </translation>
+                    </pluralLabel>
                     <singularLabel>My case</singularLabel>
                     <icon>
                         <cssClass>fe fe-case-object</cssClass>
@@ -242,7 +247,12 @@
                 <display>
                     <label>Manual cases</label> <!-- "Manual provisioning cases" is too long for the menu -->
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
-                    <pluralLabel>All manual cases</pluralLabel>
+                    <pluralLabel>
+                        <orig>All manual cases</orig>
+                        <translation>
+                            <key>AllManualCases.title</key>
+                        </translation>
+                    </pluralLabel>
                     <singularLabel>Manual case</singularLabel>
                     <tooltip>Manual provisioning cases</tooltip>
                 </display>
@@ -258,7 +268,12 @@
                 <display>
                     <label>Requests</label> <!-- "Operation requests" is too long for the menu -->
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
-                    <pluralLabel>All requests</pluralLabel>
+                    <pluralLabel>
+                        <orig>All requests</orig>
+                        <translation>
+                            <key>AllRequests.title</key>
+                        </translation>
+                    </pluralLabel>
                     <singularLabel>Request</singularLabel>
                     <tooltip>Operation requests</tooltip>
                 </display>
@@ -274,7 +289,12 @@
                 <display>
                     <label>Approvals</label> <!-- "Approval cases" is too long for the menu -->
                     <!-- We need to explicitly specify plural label here. Otherwise it will be overwritten by a plural label from archetype. -->
-                    <pluralLabel>All approvals</pluralLabel>
+                    <pluralLabel>
+                        <orig>All approvals</orig>
+                        <translation>
+                            <key>AllApprovals.title</key>
+                        </translation>
+                    </pluralLabel>
                     <singularLabel>Approval</singularLabel>
                     <tooltip>Approval cases</tooltip>
                 </display>

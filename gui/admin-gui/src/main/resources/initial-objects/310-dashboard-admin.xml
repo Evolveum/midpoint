@@ -11,13 +11,23 @@
            oid="00000000-0000-0000-0001-000000000001">
     <name>admin-dashboard</name>
     <display>
-        <label>Admin dashboard</label>
+        <label>
+            <orig>Admin dashboard</orig>
+            <translation>
+                <key>AdminDashboard.title</key>
+            </translation>
+        </label>
     </display>
     <widget>
         <identifier>resources-up</identifier>
         <description>Widget that shows all the resources that are up. Based on "Resources Up" object collection.</description>
         <display>
-            <label>Resources up</label>
+            <label>
+                <orig>Resources up</orig>
+                <translation>
+                    <key>AdminDashboard.resourcesUp</key>
+                </translation>
+            </label>
             <color>#00a65a</color>
             <icon>
                 <cssClass>fa fa-database</cssClass>
@@ -62,7 +72,12 @@
         <identifier>audit-recent-errors</identifier>
         <description>Widget that shows recent errors. Data are taken from audit log.</description>
         <display>
-            <label>Recent errors</label>
+            <label>
+                <orig>Recent errors</orig>
+                <translation>
+                    <key>AdminDashboard.recentErrors</key>
+                </translation>
+            </label>
             <color>#00a65a</color>
             <icon>
                 <cssClass>fa fa-ban</cssClass>
@@ -105,7 +120,12 @@
         <identifier>audit-recent-modifications</identifier>
         <description>Widget that shows recent modifications. Data are taken from audit log.</description>
         <display>
-            <label>Recent modifications</label>
+            <label>
+                <orig>Recent modifications</orig>
+                <translation>
+                    <key>AdminDashboard.recentModifications</key>
+                </translation>
+            </label>
             <color>#00a65a</color>
             <icon>
                 <cssClass>fa fa-cog</cssClass>
@@ -137,7 +157,12 @@
     <widget>
         <identifier>active-task</identifier>
         <display>
-            <label>Active tasks</label>
+            <label>
+                <orig>Active tasks</orig>
+                <translation>
+                    <key>AdminDashboard.activeTasks</key>
+                </translation>
+            </label>
             <color>#00a65a</color>
             <icon>
                 <cssClass>fa fa-tasks</cssClass>

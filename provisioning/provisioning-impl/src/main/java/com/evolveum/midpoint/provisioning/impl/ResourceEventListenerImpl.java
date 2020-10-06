@@ -108,7 +108,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener {
             primaryIdentifierRealValue = null;
         }
         Change change = new Change(primaryIdentifierRealValue, primaryIdentifiers, eventDescription.getCurrentResourceObject(),
-                eventDescription.getDelta());
+                eventDescription.getDelta(), 0); // seq number is not important here
         change.setOldRepoShadow(eventDescription.getOldRepoShadow());
         change.setObjectClassDefinition(ShadowUtil.getObjectClassDefinition(shadow));
 

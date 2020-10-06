@@ -1666,10 +1666,13 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
                     }
                     Change change = null;
                     try {
-                        change = getChangeFromSyncDelta(requestConnIdObjectClass, objectClass, delta, handleResult);
+                        // Here we again assume we are called in a single thread, and that changes received here are in
+                        // the correct order - i.e. in the order in which they are to be processed.
+                        int sequentialNumber = deltasProcessed.incrementAndGet();
+
+                        change = getChangeFromSyncDelta(requestConnIdObjectClass, objectClass, delta, sequentialNumber, handleResult);
                         boolean canContinue = changeHandler.handleChange(change, handleResult);
-                        int processed = deltasProcessed.incrementAndGet();
-                        boolean doContinue = canContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || processed < maxChanges);
+                        boolean doContinue = canContinue && canRun(reporter) && (maxChanges == null || maxChanges == 0 || sequentialNumber < maxChanges);
                         if (!doContinue) {
                             allChangesFetched.set(false);
                         }
@@ -2302,7 +2305,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
 
     @NotNull
     private Change getChangeFromSyncDelta(ObjectClass requestConnIdObjectClass,
-            ObjectClassComplexTypeDefinition requestObjectClass, SyncDelta connIdDelta, OperationResult result)
+            ObjectClassComplexTypeDefinition requestObjectClass, SyncDelta connIdDelta, int localSequenceNumber, OperationResult result)
             throws SchemaException, GenericFrameworkException {
 
         ObjectClassComplexTypeDefinition deltaObjectClass;
@@ -2336,7 +2339,7 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.DELETE);
             Uid uid = connIdDelta.getUid();
             Collection<ResourceAttribute<?>> identifiers = ConnIdUtil.convertToIdentifiers(uid, deltaObjectClass, resourceSchema);
-            change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()));
+            change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()), localSequenceNumber);
 
         } else if (icfDeltaType == SyncDeltaType.CREATE || icfDeltaType == SyncDeltaType.CREATE_OR_UPDATE || icfDeltaType == SyncDeltaType.UPDATE) {
 
@@ -2353,9 +2356,9 @@ public class ConnectorInstanceConnIdImpl implements ConnectorInstance {
             if (icfDeltaType == SyncDeltaType.CREATE) {
                 ObjectDelta<ShadowType> objectDelta = prismContext.deltaFactory().object().create(ShadowType.class, ChangeType.ADD);
                 objectDelta.setObjectToAdd(currentResourceObject);
-                change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()));
+                change = new Change(uid.getUidValue(), identifiers, null, objectDelta, createTokenProperty(connIdDelta.getToken()), localSequenceNumber);
             } else {
-                change = new Change(uid.getUidValue(), identifiers, currentResourceObject, null, createTokenProperty(connIdDelta.getToken()));
+                change = new Change(uid.getUidValue(), identifiers, currentResourceObject, null, createTokenProperty(connIdDelta.getToken()), localSequenceNumber);
             }
 
         } else {

@@ -12,7 +12,12 @@
     <archetypePolicy>
         <display>
             <label>Single bulk action task</label>
-            <pluralLabel>Single bulk action tasks</pluralLabel>
+            <pluralLabel>
+                <orig>Single bulk action tasks</orig>
+                <translation>
+                    <key>SingleBulkActionTasks.title</key>
+                </translation>
+            </pluralLabel>
             <icon>
                 <cssClass>fa fa-bullseye</cssClass>
                 <color>green</color>

@@ -1238,7 +1238,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
     public void waitForTransientChildren(RunningTask task, OperationResult result) {
         for (RunningTaskQuartzImpl subtask : ((RunningTaskQuartzImpl) task).getRunningLightweightAsynchronousSubtasks()) {
             Future future = subtask.getLightweightHandlerFuture();
-            if (future != null) {       // should always be
+            if (future != null) { // should always be
                 LOGGER.debug("Waiting for subtask {} to complete.", subtask);
                 try {
                     future.get();
@@ -1371,7 +1371,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
         }
 
         final Holder<PrismObject<TaskType>> taskPrism = new Holder<>();
-        clusterExecutionHelper.execute((client, node, opResult) -> {
+        clusterExecutionHelper.execute(runsAt, (client, node, opResult) -> {
                     Response response = client.path(TaskConstants.GET_TASK_REST_PATH + oid)
                             .query("include", GetOperationOptions.toRestIncludeOption(options))
                             .get();

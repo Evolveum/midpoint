@@ -94,6 +94,11 @@ public class TaskErrorsTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> 
                     return Collections.emptyList();
                 }
             }
+
+            @Override
+            protected SelectableBean<ObjectType> getNewSelectableBean() {
+                return new TaskErrorSelectableBeanImpl<>();
+            }
         };
 
         BoxedTablePanel<TaskErrorSelectableBeanImpl<ObjectType>> table = new BoxedTablePanel<>(ID_TASK_ERRORS, provider, initColumns());

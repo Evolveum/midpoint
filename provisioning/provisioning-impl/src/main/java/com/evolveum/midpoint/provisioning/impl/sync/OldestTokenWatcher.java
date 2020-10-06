@@ -18,13 +18,16 @@ import java.util.concurrent.atomic.AtomicInteger;
  *  Determines oldest sync token that was successfully processed; in order to know where to continue when Live Sync starts again.
  *  The idea is that each change (that arrives completely or not) is given a sequential number as a unique identifier.
  *  This identifier is used to find successfully processed changes.
+ *
+ *  (Note that in the meanwhile, the Change object got its own local sequence number. These numbers are yet to be
+ *  reconciled.)
  */
 class OldestTokenWatcher {
 
     private static final Trace LOGGER = TraceManager.getTrace(OldestTokenWatcher.class);
 
-    private AtomicInteger counter = new AtomicInteger(0);
-    private Map<Integer, TokenInfo> tokenInfoMap = new LinkedHashMap<>();
+    private final AtomicInteger counter = new AtomicInteger(0);
+    private final Map<Integer, TokenInfo> tokenInfoMap = new LinkedHashMap<>();
 
     synchronized int changeArrived(PrismProperty<?> token) {
         int seq = counter.getAndIncrement();
