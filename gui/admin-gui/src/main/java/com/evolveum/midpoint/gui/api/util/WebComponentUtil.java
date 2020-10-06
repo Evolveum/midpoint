@@ -678,7 +678,7 @@ public final class WebComponentUtil {
 
     public static boolean canRunNowTask(TaskType task, PageBase pageBase) {
         return pageBase.isAuthorized(ModelAuthorizationAction.RUN_TASK_IMMEDIATELY, task.asPrismObject())
-                && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)))
+                && !isRunningTask(task) && (isRunnableTask(task) || (isClosedTask(task) && !isRecurringTask(task)))
                 && !isWorkflowTask(task);
     }
 

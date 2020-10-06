@@ -145,6 +145,7 @@ public class ChangeProcessingCoordinator {
                         request.setDone(true); // probably set already -- but better twice than not at all
                         requestsBuffer.markProcessed(request, taskIdentifier);
                         treatOperationResultAfterOperation();
+                        workerTask.setProgressTransient(workerTask.getProgress() + 1);
                     }
                 } else {
                     if (allItemsSubmitted) {
