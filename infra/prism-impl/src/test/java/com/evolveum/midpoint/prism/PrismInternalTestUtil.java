@@ -204,6 +204,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
     public static final ItemName EXTENSION_BAR_ELEMENT = new ItemName(NS_EXTENSION, "bar");
     public static final ItemName EXTENSION_FOOBAR_ELEMENT = new ItemName(NS_EXTENSION, "foobar");
     public static final ItemName EXTENSION_NUM_ELEMENT = new ItemName(NS_EXTENSION, "num");
+    public static final ItemName EXTENSION_DATETIME_ELEMENT = new ItemName(NS_EXTENSION, "dateTime");
     public static final ItemName EXTENSION_MULTI_ELEMENT = new ItemName(NS_EXTENSION, "multi");
 
     // Definitions used in schema-extra/extension/user.xsd
