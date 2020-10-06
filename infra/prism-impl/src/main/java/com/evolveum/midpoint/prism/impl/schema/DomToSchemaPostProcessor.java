@@ -184,6 +184,7 @@ class DomToSchemaPostProcessor {
                             + " complex type does not have " + A_EXTENSION_REF.getLocalPart() + " attribute",
                             A_EXTENSION_REF);
                 }
+                ctd.setContainerMarker(true);
                 ctd.setExtensionForType(extensionType);
                 ctd.setSuperType(prismContext.getExtensionContainerTypeName());
             }
