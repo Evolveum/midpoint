@@ -180,10 +180,14 @@ public class SelectableBeanObjectDataProvider<O extends ObjectType> extends Base
         // Also do NOT re-throw not redirect to to error page. That will break the page.
         // Just return a SelectableBean that indicates the error.
         List<SelectableBean<O>> errorList = new ArrayList<>(1);
-        SelectableBean<O> bean = new SelectableBeanImpl<>();
+        SelectableBean<O> bean = getNewSelectableBean();
         bean.setResult(result);
         errorList.add(bean);
         return errorList.iterator();
+    }
+
+    protected SelectableBean<O> getNewSelectableBean() {
+        return new SelectableBeanImpl<>();
     }
 
     public SelectableBean<O> createDataObjectWrapper(O obj) {
