@@ -138,7 +138,7 @@ public class LiveSynchronizer {
                         coordinator.submit(request, result);
                     } catch (InterruptedException e) {
                         LOGGER.trace("Got InterruptedException, probably the coordinator task was suspended. Let's stop fetching changes.");
-                        syncResult.setSuspendEncountered(true);     // ok?
+                        syncResult.setSuspendEncountered(true); // ok?
                         return false;
                     }
                 }

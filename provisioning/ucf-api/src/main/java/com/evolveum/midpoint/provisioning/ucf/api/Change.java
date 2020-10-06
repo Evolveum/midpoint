@@ -13,6 +13,7 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
 import java.util.Collection;
@@ -26,9 +27,16 @@ public final class Change implements DebugDumpable {
     /*
      * Object identification: these values should be reasonably filled-in on Change object creation.
      */
-    private Object primaryIdentifierRealValue;              // we might reconsider this in the future
+    private final Object primaryIdentifierRealValue; // we might reconsider this in the future
     private Collection<ResourceAttribute<?>> identifiers;
     private ObjectClassComplexTypeDefinition objectClassDefinition;
+
+    /**
+     * Sequence number that is local to the current live sync or async update operation.
+     * It is used to ensure related changes are processed in the same order in which they came.
+     */
+    @Experimental
+    private final int localSequenceNumber;
 
     /*
      * Usually either of the following two should be present. An exception is a notification-only change event.
@@ -70,26 +78,25 @@ public final class Change implements DebugDumpable {
      */
     public Change(Object primaryIdentifierRealValue, Collection<ResourceAttribute<?>> identifiers,
             PrismObject<ShadowType> currentResourceObject, ObjectDelta<ShadowType> delta,
-            PrismProperty<?> token) {
+            PrismProperty<?> token, int localSequenceNumber) {
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.identifiers = identifiers;
         this.currentResourceObject = currentResourceObject;
         this.objectDelta = delta;
         this.token = token;
+        this.localSequenceNumber = localSequenceNumber;
     }
 
     /**
      * When token is not present.
      */
     public Change(Object primaryIdentifierRealValue, Collection<ResourceAttribute<?>> identifiers,
-            PrismObject<ShadowType> currentResourceObject, ObjectDelta<ShadowType> delta) {
+            PrismObject<ShadowType> currentResourceObject, ObjectDelta<ShadowType> delta, int localSequenceNumber) {
         this.primaryIdentifierRealValue = primaryIdentifierRealValue;
         this.identifiers = identifiers;
         this.currentResourceObject = currentResourceObject;
         this.objectDelta = delta;
-    }
-
-    private Change() {
+        this.localSequenceNumber = localSequenceNumber;
     }
 
     public ObjectDelta<ShadowType> getObjectDelta() {
@@ -159,8 +166,13 @@ public final class Change implements DebugDumpable {
 
     @Override
     public String toString() {
-        return "Change(uid=" + primaryIdentifierRealValue + ",identifiers=" + identifiers + ", objectDelta=" + objectDelta + ", token=" + token
-                + ", oldRepoShadow=" + oldRepoShadow + ", currentResourceObject=" + currentResourceObject + ")";
+        return "Change(uid=" + primaryIdentifierRealValue
+                + ", identifiers=" + identifiers
+                + ", objectDelta=" + objectDelta
+                + ", token=" + token
+                + ", localSequenceNumber=" + localSequenceNumber
+                + ", oldRepoShadow=" + oldRepoShadow
+                + ", currentResourceObject=" + currentResourceObject + ")";
     }
 
     @Override
@@ -175,6 +187,8 @@ public final class Change implements DebugDumpable {
         DebugUtil.debugDumpWithLabel(sb, "primaryIdentifierValue", String.valueOf(primaryIdentifierRealValue), indent + 1);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "identifiers", identifiers, indent + 1);
+        sb.append("\n");
+        DebugUtil.debugDumpWithLabel(sb, "localSequenceNumber", localSequenceNumber, indent + 1);
         sb.append("\n");
         DebugUtil.debugDumpWithLabel(sb, "objectDelta", objectDelta, indent + 1);
         sb.append("\n");
@@ -202,5 +216,9 @@ public final class Change implements DebugDumpable {
 
     public Object getPrimaryIdentifierRealValue() {
         return primaryIdentifierRealValue;
+    }
+
+    public int getLocalSequenceNumber() {
+        return localSequenceNumber;
     }
 }

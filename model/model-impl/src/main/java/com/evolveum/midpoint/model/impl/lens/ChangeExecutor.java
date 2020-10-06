@@ -204,11 +204,11 @@ public class ChangeExecutor {
 
                 } catch (PreconditionViolationException e) {
 
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Modification precondition failed for {}: {}", focusContext.getHumanReadableName(),
-                                e.getMessage());
-                    }
+                    LOGGER.debug("Modification precondition failed for {}: {}", focusContext.getHumanReadableName(),
+                            e.getMessage());
+
                     //                    TODO: fatal error if the conflict resolution is "error" (later)
+                    subResult.recordHandledError(e);
                     result.recordHandledError(e);
                     throw e;
 
