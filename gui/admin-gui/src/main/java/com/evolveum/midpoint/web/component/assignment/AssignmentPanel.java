@@ -452,7 +452,7 @@ public class AssignmentPanel extends BasePanel<PrismContainerWrapper<AssignmentT
 
         });
 
-        columns.add(new LinkColumn<PrismContainerValueWrapper<AssignmentType>>(createStringResource("PolicyRulesPanel.nameColumn")) {
+        columns.add(new AjaxLinkColumn<PrismContainerValueWrapper<AssignmentType>>(createStringResource("PolicyRulesPanel.nameColumn")) {
             private static final long serialVersionUID = 1L;
 
             @Override

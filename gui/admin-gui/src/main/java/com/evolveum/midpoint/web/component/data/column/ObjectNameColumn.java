@@ -7,7 +7,6 @@
 package com.evolveum.midpoint.web.component.data.column;
 
 import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.repo.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.repo.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
@@ -116,7 +115,7 @@ public class ObjectNameColumn<O extends ObjectType> extends AbstractColumn<Selec
         };
 
         if (isClickable(rowModel)) {        // beware: rowModel is very probably resolved at this moment; but it seems to cause no problems
-            cellItem.add(new LinkPanel(componentId, labelModel) {
+            cellItem.add(new AjaxLinkPanel(componentId, labelModel) {
                 private static final long serialVersionUID = 1L;
 
                 @Override

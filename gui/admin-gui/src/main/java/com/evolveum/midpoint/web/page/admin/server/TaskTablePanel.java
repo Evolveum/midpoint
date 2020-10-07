@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,9 +55,7 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.application.Url;
 import com.evolveum.midpoint.web.component.AjaxIconButton;
 import com.evolveum.midpoint.web.component.data.column.ColumnMenuAction;
-import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.menu.cog.ButtonInlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -283,7 +281,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
                     cellItem.add(new Label(componentId,
                             (IModel<Object>) () -> getProgressDescription(rowModel.getObject())));
                 } else {
-                    cellItem.add(new LinkPanel(componentId, createStringResource("PageTasks.show.child.progress")) {
+                    cellItem.add(new AjaxLinkPanel(componentId, createStringResource("PageTasks.show.child.progress")) {
 
                         @Override
                         public void onClick(AjaxRequestTarget target) {

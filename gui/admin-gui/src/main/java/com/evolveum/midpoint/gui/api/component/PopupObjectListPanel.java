@@ -9,6 +9,8 @@ package com.evolveum.midpoint.gui.api.component;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -34,7 +36,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.data.column.PolyStringPropertyColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -99,7 +100,7 @@ public abstract class PopupObjectListPanel<O extends ObjectType> extends ObjectL
                 propertyExpression = SelectableBeanImpl.F_VALUE + (StringUtils.isEmpty(itemPath) ? "" : ("." + itemPath));
                 sortProperty = StringUtils.isEmpty(itemPath) ? "" : itemPath;
             }
-            return new LinkColumn<SelectableBean<O>>(
+            return new AjaxLinkColumn<SelectableBean<O>>(
                     columnNameModel == null ? createStringResource("ObjectType.name") : columnNameModel,
                     sortProperty, propertyExpression) {
                 private static final long serialVersionUID = 1L;

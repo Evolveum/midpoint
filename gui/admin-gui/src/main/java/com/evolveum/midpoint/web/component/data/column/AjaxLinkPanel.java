@@ -7,37 +7,34 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.util.logging.Trace;
-
-import com.evolveum.midpoint.util.logging.TraceManager;
-
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author lazyman
  */
-public class LinkPanel extends Panel {
+public class AjaxLinkPanel extends Panel {
     private static final long serialVersionUID = 1L;
 
     private static final String ID_LINK = "link";
     private static final String ID_LABEL = "label";
 
-    private static final transient Trace LOGGER = TraceManager.getTrace(LinkPanel.class);
-
-    public LinkPanel(String id, IModel labelModel) {
+    public AjaxLinkPanel(String id, IModel labelModel) {
         super(id);
 
-        Link<String> link = new Link<String>(ID_LINK) {
+        AjaxLink<String> link = new AjaxLink<String>(ID_LINK) {
+            private static final long serialVersionUID = 1L;
+
             @Override
-            public void onClick() {
-                LinkPanel.this.onClick();
+            public void onClick(AjaxRequestTarget target) {
+                AjaxLinkPanel.this.onClick(target);
             }
 
         };
@@ -59,7 +56,7 @@ public class LinkPanel extends Panel {
 
             @Override
             public boolean isEnabled() {
-                return LinkPanel.this.isEnabled();
+                return AjaxLinkPanel.this.isEnabled();
             }
         });
         add(link);
@@ -69,6 +66,6 @@ public class LinkPanel extends Panel {
         return true;
     }
 
-    public void onClick() {
+    public void onClick(AjaxRequestTarget target) {
     }
 }

@@ -10,7 +10,7 @@ package com.evolveum.midpoint.web.component.assignment;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.util.BaseDeprecatedPanel;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ResourceType;
@@ -41,7 +41,7 @@ public class ResourceListPanel extends BaseDeprecatedPanel {
     private List<IColumn> initColumns() {
         List<IColumn> columns = new ArrayList<>();
 
-        IColumn column = new LinkColumn<SelectableBeanImpl<ResourceType>>(createStringResource("ObjectType.name"), "name",
+        IColumn column = new AjaxLinkColumn<SelectableBeanImpl<ResourceType>>(createStringResource("ObjectType.name"), "name",
                 "value.name") {
 
             @Override

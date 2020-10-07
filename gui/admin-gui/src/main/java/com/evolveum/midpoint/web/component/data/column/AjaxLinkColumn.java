@@ -7,6 +7,7 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.export.IExportableColumn;
@@ -17,20 +18,20 @@ import org.apache.wicket.model.PropertyModel;
 /**
  * @author lazyman
  */
-public class LinkColumn<T> extends AbstractColumn<T, String> implements IExportableColumn<T, String>  {
+public class AjaxLinkColumn<T> extends AbstractColumn<T, String> implements IExportableColumn<T, String>  {
     private static final long serialVersionUID = 1L;
 
     private String propertyExpression;
 
-    public LinkColumn(IModel<String> displayModel) {
+    public AjaxLinkColumn(IModel<String> displayModel) {
         super(displayModel);
     }
 
-    public LinkColumn(IModel<String> displayModel, String propertyExpression) {
+    public AjaxLinkColumn(IModel<String> displayModel, String propertyExpression) {
         this(displayModel, null, propertyExpression);
     }
 
-    public LinkColumn(IModel<String> displayModel, String sortProperty, String propertyExpression) {
+    public AjaxLinkColumn(IModel<String> displayModel, String sortProperty, String propertyExpression) {
         super(displayModel, sortProperty);
         this.propertyExpression = propertyExpression;
     }
@@ -47,17 +48,17 @@ public class LinkColumn<T> extends AbstractColumn<T, String> implements IExporta
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, final IModel<T> rowModel) {
 
         IModel model = createLinkModel(rowModel);
-        cellItem.add(new LinkPanel(componentId, model) {
+        cellItem.add(new AjaxLinkPanel(componentId, model) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            public void onClick() {
-                LinkColumn.this.onClick(rowModel);
+            public void onClick(AjaxRequestTarget target) {
+                AjaxLinkColumn.this.onClick(target, rowModel);
             }
 
             @Override
             public boolean isEnabled() {
-                return LinkColumn.this.isEnabled(rowModel);
+                return AjaxLinkColumn.this.isEnabled(rowModel);
             }
         });
     }
@@ -66,7 +67,7 @@ public class LinkColumn<T> extends AbstractColumn<T, String> implements IExporta
         return true;
     }
 
-    public void onClick(IModel<T> rowModel) {
+    public void onClick(AjaxRequestTarget target, IModel<T> rowModel) {
     }
 
     @Override

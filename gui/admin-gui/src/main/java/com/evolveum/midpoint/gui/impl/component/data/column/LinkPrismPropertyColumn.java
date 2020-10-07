@@ -28,7 +28,7 @@ public class LinkPrismPropertyColumn<C extends Containerable, T> { //extends Pri
 //
 //    @Override
 //    protected <IW extends ItemWrapper> Component createColumnPanel(String componentId, IModel<IW> rowModel) {
-//        LinkPanel linkPanel = new LinkPanel(ID_LABEL,
+//        AjaxLinkPanel linkPanel = new AjaxLinkPanel(ID_LABEL,
 //                new ItemRealValueModel(rowModel)) {
 //            private static final long serialVersionUID = 1L;
 //
@@ -49,7 +49,7 @@ public class LinkPrismPropertyColumn<C extends Containerable, T> { //extends Pri
 
 //    @Override
 //    protected void populate(ListItem<PrismPropertyValueWrapper<T>> item, IModel<?> rowModel) {
-//        LinkPanel linkPanel = new LinkPanel(ID_LABEL,
+//        AjaxLinkPanel linkPanel = new AjaxLinkPanel(ID_LABEL,
 //                new ItemRealValueModel(item.getModel())) {
 //            private static final long serialVersionUID = 1L;
 //
@@ -71,7 +71,7 @@ public class LinkPrismPropertyColumn<C extends Containerable, T> { //extends Pri
 //        cellItem.add(new StaticItemWrapperColumnPanel(componentId, property, new Form("form"), null) {
 //            @Override
 //            protected Component getDisplayComponent(String componentId, IModel model) {
-//                return new LinkPanel(componentId, model) {
+//                return new AjaxLinkPanel(componentId, model) {
 //                    private static final long serialVersionUID = 1L;
 //
 //                    @Override

@@ -19,7 +19,7 @@ import com.evolveum.midpoint.gui.api.prism.wrapper.PrismPropertyWrapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 
 /**
  * @author katka
@@ -57,7 +57,7 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
 
     @Override
     protected Panel createLink(String id, IModel<PrismPropertyValueWrapper<T>> object) {
-        LinkPanel linkPanel = new LinkPanel(id,
+        AjaxLinkPanel ajaxLinkPanel = new AjaxLinkPanel(id,
                 new ItemRealValueModel(object)) {
             private static final long serialVersionUID = 1L;
 
@@ -67,7 +67,7 @@ public class PrismPropertyWrapperColumnPanel<T> extends AbstractItemWrapperColum
             }
 
         };
-        return linkPanel;
+        return ajaxLinkPanel;
     }
 
     protected void onClick(AjaxRequestTarget target, PrismContainerValueWrapper<?> rowModel) {

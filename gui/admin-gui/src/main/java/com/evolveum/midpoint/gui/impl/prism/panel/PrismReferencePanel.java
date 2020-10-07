@@ -61,7 +61,8 @@ public class PrismReferencePanel<R extends Referencable>
         if (getEditabilityHandler() != null && !getEditabilityHandler().isEditable(getModelObject())) {
             return false;
         }
-        return !getModelObject().isReadOnly() || isLink(getModelObject());
+        return true;
+//        return !getModelObject().isReadOnly() || isLink(getModelObject());
     }
 
     private boolean isLink(PrismReferenceWrapper<R> iw) {

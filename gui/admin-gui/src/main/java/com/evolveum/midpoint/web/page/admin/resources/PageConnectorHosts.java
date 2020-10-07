@@ -119,7 +119,7 @@ public class PageConnectorHosts extends PageAdminObjectList<ConnectorHostType> {
 //        IColumn column = new CheckBoxHeaderColumn<ConnectorHostType>();
 //        columns.add(column);
 //
-//        column = new LinkColumn<SelectableBean<ConnectorHostType>>(
+//        column = new AjaxLinkColumn<SelectableBean<ConnectorHostType>>(
 //                createStringResource("pageResources.connector.name"), "name", "value.name") {
 //            private static final long serialVersionUID = 1L;
 //
