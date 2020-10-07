@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (c) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -1023,6 +1023,15 @@ public class IntegrationTestTools {
     public static void assertNoSchema(String message, ResourceType resourceType) {
         Element resourceXsdSchema = ResourceTypeUtil.getResourceXsdSchema(resourceType);
         AssertJUnit.assertNull(message, resourceXsdSchema);
+    }
+
+    public static void assertConnectorSanity(ConnectorType conn) throws SchemaException {
+        assertNotNull("Connector name is missing in "+conn, conn.getName());
+        assertNotNull("Connector framework is missing in "+conn, conn.getFramework());
+        assertNotNull("Connector type is missing in "+conn, conn.getConnectorType());
+        assertNotNull("Connector version is missing in "+conn, conn.getVersion());
+        assertNotNull("Connector bundle is missing in "+conn, conn.getConnectorBundle());
+        assertNotNull("Connector namespace is missing in "+conn, conn.getNamespace());
     }
 
     public static void assertConnectorSchemaSanity(ConnectorType conn, PrismContext prismContext) throws SchemaException {
