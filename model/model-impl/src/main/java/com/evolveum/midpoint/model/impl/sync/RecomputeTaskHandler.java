@@ -8,6 +8,7 @@ package com.evolveum.midpoint.model.impl.sync;
 
 import javax.annotation.PostConstruct;
 
+import com.evolveum.midpoint.model.api.ModelPublicConstants;
 import com.evolveum.midpoint.schema.constants.Channel;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -16,7 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.impl.ModelConstants;
 import com.evolveum.midpoint.model.impl.lens.Clockwork;
 import com.evolveum.midpoint.model.impl.lens.ContextFactory;
 import com.evolveum.midpoint.model.impl.lens.LensContext;
@@ -52,7 +52,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class RecomputeTaskHandler extends AbstractSearchIterativeModelTaskHandler<FocusType, AbstractSearchIterativeResultHandler<FocusType>> {
 
-    public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/recompute/handler-3";
+    public static final String HANDLER_URI = ModelPublicConstants.RECOMPUTE_HANDLER_URI;
 
     @Autowired private TaskManager taskManager;
     @Autowired private ContextFactory contextFactory;

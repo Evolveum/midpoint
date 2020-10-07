@@ -568,12 +568,22 @@ public class ModelImplUtils {
     }
 
     public static ModelExecuteOptions getModelExecuteOptions(@NotNull Task task) {
-        ModelExecuteOptionsType options = task.getExtensionContainerRealValueOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS);
-        if (options == null) {
-            return null;
-        } else {
-            return ModelExecuteOptions.fromModelExecutionOptionsType(options);
+        ModelExecuteOptionsType options1 = task.getExtensionContainerRealValueOrClone(SchemaConstants.C_MODEL_EXECUTE_OPTIONS); // legacy
+        if (options1 != null) {
+            return ModelExecuteOptions.fromModelExecutionOptionsType(options1);
         }
+
+        ModelExecuteOptionsType options2 = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_MODEL_EXECUTE_OPTIONS);
+        if (options2 != null) {
+            return ModelExecuteOptions.fromModelExecutionOptionsType(options2);
+        }
+
+        ModelExecuteOptionsType options3 = task.getExtensionContainerRealValueOrClone(SchemaConstants.MODEL_EXTENSION_EXECUTE_OPTIONS);
+        if (options3 != null) {
+            return ModelExecuteOptions.fromModelExecutionOptionsType(options3);
+        }
+
+        return null;
     }
 
     public static ExpressionVariables getDefaultExpressionVariables(@NotNull LensContext<?> context,

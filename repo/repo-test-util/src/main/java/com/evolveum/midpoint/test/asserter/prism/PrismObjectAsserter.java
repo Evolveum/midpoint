@@ -484,4 +484,18 @@ public class PrismObjectAsserter<O extends ObjectType,RA> extends AbstractAssert
         }
         return this;
     }
+
+    public PrismObjectAsserter<O,RA> assertPolicySituation(String uri) {
+        assertThat(getObject().asObjectable().getPolicySituation())
+                .as("Policy situations")
+                .contains(uri);
+        return this;
+    }
+
+    public PrismObjectAsserter<O,RA> assertNoPolicySituation(String uri) {
+        assertThat(getObject().asObjectable().getPolicySituation())
+                .as("Policy situations")
+                .doesNotContain(uri);
+        return this;
+    }
 }

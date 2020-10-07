@@ -296,6 +296,11 @@ public interface TaskManager {
     PrismObject<TaskType> getTaskTypeByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
+     * @return true if the task is orphaned i.e. it has a parent declared but not existing
+     */
+    boolean isOrphaned(PrismObject<TaskType> task, OperationResult parentResult) throws SchemaException;
+
+    /**
      * Deletes obsolete tasks, as specified in the policy.
      *
      * This method removes whole task trees, i.e. not single tasks. A task tree is deleted if the root task is closed

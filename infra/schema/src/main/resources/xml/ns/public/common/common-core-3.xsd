@@ -21985,6 +21985,14 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
+            <xsd:enumeration value="orphaned">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ORPHANED"/>
+                        <a:experimental>true</a:experimental>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
             <xsd:enumeration value="assignmentState">
                 <xsd:annotation>
                     <xsd:appinfo>
@@ -28402,4 +28410,3 @@
     <xsd:element name="triggerCreation" type="tns:TriggerCreationType" />
 
 </xsd:schema>
-

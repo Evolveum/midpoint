@@ -76,6 +76,7 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
     @Autowired private ObjectModificationConstraintEvaluator modificationConstraintEvaluator;
     @Autowired private StateConstraintEvaluator stateConstraintEvaluator;
     @Autowired private AlwaysTrueConstraintEvaluator alwaysTrueConstraintEvaluator;
+    @Autowired private OrphanedConstraintEvaluator orphanedConstraintEvaluator;
     @Autowired private CompositeConstraintEvaluator compositeConstraintEvaluator;
     @Autowired private TransitionConstraintEvaluator transitionConstraintEvaluator;
     @Autowired private ExpressionFactory expressionFactory;
@@ -484,6 +485,8 @@ public class PolicyRuleProcessor implements ProjectorProcessor {
             return transitionConstraintEvaluator;
         } else if (constraint.getValue() instanceof AlwaysTruePolicyConstraintType) {
             return alwaysTrueConstraintEvaluator;
+        } else if (constraint.getValue() instanceof OrphanedPolicyConstraintType) {
+            return orphanedConstraintEvaluator;
         } else {
             throw new IllegalArgumentException("Unknown policy constraint: " + constraint.getName() + "/" + constraint.getValue().getClass());
         }
