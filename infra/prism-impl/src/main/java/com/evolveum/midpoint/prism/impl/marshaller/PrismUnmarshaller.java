@@ -257,10 +257,15 @@ public class PrismUnmarshaller {
         return null;
     }
 
-
     private boolean isContainerId(QName itemName, XNodeImpl node, PrismContainerDefinition<?> parentDef) {
         if(node instanceof PrimitiveXNodeImpl<?> && QNameUtil.match(itemName, XNodeImpl.KEY_CONTAINER_ID)) {
-            if(idDef(parentDef) == null || ((PrimitiveXNodeImpl<?>)node).isAttribute()) {
+            if(((PrimitiveXNodeImpl<?>)node).isAttribute()) {
+                return true;
+            }
+            if(parentDef.isRuntimeSchema() && itemName.getNamespaceURI() != null) {
+                return false;
+            }
+            if(idDef(parentDef) == null) {
                 return true;
             }
         }
