@@ -147,7 +147,6 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
         WebMarkupContainer infoBox = new WebMarkupContainer(ID_INFO_BOX);
         add(infoBox);
 
-        //TODO change to model
         Label number = new Label(ID_NUMBER, new PropertyModel<>(dasboardModel, DashboardWidgetDto.F_NUMBER_LABEL));
         infoBox.add(number);
 
