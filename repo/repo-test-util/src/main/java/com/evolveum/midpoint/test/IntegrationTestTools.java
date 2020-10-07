@@ -1029,7 +1029,7 @@ public class IntegrationTestTools {
         assertNotNull("Connector name is missing in "+conn, conn.getName());
         assertNotNull("Connector framework is missing in "+conn, conn.getFramework());
         assertNotNull("Connector type is missing in "+conn, conn.getConnectorType());
-        assertNotNull("Connector version is missing in "+conn, conn.getVersion());
+        assertNotNull("Connector version is missing in "+conn, conn.getConnectorVersion());
         assertNotNull("Connector bundle is missing in "+conn, conn.getConnectorBundle());
         assertNotNull("Connector namespace is missing in "+conn, conn.getNamespace());
     }
