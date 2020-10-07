@@ -76,6 +76,7 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
         for (PrismObject<ConnectorType> connector : connectors) {
             ConnectorType conn = connector.asObjectable();
             display("Found connector " + conn, conn);
+            display("Connector version", conn.getConnectorVersion());
             IntegrationTestTools.assertConnectorSanity(conn); // MID-6581
             IntegrationTestTools.assertConnectorSchemaSanity(conn, prismContext);
         }
