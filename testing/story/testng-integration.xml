@@ -68,6 +68,7 @@
             <class name="com.evolveum.midpoint.testing.story.grouper.TestGrouperAsyncUpdate"/>
             <class name="com.evolveum.midpoint.testing.story.TestWriter"/>
             <class name="com.evolveum.midpoint.testing.story.TestResourceInMaintenance"/>
+            <class name="com.evolveum.midpoint.testing.story.TestOrphanedTasks"/>
         </classes>
     </test>
 </suite>

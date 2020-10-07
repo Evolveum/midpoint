@@ -963,11 +963,4 @@ public class TestLiveSyncTaskMechanics extends AbstractInitializedModelIntegrati
             repositoryService.deleteObject(UserType.class, user.getOid(), result);
         }
     }
-
-    // Waits a little before asserting task status. This is to enable task manager to write e.g. operationStatus
-    // after task operation result status indicates that the handler has finished.
-    private void stabilize() throws InterruptedException {
-        Thread.sleep(400);
-    }
-
 }

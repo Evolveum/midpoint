@@ -13,6 +13,8 @@ import java.io.FileNotFoundException;
 import java.util.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.test.TestResource;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.annotation.DirtiesContext;
@@ -62,6 +64,8 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
     protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
     protected static final String USER_JACK_USERNAME = "jack";
     protected static final String USER_JACK_FULL_NAME = "Jack Sparrow";
+
+    protected static final TestResource<ArchetypeType> ARCHETYPE_TASK_RECOMPUTATION = new TestResource<>(COMMON_DIR, "archetype-task-recomputation.xml", "00000000-0000-0000-0000-000000000502");
 
     protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR, "role-superuser.xml");
 

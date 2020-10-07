@@ -345,6 +345,12 @@ public abstract class SchemaConstants {
     public static final String MODEL_POLICY_SITUATION_TIME_VALIDITY =
             QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "timeValidity"));
 
+    /**
+     * An orphaned task is such that has a parent but that parent does not exist.
+     */
+    public static final String MODEL_POLICY_SITUATION_ORPHANED =
+            QNameUtil.qNameToUri(new QName(NS_MODEL_POLICY_SITUATION, "orphaned"));
+
     public static final String NS_MODEL_APPROVAL = NS_MODEL + "/approval";
     public static final String NS_MODEL_APPROVAL_OUTCOME = NS_MODEL_APPROVAL + "/outcome";
     public static final String MODEL_APPROVAL_OUTCOME_APPROVE =

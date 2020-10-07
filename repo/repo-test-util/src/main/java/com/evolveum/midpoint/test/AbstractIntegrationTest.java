@@ -2932,4 +2932,12 @@ public abstract class AbstractIntegrationTest extends AbstractSpringTest
     protected boolean runsInIdea() {
         return System.getProperty("idea.launcher.bin.path") != null;
     }
+
+    /**
+     * Waits a little before asserting task status. This is to enable task manager to write e.g. operationStatus
+     * after task operation result status indicates that the handler has finished.
+     */
+    protected void stabilize() throws InterruptedException {
+        Thread.sleep(500);
+    }
 }

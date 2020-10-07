@@ -10,6 +10,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import com.evolveum.midpoint.prism.ConsistencyCheckScope;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -31,10 +33,6 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.UserType;
 
 /**
  * @author semancik
@@ -157,7 +155,7 @@ public class ContextFactory {
             PrismObject<O> object, ModelExecuteOptions options, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, ExpressionEvaluationException {
         Class<O> typeClass = object.getCompileTimeClass();
         LensContext<F> context;
-        if (isFocalClass(typeClass)) {
+        if (AssignmentHolderType.class.isAssignableFrom(typeClass)) {
             context = createRecomputeFocusContext((Class<F>)typeClass, (PrismObject<F>) object, options, task, result);
         } else if (ShadowType.class.isAssignableFrom(typeClass)) {
             context =  createRecomputeProjectionContext((PrismObject<ShadowType>) object, options, task, result);

@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.repo.sql;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.prism.PrismConstants.T_ID;
@@ -38,7 +39,6 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.assertj.core.api.Assertions;
 import org.hibernate.Session;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -146,7 +146,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_NAME).eqPoly("asdf", "asdf").matchingNorm().build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -169,7 +169,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_NAME).eqPoly("asdf", "asdf").matchingOrig().build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -192,7 +192,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_NAME).eqPoly("asdf", "asdf").build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -216,7 +216,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -241,7 +241,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_ORGANIZATION).eqPoly("asdf", "asdf").matchingOrig().build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -264,7 +264,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_ORGANIZATION).eqPoly("asdf", "asdf").matchingStrict().build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -290,7 +290,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -320,7 +320,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             // NOTE: this could be implemented more efficiently by using only one join... or the query itself can be formulated
             // via In filter (when available) or Exists filter (also, when available)
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -346,7 +346,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, ObjectType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  o.oid, o.fullObject\n"
                     + "from\n"
                     + "  RObject o\n"
@@ -371,7 +371,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, TaskType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  t.oid, t.fullObject\n"
                     + "from\n"
                     + "  RTask t\n"
@@ -411,7 +411,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, TaskType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  t.oid, t.fullObject\n"
                     + "from\n"
                     + "  RTask t\n"
@@ -434,7 +434,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = getInterpretedQuery(session, UserType.class,
                     new File(TEST_DIR, "query-user-by-enabled.xml"));
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -463,7 +463,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     getQuery(new File(TEST_DIR, "query-and-generic.xml"), GenericObjectType.class), false, null);
             String real = realQuery.getQuery().getQueryString();
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  g.oid, g.fullObject\n"
                     + "from\n"
                     + "  RGenericObject g\n"
@@ -495,7 +495,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = ((RQueryImpl) realQuery).getQuery().getQueryString();
 
             // note l and l2 cannot be merged as they point to different extension properties (intType, longType)
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  g.oid, g.fullObject\n"
                     + "from\n"
                     + "  RGenericObject g\n"
@@ -522,7 +522,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             String real = getInterpretedQuery(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-non-existing-attribute.xml"));
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  s.oid, s.fullObject\n"
                     + "from\n"
                     + "  RShadow s\n"
@@ -541,7 +541,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = getInterpretedQuery(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-attribute.xml"));
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  s.oid, s.fullObject\n"
                     + "from\n"
                     + "  RShadow s\n"
@@ -561,7 +561,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     getQuery(new File(TEST_DIR, "query-account-by-attribute-and-extension-value.xml"), ShadowType.class), false,
                     null);
 
-            Assertions.assertThat(realQuery.getQuery().getQueryString())
+            assertThat(realQuery.getQuery().getQueryString())
                     .isEqualToIgnoringWhitespace("select\n"
                             + "  s.oid, s.fullObject\n"
                             + "from\n"
@@ -616,7 +616,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                 relation = ...
                 type = com.evolveum.midpoint.repo.sql.data.common.other.RObjectType.RESOURCE
              */
-            Assertions.assertThat(realQuery.getQuery().getQueryString())
+            assertThat(realQuery.getQuery().getQueryString())
                     .isEqualToIgnoringWhitespace("select\n" +
                             "  s.oid, s.fullObject\n" +
                             "from\n" +
@@ -658,7 +658,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -686,7 +686,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -716,7 +716,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -741,7 +741,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, ShadowType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
                     + "from\n"
@@ -773,7 +773,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery(session, UserType.class, query);
             // this doesn't work as expected ... maybe inner join would be better! Until implemented, we should throw UOO
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -796,7 +796,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -828,7 +828,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -868,7 +868,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, ObjectType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -890,7 +890,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             String real = getInterpretedQuery(session, UserType.class,
                     new File(TEST_DIR, "query-user-by-fullName.xml"));
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -908,7 +908,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             String real = getInterpretedQuery(session, UserType.class,
                     new File(TEST_DIR, "query-user-substring-fullName.xml"));
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -926,7 +926,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             String real = getInterpretedQuery(session, UserType.class,
                     new File(TEST_DIR, "query-user-by-name.xml"));
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -946,7 +946,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_EMPLOYEE_TYPE).contains("abc")
                     .build();
             String real = getInterpretedQuery(session, ObjectType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -965,7 +965,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             String real = getInterpretedQuery(session, ConnectorType.class,
                     new File(TEST_DIR, "query-connector-by-type.xml"));
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  c.oid, c.fullObject\n" +
                     "from\n" +
                     "  RConnector c\n" +
@@ -983,7 +983,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = getInterpretedQuery(session, ShadowType.class,
                     new File(TEST_DIR, "query-account-by-attributes-and-resource-ref.xml"));
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  s.oid, s.fullObject\n" +
                     "from\n" +
                     "  RShadow s\n" +
@@ -1017,7 +1017,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery(session, UserType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -1040,7 +1040,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_LINK_REF).isNull()
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -1060,7 +1060,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .not().item(UserType.F_LINK_REF).isNull()
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -1080,7 +1080,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_LINK_REF).refType(ShadowType.COMPLEX_TYPE)
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -1104,7 +1104,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_LINK_REF).refRelation(prismContext.getDefaultRelation())
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -1127,7 +1127,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_LINK_REF).ref(value1, value2)
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -1172,7 +1172,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -1213,7 +1213,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -1253,7 +1253,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -1286,7 +1286,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -1322,7 +1322,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, ObjectType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -1352,7 +1352,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, ObjectType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -1373,7 +1373,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -1403,7 +1403,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = getInterpretedQuery(session, RoleType.class, query);
 
             // assignmentOwner = com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner.ABSTRACT_ROLE
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  r.oid, r.fullObject\n" +
                     "from\n" +
                     "  RRole r\n" +
@@ -1429,7 +1429,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, RoleType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  r.oid, r.fullObject\n" +
                     "from\n" +
                     "  RRole r\n" +
@@ -1464,7 +1464,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -1495,7 +1495,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             // correct translation but the filter is wrong: we need to point to THE SAME timestamp -> i.e. ForValue should be used here
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -1522,7 +1522,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery(session, UserType.class, query, true);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  count(u.oid)\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -1547,7 +1547,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = getInterpretedQuery(session, ObjectType.class, query, true);
 
             // ordering does not make sense here
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  count(o.oid)\n" +
                     "from\n" +
                     "  RObject o\n");
@@ -1569,7 +1569,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .asc(F_NAME)
                     .build();
             String real = getInterpretedQuery(session, TaskType.class, query, true);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  count(t.oid)\n" +
                     "from\n" +
                     "  RTask t\n" +
@@ -1588,7 +1588,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .id("1", "2").build();
 
             String real = getInterpretedQuery(session, ObjectType.class, query, false);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -1639,7 +1639,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .ownerId("1", "2").build();
 
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
@@ -1665,7 +1665,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             OperationResult result = new OperationResult("query org structure");
             repositoryService.searchObjects(OrgType.class, query, null, result);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
 
                     "from\n" +
@@ -1690,7 +1690,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -1721,7 +1721,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -1757,7 +1757,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             OperationResult result = new OperationResult("query org structure");
             repositoryService.searchObjects(OrgType.class, query, null, result);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  ROrg o\n" +
@@ -1780,7 +1780,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -1811,7 +1811,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             RQueryImpl rQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = rQuery.getQuery().getQueryString();
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -1845,7 +1845,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = getInterpretedQuery(session, OrgType.class, query, true, distinct());
 
             // we probably do not need 'distinct' here
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  count(o.oid)\n"
                     + "from\n"
                     + "  ROrg o\n"
@@ -1873,7 +1873,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             OperationResult result = new OperationResult("query org structure");
             repositoryService.searchObjects(OrgType.class, query, null, result);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  ROrg o\n" +
@@ -1901,7 +1901,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = getInterpretedQuery(session, UserType.class, query, false);
 
             // correct translation but probably not what the requester wants (use Exists instead)
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -1939,7 +1939,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = getInterpretedQuery(session, UserType.class, query, false);
 
             // correct translation but probably not what the requester wants (use ForValue instead)
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -1984,7 +1984,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             String real = getInterpretedQuery(session, UserType.class, query, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -2047,7 +2047,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = getInterpretedQuery(session, UserType.class, query, false);
 
             // TODO rewrite with ForValue
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -2154,7 +2154,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -2184,7 +2184,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, ObjectType.class, objectQuery);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -2216,7 +2216,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, ObjectType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -2237,7 +2237,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, ObjectType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -2259,7 +2259,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, ReportDataType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  r.oid, r.fullObject\n" +
                     "from\n" +
                     "  RReportData r\n" +
@@ -2280,7 +2280,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, ObjectType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" + // TODO - why not RUser here? we unnecessarily join all of RObject subtypes...
@@ -2335,7 +2335,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, ObjectType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -2363,7 +2363,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(session, ObjectType.class, query, false, null);
-            Assertions.assertThat(realQuery.getQuery().getQueryString())
+            assertThat(realQuery.getQuery().getQueryString())
                     .isEqualToIgnoringWhitespace("select\n" +
                             "  o.oid, o.fullObject\n" +
                             "from\n" +
@@ -2392,7 +2392,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery(session, ObjectType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -2427,7 +2427,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .or().type(ReportType.class)
                     .build();
             String real = getInterpretedQuery(session, ObjectType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -2467,7 +2467,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .or().type(AbstractRoleType.class).block().endBlock()
                     .build();
             String real = getInterpretedQuery(session, ObjectType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  o.oid, o.fullObject\n"
                     + "from\n"
                     + "  RObject o\n"
@@ -2493,7 +2493,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, ObjectType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  o.oid,\n"
                     + "  o.fullObject\n"
                     + "from\n"
@@ -2534,7 +2534,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, ObjectType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  o.oid,\n"
                     + "  o.fullObject\n"
                     + "from\n"
@@ -2594,7 +2594,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, GenericObjectType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  g.oid, g.fullObject\n" +
                     "from\n" +
                     "  RGenericObject g\n" +
@@ -2617,7 +2617,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(session, GenericObjectType.class, objectQuery, false,
                     null);
 
-            Assertions.assertThat(realQuery.getQuery().getQueryString())
+            assertThat(realQuery.getQuery().getQueryString())
                     .isEqualToIgnoringWhitespace("select\n"
                             + "  g.oid, g.fullObject\n"
                             + "from\n"
@@ -2662,7 +2662,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery(session, UserType.class, objectQuery);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -2704,7 +2704,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             RQueryImpl realQuery = (RQueryImpl) getInterpretedQueryWhole(session, UserType.class, query, false, null);
             String real = realQuery.getQuery().getQueryString();
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -2729,7 +2729,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, GenericObjectType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  g.oid,\n"
                     + "  g.fullObject\n"
                     + "from\n"
@@ -2754,7 +2754,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, (ObjectQuery) null, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n");
@@ -2769,7 +2769,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         try {
             String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, (ObjectQuery) null, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.ownerOwnerOid,\n"
                     + "  a.ownerId,\n"
                     + "  a.id\n"
@@ -2789,7 +2789,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, q, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.ownerOwnerOid,\n"
                     + "  a.ownerId,\n"
                     + "  a.id\n"
@@ -2812,7 +2812,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
@@ -2833,7 +2833,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
@@ -2859,7 +2859,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.ownerOid, a.id, a.fullObject\n"
                     + "from\n"
                     + "  RAccessCertificationCase a\n"
@@ -2885,7 +2885,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, query, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.ownerOwnerOid,\n"
                     + "  a.ownerId,\n"
                     + "  a.id\n"
@@ -2924,7 +2924,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
@@ -2955,7 +2955,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
@@ -2991,7 +2991,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, query, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.ownerOwnerOid,\n"
                     + "  a.ownerId,\n"
                     + "  a.id\n"
@@ -3021,7 +3021,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
@@ -3060,7 +3060,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, query, false);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.ownerOwnerOid,\n"
                     + "  a.ownerId,\n"
                     + "  a.id\n"
@@ -3095,7 +3095,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
@@ -3137,7 +3137,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, query, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.ownerOwnerOid,\n"
                     + "  a.ownerId,\n"
                     + "  a.id\n"
@@ -3164,7 +3164,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, AccessCertificationWorkItemType.class, query, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.ownerOwnerOid,\n"
                     + "  a.ownerId,\n"
                     + "  a.id\n"
@@ -3192,7 +3192,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -3224,7 +3224,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -3276,7 +3276,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
@@ -3307,7 +3307,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                             ASCENDING));
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -3331,7 +3331,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
@@ -3357,7 +3357,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                             PrismConstants.T_OBJECT_REFERENCE, F_NAME), ASCENDING));
 
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
@@ -3407,7 +3407,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_PREFERRED_LANGUAGE).eq().item(UserType.F_COST_CENTER)
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -3460,7 +3460,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.ownerOid, a.id, a.fullObject\n"
                     + "from\n"
                     + "  RAccessCertificationCase a\n"
@@ -3504,7 +3504,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.ownerOid, a.id, a.fullObject\n"
                     + "from\n"
                     + "  RAccessCertificationCase a\n"
@@ -3542,7 +3542,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -3567,7 +3567,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -3591,7 +3591,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -3616,7 +3616,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -3639,7 +3639,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -3661,7 +3661,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -3690,7 +3690,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, ShadowType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
                     + "from\n"
@@ -3719,7 +3719,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, ShadowType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
                     + "from\n"
@@ -3748,7 +3748,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, ShadowType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
                     + "from\n"
@@ -3774,7 +3774,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(ResourceType.F_OPERATIONAL_STATE, OperationalStateType.F_LAST_AVAILABILITY_STATUS).eq(AvailabilityStatusType.UP)
                     .build();
             String real = getInterpretedQuery(session, ResourceType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  r.oid, r.fullObject\n"
                     + "from\n"
                     + "  RResource r\n"
@@ -3794,7 +3794,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(ResourceType.F_CONNECTOR_REF).isNull()
                     .build();
             String real = getInterpretedQuery(session, ResourceType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  r.oid, r.fullObject\n"
                     + "from\n"
                     + "  RResource r\n"
@@ -3814,7 +3814,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_LINK_REF).isNull()
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -3835,7 +3835,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_EMPLOYEE_NUMBER).isNull()
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid, u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -3854,7 +3854,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(UserType.F_EMPLOYEE_TYPE).isNull()
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -3877,7 +3877,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .and().item(RoleType.F_DISPLAY_NAME).eqPoly("aaa", "aaa").matchingNorm()
                     .build();
             String real = getInterpretedQuery(session, RoleType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  r.oid, r.fullObject\n"
                     + "from\n"
                     + "  RRole r\n"
@@ -3900,7 +3900,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .exists(ShadowType.F_PENDING_OPERATION)
                     .build();
             String real = getInterpretedQuery(session, ShadowType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
                     + "from\n"
@@ -3922,7 +3922,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, ShadowType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
                     + "from\n"
@@ -3936,7 +3936,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     }
 
     @Test
-    public void test618OperationFatalErrorTimestampSort() throws Exception {
+    public void test617OperationFatalErrorTimestampSort() throws Exception {
         Session session = open();
         try {
             ObjectQuery query = prismContext.queryFor(ObjectType.class)
@@ -3946,7 +3946,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, ShadowType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
                     + "from\n"
@@ -3955,6 +3955,99 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     + "where\n"
                     + "  o.status = :status\n"
                     + "order by o.timestamp desc");
+        } finally {
+            close(session);
+        }
+    }
+
+    @Test(description = "MID-6561, reproducible on Oracle and SQL Server")
+    public void test618OperationFatalErrorTimestampSortExistsDistinct() throws Exception {
+        Session session = open();
+        try {
+            given("a task errors query with exists-to-many relation ordered by timestamp");
+            ObjectQuery query = prismContext.queryFor(ObjectType.class)
+                    .exists(ObjectType.F_OPERATION_EXECUTION)
+                    .block()
+                    .item(OperationExecutionType.F_TASK_REF).ref("some-task-oid")
+                    .and()
+                    .block().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.FATAL_ERROR)
+                    .or().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.PARTIAL_ERROR)
+                    .or().item(OperationExecutionType.F_STATUS)
+                    .eq(OperationResultStatusType.WARNING)
+                    .endBlock()
+                    .endBlock()
+                    // timestamp is behind that to-many relation
+                    .desc(F_OPERATION_EXECUTION, OperationExecutionType.F_TIMESTAMP)
+                    .build();
+
+            when("the query is executed using distinct");
+            String real = getInterpretedQuery(session, ShadowType.class, query, false, distinct());
+
+            then("expected HQL is generated");
+            SqlRepositoryConfiguration config = getConfiguration();
+            if (config.isUsingOracle() || config.isUsingSQLServer()) {
+                // this specifically is the fixed version for MID-6561
+                assertThat(real).isEqualToIgnoringWhitespace("select\n"
+                        + "  s.oid,\n"
+                        + "  s.fullObject\n"
+                        + "from\n"
+                        + "  RShadow s\n"
+                        + "    left join s.operationExecutions o\n"
+                        + "where\n"
+                        + "  (\n"
+                        + "    (\n"
+                        + "      o.taskRef.targetOid = :targetOid2 and\n"
+                        + "      o.taskRef.relation in (:relation2)\n"
+                        + "    ) and\n"
+                        + "    (\n"
+                        + "      o.status = :status4 or\n"
+                        + "      o.status = :status5 or\n"
+                        + "      o.status = :status6\n"
+                        + "    )\n"
+                        + "  ) and\n"
+                        + "  s.oid in (\n"
+                        + "    select distinct\n"
+                        + "      s.oid\n"
+                        + "    from\n"
+                        + "      RShadow s\n"
+                        + "        left join s.operationExecutions o\n"
+                        + "    where\n"
+                        + "      (\n"
+                        + "        (\n"
+                        + "          o.taskRef.targetOid = :targetOid and\n"
+                        + "          o.taskRef.relation in (:relation)\n"
+                        + "        ) and\n"
+                        + "        (\n"
+                        + "          o.status = :status or\n"
+                        + "          o.status = :status2 or\n"
+                        + "          o.status = :status3\n"
+                        + "        )\n"
+                        + "      ))\n"
+                        + "order by o.timestamp desc");
+            } else {
+                assertThat(real).isEqualToIgnoringWhitespace("select distinct\n"
+                        + "  s.oid,\n"
+                        + "  s.fullObject,\n"
+                        + "  o.timestamp\n"
+                        + "from\n"
+                        + "  RShadow s\n"
+                        + "    left join s.operationExecutions o\n"
+                        + "where\n"
+                        + "  (\n"
+                        + "    (\n"
+                        + "      o.taskRef.targetOid = :targetOid and\n"
+                        + "      o.taskRef.relation in (:relation)\n"
+                        + "    ) and\n"
+                        + "    (\n"
+                        + "      o.status = :status or\n"
+                        + "      o.status = :status2 or\n"
+                        + "      o.status = :status3\n"
+                        + "    )\n"
+                        + "  )\n"
+                        + "order by o.timestamp desc");
+            }
         } finally {
             close(session);
         }
@@ -3973,7 +4066,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, ShadowType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
                     + "from\n"
@@ -4005,7 +4098,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, ShadowType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  s.oid,\n"
                     + "  s.fullObject\n"
                     + "from\n"
@@ -4030,7 +4123,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, FocusType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  f.oid,\n"
                     + "  f.fullObject\n"
                     + "from\n"
@@ -4055,7 +4148,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query, false, distinct());
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select u.oid,\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
                     + "  RUser u\n"
@@ -4099,7 +4192,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                         + "  RUser u left join u.employeeType e where e like :e escape '!'\n"
                         + "order by u.nameCopy.orig asc\n";
             }
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace(expected);
+            assertThat(real).isEqualToIgnoringWhitespace(expected);
         } finally {
             close(session);
         }
@@ -4155,7 +4248,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                         + "  )\n"
                         + "order by u.nameCopy.orig asc\n";
             }
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace(expected);
+            assertThat(real).isEqualToIgnoringWhitespace(expected);
         } finally {
             close(session);
         }
@@ -4174,7 +4267,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             query.setFilter(ObjectQueryUtil.simplify(query.getFilter(), prismContext));           // necessary to remove "not oid()" clause
             String real = getInterpretedQuery(session, AccessCertificationCampaignType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.oid,\n"
                     + "  a.fullObject\n"
                     + "from\n"
@@ -4202,7 +4295,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, AccessCertificationCampaignType.class, query);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  a.oid,\n"
                     + "  a.fullObject\n"
                     + "from\n"
@@ -4226,7 +4319,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query, true, distinct());
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select count(u.oid) from RUser u");
+            assertThat(real).isEqualToIgnoringWhitespace("select count(u.oid) from RUser u");
         } finally {
             close(session);
         }
@@ -4241,7 +4334,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, UserType.class, query, true, distinct());
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select"
+            assertThat(real).isEqualToIgnoringWhitespace("select"
                     + " count(distinct u.oid)"
                     + " from RUser u"
                     + " left join u.employeeType e"
@@ -4260,7 +4353,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, ObjectType.class, query, false);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -4280,7 +4373,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, AccessCertificationCaseType.class, query, false);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  a.ownerOid, a.id, a.fullObject\n" +
                     "from\n" +
                     "  RAccessCertificationCase a\n" +
@@ -4301,7 +4394,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, ObjectType.class, query, false);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  o.oid, o.fullObject\n" +
                     "from\n" +
                     "  RObject o\n" +
@@ -4320,7 +4413,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(UserType.class).asc(UserType.F_NAME).maxSize(20).build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -4339,7 +4432,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             ObjectQuery query = prismContext.queryFor(RoleType.class).asc(RoleType.F_NAME).maxSize(20).build();
 
             String real = getInterpretedQuery(session, RoleType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  r.oid, r.fullObject\n" +
                     "from\n" +
                     "  RRole r\n" +
@@ -4360,7 +4453,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, TaskType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  t.oid,\n"
                     + "  t.fullObject\n"
                     + "from\n"
@@ -4382,7 +4475,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         try {
             String real = getInterpretedQuery(session, FocusType.class, (ObjectQuery) null);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  f.oid,\n"
                     + "  f.fullObject\n"
                     + "from\n"
@@ -4401,7 +4494,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = rQuery.getQuery().getQueryString();
             System.out.println("Query parameters:\n" + rQuery.getQuerySource().getParameters());
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  o.oid,\n"
                     + "  o.fullObject\n"
                     + "from\n"
@@ -4420,7 +4513,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         try {
             String real = getInterpretedQuery(session, ObjectType.class, (ObjectQuery) null);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  o.oid,\n"
                     + "  o.fullObject\n"
                     + "from\n"
@@ -4439,7 +4532,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .item(F_NAME).eq("asdf").matchingNorm().build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -4459,7 +4552,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, CaseWorkItemType.class, q, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  c.ownerOid,\n"
                     + "  c.id\n"
                     + "from\n"
@@ -4484,7 +4577,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, CaseWorkItemType.class, q, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  c.ownerOid,\n"
                     + "  c.id\n"
                     + "from\n"
@@ -4510,7 +4603,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
             String real = getInterpretedQuery(session, UserType.class, q, false);
 
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -4548,7 +4641,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             q.setPaging(paging);
 
             String real = getInterpretedQuery(session, ObjectType.class, q, false);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("");
+            assertThat(real).isEqualToIgnoringWhitespace("");
         } finally {
             close(session);
         }
@@ -4565,7 +4658,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .gt(DatatypeFactory.newInstance().newXMLGregorianCalendar(new GregorianCalendar())).build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n" +
+            assertThat(real).isEqualToIgnoringWhitespace("select\n" +
                     "  u.oid, u.fullObject\n" +
                     "from\n" +
                     "  RUser u\n" +
@@ -4586,7 +4679,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -4608,7 +4701,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -4630,7 +4723,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -4656,7 +4749,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -4681,7 +4774,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
                     .build();
 
             String real = getInterpretedQuery(session, UserType.class, query);
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  u.oid,\n"
                     + "  u.fullObject\n"
                     + "from\n"
@@ -4709,7 +4802,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
             String real = getInterpretedQuery(session, CaseType.class, query);
 
             then("expected HQL is generated");
-            Assertions.assertThat(real).isEqualToIgnoringWhitespace("select\n"
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
                     + "  c.oid,\n"
                     + "  c.fullObject\n"
                     + "from\n"
