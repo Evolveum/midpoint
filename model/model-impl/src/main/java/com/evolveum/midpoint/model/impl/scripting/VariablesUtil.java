@@ -220,7 +220,7 @@ public class VariablesUtil {
             try {
                 return CloneUtil.clone(value);
             } catch (Throwable t) {
-                LOGGER.warn("Scripting variable value {} of type {} couldn't be cloned. Using original.", name, value.getClass());
+                LOGGER.debug("Scripting variable value {} of type {} couldn't be cloned. Using original.", name, value.getClass());
                 return value;
             }
         }
