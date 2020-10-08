@@ -490,7 +490,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
     }
 
     @Test
-    public void test205AutzJackObjectFilterModifyCaribbeanfRole() throws Exception {
+    public void test205AutzJackObjectFilterModifyCaribbeanRole() throws Exception {
         // GIVEN
         cleanupAutzTest(USER_JACK_OID);
         assignRole(USER_JACK_OID, ROLE_OBJECT_FILTER_MODIFY_CARIBBEAN_OID);
@@ -675,10 +675,14 @@ public class TestSecurityBasic extends AbstractSecurityTest {
 
         assertModifyAllow(UserType.class, USER_JACK_OID, UserType.F_FULL_NAME, PrismTestUtil.createPolyString("Captain Jack Sparrow"));
         assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, UserType.F_DESCRIPTION, "Pirate wannabe");
+        assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, ext("loot"), 888);
+        assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, ext("ship"), "Interceptor");
+        assertModifyAllow(UserType.class, USER_GUYBRUSH_OID, ext("weapon"), "sword");
 
         assertModifyDeny(UserType.class, USER_JACK_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Captain"));
         assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Pirate"));
         assertModifyDeny(UserType.class, USER_BARBOSSA_OID, UserType.F_HONORIFIC_PREFIX, PrismTestUtil.createPolyString("Mutineer"));
+        assertModifyDeny(UserType.class, USER_GUYBRUSH_OID, ext("colors"), "red");
 
         assertModifyDenyRaw();
 
@@ -3192,4 +3196,7 @@ public class TestSecurityBasic extends AbstractSecurityTest {
         modelService.executeChanges(MiscSchemaUtil.createCollection(task.createAddDelta()), null, execTask, result);
     }
 
+    private ItemPath ext(Object segment) {
+        return ItemPath.create(ObjectType.F_EXTENSION, segment);
+    }
 }
