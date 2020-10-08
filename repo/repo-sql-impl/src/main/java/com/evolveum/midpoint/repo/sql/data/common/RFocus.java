@@ -44,7 +44,6 @@ public abstract class RFocus extends RObject {
     private Set<RObjectReference<RShadow>> linkRef; // FocusType
     private Set<RObjectReference<RFocus>> personaRef; // FocusType
     private RActivation activation; // FocusType
-    private Set<String> policySituation; // ObjectType
 
     //photo
     private boolean hasPhoto;
@@ -89,16 +88,6 @@ public abstract class RFocus extends RObject {
     @Embedded
     public RActivation getActivation() {
         return activation;
-    }
-
-    @ElementCollection
-    @ForeignKey(name = "fk_focus_policy_situation")
-    @CollectionTable(name = "m_focus_policy_situation", joinColumns = {
-            @JoinColumn(name = "focus_oid", referencedColumnName = "oid")
-    })
-    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
-    public Set<String> getPolicySituation() {
-        return policySituation;
     }
 
     @JaxbName(localPart = "locality")
@@ -175,10 +164,6 @@ public abstract class RFocus extends RObject {
         this.localityFocus = locality;
     }
 
-    public void setPolicySituation(Set<String> policySituation) {
-        this.policySituation = policySituation;
-    }
-
     public void setLinkRef(Set<RObjectReference<RShadow>> linkRef) {
         this.linkRef = linkRef;
     }
@@ -209,9 +194,6 @@ public abstract class RFocus extends RObject {
 
         if (linkRef != null ? !linkRef.equals(other.linkRef) : other.linkRef != null) { return false; }
         if (activation != null ? !activation.equals(other.activation) : other.activation != null) { return false; }
-        if (policySituation != null ? !policySituation.equals(other.policySituation) : other.policySituation != null) {
-            return false;
-        }
         if (localityFocus != null ? !localityFocus.equals(other.localityFocus) : other.localityFocus != null) { return false; }
         if (costCenter != null ? !costCenter.equals(other.costCenter) : other.costCenter != null) { return false; }
         if (emailAddress != null ? !emailAddress.equals(other.emailAddress) : other.emailAddress != null) { return false; }
@@ -265,8 +247,6 @@ public abstract class RFocus extends RObject {
             repo.getJpegPhoto().add(photo);
             repo.setHasPhoto(true);
         }
-
-        repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
 
         if (jaxb.getCredentials() != null && jaxb.getCredentials().getPassword() != null
                 && jaxb.getCredentials().getPassword().getMetadata() != null) {
