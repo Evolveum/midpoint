@@ -7,17 +7,16 @@
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans
-        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd"
-       default-lazy-init="true" default-autowire="byName">
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
 
-    <bean id="midpointPointcut" class="com.evolveum.midpoint.util.aspect.MidpointPointcut" />
-    <bean id="midpointAdvice" class="com.evolveum.midpoint.util.aspect.MidpointInterceptor" />
+    <bean id="midpointPointcut" class="com.evolveum.midpoint.util.aspect.MidpointPointcut"/>
+    <bean id="midpointAdvice" class="com.evolveum.midpoint.util.aspect.MidpointInterceptor"/>
 
     <bean id="midpointAdvisor" class="org.springframework.aop.support.DefaultPointcutAdvisor">
-        <property name="pointcut" ref="midpointPointcut" />
-        <property name="advice" ref="midpointAdvice" />
+        <property name="pointcut" ref="midpointPointcut"/>
+        <property name="advice" ref="midpointAdvice"/>
     </bean>
 
     <bean id="instrumentableBeans" class="java.util.ArrayList">
@@ -46,7 +45,8 @@
 
     <bean class="org.springframework.aop.framework.autoproxy.BeanNameAutoProxyCreator">
         <property name="beanNames" value="#{midpointConfiguration.profilingEnabled ? instrumentableBeans : noBeans}"/>
-        <!--<property name="proxyTargetClass" value="true"/>-->
+        <!-- Needed because of direct class injects (SqlRepositoryServiceImpl), see MID-6502. -->
+        <property name="proxyTargetClass" value="true"/>
         <property name="interceptorNames">
             <list>
                 <value>midpointAdvisor</value>
