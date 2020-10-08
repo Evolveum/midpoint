@@ -111,7 +111,7 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     private <S extends SearchItem, T extends Serializable> void initLayout() {
-        moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
+        moreDialogModel = new LoadableModel<MoreDialogDto>(true) {
 
             private static final long serialVersionUID = 1L;
 

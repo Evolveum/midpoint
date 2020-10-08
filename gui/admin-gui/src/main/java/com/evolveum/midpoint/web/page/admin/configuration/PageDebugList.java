@@ -248,7 +248,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             protected WebMarkupContainer createHeader(String headerId) {
-                return new DebugSearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel,
+                DebugSearchFragment headerFragment = new DebugSearchFragment(headerId, ID_TABLE_HEADER, PageDebugList.this, searchModel,
                         resourcesModel, objectClassListModel, showAllItemsModel) {
 
                     private static final long serialVersionUID = 1L;
@@ -258,6 +258,8 @@ public class PageDebugList extends PageAdminConfiguration {
                         listObjectsPerformed(target, oidFilter);
                     }
                 };
+                headerFragment.setOutputMarkupId(true);
+                return headerFragment;
             }
 
         };
