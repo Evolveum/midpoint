@@ -577,57 +577,6 @@ public class WebModelServiceUtils {
         return principal.getOid();
     }
 
-//    public static Locale getLocale() {
-//        return getLocale(null);
-//    }
-
-    public static <F extends FocusType> Locale getLocale() {
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-        if (principal == null) {
-            return MidPointApplication.getDefaultLocale();
-        }
-
-        Locale locale = null;
-
-        F focus = (F) principal.getFocus();
-        if (focus == null) {
-            return MidPointApplication.getDefaultLocale();
-        }
-//        if (principal != null) {
-////            if (focus == null) {
-//                PrismObject<? extends FocusType> focusPrismObject = principal.getFocus().asPrismObject();
-//               FocusType focus = focusPrismObject == null ? null : focusPrismObject.asObjectable();
-////            }
-        String prefLang = focus.getPreferredLanguage();
-        if (StringUtils.isBlank(prefLang)) {
-            prefLang = focus.getLocale();
-        }
-
-        try {
-            locale = LocaleUtils.toLocale(prefLang);
-        } catch (Exception ex) {
-            LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
-        }
-
-        if (locale == null) {
-            if (ThreadContext.getSession() == null) {
-                return MidPointApplication.getDefaultLocale();
-            }
-
-            locale = Session.get().getLocale();
-        }
-
-        if (MidPointApplication.containsLocale(locale)) {
-            return locale;
-        }
-
-        return MidPointApplication.getDefaultLocale();
-    }
-
-//    public static TimeZone getTimezone() {
-//        return getTimezone(null);
-//    }
-
     public static TimeZone getTimezone() {
         GuiProfiledPrincipal principal = SecurityUtils.getPrincipalUser();
 

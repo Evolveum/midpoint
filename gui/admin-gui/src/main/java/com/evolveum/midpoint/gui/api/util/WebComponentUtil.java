@@ -26,10 +26,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.Validate;
+import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.commons.lang3.time.DurationFormatUtils;
 import org.apache.commons.validator.routines.checkdigit.VerhoeffCheckDigit;
@@ -4632,5 +4629,54 @@ public final class WebComponentUtil {
                         && archetypeOid.equals(assignmentType.getTargetRef().getOid()))
                 .collect(Collectors.toList());
         return CollectionUtils.isNotEmpty(archetypeAssignments);
+    }
+
+    public static <F extends FocusType> Locale getLocale() {
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        if (principal == null) {
+            return MidPointApplication.getDefaultLocale();
+        }
+
+        Locale locale = null;
+
+        F focus = (F) principal.getFocus();
+        if (focus == null) {
+            return MidPointApplication.getDefaultLocale();
+        }
+        String prefLang = focus.getPreferredLanguage();
+        if (StringUtils.isBlank(prefLang)) {
+            prefLang = focus.getLocale();
+        }
+
+        try {
+            locale = LocaleUtils.toLocale(prefLang);
+        } catch (Exception ex) {
+            LOGGER.debug("Error occurred while getting user locale, " + ex.getMessage());
+        }
+
+        if (locale == null) {
+            if (ThreadContext.getSession() == null) {
+                return MidPointApplication.getDefaultLocale();
+            }
+
+            locale = Session.get().getLocale();
+        }
+
+        if (MidPointApplication.containsLocale(locale)) {
+            return locale;
+        }
+
+        return MidPointApplication.getDefaultLocale();
+    }
+
+    public static Collator getCollator() {
+        Locale locale = WebComponentUtil.getLocale();
+        if (locale == null) {
+            locale = Locale.getDefault();
+        }
+        Collator collator = Collator.getInstance(locale);
+        collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
+        collator.setDecomposition(Collator.FULL_DECOMPOSITION);
+        return collator;
     }
 }

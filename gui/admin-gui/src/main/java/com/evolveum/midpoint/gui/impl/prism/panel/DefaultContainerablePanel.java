@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Locale;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -133,14 +135,7 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
         CVW containerValueWrapper = getModelObject();
         List<ItemWrapper<?, ?>> nonContainers = containerValueWrapper.getNonContainers();
 
-        Locale locale = WebModelServiceUtils.getLocale();
-        if (locale == null) {
-            locale = Locale.getDefault();
-        }
-        Collator collator = Collator.getInstance(locale);
-        collator.setStrength(Collator.SECONDARY);       // e.g. "a" should be different from "á"
-        collator.setDecomposition(Collator.FULL_DECOMPOSITION);
-        ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(collator, getModelObject().isSorted());
+        ItemWrapperComparator<?> comparator = new ItemWrapperComparator<>(WebComponentUtil.getCollator(), getModelObject().isSorted());
         if (CollectionUtils.isNotEmpty(nonContainers)) {
             nonContainers.sort((Comparator) comparator);
         }
