@@ -375,7 +375,7 @@ public class DashboardServiceImpl implements DashboardService {
                     collectionSpec, null, task, task.getResult());
             CollectionStats collStats = modelInteractionService.determineCollectionStats(compiledCollection, task, result);
 
-            int value = collStats.getObjectCount();//getObjectCount(valueCollection, true, task, result);
+            Integer value = collStats.getObjectCount();//getObjectCount(valueCollection, true, task, result);
             Integer domainValue = collStats.getDomainCount();
             IntegerStatType statType = generateIntegerStat(value, domainValue);
 
