@@ -754,6 +754,7 @@ public class ShadowCache {
         }
         ResourceOperationDescription operationDescription = ProvisioningUtil.createResourceFailureDescription(shadow, ctx.getResource(), delta, parentResult);
         operationListener.notifyFailure(operationDescription, task, parentResult);
+        parentResult.computeStatusIfUnknown();
     }
 
     private OperationResultStatus handleModifyError(ProvisioningContext ctx,
