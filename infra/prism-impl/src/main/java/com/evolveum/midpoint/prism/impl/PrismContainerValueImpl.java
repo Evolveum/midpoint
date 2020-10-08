@@ -1679,16 +1679,30 @@ public class PrismContainerValueImpl<C extends Containerable> extends PrismValue
         if (path.isEmpty()) {
             return singleton(this);
         }
-        Item<PrismValue, ItemDefinition> item = findItem(path.firstToName());
-        if (item == null) {
-            return emptySet();
+        Object first = path.first();
+        if (ItemPath.isIdentifier(first)) {
+            return singleton(new PrismPropertyValueImpl<>(getIdentifier()));
+        } else if (ItemPath.isName(first)) {
+            Item<PrismValue, ItemDefinition> item = findItem(path.firstToName());
+            if (item == null) {
+                return emptySet();
+            }
+            ItemPath rest = path.rest();
+            List<PrismValue> rv = new ArrayList<>();
+            for (PrismValue prismValue : item.getValues()) {
+                rv.addAll(prismValue.getAllValues(rest));
+            }
+            return rv;
+        } else {
+            throw new IllegalArgumentException("Item paths does not start with a name nor with '#': " + path);
         }
-        ItemPath rest = path.rest();
-        List<PrismValue> rv = new ArrayList<>();
-        for (PrismValue prismValue : item.getValues()) {
-            rv.addAll(prismValue.getAllValues(rest));
-        }
-        return rv;
+    }
+
+    /**
+     * Returns the value of identifier corresponding to the '#' path: container id or object oid.
+     */
+    public Object getIdentifier() {
+        return id;
     }
 
     public void removeItems(List<? extends ItemPath> itemsToRemove) {

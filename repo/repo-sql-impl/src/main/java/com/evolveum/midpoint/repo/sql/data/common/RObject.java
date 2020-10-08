@@ -19,6 +19,7 @@ import javax.persistence.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.NamedQueries;
 import org.hibernate.annotations.NamedQuery;
 import org.hibernate.annotations.*;
@@ -144,6 +145,8 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     private Set<RObjectReference<RFocus>> delegatedRef; // AssignmentHolderType
     private Set<RObjectReference<RArchetype>> archetypeRef; // AssignmentHolderType
     private Set<RAssignment> assignments; // AssignmentHolderType
+
+    private Set<String> policySituation;
 
     @Id
     @GeneratedValue(generator = "ObjectOidGenerator")
@@ -488,7 +491,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
 
     @NotQueryable
     @OneToMany(mappedBy = "owner", orphanRemoval = true, cascade = ALL)
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     public Set<RObjectTextInfo> getTextInfoItems() {
         if (textInfoItems == null) {
             textInfoItems = new HashSet<>();
@@ -501,8 +503,6 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     }
 
     @OneToMany(mappedBy = RAssignment.F_OWNER, orphanRemoval = true, cascade = ALL)
-//    @ForeignKey(name = "none")
-//    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
     @JaxbName(localPart = "operationExecution")
     public Set<ROperationExecution> getOperationExecutions() {
         if (operationExecutions == null) {
@@ -531,6 +531,21 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
     public void setArchetypeRef(Set<RObjectReference<RArchetype>> archetypeRef) {
         this.archetypeRef = archetypeRef;
     }
+
+    @ElementCollection
+    @ForeignKey(name = "fk_object_policy_situation")
+    @CollectionTable(name = "m_object_policy_situation", joinColumns = {
+            @JoinColumn(name = "object_oid", referencedColumnName = "oid")
+    })
+    @Cascade({ org.hibernate.annotations.CascadeType.ALL })
+    public Set<String> getPolicySituation() {
+        return policySituation;
+    }
+
+    public void setPolicySituation(Set<String> policySituation) {
+        this.policySituation = policySituation;
+    }
+
 
     /* TODO: remove in 2021, I believe id-based eq/hash is best for entities like this
     @Override
@@ -658,6 +673,8 @@ public abstract class RObject implements Metadata<RObjectReference<RFocus>>, Ent
 
         MetadataFactory.fromJaxb(jaxb.getMetadata(), repo, repositoryContext.relationRegistry);
         repo.setTenantRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getTenantRef(), repositoryContext.relationRegistry));
+
+        repo.setPolicySituation(RUtil.listToSet(jaxb.getPolicySituation()));
 
         if (jaxb.getExtension() != null) {
             copyExtensionOrAttributesFromJAXB(jaxb.getExtension().asPrismContainerValue(), repo, repositoryContext, RObjectExtensionType.EXTENSION, generatorResult);
