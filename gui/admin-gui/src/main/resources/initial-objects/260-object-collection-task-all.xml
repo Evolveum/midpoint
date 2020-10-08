@@ -7,7 +7,13 @@
   -->
 
 <objectCollection xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+                  xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
                   oid="00000000-0000-0000-0001-000000000007">
     <name>All tasks</name>
     <type>TaskType</type>
+    <filter>
+        <q:equal>
+            <q:path>parent</q:path>
+        </q:equal>
+    </filter>
 </objectCollection>

@@ -45,7 +45,7 @@ import com.evolveum.midpoint.web.application.AuthorizationAction;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
@@ -138,11 +138,15 @@ public class PageAuditLogDetails extends PageBase {
     public PageAuditLogDetails() {
         AuditLogStorage storage = getSessionStorage().getAuditLog();
         initModel(storage.getAuditRecord());
-        initLayout();
     }
 
     public PageAuditLogDetails(AuditEventRecordType recordType) {
         initModel(recordType);
+    }
+
+    @Override
+    protected void onInitialize() {
+        super.onInitialize();
         initLayout();
     }
 
@@ -311,7 +315,7 @@ public class PageAuditLogDetails extends PageBase {
         Label taskOidLabel = new Label(ID_PARAMETERS_TASK_OID_LABEL, new PropertyModel(recordModel, "taskOID"));
 
         PrismObject<TaskType> finalTask = task;
-        LinkPanel taskOidLink = new LinkPanel(ID_PARAMETERS_TASK_OID_LINK, Model.of(finalTask == null ? "" : (" " + finalTask.getName().getOrig()))) {
+        AjaxLinkPanel taskOidLink = new AjaxLinkPanel(ID_PARAMETERS_TASK_OID_LINK, Model.of(finalTask == null ? "" : (" " + finalTask.getName().getOrig()))) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -531,7 +535,7 @@ public class PageAuditLogDetails extends PageBase {
                                     if (rawType != null && QNameUtil.match(rawType.getExplicitTypeName(), ObjectReferenceType.COMPLEX_TYPE)) {
                                         try {
                                             //TODO change this after hack in asReferencable is fixed
-                                            Referencable ref = rawType.getParsedRealValue(ObjectReferenceType.class);
+                                            Referencable ref = rawType.getParsedRealValue(Referencable.class);
                                             if (ref != null && !StringUtils.isEmpty(ref.getOid())) {
                                                 String resource = (delta.getResourceName() != null) ? delta.getResourceName().getOrig() : delta.getResourceOid();
                                                 resourceForShadow.put(ref.getOid(), resource);

@@ -165,10 +165,10 @@ public class DefaultContainerablePanel<C extends Containerable, CVW extends Pris
                     return itemWrapper.isVisible(getModelObject(), getVisibilityHandler());
                 }
 
-                @Override
-                public boolean isEnabled() {
-                    return !itemWrapper.isReadOnly();
-                }
+//                @Override
+//                public boolean isEnabled() {
+//                    return !itemWrapper.isReadOnly();
+//                }
             });
             item.add(panel);
         } catch (SchemaException e1) {

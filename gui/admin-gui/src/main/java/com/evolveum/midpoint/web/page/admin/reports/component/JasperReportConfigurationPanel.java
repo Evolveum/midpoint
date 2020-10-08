@@ -208,7 +208,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
         columns.add(
                 buildEditableLinkColumn("JasperReportConfigurationPanel.nestedClass", null, "nestedTypeAsString", true));
 
-        columns.add(new LinkColumn<JasperReportParameterDto>(createStringResource("JasperReportConfigurationPanel.properties")) {
+        columns.add(new AjaxLinkColumn<JasperReportParameterDto>(createStringResource("JasperReportConfigurationPanel.properties")) {
 
             private static final long serialVersionUID = 1L;
 
@@ -252,9 +252,9 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
 
     }
 
-    private EditableLinkColumn<JasperReportParameterDto> buildEditableLinkColumn(
+    private EditableAjaxLinkColumn<JasperReportParameterDto> buildEditableLinkColumn(
             String resource, String resourceParam, String property, final Boolean mandatory) {
-        return new EditableLinkColumn<JasperReportParameterDto>(createStringResource(resource, resourceParam),
+        return new EditableAjaxLinkColumn<JasperReportParameterDto>(createStringResource(resource, resourceParam),
                 property) {
 
             private static final long serialVersionUID = 1L;
@@ -289,7 +289,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
         columns.add(column);
 
         // name editing column
-        columns.add(new EditableLinkColumn<JasperReportFieldDto>(
+        columns.add(new EditableAjaxLinkColumn<JasperReportFieldDto>(
                 createStringResource("JasperReportConfigurationPanel.fieldName"), "name") {
 
             private static final long serialVersionUID = 1L;
@@ -307,7 +307,7 @@ public class JasperReportConfigurationPanel extends BasePanel<ReportDto> {
         });
 
         // class editing column
-        columns.add(new EditableLinkColumn<JasperReportFieldDto>(
+        columns.add(new EditableAjaxLinkColumn<JasperReportFieldDto>(
                 createStringResource("JasperReportConfigurationPanel.fieldClass"), "typeAsString") {
 
             private static final long serialVersionUID = 1L;

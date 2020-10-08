@@ -60,7 +60,7 @@ import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.Table;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.TwoValueLinkPanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationPanel;
 import com.evolveum.midpoint.web.component.dialog.DeleteAllDto;
@@ -275,7 +275,7 @@ public class PageDebugList extends PageAdminConfiguration {
         IColumn<DebugObjectItem, String> column = new CheckBoxHeaderColumn<>();
         columns.add(column);
 
-        column = new LinkColumn<DebugObjectItem>(createStringResource("pageDebugList.name"),
+        column = new AjaxLinkColumn<DebugObjectItem>(createStringResource("pageDebugList.name"),
                 DebugObjectItem.F_NAME, DebugObjectItem.F_NAME) {
             private static final long serialVersionUID = 1L;
 

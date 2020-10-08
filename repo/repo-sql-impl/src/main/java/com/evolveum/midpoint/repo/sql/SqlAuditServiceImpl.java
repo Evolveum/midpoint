@@ -1123,7 +1123,7 @@ public class SqlAuditServiceImpl extends SqlBaseService implements AuditService 
         try {
             SearchResultList<AuditEventRecordType> result =
                     sqlQueryExecutor.list(AuditEventRecordType.class, query, options);
-            addContainerDefinition(AuditEventRecordType.class, result);
+//            addContainerDefinition(AuditEventRecordType.class, result);
             return result;
         } catch (QueryException | RuntimeException e) {
             baseHelper.handleGeneralException(e, operationResult);

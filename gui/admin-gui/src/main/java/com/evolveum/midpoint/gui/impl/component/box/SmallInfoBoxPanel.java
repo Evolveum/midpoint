@@ -6,6 +6,9 @@
  */
 package com.evolveum.midpoint.gui.impl.component.box;
 
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.DashboardWidgetSourceTypeType;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
@@ -36,12 +39,11 @@ public abstract class SmallInfoBoxPanel extends InfoBoxPanel{
     private static final String ID_MORE_INFO_BOX_LABEL = "moreInfoBoxLabel";
 
     public SmallInfoBoxPanel(String id, IModel<DashboardWidgetType> model, PageBase pageBase) {
-        super(id, model, pageBase);
+        super(id, model);
     }
 
     @Override
     protected void customInitLayout(WebMarkupContainer parentInfoBox) {
-        IModel<DashboardWidgetType> model = (IModel<DashboardWidgetType>)getDefaultModel();
         WebMarkupContainer moreInfoBox = new WebMarkupContainer(ID_MORE_INFO_BOX);
         parentInfoBox.add(moreInfoBox);
         WebMarkupContainer moreInfoBoxIcon = new WebMarkupContainer(ID_MORE_INFO_BOX_ICON);
@@ -49,25 +51,18 @@ public abstract class SmallInfoBoxPanel extends InfoBoxPanel{
         Label moreInfoBoxLabel = new Label(ID_MORE_INFO_BOX_LABEL, getPageBase().createStringResource("PageDashboard.infobox.moreInfo"));
         moreInfoBox.add(moreInfoBoxLabel);
 
-        if (existLinkRef()) {
             moreInfoBox.add(new AjaxEventBehavior("click") {
                 private static final long serialVersionUID = 1L;
 
                 @Override
                 protected void onEvent(AjaxRequestTarget target) {
-                    PageParameters parameters = new PageParameters();
-                    WebPage page = getLinkRef();
-                    getPageBase().navigateToNext(page);
+                    navigateToPage();
                 }
             });
             moreInfoBox.add(AttributeModifier.append("class", "cursor-pointer"));
-        } else {
-            LOGGER.warn("Link is not found for widget " + model.getObject().getIdentifier());
-            setInvisible(moreInfoBoxIcon);
-            setInvisible(moreInfoBoxLabel);
-            moreInfoBox.add(AttributeModifier.append("style", "height: 26px; background:rgba(0, 0, 0, 0.1) !important;"));
-        }
 
+            setInvisible(moreInfoBox);
+            moreInfoBox.add(AttributeModifier.append("style", "height: 26px; background:rgba(0, 0, 0, 0.1) !important;"));
     }
 
     @Override
@@ -79,8 +74,9 @@ public abstract class SmallInfoBoxPanel extends InfoBoxPanel{
 
             @Override
             public boolean isVisible() {
-                return false;
+                return existLinkRef();
             }
         });
     }
+
 }

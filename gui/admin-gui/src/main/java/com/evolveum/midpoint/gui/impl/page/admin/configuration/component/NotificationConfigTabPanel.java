@@ -327,7 +327,7 @@ public class NotificationConfigTabPanel extends BasePanel<PrismContainerWrapper<
 
         });
 
-        columns.add(new EditableLinkColumn<MailServerConfiguration>(createStringResource("MailServerConfigurationType.host")) {
+        columns.add(new EditableAjaxLinkColumn<MailServerConfiguration>(createStringResource("MailServerConfigurationType.host")) {
             private static final long serialVersionUID = 1L;
 
             @Override

@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -48,7 +49,6 @@ import com.evolveum.midpoint.web.component.box.InfoBoxType;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
 import com.evolveum.midpoint.web.component.data.column.ColumnTypeDto;
 import com.evolveum.midpoint.web.component.data.column.ColumnUtils;
-import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SelectableBeanImpl;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceConfigurationDto;
@@ -131,7 +131,7 @@ public class ResourceDetailsTabPanel extends Panel {
                 ResourceConfigurationDto conf = (ResourceConfigurationDto) rowModel.getObject();
                 RepeatingView repeater = new RepeatingView(componentId);
                 for (final TaskType task : conf.getDefinedTasks()) {
-                    repeater.add(new LinkPanel(repeater.newChildId(),
+                    repeater.add(new AjaxLinkPanel(repeater.newChildId(),
                             new Model<>(task.getName().getOrig())) {
 
                         @Override

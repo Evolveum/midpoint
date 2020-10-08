@@ -12,10 +12,10 @@ import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.data.BoxedTablePanel;
+import com.evolveum.midpoint.web.component.data.column.AjaxLinkColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.GenericColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.wf.WfGuiUtil;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.dto.ApprovalOutcomeIcon;
@@ -160,7 +160,7 @@ public class ProcessInstancesPanel extends BasePanel {
     private IColumn<ProcessInstanceDto,String> createNameColumn() {
         if (WebComponentUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL,
                 AuthorizationConstants.AUTZ_UI_TASK_URL)) {
-            return new LinkColumn<ProcessInstanceDto>(createStringResource("MyRequestsPanel.name"), "name") {
+            return new AjaxLinkColumn<ProcessInstanceDto>(createStringResource("MyRequestsPanel.name"), "name") {
 
                 @Override
                 protected IModel createLinkModel(IModel<ProcessInstanceDto> rowModel) {
@@ -239,7 +239,7 @@ public class ProcessInstancesPanel extends BasePanel {
     // copied and adapted from WorkItemsPanel - TODO deduplicate
 
     IColumn<ProcessInstanceDto, String> createObjectNameColumn(final String headerKey) {
-        return new LinkColumn<ProcessInstanceDto>(createStringResource(headerKey), ProcessInstanceDto.F_OBJECT_NAME) {
+        return new AjaxLinkColumn<ProcessInstanceDto>(createStringResource(headerKey), ProcessInstanceDto.F_OBJECT_NAME) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
@@ -250,7 +250,7 @@ public class ProcessInstancesPanel extends BasePanel {
     }
 
     IColumn<ProcessInstanceDto, String> createTargetNameColumn(final String headerKey) {
-        return new LinkColumn<ProcessInstanceDto>(createStringResource(headerKey), ProcessInstanceDto.F_TARGET_NAME) {
+        return new AjaxLinkColumn<ProcessInstanceDto>(createStringResource(headerKey), ProcessInstanceDto.F_TARGET_NAME) {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
