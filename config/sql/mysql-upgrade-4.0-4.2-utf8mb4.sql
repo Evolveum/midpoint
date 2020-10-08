@@ -53,7 +53,7 @@ CREATE INDEX iAuditEventRecordEStageTOid
   ON m_audit_event (eventStage, targetOid);
 
 -- policySituation belong to M_OBJECT
-ALTER TABLE m_focus_policy_situation DROP CONSTRAINT fk_focus_policy_situation;
+ALTER TABLE m_focus_policy_situation DROP FOREIGN KEY fk_focus_policy_situation;
 ALTER TABLE m_focus_policy_situation RENAME TO m_object_policy_situation;
 ALTER TABLE m_object_policy_situation CHANGE COLUMN focus_oid object_oid VARCHAR(36) CHARSET utf8 COLLATE utf8_bin NOT NULL;
 ALTER TABLE m_object_policy_situation
