@@ -13,9 +13,14 @@ import java.util.Collection;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
@@ -34,8 +39,6 @@ import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommonException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
@@ -48,9 +51,12 @@ public class ClockworkAuditHelper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ClockworkAuditHelper.class);
 
+    private static final String OP_EVALUATE_AUDIT_RECORD_PROPERTY = ClockworkAuditHelper.class.getName() + ".evaluateAuditRecordProperty";
+
     @Autowired private PrismContext prismContext;
     @Autowired private AuditHelper auditHelper;
     @Autowired private ExpressionFactory expressionFactory;
+    @Autowired @Qualifier("cacheRepositoryService") private RepositoryService repositoryService;
 
     // "overallResult" covers the whole clockwork run
     // while "result" is - most of the time - related to the current clockwork click
@@ -193,28 +199,7 @@ public class ClockworkAuditHelper {
         addRecordMessage(auditRecord, clone.getMessage());
 
         for (SystemConfigurationAuditEventRecordingPropertyType property : propertiesToRecord) {
-            String name = property.getName();
-            if (StringUtils.isBlank(name)) {
-                throw new IllegalArgumentException("Name of SystemConfigurationAuditEventRecordingPropertyType is empty or null in " + property);
-            }
-            ExpressionType expression = property.getExpression();
-            if (expression != null) {
-                ExpressionVariables variables = new ExpressionVariables();
-                variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
-                variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
-                String shortDesc = "value for custom column of audit table";
-                try {
-                    Collection<String> values = ExpressionUtil.evaluateStringExpression(variables, prismContext, expression, context.getPrivilegedExpressionProfile(), expressionFactory, shortDesc, task, result);
-                    if (values != null && !values.isEmpty()) {
-                        if (values.size() > 1) {
-                            throw new IllegalArgumentException("Collection of expression result contains more as one value");
-                        }
-                        auditRecord.getCustomColumnProperty().put(name, values.iterator().next());
-                    }
-                } catch (CommonException e) {
-                    LOGGER.error("Couldn't evaluate Expression " + expression.toString(), e);
-                }
-            }
+            evaluateAuditRecordProperty(property, auditRecord, primaryObject, context, task, result);
         }
 
         auditHelper.audit(auditRecord, context.getNameResolver(), task, result);
@@ -227,6 +212,63 @@ public class ClockworkAuditHelper {
             assert stage == AuditEventStage.REQUEST;
             context.setRequestAudited(true);
         }
+    }
+
+    private <F extends ObjectType> void evaluateAuditRecordProperty(SystemConfigurationAuditEventRecordingPropertyType propertyDef,
+            AuditEventRecord auditRecord, PrismObject<? extends ObjectType> primaryObject, LensContext<F> context, Task task,
+            OperationResult parentResult) {
+        String name = propertyDef.getName();
+        OperationResult result = parentResult.subresult(OP_EVALUATE_AUDIT_RECORD_PROPERTY)
+                .addParam("name", name)
+                .setMinor()
+                .build();
+        try {
+            if (StringUtils.isBlank(name)) {
+                throw new IllegalArgumentException("Name of SystemConfigurationAuditEventRecordingPropertyType is empty or null in " + propertyDef);
+            }
+            if (!targetSelectorMatches(propertyDef.getTargetSelector(), primaryObject)) {
+                result.recordNotApplicable();
+                return;
+            }
+            ExpressionType expression = propertyDef.getExpression();
+            if (expression != null) {
+                ExpressionVariables variables = new ExpressionVariables();
+                variables.put(ExpressionConstants.VAR_TARGET, primaryObject, PrismObject.class);
+                variables.put(ExpressionConstants.VAR_AUDIT_RECORD, auditRecord, AuditEventRecord.class);
+                String shortDesc = "value for custom column of audit table";
+                Collection<String> values = ExpressionUtil.evaluateStringExpression(variables, prismContext, expression,
+                        context.getPrivilegedExpressionProfile(), expressionFactory, shortDesc, task, result);
+                if (values == null || values.isEmpty()) {
+                    // nothing to do
+                } else if (values.size() == 1) {
+                    auditRecord.getCustomColumnProperty().put(name, values.iterator().next());
+                } else {
+                    throw new IllegalArgumentException("Collection of expression result contains more than one value");
+                }
+            }
+        } catch (Throwable t) {
+            LoggingUtils.logUnexpectedException(LOGGER, "Couldn't evaluate audit record property expression {}", t, name);
+            // Intentionally not throwing the exception. The error is marked as partial.
+            // (It would be better to mark it as fatal and to derive overall result as partial, but we aren't that far yet.)
+            result.recordPartialError(t);
+        } finally {
+            result.recordSuccessIfUnknown();
+        }
+    }
+
+    private boolean targetSelectorMatches(List<ObjectSelectorType> targetSelectors,
+            PrismObject<? extends ObjectType> primaryObject) throws CommunicationException, ObjectNotFoundException,
+            SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+        if (targetSelectors.isEmpty()) {
+            return true;
+        }
+        for (ObjectSelectorType targetSelector : targetSelectors) {
+            if (repositoryService.selectorMatches(targetSelector, primaryObject, null, LOGGER, "target selector")) {
+                return true;
+            }
+        }
+        LOGGER.debug("No selector matches for {}", primaryObject);
+        return false;
     }
 
     @NotNull
