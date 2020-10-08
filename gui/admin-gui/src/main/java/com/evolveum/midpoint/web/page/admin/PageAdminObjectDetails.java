@@ -1139,7 +1139,7 @@ public abstract class PageAdminObjectDetails<O extends ObjectType> extends PageA
             return;
         }
         if (result.isSuccess() && getDelta() != null && SecurityUtils.getPrincipalUser().getOid().equals(getDelta().getOid())) {
-            Session.get().setLocale(WebModelServiceUtils.getLocale());
+            Session.get().setLocale(WebComponentUtil.getLocale());
             LOGGER.debug("Using {} as locale", getLocale());
             WebSession.get().getClientInfo().getProperties().
                     setTimeZone(WebModelServiceUtils.getTimezone());
