@@ -52,4 +52,11 @@ ALTER TABLE m_service ADD CONSTRAINT uc_service_name UNIQUE (name_norm);
 CREATE INDEX iAuditEventRecordEStageTOid
   ON m_audit_event (eventStage, targetOid);
 
+-- policySituation belong to M_OBJECT
+ALTER TABLE m_focus_policy_situation DROP CONSTRAINT fk_focus_policy_situation;
+ALTER TABLE m_focus_policy_situation RENAME TO m_object_policy_situation;
+ALTER TABLE m_object_policy_situation CHANGE COLUMN focus_oid object_oid VARCHAR(36) NOT NULL;
+ALTER TABLE m_object_policy_situation
+  ADD CONSTRAINT fk_object_policy_situation FOREIGN KEY (object_oid) REFERENCES m_object (oid);
+
 COMMIT;
