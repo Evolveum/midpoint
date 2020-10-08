@@ -68,7 +68,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.tools.testng.UnusedTestElement;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -4615,33 +4614,24 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         }
     }
 
-    //@Test
-    @UnusedTestElement
-    public void test734QueryWithMultiValueItemPathForOrdering() throws Exception {
+    @Test
+    public void test734QueryPolicySituationOnObject() throws Exception {
         Session session = open();
         try {
-            ObjectQuery q = prismContext.queryFor(ObjectType.class)
-                    .exists(F_OPERATION_EXECUTION)
-                    .block()
-                    .item(OperationExecutionType.F_TASK_REF).ref("00000000-0000-0000-0000-000000000006")
-                    .and()
-                    .block().item(OperationExecutionType.F_STATUS)
-                    .eq(OperationResultStatusType.FATAL_ERROR)
-                    .or().item(OperationExecutionType.F_STATUS)
-                    .eq(OperationResultStatusType.PARTIAL_ERROR)
-                    .or().item(OperationExecutionType.F_STATUS)
-                    .eq(OperationResultStatusType.WARNING)
-                    .endBlock()
-                    .endBlock()
+            ObjectQuery query = prismContext.queryFor(ObjectType.class)
+                    .item(F_POLICY_SITUATION)
+                    .eq("policy-situation-URL")
                     .build();
-            List<ObjectOrdering> orderings = Collections.singletonList(
-                    prismContext.queryFactory().createOrdering(
-                            ItemPath.create("operationExecution", "timestamp"), OrderDirection.ASCENDING));
-            ObjectPaging paging = prismContext.queryFactory().createPaging(1, 20, orderings);
-            q.setPaging(paging);
 
-            String real = getInterpretedQuery(session, ObjectType.class, q, false);
-            assertThat(real).isEqualToIgnoringWhitespace("");
+            String real = getInterpretedQuery(session, ObjectType.class, query, false);
+            assertThat(real).isEqualToIgnoringWhitespace("select\n"
+                    + "  o.oid,\n"
+                    + "  o.fullObject\n"
+                    + "from\n"
+                    + "  RObject o\n"
+                    + "    left join o.policySituation p\n"
+                    + "where\n"
+                    + "  p = :p");
         } finally {
             close(session);
         }

@@ -922,7 +922,8 @@ public class AuditSearchTest extends BaseSQLRepoTest {
         assertThat(record1.asPrismContainerValue().getComplexTypeDefinition()).isNotNull();
         // This one is parent container's definition and it is a bit questionable,
         // whether it's a responsibility of the repository service.
-        assertThat(record1.asPrismContainerValue().getDefinition()).isNotNull();
+        // TODO: definitions are (temporarily?) disabled for performance reasons
+//        assertThat(record1.asPrismContainerValue().getDefinition()).isNotNull();
 
         and("record 2 has expected delta count");
         AuditEventRecordType record2 = result.get(1);

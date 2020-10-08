@@ -356,6 +356,28 @@ public class TestObjectQuery extends AbstractPrismTest {
         assertDateTimeLtFilter(user, earlier, false);
     }
 
+    @Test // MID-6601
+    public void testOidGtFilter() throws Exception {
+        PrismObject<UserType> user = parseUserJack();
+        ObjectFilter filter =
+                getPrismContext().queryFor(UserType.class)
+                        .item(PrismConstants.T_ID).gt("00")
+                        .buildFilter();
+        boolean match = ObjectQuery.match(user, filter, MATCHING_RULE_REGISTRY);
+        AssertJUnit.assertTrue("filter does not match object", match);
+    }
+
+    @Test // MID-6601
+    public void testOidSubstringFilter() throws Exception {
+        PrismObject<UserType> user = parseUserJack();
+        ObjectFilter filter =
+                getPrismContext().queryFor(UserType.class)
+                        .item(PrismConstants.T_ID).startsWith("c0c0")
+                        .buildFilter();
+        boolean match = ObjectQuery.match(user, filter, MATCHING_RULE_REGISTRY);
+        AssertJUnit.assertTrue("filter does not match object", match);
+    }
+
     private void assertNumGeFilter(PrismObject<UserType> user, Object value, boolean expected) throws SchemaException {
         assertGeFilter(user, EXTENSION_NUM_ELEMENT, DOMUtil.XSD_INT, value, expected);
     }

@@ -77,7 +77,10 @@ public class OperationExecutionRecorder {
                     } else {
                         exceptionToProjection = null;
                     }
-                    recordProjectionOperationExecution(context, projectionContext, now, exceptionToProjection, task, result);
+                    boolean recordedToProjection = recordProjectionOperationExecution(context, projectionContext, now, exceptionToProjection, task, result);
+                    if (!recordedToProjection) { //probably shadow does not exist. let's record to the focus
+                        recordProjectionOperationExecutionToFocus(context, projectionContext, now, exceptionToProjection, task, result);
+                    }
                 }
             } catch (Throwable t) {
                 LoggingUtils.logUnexpectedException(LOGGER, "Couldn't record operation execution. Model context:\n{}", t,
@@ -107,6 +110,7 @@ public class OperationExecutionRecorder {
         //noinspection unchecked
         List<LensObjectDeltaOperation<F>> executedDeltas = getExecutedDeltas(focusContext,
                 (Class<F>) objectNew.asObjectable().getClass(), clockworkException, result);
+        executedDeltas.addAll(filterRottenExecutedDeltas(objectNew, context.getRottenExecutedDeltas()));
         LOGGER.trace("recordFocusOperationExecution: executedDeltas: {}", executedDeltas.size());
         return recordOperationExecution(context, objectNew, false, executedDeltas, now, task, result);
     }
@@ -114,9 +118,8 @@ public class OperationExecutionRecorder {
     @NotNull
     private <O extends ObjectType> List<LensObjectDeltaOperation<O>> getExecutedDeltas(LensElementContext<O> elementContext,
             Class<O> objectClass, Throwable clockworkException, OperationResult result) {
-        List<LensObjectDeltaOperation<O>> executedDeltas;
+        List<LensObjectDeltaOperation<O>> executedDeltas = new ArrayList<>(elementContext.getExecutedDeltas());
         if (clockworkException != null) {
-            executedDeltas = new ArrayList<>(elementContext.getExecutedDeltas());
             LensObjectDeltaOperation<O> odo = new LensObjectDeltaOperation<>();
             ObjectDelta<O> primaryDelta = elementContext.getPrimaryDelta();
             if (primaryDelta != null) {
@@ -127,10 +130,40 @@ public class OperationExecutionRecorder {
             }
             odo.setExecutionResult(result);        // we rely on the fact that 'result' already contains record of the exception
             executedDeltas.add(odo);
-        } else {
-            executedDeltas = elementContext.getExecutedDeltas();
         }
         return executedDeltas;
+    }
+
+    // MID-6413 : while synchronizing Resource A and trying to create account on Resource B and for
+    // whatever reason, the creation of account on Resource B failed, the result of the operation
+    // is correctly recorded in the operationResult, so it is shown on Task pages. But, during clockwork
+    // execution, the projection context is rotten (totally removed) and whit it, also executedDeltas are gone.
+    // However, executedDeltas are stored to rottenExecutedDeltas in LensContext, therefore we give a try also there
+    private <F extends ObjectType> List<LensObjectDeltaOperation<F>> filterRottenExecutedDeltas(PrismObject<F> object, List<LensObjectDeltaOperation<?>> rottenExecutedDeltas) {
+        List<LensObjectDeltaOperation<F>> rottenDeltas = new ArrayList<>();
+        for (LensObjectDeltaOperation<?> rottenExecutedDelta : rottenExecutedDeltas) {
+            if (oidsMatch(object, rottenExecutedDelta.getObjectDelta())) {
+                //noinspection unchecked
+                rottenDeltas.add((LensObjectDeltaOperation<F>) rottenExecutedDelta);
+            }
+        }
+        return rottenDeltas;
+    }
+
+    private <F extends ObjectType> boolean oidsMatch(PrismObject<F> object, ObjectDelta<?> delta) {
+        if (delta == null) {
+            return false; //cannot compare
+        }
+
+        if (object == null && delta.getOid() == null) { //null when object = focus and we are trying to locate rotten executed deltas for ShadowType
+            return true;
+        }
+
+        if (object == null || object.getOid() == null) {
+            return false; //something strange
+        }
+
+        return object.getOid().equals(delta.getOid());
     }
 
     private <F extends ObjectType> boolean getSkipWhenSuccess(LensContext<F> context) {
@@ -139,28 +172,42 @@ public class OperationExecutionRecorder {
                 Boolean.TRUE.equals(context.getInternalsConfiguration().getOperationExecutionRecording().isSkipWhenSuccess());
     }
 
-    private <F extends ObjectType> void recordProjectionOperationExecution(LensContext<F> context,
+    private <F extends ObjectType> boolean recordProjectionOperationExecution(LensContext<F> context,
             LensProjectionContext projectionContext, XMLGregorianCalendar now, Throwable clockworkException,
             Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
         PrismObject<ShadowType> object = projectionContext.getObjectAny();
+        if (object == null) {
+            return false;            // this can happen
+        }
+        List<LensObjectDeltaOperation<ShadowType>> executedDeltas = getExecutedDeltas(projectionContext, ShadowType.class,
+                clockworkException, result);
+        executedDeltas.addAll(filterRottenExecutedDeltas(object, context.getRottenExecutedDeltas()));
+        return recordOperationExecution(context, object, true, executedDeltas, now, task, result);
+    }
+
+    private <F extends ObjectType> void recordProjectionOperationExecutionToFocus(LensContext<F> context,
+            LensProjectionContext projectionContext, XMLGregorianCalendar now, Throwable clockworkException,
+            Task task, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+        PrismObject<F> object = context.getFocusContext().getObjectAny();
         if (object == null) {
             return;            // this can happen
         }
         List<LensObjectDeltaOperation<ShadowType>> executedDeltas = getExecutedDeltas(projectionContext, ShadowType.class,
                 clockworkException, result);
+        executedDeltas.addAll(filterRottenExecutedDeltas(null, context.getRottenExecutedDeltas()));
         recordOperationExecution(context, object, true, executedDeltas, now, task, result);
     }
 
     /**
      * @return true if the operation execution was recorded (or would be recorded, but skipped because of the configuration)
      */
-    private <O extends ObjectType, F extends ObjectType> boolean recordOperationExecution(LensContext<O> context, PrismObject<F> object, boolean deletedOk,
-            List<LensObjectDeltaOperation<F>> executedDeltas, XMLGregorianCalendar now, Task task, OperationResult result)
+    private <O extends ObjectType, F extends ObjectType, T extends ObjectType> boolean recordOperationExecution(LensContext<O> context, PrismObject<F> object, boolean deletedOk,
+            List<LensObjectDeltaOperation<T>> executedDeltas, XMLGregorianCalendar now, Task task, OperationResult result)
             throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException {
         OperationExecutionType operation = new OperationExecutionType(prismContext);
         OperationResult summaryResult = new OperationResult("recordOperationExecution");
         String oid = object.getOid();
-        for (LensObjectDeltaOperation<F> deltaOperation : executedDeltas) {
+        for (LensObjectDeltaOperation<T> deltaOperation : executedDeltas) {
             operation.getOperation().add(createObjectDeltaOperation(deltaOperation));
             if (deltaOperation.getExecutionResult() != null) {
                 summaryResult.addSubresult(deltaOperation.getExecutionResult().clone());        // todo eliminate this clone (but beware of modifying the subresult)
@@ -298,7 +345,7 @@ public class OperationExecutionRecorder {
             try {
                 taskOid = context.getTaskTreeOid(task, result);
             } catch (SchemaException e) {
-                //if something unexpeced happened, let's try current task oid
+                //if something unexpected happened, let's try current task oid
                 LOGGER.warn("Cannot get task tree oid, current task oid will be used, task: {}, \nreason: {}", task, e.getMessage(), e);
                 result.recordWarning("Cannot get task tree oid, current task oid will be used, task: " + task + "\nreason: " + e.getMessage(), e);
                 taskOid = task.getOid();
