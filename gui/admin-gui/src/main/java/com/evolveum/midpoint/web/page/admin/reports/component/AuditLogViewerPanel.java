@@ -695,8 +695,8 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         return getAuditLogStorage().getPageNumber();
     }
 
-    private BoxedTablePanel getAuditLogViewerTable() {
-        return (BoxedTablePanel) get(ID_MAIN_FORM).get(ID_TABLE);
+    protected BoxedTablePanel getAuditLogViewerTable() {
+        return (BoxedTablePanel) get(ID_TABLE);
     }
 
     protected List<IColumn<AuditEventRecordType, String>> initColumns() {

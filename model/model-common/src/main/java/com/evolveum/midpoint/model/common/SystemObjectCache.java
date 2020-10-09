@@ -1,19 +1,29 @@
 /*
- * Copyright (c) 2016-2020 Evolveum and contributors
+ * Copyright (C) 2016-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.model.common;
 
+import java.util.Collection;
+import java.util.Collections;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
+import org.jetbrains.annotations.NotNull;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.CacheInvalidationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionProfileCompiler;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.api.CacheRegistry;
 import com.evolveum.midpoint.repo.api.Cacheable;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -25,30 +35,21 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import org.jetbrains.annotations.NotNull;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.Collection;
-import java.util.Collections;
 
 /**
  * Cache for system object such as SystemConfigurationType. This is a global cache,
  * independent of the request. It will store the system configuration in memory.
  * It will check for system configuration updates in regular interval using the
  * getVersion() method.
- *
+ * <p>
  * This supplements the RepositoryCache. RepositoryCache works on per-request
  * (per-operation) basis. The  SystemObjectCache is global. Its goal is to reduce
  * the number of getObject(SystemConfiguration) and the getVersion(SystemConfiguration)
  * calls.
- *
+ * <p>
  * In the future: May be used for more objects that are often used and seldom
  * changed, e.g. object templates.
- *
+ * <p>
  * TODO: use real repo instead of repo cache
  *
  * @author semancik
@@ -58,6 +59,8 @@ public class SystemObjectCache implements Cacheable {
 
     private static final Trace LOGGER = TraceManager.getTrace(SystemObjectCache.class);
     private static final Trace LOGGER_CONTENT = TraceManager.getTrace(SystemObjectCache.class.getName() + ".content");
+
+    private static final String DOT_CLASS = SystemObjectCache.class.getName() + ".";
 
     @Autowired
     @Qualifier("cacheRepositoryService")
@@ -95,11 +98,11 @@ public class SystemObjectCache implements Cacheable {
         try {
             if (!hasValidSystemConfiguration(result)) {
                 LOGGER.trace("Cache MISS: reading system configuration from the repository: {}, version {}",
-                        systemConfiguration, systemConfiguration==null?null:systemConfiguration.getVersion());
+                        systemConfiguration, systemConfiguration == null ? null : systemConfiguration.getVersion());
                 loadSystemConfiguration(result);
             } else {
                 LOGGER.trace("Cache HIT: reusing cached system configuration: {}, version {}",
-                        systemConfiguration, systemConfiguration==null?null:systemConfiguration.getVersion());
+                        systemConfiguration, systemConfiguration == null ? null : systemConfiguration.getVersion());
             }
         } catch (ObjectNotFoundException e) {
             systemConfiguration = null;
@@ -108,7 +111,6 @@ public class SystemObjectCache implements Cacheable {
         }
         return systemConfiguration;
     }
-
 
     private boolean hasValidSystemConfiguration(OperationResult result) throws ObjectNotFoundException, SchemaException {
         if (systemConfiguration == null) {
@@ -143,7 +145,8 @@ public class SystemObjectCache implements Cacheable {
         }
     }
 
-    public synchronized PrismObject<SecurityPolicyType> getSecurityPolicy(OperationResult result) throws SchemaException {
+    public synchronized PrismObject<SecurityPolicyType> getSecurityPolicy() throws SchemaException {
+        OperationResult result = new OperationResult(DOT_CLASS + "getSecurityPolicy");
         PrismObject<SystemConfigurationType> systemConfiguration = getSystemConfiguration(result);
         if (systemConfiguration == null) {
             securityPolicy = null;
@@ -161,11 +164,11 @@ public class SystemObjectCache implements Cacheable {
         try {
             if (!hasValidSecurityPolicy(result, securityPolicyOid)) {
                 LOGGER.trace("Cache MISS: reading security policy from the repository: {}, oid: {}, version {}",
-                        securityPolicy, securityPolicyOid, securityPolicy ==null?null: securityPolicy.getVersion());
+                        securityPolicy, securityPolicyOid, securityPolicy == null ? null : securityPolicy.getVersion());
                 loadSecurityPolicy(result, securityPolicyOid);
             } else {
                 LOGGER.trace("Cache HIT: reusing cached security policy: {}, oid: {}, version {}",
-                        securityPolicy, securityPolicyOid, securityPolicy ==null?null: securityPolicy.getVersion());
+                        securityPolicy, securityPolicyOid, securityPolicy == null ? null : securityPolicy.getVersion());
             }
         } catch (ObjectNotFoundException e) {
             securityPolicy = null;
@@ -173,8 +176,7 @@ public class SystemObjectCache implements Cacheable {
             result.muteLastSubresultError();
         }
         return securityPolicy;
-}
-
+    }
 
     private boolean hasValidSecurityPolicy(OperationResult result, String oid) throws ObjectNotFoundException, SchemaException {
         if (securityPolicy == null) {
