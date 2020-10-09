@@ -851,7 +851,7 @@ public class IvwoConsolidator<V extends PrismValue, D extends ItemDefinition, I 
 
     private void logEnd() {
         LOGGER.trace("Consolidated {} IVwO triple to delta:\n{}", itemPath, itemDelta.debugDumpLazily(1));
-        if (result.isTraced()) {
+        if (result.isTraced() && result.isTracingNormal(ItemConsolidationTraceType.class)) {
             ItemConsolidationTraceType trace = new ItemConsolidationTraceType(prismContext);
             trace.setItemPath(new ItemPathType(itemPath));
             try {
