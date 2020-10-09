@@ -254,8 +254,40 @@ public class PrismUnmarshaller {
         return xmap.getParsedPrimitiveValue(XNodeImpl.KEY_VERSION, DOMUtil.XSD_STRING);
     }
 
-    private Long getContainerId(MapXNodeImpl xmap) throws SchemaException {
-        return xmap.getParsedPrimitiveValue(XNodeImpl.KEY_CONTAINER_ID, DOMUtil.XSD_LONG);
+    private Long getContainerId(MapXNodeImpl xmap, PrismContainerDefinition<?> containerDef) throws SchemaException {
+        PrimitiveXNodeImpl<Object> maybeId = xmap.getPrimitive(XNodeImpl.KEY_CONTAINER_ID);
+        if(isContainerId(XNodeImpl.KEY_CONTAINER_ID, maybeId, containerDef)) {
+            return maybeId.getParsedValue(DOMUtil.XSD_LONG, Long.class);
+        }
+        return null;
+    }
+
+    private boolean isContainerId(QName itemName, XNodeImpl node, PrismContainerDefinition<?> parentDef) {
+        if(node instanceof PrimitiveXNodeImpl<?> && QNameUtil.match(itemName, XNodeImpl.KEY_CONTAINER_ID)) {
+            if(((PrimitiveXNodeImpl<?>)node).isAttribute()) {
+                return true;
+            }
+            if(parentDef.isRuntimeSchema() && itemName.getNamespaceURI() != null) {
+                return false;
+            }
+            if(idDef(parentDef) == null) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns an item with name "id".
+     *
+     * @param containerDef
+     * @return
+     */
+    private ItemDefinition<?> idDef(PrismContainerDefinition<?> containerDef) {
+        if (containerDef == null) {
+            return null;
+        }
+        return containerDef.findLocalItemDefinition(XNodeImpl.KEY_CONTAINER_ID);
     }
 
     private <C extends Containerable> PrismContainerValue<C> parseContainerValue(@NotNull XNodeImpl node,
@@ -282,15 +314,16 @@ public class PrismUnmarshaller {
     @NotNull
     private <C extends Containerable> PrismContainerValue<C> parseContainerValueFromMap(@NotNull MapXNodeImpl map,
             @NotNull PrismContainerDefinition<C> containerDef, @NotNull ParsingContext pc) throws SchemaException {
-        Long id = getContainerId(map);
 
         ComplexTypeDefinition containerTypeDef = containerDef.getComplexTypeDefinition();
+
 
         PrismContainerValue<C> cval;
         if (containerDef instanceof PrismObjectDefinition) {
             //noinspection unchecked
             cval = ((PrismObjectDefinition) containerDef).createValue();
         } else {
+            Long id = getContainerId(map, containerDef);
             // override container definition, if explicit type is specified
             if (map.getTypeQName() != null) {
                 ComplexTypeDefinition explicitTypeDef = schemaRegistry.findComplexTypeDefinitionByType(map.getTypeQName());
@@ -320,7 +353,8 @@ public class PrismUnmarshaller {
         for (Entry<QName, XNodeImpl> entry : map.entrySet()) {
             final QName itemName = entry.getKey();
             checkArgument(itemName != null, "Null item name while parsing %s", map.debugDumpLazily());
-            if (QNameUtil.match(itemName, XNodeImpl.KEY_CONTAINER_ID)) {
+
+            if (isContainerId(itemName, entry.getValue(), containerDef)) {
                 continue;
             }
             if (containerDef instanceof PrismObjectDefinition &&
@@ -329,6 +363,7 @@ public class PrismUnmarshaller {
             }
 
             ItemDefinition<?> itemDef = locateItemDefinition(itemName, complexTypeDefinition, entry.getValue());
+
             if (itemDef == null) {
                 boolean shouldContinue = handleMissingDefinition(itemName, containerDef, complexTypeDefinition, pc, map);
                 if(shouldContinue) {

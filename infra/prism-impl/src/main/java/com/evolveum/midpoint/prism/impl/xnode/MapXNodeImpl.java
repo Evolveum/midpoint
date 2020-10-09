@@ -185,6 +185,17 @@ public class MapXNodeImpl extends XNodeImpl implements MapXNode {
     }
 
 
+    public <T> PrimitiveXNodeImpl<T> getPrimitive(QName key) throws SchemaException {
+        XNodeImpl xnode = get(key);
+        if (xnode == null) {
+            return null;
+        }
+        if (!(xnode instanceof PrimitiveXNodeImpl<?>)) {
+            throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
+        }
+        return (PrimitiveXNodeImpl<T>) xnode;
+    }
+
     public <T> T getParsedPrimitiveValue(QName key, QName typeName) throws SchemaException {
         XNodeImpl xnode = get(key);
         if (xnode == null) {
