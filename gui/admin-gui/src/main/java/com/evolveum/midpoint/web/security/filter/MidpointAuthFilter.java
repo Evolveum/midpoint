@@ -1,27 +1,16 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.web.security.filter;
 
-import com.evolveum.midpoint.model.api.authentication.*;
-import com.evolveum.midpoint.model.common.SystemObjectCache;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
-import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.security.MidpointAuthenticationManager;
-import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
-import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
-import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
-import com.evolveum.midpoint.web.security.util.SecurityUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,15 +23,25 @@ import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.util.UrlUtils;
 import org.springframework.web.filter.GenericFilterBean;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.util.*;
+import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.model.common.SystemObjectCache;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.security.MidpointAuthenticationManager;
+import com.evolveum.midpoint.web.security.factory.channel.AuthChannelRegistryImpl;
+import com.evolveum.midpoint.web.security.factory.module.AuthModuleRegistryImpl;
+import com.evolveum.midpoint.web.security.module.ModuleWebSecurityConfig;
+import com.evolveum.midpoint.web.security.util.SecurityUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 /**
  * @author skublik
  */
-
 public class MidpointAuthFilter extends GenericFilterBean {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidpointAuthFilter.class);
@@ -57,9 +56,10 @@ public class MidpointAuthFilter extends GenericFilterBean {
     @Autowired private TaskManager taskManager;
 
     private AuthenticationsPolicyType authenticationPolicy;
-    private PreLogoutFilter preLogoutFilter = new PreLogoutFilter();
 
-    public MidpointAuthFilter(Map<Class<? extends Object>, Object> sharedObjects) {
+    private final PreLogoutFilter preLogoutFilter = new PreLogoutFilter();
+
+    public MidpointAuthFilter(Map<Class<?>, Object> sharedObjects) {
         this.sharedObjects = sharedObjects;
     }
 
@@ -68,7 +68,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     public void createFilterForAuthenticatedRequest() {
-        ModuleWebSecurityConfig module = objectObjectPostProcessor.postProcess(new ModuleWebSecurityConfig(null));
+        ModuleWebSecurityConfig<?> module =
+                objectObjectPostProcessor.postProcess(new ModuleWebSecurityConfig<>(null));
         module.setObjectPostProcessor(objectObjectPostProcessor);
     }
 
@@ -81,12 +82,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response,
-                         FilterChain chain) throws IOException, ServletException {
+            FilterChain chain) throws IOException, ServletException {
         doFilterInternal(request, response, chain);
     }
 
     private void doFilterInternal(ServletRequest request, ServletResponse response,
-                                  FilterChain chain) throws IOException, ServletException {
+            FilterChain chain) throws IOException, ServletException {
 
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         //request for permit all page (for example errors and login pages)
@@ -99,12 +100,12 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         AuthenticationsPolicyType authenticationsPolicy;
         CredentialsPolicyType credentialsPolicy = null;
-        PrismObject<SecurityPolicyType> authPolicy = null;
+        PrismObject<SecurityPolicyType> securityPolicy = null;
         try {
-            authPolicy = getSecurityPolicy();
-            authenticationsPolicy = getAuthenticationPolicy(authPolicy);
-            if (authPolicy != null) {
-                credentialsPolicy = authPolicy.asObjectable().getCredentials();
+            securityPolicy = getSecurityPolicy();
+            authenticationsPolicy = getAuthenticationPolicy(securityPolicy);
+            if (securityPolicy != null) {
+                credentialsPolicy = securityPolicy.asObjectable().getCredentials();
             }
         } catch (SchemaException e) {
             LOGGER.error("Couldn't load Authentication policy", e);
@@ -124,7 +125,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         AuthenticationSequenceType sequence = getAuthenticationSequence(mpAuthentication, httpRequest, authenticationsPolicy);
         if (sequence == null) {
-            throw new IllegalArgumentException("Couldn't find sequence for URI '" + httpRequest.getRequestURI() + "' in authentication of Security Policy with oid " + authPolicy.getOid());
+            throw new IllegalArgumentException("Couldn't find sequence for URI '" + httpRequest.getRequestURI() + "' in authentication of Security Policy with oid " + securityPolicy.getOid());
         }
 
         //change generic logout path to logout path for actual module
@@ -132,8 +133,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         AuthenticationChannel authenticationChannel = SecurityUtils.buildAuthChannel(authChannelRegistry, sequence);
 
-        List<AuthModule> authModules = createAuthenticationModuleBySequence(mpAuthentication, sequence, httpRequest, authenticationsPolicy.getModules()
-                ,authenticationChannel, credentialsPolicy);
+        List<AuthModule> authModules = createAuthenticationModuleBySequence(
+                mpAuthentication, sequence, httpRequest, authenticationsPolicy.getModules(), authenticationChannel, credentialsPolicy);
 
         //authenticated request
         if (mpAuthentication != null && mpAuthentication.isAuthenticated() && sequence.equals(mpAuthentication.getSequence())) {
@@ -145,7 +146,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         if (authModules == null || authModules.size() == 0) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug(UrlUtils.buildRequestUrl(httpRequest)
-                        +  "has no filters");
+                        + "has no filters");
             }
             throw new AuthenticationServiceException("Couldn't find filters for sequence " + sequence.getName());
         }
@@ -154,7 +155,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
 
         resolveErrorWithMoreModules(mpAuthentication, httpRequest);
 
-        if (SecurityUtils.isSpecificSequence(httpRequest)){
+        if (SecurityUtils.isSpecificSequence(httpRequest)) {
             indexOfProcessingModule = 0;
             createMpAuthentication(httpRequest, sequence, authModules);
             mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
@@ -170,7 +171,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
             mpAuthentication.setAuthenticationChannel(authenticationChannel);
         }
 
-        MidpointAuthFilter.VirtualFilterChain vfc = new MidpointAuthFilter.VirtualFilterChain(httpRequest, chain, authModules.get(indexOfProcessingModule).getSecurityFilterChain().getFilters());
+        MidpointAuthFilter.VirtualFilterChain vfc = new MidpointAuthFilter.VirtualFilterChain(chain, authModules.get(indexOfProcessingModule).getSecurityFilterChain().getFilters());
         vfc.doFilter(httpRequest, response);
     }
 
@@ -180,7 +181,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private int restartAuthFlow(HttpServletRequest httpRequest, AuthenticationSequenceType sequence, List<AuthModule> authModules) {
-        createMpAuthentication(httpRequest,sequence,authModules);
+        createMpAuthentication(httpRequest, sequence, authModules);
         MidpointAuthentication mpAuthentication = (MidpointAuthentication) SecurityContextHolder.getContext().getAuthentication();
         return mpAuthentication.resolveParallelModules(httpRequest, 0);
     }
@@ -275,14 +276,14 @@ public class MidpointAuthFilter extends GenericFilterBean {
     }
 
     private PrismObject<SecurityPolicyType> getSecurityPolicy() throws SchemaException {
-        return systemObjectCache.getSecurityPolicy(new OperationResult("load security policy"));
+        return systemObjectCache.getSecurityPolicy();
     }
 
     private void processingOfAuthenticatedRequest(MidpointAuthentication mpAuthentication, ServletRequest httpRequest, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         for (ModuleAuthentication moduleAuthentication : mpAuthentication.getAuthentications()) {
             if (StateOfModule.SUCCESSFULLY.equals(moduleAuthentication.getState())) {
                 int i = mpAuthentication.getIndexOfModule(moduleAuthentication);
-                MidpointAuthFilter.VirtualFilterChain vfc = new MidpointAuthFilter.VirtualFilterChain(httpRequest, chain,
+                MidpointAuthFilter.VirtualFilterChain vfc = new MidpointAuthFilter.VirtualFilterChain(chain,
                         mpAuthentication.getAuthModules().get(i).getSecurityFilterChain().getFilters());
                 vfc.doFilter(httpRequest, response);
             }
@@ -295,8 +296,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         private final int size;
         private int currentPosition = 0;
 
-        private VirtualFilterChain(ServletRequest firewalledRequest,
-                                   FilterChain chain, List<Filter> additionalFilters) {
+        private VirtualFilterChain(FilterChain chain, List<Filter> additionalFilters) {
             this.originalChain = chain;
             this.additionalFilters = additionalFilters;
             this.size = additionalFilters.size();
@@ -318,8 +318,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
 //                    return;
 //                }
                 originalChain.doFilter(request, response);
-            }
-            else {
+            } else {
                 currentPosition++;
 
                 Filter nextFilter = additionalFilters.get(currentPosition - 1);
