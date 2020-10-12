@@ -120,6 +120,13 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
             }
         };
         metadataNavigation.add(metadataList);
+            ReadOnlyModel<String> activeTab = new ReadOnlyModel<>(() -> {
+                if (getValueMetadata() != null && shouldShowMetadataDetails()) {
+                    return "contains-active-tab";
+                }
+                return "";
+            });
+        metadataNavigation.add(AttributeAppender.replace("class", activeTab));
         metadataList.setOutputMarkupId(true);
         metadataList.setOutputMarkupPlaceholderTag(true);
     }
