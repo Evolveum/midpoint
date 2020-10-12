@@ -855,6 +855,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         getPageBase().getFeedbackPanel().getFeedbackMessages().clear();
         target.add(getPageBase().getFeedbackPanel());
         target.add(getMainFormComponent());
+        target.add(getAuditLogViewerTable());
     }
 
     private Form getMainFormComponent() {
