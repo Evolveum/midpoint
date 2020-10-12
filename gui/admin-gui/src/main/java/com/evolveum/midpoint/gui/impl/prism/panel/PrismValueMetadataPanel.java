@@ -121,7 +121,7 @@ public class PrismValueMetadataPanel extends BasePanel<ValueMetadataWrapperImpl>
         };
         metadataNavigation.add(metadataList);
             ReadOnlyModel<String> activeTab = new ReadOnlyModel<>(() -> {
-                if (getValueMetadata() != null && shouldShowMetadataDetails()) {
+                if (getValueMetadata() != null && isAnyMetadataSelected()) {
                     return "contains-active-tab";
                 }
                 return "";
