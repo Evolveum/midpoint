@@ -476,6 +476,12 @@ public interface Task extends DebugDumpable, StatisticsCollector {
     @Experimental
     void addArchetypeInformation(String archetypeOid);
 
+    /**
+     * As {@link #addArchetypeInformation(String)} but executed only if there's no archetype currently set.
+     */
+    @Experimental
+    void addArchetypeInformationIfMissing(String archetypeOid);
+
     // ============================================================================================ Task extension.
     // -------------------------------------------------------------------------------- Task extension - GET
 

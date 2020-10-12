@@ -968,6 +968,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
             throw new IllegalStateException("Error dealing with schema", e);
         }
 
+        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_CLEANUP_TASK.value());
         getTaskManager().switchToBackground(task, launchResult);
         launchResult.setBackgroundTaskOid(task.getOid());
 

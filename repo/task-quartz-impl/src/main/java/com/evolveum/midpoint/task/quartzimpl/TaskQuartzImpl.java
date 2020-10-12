@@ -2199,6 +2199,16 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         }
     }
 
+    @Override
+    public void addArchetypeInformationIfMissing(String archetypeOid) {
+        synchronized (prismAccess) {
+            List<ObjectReferenceType> existingArchetypes = taskPrism.asObjectable().getArchetypeRef();
+            if (existingArchetypes.isEmpty()) {
+                addArchetypeInformation(archetypeOid);
+            }
+        }
+    }
+
     /*
      *  Other methods
      */

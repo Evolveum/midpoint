@@ -32,6 +32,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.model.scripting_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
 import org.apache.commons.lang.Validate;
@@ -86,6 +87,7 @@ public class ScriptingExpressionEvaluator {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
         task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, executeScriptCommand);
         task.setHandlerUri(ModelPublicConstants.SCRIPT_EXECUTION_TASK_HANDLER_URI);
+        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_SINGLE_BULK_ACTION_TASK.value());
         taskManager.switchToBackground(task, result);
         result.computeStatus();
     }
@@ -108,6 +110,7 @@ public class ScriptingExpressionEvaluator {
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "evaluateExpressionInBackground");
         task.setExtensionPropertyValue(SchemaConstants.SE_EXECUTE_SCRIPT, executeScriptCommand);
         task.setHandlerUri(ModelPublicConstants.ITERATIVE_SCRIPT_EXECUTION_TASK_HANDLER_URI);
+        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_ITERATIVE_BULK_ACTION_TASK.value());
         taskManager.switchToBackground(task, result);
         result.computeStatus();
     }

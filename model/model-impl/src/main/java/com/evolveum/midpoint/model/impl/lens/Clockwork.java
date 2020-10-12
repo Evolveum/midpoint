@@ -620,6 +620,7 @@ public class Clockwork {
         reconTask.setInitialExecutionStatus(TaskExecutionStatus.RUNNABLE);
         reconTask.setHandlerUri(RecomputeTaskHandler.HANDLER_URI);
         reconTask.setCategory(TaskCategory.RECOMPUTATION);
+        reconTask.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECOMPUTATION_TASK.value());
         taskManager.switchToBackground(reconTask, result);
         result.setBackgroundTaskOid(reconTask.getOid());
         result.recordStatus(OperationResultStatus.IN_PROGRESS, "Reconciliation task switched to background");

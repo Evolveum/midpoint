@@ -87,7 +87,7 @@ public class TaskBasicTabPanel extends BasePanel<PrismObjectWrapper<TaskType>> i
                         WebPrismUtil.createNewValueWrapper(archetypeAssignment, archetypeAssignmentValue, getPageBase(), target);
                     } catch (SchemaException e) {
                         LOGGER.error("Exception during assignment lookup, reason: {}", e.getMessage(), e);
-                        getSession().error("Cannot set seleted handler: " + e.getMessage());
+                        getSession().error("Cannot set selected handler: " + e.getMessage());
                         return;
                     }
                 }
