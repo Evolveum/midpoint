@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.wf.impl.assignments;
 
 import static java.util.Collections.singletonList;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.assertEquals;
 
 import static com.evolveum.midpoint.schema.util.ObjectTypeUtil.createAssignmentTo;
@@ -19,6 +20,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.test.TestResource;
+
+import com.evolveum.midpoint.util.MiscUtil;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -131,13 +134,29 @@ public abstract class AbstractTestAssignmentApproval extends AbstractWfTestPolic
     @Test
     public void test010AddRole1Assignment() throws Exception {
         login(userAdministrator);
+        Task task = getTestTask();
 
         OperationResult result = executeAssignRole1(userJackOid, false, false, USER_LEAD1.oid, null, true);
 
         // MID-5814
         OperationResultAsserter.forResult(result)
-                .assertTracedSomewhere()                // just checking that tracing works
+                .assertTracedSomewhere() // just checking that tracing works
                 .assertNoLogEntry(text -> text.contains("Unresolved object reference in delta being audited"));
+
+        // MID-6611
+        String caseOid = OperationResult.referenceToCaseOid(result.findAsynchronousOperationReference());
+        assertThat(caseOid).isNotNull();
+
+        ObjectQuery taskQuery = queryFor(TaskType.class)
+                .item(TaskType.F_OBJECT_REF).ref(caseOid)
+                .build();
+        PrismObject<TaskType> executionTask = MiscUtil.extractSingletonRequired(
+                modelService.searchObjects(TaskType.class, taskQuery, null, task, result),
+                () -> new IllegalStateException("More execution tasks for case " + caseOid),
+                () -> new IllegalStateException("No execution task for case " + caseOid));
+        assertTask(executionTask.asObjectable(), "execution task after")
+                .display()
+                .assertArchetypeRef(SystemObjectsType.ARCHETYPE_APPROVAL_TASK.value());
     }
 
     /**

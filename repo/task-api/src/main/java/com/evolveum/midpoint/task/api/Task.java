@@ -18,6 +18,7 @@ import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.StatisticsCollector;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -463,6 +464,17 @@ public interface Task extends DebugDumpable, StatisticsCollector {
      */
     void setCategory(String category);
 
+    /**
+     * Adds an archetype for the task. Assumes that the task will NOT undergo full model processing,
+     * so this method will do everything by itself: creates an assignment, roleMembershipRef and archetypeRef.
+     *
+     * Throws an exception if an archetype is already assigned.
+     *
+     * This is temporary/experimental implementation. It was not tested for persistent tasks
+     * (although it should work also for them).
+     */
+    @Experimental
+    void addArchetypeInformation(String archetypeOid);
 
     // ============================================================================================ Task extension.
     // -------------------------------------------------------------------------------- Task extension - GET

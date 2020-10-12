@@ -29,7 +29,6 @@ public class RExtItem {
     public static final String F_ID = "id";
 
     private Integer id;
-    //    private boolean dynamic;
     private String name;
     private String type;
     private RItemKind kind;
@@ -109,14 +108,6 @@ public class RExtItem {
         return kind;
     }
 
-    //    /**
-    //     * @return true if this property has dynamic definition
-    //     */
-    //    @Column(name = "dynamicDef")
-    //    public boolean isDynamic() {
-    //        return dynamic;
-    //    }
-
     public void setId(int id) {
         this.id = id;
     }
@@ -174,8 +165,4 @@ public class RExtItem {
         result = 31 * result + (kind != null ? kind.hashCode() : 0);
         return result;
     }
-
-    //    public void setDynamic(boolean dynamic) {
-    //        this.dynamic = dynamic;
-    //    }
 }

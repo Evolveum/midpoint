@@ -18,6 +18,8 @@ import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.jetbrains.annotations.NotNull;
@@ -425,6 +427,28 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     }
 
     @Nullable
+    private <X extends Containerable> ContainerDelta<X> createContainerValueAddDeltaIfPersistent(ItemName name, X value)
+            throws SchemaException {
+        if (isPersistent()) {
+            //noinspection unchecked
+            X clonedValue = value != null ? (X) value.asPrismContainerValue().clone().asContainerable() : null;
+            return deltaFactory().container().createModificationAdd(name, TaskType.class, clonedValue);
+        } else {
+            return null;
+        }
+    }
+
+    @Nullable
+    private ReferenceDelta createReferenceValueAddDeltaIfPersistent(ItemName name, Referencable value) {
+        if (isPersistent()) {
+            PrismReferenceValue clonedValue = value != null ? value.asReferenceValue().clone() : null;
+            return deltaFactory().reference().createModificationAdd(TaskType.class, name, clonedValue);
+        } else {
+            return null;
+        }
+    }
+
+    @Nullable
     private ReferenceDelta createReferenceDeltaIfPersistent(ItemName name, ObjectReferenceType value) {
         return isPersistent() ? deltaFactory().reference().createModificationReplace(name,
                 taskManager.getTaskObjectDefinition(), value != null ? value.clone().asReferenceValue() : null) : null;
@@ -462,6 +486,18 @@ public class TaskQuartzImpl implements InternalTaskInterface {
         }
     }
 
+    private <X extends Containerable> void addContainerable(ItemName name, X value) {
+        try {
+            addPendingModification(addContainerableAndCreateDeltaIfPersistent(name, value));
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't add the task container '" + name + "' value: " + e.getMessage(), e);
+        }
+    }
+
+    private void addReferencable(ItemName name, Referencable value) {
+        addPendingModification(addReferencableAndCreateDeltaIfPersistent(name, value));
+    }
+
     private <X> void setPropertyTransient(ItemName name, X value) {
         synchronized (prismAccess) {
             try {
@@ -477,7 +513,34 @@ public class TaskQuartzImpl implements InternalTaskInterface {
             try {
                 taskPrism.setContainerRealValue(name, value);
             } catch (SchemaException e) {
-                throw new SystemException("Couldn't set the task property '" + name + "': " + e.getMessage(), e);
+                throw new SystemException("Couldn't set the task container '" + name + "': " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private <X extends Containerable> void addContainerableTransient(ItemName name, X value) {
+        if (value == null) {
+            return;
+        }
+        synchronized (prismAccess) {
+            try {
+                //noinspection unchecked
+                taskPrism.findOrCreateContainer(name).add(value.asPrismContainerValue());
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't add the task container '" + name + "' value: " + e.getMessage(), e);
+            }
+        }
+    }
+
+    private void addReferencableTransient(ItemName name, Referencable value) {
+        if (value == null) {
+            return;
+        }
+        synchronized (prismAccess) {
+            try {
+                taskPrism.findOrCreateReference(name).add(value.asReferenceValue());
+            } catch (SchemaException e) {
+                throw new SystemException("Couldn't add the task reference '" + name + "' value: " + e.getMessage(), e);
             }
         }
     }
@@ -501,6 +564,17 @@ public class TaskQuartzImpl implements InternalTaskInterface {
             throws SchemaException {
         setContainerableTransient(name, value);
         return createContainerDeltaIfPersistent(name, value);
+    }
+
+    private <X extends Containerable> ContainerDelta<X> addContainerableAndCreateDeltaIfPersistent(ItemName name, X value)
+            throws SchemaException {
+        addContainerableTransient(name, value);
+        return createContainerValueAddDeltaIfPersistent(name, value);
+    }
+
+    private ReferenceDelta addReferencableAndCreateDeltaIfPersistent(ItemName name, Referencable value) {
+        addReferencableTransient(name, value);
+        return createReferenceValueAddDeltaIfPersistent(name, value);
     }
 
     private PrismReferenceValue getReferenceValue(ItemName name) {
@@ -2106,6 +2180,23 @@ public class TaskQuartzImpl implements InternalTaskInterface {
     public String getChannelFromHandler() {
         TaskHandler h = getHandler();
         return h != null ? h.getDefaultChannel() : null;
+    }
+
+    @Override
+    public void addArchetypeInformation(String archetypeOid) {
+        synchronized (prismAccess) {
+            List<ObjectReferenceType> existingArchetypes = taskPrism.asObjectable().getArchetypeRef();
+            if (!existingArchetypes.isEmpty()) {
+                throw new IllegalStateException("Couldn't add archetype " + archetypeOid + " because there is already one: "
+                        + existingArchetypes + "; in " + this);
+            }
+            addContainerable(TaskType.F_ASSIGNMENT,
+                    ObjectTypeUtil.createAssignmentTo(archetypeOid, ObjectTypes.ARCHETYPE, getPrismContext()));
+            addReferencable(TaskType.F_ROLE_MEMBERSHIP_REF,
+                    ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE));
+            addReferencable(TaskType.F_ARCHETYPE_REF,
+                    ObjectTypeUtil.createObjectRef(archetypeOid, ObjectTypes.ARCHETYPE));
+        }
     }
 
     /*
