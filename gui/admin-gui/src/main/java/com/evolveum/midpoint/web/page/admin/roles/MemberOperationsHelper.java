@@ -147,8 +147,8 @@ public class MemberOperationsHelper {
         script.setScriptingExpression(new JAXBElement<>(SchemaConstants.S_ACTION,
                 ActionExpressionType.class, expression));
 
-        return createScriptingMemberOperationTask(pageBase, operationalTask, defaultType, query, script, SelectorOptions.createCollection(GetOperationOptions.createDistinct()), target);
-
+        return createScriptingMemberOperationTask(pageBase, operationalTask, defaultType, query, script,
+                SelectorOptions.createCollection(GetOperationOptions.createDistinct()), target);
     }
 
     public static <R extends AbstractRoleType> void assignMembers(PageBase pageBase, R targetRefObject, AjaxRequestTarget target,
@@ -384,25 +384,12 @@ public class MemberOperationsHelper {
         operationalTask.makeSingle(schedule);
         operationalTask.setName(WebComponentUtil.createPolyFromOrigString(pageBase.createStringResource(parentResult.getOperation()).getString()));
 
-        PrismPropertyDefinition<QueryType> propertyDefQuery = pageBase.getPrismContext().getSchemaRegistry()
-                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
-        PrismProperty<QueryType> queryProperty = propertyDefQuery.instantiate();
         QueryType queryType = pageBase.getQueryConverter().createQueryType(memberQuery);
-        queryProperty.setRealValue(queryType);
-        operationalTask.addExtensionProperty(queryProperty);
-
-        PrismPropertyDefinition<QName> propertyDefType = pageBase.getPrismContext().getSchemaRegistry()
-                .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE);
-        PrismProperty<QName> typeProperty = propertyDefType.instantiate();
-        typeProperty.setRealValue(type);
-        operationalTask.addExtensionProperty(typeProperty);
-
+        operationalTask.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY, queryType);
+        operationalTask.setExtensionPropertyValue(SchemaConstants.MODEL_EXTENSION_OBJECT_TYPE, type);
         if (option != null) {
-            PrismPropertyDefinition<SelectorQualifiedGetOptionsType> propertyDefOption = pageBase.getPrismContext().getSchemaRegistry()
-                    .findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS);
-            PrismProperty<SelectorQualifiedGetOptionsType> optionProperty = propertyDefOption.instantiate();
-            optionProperty.setRealValue(MiscSchemaUtil.optionsToOptionsType(option));
-            operationalTask.addExtensionProperty(optionProperty);
+            operationalTask.setExtensionContainerValue(SchemaConstants.MODEL_EXTENSION_SEARCH_OPTIONS,
+                    MiscSchemaUtil.optionsToOptionsType(option));
         }
     }
 
