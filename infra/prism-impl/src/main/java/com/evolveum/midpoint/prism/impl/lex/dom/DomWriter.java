@@ -306,8 +306,13 @@ class DomWriter {
     }
 
     @Nullable
-    private Element writeItemPath(PrimitiveXNodeImpl<?> xprim, Element parent, QName elementName) {
+    private Element writeItemPath(PrimitiveXNodeImpl<?> xprim, Element parent, QName elementName) throws SchemaException {
         ItemPathType itemPathType = (ItemPathType) xprim.getValue();
+        if (itemPathType == null) {
+            // FIXME brutal hack (e.g. what about thread safety?)
+            itemPathType = xprim.getParsedValue(ItemPathType.COMPLEX_TYPE, ItemPathType.class);
+        }
+
         if (itemPathType != null) {
             Element element = ItemPathHolder.serializeToElement(itemPathType.getItemPath(), elementName, document);
             parent.appendChild(element);
