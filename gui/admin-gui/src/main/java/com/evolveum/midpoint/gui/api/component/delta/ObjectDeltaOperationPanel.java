@@ -6,38 +6,38 @@
  */
 package com.evolveum.midpoint.gui.api.component.delta;
 
-import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
-import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
-import com.evolveum.midpoint.model.api.visualizer.SceneDeltaItem;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
-import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.component.result.OperationResultPopupPanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.visualizer.Scene;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.show.SceneDto;
 import com.evolveum.midpoint.web.component.prism.show.ScenePanel;
+import com.evolveum.midpoint.web.component.util.VisibleBehaviour;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.OperationResultType;
+import com.evolveum.prism.xml.ns._public.types_3.ObjectDeltaType;
 
 public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationType> {
 
@@ -62,18 +62,10 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
     }
 
     private void initLayout() {
-        // ObjectDeltaType od = getModel().getObjectDelta();
         WebMarkupContainer objectDeltaOperationMarkup = new WebMarkupContainer(ID_OBJECT_DELTA_OPERATION_MARKUP);
         objectDeltaOperationMarkup.setOutputMarkupId(true);
 
-        objectDeltaOperationMarkup.add(AttributeModifier.append("class", new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return getBoxCssClass();
-            }
-
-        }));
+        objectDeltaOperationMarkup.add(AttributeModifier.append("class", (IModel<String>) this::getBoxCssClass));
         add(objectDeltaOperationMarkup);
 
         Label executionResult = new Label(ID_PARAMETERS_EXECUTION_RESULT,
@@ -95,8 +87,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
         };
         showFullResultsLink.setOutputMarkupId(true);
         showFullResultsLink.add(AttributeAppender.append("style", "cursor: pointer;"));
-        showFullResultsLink.add(new VisibleBehaviour(() -> !WebComponentUtil.isSuccessOrHandledError(getModelObject() != null ?
-                getModelObject().getExecutionResult() : null)));
+        showFullResultsLink.add(new VisibleBehaviour(this::isShowFullResultVisible));
         objectDeltaOperationMarkup.add(showFullResultsLink);
 
         Label resourceName = new Label(ID_PARAMETERS_RESOURCE_NAME,
@@ -138,6 +129,18 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 
     }
 
+    private boolean isShowFullResultVisible() {
+        ObjectDeltaOperationType modelObject = getModelObject();
+        if (modelObject == null) {
+            return false;
+        }
+        OperationResultType result = modelObject.getExecutionResult();
+        if (result == null) {
+            return false;
+        }
+        return !WebComponentUtil.isSuccessOrHandledError(result);
+    }
+
     private String getBoxCssClass() {
         if (getModel().getObject() == null) {
             return " box-primary";
@@ -158,7 +161,7 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
             case WARNING :
             case UNKNOWN :
             case HANDLED_ERROR : return " box-warning";
-            case IN_PROGRESS : return " box-primary";
+            case IN_PROGRESS :
             case NOT_APPLICABLE : return " box-primary";
             case SUCCESS : return " box-success";
 
@@ -200,8 +203,16 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 
     private void showFullResultsPerformed(AjaxRequestTarget target){
         OperationResultPopupPanel operationResultPopupPanel = new OperationResultPopupPanel(getPageBase().getMainPopupBodyId(),
-                getModelObject() != null ? Model.of(OperationResult.createOperationResult(getModelObject().getExecutionResult()))
-                        : Model.of());
+                createOperationResultModel());
         getPageBase().showMainPopup(operationResultPopupPanel, target);
+    }
+
+    private IModel createOperationResultModel() {
+        return new ReadOnlyModel<>(() -> {
+            if (getModelObject() == null) {
+                return null;
+            }
+            return OperationResult.createOperationResult(getModelObject().getExecutionResult());
+        });
     }
 }

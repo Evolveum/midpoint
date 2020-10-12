@@ -15,6 +15,8 @@ import java.util.function.Function;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -84,6 +86,8 @@ import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventStageType;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
+
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 /**
  * Created by honchar.
@@ -696,7 +700,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
     }
 
     private BoxedTablePanel getAuditLogViewerTable() {
-        return (BoxedTablePanel) get(ID_MAIN_FORM).get(ID_TABLE);
+        return (BoxedTablePanel) get(ID_TABLE);
     }
 
     protected List<IColumn<AuditEventRecordType, String>> initColumns() {
@@ -728,7 +732,13 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
                 } catch (SchemaException e) {
                     throw new SystemException("Couldn't adopt event record: " + e, e);
                 }
-                getPageBase().navigateToNext(new PageAuditLogDetails(record));
+                if (WebModelServiceUtils.isEnableExperimentalFeature(getPageBase())) {
+                    PageParameters params = new PageParameters();
+                    params.add(OnePageParameterEncoder.PARAMETER, record.getEventIdentifier());
+                    getPageBase().navigateToNext(PageAuditLogDetails.class, params);
+                } else {
+                    getPageBase().navigateToNext(new PageAuditLogDetails(record));
+                }
             }
         };
         columns.add(linkColumn);
@@ -855,6 +865,7 @@ public abstract class AuditLogViewerPanel extends BasePanel<AuditSearchDto> {
         getPageBase().getFeedbackPanel().getFeedbackMessages().clear();
         target.add(getPageBase().getFeedbackPanel());
         target.add(getMainFormComponent());
+        target.add(getAuditLogViewerTable());
     }
 
     private Form getMainFormComponent() {

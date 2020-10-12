@@ -773,6 +773,9 @@ public final class WebComponentUtil {
 
     public static boolean isAuthorized(Class<? extends ObjectType> clazz) {
         Class<? extends PageBase> detailsPage = WebComponentUtil.getObjectDetailsPage(clazz);
+        if (detailsPage == null) {
+            return false;
+        }
         PageDescriptor descriptor = detailsPage.getAnnotation(PageDescriptor.class);
         AuthorizationAction[] actions = descriptor.action();
         List<String> actionUris = new ArrayList<>();
