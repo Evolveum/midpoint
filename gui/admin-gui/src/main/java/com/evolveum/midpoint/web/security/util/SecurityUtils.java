@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2010-2018 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.security.util;
 
 import static org.springframework.security.saml.util.StringUtils.stripSlashes;
@@ -13,11 +12,6 @@ import static org.springframework.security.saml.util.StringUtils.stripStartingSl
 import java.util.*;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
-
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerValue;
-
-import com.evolveum.midpoint.security.api.SecurityUtil;
 
 import com.github.openjson.JSONArray;
 import com.github.openjson.JSONObject;
@@ -36,13 +30,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.WebAttributes;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
-import org.springframework.web.context.ContextLoader;
-import org.springframework.web.context.WebApplicationContext;
 
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.authentication.*;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -52,6 +46,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SecurityPolicyUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
 import com.evolveum.midpoint.security.api.SecurityContextManager;
+import com.evolveum.midpoint.security.api.SecurityUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Producer;
@@ -125,34 +120,32 @@ public class SecurityUtils {
     }
 
     public static boolean isMenuAuthorized(MainMenuItem item) {
-        Class clazz = item.getPageClass();
+        Class<?> clazz = item.getPageClass();
         return clazz == null || isPageAuthorized(clazz);
     }
 
     public static boolean isMenuAuthorized(MenuItem item) {
-        Class clazz = item.getPageClass();
+        Class<?> clazz = item.getPageClass();
         return isPageAuthorized(clazz);
     }
 
-    public static boolean isPageAuthorized(Class page) {
+    public static boolean isPageAuthorized(Class<?> page) {
         if (page == null) {
             return false;
         }
 
-        PageDescriptor descriptor = (PageDescriptor) page.getAnnotation(PageDescriptor.class);
+        PageDescriptor descriptor = page.getAnnotation(PageDescriptor.class);
         if (descriptor == null) {
             return false;
         }
 
         AuthorizationAction[] actions = descriptor.action();
         List<String> list = new ArrayList<>();
-        if (actions != null) {
-            for (AuthorizationAction action : actions) {
-                list.add(action.actionUri());
-            }
+        for (AuthorizationAction action : actions) {
+            list.add(action.actionUri());
         }
 
-        return WebComponentUtil.isAuthorized(list.toArray(new String[list.size()]));
+        return WebComponentUtil.isAuthorized(list.toArray(new String[0]));
     }
 
     public static WebMarkupContainer createHiddenInputForCsrf(String id) {
@@ -267,14 +260,14 @@ public class SecurityUtils {
             }
             if (suffixOfAddSeq.toLowerCase().equals(suffixOfActSeq.toLowerCase())) {
                 if (replace) {
-                    sequences.remove(sequences.indexOf(actualSequence));
+                    sequences.remove(actualSequence);
                     sequences.add(addingSequence);
                 }
                 return;
             }
             if (isDefaultAddSeq && isDefaultActSeq) {
                 if (replace) {
-                    sequences.remove(sequences.indexOf(actualSequence));
+                    sequences.remove(actualSequence);
                     sequences.add(addingSequence);
                 }
                 return;
@@ -443,20 +436,21 @@ public class SecurityUtils {
         return null;
     }
 
-    private static AbstractAuthenticationModuleType getModuleByName(String name, AuthenticationModulesType authenticationModulesType) {
-        PrismContainerValue modulesContainerValue = authenticationModulesType.asPrismContainerValue();
+    private static AbstractAuthenticationModuleType getModuleByName(
+            String name, AuthenticationModulesType authenticationModulesType) {
+        PrismContainerValue<?> modulesContainerValue = authenticationModulesType.asPrismContainerValue();
         List<AbstractAuthenticationModuleType> modules = new ArrayList<>();
         modulesContainerValue.accept(v -> {
             if (!(v instanceof PrismContainer)) {
                 return;
             }
 
-            PrismContainer c = (PrismContainer) v;
+            PrismContainer<?> c = (PrismContainer<?>) v;
             if (!(AbstractAuthenticationModuleType.class.isAssignableFrom(c.getCompileTimeClass()))) {
                 return;
             }
 
-            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue) x).asContainerable()));
+            c.getValues().forEach(x -> modules.add((AbstractAuthenticationModuleType) ((PrismContainerValue<?>) x).asContainerable()));
         });
 
         for (AbstractAuthenticationModuleType module : modules) {
@@ -591,8 +585,9 @@ public class SecurityUtils {
     public static UserType searchUserPrivileged(String username, SecurityContextManager securityContextManager, TaskManager manager,
             ModelService modelService, PrismContext prismContext) {
         UserType userType = securityContextManager.runPrivileged(new Producer<UserType>() {
-            ObjectQuery query = prismContext.queryFor(UserType.class).item(UserType.F_NAME)
-                    .eqPoly(username).matchingNorm().build();
+            final ObjectQuery query = prismContext.queryFor(UserType.class)
+                    .item(UserType.F_NAME).eqPoly(username).matchingNorm()
+                    .build();
 
             @Override
             public UserType run() {
@@ -709,7 +704,7 @@ public class SecurityUtils {
         return true;
     }
 
-    public static boolean isRecordSessionlessAccessChannel(HttpServletRequest httpRequest){
+    public static boolean isRecordSessionlessAccessChannel(HttpServletRequest httpRequest) {
         if (httpRequest != null) {
             String localePath = httpRequest.getRequestURI().substring(httpRequest.getContextPath().length());
             String channel = SecurityUtils.searchChannelByPath(localePath);
