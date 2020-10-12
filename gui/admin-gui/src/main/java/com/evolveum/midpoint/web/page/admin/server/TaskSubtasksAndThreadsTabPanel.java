@@ -131,6 +131,7 @@ public class TaskSubtasksAndThreadsTabPanel extends BasePanel<PrismObjectWrapper
     private Collection<SelectorOptions<GetOperationOptions>> createOperationOptions() {
         List<QName> propertiesToGet = new ArrayList<>();
         propertiesToGet.add(TaskType.F_SUBTASK_REF);
+        propertiesToGet.add(TaskType.F_NODE_AS_OBSERVED);
 
         GetOperationOptionsBuilder getOperationOptionsBuilder = getSchemaHelper().getOperationOptionsBuilder();
         getOperationOptionsBuilder = getOperationOptionsBuilder.resolveNames();

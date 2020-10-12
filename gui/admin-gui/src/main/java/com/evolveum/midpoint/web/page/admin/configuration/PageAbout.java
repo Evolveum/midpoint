@@ -17,6 +17,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_3.SystemObjectsType;
+
 import org.apache.catalina.util.ServerInfo;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -507,6 +509,7 @@ public class PageAbout extends PageAdminConfiguration {
             task.setChannel(SchemaConstants.CHANNEL_USER_URI);
             task.setHandlerUri(ModelPublicConstants.REINDEX_TASK_HANDLER_URI);
             task.setName("Reindex repository objects");
+            task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_UTILITY_TASK.value());
             taskManager.switchToBackground(task, result);
             result.setBackgroundTaskOid(task.getOid());
         } catch (SecurityViolationException | SchemaException | RuntimeException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException | ConfigurationException e) {

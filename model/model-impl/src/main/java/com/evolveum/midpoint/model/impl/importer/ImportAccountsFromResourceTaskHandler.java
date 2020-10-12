@@ -128,7 +128,6 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         PolyStringType polyString = new PolyStringType("Import from resource " + resource.getName());
         task.setName(polyString);
 
-
         // Set reference to the resource
         task.setObjectRef(ObjectTypeUtil.createObjectRef(resource, prismContext));
 
@@ -150,6 +149,8 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
             result.recordFatalError("Error dealing with schema", e);
             throw new IllegalStateException("Error dealing with schema", e);
         }
+
+        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_IMPORT_TASK.value());
 
         // Switch task to background. This will start new thread and call
         // the run(task) method.

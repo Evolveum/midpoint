@@ -130,6 +130,8 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
             throw new IllegalStateException("Error dealing with schema", e);
         }
 
+        // TODO set correct archetype here (when needed)
+
         // Switch task to background. This will start new thread and call
         // the run(task) method.
         // Note: the thread may be actually started on a different node

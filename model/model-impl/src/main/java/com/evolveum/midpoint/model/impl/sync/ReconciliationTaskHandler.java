@@ -450,6 +450,8 @@ public class ReconciliationTaskHandler implements WorkBucketAwareTaskHandler {
             throw new IllegalStateException("Error dealing with schema", e);
         }
 
+        task.addArchetypeInformationIfMissing(SystemObjectsType.ARCHETYPE_RECONCILIATION_TASK.value());
+
         // Switch task to background. This will start new thread and call
         // the run(task) method.
         // Note: the thread may be actually started on a different node

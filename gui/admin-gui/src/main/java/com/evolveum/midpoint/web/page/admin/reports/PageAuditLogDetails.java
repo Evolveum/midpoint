@@ -503,7 +503,7 @@ public class PageAuditLogDetails extends PageBase {
     }
 
     private IModel<String> createTaskNameModel(IModel<TaskType> taskModel) {
-        return new ReadOnlyModel(() -> {
+        return new ReadOnlyModel<>(() -> {
             TaskType task = taskModel.getObject();
             if (task == null) {
                 return "";
