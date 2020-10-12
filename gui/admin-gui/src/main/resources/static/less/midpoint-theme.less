@@ -1692,6 +1692,7 @@ th.composited-icon {
 .metadata {
 
     border-radius: 0px;
+    border: none;
 
   .panel-default {
       border-color: #ffffff;
@@ -1703,7 +1704,10 @@ th.composited-icon {
   }
 
   .panel-body {
-      padding: 5px;
+      padding-left: 0px;
+      padding-right: 0px;
+      padding-top: 5px;
+      padding-bottom: 5px;
   }
 
   .info-box {
@@ -1731,11 +1735,20 @@ th.composited-icon {
 //     padding-left: 40px;
 }
 
-.metadata-properties {
+.metadata-properties > div > div > div.metadata-property {
   padding-left: 40px;
+}
+
+.metadata-properties > div > div > div.container {
+  padding-left: 40px;
+}
+
+.metadata-properties {
+  padding-left: 0px;
 
   .metadata-property {
     padding-left: 0px;
+    padding-bottom: 5px;
 
     &.stripe {
       background-color: @table-stripe-bg-color;
@@ -1762,21 +1775,42 @@ th.composited-icon {
   content: "\f02b";
 }
 
-.metadata-tab {
-  border: 1px solid #dddddd;
+.contains-active-tab {
+  border-bottom: 1px solid #eeeeee;
+}
+
+.contains-active-tab > ul > li > a.metadata-tab {
+  margin-top: 0px;
+  border-top: 3px solid transparent;
   border-radius: 0px;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  background-color: transparent;
+}
+
+.metadata-tab {
+  margin-top: 2px;
+  border: 1px solid #dddddd;
+  border-radius: 3px;
   padding: 3px 10px !important;
   float: left;
+  padding-bottom: 5px !important;
+  background-color: #f7f7f7;
 
   font-size: 75%;
-  font-weight: 700;
   color: #000;
   text-align: center;
   white-space: nowrap;
+
 }
 
 .metadata-tab-active {
-  background-color: #dddddd;
+  border-top: 3px solid #3c8dbc !important;
+  border-right: 1px solid #f4f4f4 !important;
+  border-left: 1px solid #f4f4f4 !important;
+  background-color: #ffffff !important;
+  border-bottom: 1px solid transparent !important;
 }
 
 .acquisition {

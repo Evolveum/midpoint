@@ -58,5 +58,6 @@ ALTER TABLE m_focus_policy_situation RENAME TO m_object_policy_situation;
 ALTER TABLE m_object_policy_situation RENAME COLUMN focus_oid TO object_oid;
 ALTER TABLE m_object_policy_situation
   ADD CONSTRAINT fk_object_policy_situation FOREIGN KEY (object_oid) REFERENCES m_object;
+ALTER INDEX iFocusPolicySituationOid RENAME TO iObjectPolicySituationOid;
 
 COMMIT;

@@ -189,9 +189,13 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
 
                 String searchByName = getSearchByNameParameterValue();
                 if (searchByName != null) {
-                    for (PropertySearchItem item : search.getPropertyItems()) {
-                        if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
-                            item.setValue(new SearchValue(searchByName));
+                    if (SearchBoxModeType.FULLTEXT.equals(search.getSearchType())) {
+                        search.setFullText(searchByName);
+                    } else {
+                        for (PropertySearchItem item : search.getPropertyItems()) {
+                            if (ItemPath.create(ObjectType.F_NAME).equivalent(item.getPath())) {
+                                item.setValue(new SearchValue(searchByName));
+                            }
                         }
                     }
                 }
