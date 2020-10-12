@@ -17064,12 +17064,20 @@
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="expression" type="tns:ExpressionType" minOccurs="0" maxOccurs="1">
-                  <xsd:annotation>
-                      <xsd:documentation>
-                          Expression that produces value of the property.
-                      </xsd:documentation>
-                  </xsd:annotation>
-              </xsd:element>
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Expression that produces value of the property.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="targetSelector" type="tns:ObjectSelectorType" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Selector(s) for target objects to which this property derivation applies.
+                        If multiple selectors are defined, at least one of them has to match.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

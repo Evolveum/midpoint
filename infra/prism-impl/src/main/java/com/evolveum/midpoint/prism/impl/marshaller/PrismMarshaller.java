@@ -315,7 +315,9 @@ public class PrismMarshaller {
             Collection<? extends QName> itemsToSkip) throws SchemaException {
         Long id = containerVal.getId();
         if (id != null) {
-            xmap.put(XNodeImpl.KEY_CONTAINER_ID, createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG));
+            PrimitiveXNodeImpl<Long> infraId = createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG);
+            infraId.setInfra(true);
+            xmap.put(XNodeImpl.KEY_CONTAINER_ID, infraId);
         }
         if (containerVal instanceof PrismObjectValue) {
             PrismObjectValue<?> objectVal = (PrismObjectValue<?>) containerVal;

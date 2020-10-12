@@ -13,6 +13,7 @@ import static com.evolveum.midpoint.model.impl.lens.LensUtil.getExportType;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.model.impl.lens.projector.focus.ObjectTemplateProcessor;
+import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -370,6 +371,7 @@ public class Projector {
         boolean hasProjectionError = false;
         OperationResultStatus finalStatus = OperationResultStatus.SUCCESS;
         String message = null;
+        LocalizableMessage userFriendlyMessage = null;
         for (OperationResult subresult: result.getSubresults()) {
             if (subresult.isNotApplicable() || subresult.isSuccess()) {
                 continue;
@@ -382,6 +384,7 @@ public class Projector {
             }
             if (subresult.isError()) {
                 message = subresult.getMessage();
+                userFriendlyMessage = subresult.getUserFriendlyMessage();
                 if (OPERATION_PROJECT_PROJECTION.equals(subresult.getOperation())) {
                     hasProjectionError = true;
                 } else {
@@ -396,6 +399,7 @@ public class Projector {
         }
         result.setStatus(finalStatus);
         result.setMessage(message);
+        result.setUserFriendlyMessage(userFriendlyMessage);
         result.cleanupResult();
         if (LOGGER.isDebugEnabled()) {
             long projectorStartTimestamp = XmlTypeConverter.toMillis(projectorStartTimestampCal);
