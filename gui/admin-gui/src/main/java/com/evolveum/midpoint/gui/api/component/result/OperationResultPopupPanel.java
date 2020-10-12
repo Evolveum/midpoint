@@ -7,6 +7,7 @@
 package com.evolveum.midpoint.gui.api.component.result;
 
 import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.web.component.dialog.Popupable;
 
@@ -32,9 +33,19 @@ public class OperationResultPopupPanel extends BasePanel<OperationResult> implem
         super.onInitialize();
 
         OperationResultPanel operationResultPanel = new OperationResultPanel(ID_OPERATION_RESULTS_PANEL,
-                Model.of(OpResult.getOpResult(getPageBase(), getModelObject())));
+                createResultModel());
         operationResultPanel.setOutputMarkupId(true);
         add(operationResultPanel);
+    }
+
+    private IModel<OpResult> createResultModel() {
+        return new ReadOnlyModel<>(() -> {
+
+            if (getModelObject() == null) {
+                return null;
+            }
+            return OpResult.getOpResult(getPageBase(), getModelObject());
+        });
     }
 
     @Override
