@@ -6,14 +6,9 @@
  */
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import java.util.*;
-import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.GuiFeature;
-
-import com.evolveum.midpoint.model.api.authentication.CompiledGuiProfile;
-
-import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.RestartResponseException;
@@ -88,13 +83,8 @@ public class TreeTablePanel extends BasePanel<String> {
     }
 
     protected static final String DOT_CLASS = TreeTablePanel.class.getName() + ".";
-    protected static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
     protected static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
-    protected static final String OPERATION_CHECK_PARENTS = DOT_CLASS + "checkParents";
-    protected static final String OPERATION_MOVE_OBJECTS = DOT_CLASS + "moveObjects";
     protected static final String OPERATION_MOVE_OBJECT = DOT_CLASS + "moveObject";
-    protected static final String OPERATION_UPDATE_OBJECTS = DOT_CLASS + "updateObjects";
-    protected static final String OPERATION_UPDATE_OBJECT = DOT_CLASS + "updateObject";
     protected static final String OPERATION_RECOMPUTE = DOT_CLASS + "recompute";
     protected static final String OPERATION_SEARCH_MANAGERS = DOT_CLASS + "searchManagers";
     protected static final String OPERATION_COUNT_CHILDREN = DOT_CLASS + "countChildren";
@@ -106,8 +96,6 @@ public class TreeTablePanel extends BasePanel<String> {
     private static final String ID_MEMBER_PANEL = "memberPanel";
     protected static final String ID_CONTAINER_MANAGER = "managerContainer";
     protected static final String ID_MANAGER_TABLE = "managerTable";
-    protected static final String ID_MANAGER_MENU = "managerMenu";
-    protected static final String ID_MANAGER_MENU_BODY = "managerMenuBody";
 
     private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
@@ -135,7 +123,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
             @Override
             protected List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org) {
-                return TreeTablePanel.this.createTreeChildrenMenu(org, serviceLocator.getCompiledGuiProfile());
+                return TreeTablePanel.this.createTreeChildrenMenu(org);
             }
 
         };
@@ -184,7 +172,7 @@ public class TreeTablePanel extends BasePanel<String> {
             PrismObjectWrapper<FocusType> managerWrapper;
             try {
                 managerWrapper = getPageBase().getRegistry().getObjectWrapperFactory(manager.getDefinition()).createObjectWrapper(manager, ItemStatus.NOT_CHANGED, context);
-            } catch (SchemaException e) {
+            } catch (Throwable e) {
                 LoggingUtils.logException(LOGGER, "Cannoot create wrapper for {}" + manager, e);
                 searchManagersResult.recordFatalError(getString("TreeTablePanel.message.createManagerPanel.fatalError", manager), e);
                 getPageBase().showResult(searchManagersResult);
@@ -215,11 +203,10 @@ public class TreeTablePanel extends BasePanel<String> {
     }
 
     private List<InlineMenuItem> createTreeMenu() {
-        List<InlineMenuItem> items = new ArrayList<>();
-        return items;
+        return new ArrayList<>();
     }
 
-    private List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org, CompiledGuiProfile adminGuiConfig) {
+    private List<InlineMenuItem> createTreeChildrenMenu(TreeSelectableBean<OrgType> org) {
         List<InlineMenuItem> items = new ArrayList<>();
 
         boolean isAllowModify = isAllowModify(org.getValue());
@@ -318,7 +305,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        editRootPerformed(org, target);
+                        editRootPerformed(org);
                     }
                 };
             }
@@ -340,7 +327,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
-                        editRootPerformed(org, target);
+                        editRootPerformed(org);
                     }
                 };
             }
@@ -364,8 +351,7 @@ public class TreeTablePanel extends BasePanel<String> {
                     public void onClick(AjaxRequestTarget target) {
                         try {
                             initObjectForAdd(
-                                    ObjectTypeUtil.createObjectRef(org.getValue(), getPageBase().getPrismContext()),
-                                    OrgType.COMPLEX_TYPE, null, target);
+                                    ObjectTypeUtil.createObjectRef(org.getValue(), getPageBase().getPrismContext()), target);
                         } catch (SchemaException e) {
                             throw new SystemException(e.getMessage(), e);
                         }
@@ -389,8 +375,7 @@ public class TreeTablePanel extends BasePanel<String> {
                     parentPage.isAuthorized(ModelAuthorizationAction.GET.getUrl(),
                             AuthorizationPhaseType.REQUEST, org.asPrismObject(),
                             null, null, null);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException
-                | CommunicationException | ConfigurationException | SecurityViolationException ex) {
+        } catch (Throwable ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
         }
         return allowRead;
@@ -416,8 +401,7 @@ public class TreeTablePanel extends BasePanel<String> {
             allowAddNew = parentPage.isAuthorized(ModelAuthorizationAction.ADD.getUrl(),
                     AuthorizationPhaseType.REQUEST, (new OrgType(parentPage.getPrismContext())).asPrismObject(),
                     null, null, null);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException
-                | CommunicationException | ConfigurationException | SecurityViolationException ex) {
+        } catch (Throwable ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
         }
         return allowAddNew;
@@ -430,23 +414,21 @@ public class TreeTablePanel extends BasePanel<String> {
                     parentPage.isAuthorized(ModelAuthorizationAction.DELETE.getUrl(),
                             AuthorizationPhaseType.REQUEST, org.asPrismObject(),
                             null, null, null);
-        } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException
-                | CommunicationException | ConfigurationException | SecurityViolationException ex) {
+        } catch (Throwable ex) {
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to check menu items authorizations", ex);
         }
         return allowDelete;
     }
 
     // TODO: merge this with AbstractRoleMemberPanel.initObjectForAdd, also see MID-3233
-    private void initObjectForAdd(ObjectReferenceType parentOrgRef, QName type, QName relation,
-            AjaxRequestTarget target) throws SchemaException {
+    private <O extends ObjectType> void initObjectForAdd(ObjectReferenceType parentOrgRef, AjaxRequestTarget target) throws SchemaException {
         TreeTablePanel.this.getPageBase().hideMainPopup(target);
         PrismContext prismContext = TreeTablePanel.this.getPageBase().getPrismContext();
-        PrismObjectDefinition def = prismContext.getSchemaRegistry().findObjectDefinitionByType(type);
-        PrismObject obj = def.instantiate();
+        PrismObjectDefinition<O> def = prismContext.getSchemaRegistry().findObjectDefinitionByType(OrgType.COMPLEX_TYPE);
+        PrismObject<O> obj = def.instantiate();
 
-        ObjectType objType = (ObjectType) obj.asObjectable();
-        if (FocusType.class.isAssignableFrom(obj.getCompileTimeClass())) {
+        O objType = obj.asObjectable();
+        if (obj.getCompileTimeClass() != null && FocusType.class.isAssignableFrom(obj.getCompileTimeClass())) {
             AssignmentType assignment = new AssignmentType();
             assignment.setTargetRef(parentOrgRef);
             ((FocusType) objType).getAssignment().add(assignment);
@@ -459,7 +441,7 @@ public class TreeTablePanel extends BasePanel<String> {
         if (parentOrgRef == null) {
             ObjectType org = getTreePanel().getSelected().getValue();
             parentOrgRef = ObjectTypeUtil.createObjectRef(org, prismContext);
-            parentOrgRef.setRelation(relation);
+            parentOrgRef.setRelation(null);
             objType.getParentOrgRef().add(parentOrgRef);
         } else {
             objType.getParentOrgRef().add(parentOrgRef.clone());
@@ -490,6 +472,7 @@ public class TreeTablePanel extends BasePanel<String> {
                 moveConfirmPerformed(root, selected, target);
             }
 
+            @SuppressWarnings("unchecked")
             @Override
             protected OrgType getAssignmentOwnerObject() {
                 return root.getValue();
@@ -523,26 +506,18 @@ public class TreeTablePanel extends BasePanel<String> {
 
                 moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationDelete(OrgType.F_ASSIGNMENT,
                         OrgType.class, oldRoot.asPrismContainerValue()));
-                // moveOrgDelta.addModification(ReferenceDelta.createModificationDelete(OrgType.F_PARENT_ORG_REF,
-                // toMove.asPrismObject().getDefinition(),
-                // ObjectTypeUtil.createObjectRef(parentOrg).asReferenceValue()));
             }
 
             AssignmentType newRoot = new AssignmentType();
             newRoot.setTargetRef(ObjectTypeUtil.createObjectRef(selected.getValue(), getPageBase().getPrismContext()));
             moveOrgDelta.addModification(getPrismContext().deltaFactory().container().createModificationAdd(OrgType.F_ASSIGNMENT,
                     OrgType.class, newRoot.asPrismContainerValue()));
-            // moveOrgDelta.addModification(ReferenceDelta.createModificationAdd(OrgType.F_PARENT_ORG_REF,
-            // toMove.asPrismObject().getDefinition(),
-            // ObjectTypeUtil.createObjectRef(selected.getValue()).asReferenceValue()));
 
             getPageBase().getPrismContext().adopt(moveOrgDelta);
             getPageBase().getModelService()
                     .executeChanges(MiscUtil.createCollection(moveOrgDelta), null, task, result);
             result.computeStatus();
-        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                | PolicyViolationException | SecurityViolationException e) {
+        } catch (Throwable e) {
             result.recordFatalError(getString("TreeTablePanel.message.moveConfirmPerformed.fatalError", toMove), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to move organization unit" + toMove, e);
         }
@@ -582,9 +557,7 @@ public class TreeTablePanel extends BasePanel<String> {
             getPageBase().getModelService()
                     .executeChanges(MiscUtil.createCollection(moveOrgDelta), null, task, result);
             result.computeStatus();
-        } catch (ObjectAlreadyExistsException | ObjectNotFoundException | SchemaException
-                | ExpressionEvaluationException | CommunicationException | ConfigurationException
-                | PolicyViolationException | SecurityViolationException e) {
+        } catch (Throwable e) {
             result.recordFatalError(getString("TreeTablePanel.message.moveConfirmPerformed.fatalError", toMove), e);
             LoggingUtils.logUnexpectedException(LOGGER, "Failed to move organization unit" + toMove, e);
         }
@@ -670,8 +643,7 @@ public class TreeTablePanel extends BasePanel<String> {
             int count = getPageBase().getModelService().countObjects(ObjectType.class,
                     query, null, task, result);
             return (count > 0);
-        } catch (SchemaException | ObjectNotFoundException | SecurityViolationException
-                | ConfigurationException | CommunicationException | ExpressionEvaluationException e) {
+        } catch (Throwable e) {
             LoggingUtils.logUnexpectedException(LOGGER, e.getMessage(), e);
             result.recordFatalError(getString("TreeTablePanel.message.hasChildren.fatalError", orgToDelete.getValue()), e);
             return false;
@@ -702,6 +674,7 @@ public class TreeTablePanel extends BasePanel<String> {
 
         result.computeStatusIfUnknown();
         page.showResult(result);
+        target.add(getPageBase().getFeedbackPanel());
 
         // even if we theoretically could refresh page only if non-leaf node is deleted,
         // for simplicity we do it each time
@@ -715,7 +688,7 @@ public class TreeTablePanel extends BasePanel<String> {
         throw new RestartResponseException(getPage().getClass());
     }
 
-    private void editRootPerformed(SelectableBeanImpl<OrgType> root, AjaxRequestTarget target) {
+    private void editRootPerformed(SelectableBeanImpl<OrgType> root) {
         if (root == null) {
             root = getTreePanel().getRootFromProvider();
         }
