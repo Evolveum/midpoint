@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.web.page.admin.server.PageTask;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
@@ -123,13 +124,17 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
             @Override
             protected DashboardWidgetDto load() {
                 Task task = getPageBase().createSimpleTask("Get DashboardWidget");
+                OperationResult result = task.getResult();
                 try {
-                    DashboardWidget dashboardWidget = getPageBase().getDashboardService().createWidgetData(getModelObject(), task, task.getResult());
+                    DashboardWidget dashboardWidget = getPageBase().getDashboardService().createWidgetData(getModelObject(), task, result);
+                    result.computeStatusIfUnknown();
                     return new DashboardWidgetDto(dashboardWidget, getPageBase());
-                } catch (SchemaException | CommunicationException | ConfigurationException | SecurityViolationException
-                        | ExpressionEvaluationException | ObjectNotFoundException e) {
+                } catch (Exception e) {
                     LOGGER.error("Couldn't get DashboardWidget with widget " + getModelObject().getIdentifier(), e);
+                    result.recordFatalError("Couldn't get widget, reason: " + e.getMessage(), e);
                 }
+                result.computeStatusIfUnknown();
+                getPageBase().showResult(result);
                 return null;
             }
         };

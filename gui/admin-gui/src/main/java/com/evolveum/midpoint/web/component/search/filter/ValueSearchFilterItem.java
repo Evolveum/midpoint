@@ -124,8 +124,8 @@ public class ValueSearchFilterItem<V extends PrismValue, D extends ItemDefinitio
     public ValueSearchFilterItem(ValueFilter filter, boolean applyNegation) {
         this.filter = filter;
         this.applyNegation = applyNegation;
-        propertyPath = filter.getDefinition().getItemName();
-        propertyDef = filter.getDefinition();
+        this.propertyPath = filter.getDefinition().getItemName();
+        this.propertyDef = filter.getDefinition();
         propertyName = WebComponentUtil.getItemDefinitionDisplayNameOrName(propertyDef, null);
         value = CollectionUtils.isNotEmpty(filter.getValues()) ? filter.getValues().get(0) : null;
         if (propertyDef instanceof PrismReferenceDefinition && value == null) {
