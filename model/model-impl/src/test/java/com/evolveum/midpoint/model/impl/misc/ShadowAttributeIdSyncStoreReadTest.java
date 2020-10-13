@@ -10,6 +10,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -24,13 +25,16 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.midpoint.model.impl.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.impl.util.RawTypeUtil;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathImpl;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SearchResultList;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
@@ -102,12 +106,26 @@ public class ShadowAttributeIdSyncStoreReadTest extends AbstractInternalModelInt
 
 
         PrismObject<ShadowType> object = shadows.get(0);
+        @NotNull
+        Collection<SelectorOptions<GetOperationOptions>> options = schemaHelper.getOperationOptionsBuilder().raw().build();
+
+        PrismObject<ShadowType> raw = repositoryService.getObject(ShadowType.class, object.getOid(), options, result);
         PrismObject<ShadowType> provisioning = provisioningService.getObject(ShadowType.class, object.getOid(), null, null, result);
 
+
+        PrismContainerValue<?> dbAttributes = object.getAnyValue().getValue().getAttributes().asPrismContainerValue();
+        PrismContainerValue<?> provisioningAttributes = provisioning.getAnyValue().getValue().getAttributes().asPrismContainerValue();
+
         String serializedXml = prismContext.xmlSerializer().serialize(object);
+        String serializedRaw = prismContext.xmlSerializer().serialize(raw);
         String serializedJson = prismContext.jsonSerializer().serialize(object);
         // WHEN
+
         when();
+
+        repositoryService.deleteObject(ShadowType.class, object.getOid(), result);
+        PrismObject<ShadowType> deserializedDb = prismContext.parseObject(serializedRaw);
+        repositoryService.addObject(deserializedDb, null, result);
 
         // THEN
         then();
