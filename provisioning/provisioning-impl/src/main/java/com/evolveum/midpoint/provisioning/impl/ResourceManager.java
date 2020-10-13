@@ -8,18 +8,9 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.*;
-
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
-import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
-import com.evolveum.midpoint.schema.processor.*;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -29,9 +20,16 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchemaImpl;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.*;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.MutablePrismSchema;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
@@ -46,6 +44,9 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.internals.InternalCounters;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.statistics.ConnectorOperationalStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
@@ -56,21 +57,15 @@ import com.evolveum.midpoint.task.api.StateReporter;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.exception.TunnelException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.CapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.SchemaCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_3.ScriptCapabilityType;
+import com.evolveum.prism.xml.ns._public.types_3.SchemaDefinitionType;
 
 @Component
 public class ResourceManager {
@@ -83,6 +78,7 @@ public class ResourceManager {
     @Autowired private PrismContext prismContext;
     @Autowired private ExpressionFactory expressionFactory;
     @Autowired private ResourceOperationalStateManager operationalStateManager;
+    @Autowired private ProvisioningService provisioningService;
 
     private static final Trace LOGGER = TraceManager.getTrace(ResourceManager.class);
 
@@ -584,10 +580,11 @@ public class ResourceManager {
             // The way to go is to set up definitions on the container level.
             resourceDefinition.replaceDefinition(ResourceType.F_CONNECTOR_CONFIGURATION, configurationContainerDefinition);
         }
-
     }
 
-    private <T> void evaluateExpression(PrismProperty<T> configurationProperty, PrismObject<ResourceType> resource, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException {
+    private <T> void evaluateExpression(PrismProperty<T> configurationProperty, PrismObject<ResourceType> resource, Task task,
+            OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException,
+            CommunicationException, ConfigurationException, SecurityViolationException {
         PrismPropertyDefinition<T> propDef = configurationProperty.getDefinition();
         String shortDesc = "connector configuration property "+configurationProperty+" in "+resource;
         List<PrismPropertyValue<T>> extraValues = new ArrayList<>();
@@ -605,7 +602,12 @@ public class ResourceManager {
             Expression<PrismPropertyValue<T>, PrismPropertyDefinition<T>> expression = expressionFactory.makeExpression(expressionType, propDef, MiscSchemaUtil.getExpressionProfile(), shortDesc, task, result);
             ExpressionVariables variables = new ExpressionVariables();
 
-            // TODO: populate variables
+            SystemConfigurationType systemConfiguration = provisioningService.getSystemConfiguration();
+            variables.put(ExpressionConstants.VAR_CONFIGURATION, PrismObject.asPrismObject(systemConfiguration),
+                    SystemConfigurationType.class);
+            variables.put(ExpressionConstants.VAR_RESOURCE, resource, ResourceType.class);
+
+            // TODO: are there other variables that should be populated?
 
             ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null, variables, shortDesc, task);
             PrismValueDeltaSetTriple<PrismPropertyValue<T>> expressionOutputTriple = expression.evaluate(expressionContext,
