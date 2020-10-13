@@ -941,4 +941,10 @@ public class ObjectTypeUtil {
             extension.addReplaceExisting(property);
         }
     }
+
+    public static List<String> getOids(List<? extends Objectable> objectables) {
+        return objectables.stream()
+                .map(Objectable::getOid)
+                .collect(Collectors.toList());
+    }
 }
