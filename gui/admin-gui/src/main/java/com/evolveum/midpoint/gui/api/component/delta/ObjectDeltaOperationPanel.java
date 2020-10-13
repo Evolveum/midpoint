@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
@@ -69,12 +69,13 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
         add(objectDeltaOperationMarkup);
 
         Label executionResult = new Label(ID_PARAMETERS_EXECUTION_RESULT,
-                new PropertyModel(getModel(), "executionResult.status"));
+                new PropertyModel<>(getModel(), "executionResult.status"));
         executionResult.setOutputMarkupId(true);
         objectDeltaOperationMarkup.add(executionResult);
 
         AjaxButton showFullResultsLink = new AjaxButton(ID_PARAMETERS_FULL_RESULT_LINK) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showFullResultsPerformed(target);
@@ -91,12 +92,12 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
         objectDeltaOperationMarkup.add(showFullResultsLink);
 
         Label resourceName = new Label(ID_PARAMETERS_RESOURCE_NAME,
-                new PropertyModel(getModel(), ObjectDeltaOperationType.F_RESOURCE_NAME.getLocalPart()));
+                new PropertyModel<>(getModel(), ObjectDeltaOperationType.F_RESOURCE_NAME.getLocalPart()));
         resourceName.setOutputMarkupId(true);
         objectDeltaOperationMarkup.add(resourceName);
 
         Label objectName = new Label(ID_PARAMETERS_OBJECT_NAME,
-                new PropertyModel(getModel(), ObjectDeltaOperationType.F_OBJECT_NAME.getLocalPart()));
+                new PropertyModel<>(getModel(), ObjectDeltaOperationType.F_OBJECT_NAME.getLocalPart()));
         objectName.setOutputMarkupId(true);
         objectDeltaOperationMarkup.add(objectName);
         final SceneDto sceneDto;
@@ -156,14 +157,18 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
 
         OperationResultStatusType status = getModel().getObject().getExecutionResult().getStatus();
         switch (status) {
-            case PARTIAL_ERROR :
-            case FATAL_ERROR : return " box-danger";
-            case WARNING :
-            case UNKNOWN :
-            case HANDLED_ERROR : return " box-warning";
-            case IN_PROGRESS :
-            case NOT_APPLICABLE : return " box-primary";
-            case SUCCESS : return " box-success";
+            case PARTIAL_ERROR:
+            case FATAL_ERROR:
+                return " box-danger";
+            case WARNING:
+            case UNKNOWN:
+            case HANDLED_ERROR:
+                return " box-warning";
+            case IN_PROGRESS:
+            case NOT_APPLICABLE:
+                return " box-primary";
+            case SUCCESS:
+                return " box-success";
 
         }
         return " box-primary";
@@ -201,13 +206,13 @@ public class ObjectDeltaOperationPanel extends BasePanel<ObjectDeltaOperationTyp
         return true;
     }
 
-    private void showFullResultsPerformed(AjaxRequestTarget target){
-        OperationResultPopupPanel operationResultPopupPanel = new OperationResultPopupPanel(getPageBase().getMainPopupBodyId(),
-                createOperationResultModel());
+    private void showFullResultsPerformed(AjaxRequestTarget target) {
+        OperationResultPopupPanel operationResultPopupPanel = new OperationResultPopupPanel(
+                getPageBase().getMainPopupBodyId(), createOperationResultModel());
         getPageBase().showMainPopup(operationResultPopupPanel, target);
     }
 
-    private IModel createOperationResultModel() {
+    private IModel<OperationResult> createOperationResultModel() {
         return new ReadOnlyModel<>(() -> {
             if (getModelObject() == null) {
                 return null;
