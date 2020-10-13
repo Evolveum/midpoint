@@ -1,10 +1,15 @@
 /*
- * Copyright (c) 2010-2019 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
 package com.evolveum.midpoint.repo.sql.type;
+
+import java.io.Serializable;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.hibernate.HibernateException;
 import org.hibernate.dialect.Oracle10gDialect;
@@ -13,14 +18,6 @@ import org.hibernate.engine.spi.SharedSessionContractImplementor;
 import org.hibernate.type.StringType;
 import org.hibernate.usertype.UserType;
 
-import java.io.Serializable;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-
-/**
- * @author lazyman
- */
 public class PrefixedStringType implements UserType {
 
     public static final String NAME = "PrefixedStringType";
@@ -32,7 +29,7 @@ public class PrefixedStringType implements UserType {
 
     @Override
     public int[] sqlTypes() {
-        return new int[]{StringType.INSTANCE.sqlType()};
+        return new int[] { StringType.INSTANCE.sqlType() };
     }
 
     @Override
@@ -76,7 +73,6 @@ public class PrefixedStringType implements UserType {
 
     private boolean isOracle(SharedSessionContractImplementor session) {
         SessionFactoryImplementor factory = session.getFactory();
-        //System.out.println("]]] " + Oracle10gDialect.class.isAssignableFrom(factory.getDialect().getClass()));
         return Oracle10gDialect.class.isAssignableFrom(factory.getDialect().getClass());
     }
 
