@@ -389,24 +389,23 @@ public abstract class ObjectListPanel<O extends ObjectType> extends BasePanel<O>
                                 return Model.of("");
                             }
                             Item<?, ?> item = null;
-                            if (columnPath != null) {
-                                item = value.asPrismContainerValue().findItem(columnPath);
-                            }
-                            Item object = value.asPrismObject();
-                            if (item != null) {
-                                object = item;
-                            }
                             if (expression != null) {
                                 Task task = getPageBase().createSimpleTask("evaluate column expression");
                                 try {
+                                    if (columnPath != null) {
+                                        item = value.asPrismContainerValue().findItem(columnPath);
+                                    }
+                                    Item object = value.asPrismObject();
+                                    if (item != null) {
+                                        object = item;
+                                    }
                                     ExpressionVariables expressionVariables = new ExpressionVariables();
                                     expressionVariables.put(ExpressionConstants.VAR_OBJECT, object, object.getClass());
                                     String stringValue = ExpressionUtil.evaluateStringExpression(expressionVariables, getPageBase().getPrismContext(), expression,
                                             MiscSchemaUtil.getExpressionProfile(), getPageBase().getExpressionFactory(), "evaluate column expression",
                                             task, task.getResult()).iterator().next();
                                     return Model.of(stringValue);
-                                } catch (SchemaException | ExpressionEvaluationException | ObjectNotFoundException | CommunicationException
-                                        | ConfigurationException | SecurityViolationException e) {
+                                } catch (Exception e) {
                                     LOGGER.error("Couldn't execute expression for name column");
                                     OperationResult result = task.getResult();
                                     OperationResultStatusPresentationProperties props = OperationResultStatusPresentationProperties.parseOperationalResultStatus(result.getStatus());
