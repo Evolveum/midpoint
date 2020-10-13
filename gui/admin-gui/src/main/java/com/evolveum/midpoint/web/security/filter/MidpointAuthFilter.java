@@ -6,6 +6,8 @@
  */
 package com.evolveum.midpoint.web.security.filter;
 
+import static com.evolveum.midpoint.schema.util.SecurityPolicyUtil.NO_CUSTOM_IGNORED_LOCAL_PATH;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +57,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
     @Autowired private PrismContext prismContext;
     @Autowired private TaskManager taskManager;
 
-    private AuthenticationsPolicyType authenticationPolicy;
+    private volatile AuthenticationsPolicyType defaultAuthenticationPolicy;
 
     private final PreLogoutFilter preLogoutFilter = new PreLogoutFilter();
 
@@ -73,11 +75,23 @@ public class MidpointAuthFilter extends GenericFilterBean {
         module.setObjectPostProcessor(objectObjectPostProcessor);
     }
 
-    public AuthenticationsPolicyType getDefaultAuthenticationPolicy() throws SchemaException {
-        if (authenticationPolicy == null) {
-            authenticationPolicy = SecurityPolicyUtil.createDefaultAuthenticationPolicy(prismContext.getSchemaRegistry());
+    /**
+     * Creates default authentication policy because the configured one is empty.
+     * Either <b>authentication</b> element is missing, or it has no <b>sequence</b> elements.
+     * However, if there are some <b>ignoreLocalPath</b> elements defined (not null or empty),
+     * they override the default ignored paths.
+     * <p>
+     * The default policy is cached for this filter, if there are changes affecting the default
+     * policy (e.g. only changes to <b>ignoreLocalPath</b> without any <b>sequence</b> elements),
+     * midPoint must be restarted.
+     */
+    private AuthenticationsPolicyType getDefaultAuthenticationPolicy(
+            List<String> customIgnoredLocalPaths) throws SchemaException {
+        if (defaultAuthenticationPolicy == null) {
+            defaultAuthenticationPolicy = SecurityPolicyUtil.createDefaultAuthenticationPolicy(
+                    customIgnoredLocalPaths, prismContext.getSchemaRegistry());
         }
-        return authenticationPolicy;
+        return defaultAuthenticationPolicy;
     }
 
     @Override
@@ -110,7 +124,7 @@ public class MidpointAuthFilter extends GenericFilterBean {
         } catch (SchemaException e) {
             LOGGER.error("Couldn't load Authentication policy", e);
             try {
-                authenticationsPolicy = getDefaultAuthenticationPolicy();
+                authenticationsPolicy = getDefaultAuthenticationPolicy(NO_CUSTOM_IGNORED_LOCAL_PATH);
             } catch (SchemaException schemaException) {
                 LOGGER.error("Couldn't get default authentication policy");
                 throw new IllegalArgumentException("Couldn't get default authentication policy", e);
@@ -123,9 +137,11 @@ public class MidpointAuthFilter extends GenericFilterBean {
             return;
         }
 
-        AuthenticationSequenceType sequence = getAuthenticationSequence(mpAuthentication, httpRequest, authenticationsPolicy);
+        AuthenticationSequenceType sequence =
+                getAuthenticationSequence(mpAuthentication, httpRequest, authenticationsPolicy);
         if (sequence == null) {
-            throw new IllegalArgumentException("Couldn't find sequence for URI '" + httpRequest.getRequestURI() + "' in authentication of Security Policy with oid " + securityPolicy.getOid());
+            throw new IllegalArgumentException("Couldn't find sequence for URI '" + httpRequest.getRequestURI()
+                    + "' in authentication of Security Policy with oid " + securityPolicy.getOid());
         }
 
         //change generic logout path to logout path for actual module
@@ -171,7 +187,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
             mpAuthentication.setAuthenticationChannel(authenticationChannel);
         }
 
-        MidpointAuthFilter.VirtualFilterChain vfc = new MidpointAuthFilter.VirtualFilterChain(chain, authModules.get(indexOfProcessingModule).getSecurityFilterChain().getFilters());
+        MidpointAuthFilter.VirtualFilterChain vfc = new MidpointAuthFilter.VirtualFilterChain(
+                chain, authModules.get(indexOfProcessingModule).getSecurityFilterChain().getFilters());
         vfc.doFilter(httpRequest, response);
     }
 
@@ -229,7 +246,8 @@ public class MidpointAuthFilter extends GenericFilterBean {
         if (mpAuthentication == null || !sequence.equals(mpAuthentication.getSequence())) {
             SecurityContextHolder.getContext().setAuthentication(null);
             authenticationManager.getProviders().clear();
-            authModules = SecurityUtils.buildModuleFilters(authModuleRegistry, sequence, httpRequest, modules,
+            authModules = SecurityUtils.buildModuleFilters(
+                    authModuleRegistry, sequence, httpRequest, modules,
                     credentialsPolicy, sharedObjects, authenticationChannel);
         } else {
             authModules = mpAuthentication.getAuthModules();
@@ -262,17 +280,20 @@ public class MidpointAuthFilter extends GenericFilterBean {
         return sequence;
     }
 
-    private AuthenticationsPolicyType getAuthenticationPolicy(PrismObject<SecurityPolicyType> authPolicy) throws SchemaException {
-        //security policy without authentication
-        AuthenticationsPolicyType authenticationsPolicy;
-        if (authPolicy == null || authPolicy.asObjectable().getAuthentication() == null
-                || authPolicy.asObjectable().getAuthentication().getSequence() == null
-                || authPolicy.asObjectable().getAuthentication().getSequence().isEmpty()) {
-            authenticationsPolicy = getDefaultAuthenticationPolicy();
+    private AuthenticationsPolicyType getAuthenticationPolicy(
+            PrismObject<SecurityPolicyType> securityPolicy) throws SchemaException {
+
+        if (securityPolicy == null || securityPolicy.asObjectable().getAuthentication() == null) {
+            // there is no <authentication> element, we want default without any changes
+            return getDefaultAuthenticationPolicy(NO_CUSTOM_IGNORED_LOCAL_PATH);
+        } else if (securityPolicy.asObjectable().getAuthentication().getSequence() == null
+                || securityPolicy.asObjectable().getAuthentication().getSequence().isEmpty()) {
+            // in this case we want to honour eventual <ignoreLocalPath> elements
+            return getDefaultAuthenticationPolicy(
+                    securityPolicy.asObjectable().getAuthentication().getIgnoredLocalPath());
         } else {
-            authenticationsPolicy = authPolicy.asObjectable().getAuthentication();
+            return securityPolicy.asObjectable().getAuthentication();
         }
-        return authenticationsPolicy;
     }
 
     private PrismObject<SecurityPolicyType> getSecurityPolicy() throws SchemaException {
