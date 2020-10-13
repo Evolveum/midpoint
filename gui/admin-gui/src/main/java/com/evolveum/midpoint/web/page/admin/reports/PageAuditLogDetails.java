@@ -9,13 +9,6 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
-import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-
-import com.evolveum.midpoint.schema.SearchResultList;
-import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -28,19 +21,22 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.markup.repeater.RepeatingView;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
+import org.apache.wicket.util.string.StringValue;
 
 import com.evolveum.midpoint.gui.api.component.delta.ObjectDeltaOperationPanel;
 import com.evolveum.midpoint.gui.api.model.LoadableModel;
+import com.evolveum.midpoint.gui.api.model.ReadOnlyModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.Referencable;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
@@ -60,6 +56,7 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordItemValu
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.UserProfileStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
@@ -69,9 +66,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_3.RawType;
-
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.string.StringValue;
 
 @PageDescriptor(url = "/admin/auditLogDetails", action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
@@ -163,7 +157,6 @@ public class PageAuditLogDetails extends PageBase {
         initModel(record);
     }
 
-
     @Override
     protected void onInitialize() {
         super.onInitialize();
@@ -217,7 +210,6 @@ public class PageAuditLogDetails extends PageBase {
                     return null;
                 }
 
-
                 return records.iterator().next();
             }
         };
@@ -259,7 +251,7 @@ public class PageAuditLogDetails extends PageBase {
 
                     @Override
                     protected void onEvent(AjaxRequestTarget target) {
-                        PageAuditLogDetails.this.rowItemClickPerformed(target, item, rowModel);
+                        PageAuditLogDetails.this.rowItemClickPerformed(target, rowModel);
                     }
                 });
                 return item;
@@ -275,8 +267,8 @@ public class PageAuditLogDetails extends PageBase {
 
     }
 
-    protected void rowItemClickPerformed(AjaxRequestTarget target,
-            Item<AuditEventRecordType> item, final IModel<AuditEventRecordType> rowModel) {
+    private void rowItemClickPerformed(
+            AjaxRequestTarget target, final IModel<AuditEventRecordType> rowModel) {
         recordModel.setObject(rowModel.getObject());
         AuditLogStorage storage = getSessionStorage().getAuditLog();
         storage.setAuditRecord(rowModel.getObject());
@@ -432,7 +424,7 @@ public class PageAuditLogDetails extends PageBase {
         attorneyRef.setOutputMarkupId(true);
         eventDetailsPanel.add(attorneyRef);
 
-        final Label targetRef = new Label(ID_PARAMETERS_EVENT_TARGET, createTaretRefModel());
+        final Label targetRef = new Label(ID_PARAMETERS_EVENT_TARGET, createTargetRefModel());
         targetRef.setOutputMarkupId(true);
         eventDetailsPanel.add(targetRef);
 
@@ -503,7 +495,7 @@ public class PageAuditLogDetails extends PageBase {
     }
 
     private IModel<String> createTaskNameModel(IModel<TaskType> taskModel) {
-        return new ReadOnlyModel(() -> {
+        return new ReadOnlyModel<>(() -> {
             TaskType task = taskModel.getObject();
             if (task == null) {
                 return "";
@@ -522,8 +514,10 @@ public class PageAuditLogDetails extends PageBase {
                 new OperationResult(ID_PARAMETERS_EVENT_ATTORNEY)));
     }
 
-    private IModel<String> createTaretRefModel() {
-        return new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(recordModel.getObject().getTargetRef(), this,
+    private IModel<String> createTargetRefModel() {
+        return new ReadOnlyModel<>(() -> WebModelServiceUtils.resolveReferenceName(
+                recordModel.getObject().getTargetRef(),
+                this,
                 createSimpleTask(ID_PARAMETERS_EVENT_TARGET),
                 new OperationResult(ID_PARAMETERS_EVENT_TARGET)));
     }
