@@ -33,14 +33,11 @@ import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.Referencable;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.SearchResultList;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.security.api.AuthorizationConstants;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -61,11 +58,9 @@ import com.evolveum.midpoint.wf.api.WorkflowConstants;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectDeltaOperationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.TaskType;
 import com.evolveum.prism.xml.ns._public.types_3.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringType;
-import com.evolveum.prism.xml.ns._public.types_3.RawType;
 
 @PageDescriptor(url = "/admin/auditLogDetails", action = {
         @AuthorizationAction(actionUri = AuthorizationConstants.AUTZ_UI_REPORTS_ALL_URL,
@@ -83,7 +78,6 @@ public class PageAuditLogDetails extends PageBase {
 
     private static final String ID_DELTA_LIST_PANEL = "deltaListPanel";
     private static final String ID_DELTA_PANEL = "delta";
-    private static final String ID_OBJECT_DELTA_OP_PANEL = "objectDeltaOpPanel";
     private static final String ID_EVENT_DETAILS_PANEL = "eventDetailsPanel";
     private static final String ID_PARAMETERS_TIMESTAMP = "timestamp";
     private static final String ID_PARAMETERS_EVENT_IDENTIFIER = "eventIdentifier";
@@ -138,8 +132,6 @@ public class PageAuditLogDetails extends PageBase {
                     WorkflowConstants.AUDIT_COMMENT,
                     WorkflowConstants.AUDIT_WORK_ITEM_ID,
                     WorkflowConstants.AUDIT_PROCESS_INSTANCE_ID);
-
-    private final Map<String, String> resourceForShadow = new HashMap<>();
 
     public PageAuditLogDetails() {
         AuditLogStorage storage = getSessionStorage().getAuditLog();
@@ -579,22 +571,6 @@ public class PageAuditLogDetails extends PageBase {
     }
 
     private void initDeltasPanel(WebMarkupContainer eventPanel) {
-//        List<ObjectDeltaOperationType> deltas = recordModel.getObject().getDelta();
-//        RepeatingView deltaScene = new RepeatingView(ID_DELTA_LIST_PANEL);
-//
-//        for (ObjectDeltaOperationType deltaOp : connectDeltas(deltas)) {
-//            ObjectDeltaOperationPanel deltaPanel = new ObjectDeltaOperationPanel(deltaScene.newChildId(), Model.of(deltaOp), this) {
-//                @Override
-//                public boolean getIncludeOriginalObject() {
-//                    return false;
-//                }
-//            };
-//            deltaPanel.setOutputMarkupId(true);
-//            deltaScene.add(deltaPanel);
-//
-//        }
-//        eventPanel.addOrReplace(deltaScene);
-
         ListView<ObjectDeltaOperationType> deltaScene = new ListView<ObjectDeltaOperationType>(ID_DELTA_LIST_PANEL, createObjectDeltasModel()) {
 
             @Override
@@ -641,24 +617,6 @@ public class PageAuditLogDetails extends PageBase {
                         for (ItemDeltaType itemDelta : delta.getObjectDelta().getItemDelta()) {
                             if (itemDelta == null) {
                                 continue;
-                            }
-                            if ((delta.getResourceName() != null || !StringUtils.isEmpty(delta.getResourceOid()))
-                                    && itemDelta.getPath() != null && ItemPath.create(FocusType.F_LINK_REF).equivalent(itemDelta.getPath().getItemPath())) {
-                                for (RawType rawType : itemDelta.getValue()) {
-                                    if (rawType != null && QNameUtil.match(rawType.getExplicitTypeName(), ObjectReferenceType.COMPLEX_TYPE)) {
-                                        try {
-                                            //TODO change this after hack in asReferencable is fixed
-                                            Referencable ref = rawType.getParsedRealValue(Referencable.class);
-                                            if (ref != null && !StringUtils.isEmpty(ref.getOid())) {
-                                                String resource = (delta.getResourceName() != null) ? delta.getResourceName().getOrig() : delta.getResourceOid();
-                                                resourceForShadow.put(ref.getOid(), resource);
-                                            }
-                                        } catch (SchemaException e) {
-                                            LOGGER.debug("Couldn't parse ObjectReferenceType from RawType {}", rawType);
-                                            e.printStackTrace();
-                                        }
-                                    }
-                                }
                             }
                         }
                     }
