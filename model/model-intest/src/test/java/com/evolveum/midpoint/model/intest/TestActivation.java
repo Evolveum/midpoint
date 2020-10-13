@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.constants.SchemaConstants.PATH_ACTIVATION_ENABLE_TIMESTAMP;
@@ -15,8 +16,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.Objects;
+import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
+
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -128,6 +136,23 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         dummyResourceCtlPrecreate.setResource(resourceDummyPrecreate);
 //
 //        setGlobalTracingOverride(createModelLoggingTracingProfile());
+    }
+
+    @Test
+    public void test000Sanity() {
+        // MID-6609
+        // 1. Correct serialization and parsing of <path> expression
+
+        PrismProperty<Object> uselessStringProp = resourceDummyKhaki.findProperty(ItemPath.create(ResourceType.F_CONNECTOR_CONFIGURATION, "configurationProperties", "uselessString"));
+        ExpressionType expression = (ExpressionType) Objects.requireNonNull(uselessStringProp.getValue().getExpression())
+                .getExpression();
+        assertThat(expression.getExpressionEvaluator()).hasSize(1);
+        JAXBElement<?> evaluatorJaxb = expression.getExpressionEvaluator().get(0);
+        assertThat(evaluatorJaxb.getName()).isEqualTo(SchemaConstantsGenerated.C_PATH);
+        assertThat(evaluatorJaxb.getValue().toString()).isEqualTo("$configuration/name");
+
+        // 2. Correct evaluation of <path> expression: $configuration/name = 'SystemConfiguration'
+        assertThat(dummyResourceKhaki.getUselessString()).as("useless string").isEqualTo("SystemConfiguration");
     }
 
     @Test

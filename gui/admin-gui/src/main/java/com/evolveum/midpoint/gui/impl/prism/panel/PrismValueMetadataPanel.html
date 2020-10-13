@@ -8,16 +8,17 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-
-    <div wicket:id="metadataNav">
-        <ul class="nav metadata-nav">
-            <li wicket:id="metadataList">
-                <a class="metadata-tab" wicket:id="metadataQName"/>
-            </li>
-        </ul>
+    <div style="padding-bottom: 5px;">
+        <div wicket:id="metadataNav">
+            <ul class="nav metadata-nav">
+                <li wicket:id="metadataList" style="height: 28px; float: left; margin-bottom: -2px;">
+                    <a class="metadata-tab" wicket:id="metadataQName"/>
+                </li>
+            </ul>
+        </div>
+        <div wicket:id="provenanceMetadata"></div>
+        <div wicket:id="metadata"></div>
     </div>
-    <div wicket:id="provenanceMetadata"></div>
-    <div wicket:id="metadata"></div>
 
 </wicket:panel>
 </html>

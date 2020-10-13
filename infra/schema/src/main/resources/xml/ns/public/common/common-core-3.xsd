@@ -12633,6 +12633,15 @@
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
 
+    <xsd:element name="attributes" type="tns:ShadowAttributesType">
+       <!--  Necessary to find item definition for attributes -->
+       <xsd:annotation>
+           <xsd:appinfo>
+               <a:displayName>ShadowType.attributes</a:displayName>
+           </xsd:appinfo>
+       </xsd:annotation>
+    </xsd:element>
+
     <xsd:complexType name="ShadowAssociationType">
         <xsd:annotation>
             <xsd:documentation>

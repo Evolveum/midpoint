@@ -187,6 +187,8 @@ public class AccessCertificationRemediationTaskHandler implements TaskHandler {
 
         task.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
 
+        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_CERTIFICATION_TASK.value());
+
         taskManager.switchToBackground(task, result);
         result.setBackgroundTaskOid(task.getOid());
         if (result.isInProgress()) {

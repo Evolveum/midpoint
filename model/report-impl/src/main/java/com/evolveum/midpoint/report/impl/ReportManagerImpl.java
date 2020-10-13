@@ -134,10 +134,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             SecurityViolationException {
 
-        task.getUpdatedTaskObject().asObjectable().getAssignment()
-                .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE, prismContext));
-        task.getUpdatedTaskObject().asObjectable().getArchetypeRef()
-                .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE));
+        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_REPORT_TASK.value());
 
         if (!reportService.isAuthorizedToRunReport(object, task, parentResult)) {
             LOGGER.error("User is not authorized to run report {}", object);
@@ -179,10 +176,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook, ReadHook {
             throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
             SecurityViolationException {
 
-        task.getUpdatedTaskObject().asObjectable().getAssignment()
-                .add(ObjectTypeUtil.createAssignmentTo(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE, prismContext));
-        task.getUpdatedTaskObject().asObjectable().getArchetypeRef()
-                .add(ObjectTypeUtil.createObjectRef(SystemObjectsType.ARCHETYPE_REPORT_TASK.value(), ObjectTypes.ARCHETYPE));
+        task.addArchetypeInformation(SystemObjectsType.ARCHETYPE_REPORT_TASK.value());
 
         if (!reportService.isAuthorizedToImportReport(report, task, parentResult)) {
             LOGGER.error("User is not authorized to import report {}", report);

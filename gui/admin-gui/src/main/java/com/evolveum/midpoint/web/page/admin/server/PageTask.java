@@ -319,7 +319,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
     private String getReportDataOid() {
         PrismObject<TaskType> task = getTask().asPrismObject();
         PrismReference reportData = task.findReference(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_DATA_PROPERTY_NAME));
-        if (reportData == null || reportData.getRealValue() == null) {
+        if (reportData == null || reportData.getRealValue() == null || reportData.getRealValue().getOid() == null) {
             PrismProperty<String> reportOutputOid = task.findProperty(ItemPath.create(TaskType.F_EXTENSION, ReportConstants.REPORT_OUTPUT_OID_PROPERTY_NAME));
             if (reportOutputOid == null) {
                 return null;
