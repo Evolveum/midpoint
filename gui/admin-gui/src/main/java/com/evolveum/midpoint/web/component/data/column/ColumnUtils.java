@@ -796,6 +796,16 @@ public class ColumnUtils {
             public String getCssClass() {
                 return isDashboard ? "col-md-1 col-sm-2" : super.getCssClass();
             }
+
+            @Override
+            public IModel<?> getDataModel(IModel<SelectableBean<CaseType>> rowModel) {
+                IModel<String> dataModel = (IModel<String>) super.getDataModel(rowModel);
+                if (StringUtils.isNotBlank(dataModel.getObject())) {
+                    String key = CaseType.COMPLEX_TYPE.getLocalPart() + "." + CaseType.F_STATE.getLocalPart() + "." + dataModel.getObject();
+                    return new StringResourceModel(key, pageBase).setModel(new Model<String>()).setDefaultValue(dataModel.getObject());
+                }
+                return dataModel;
+            }
         };
         columns.add(column);
 
