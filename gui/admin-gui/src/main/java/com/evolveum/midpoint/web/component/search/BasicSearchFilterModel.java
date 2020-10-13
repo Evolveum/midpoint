@@ -9,6 +9,7 @@ package com.evolveum.midpoint.web.component.search;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.impl.factory.panel.SearchFilterTypeModel;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -60,8 +61,8 @@ public class BasicSearchFilterModel<O extends ObjectType> implements IModel<Basi
 //                return new BasicSearchFilter<O>(pageBase.getPrismContext(), null, type);
 //            }
 
-            ObjectFilter objectFilter = pageBase.getPrismContext().getQueryConverter().createObjectFilter(type, baseModel.getObject());
-            return new BasicSearchFilter<O>(pageBase, objectFilter, type);
+            ObjectQuery objectFilter = pageBase.getPrismContext().getQueryConverter().createObjectQuery(type, baseModel.getObject());
+            return new BasicSearchFilter<O>(pageBase, objectFilter.getFilter(), type);
         } catch (SchemaException | IllegalStateException e) {
             // TODO handle
             LoggingUtils.logUnexpectedException(LOGGER, "Cannot serialize filter", e);

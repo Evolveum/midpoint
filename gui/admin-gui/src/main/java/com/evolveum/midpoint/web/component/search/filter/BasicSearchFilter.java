@@ -108,8 +108,10 @@ public class BasicSearchFilter<C extends Containerable> extends SearchFilter<C> 
             }
             ObjectFilter realFilter = applyNegation ? ((NotFilter) filter).getFilter() : filter;
             if (realFilter instanceof ValueFilter) {
-                ValueSearchFilterItem filterItem = new ValueSearchFilterItem((ValueFilter)realFilter, applyNegation);
-                addSearchFilterItem(filterItem);
+                if (((ValueFilter) realFilter).getDefinition() != null) {
+                    ValueSearchFilterItem filterItem = new ValueSearchFilterItem((ValueFilter)realFilter, applyNegation);
+                    addSearchFilterItem(filterItem);
+                }
             }
         });
     }
