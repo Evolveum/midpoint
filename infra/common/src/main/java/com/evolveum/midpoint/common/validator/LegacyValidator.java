@@ -420,10 +420,9 @@ public class LegacyValidator {
             objectResult.recomputeStatus();
 
             return EventResult.cont();
-
         } catch (SchemaException ex) {
             if (verbose) {
-                ex.printStackTrace();
+                LOGGER.trace("Schema exception", ex);
             }
             if (handler != null) {
                 try {
@@ -439,7 +438,7 @@ public class LegacyValidator {
         } catch (RuntimeException ex) {
             validatorResult.recordFatalError("Couldn't parse object: " + ex.getMessage(), ex);
             if (verbose) {
-                ex.printStackTrace();
+                LOGGER.trace("Couldn't parse object", ex);
             }
             if (handler != null) {
                 try {
@@ -453,7 +452,6 @@ public class LegacyValidator {
             objectResult.recordFatalError(ex);
             return EventResult.skipObject(ex.getMessage());
         }
-
     }
 
     // this was made public to allow validation of pre-parsed non-prism documents
@@ -541,11 +539,6 @@ public class LegacyValidator {
             error("Wrong URI syntax: " + ex, object, propertyName, subResult);
         }
 
-    }
-
-    void error(String message, Objectable object, OperationResult subResult) {
-        subResult.addContext(OperationResult.CONTEXT_OBJECT, object.toString());
-        subResult.recordFatalError(message);
     }
 
     private void error(String message, Objectable object, String propertyName, OperationResult subResult) {
