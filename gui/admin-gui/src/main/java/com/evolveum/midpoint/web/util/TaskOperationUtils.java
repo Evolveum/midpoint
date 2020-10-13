@@ -59,7 +59,7 @@ public class TaskOperationUtils {
                     result.recordStatus(OperationResultStatus.SUCCESS,
                             pageBase.createStringResource("TaskOperationUtils.message.suspendPerformed.success").getString());
                 } else {
-                    result.recordWarning(pageBase.createStringResource("TaskOperationUtils.message.suspendPerformed.fatalError").getString());
+                    result.recordWarning(pageBase.createStringResource("TaskOperationUtils.message.suspendPerformed.warning").getString());
                 }
             }
         } catch (Throwable t) {
