@@ -200,10 +200,10 @@ public class SearchItemPanel<S extends SearchItem, T extends Serializable> exten
                 default:
                     searchItemField = new TextPanel<String>(ID_SEARCH_ITEM_FIELD, new PropertyModel<>(getModel(), "value"));
             }
-            searchItemField.add(AttributeModifier.append("class", "col-sm-7"));
+            searchItemField.add(AttributeModifier.append("class", "col-sm-6"));
             if (searchItemField instanceof InputPanel && !(searchItemField instanceof AutoCompleteTextPanel)) {
                 ((InputPanel) searchItemField).getBaseFormComponent().add(WebComponentUtil.getSubmitOnEnterKeyDownBehavior("searchSimple"));
-                ((InputPanel) searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 200px; max-width: 400px !important;"));
+                ((InputPanel) searchItemField).getBaseFormComponent().add(AttributeAppender.append("style", "width: 140px; max-width: 400px !important;"));
                 ((InputPanel) searchItemField).getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
             }
         }
