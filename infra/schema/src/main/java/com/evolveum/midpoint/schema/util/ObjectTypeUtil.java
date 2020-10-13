@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.LocalizableMessage;
 import com.evolveum.midpoint.util.LocalizableMessageBuilder;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -277,6 +278,28 @@ public class ObjectTypeUtil {
             return null;
         }
         return createObjectRef(object, prismContext.getDefaultRelation());
+    }
+
+    /**
+     * Creates a very basic (OID-only) reference for a given object. Useful e.g. to create references
+     * to be used in search filters.
+     */
+    @Experimental
+    public static ObjectReferenceType createOidOnlyObjectRef(ObjectType object) {
+        return createObjectRef(object != null ? object.getOid() : null);
+    }
+
+    /**
+     * @return OID-only object ref. Useful for search filters.
+     */
+    public static ObjectReferenceType createObjectRef(String oid) {
+        if (oid == null) {
+            return null;
+        } else {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.setOid(oid);
+            return ref;
+        }
     }
 
     public static ObjectReferenceType createObjectRef(ObjectType objectType, QName relation) {

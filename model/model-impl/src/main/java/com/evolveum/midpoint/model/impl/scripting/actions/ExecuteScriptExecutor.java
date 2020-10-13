@@ -273,18 +273,14 @@ public class ExecuteScriptExecutor extends BaseActionExecutor {
     private <I> Object executeScript(ScriptExpression scriptExpression, TypedValue<I> inputTypedValue,
             VariablesMap externalVariables, ExecutionContext context, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        ExpressionVariables variables = new ExpressionVariables();
+        ExpressionVariables variables = createVariables(externalVariables);
+
         variables.put(ExpressionConstants.VAR_INPUT, inputTypedValue);
-        variables.put(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext, PrismContext.class);
-        ExpressionUtil.addActorVariable(variables, securityContextManager, prismContext);
-        //noinspection unchecked
-        externalVariables.forEach((k, v) -> variables.put(k, cloneIfNecessary(k, v)));
-        variables.registerAliasesFrom(externalVariables);
 
         LensContext<?> lensContext = getLensContext(externalVariables);
         List<?> rv = ModelImplUtils.evaluateScript(scriptExpression, lensContext, variables, true, "in '"+NAME+"' action", context.getTask(), result);
 
-        if (rv == null || rv.size() == 0) {
+        if (rv.isEmpty()) {
             return null;
         } else if (rv.size() == 1) {
             return rv.get(0);
