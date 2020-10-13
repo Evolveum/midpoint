@@ -663,7 +663,7 @@ public final class WebComponentUtil {
 
     public static boolean canSuspendTask(TaskType task, PageBase pageBase) {
         return pageBase.isAuthorized(ModelAuthorizationAction.SUSPEND_TASK, task.asPrismObject())
-                && (isRunnableTask(task) || isRunningTask(task))
+                && (isRunnableTask(task) || isRunningTask(task) || isWaitingTask(task))
                 && !isWorkflowTask(task);
     }
 
@@ -685,6 +685,10 @@ public final class WebComponentUtil {
 
     public static boolean isRunningTask(TaskType task) {
         return task != null && task.getNodeAsObserved() != null;
+    }
+
+    public static boolean isWaitingTask(TaskType task) {
+        return task != null && TaskExecutionStatusType.WAITING == task.getExecutionStatus();
     }
 
     public static boolean isSuspendedTask(TaskType task) {

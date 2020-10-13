@@ -178,7 +178,7 @@ public class ResourceTasksPanel extends Panel implements Popupable {
             public void onClick(AjaxRequestTarget target) {
                 List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
                 if (!oids.isEmpty()) {
-                    OperationResult result = TaskOperationUtils.runNowPerformed(pageBase.getTaskService(), oids, pageBase);
+                    OperationResult result = TaskOperationUtils.runNowPerformed(oids, pageBase);
                     pageBase.showResult(result);
                 } else {
                     noTasksSelected();
@@ -193,9 +193,9 @@ public class ResourceTasksPanel extends Panel implements Popupable {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
-                if (!oids.isEmpty()) {
-                    OperationResult result = TaskOperationUtils.resumePerformed(pageBase.getTaskService(), oids, pageBase);
+                List<TaskType> tasks = getTaskListPanel().getSelectedObjects();
+                if (!tasks.isEmpty()) {
+                    OperationResult result = TaskOperationUtils.resumeTasks(tasks, pageBase);
                     pageBase.showResult(result);
                 } else {
                     noTasksSelected();
@@ -210,9 +210,9 @@ public class ResourceTasksPanel extends Panel implements Popupable {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                List<String> oids = createOidList(getTaskListPanel().getSelectedObjects());
-                if (!oids.isEmpty()) {
-                    OperationResult result = TaskOperationUtils.suspendPerformed(pageBase.getTaskService(), oids, pageBase);
+                List<TaskType> tasks = getTaskListPanel().getSelectedObjects();
+                if (!tasks.isEmpty()) {
+                    OperationResult result = TaskOperationUtils.suspendTasks(tasks, pageBase);
                     pageBase.showResult(result);
                 } else {
                     noTasksSelected();

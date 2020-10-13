@@ -7,11 +7,13 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.*;
-import java.util.stream.Collectors;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.web.component.data.column.AjaxLinkPanel;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
+
+import com.evolveum.midpoint.web.util.TaskOperationUtils;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.wicket.Component;
@@ -699,36 +701,17 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     }
 
     //region Task-level actions
-    //TODO unify with TaskOperationUtils
     private void suspendTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
         List<TaskType> selectedTasks = getSelectedTasks(target, selectedTask);
         if (selectedTasks == null) {
             return;
         }
-        Task opTask = createSimpleTask(OPERATION_SUSPEND_TASKS);
-        OperationResult result = opTask.getResult();
-        try {
-            List<TaskType> plainTasks = selectedTasks.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
-            List<TaskType> trees = selectedTasks.stream().filter(TaskTablePanel::isManageableTreeRoot).collect(Collectors.toList());
-            boolean suspendedPlain = suspendPlainTasks(plainTasks, result, opTask);
-            boolean suspendedTrees = suspendTrees(trees, result, opTask);
-            result.computeStatus();
-            if (result.isSuccess()) {
-                if (suspendedPlain && suspendedTrees) {
-                    result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.suspendTasksPerformed.success").getString());
-                } else {
-                    result.recordWarning(createStringResource("pageTasks.message.suspendTasksPerformed.warning").getString());
-                }
-            }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.suspendTasksPerformed.fatalError").getString(), e);
-        }
+        OperationResult result = TaskOperationUtils.suspendTasks(selectedTasks, getPageBase());
         showResult(result);
 
         //refresh feedback and table
         refreshTable(TaskType.class, target);
         clearCache();
-
     }
 
     private void resumeTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
@@ -736,51 +719,13 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         if (selectedTasks == null) {
             return;
         }
-        Task opTask = createSimpleTask(OPERATION_RESUME_TASKS);
-        OperationResult result = opTask.getResult();
-        try {
-            List<TaskType> plainTasks = selectedTasks.stream().filter(dto -> !isManageableTreeRoot(dto)).collect(Collectors.toList());
-            List<TaskType> trees = selectedTasks.stream().filter(TaskTablePanel::isManageableTreeRoot).collect(Collectors.toList());
-            getTaskService().resumeTasks(getOids(plainTasks), opTask, result);
-            for (TaskType tree : trees) {
-                getTaskService().resumeTaskTree(tree.getOid(), opTask, result);
-            }
-            result.computeStatus();
-            if (result.isSuccess()) {
-                result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.resumeTasksPerformed.success").getString());
-            }
-        } catch (ObjectNotFoundException | SchemaException | SecurityViolationException | ExpressionEvaluationException | RuntimeException | CommunicationException | ConfigurationException e) {
-            result.recordFatalError(createStringResource("pageTasks.message.resumeTasksPerformed.fatalError").getString(), e);
-        }
+        OperationResult result = TaskOperationUtils.resumeTasks(selectedTasks, getPageBase());
         showResult(result);
 
         //refresh feedback and table
         refreshTable(TaskType.class, target);
         clearCache();
 
-    }
-
-    private boolean suspendPlainTasks(List<TaskType> plainTasks, OperationResult result, Task opTask)
-            throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
-        if (!plainTasks.isEmpty()) {
-            return getTaskService().suspendTasks(getOids(plainTasks), PageTasks.WAIT_FOR_TASK_STOP, opTask, result);
-        } else {
-            return true;
-        }
-    }
-
-    private boolean suspendTrees(List<TaskType> roots, OperationResult result, Task opTask)
-            throws SecurityViolationException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
-            CommunicationException, ConfigurationException {
-        boolean suspended = true;
-        if (!roots.isEmpty()) {
-            for (TaskType root : roots) {
-                boolean s = getTaskService().suspendTaskTree(root.getOid(), PageTasks.WAIT_FOR_TASK_STOP, opTask, result);
-                suspended = suspended && s;
-            }
-        }
-        return suspended;
     }
 
     private List<TaskType> getSelectedTasks(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
@@ -797,7 +742,6 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         }
 
         return selectedTasks;
-
     }
 
     private void scheduleTasksPerformed(AjaxRequestTarget target, IModel<SelectableBean<TaskType>> selectedTask) {
@@ -809,7 +753,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         Task opTask = createSimpleTask(OPERATION_SCHEDULE_TASKS);
         OperationResult result = opTask.getResult();
         try {
-            getTaskService().scheduleTasksNow(getOids(selectedTasks), opTask, result);
+            getTaskService().scheduleTasksNow(ObjectTypeUtil.getOids(selectedTasks), opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS, createStringResource("pageTasks.message.scheduleTasksPerformed.success").getString());
@@ -834,7 +778,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         Task opTask = createSimpleTask(OPERATION_DELETE_TASKS);
         OperationResult result = opTask.getResult();
         try {
-            getTaskService().suspendAndDeleteTasks(getOids(selectedTasks), WAIT_FOR_TASK_STOP, true, opTask, result);
+            getTaskService().suspendAndDeleteTasks(ObjectTypeUtil.getOids(selectedTasks), WAIT_FOR_TASK_STOP, true, opTask, result);
             result.computeStatus();
             if (result.isSuccess()) {
                 result.recordStatus(OperationResultStatus.SUCCESS,
@@ -993,7 +937,7 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
     @SuppressWarnings("unchecked")
     private static boolean isCoordinator(IModel<?> rowModel, boolean isHeader) {
-        if (isNotTaskModel(rowModel)) {
+        if (!isTaskModel(rowModel)) {
             return false;
         }
         TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
@@ -1003,22 +947,16 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
     // must be static, otherwise JVM crashes (probably because of some wicket serialization issues)
     @SuppressWarnings("unchecked")
     private static boolean isManageableTreeRoot(IModel<?> rowModel, boolean isHeader) {
-        if (isNotTaskModel(rowModel)) {
+        if (!isTaskModel(rowModel)) {
             return false;
         }
         TaskType task = getTask((IModel<SelectableBean<TaskType>>) rowModel, isHeader);
-        return task != null && isManageableTreeRoot(task);
+        return task != null && TaskTypeUtil.isManageableTreeRoot(task);
     }
 
-    private static boolean isNotTaskModel(IModel<?> rowModel) {
-        if (rowModel == null) {
-            return false;
-        }
-        return rowModel.getObject() instanceof SelectableBean;
-    }
-
-    private static boolean isManageableTreeRoot(TaskType taskType) {
-        return TaskTypeUtil.isCoordinator(taskType) || TaskTypeUtil.isPartitionedMaster(taskType);
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private static boolean isTaskModel(IModel<?> rowModel) {
+        return rowModel != null && rowModel.getObject() instanceof SelectableBean;
     }
 
     private static TaskType getTask(IModel<SelectableBean<TaskType>> rowModel, boolean isHeader) {
@@ -1033,11 +971,4 @@ public class TaskTablePanel extends MainObjectListPanel<TaskType> {
         return null;
     }
 
-    public static List<String> getOids(List<TaskType> taskDtoList) {
-        List<String> retval = new ArrayList<>();
-        for (TaskType taskDto : taskDtoList) {
-            retval.add(taskDto.getOid());
-        }
-        return retval;
-    }
 }

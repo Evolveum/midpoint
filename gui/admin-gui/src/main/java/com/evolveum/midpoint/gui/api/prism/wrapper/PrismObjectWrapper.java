@@ -17,7 +17,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
  */
 public interface PrismObjectWrapper<O extends ObjectType> extends PrismContainerWrapper<O> {
 
-
     ObjectDelta<O> getObjectDelta() throws SchemaException;
 
     PrismObject<O> getObject();

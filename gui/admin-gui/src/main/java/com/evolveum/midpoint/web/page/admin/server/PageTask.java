@@ -73,6 +73,8 @@ import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.TaskOperationUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 
+import static java.util.Collections.singletonList;
+
 @PageDescriptor(
         urls = {
                 @Url(mountUrl = "/admin/task", matchUrlForSecurity = "/admin/task")
@@ -184,8 +186,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         AjaxButton suspend = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.suspend")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                String taskOid = getObjectWrapper().getOid();
-                OperationResult result = TaskOperationUtils.suspendPerformed(getTaskService(), Collections.singletonList(taskOid), PageTask.this);
+                PrismObject<TaskType> task = getObjectWrapper().getObject();
+                if (task == null) {
+                    return;
+                }
+                OperationResult result = TaskOperationUtils.suspendTasks(singletonList(task.asObjectable()), PageTask.this);
                 afterOperation(target, result);
             }
         };
@@ -198,8 +203,11 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
         AjaxButton resume = new AjaxButton(repeatingView.newChildId(), createStringResource("pageTaskEdit.button.resume")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
-                String oid = getObjectWrapper().getOid();
-                OperationResult result = TaskOperationUtils.resumePerformed(getTaskService(), Collections.singletonList(oid), PageTask.this);
+                PrismObject<TaskType> task = getObjectWrapper().getObject();
+                if (task == null) {
+                    return;
+                }
+                OperationResult result = TaskOperationUtils.resumeTasks(singletonList(task.asObjectable()), PageTask.this);
                 afterOperation(target, result);
             }
         };
@@ -214,7 +222,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
             public void onClick(AjaxRequestTarget target) {
                 String oid = getObjectWrapper().getOid();
                 refreshEnabled = Boolean.TRUE;
-                OperationResult result = TaskOperationUtils.runNowPerformed(getTaskService(), Collections.singletonList(oid), PageTask.this);
+                OperationResult result = TaskOperationUtils.runNowPerformed(singletonList(oid), PageTask.this);
                 afterOperation(target, result);
             }
         };
@@ -719,7 +727,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
                         if (!(val instanceof PrismContainerValueWrapper)) {
                             continue;
                         }
-                        ItemPath lastItemPath = ItemPath.create(Collections.singletonList(((PrismContainerValueWrapper) val).getPath().last()));
+                        ItemPath lastItemPath = ItemPath.create(singletonList(((PrismContainerValueWrapper) val).getPath().last()));
                         PrismContainerValueWrapper oldVal = oldValWrapper.findContainerValue(lastItemPath);
                         applyOldPageContainersState(oldVal, (PrismContainerValueWrapper) val);
                     }
