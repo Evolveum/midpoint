@@ -17,7 +17,8 @@
 
 <systemConfiguration oid="00000000-0000-0000-0000-000000000001"
                      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
-                     xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3">
+                     xmlns:s="http://midpoint.evolveum.com/xml/ns/public/model/scripting-3"
+                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3">
     <name>SystemConfiguration</name>
 
     <!-- HW tokens scenario -->
@@ -102,4 +103,46 @@
         </policyActions>
     </globalPolicyRule>
 
+    <!-- Orgs scenario -->
+
+    <!-- This role is here because of assignments not being applied on object deletion. -->
+    <globalPolicyRule>
+        <focusSelector>
+            <type>OrgType</type>
+            <archetypeRef oid="b8a973e0-f645-490b-a2ac-b69bd4103bf8"/> <!-- deletion-safe-org -->
+        </focusSelector>
+        <name>unassign-children-on-org-deletion</name>
+        <documentation>
+            Unassigns members when an org is deleted.
+        </documentation>
+        <policyConstraints>
+            <modification>
+                <operation>delete</operation>
+            </modification>
+        </policyConstraints>
+        <policyActions>
+            <scriptExecution>
+                <object>
+                    <linkSource/>
+                </object>
+                <executeScript>
+                    <s:unassign>
+                        <s:filter>
+                            <q:ref>
+                                <q:path>targetRef</q:path>
+                                <expression>
+                                    <script>
+                                        <code>import com.evolveum.midpoint.schema.util.ObjectTypeUtil
+
+                                        ObjectTypeUtil.createObjectRef(focus.oid)
+                                        </code>
+                                    </script>
+                                </expression>
+                            </q:ref>
+                        </s:filter>
+                    </s:unassign>
+                </executeScript>
+            </scriptExecution>
+        </policyActions>
+    </globalPolicyRule>
 </systemConfiguration>

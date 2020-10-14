@@ -1,0 +1,16 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<archetype xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+           oid="b8a973e0-f645-490b-a2ac-b69bd4103bf8">
+    <name>deletion-safe-org</name>
+    <documentation>
+        Marks an organization that is "deletion-safe". If such an organization is deleted, all its
+        members (e.g. users or child organizations) are updated so that the now-invalid assignments
+        are removed.
+    </documentation>
+</archetype>

@@ -1185,9 +1185,6 @@ public class PrismAsserts {
                 assertEquals(message + ": wrong NS in path segment #" + (i+1), qnameExpected.getNamespaceURI(), qnameActual.getNamespaceURI());
                 assertEquals(message + ": wrong local part in path segment #" + (i+1), qnameExpected.getLocalPart(), qnameActual.getLocalPart());
             } else {
-                if (!ItemPath.segmentsEquivalent(expectedSegment, actualSegment)) {
-                    System.out.println("hi");
-                }
                 assertTrue(message + ": wrong path segment #" + (i+1) + ": exp=" + expectedSegment + ", act=" + actualSegment, ItemPath.segmentsEquivalent(expectedSegment, actualSegment));
             }
         }
