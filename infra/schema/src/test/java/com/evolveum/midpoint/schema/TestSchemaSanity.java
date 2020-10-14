@@ -189,8 +189,8 @@ public class TestSchemaSanity {
 
         PrismContainerDefinition<ConnectorConfigurationType> connectorConfContainerDef = resourceDefinition.findContainerDefinition(ResourceType.F_CONNECTOR_CONFIGURATION);
         PrismAsserts.assertDefinition(connectorConfContainerDef, ResourceType.F_CONNECTOR_CONFIGURATION, ConnectorConfigurationType.COMPLEX_TYPE, 1, 1);
-        assertTrue("<connectorConfiguration> is NOT dynamic", connectorConfContainerDef.isDynamic());
-//        assertFalse("<connectorConfiguration> is runtime", connectorConfContainerDef.isRuntimeSchema());
+        //assertTrue("<connectorConfiguration> is NOT dynamic", connectorConfContainerDef.isDynamic());
+        //assertFalse("<connectorConfiguration> is runtime", connectorConfContainerDef.isRuntimeSchema());
         assertEquals("Wrong compile-time class for <connectorConfiguration> in resource definition", ConnectorConfigurationType.class, connectorConfContainerDef.getCompileTimeClass());
 
         PrismContainerDefinition<XmlSchemaType> schemaContainerDef = resourceDefinition.findContainerDefinition(ResourceType.F_SCHEMA);
@@ -300,8 +300,7 @@ public class TestSchemaSanity {
         PrismContainerDefinition configurationPropertiesContainerDef = icfSchema.findContainerDefinitionByElementName(ICFC_CONFIGURATION_PROPERTIES);
         PrismAsserts.assertDefinition(configurationPropertiesContainerDef, ICFC_CONFIGURATION_PROPERTIES, ICFC_CONFIGURATION_PROPERTIES_TYPE, 0, 1);
         assertTrue("configurationPropertiesContainer definition is NOT marked as runtime", configurationPropertiesContainerDef.isRuntimeSchema());
-        assertTrue("configurationPropertiesContainer definition is NOT marked as dynamic", configurationPropertiesContainerDef.isDynamic());
-
+        //assertTrue("configurationPropertiesContainer definition is NOT marked as dynamic", configurationPropertiesContainerDef.isDynamic());
     }
 
     /**

@@ -10,6 +10,10 @@ package com.evolveum.midpoint.prism.impl;
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.TypeDefinition;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.jetbrains.annotations.NotNull;
 
 import com.evolveum.midpoint.util.QNameUtil;
@@ -20,9 +24,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * @author mederly
- */
 public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeDefinition {
 
     protected QName superType;
@@ -103,5 +104,26 @@ public abstract class TypeDefinitionImpl extends DefinitionImpl implements TypeD
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), superType, compileTimeClass);
+    }
+
+    /**
+     * Crawls up the type hierarchy and looks for type name equivalence.
+     */
+    @Override
+    @Experimental
+    public boolean isAssignableFrom(TypeDefinition other, SchemaRegistry schemaRegistry) {
+        if (QNameUtil.match(this.getTypeName(), DOMUtil.XSD_ANYTYPE)) {
+            return true;
+        }
+        while (other != null) {
+            if (QNameUtil.match(this.getTypeName(), other.getTypeName())) {
+                return true;
+            }
+            if (other.getSuperType() == null) {
+                return false;
+            }
+            other = schemaRegistry.findTypeDefinitionByType(other.getSuperType());
+        }
+        return false;
     }
 }

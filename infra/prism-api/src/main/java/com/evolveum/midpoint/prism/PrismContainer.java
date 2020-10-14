@@ -48,6 +48,7 @@ public interface PrismContainer<C extends Containerable>
      * if known and applicable. (There are containers that are purely dynamic, i.e.
      * without any compile time class.)
      */
+    @Override
     @Nullable
     Class<C> getCompileTimeClass();
 
@@ -72,11 +73,13 @@ public interface PrismContainer<C extends Containerable>
     @Override
     Collection<C> getRealValues();
 
+    @Override
     @NotNull
     C getRealValue();
 
     void setValue(@NotNull PrismContainerValue<C> value) throws SchemaException;
 
+    @Override
     @NotNull
     PrismContainerValue<C> getValue();
 
@@ -116,6 +119,7 @@ public interface PrismContainer<C extends Containerable>
      *
      * @return applicable property container definition
      */
+    @Override
     PrismContainerDefinition<C> getDefinition();
 
     /**
@@ -123,6 +127,7 @@ public interface PrismContainer<C extends Containerable>
      *
      * @param definition the definition to set
      */
+    @Override
     void setDefinition(PrismContainerDefinition<C> definition);
 
     @Override
@@ -208,6 +213,7 @@ public interface PrismContainer<C extends Containerable>
     @Override
     ContainerDelta<C> createDelta(ItemPath path);
 
+    @Override
     boolean isEmpty();
 
     @Override

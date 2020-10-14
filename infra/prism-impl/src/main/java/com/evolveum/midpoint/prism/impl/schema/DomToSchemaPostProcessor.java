@@ -182,11 +182,12 @@ class DomToSchemaPostProcessor {
                 QName extensionType = DOMUtil.getQNameAttribute(extensionAnnotationElement,
                         A_EXTENSION_REF.getLocalPart());
                 if (extensionType == null) {
-                    throw new SchemaException("The " + A_EXTENSION + "annontation on " + ctd.getTypeName()
+                    throw new SchemaException("The " + A_EXTENSION + "annotation on " + ctd.getTypeName()
                             + " complex type does not have " + A_EXTENSION_REF.getLocalPart() + " attribute",
                             A_EXTENSION_REF);
                 }
                 ctd.setExtensionForType(extensionType);
+                ctd.setSuperType(prismContext.getExtensionContainerTypeName());
             }
 
             parseSchemaMigrations(ctd, annotation);

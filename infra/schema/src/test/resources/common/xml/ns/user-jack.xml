@@ -21,7 +21,7 @@
         xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension">
     <name>jack</name>
 
-    <extension>
+    <extension xsi:type="c:ExtensionType"> <!-- xsi:type is for MID-6474 -->
         <foo:bar xsi:type="xsd:string">BAR</foo:bar>
         <foo:num xsi:type="xsd:int">42</foo:num>
         <foo:multi xsi:type="xsd:string">raz</foo:multi>
@@ -30,6 +30,8 @@
         <foo:password xsi:type="t:ProtectedStringType">
             <t:clearValue>openS3zam3</t:clearValue>
         </foo:password>
+        <ext:stringType>Hello, string!</ext:stringType>
+        <ext:inExtensionOnly>Hello, extension!</ext:inExtensionOnly>
     </extension>
 
     <linkRef oid="2f9b9299-6f45-498f-aaaa-000000001111"/>

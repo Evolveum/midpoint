@@ -146,5 +146,4 @@ public interface ComplexTypeDefinition extends TypeDefinition, LocalDefinitionSt
     }
 
     MutableComplexTypeDefinition toMutable();
-
 }

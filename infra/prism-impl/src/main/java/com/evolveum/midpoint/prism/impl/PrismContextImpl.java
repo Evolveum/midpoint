@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.xnode.XNodeFactory;
 import com.evolveum.midpoint.prism.impl.xnode.XNodeFactoryImpl;
 import com.evolveum.midpoint.prism.xnode.XNodeMutator;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -101,6 +102,12 @@ public final class PrismContextImpl implements PrismContext {
     private QName defaultRelation;
 
     private QName objectsElementName;
+
+    /**
+     * Name of the generic type for object/container extension (e.g. c:ExtensionType).
+     */
+    @Experimental
+    private QName extensionContainerTypeName;
 
     // ugly hack
     private QName defaultReferenceTypeName;
@@ -306,6 +313,7 @@ public final class PrismContextImpl implements PrismContext {
         return defaultRelation;
     }
 
+    @Override
     public void setDefaultRelation(QName defaultRelation) {
         this.defaultRelation = defaultRelation;
     }
@@ -326,6 +334,16 @@ public final class PrismContextImpl implements PrismContext {
 
     public void setDefaultReferenceTypeName(QName defaultReferenceTypeName) {
         this.defaultReferenceTypeName = defaultReferenceTypeName;
+    }
+
+    @Override
+    public QName getExtensionContainerTypeName() {
+        return extensionContainerTypeName;
+    }
+
+    @Override
+    public void setExtensionContainerTypeName(QName typeName) {
+        this.extensionContainerTypeName = typeName;
     }
 
     //endregion
@@ -352,7 +370,7 @@ public final class PrismContextImpl implements PrismContext {
     @NotNull
     @Override
     public PrismParserNoIO parserFor(@NotNull RootXNode xnode) {
-        return new PrismParserImplNoIO(new ParserXNodeSource((RootXNodeImpl) xnode), null, getDefaultParsingContext(), this, null, null, null, null);
+        return new PrismParserImplNoIO(new ParserXNodeSource(xnode), null, getDefaultParsingContext(), this, null, null, null, null);
     }
 
     @NotNull

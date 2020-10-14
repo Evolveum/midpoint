@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.util.PrismMonitor;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNodeFactory;
 import com.evolveum.midpoint.prism.xnode.XNodeMutator;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 import com.evolveum.prism.xml.ns._public.types_3.PolyStringNormalizerConfigurationType;
@@ -302,6 +303,14 @@ public interface PrismContext extends ProtectorCreator {
      * Returns true of any of the relation in the relationQuery list matches specified relation.
      */
     boolean relationMatches(@NotNull List<QName> relationQuery, QName relation);
+
+    /**
+     * @return Name of the generic type for object/container extension (e.g. c:ExtensionType).
+     */
+    @Experimental
+    QName getExtensionContainerTypeName();
+
+    void setExtensionContainerTypeName(QName typeName);
 
     ParsingContext getDefaultParsingContext();
 

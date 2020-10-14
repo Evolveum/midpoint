@@ -776,6 +776,7 @@ public class ObjectRetriever {
         def.setMinOccurs(0);
         def.setMaxOccurs(-1);
         def.setRuntimeSchema(true);
+        def.setDynamic(true);
         return def;
     }
 
