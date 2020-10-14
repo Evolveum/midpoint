@@ -5288,6 +5288,9 @@
                                 and so on. Simply speaking the name is used to distinguish
                                 credentials that have the same type but different purpose.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>AbstractCredentialType.name</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0">
