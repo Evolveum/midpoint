@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.impl.schema.SchemaRegistryImpl;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.internals.InternalMonitor;
 import com.evolveum.midpoint.schema.internals.InternalsConfig;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_3.ExtensionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_3.ObjectFactory;
 import org.jetbrains.annotations.NotNull;
@@ -60,6 +60,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         context.setDefaultRelation(SchemaConstants.ORG_DEFAULT);
         context.setObjectsElementName(SchemaConstants.C_OBJECTS);
         context.setDefaultReferenceTypeName(ObjectReferenceType.COMPLEX_TYPE);
+        context.setExtensionContainerTypeName(ExtensionType.COMPLEX_TYPE);
         if (InternalsConfig.isPrismMonitoring()) {
             context.setMonitor(new InternalMonitor());
         }
@@ -74,6 +75,7 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
         context.setDefaultRelation(SchemaConstants.ORG_DEFAULT);
         context.setObjectsElementName(SchemaConstants.C_OBJECTS);
         context.setDefaultReferenceTypeName(ObjectReferenceType.COMPLEX_TYPE);
+        context.setExtensionContainerTypeName(ExtensionType.COMPLEX_TYPE);
         return context;
     }
 

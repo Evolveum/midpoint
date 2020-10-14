@@ -19,6 +19,7 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.Validate;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -97,7 +98,7 @@ public class PrismUnmarshaller {
             XNodeImpl.KEY_REFERENCE_OBJECT.getLocalPart(),
             XNodeImpl.KEY_REFERENCE_REFERENTIAL_INTEGRITY.getLocalPart());
 
-    @NotNull private PrismContext prismContext;
+    @NotNull private final PrismContext prismContext;
     @NotNull private final BeanUnmarshaller beanUnmarshaller;
     @NotNull private final SchemaRegistryImpl schemaRegistry;
 
@@ -147,7 +148,6 @@ public class PrismUnmarshaller {
                 null, PrismObjectDefinition.class, pc, schemaRegistry);
         return (PrismObject<O>) parseItemInternal(map, itemInfo.getItemName(), itemInfo.getItemDefinition(), pc);
     }
-
 
     Item<?, ?> parseItem(@NotNull RootXNodeImpl root,
             ItemDefinition<?> itemDefinition, QName itemName, QName typeName, Class<?> typeClass,
@@ -294,28 +294,40 @@ public class PrismUnmarshaller {
         }
     }
 
+    @NotNull
     private <C extends Containerable> PrismContainerValue<C> parseContainerValueFromMap(@NotNull MapXNodeImpl map,
             @NotNull PrismContainerDefinition<C> containerDef, @NotNull ParsingContext pc) throws SchemaException {
         Long id = getContainerId(map);
 
-        ComplexTypeDefinition complexTypeDefinition = containerDef.getComplexTypeDefinition();
+        ComplexTypeDefinition containerTypeDef = containerDef.getComplexTypeDefinition();
 
         PrismContainerValue<C> cval;
         if (containerDef instanceof PrismObjectDefinition) {
+            //noinspection unchecked
             cval = ((PrismObjectDefinition) containerDef).createValue();
         } else {
             // override container definition, if explicit type is specified
             if (map.getTypeQName() != null) {
-                ComplexTypeDefinition specificDef = schemaRegistry.findComplexTypeDefinitionByType(map.getTypeQName());
-                if (specificDef != null) {
-                    complexTypeDefinition = specificDef;
+                ComplexTypeDefinition explicitTypeDef = schemaRegistry.findComplexTypeDefinitionByType(map.getTypeQName());
+                if (explicitTypeDef != null) {
+                    if (containerTypeDef != null && explicitTypeDef.isAssignableFrom(containerTypeDef, schemaRegistry)) {
+                        // Existing definition (CTD for PCD) is equal or more specific than the explicitly provided one.
+                        // Let's then keep using the existing definition. It is not quite clean solution
+                        // but there seem to exist serialized objects with generic xsi:type="c:ExtensionType" (MID-6474)
+                        // or xsi:type="c:ShadowAttributesType" (MID-6394). Such abstract definitions could lead to
+                        // parsing failures because of undefined items.
+                        LOGGER.trace("Ignoring explicit type definition {} because equal or even more specific one is present: {}",
+                                explicitTypeDef, containerTypeDef);
+                    } else {
+                        containerTypeDef = explicitTypeDef;
+                    }
                 } else {
                     pc.warnOrThrow(LOGGER, "Unknown type " + map.getTypeQName() + " in " + map);
                 }
             }
-            cval = new PrismContainerValueImpl<>(null, null, null, id, complexTypeDefinition, prismContext);
+            cval = new PrismContainerValueImpl<>(null, null, null, id, containerTypeDef, prismContext);
         }
-        parseContainerChildren(cval, map, containerDef, complexTypeDefinition, pc);
+        parseContainerChildren(cval, map, containerDef, containerTypeDef, pc);
         return cval;
     }
 
@@ -332,7 +344,7 @@ public class PrismUnmarshaller {
             }
 
             ItemDefinition<?> itemDef = locateItemDefinition(itemName, complexTypeDefinition, entry.getValue());
-            if(itemDef == null) {
+            if (itemDef == null) {
                 boolean shouldContinue = handleMissingDefinition(itemName, containerDef, complexTypeDefinition, pc, map);
                 if(shouldContinue) {
                     continue;
@@ -358,7 +370,7 @@ public class PrismUnmarshaller {
     }
 
     private boolean handleMissingDefinition(QName itemName, ItemDefinition<?> containerDef, TypeDefinition typeDefinition, ParsingContext pc, DebugDumpable object) throws SchemaException {
-        SchemaMigration migration = determineSchemaMigration(typeDefinition, itemName, pc);
+        SchemaMigration migration = determineSchemaMigration(typeDefinition, itemName);
         if (migration != null && pc.isCompat()) {
             if (migration.getOperation() == SchemaMigrationOperation.REMOVED) {
                 String msg = "Item "+itemName+" was removed from the schema, skipped processing of that item";
@@ -391,7 +403,7 @@ public class PrismUnmarshaller {
         return false;
     }
 
-    private SchemaMigration determineSchemaMigration(TypeDefinition typeDefinition, QName itemName, @NotNull ParsingContext pc) {
+    private SchemaMigration determineSchemaMigration(TypeDefinition typeDefinition, QName itemName) {
         if (typeDefinition == null) {
             return null;
         }
@@ -411,7 +423,7 @@ public class PrismUnmarshaller {
         if (superTypeDef == null) {
             return null;
         }
-        return determineSchemaMigration(superTypeDef, itemName, pc);
+        return determineSchemaMigration(superTypeDef, itemName);
     }
 
     @NotNull
@@ -454,7 +466,7 @@ public class PrismUnmarshaller {
         } else if (node instanceof SchemaXNodeImpl) {
             SchemaDefinitionType schemaDefType = beanUnmarshaller.unmarshalSchemaDefinitionType((SchemaXNodeImpl) node);
             @SuppressWarnings("unchecked")
-            PrismPropertyValue<T> val = new PrismPropertyValueImpl(schemaDefType);
+            PrismPropertyValue<T> val = (PrismPropertyValue<T>) new PrismPropertyValueImpl<>(schemaDefType);
             addItemValueIfPossible(property, val, pc);
         } else if (node instanceof IncompleteMarkerXNodeImpl) {
             property.setIncomplete(true);
@@ -521,6 +533,7 @@ public class PrismUnmarshaller {
         return prismContext.itemFactory().createPropertyValue(node);
     }
 
+    @Contract("_, null -> true")
     private <T> boolean isValueAllowed(T realValue, PrismPropertyDefinition<T> definition) {
         if (realValue instanceof Enum) {
             // Statically-defined enums have been already treated. Unless someone overrides the static schema,
@@ -529,7 +542,7 @@ public class PrismUnmarshaller {
         } else if (definition == null || CollectionUtils.isEmpty(definition.getAllowedValues())) {
             return true;
         } else if (realValue == null) {
-            return true;        // TODO: ok?
+            return true; // TODO: ok?
         } else {
             return definition.getAllowedValues().stream()
                     .anyMatch(displayableValue -> realValue.equals(displayableValue.getValue()));
@@ -576,7 +589,6 @@ public class PrismUnmarshaller {
         } else {
             isComposite = !QNameUtil.match(itemName, definition.getItemName());
         }
-
 
         if (isComposite) {
             return parseReferenceValueAsCompositeObject(node, definition, pc);  // This is a composite object (complete object stored inside reference)
@@ -661,6 +673,7 @@ public class PrismUnmarshaller {
         return refVal;
     }
 
+    @SuppressWarnings({ "unused", "SameParameterValue" })
     private boolean isDefinedProperty(QName itemName, String parentNamespace, Set<String> properties) {
         // TODO: Namespace awarness is disabled, because some calls from parseItem use ItemDefinition.itemName
         // instead of used itemName
@@ -786,7 +799,4 @@ public class PrismUnmarshaller {
             throws SchemaException {
         return locateItemDefinition(itemName, containerDefinition.getComplexTypeDefinition(), xnode);
     }
-
-
-
 }

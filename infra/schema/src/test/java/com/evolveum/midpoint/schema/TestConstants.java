@@ -11,6 +11,8 @@ import java.io.File;
 import com.evolveum.midpoint.prism.path.ItemName;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author semancik
  *
@@ -28,6 +30,8 @@ public class TestConstants {
     public static final ItemName EXTENSION_INT_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "intType");
     public static final ItemName EXTENSION_IGNORED_TYPE_ELEMENT = new ItemName(NS_EXTENSION, "ignoredType");
     public static final ItemName EXTENSION_USER_REF_ELEMENT = new ItemName(NS_EXTENSION, "userRef");
+
+    public static final QName USER_EXTENSION_TYPE_NAME = new QName(NS_EXTENSION, "UserExtensionType");
 
     public static final String USER_FILE_BASENAME = "user-jack";
     public static final String USER_JACK_POLYSTRING_FILE_BASENAME = "user-jack-polystring";

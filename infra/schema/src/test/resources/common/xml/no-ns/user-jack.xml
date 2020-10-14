@@ -10,7 +10,7 @@
         oid="2f9b9299-6f45-498f-bc8e-8d17c6b93b20">
     <name>jack</name>
 
-    <extension>
+    <extension xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="ExtensionType"> <!-- xsi:type is for MID-6474 -->
         <bar xsiType="string">BAR</bar>
         <num xsiType="int">42</num>
         <multi xsiType="string">raz</multi>
@@ -19,6 +19,8 @@
         <password xsiType="ProtectedStringType">
             <clearValue>openS3zam3</clearValue>
         </password>
+        <stringType>Hello, string!</stringType>
+        <inExtensionOnly>Hello, extension!</inExtensionOnly>
     </extension>
 
     <linkRef oid="2f9b9299-6f45-498f-aaaa-000000001111"/>
