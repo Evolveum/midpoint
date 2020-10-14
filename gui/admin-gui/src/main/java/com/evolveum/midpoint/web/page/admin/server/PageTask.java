@@ -418,7 +418,7 @@ public class PageTask extends PageAdminObjectDetails<TaskType> implements Refres
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                ConfirmationPanel dialog = new ConfirmationPanel(getMainPopupBodyId(), createStringResource("operationalButtonsPanel.cleanupEnvironmentalPerformance.confirmation")) {
+                ConfirmationPanel dialog = new ConfirmationPanel(getMainPopupBodyId(), createStringResource("operationalButtonsPanel.cleanupResults.confirmation")) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
