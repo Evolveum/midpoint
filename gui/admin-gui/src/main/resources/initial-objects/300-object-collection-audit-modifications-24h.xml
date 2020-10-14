@@ -18,10 +18,20 @@
                 <q:path>eventStage</q:path>
                 <q:value>execution</q:value>
             </q:equal>
-            <q:equal>
-                <q:path>eventType</q:path>
-                <q:value>modifyObject</q:value>
-            </q:equal>
+            <q:or>
+                <q:equal>
+                    <q:path>eventType</q:path>
+                    <q:value>modifyObject</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>eventType</q:path>
+                    <q:value>addObject</q:value>
+                </q:equal>
+                <q:equal>
+                    <q:path>eventType</q:path>
+                    <q:value>deleteObject</q:value>
+                </q:equal>
+            </q:or>
             <q:greater>
                 <q:path>timestamp</q:path>
                 <expression>
