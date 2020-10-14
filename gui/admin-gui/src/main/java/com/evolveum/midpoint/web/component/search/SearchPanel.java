@@ -111,7 +111,7 @@ public class SearchPanel extends BasePanel<Search> {
     }
 
     private <S extends SearchItem, T extends Serializable> void initLayout() {
-        moreDialogModel = new LoadableModel<MoreDialogDto>(true) {
+        moreDialogModel = new LoadableModel<MoreDialogDto>(false) {
 
             private static final long serialVersionUID = 1L;
 
@@ -162,6 +162,7 @@ public class SearchPanel extends BasePanel<Search> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
+                moreDialogModel.reset();
                 Component button = SearchPanel.this.get(createComponentPath(ID_FORM, ID_MORE_GROUP, ID_MORE));
                 Component popover = SearchPanel.this.get(createComponentPath(ID_POPOVER));
                 togglePopover(target, button, popover, 14);
@@ -692,7 +693,6 @@ public class SearchPanel extends BasePanel<Search> {
         SearchItem item = search.addItem(property.getDefinition());
         item.setEditWhenVisible(true);
 
-        moreDialogModel.reset();
         refreshSearchForm(target);
     }
 
@@ -708,7 +708,6 @@ public class SearchPanel extends BasePanel<Search> {
             search.addItem(property.getDefinition());
         }
 
-        moreDialogModel.reset();
         refreshSearchForm(target);
     }
 

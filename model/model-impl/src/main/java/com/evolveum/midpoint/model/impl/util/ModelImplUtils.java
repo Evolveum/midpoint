@@ -765,6 +765,7 @@ public class ModelImplUtils {
         return targetRef;
     }
 
+    @NotNull
     public static <V extends PrismValue, F extends ObjectType> List<V> evaluateScript(
                 ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, boolean useNew, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 

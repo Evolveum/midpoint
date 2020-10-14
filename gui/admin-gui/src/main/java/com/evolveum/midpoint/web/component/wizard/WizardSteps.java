@@ -1,17 +1,13 @@
 /*
- * Copyright (c) 2010-2017 Evolveum and contributors
+ * Copyright (C) 2010-2020 Evolveum and contributors
  *
  * This work is dual-licensed under the Apache License 2.0
  * and European Union Public License. See LICENSE file for details.
  */
-
 package com.evolveum.midpoint.web.component.wizard;
 
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.page.PageBase;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wizard.resource.component.WizardHelpDialog;
-import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
+import java.util.List;
+
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -19,16 +15,16 @@ import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.wizard.IWizardStep;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.IModel;
 
-import java.util.List;
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.page.PageBase;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wizard.resource.component.WizardHelpDialog;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 
-/**
- * @author lazyman
- */
 public class WizardSteps extends BasePanel<List<WizardStepDto>> {
 
     private static final String ID_LINK_REPEATER = "linkRepeater";
@@ -69,7 +65,6 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
                     @Override
                     public boolean isEnabled() {
                         final boolean enabled = ((PageResourceWizard) getPageBase()).isCurrentStepComplete();
-//                        System.out.println(dto.getName() + " enabled = " + enabled);
                         return enabled;
                     }
 
@@ -79,21 +74,13 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
                     }
                 });
 
-                button.add(AttributeModifier.replace("class", new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        return dto.getWizardStep() == getActiveStep() ? "current" : null;
-                    }
-                }));
+                button.add(AttributeModifier.replace("class", (IModel<String>) () ->
+                        dto.getWizardStep() == getActiveStep() ? "current" : null));
 
-                button.add(AttributeModifier.replace("style", new IModel<String>() {
-                    @Override
-                    public String getObject() {
-                        final boolean enabled = ((PageResourceWizard) getPageBase()).isCurrentStepComplete();
-//                        System.out.println(dto.getName() + " enabled2 = " + enabled);
-                        return enabled ? null : "color: #FFF;";        // TODO respect color scheme (and find a better style for disabled anyway...)
-                    }
-                }));
+                button.add(AttributeModifier.replace("style", (IModel<String>) () ->
+                        // TODO respect color scheme (and find a better style for disabled anyway...)
+                        ((PageResourceWizard) getPageBase()).isCurrentStepComplete()
+                                ? null : "color: #FFF;"));
 
                 Label label = new Label(ID_LABEL, createLabelModel(dto.getName()));
                 button.add(label);
@@ -103,6 +90,7 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
 
         AjaxLink<Void> help = new AjaxLink<Void>(ID_BUTTON_HELP) {
             private static final long serialVersionUID = 1L;
+
             @Override
             public void onClick(AjaxRequestTarget target) {
                 showHelpPerformed(target);
@@ -114,39 +102,33 @@ public class WizardSteps extends BasePanel<List<WizardStepDto>> {
         initModals();
     }
 
-    private void initModals(){
+    private void initModals() {
         ModalWindow helpWindow = new WizardHelpDialog(ID_HELP_MODAL, getActiveStep());
         add(helpWindow);
     }
 
-    public void updateModal(){
-        WizardHelpDialog window = (WizardHelpDialog)get(ID_HELP_MODAL);
+    public void updateModal() {
+        WizardHelpDialog window = (WizardHelpDialog) get(ID_HELP_MODAL);
 
-        if(window != null && getRequestCycle().find(AjaxRequestTarget.class).isPresent()){
+        if (window != null && getRequestCycle().find(AjaxRequestTarget.class).isPresent()) {
             AjaxRequestTarget target = getRequestCycle().find(AjaxRequestTarget.class).get();
-            window.updateModal(target ,getActiveStep());
+            window.updateModal(target, getActiveStep());
         }
     }
 
     private IModel<String> createLabelModel(final String key) {
-        return new IModel<String>() {
-
-            @Override
-            public String getObject() {
-                return PageBase.createStringResourceStatic(getPage(), key).getString();
-//                return new StringResourceModel(key, getPage(), null, key).getString();
-            }
-        };
+        return (IModel<String>) () -> PageBase.createStringResourceStatic(getPage(), key).getString();
     }
 
-    public void changeStepPerformed(AjaxRequestTarget target, WizardStepDto dto){}
+    public void changeStepPerformed(AjaxRequestTarget target, WizardStepDto dto) {
+    }
 
-    private void showHelpPerformed(AjaxRequestTarget target){
-        WizardHelpDialog window = (WizardHelpDialog)get(ID_HELP_MODAL);
+    private void showHelpPerformed(AjaxRequestTarget target) {
+        WizardHelpDialog window = (WizardHelpDialog) get(ID_HELP_MODAL);
         window.show(target);
     }
 
-    public IWizardStep getActiveStep(){
+    public IWizardStep getActiveStep() {
         return null;
     }
 }

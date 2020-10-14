@@ -44,6 +44,10 @@
         <property name="midpointConfiguration" ref="midpointConfiguration"/>
     </bean>
 
+    <!--
+    JAX-RS based, used by CXF for client side of the services (in test and also for cluster).
+    JAX-RS/CXF was replaced on server/service side in 4.2 and client code will be fixed later too.
+    -->
     <bean id="jaxbProvider" class="com.evolveum.midpoint.common.rest.MidpointXmlProvider"/>
     <bean id="yamlProvider" class="com.evolveum.midpoint.common.rest.MidpointYamlProvider"/>
     <bean id="jsonProvider" class="com.evolveum.midpoint.common.rest.MidpointJsonProvider"/>

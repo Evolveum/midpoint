@@ -6,30 +6,8 @@
  */
 package com.evolveum.midpoint.gui.impl.component.box;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
-
 import javax.xml.namespace.QName;
-
-import com.evolveum.midpoint.gui.api.component.BasePanel;
-import com.evolveum.midpoint.gui.api.model.LoadableModel;
-import com.evolveum.midpoint.model.api.util.DashboardUtils;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.QNameUtil;
-import com.evolveum.midpoint.web.page.admin.server.PageTask;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
-
-import com.evolveum.prism.xml.ns._public.types_3.ItemPathType;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -41,17 +19,21 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import com.evolveum.midpoint.gui.api.component.BasePanel;
+import com.evolveum.midpoint.gui.api.model.LoadableModel;
 import com.evolveum.midpoint.gui.api.page.PageBase;
 import com.evolveum.midpoint.gui.api.util.WebComponentUtil;
 import com.evolveum.midpoint.gui.api.util.WebModelServiceUtils;
 import com.evolveum.midpoint.model.api.interaction.DashboardWidget;
+import com.evolveum.midpoint.model.api.util.DashboardUtils;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.schema.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogViewer;
@@ -59,6 +41,8 @@ import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTask;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.services.PageService;
 import com.evolveum.midpoint.web.page.admin.services.PageServices;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
@@ -66,6 +50,9 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
+import com.evolveum.prism.xml.ns._public.query_3.SearchFilterType;
 
 /**
  * @author skublik
@@ -207,10 +194,10 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
             PageParameters parameters = new PageParameters();
             if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
                 pageType = PageResource.class;
-                String oid = getResourceOid(collection.getFilter().getFilterClauseXNode());
+                String oid = getResourceOid(collection.getFilter());
                 if (oid != null) {
                     parameters.add(OnePageParameterEncoder.PARAMETER, oid);
-                    Integer tab = getResourceTab(collection.getFilter().getFilterClauseXNode());
+                    Integer tab = getResourceTab(collection.getFilter());
                     if (tab != null) {
                         parameters.add(PageResource.PARAMETER_SELECTED_TAB, tab);
                     } else {
@@ -257,72 +244,22 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
         getPageBase().navigateToNext(pageType, parameters);
     }
 
-    private Integer getResourceTab(MapXNode mapXNode) {
-        for (QName name : mapXNode.keySet()) {
-            XNode xNode = mapXNode.get(name);
-            if (QNameUtil.match(name, new QName("equal"))) {
-                List<MapXNode> listXNode = new ArrayList<>();
-                if (xNode instanceof MapXNode) {
-                    listXNode.add((MapXNode) xNode);
-                } else if (xNode instanceof ListXNode) {
-                    listXNode.addAll((Collection<? extends MapXNode>) ((ListXNode) xNode).asList());
-                }
-                for (MapXNode equalXNode : listXNode) {
-                    if (equalXNode.get(new QName("path")) != null
-                            && ((ItemPathType) ((PrimitiveXNode) equalXNode.get(new QName("path")))
-                            .getValue()).getItemPath().equivalent(ItemPath.create("kind"))) {
-                        XNode value = equalXNode.get(new QName("value"));
-                        if (value instanceof PrimitiveXNode) {
-                            ShadowKindType kind = ShadowKindType.fromValue(((PrimitiveXNode)value).getValueParser().getStringValue());
-                            if (ShadowKindType.ACCOUNT.equals(kind)) {
-                                return 2;
-                            } else if (ShadowKindType.ENTITLEMENT.equals(kind)) {
-                                return 3;
-                            } else if (ShadowKindType.GENERIC.equals(kind)) {
-                                return 4;
-                            }
-                            return null;
-                        }
-                    }
-                }
-            }
-            if (xNode instanceof MapXNode) {
-                Integer ret = getResourceTab((MapXNode) xNode);
-                if (ret != null) {
-                    return ret;
-                }
-            }
+    private Integer getResourceTab(SearchFilterType searchFilterType) {
+        ResourceShadowDiscriminator discriminator = getResourceShadowDiscriminator(searchFilterType);
+        if (discriminator == null) {
+            return null;
         }
-        return null;
-    }
-
-    private String getResourceOid(MapXNode mapXNode) {
-        for (QName name : mapXNode.keySet()) {
-            XNode xNode = mapXNode.get(name);
-            if (QNameUtil.match(name, new QName("ref"))) {
-                List<MapXNode> listXNode = new ArrayList<>();
-                if (xNode instanceof MapXNode) {
-                    listXNode.add((MapXNode) xNode);
-                } else if (xNode instanceof ListXNode) {
-                    listXNode.addAll((Collection<? extends MapXNode>) ((ListXNode) xNode).asList());
-                }
-                for (MapXNode equalXNode : listXNode) {
-                    if (equalXNode.get(new QName("path")) != null
-                            && ((ItemPathType) ((PrimitiveXNode) equalXNode.get(new QName("path")))
-                            .getValue()).getItemPath().equivalent(ItemPath.create("resourceRef"))) {
-                        XNode value = equalXNode.get(new QName("value"));
-                        if (value instanceof MapXNode) {
-                            PrimitiveXNode oid = ((PrimitiveXNode) ((MapXNode) value).get(new QName("oid")));
-                            if (oid != null) {
-                                return oid.getValueParser().getStringValue();
-                            }
-                        }
-                    }
-                }
-            }
-            if (xNode instanceof MapXNode) {
-                return getResourceOid((MapXNode) xNode);
-            }
+        ShadowKindType shadowKindType = discriminator.getKind();
+        if (shadowKindType == null) {
+            return null;
+        }
+        switch (shadowKindType) {
+            case ACCOUNT:
+                return 2;
+            case ENTITLEMENT:
+                return 3;
+            case GENERIC:
+                return 4;
         }
         return null;
     }
@@ -341,8 +278,8 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
                 ObjectCollectionType collection = getObjectCollectionType();
                 if(collection != null && collection.getType() != null && collection.getType().getLocalPart() != null) {
                     if (QNameUtil.match(collection.getType(), ShadowType.COMPLEX_TYPE)) {
-                        String oid = getResourceOid(collection.getFilter().getFilterClauseXNode());
-                        return !StringUtils.isEmpty(oid);
+                       String oid = getResourceOid(collection.getFilter());
+                       return StringUtils.isNotBlank(oid);
                     }
                     return getLinksRefCollections().containsKey(collection.getType().getLocalPart());
                 }  else {
@@ -366,6 +303,25 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
         return false;
     }
 
+    private String getResourceOid(SearchFilterType searchFilterType) {
+       ResourceShadowDiscriminator discriminator = getResourceShadowDiscriminator(searchFilterType);
+       if (discriminator == null) {
+           return null;
+       }
+       return discriminator.getResourceOid();
+    }
+
+    private ResourceShadowDiscriminator getResourceShadowDiscriminator(SearchFilterType searchFilterType) {
+        try {
+            ObjectFilter filter = getPrismContext().getQueryConverter().createObjectFilter(ShadowType.class, searchFilterType);
+            return ObjectQueryUtil.getCoordinates(filter, getPrismContext());
+        } catch (SchemaException e) {
+            LOGGER.error("Cannot convert filter: {}", e.getMessage(), e);
+
+        }
+        return null;
+    }
+
     private boolean isDataNull(DashboardWidgetType dashboardWidgetType) {
         if(dashboardWidgetType.getData() == null) {
             LOGGER.error("Data is not found in widget " + dashboardWidgetType.getIdentifier());
@@ -374,37 +330,7 @@ public abstract class InfoBoxPanel extends BasePanel<DashboardWidgetType> {
         return false;
     }
 
-    private boolean isPresentationNull(IModel<DashboardWidgetType> model) {
-        if(model.getObject().getPresentation() == null) {
-            LOGGER.error("Presentation is not found in widget " + model.getObject().getIdentifier());
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isViewOfWidgetNull(IModel<DashboardWidgetType> model) {
-        if(isPresentationNull(model)) {
-            return true;
-        }
-        if(model.getObject().getPresentation().getView() == null) {
-            LOGGER.error("View of presentation is not found in widget " + model.getObject().getIdentifier());
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isSourceTypeOfDataNull(DashboardWidgetType dashboardWidgetType) {
-        if(isDataNull(dashboardWidgetType)) {
-            return true;
-        }
-        if(dashboardWidgetType.getData().getSourceType() == null) {
-            LOGGER.error("SourceType of data is not found in widget " + dashboardWidgetType.getIdentifier());
-            return true;
-        }
-        return false;
-    }
-
-    private boolean isCollectionOfDataNull(DashboardWidgetType model) {
+   private boolean isCollectionOfDataNull(DashboardWidgetType model) {
         if(isDataNull(model)) {
             return true;
         }
