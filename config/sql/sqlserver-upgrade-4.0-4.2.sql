@@ -88,6 +88,7 @@ CREATE INDEX iAuditEventRecordEStageTOid
 
 -- policySituation belong to M_OBJECT
 ALTER TABLE m_focus_policy_situation DROP CONSTRAINT fk_focus_policy_situation;
+GO
 sp_rename 'm_focus_policy_situation', 'm_object_policy_situation';
 GO
 sp_rename 'm_object_policy_situation.focus_oid', 'object_oid', 'COLUMN';
@@ -95,3 +96,4 @@ GO
 ALTER TABLE m_object_policy_situation
   ADD CONSTRAINT fk_object_policy_situation FOREIGN KEY (object_oid) REFERENCES m_object;
 CREATE INDEX iObjectPolicySituationOid ON m_object_policy_situation(object_oid);
+GO
