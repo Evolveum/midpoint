@@ -15,6 +15,8 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.util.ObjectDeltaObject;
 import com.evolveum.midpoint.schema.constants.Channel;
 
+import com.evolveum.midpoint.util.annotation.Experimental;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -1743,5 +1745,35 @@ public class LensContext<F extends ObjectType> implements ModelContext<F>, Clone
 
     public ObjectDeltaObject<F> getFocusOdoAbsolute() {
         return focusContext != null ? focusContext.getObjectDeltaObjectAbsolute() : null;
+    }
+
+    /**
+     * Checks if there was anything (at least partially) executed.
+     *
+     * Currently we can only look at executed deltas and check whether there is something relevant
+     * (i.e. not FATAL_ERROR nor NOT_APPLICABLE).
+     *
+     * Any solution based on operation result status will never be 100% accurate, e.g. because
+     * a network timeout could occur just before returning a status value. So please use with care.
+     */
+    @Experimental
+    public boolean wasAnythingExecuted() {
+        if (focusContext != null && focusContext.wasAnythingReallyExecuted()) {
+            return true;
+        }
+        if (hasRottenReallyExecutedDelta()) {
+            return true;
+        }
+        for (LensProjectionContext projectionContext : projectionContexts) {
+            if (projectionContext.wasAnythingReallyExecuted()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Experimental
+    private boolean hasRottenReallyExecutedDelta() {
+        return rottenExecutedDeltas.stream().anyMatch(ObjectDeltaOperation::wasReallyExecuted);
     }
 }

@@ -18,8 +18,10 @@ import com.evolveum.midpoint.prism.delta.builder.S_ItemEntry;
 import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.*;
 import com.evolveum.prism.xml.ns._public.types_3.ChangeTypeType;
@@ -336,6 +338,14 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
     void deleteSecondaryDeltas() {
         secondaryDelta = null;
+    }
+
+    /**
+     * See {@link LensContext#wasAnythingExecuted()}.
+     */
+    @Experimental
+    public boolean wasAnythingReallyExecuted() {
+        return executedDeltas.stream().anyMatch(ObjectDeltaOperation::wasReallyExecuted);
     }
 
     @FunctionalInterface

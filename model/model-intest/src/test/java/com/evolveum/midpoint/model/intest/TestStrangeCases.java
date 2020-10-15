@@ -6,6 +6,7 @@
  */
 package com.evolveum.midpoint.model.intest;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.testng.AssertJUnit.*;
 
 import static com.evolveum.midpoint.schema.GetOperationOptions.createRaw;
@@ -20,6 +21,8 @@ import java.util.Iterator;
 import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.test.DummyTestResource;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -120,6 +123,16 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
     private static final File TREASURE_ISLAND_FILE = new File(TEST_DIR, "treasure-island.txt");
 
+    // MID-6544
+    private static final DummyTestResource RESOURCE_NO_CREATE = new DummyTestResource(TEST_DIR, "resource-dummy-no-create.xml",
+            "3be6feda-1099-4e3c-9499-27d6520c5987", "no-create");
+    private static final TestResource<RoleType> ROLE_NO_CREATE = new TestResource<>(TEST_DIR, "role-no-create.xml",
+            "d339b2d7-da23-489c-9352-2d3442b88fdf");
+    private static final TestResource<ArchetypeType> SEQUENCE_EXTERNAL_USER = new TestResource<>(TEST_DIR,
+            "sequence-external-user.xml", "4ebf1b7b-95ea-4277-8eac-97f05c0b0300");
+    private static final TestResource<ArchetypeType> ARCHETYPE_EXTERNAL_USER = new TestResource<>(TEST_DIR,
+            "archetype-external-user.xml", "472d5fcb-1632-46c1-8c81-eea90dcd6b28");
+
     private static String treasureIsland;
 
     private String accountGuybrushOid;
@@ -153,6 +166,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         repoAddObjectFromFile(USER_TEMPLATE_STRANGE_FILE, initResult);
 
         setDefaultObjectTemplate(UserType.COMPLEX_TYPE, USER_TEMPLATE_STRANGE_OID, initResult);
+
+        initDummyResource(RESOURCE_NO_CREATE, initTask, initResult);
+        addObject(ROLE_NO_CREATE, initTask, initResult);
+        addObject(SEQUENCE_EXTERNAL_USER, initTask, initResult);
+        addObject(ARCHETYPE_EXTERNAL_USER, initTask, initResult);
 
 //        DebugUtil.setDetailedDebugDump(true);
     }
@@ -1577,6 +1595,46 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 
         // TODO some asserts here - currently there is an ADD audit record and ADD notification
         //  In the future we can think of indicating that these adds are - in fact - phantom ones.
+    }
+
+    /**
+     * Adds external user. The operation will fail because of non-creatable account.
+     * The sequence should be in consistent state afterwards: MID-6455.
+     */
+    @Test
+    public void test710AddUserWithNonCreatableAccount() throws Exception {
+        given();
+        Task task = getTestTask();
+        OperationResult result = task.getResult();
+
+        UserType user = new UserType(prismContext)
+                .beginAssignment()
+                    .targetRef(ARCHETYPE_EXTERNAL_USER.oid, ArchetypeType.COMPLEX_TYPE)
+                .<UserType>end()
+                .beginAssignment()
+                    .targetRef(ROLE_NO_CREATE.oid, RoleType.COMPLEX_TYPE)
+                .end();
+
+        when();
+        try {
+            addObject(user.asPrismObject(), task, result);
+        } catch (Exception e) {
+            displayExpectedException(e);
+        }
+
+        then();
+        assertUserAfterByUsername("ext_0")
+                .assignments()
+                    .assertArchetype(ARCHETYPE_EXTERNAL_USER.oid)
+                    .assertRole(ROLE_NO_CREATE.oid)
+                .end()
+                .assertLinks(0);
+
+        PrismObject<SequenceType> sequenceAfter = getObjectViaRepo(SequenceType.class, SEQUENCE_EXTERNAL_USER.oid);
+        displayDumpable("sequence", sequenceAfter);
+
+        long next = repositoryService.advanceSequence(SEQUENCE_EXTERNAL_USER.oid, result);
+        assertThat(next).as("next sequence number").isEqualTo(1);
     }
 
     private <O extends ObjectType, T> void assertExtension(

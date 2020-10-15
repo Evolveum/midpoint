@@ -656,8 +656,25 @@ public class Clockwork {
         result.recordFatalErrorNotFinish(e);
         clockworkAuditHelper.auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result, overallResult);
         operationExecutionRecorder.recordOperationExecution(context, e, task, result);
-        LensUtil.reclaimSequences(context, repositoryService, task, result);
+
+        reclaimSequencesIfPossible(context, task, result);
         result.recordEnd();
+    }
+
+    /**
+     * An exception occurred, so it's quite possible that allocated sequence values have to be reclaimed.
+     *
+     * But this is safe to do only if we are sure they were not used. Currently the only way how
+     * to be sure is to know that no focus/projection deltas were applied. It is an approximate
+     * solution (because sequence values were maybe not used in these deltas), but we have nothing
+     * better at hand now.
+     */
+    private <F extends ObjectType> void reclaimSequencesIfPossible(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
+        if (!context.wasAnythingExecuted()) {
+            LensUtil.reclaimSequences(context, repositoryService, task, result);
+        } else {
+            LOGGER.trace("Something was executed, so we are not reclaiming sequence values");
+        }
     }
 
     /**
