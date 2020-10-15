@@ -1,0 +1,17 @@
+<!--
+  ~ Copyright (c) 2020 Evolveum and contributors
+  ~
+  ~ This work is dual-licensed under the Apache License 2.0
+  ~ and European Union Public License. See LICENSE file for details.
+  -->
+
+<filter xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-3"
+        xmlns:ext="http://midpoint.evolveum.com/xml/ns/test/extension"
+        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-3"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="q:SearchFilterType">
+    <q:equal>
+        <q:path>c:extension/ext:longType</q:path>
+        <q:value xsi:type="xsd:long">4</q:value>
+    </q:equal>
+</filter>
