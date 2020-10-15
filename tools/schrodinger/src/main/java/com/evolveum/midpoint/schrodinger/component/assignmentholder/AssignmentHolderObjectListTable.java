@@ -97,4 +97,8 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
 
     public abstract PD getObjectDetailsPage();
 
+    public boolean rowWithTextExists (String text) {
+        return getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", text))
+                .exists();
+    }
 }
