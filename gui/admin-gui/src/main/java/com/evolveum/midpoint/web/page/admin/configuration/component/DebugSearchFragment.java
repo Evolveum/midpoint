@@ -167,6 +167,7 @@ public class DebugSearchFragment extends Fragment {
                 DebugSearchDto searchDto = DebugSearchFragment.this.getModel().getObject();
                 searchDto.setType(choice.getModel().getObject());
                 searchDto.setSearch(null);
+                getSearchPanel().resetMoreDialogModel();
                 target.add(getSearchPanel());
                 searchPerformed(target);
             }
