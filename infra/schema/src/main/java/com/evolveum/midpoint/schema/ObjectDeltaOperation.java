@@ -14,12 +14,13 @@ import java.util.stream.Collectors;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.equivalence.EquivalenceStrategy;
 import com.evolveum.midpoint.prism.equivalence.ParameterizedEquivalenceStrategy;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.annotation.Experimental;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ShadowType;
 
@@ -281,4 +282,20 @@ public class ObjectDeltaOperation<O extends ObjectType> implements DebugDumpable
         return sb.toString();
     }
 
+    public OperationResultStatus getStatus() {
+        return executionResult != null ? executionResult.getStatus() : null;
+    }
+
+    /**
+     * An approximate information if the delta was "really" executed i.e. if there's a real chance
+     * that the delta was - at least partially - applied.
+     *
+     * Any solution based on operation result status will never be 100% accurate, e.g. because
+     * a network timeout could occur just before returning a status value. So please use with care.
+     */
+    @Experimental
+    public boolean wasReallyExecuted() {
+        OperationResultStatus status = getStatus();
+        return status != null && status != OperationResultStatus.FATAL_ERROR && status != OperationResultStatus.NOT_APPLICABLE;
+    }
 }

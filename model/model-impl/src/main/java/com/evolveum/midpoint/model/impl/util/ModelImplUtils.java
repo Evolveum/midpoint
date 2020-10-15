@@ -804,8 +804,7 @@ public class ModelImplUtils {
                     result.recordSuccess();
                 }
                 return CriticalityType.IGNORE;
-            }
-            else if (e instanceof CommunicationException) {
+            } else if (e instanceof CommunicationException) {
                 // Network problem. Just continue evaluation. The error is recorded in the result.
                 // The consistency mechanism has (most likely) already done the best.
                 // We cannot do any better.
