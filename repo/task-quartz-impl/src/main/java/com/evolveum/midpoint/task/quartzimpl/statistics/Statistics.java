@@ -12,9 +12,8 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.api.SqlPerformanceMonitorsCollection;
 import com.evolveum.midpoint.repo.api.perf.PerformanceInformation;
-import com.evolveum.midpoint.repo.api.perf.PerformanceMonitor;
 import com.evolveum.midpoint.schema.cache.CacheConfigurationManager;
 import com.evolveum.midpoint.schema.statistics.*;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -67,7 +66,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
     private static final Object BUCKET_INFORMATION_LOCK = new Object();
 
     /**
-     * Most current version of repository performance information. Original (live) form of this information is accessible only
+     * Most current version of repository and audit performance information. Original (live) form of this information is accessible only
      * from the task thread itself. So we have to refresh this item periodically from the task thread.
      *
      * DO NOT modify the content of this structure from multiple threads. The task thread should only replace the whole structure,
@@ -404,7 +403,7 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     public void startCollectingOperationStatsFromZero(boolean enableIterationStatistics, boolean enableSynchronizationStatistics,
-            boolean enableActionsExecutedStatistics, PerformanceMonitor performanceMonitor) {
+            boolean enableActionsExecutedStatistics, SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
         resetEnvironmentalPerformanceInformation(null);
         if (enableIterationStatistics) {
             resetIterativeTaskInformation(null);
@@ -417,12 +416,12 @@ public class Statistics implements WorkBucketStatisticsCollector {
         }
         resetWorkBucketManagementPerformanceInformation(null);
         setInitialValuesForLowLevelStatistics(null);
-        startCollectingLowLevelStatistics(performanceMonitor);
+        startCollectingLowLevelStatistics(sqlPerformanceMonitors);
     }
 
     public void startCollectingOperationStatsFromStoredValues(OperationStatsType stored, boolean enableIterationStatistics,
             boolean enableSynchronizationStatistics, boolean enableActionsExecutedStatistics, boolean initialExecution,
-            PerformanceMonitor performanceMonitor) {
+            SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
         OperationStatsType initial = stored != null ? stored : new OperationStatsType();
         resetEnvironmentalPerformanceInformation(initial.getEnvironmentalPerformanceInformation());
         if (enableIterationStatistics) {
@@ -446,15 +445,15 @@ public class Statistics implements WorkBucketStatisticsCollector {
             resetWorkBucketManagementPerformanceInformation(initial.getWorkBucketManagementPerformanceInformation());
         }
         setInitialValuesForLowLevelStatistics(initial);
-        startCollectingLowLevelStatistics(performanceMonitor);
+        startCollectingLowLevelStatistics(sqlPerformanceMonitors);
     }
 
     /**
      * Cheap operation so we can (and should) invoke it frequently.
      * But ALWAYS call it from the thread that executes the task in question; otherwise we get wrong data there.
      */
-    public void refreshLowLevelStatistics(RepositoryService repositoryService, TaskManagerQuartzImpl taskManager) {
-        refreshRepositoryPerformanceInformation(repositoryService);
+    public void refreshLowLevelStatistics(TaskManagerQuartzImpl taskManager) {
+        refreshRepositoryAndAuditPerformanceInformation(taskManager);
         refreshCachePerformanceInformation();
         refreshMethodsPerformanceInformation();
         refreshCacheConfigurationInformation(taskManager.getCacheConfigurationManager());
@@ -472,8 +471,8 @@ public class Statistics implements WorkBucketStatisticsCollector {
         cachingConfigurationDump = dump;
     }
 
-    public void startCollectingLowLevelStatistics(PerformanceMonitor performanceMonitor) {
-        performanceMonitor.startThreadLocalPerformanceInformationCollection();
+    public void startCollectingLowLevelStatistics(SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
+        sqlPerformanceMonitors.startThreadLocalPerformanceInformationCollection();
         CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
         OperationsPerformanceMonitor.INSTANCE.startThreadLocalPerformanceInformationCollection();
     }
@@ -484,12 +483,13 @@ public class Statistics implements WorkBucketStatisticsCollector {
         initialOperationsPerformanceInformation = operationStats != null ? operationStats.getOperationsPerformanceInformation() : null;
     }
 
-    private void refreshRepositoryPerformanceInformation(RepositoryService repositoryService) {
-        PerformanceInformation performanceInformation = repositoryService.getPerformanceMonitor().getThreadLocalPerformanceInformation();
-        if (performanceInformation != null) {
-            repositoryPerformanceInformation = performanceInformation.toRepositoryPerformanceInformationType();
+    private void refreshRepositoryAndAuditPerformanceInformation(TaskManagerQuartzImpl taskManager) {
+        PerformanceInformation sqlPerformanceInformation = taskManager
+                .getSqlPerformanceMonitorsCollection().getThreadLocalPerformanceInformation();
+        if (sqlPerformanceInformation != null) {
+            repositoryPerformanceInformation = sqlPerformanceInformation.toRepositoryPerformanceInformationType();
         } else {
-            repositoryPerformanceInformation = null;       // probably we are not collecting these
+            repositoryPerformanceInformation = null; // probably we are not collecting these
         }
     }
 

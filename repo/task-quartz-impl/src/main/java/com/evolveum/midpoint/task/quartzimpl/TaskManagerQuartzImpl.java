@@ -178,6 +178,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
     @Autowired private MidpointConfiguration midpointConfiguration;
     @Autowired private RepositoryService repositoryService;
+    @Autowired private SqlPerformanceMonitorsCollection sqlPerformanceMonitorsCollection;
     @Autowired private LightweightIdentifierGenerator lightweightIdentifierGenerator;
     @Autowired private PrismContext prismContext;
     @Autowired private SchemaHelper schemaHelper;
@@ -1998,6 +1999,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware, Sys
 
     public RepositoryService getRepositoryService() {
         return repositoryService;
+    }
+
+    public SqlPerformanceMonitorsCollection getSqlPerformanceMonitorsCollection() {
+        return sqlPerformanceMonitorsCollection;
     }
 
     public RelationRegistry getRelationRegistry() {

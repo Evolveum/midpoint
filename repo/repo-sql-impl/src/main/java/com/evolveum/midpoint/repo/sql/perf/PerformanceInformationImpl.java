@@ -93,4 +93,14 @@ public class PerformanceInformationImpl implements PerformanceInformation {
         operationMap.forEach((op, opPerfInfo) -> clone.operationMap.put(op, opPerfInfo.clone()));
         return clone;
     }
+
+    /**
+     * Merges an increment to this information.
+     * BEWARE: Assumes distinct sets of operation (does not check for overlaps).
+     */
+    public void mergeDistinct(PerformanceInformationImpl increment) {
+        if (increment != null) {
+            operationMap.putAll(increment.getAllData());
+        }
+    }
 }

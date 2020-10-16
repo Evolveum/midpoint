@@ -58,16 +58,11 @@ public class InternalsPerformancePanel extends BasePanel<Void> {
         StringBuilder sb = new StringBuilder();
         MidPointApplication midPointApplication = MidPointApplication.get();
         if (midPointApplication != null) {
-            PerformanceInformation repo = midPointApplication.getRepositoryService()
-                    .getPerformanceMonitor().getGlobalPerformanceInformation();
-            if (repo != null) {
-                sb.append("Repository performance information:\n")
-                        .append(RepositoryPerformanceInformationUtil.format(repo.toRepositoryPerformanceInformationType()))
-                        .append("\n");
-            } else {
-                sb.append("Repository performance information is currently not available."
-                        + "Please set up repository statistics monitoring in the system configuration.\n\n");
-            }
+            PerformanceInformation performanceInformation = midPointApplication.getSqlPerformanceMonitorsCollection()
+                    .getGlobalPerformanceInformation();
+            sb.append("SQL performance information (repository, audit):\n")
+                    .append(RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()))
+                    .append("\n");
         }
         Map<String, CachePerformanceCollector.CacheData> cache = CachePerformanceCollector.INSTANCE
                 .getGlobalPerformanceMap();
