@@ -173,7 +173,7 @@ public class Search<T> extends Component<T> {
         return this;
     }
 
-    public Search<T> clearSearchItemByNameAndUpdate(String itemName) {
+    public Search<T> clearTextSearchItemByNameAndUpdate(String itemName) {
         choiceBasicSearch();
         SelenideElement itemElement = getItemByName(itemName);
         if (itemElement == null){

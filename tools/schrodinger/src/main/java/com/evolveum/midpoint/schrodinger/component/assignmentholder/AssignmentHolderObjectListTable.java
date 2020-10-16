@@ -6,18 +6,19 @@
  */
 package com.evolveum.midpoint.schrodinger.component.assignmentholder;
 
+import static com.codeborne.selenide.Selenide.$;
+
 import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.Selenide;
 import com.codeborne.selenide.SelenideElement;
+import org.openqa.selenium.By;
+
 import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.common.Search;
 import com.evolveum.midpoint.schrodinger.component.common.table.TableWithPageRedirect;
 import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-import org.openqa.selenium.By;
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by honchar
@@ -94,27 +95,4 @@ public abstract class AssignmentHolderObjectListTable<P, PD extends AssignmentHo
     }
 
     public abstract PD getObjectDetailsPage();
-
-    /**
-     * use this method to check if the table row which contains label element with the
-     * specified text exists (e.g. a row with the text in Name column or other col)
-     * @param text
-     * @return
-     */
-    public boolean rowWithLabelTextExists (String text) {
-        return getParentElement().$(Schrodinger.byElementValue("span", "data-s-id", "label", text))
-                .exists();
-    }
-
-    /**
-     * use this method to check if the table row which contains cell element with the
-     * specified text exists (e.g. a row with the text in Given name column)
-     * @param text
-     * @return
-     */
-    public boolean rowWithCellTextExists (String text) {
-        return getParentElement().$(Schrodinger.byElementValue("div", "data-s-id", "cell", text))
-                .exists();
-    }
-
 }

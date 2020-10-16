@@ -7,8 +7,7 @@
 -->
 
 <user oid="4462fd5e-f7f7-4ols-94sd-ace8cd6ed4aa"
-      xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
-      xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
+      xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
     <name>search by family name user</name>
     <familyName>searchByFamilyNameUser</familyName>
 </user>

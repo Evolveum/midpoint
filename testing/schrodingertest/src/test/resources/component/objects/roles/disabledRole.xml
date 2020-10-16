@@ -6,8 +6,11 @@
 ~ and European Union Public License. See LICENSE file for details.
 -->
 
-<user oid="fb0ffd5e-f7f7-4772-94sd-1848cd6ed4aa"
+<role oid="9ol1fd5e-otmk-6523-nn32-a887c00ed4aa"
       xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-3">
-    <name>searchByNameUser</name>
-</user>
+    <name>Administrative status search test</name>
+    <activation>
+        <administrativeStatus>disabled</administrativeStatus>
+    </activation>
+</role>
 
