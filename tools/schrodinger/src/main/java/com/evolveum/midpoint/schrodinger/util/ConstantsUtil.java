@@ -33,4 +33,5 @@ public class ConstantsUtil {
     //styles
     public static final String OBJECT_USER_BOX_COLOR = "object-user-box";
     public static final String OBJECT_ROLE_BOX_COLOR = "object-role-box";
+    public static final String OBJECT_SERVICE_BOX_COLOR = "object-service-box";
 }

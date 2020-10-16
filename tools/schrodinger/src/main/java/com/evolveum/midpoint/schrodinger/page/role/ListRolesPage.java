@@ -6,10 +6,8 @@
  */
 package com.evolveum.midpoint.schrodinger.page.role;
 
-import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
-import com.evolveum.midpoint.schrodinger.MidPoint;
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListPage;
 import com.evolveum.midpoint.schrodinger.util.ConstantsUtil;
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -21,7 +19,7 @@ import static com.codeborne.selenide.Selenide.$;
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ListRolesPage extends AssignmentHolderObjectListPage<RolesPageTable> {
+public class ListRolesPage extends AssignmentHolderObjectListPage<RolesPageTable, RolePage> {
 
     @Override
     public RolesPageTable table() {
@@ -38,19 +36,13 @@ public class ListRolesPage extends AssignmentHolderObjectListPage<RolesPageTable
         SelenideElement mainButton = $(By.xpath("//button[@type='button'][@" + Schrodinger.DATA_S_ID + "='mainButton']"));
         String expanded = mainButton.getAttribute("aria-haspopup");
         if (Boolean.getBoolean(expanded)) {
-            return newRole("New role");
+            return newObjectCollection("New role");
         }
         mainButton.click();
         return new RolePage();
     }
 
-    public RolePage newRole(String title) {
-        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@" + Schrodinger.DATA_S_ID + "='mainButton']"));
-        if (!Boolean.getBoolean(mainButton.getAttribute("aria-expanded"))) {
-            mainButton.click();
-        }
-        $(Schrodinger.byElementAttributeValue("div", "title", title))
-                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+    public RolePage getObjectDetailsPage() {
         return new RolePage();
     }
 }

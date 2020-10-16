@@ -10,6 +10,7 @@ import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
 
 import com.evolveum.midpoint.schrodinger.MidPoint;
+import com.evolveum.midpoint.schrodinger.page.AssignmentHolderDetailsPage;
 import com.evolveum.midpoint.schrodinger.page.BasicPage;
 
 import com.evolveum.midpoint.schrodinger.util.Schrodinger;
@@ -23,9 +24,11 @@ import static com.codeborne.selenide.Selenide.$;
  * @author skublik
  */
 
-public abstract class AssignmentHolderObjectListPage<T extends AssignmentHolderObjectListTable> extends BasicPage {
+public abstract class AssignmentHolderObjectListPage<T extends AssignmentHolderObjectListTable, D extends AssignmentHolderDetailsPage> extends BasicPage {
 
     public abstract T table();
+
+    public abstract D getObjectDetailsPage();
 
     protected SelenideElement getTableBoxElement(){
         StringBuilder tableStyle = new StringBuilder(".box.boxed-table");
@@ -46,6 +49,16 @@ public abstract class AssignmentHolderObjectListPage<T extends AssignmentHolderO
     public int getCountOfObjects() {
         String countString = $(Schrodinger.byDataId("div", "count")).getText();
         return Integer.valueOf(countString.substring(countString.lastIndexOf(" ")+1));
+    }
+
+    public D newObjectCollection(String title) {
+        SelenideElement mainButton = $(By.xpath("//button[@type='button'][@" + Schrodinger.DATA_S_ID + "='mainButton']"));
+        if (!Boolean.getBoolean(mainButton.getAttribute("aria-expanded"))) {
+            mainButton.click();
+        }
+        $(Schrodinger.byElementAttributeValue("div", "title", title))
+                .waitUntil(Condition.visible, MidPoint.TIMEOUT_DEFAULT_2_S).click();
+        return getObjectDetailsPage();
     }
 
 }

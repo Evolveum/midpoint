@@ -11,7 +11,9 @@ import java.io.IOException;
 
 import com.evolveum.midpoint.schrodinger.page.role.RolesPageTable;
 
-import org.junit.Test;
+import com.evolveum.midpoint.schrodinger.page.service.ServicesPageTable;
+
+import org.testng.annotations.Test;
 import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 
@@ -35,7 +37,8 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
     private static final String NAME_ATTRIBUTE = "Name";
     private static final String GIVEN_NAME_ATTRIBUTE = "Given name";
     private static final String FAMILY_NAME_ATTRIBUTE = "Family name";
-    private static final String ROLE_TYPE_ATTRIBUTE = "Role type";
+    private static final String REQUESTABLE_ATTRIBUTE = "Requestable";
+    private static final String ROLE_MEMBERSHIP_ATTRIBUTE = "Role membership";
 
     @BeforeClass
     @Override
@@ -56,32 +59,44 @@ public class SearchPanelTest extends AbstractSchrodingerTest {
                 .byItemName(NAME_ATTRIBUTE)
                 .inputValue("searchByNameUser")
                 .updateSearch();
-        Assert.assertTrue(table.rowWithTextExists("searchByNameUser"));
-        Assert.assertFalse(table.rowWithTextExists("searchByGivenNameUser"));
-        Assert.assertFalse(table.rowWithTextExists("searchByFamilyNameUser"));
+        Assert.assertTrue(table.rowWithLabelTextExists("searchByNameUser"));
+        Assert.assertFalse(table.rowWithCellTextExists("searchByGivenNameUser"));
+        Assert.assertFalse(table.rowWithCellTextExists("searchByFamilyNameUser"));
+        usersListSearch.clearSearchItemByNameAndUpdate(NAME_ATTRIBUTE);
 
         usersListSearch
                 .byItemName(GIVEN_NAME_ATTRIBUTE)
                 .inputValue("searchByGivenNameUser")
                 .updateSearch();
-        Assert.assertFalse(table.rowWithTextExists("searchByNameUser"));
-        Assert.assertTrue(table.rowWithTextExists("searchByGivenNameUser"));
-        Assert.assertFalse(table.rowWithTextExists("searchByFamilyNameUser"));
+        Assert.assertFalse(table.rowWithLabelTextExists("searchByNameUser"));
+        Assert.assertTrue(table.rowWithCellTextExists("searchByGivenNameUser"));
+        Assert.assertFalse(table.rowWithCellTextExists("searchByFamilyNameUser"));
+        usersListSearch.clearSearchItemByNameAndUpdate(GIVEN_NAME_ATTRIBUTE);
 
         usersListSearch
                 .byItemName(FAMILY_NAME_ATTRIBUTE)
                 .inputValue("searchByFamilyNameUser")
                 .updateSearch();
-        Assert.assertFalse(table.rowWithTextExists("searchByNameUser"));
-        Assert.assertFalse(table.rowWithTextExists("searchByGivenNameUser"));
-        Assert.assertTrue(table.rowWithTextExists("searchByFamilyNameUser"));
+        Assert.assertFalse(table.rowWithLabelTextExists("searchByNameUser"));
+        Assert.assertFalse(table.rowWithCellTextExists("searchByGivenNameUser"));
+        Assert.assertTrue(table.rowWithCellTextExists("searchByFamilyNameUser"));
+        usersListSearch.clearSearchItemByNameAndUpdate(FAMILY_NAME_ATTRIBUTE);
     }
 
     @Test
     public void test0020addSearchAttributeByAddButtonClick() {
         RolesPageTable table = basicPage.listRoles().table();
         Search<RolesPageTable> search = (Search<RolesPageTable>) table.search();
-        search.addSearchItemByAddButtonClick(ROLE_TYPE_ATTRIBUTE);
-        Assert.assertNotNull(search.byItemName(ROLE_TYPE_ATTRIBUTE, false));
+        search.addSearchItemByAddButtonClick(REQUESTABLE_ATTRIBUTE);
+        Assert.assertNotNull(search.byItemName(REQUESTABLE_ATTRIBUTE, false));
     }
+
+    @Test
+    public void test0030addSearchAttributeByNameLinkClick() {
+        ServicesPageTable table = basicPage.listServices().table();
+        Search<ServicesPageTable> search = (Search<ServicesPageTable>) table.search();
+        search.addSearchItemByNameLinkClick(ROLE_MEMBERSHIP_ATTRIBUTE);
+        Assert.assertNotNull(search.byItemName(ROLE_MEMBERSHIP_ATTRIBUTE, false));
+    }
+
 }

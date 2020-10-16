@@ -6,21 +6,22 @@
  */
 package com.evolveum.midpoint.schrodinger.page.task;
 
-import com.codeborne.selenide.SelenideElement;
-
 import com.evolveum.midpoint.schrodinger.component.assignmentholder.AssignmentHolderObjectListPage;
 import com.evolveum.midpoint.schrodinger.component.task.TasksPageTable;
-import com.evolveum.midpoint.schrodinger.util.Schrodinger;
-
-import static com.codeborne.selenide.Selenide.$;
 
 /**
  * Created by Viliam Repan (lazyman).
  */
-public class ListTasksPage extends AssignmentHolderObjectListPage<TasksPageTable> {
+public class ListTasksPage extends AssignmentHolderObjectListPage<TasksPageTable, TaskPage> {
 
+    @Override
     public TasksPageTable table() {
         return new TasksPageTable(this, getTableBoxElement());
+    }
+
+    @Override
+    public TaskPage getObjectDetailsPage() {
+        return new TaskPage();
     }
 
 }

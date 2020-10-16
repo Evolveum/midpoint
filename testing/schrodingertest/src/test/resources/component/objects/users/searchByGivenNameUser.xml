@@ -9,6 +9,7 @@
 <user oid="fb0ffd5e-e5e5-4772-94sd-1848cd6ed4aa"
       xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-3'
       xmlns:org="http://midpoint.evolveum.com/xml/ns/public/common/org-3">
-    <name>searchByGivenNameUser</name>
+    <name>search by given name user</name>
+    <givenName>searchByGivenNameUser</givenName>
 </user>
 

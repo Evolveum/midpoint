@@ -172,5 +172,17 @@ public class Search<T> extends Component<T> {
         Selenide.sleep(MidPoint.TIMEOUT_DEFAULT_2_S);
         return this;
     }
+
+    public Search<T> clearSearchItemByNameAndUpdate(String itemName) {
+        choiceBasicSearch();
+        SelenideElement itemElement = getItemByName(itemName);
+        if (itemElement == null){
+            return this;
+        }
+        SearchItemField searchField = new SearchItemField(this, itemElement);
+        searchField.inputValue("");
+        updateSearch();
+        return this;
+    }
 }
 
