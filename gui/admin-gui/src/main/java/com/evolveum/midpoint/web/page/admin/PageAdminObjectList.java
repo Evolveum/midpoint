@@ -108,14 +108,6 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
             }
 
             @Override
-            protected ISelectableDataProvider<O, SelectableBean<O>> createProvider() {
-                if (getCustomProvider() != null) {
-                    return getCustomProvider();
-                }
-                return super.createProvider();
-            }
-
-            @Override
             protected String getStorageKey() {
                 return super.getStorageKey();
             }
@@ -141,10 +133,6 @@ public abstract class PageAdminObjectList<O extends ObjectType> extends PageAdmi
 
     protected boolean getNewObjectGenericButtonVisibility(){
         return true;
-    }
-
-    protected ISelectableDataProvider<O, SelectableBean<O>> getCustomProvider() {
-        return null;
     }
 
     protected abstract Class<O> getType();

@@ -31,7 +31,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.prism.ValueStatus;
 import com.evolveum.midpoint.web.page.error.PageError;
 
@@ -42,7 +41,7 @@ public class ContainerListDataProvider<C extends Containerable> extends BaseSort
         implements ISelectableDataProvider<PrismContainerValueWrapper<C>, PrismContainerValueWrapper<C>> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ContainerListDataProvider.class);
-    private static final String DOT_CLASS = ObjectDataProvider.class.getName() + ".";
+    private static final String DOT_CLASS = ContainerListDataProvider.class.getName() + ".";
     private static final String OPERATION_SEARCH_CONTAINERS = DOT_CLASS + "searchContainers";
     private static final String OPERATION_COUNT_CONTAINERS = DOT_CLASS + "countContainers";
 

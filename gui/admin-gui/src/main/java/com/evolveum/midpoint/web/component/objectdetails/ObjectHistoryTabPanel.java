@@ -11,6 +11,7 @@ import java.util.List;
 import com.evolveum.midpoint.gui.api.prism.wrapper.PrismContainerValueWrapper;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditLogViewerPanelNew;
 
 import com.evolveum.midpoint.web.session.PageStorage;
@@ -78,24 +79,24 @@ public abstract class ObjectHistoryTabPanel<F extends FocusType> extends Abstrac
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>> createColumns() {
-                List<IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>> columns = super.createColumns();
+            protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createColumns() {
+                List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = super.createColumns();
 
-                IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String> column
-                        = new AbstractColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>(new Model<>()) {
+                IColumn<SelectableBean<AuditEventRecordType>, String> column
+                        = new AbstractColumn<SelectableBean<AuditEventRecordType>, String>(new Model<>()) {
 
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AuditEventRecordType>>> cellItem, String componentId,
-                                             IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<AuditEventRecordType>>> cellItem, String componentId,
+                                             IModel<SelectableBean<AuditEventRecordType>> rowModel) {
 
-                        cellItem.add(new MultiButtonPanel<PrismContainerValueWrapper<AuditEventRecordType>>(componentId, rowModel, 2) {
+                        cellItem.add(new MultiButtonPanel<SelectableBean<AuditEventRecordType>>(componentId, rowModel, 2) {
 
                             private static final long serialVersionUID = 1L;
 
                             @Override
-                            protected Component createButton(int index, String componentId, IModel<PrismContainerValueWrapper<AuditEventRecordType>> model) {
+                            protected Component createButton(int index, String componentId, IModel<SelectableBean<AuditEventRecordType>> model) {
                                 AjaxIconButton btn = null;
                                 switch (index) {
                                     case 0:

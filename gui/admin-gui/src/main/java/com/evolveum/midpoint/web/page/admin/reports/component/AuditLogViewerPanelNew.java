@@ -10,22 +10,34 @@ import static com.evolveum.midpoint.gui.api.util.WebComponentUtil.dispatchToObje
 
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.midpoint.prism.query.ObjectOrdering;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.web.component.data.ISelectableDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableBeanContainerDataProvider;
+import com.evolveum.midpoint.web.component.data.SelectableBeanObjectDataProvider;
 import com.evolveum.midpoint.web.component.search.DateSearchItem;
 import com.evolveum.midpoint.web.component.search.Search;
 import com.evolveum.midpoint.web.component.search.SearchFactory;
 
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.session.AuditLogStorage;
 import com.evolveum.midpoint.web.session.PageStorage;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.extensions.markup.html.repeater.util.SortParam;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
@@ -42,14 +54,14 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.reports.PageAuditLogDetails;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditEventRecordProvider;
 import com.evolveum.midpoint.xml.ns._public.common.audit_3.AuditEventRecordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.ExpressionType;
+
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by honchar
@@ -73,7 +85,7 @@ public class AuditLogViewerPanelNew extends BasePanel {
         ContainerListPanel auditLogViewerTable = new ContainerListPanel(ID_AUDIT_LOG_VIEWER_TABLE, AuditEventRecordType.class) {
 
             @Override
-            protected List<IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>> createDefaultColumns() {
+            protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createDefaultColumns() {
                 return AuditLogViewerPanelNew.this.createColumns();
             }
 
@@ -111,26 +123,65 @@ public class AuditLogViewerPanelNew extends BasePanel {
             protected PageStorage getPageStorage(String storageKey){
                 return getAuditLogViewerStorage();
             }
+
+            @Override
+            protected ISelectableDataProvider createProvider() {
+                return new SelectableBeanContainerDataProvider<AuditEventRecordType>(AuditLogViewerPanelNew.this, AuditEventRecordType.class, null) {
+
+                    @Override
+                    protected void saveProviderPaging(ObjectQuery query, ObjectPaging paging) {
+                        PageStorage storage = getPageStorage();
+                        if (storage != null) {
+                            storage.setPaging(paging);
+                        }
+                    }
+
+                    @Override
+                    public ObjectQuery getQuery() {
+                        return createQuery();
+                    }
+
+                    @NotNull
+                    @Override
+                    protected List<ObjectOrdering> createObjectOrderings(SortParam<String> sortParam) {
+                        List<ObjectOrdering> customOrdering =  createCustomOrdering(sortParam);
+                        if (customOrdering != null) {
+                            return customOrdering;
+                        }
+                        return super.createObjectOrderings(sortParam);
+                    }
+
+                    @Override
+                    protected Integer countObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> currentOptions, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+                        return getPage().getAuditService().countObjects(query, currentOptions, result);
+                    }
+
+                    @Override
+                    protected List<AuditEventRecordType> searchObjects(Class<? extends AuditEventRecordType> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result) throws CommunicationException, ObjectNotFoundException, SchemaException, SecurityViolationException, ConfigurationException, ExpressionEvaluationException {
+                        return getPage().getAuditService().searchObjects(query, options, result);
+                    }
+                };
+            }
         };
         auditLogViewerTable.setOutputMarkupId(true);
         add(auditLogViewerTable);
     }
 
-    protected List<IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>> createColumns() {
-        List<IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>> columns = new ArrayList<>();
-        LinkColumn<PrismContainerValueWrapper<AuditEventRecordType>> initiatorRefColumn =
-                new LinkColumn<PrismContainerValueWrapper<AuditEventRecordType>>(createStringResource("AuditEventRecordType.initiatorRef"),
+    protected List<IColumn<SelectableBean<AuditEventRecordType>, String>> createColumns() {
+        List<IColumn<SelectableBean<AuditEventRecordType>, String>> columns = new ArrayList<>();
+        LinkColumn<SelectableBean<AuditEventRecordType>> initiatorRefColumn =
+                new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.initiatorRef"),
                         AuditEventRecordProvider.INITIATOR_OID_PARAMETER, AuditEventRecordType.F_INITIATOR_REF.getLocalPart()) {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+                    protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                         AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                         return Model.of(WebModelServiceUtils.resolveReferenceName(auditEventRecordType.getInitiatorRef(), getPageBase(), true));
                     }
 
                     @Override
-                    public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+                    public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                         AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                         dispatchToObjectDetailsPage(auditEventRecordType.getInitiatorRef(), getPageBase(), false);
                     }
@@ -138,14 +189,14 @@ public class AuditLogViewerPanelNew extends BasePanel {
         columns.add(initiatorRefColumn);
 
         if (!isObjectHistoryPanel()) {
-            IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String> eventStageColumn =
-                    new PropertyColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>(
+            IColumn<SelectableBean<AuditEventRecordType>, String> eventStageColumn =
+                    new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(
                             createStringResource("PageAuditLogViewer.eventStageLabel"),
                             AuditEventRecordProvider.EVENT_STAGE_PARAMETER, "eventStage") {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+                        public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                             return WebComponentUtil.createLocalizedModelForEnum(unwrapModel(rowModel).getEventStage(),
                                     AuditLogViewerPanelNew.this);
                         }
@@ -153,32 +204,32 @@ public class AuditLogViewerPanelNew extends BasePanel {
             columns.add(eventStageColumn);
         }
 
-        IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String> eventTypeColumn =
-                new PropertyColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>(createStringResource("PageAuditLogViewer.eventTypeLabel"),
+        IColumn<SelectableBean<AuditEventRecordType>, String> eventTypeColumn =
+                new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(createStringResource("PageAuditLogViewer.eventTypeLabel"),
                         AuditEventRecordProvider.EVENT_TYPE_PARAMETER, "eventType") {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+                    public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                         return WebComponentUtil.createLocalizedModelForEnum(unwrapModel(rowModel).getEventType(), AuditLogViewerPanelNew.this);
                     }
                 };
         columns.add(eventTypeColumn);
 
         if (!isObjectHistoryPanel()) {
-            LinkColumn<PrismContainerValueWrapper<AuditEventRecordType>> targetRefColumn =
-                    new LinkColumn<PrismContainerValueWrapper<AuditEventRecordType>>(createStringResource("AuditEventRecordType.targetRef"),
+            LinkColumn<SelectableBean<AuditEventRecordType>> targetRefColumn =
+                    new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.targetRef"),
                             AuditEventRecordProvider.TARGET_OID_PARAMETER, AuditEventRecordType.F_TARGET_REF.getLocalPart()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+                        protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                             AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                             return Model.of(WebModelServiceUtils.resolveReferenceName(auditEventRecordType.getTargetRef(), getPageBase(), true));
                         }
 
                         @Override
-                        public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+                        public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                             AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                             dispatchToObjectDetailsPage(auditEventRecordType.getTargetRef(), getPageBase(), false);
                         }
@@ -187,34 +238,34 @@ public class AuditLogViewerPanelNew extends BasePanel {
         }
 
         if (!isObjectHistoryPanel()) {
-            LinkColumn<PrismContainerValueWrapper<AuditEventRecordType>> targetOwnerRefColumn =
-                    new LinkColumn<PrismContainerValueWrapper<AuditEventRecordType>>(createStringResource("AuditEventRecordType.targetOwnerRef"),
+            LinkColumn<SelectableBean<AuditEventRecordType>> targetOwnerRefColumn =
+                    new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.targetOwnerRef"),
                             AuditEventRecordProvider.TARGET_OWNER_OID_PARAMETER, AuditEventRecordType.F_TARGET_OWNER_REF.getLocalPart()) {
                         private static final long serialVersionUID = 1L;
 
                         @Override
-                        protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+                        protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                             AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                             return Model.of(WebModelServiceUtils.resolveReferenceName(auditEventRecordType.getTargetOwnerRef(), getPageBase(), true));
                         }
 
                         @Override
-                        public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+                        public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                             AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                             dispatchToObjectDetailsPage(auditEventRecordType.getTargetOwnerRef(), getPageBase(), false);
                         }
                     };
             columns.add(targetOwnerRefColumn);
         }
-        IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String> channelColumn =
-                new PropertyColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>(
+        IColumn<SelectableBean<AuditEventRecordType>, String> channelColumn =
+                new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(
                         createStringResource("AuditEventRecordType.channel"),
                         AuditEventRecordProvider.CHANNEL_PARAMETER, "channel") {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public void populateItem(Item<ICellPopulator<PrismContainerValueWrapper<AuditEventRecordType>>> item, String componentId,
-                            IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+                    public void populateItem(Item<ICellPopulator<SelectableBean<AuditEventRecordType>>> item, String componentId,
+                            IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                         AuditEventRecordType auditEventRecordType = unwrapModel(rowModel);
                         String channel = auditEventRecordType.getChannel();
                         Channel channelValue = null;
@@ -236,14 +287,14 @@ public class AuditLogViewerPanelNew extends BasePanel {
                 };
         columns.add(channelColumn);
 
-        IColumn<PrismContainerValueWrapper<AuditEventRecordType>, String> outcomeColumn =
-                new PropertyColumn<PrismContainerValueWrapper<AuditEventRecordType>, String>(
+        IColumn<SelectableBean<AuditEventRecordType>, String> outcomeColumn =
+                new PropertyColumn<SelectableBean<AuditEventRecordType>, String>(
                         createStringResource("PageAuditLogViewer.outcomeLabel"),
                         AuditEventRecordProvider.OUTCOME_PARAMETER, "outcome") {
                     private static final long serialVersionUID = 1L;
 
                     @Override
-                    public IModel<String> getDataModel(IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+                    public IModel<String> getDataModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                         return WebComponentUtil.createLocalizedModelForEnum(unwrapModel(rowModel).getOutcome(), AuditLogViewerPanelNew.this);
                     }
                 };
@@ -253,22 +304,22 @@ public class AuditLogViewerPanelNew extends BasePanel {
     }
 
     private IColumn createNameColumn() {
-        return new LinkColumn<PrismContainerValueWrapper<AuditEventRecordType>>(createStringResource("AuditEventRecordType.timestamp")) {
+        return new LinkColumn<SelectableBean<AuditEventRecordType>>(createStringResource("AuditEventRecordType.timestamp")) {
             private static final long serialVersionUID = 1L;
 
             @Override
-            protected IModel<String> createLinkModel(IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+            protected IModel<String> createLinkModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                 AuditEventRecordType record = unwrapModel(rowModel);
                 return Model.of(WebComponentUtil.formatDate(record.getTimestamp()));
             }
 
             @Override
-            public boolean isEnabled(IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+            public boolean isEnabled(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                 return unwrapModel(rowModel) != null;
             }
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AuditEventRecordType>> rowModel) {
                 AuditEventRecordType record = unwrapModel(rowModel);
                 try {
                     AuditEventRecord.adopt(record, getPageBase().getPrismContext());
@@ -296,11 +347,11 @@ public class AuditLogViewerPanelNew extends BasePanel {
         return query;
     }
 
-    protected AuditEventRecordType unwrapModel(IModel<PrismContainerValueWrapper<AuditEventRecordType>> rowModel) {
+    protected AuditEventRecordType unwrapModel(IModel<SelectableBean<AuditEventRecordType>> rowModel) {
         if (rowModel == null || rowModel.getObject() == null) {
             return null;
         }
-        return rowModel.getObject().getRealValue();
+        return rowModel.getObject().getValue();
     }
 
     protected boolean isObjectHistoryPanel() {
