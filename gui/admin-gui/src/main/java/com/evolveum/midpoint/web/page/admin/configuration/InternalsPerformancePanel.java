@@ -60,14 +60,14 @@ public class InternalsPerformancePanel extends BasePanel<Void> {
         if (midPointApplication != null) {
             PerformanceInformation performanceInformation = midPointApplication.getSqlPerformanceMonitorsCollection()
                     .getGlobalPerformanceInformation();
-            sb.append("SQL performance information (repository, audit):\n")
+            sb.append("SQL performance information (repository, audit)\n\n")
                     .append(RepositoryPerformanceInformationUtil.format(performanceInformation.toRepositoryPerformanceInformationType()))
                     .append("\n");
         }
         Map<String, CachePerformanceCollector.CacheData> cache = CachePerformanceCollector.INSTANCE
                 .getGlobalPerformanceMap();
         if (cache != null) {
-            sb.append("Cache performance information:\n")
+            sb.append("Cache performance information\n\n")
                     .append(CachePerformanceInformationUtil.format(CachePerformanceInformationUtil.toCachesPerformanceInformationType(cache)))
                     .append("\n");
             sb.append("Cache performance information (extra - experimental):\n")
@@ -80,7 +80,7 @@ public class InternalsPerformancePanel extends BasePanel<Void> {
         OperationsPerformanceInformation methods = OperationsPerformanceMonitor.INSTANCE
                 .getGlobalPerformanceInformation();
         if (methods != null) {
-            sb.append("Methods performance information:\n")
+            sb.append("Methods performance information\n\n")
                     .append(OperationsPerformanceInformationUtil.format(OperationsPerformanceInformationUtil.toOperationsPerformanceInformationType(methods)))
                     .append("\n");
         } else {

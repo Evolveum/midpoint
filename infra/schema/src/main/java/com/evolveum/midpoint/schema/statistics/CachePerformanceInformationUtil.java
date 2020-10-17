@@ -8,7 +8,6 @@
 package com.evolveum.midpoint.schema.statistics;
 
 import com.evolveum.midpoint.util.caching.CachePerformanceCollector;
-import com.evolveum.midpoint.util.caching.CacheUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.CachesPerformanceInformationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_3.SingleCachePerformanceInformationType;
 import org.jetbrains.annotations.NotNull;
@@ -17,8 +16,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 import static com.evolveum.midpoint.util.caching.CachePerformanceCollector.isExtra;
-
-import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 
 /**
  *
@@ -74,22 +71,12 @@ public class CachePerformanceInformationUtil {
     }
 
     public static String format(CachesPerformanceInformationType information) {
-        StringBuilder sb = new StringBuilder();
-        List<SingleCachePerformanceInformationType> caches = new ArrayList<>(information.getCache());
-        caches.sort(Comparator.comparing(SingleCachePerformanceInformationType::getName));
-        int max = caches.stream().mapToInt(op -> op.getName().length()).max().orElse(0);
-        for (SingleCachePerformanceInformationType c : caches) {
-            int hits = defaultIfNull(c.getHitCount(), 0);
-            int weakHits = defaultIfNull(c.getWeakHitCount(), 0);
-            int misses = defaultIfNull(c.getMissCount(), 0);
-            int passes = defaultIfNull(c.getPassCount(), 0);
-            int notAvailable = defaultIfNull(c.getNotAvailableCount(), 0);
-            int sum = hits + weakHits + misses + passes + notAvailable;
-            sb.append(String.format("  %-" + (max+2) + "s ", c.getName()+":"));
-            CacheUtil.formatPerformanceData(sb, hits, weakHits, misses, passes, notAvailable, sum);
-            sb.append("\n");
-        }
-        return sb.toString();
+        return format(information, null);
+    }
+
+    public static String format(CachesPerformanceInformationType information, AbstractStatisticsPrinter.Options options) {
+        return new CachePerformanceInformationPrinter(information, options)
+                .print();
     }
 
     public static String format(Map<String, CachePerformanceCollector.CacheData> performanceMap) {
