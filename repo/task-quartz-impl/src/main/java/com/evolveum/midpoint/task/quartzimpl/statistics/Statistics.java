@@ -472,7 +472,9 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     public void startCollectingLowLevelStatistics(SqlPerformanceMonitorsCollection sqlPerformanceMonitors) {
-        sqlPerformanceMonitors.startThreadLocalPerformanceInformationCollection();
+        if (sqlPerformanceMonitors != null) {
+            sqlPerformanceMonitors.startThreadLocalPerformanceInformationCollection();
+        }
         CachePerformanceCollector.INSTANCE.startThreadLocalPerformanceInformationCollection();
         OperationsPerformanceMonitor.INSTANCE.startThreadLocalPerformanceInformationCollection();
     }
@@ -484,8 +486,8 @@ public class Statistics implements WorkBucketStatisticsCollector {
     }
 
     private void refreshRepositoryAndAuditPerformanceInformation(TaskManagerQuartzImpl taskManager) {
-        PerformanceInformation sqlPerformanceInformation = taskManager
-                .getSqlPerformanceMonitorsCollection().getThreadLocalPerformanceInformation();
+        SqlPerformanceMonitorsCollection monitors = taskManager.getSqlPerformanceMonitorsCollection();
+        PerformanceInformation sqlPerformanceInformation = monitors != null ? monitors.getThreadLocalPerformanceInformation() : null;
         if (sqlPerformanceInformation != null) {
             repositoryPerformanceInformation = sqlPerformanceInformation.toRepositoryPerformanceInformationType();
         } else {

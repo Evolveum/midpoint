@@ -317,7 +317,9 @@ public class RunningTaskQuartzImpl extends TaskQuartzImpl implements RunningTask
     }
 
     void startCollectingLowLevelStatistics() {
-        statistics.startCollectingLowLevelStatistics(taskManager.getSqlPerformanceMonitorsCollection());
+        if (taskManager.getSqlPerformanceMonitorsCollection() != null) {
+            statistics.startCollectingLowLevelStatistics(taskManager.getSqlPerformanceMonitorsCollection());
+        }
     }
 
     Statistics getStatistics() {
