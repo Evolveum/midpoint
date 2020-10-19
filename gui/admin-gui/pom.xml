@@ -748,6 +748,11 @@
             <artifactId>poi</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.github.inamik.text.tables</groupId>
+            <artifactId>inamik-text-tables</artifactId>
+        </dependency>
+
         <!-- testing dependencies -->
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
